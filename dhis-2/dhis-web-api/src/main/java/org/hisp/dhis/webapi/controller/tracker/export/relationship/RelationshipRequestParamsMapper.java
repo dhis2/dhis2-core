@@ -38,34 +38,30 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
-import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
-import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link RelationshipsExportController} stored in {@link
  * RelationshipRequestParams} to {@link RelationshipOperationParams} which is used to fetch
  * relationships from the service.
  */
-@Component
-@RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       RelationshipMapper.ORDERABLE_FIELDS.keySet();
 
-  private final FieldFilterService fieldFilterService;
+  private RelationshipRequestParamsMapper() {
+    throw new IllegalStateException("Utility class");
+  }
 
-  public RelationshipOperationParams map(RelationshipRequestParams relationshipRequestParams)
+  public static RelationshipOperationParams map(RelationshipRequestParams relationshipRequestParams)
       throws BadRequestException {
     UID trackedEntity = relationshipRequestParams.getTrackedEntity();
 
@@ -95,15 +91,12 @@ class RelationshipRequestParamsMapper {
     return builder
         .fields(
             RelationshipFields.of(
-                f ->
-                    fieldFilterService.filterIncludes(
-                        Relationship.class, relationshipRequestParams.getFields(), f),
-                FieldPath.FIELD_PATH_SEPARATOR))
+                relationshipRequestParams.getFields()::includes, FieldPath.FIELD_PATH_SEPARATOR))
         .includeDeleted(relationshipRequestParams.isIncludeDeleted())
         .build();
   }
 
-  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event)
+  private static TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event)
       throws BadRequestException {
     if (Objects.nonNull(trackedEntity)) {
       return TRACKED_ENTITY;
@@ -116,11 +109,11 @@ class RelationshipRequestParamsMapper {
         "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
   }
 
-  private boolean hasMoreThanOneNotNull(Object... values) {
+  private static boolean hasMoreThanOneNotNull(Object... values) {
     return Stream.of(values).filter(Objects::nonNull).count() > 1;
   }
 
-  private void mapOrderParam(
+  private static void mapOrderParam(
       RelationshipOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;

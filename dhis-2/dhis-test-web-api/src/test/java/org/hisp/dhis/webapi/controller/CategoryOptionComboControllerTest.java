@@ -226,23 +226,21 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     String defaultCatOptionComboOptions =
         catOptionCombos.get(0).getCategoryOptions().get(0).getId();
     String defaultCatOptionComboCatComboId = catOptionCombos.get(0).getCategoryCombo().getId();
-    response =
+
+    JsonWebMessage jsonWebMessage =
         POST(
                 "/categoryOptionCombos/",
                 """
-    { "name": "Not default",
-    "categoryOptions" : [{"id" : "%s"}],
-    "categoryCombo" : {"id" : "%s"} }
-    """
+                { "name": "Not default",
+                "categoryOptions" : [{"id" : "%s"}],
+                "categoryCombo" : {"id" : "%s"} }
+                """
                     .formatted(defaultCatOptionComboOptions, defaultCatOptionComboCatComboId))
-            .content(HttpStatus.CONFLICT);
-
-    JsonErrorReport error =
-        response.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1122);
-    assertNotNull(error);
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
     assertEquals(
-        "Category option combo Not default cannot be associated with the default category combo",
-        error.getMessage());
+        "Creating a single CategoryOptionCombo is forbidden through this endpoint. CategoryOptionCombos should be auto generated or imported through the metadata import",
+        jsonWebMessage.getMessage());
   }
 
   @Test
@@ -266,5 +264,123 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     // Can delete the duplicated default COC
     assertStatus(
         HttpStatus.OK, DELETE("/categoryOptionCombos/" + categoryOptionComboDuplicate.getUid()));
+  }
+
+  @Test
+  @DisplayName("Calls to POST /categoryOptionCombos should be rejected")
+  void postCategoryOptionCombosRejectedTest() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Creating a single CategoryOptionCombo is forbidden through this endpoint. CategoryOptionCombos should be auto generated or imported through the metadata import",
+        POST("/categoryOptionCombos", coc()).content(HttpStatus.CONFLICT).as(JsonWebMessage.class));
+  }
+
+  @Test
+  @DisplayName("Updating a COC CC should be rejected")
+  void updateCategoryOptionComboCatComboRejectedTest() {
+    TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("put1");
+    TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("put2");
+
+    JsonWebMessage jsonWebMessage =
+        PUT(
+                "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
+                cocCcUpdated(categoryMetadata2.cc1().getUid(), categoryMetadata1))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals(
+        "Importing 0 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo "
+            + categoryMetadata1.cc1().getUid(),
+        jsonWebMessage
+            .getResponse()
+            .getArray("errorReports")
+            .getObject(0)
+            .getString("message")
+            .string());
+  }
+
+  @Test
+  @DisplayName("Updating a COC CO should be rejected")
+  void updateCategoryOptionComboCatOptionRejectedTest() {
+    TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("put3");
+    TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("put4");
+
+    JsonWebMessage jsonWebMessage =
+        PUT(
+                "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
+                cocCoUpdated(categoryMetadata2.co1().getUid(), categoryMetadata1))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals(
+        "Importing 1 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo "
+            + categoryMetadata1.cc1().getUid(),
+        jsonWebMessage
+            .getResponse()
+            .getArray("errorReports")
+            .getObject(0)
+            .getString("message")
+            .string());
+  }
+
+  private String coc() {
+    return """
+          {
+            "code": "new coc",
+            "name": "new coc",
+            "categoryCombo": {
+              "id": "bjDvmb4bfuf"
+            },
+            "categoryOptions": [
+              {
+                "id": "xYerKDKCefk"
+              }
+            ]
+          }
+      """;
+  }
+
+  private String cocCcUpdated(String ccId, TestCategoryMetadata categoryMetadata) {
+    return """
+          {
+            "code": "new coc",
+            "name": "new coc",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+      """
+        .formatted(ccId, categoryMetadata.co1().getUid(), categoryMetadata.co3().getUid());
+  }
+
+  private String cocCoUpdated(String coId, TestCategoryMetadata categoryMetadata) {
+    return """
+          {
+            "code": "new coc",
+            "name": "new coc",
+            "categoryCombo": {
+              "id": "%s"
+            },
+            "categoryOptions": [
+              {
+                "id": "%s"
+              },
+              {
+                "id": "%s"
+              }
+            ]
+          }
+      """
+        .formatted(categoryMetadata.cc1().getUid(), categoryMetadata.co1().getUid(), coId);
   }
 }

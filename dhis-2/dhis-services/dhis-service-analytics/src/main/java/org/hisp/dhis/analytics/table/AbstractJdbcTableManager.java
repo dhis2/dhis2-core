@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -477,9 +478,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       return columns;
     }
 
-    return columns.stream()
-        .filter(c -> c.getCreated() == null || c.getCreated().before(lastResourceTableUpdate))
-        .collect(Collectors.toList());
+    List<AnalyticsTableColumn> filteredColumns = new ArrayList<>();
+
+    for (AnalyticsTableColumn c : columns) {
+      if (c.getCreated() == null || c.getCreated().before(lastResourceTableUpdate)) {
+        filteredColumns.add(c);
+      }
+    }
+
+    return filteredColumns;
   }
 
   /**

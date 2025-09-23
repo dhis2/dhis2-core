@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -47,30 +46,23 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventFields;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams.SingleEventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
-import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link EventsExportController} stored in {@link EventRequestParams} to
  * {@link SingleEventOperationParams} which is used to fetch events from the DB.
  */
-@Component
-@RequiredArgsConstructor
-public class SingleEventRequestParamsMapper {
+class SingleEventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  private final FieldFilterService fieldFilterService;
-
-  public SingleEventOperationParams map(
+  public static SingleEventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     validateProgram(eventRequestParams);
@@ -111,10 +103,7 @@ public class SingleEventRequestParamsMapper {
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .fields(
                 SingleEventFields.of(
-                    f ->
-                        fieldFilterService.filterIncludes(
-                            Event.class, eventRequestParams.getFields(), f),
-                    FieldPath.FIELD_PATH_SEPARATOR))
+                    eventRequestParams.getFields()::includes, FieldPath.FIELD_PATH_SEPARATOR))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());
@@ -128,7 +117,7 @@ public class SingleEventRequestParamsMapper {
     }
   }
 
-  private void mapOrderParam(
+  private static void mapOrderParam(
       SingleEventOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
       return;
@@ -143,7 +132,7 @@ public class SingleEventRequestParamsMapper {
     }
   }
 
-  private void mapDataElementFilterParam(
+  private static void mapDataElementFilterParam(
       SingleEventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
     if (dataElementFilters == null || dataElementFilters.isEmpty()) {
       return;
@@ -158,7 +147,7 @@ public class SingleEventRequestParamsMapper {
     }
   }
 
-  private void validateUpdateDurationParams(EventRequestParams eventRequestParams)
+  private static void validateUpdateDurationParams(EventRequestParams eventRequestParams)
       throws BadRequestException {
     if (eventRequestParams.getUpdatedWithin() != null
         && (eventRequestParams.getUpdatedAfter() != null
@@ -175,7 +164,8 @@ public class SingleEventRequestParamsMapper {
     }
   }
 
-  private void validateProgram(EventRequestParams eventRequestParams) throws BadRequestException {
+  private static void validateProgram(EventRequestParams eventRequestParams)
+      throws BadRequestException {
     if (eventRequestParams.getProgram() == null) {
       throw new BadRequestException("Program is mandatory");
     }

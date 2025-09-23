@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.test.e2e.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Conflict {
   private String object;
 

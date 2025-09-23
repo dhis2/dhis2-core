@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -40,25 +37,14 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,149 +61,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataValueService implements DataValueService {
 
   private final DataValueStore dataValueStore;
-  private final DataValueAuditService dataValueAuditService;
-  private final CategoryService categoryService;
-  private final DhisConfigurationProvider config;
-  private final OptionService optionService;
-
-  // -------------------------------------------------------------------------
-  // Basic DataValue
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public boolean addDataValue(DataValue dataValue) {
-    // ---------------------------------------------------------------------
-    // Validation
-    // ---------------------------------------------------------------------
-
-    if (dataValue == null || dataValue.isNullValue()) {
-      log.info("Data value is null");
-      return false;
-    }
-
-    String result =
-        ValidationUtils.valueIsValidOption(
-            dataValue.getValue(), dataValue.getDataElement(), optionService);
-
-    if (result != null) {
-      log.info("Data value is not valid: " + result);
-      return false;
-    }
-
-    boolean zeroInsignificant =
-        dataValueIsZeroAndInsignificant(dataValue.getValue(), dataValue.getDataElement());
-
-    if (zeroInsignificant) {
-      log.info("Data value is zero and insignificant");
-      return false;
-    }
-
-    // ---------------------------------------------------------------------
-    // Set default category option combo if null
-    // ---------------------------------------------------------------------
-
-    if (dataValue.getCategoryOptionCombo() == null) {
-      dataValue.setCategoryOptionCombo(categoryService.getDefaultCategoryOptionCombo());
-    }
-
-    if (dataValue.getAttributeOptionCombo() == null) {
-      dataValue.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
-    }
-
-    // ---------------------------------------------------------------------
-    // Check and restore soft deleted value
-    // ---------------------------------------------------------------------
-
-    DataValue softDelete = dataValueStore.getSoftDeletedDataValue(dataValue);
-
-    Date currentDate = new Date();
-
-    if (softDelete == null) {
-      dataValue.setCreated(currentDate);
-      dataValue.setLastUpdated(currentDate);
-      dataValueStore.addDataValue(dataValue);
-    } else {
-      // don't let original created date be overwritten
-      Date created = softDelete.getCreated();
-      softDelete.mergeWith(dataValue);
-      softDelete.setDeleted(false);
-      softDelete.setCreated(created);
-      softDelete.setLastUpdated(currentDate);
-
-      dataValueStore.updateDataValue(softDelete);
-
-      if (config.isEnabled(CHANGELOG_AGGREGATE)) {
-        DataValueAudit dataValueAudit =
-            new DataValueAudit(
-                dataValue,
-                dataValue.getValue(),
-                dataValue.getStoredBy(),
-                AuditOperationType.CREATE);
-
-        dataValueAuditService.addDataValueAudit(dataValueAudit);
-      }
-    }
-
-    return true;
-  }
-
-  @Override
-  @Transactional
-  public void updateDataValue(DataValue dataValue) {
-    if (dataValue.isNullValue()
-        || dataValueIsZeroAndInsignificant(dataValue.getValue(), dataValue.getDataElement())) {
-      deleteDataValue(dataValue);
-    } else if (ValidationUtils.valueIsValidOption(
-            dataValue.getValue(), dataValue.getDataElement(), optionService)
-        == null) {
-      dataValue.setLastUpdated(new Date());
-
-      if (config.isEnabled(CHANGELOG_AGGREGATE)
-          && !Objects.equals(dataValue.getAuditValue(), dataValue.getValue())) {
-        DataValueAudit dataValueAudit =
-            new DataValueAudit(
-                dataValue,
-                dataValue.getAuditValue(),
-                dataValue.getStoredBy(),
-                AuditOperationType.UPDATE);
-
-        dataValueAuditService.addDataValueAudit(dataValueAudit);
-      }
-
-      dataValueStore.updateDataValue(dataValue);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateDataValues(List<DataValue> dataValues) {
-    if (dataValues != null && !dataValues.isEmpty()) {
-      for (DataValue dataValue : dataValues) {
-        updateDataValue(dataValue);
-      }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void deleteDataValue(DataValue dataValue) {
-    if (config.isEnabled(CHANGELOG_AGGREGATE)) {
-      DataValueAudit dataValueAudit =
-          new DataValueAudit(
-              dataValue,
-              dataValue.getAuditValue(),
-              CurrentUserUtil.getCurrentUsername(),
-              AuditOperationType.DELETE);
-
-      dataValueAuditService.addDataValueAudit(dataValueAudit);
-    }
-
-    dataValue.setLastUpdated(new Date());
-    dataValue.setDeleted(true);
-
-    dataValueStore.updateDataValue(dataValue);
-  }
 
   @Override
   @Transactional
@@ -231,107 +74,13 @@ public class DefaultDataValueService implements DataValueService {
     dataValueStore.deleteDataValues(dataElement);
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo) {
-    CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
-    return dataValueStore.getDataValue(
-        dataElement, period, source, categoryOptionCombo, defaultOptionCombo);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
-    return dataValueStore.getDataValue(
-        dataElement, period, source, categoryOptionCombo, attributeOptionCombo);
-  }
-
   // -------------------------------------------------------------------------
   // Collections of DataValues
   // -------------------------------------------------------------------------
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValue> getDataValues(DataExportParams params) {
-    validate(params);
-
-    return dataValueStore.getDataValues(params);
-  }
-
-  @Override
-  public void validate(DataExportParams params) throws IllegalQueryException {
-    ErrorMessage error = null;
-
-    if (params == null) {
-      throw new IllegalQueryException(ErrorCode.E2000);
-    }
-
-    if (!params.hasDataElements() && !params.hasDataSets() && !params.hasDataElementGroups()) {
-      error = new ErrorMessage(ErrorCode.E2001);
-    }
-
-    if (!params.hasPeriods()
-        && !params.hasStartEndDate()
-        && !params.hasLastUpdated()
-        && !params.hasLastUpdatedDuration()) {
-      error = new ErrorMessage(ErrorCode.E2002);
-    }
-
-    if (params.hasPeriods() && params.hasStartEndDate()) {
-      error = new ErrorMessage(ErrorCode.E2003);
-    }
-
-    if (params.hasStartEndDate() && params.getStartDate().after(params.getEndDate())) {
-      error = new ErrorMessage(ErrorCode.E2004);
-    }
-
-    if (params.hasLastUpdatedDuration()
-        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
-      error = new ErrorMessage(ErrorCode.E2005);
-    }
-
-    if (!params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups()) {
-      error = new ErrorMessage(ErrorCode.E2006);
-    }
-
-    if (params.isIncludeDescendants() && params.hasOrganisationUnitGroups()) {
-      error = new ErrorMessage(ErrorCode.E2007);
-    }
-
-    if (params.isIncludeDescendants() && !params.hasOrganisationUnits()) {
-      error = new ErrorMessage(ErrorCode.E2008);
-    }
-
-    if (params.hasLimit() && params.getLimit() < 0) {
-      error = new ErrorMessage(ErrorCode.E2009, params.getLimit());
-    }
-
-    if (error != null) {
-      log.warn("Validation failed: " + error);
-
-      throw new IllegalQueryException(error);
-    }
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValue> getAllDataValues() {
-    return dataValueStore.getAllDataValues();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params) {
+  public List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params) {
     return dataValueStore.getDeflatedDataValues(params);
   }
 

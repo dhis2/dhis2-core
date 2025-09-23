@@ -189,6 +189,8 @@ public class FileResource extends BaseIdentifiableObject {
     this.storageKey = storageKey;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isAssigned() {
     return assigned;
   }

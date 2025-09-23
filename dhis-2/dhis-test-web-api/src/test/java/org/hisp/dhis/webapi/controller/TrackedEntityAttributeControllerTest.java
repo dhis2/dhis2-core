@@ -36,6 +36,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -185,9 +186,9 @@ class TrackedEntityAttributeControllerTest extends PostgresControllerIntegration
             .content(HttpStatus.OK);
 
     assertEquals(teaA.getUid(), jsonA.getString("id").string());
-    assertEquals(teaA.getTrigramIndexed(), jsonA.getBoolean("trigramIndexed").booleanValue());
+    assertTrue(jsonA.getBoolean("trigramIndexed").booleanValue());
     assertEquals(teaB.getUid(), jsonB.getString("id").string());
-    assertEquals(teaB.getTrigramIndexed(), jsonB.getBoolean("trigramIndexed").booleanValue());
+    assertFalse(jsonB.getBoolean("trigramIndexed").booleanValue());
   }
 
   private static void assertAttributeList(JsonObject actualJson, Set<String> expected) {

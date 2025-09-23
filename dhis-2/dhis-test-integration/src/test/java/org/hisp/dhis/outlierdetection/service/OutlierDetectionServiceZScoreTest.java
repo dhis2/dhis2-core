@@ -32,6 +32,7 @@ package org.hisp.dhis.outlierdetection.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.math.StatsAccumulator;
 import java.io.ByteArrayOutputStream;
@@ -48,8 +49,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
@@ -78,7 +79,7 @@ class OutlierDetectionServiceZScoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private DefaultOutlierDetectionService subject;
 
@@ -337,7 +338,7 @@ class OutlierDetectionServiceZScoreTest extends PostgresIntegrationTestBase {
     Stream.of(periods).forEach(periodService::addPeriod);
   }
 
-  private void addDataValues(DataValue... dataValues) {
-    Stream.of(dataValues).forEach(dataValueService::addDataValue);
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

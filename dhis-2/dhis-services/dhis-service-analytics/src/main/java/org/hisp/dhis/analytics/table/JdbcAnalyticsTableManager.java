@@ -49,11 +49,13 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -71,9 +73,7 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -238,6 +238,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void preCreateTables(AnalyticsTableUpdateParams params) {
     if (isApprovalEnabled(null)) {
       resourceTableService.generateDataApprovalResourceTables();
+
+      if (analyticsTableSettings.isAnalyticsDatabase()) {
+        resourceTableService.replicateDataApprovalResourceTables();
+      }
     }
   }
 
@@ -377,7 +381,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid \
+            """,
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
@@ -422,53 +427,70 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Returns the approval select expression based on the given year.
+   * Checks whether data approval is enabled for analytics for the current configuration and given
+   * data year. If enabled, returns the approval select expression based on the given year. If
+   * disabled, returns the higest possible data approval level as a string.
    *
    * @param year the year.
    * @return the approval select expression.
    */
   private String getApprovalSelectExpression(Integer year) {
     if (isApprovalEnabled(year)) {
-      return replace(
-          "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, ${approvalLevel})",
-          Map.of(
-              "approvalLevel", String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED)));
+      return getApprovalSelectExpression();
     } else {
       return String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST);
     }
   }
 
   /**
-   * Returns sub-query for approval level. First looks for approval level in data element resource
-   * table which will indicate level 0 (highest) if approval is not required. Then looks for highest
-   * level in dataapproval table.
+   * Returns a data approval select expression.
+   *
+   * @return a data approval select expression.
+   */
+  String getApprovalSelectExpression() {
+    return String.format(
+        "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, %d)",
+        DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED);
+  }
+
+  /**
+   * Checks whether data approval is enabled for analytics for the current configuration and given
+   * data year. If enabled, returns sub-query for approval level. First looks for approval level in
+   * data element resource table which will indicate level 0 (highest) if approval is not required.
+   * Then looks for highest level in dataapproval table. If disabled, returns an empty string.
    *
    * @param year the data year.
    */
   private String getApprovalJoinClause(Integer year) {
-    if (isApprovalEnabled(year)) {
-      StringBuilder sql =
-          new StringBuilder(
-              """
-              left join analytics_rs_dataapprovalminlevel da \
-              on des.workflowid=da.workflowid and da.periodid=dv.periodid \
-              and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (""");
+    return isApprovalEnabled(year) ? getApprovalJoinClause() : StringUtils.EMPTY;
+  }
 
-      Set<OrganisationUnitLevel> levels =
-          dataApprovalLevelService.getOrganisationUnitApprovalLevels();
+  /**
+   * Returns a data approval join clause.
+   *
+   * @return a data approval join clause.
+   */
+  String getApprovalJoinClause() {
+    StringBuilder sql =
+        new StringBuilder(
+            """
+            left join analytics_rs_dataapprovalminlevel da \
+            on des.workflowid=da.workflowid and da.periodid=dv.periodid \
+            and da.attributeoptioncomboid=dv.attributeoptioncomboid \
+            and (\
+            """);
 
-      for (OrganisationUnitLevel level : levels) {
-        sql.append(
-            replace(
-                "ous.idlevel ${level} = da.organisationunitid or",
-                Map.of("level", String.valueOf(level.getLevel()))));
-      }
+    List<OrganisationUnitLevel> levels =
+        dataApprovalLevelService.getOrganisationUnitApprovalLevels().stream()
+            .sorted(Comparator.comparing(OrganisationUnitLevel::getLevel))
+            .toList();
 
-      return TextUtils.removeLastOr(sql.toString()) + ") ";
-    }
+    sql.append(
+        levels.stream()
+            .map(level -> String.format("ous.idlevel%d = da.organisationunitid", level.getLevel()))
+            .collect(Collectors.joining(" or ")));
 
-    return StringUtils.EMPTY;
+    return sql.append(") ").toString();
   }
 
   /**
@@ -687,10 +709,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    // Doris does not support update statements on multikey tables
-    boolean supportsUpdate = !sqlBuilder.getDatabase().equals(Database.DORIS);
-    new AggregationLevelsHelper(jdbcTemplate, sqlBuilder)
-        .applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
+    boolean supportsUpdate = sqlBuilder.supportsUpdateForMultiKeyTable();
+    AggregationLevelsHelper helper = new AggregationLevelsHelper(jdbcTemplate, sqlBuilder);
+    helper.applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
   }
 
   /**

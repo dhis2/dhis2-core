@@ -35,6 +35,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,12 +70,14 @@ public class FileResourceCleanUpJob implements Job {
 
   @Override
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    log.info("Starting FileResourceCleanUpJob");
     progress.startingProcess("Clean-up file resources");
     FileResourceRetentionStrategy retentionStrategy =
         settingsProvider.getCurrentSettings().getFileResourceRetentionStrategy();
 
     List<Entry<String, String>> deletedOrphans = new ArrayList<>();
-    List<Entry<String, String>> deletedAuditFiles = new ArrayList<>();
+    List<Entry<String, String>> deletedExpired = new ArrayList<>();
+    List<Entry<String, String>> deletedFileResourcesForDeletedJobs = new ArrayList<>();
 
     // Delete expired FRs
     if (!FileResourceRetentionStrategy.FOREVER.equals(retentionStrategy)) {
@@ -85,7 +88,7 @@ public class FileResourceCleanUpJob implements Job {
           FileResourceCleanUpJob::toIdentifier,
           fr -> {
             if (safeDelete(fr)) {
-              deletedAuditFiles.add(new SimpleEntry<>(fr.getName(), fr.getUid()));
+              deletedExpired.add(Map.entry(fr.getName(), fr.getUid()));
             }
           });
     }
@@ -106,6 +109,22 @@ public class FileResourceCleanUpJob implements Job {
           }
         });
 
+    // Delete unassigned JOB_DATA file resources that have no associated job config
+    List<FileResource> unassignedJobDataFileResources =
+        fileResourceService.getAllUnassignedByJobDataDomainWithNoJobConfig();
+    progress.startingStage(
+        "Deleting JOB_DATA file resources associated with deleted ONCE_ASAP jobs",
+        unassignedJobDataFileResources.size(),
+        SKIP_ITEM_OUTLIER);
+    progress.runStage(
+        unassignedJobDataFileResources,
+        FileResourceCleanUpJob::toIdentifier,
+        fr -> {
+          if (safeDelete(fr)) {
+            deletedFileResourcesForDeletedJobs.add(new SimpleEntry<>(fr.getName(), fr.getUid()));
+          }
+        });
+
     if (!deletedOrphans.isEmpty()) {
       log.info(
           String.format(
@@ -113,13 +132,22 @@ public class FileResourceCleanUpJob implements Job {
               deletedOrphans.size(), prettyPrint(deletedOrphans)));
     }
 
-    if (!deletedAuditFiles.isEmpty()) {
+    if (!deletedExpired.isEmpty()) {
       log.info(
           String.format(
-              "Deleted %d expired FileResource audits: %s",
-              deletedAuditFiles.size(), prettyPrint(deletedAuditFiles)));
+              "Deleted %d expired data value FileResources: %s",
+              deletedExpired.size(), prettyPrint(deletedExpired)));
+    }
+
+    if (!deletedFileResourcesForDeletedJobs.isEmpty()) {
+      log.info(
+          String.format(
+              "Deleted %d FileResource(s) for deleted jobs : %s",
+              deletedFileResourcesForDeletedJobs.size(),
+              prettyPrint(deletedFileResourcesForDeletedJobs)));
     }
     progress.completedProcess(null);
+    log.info("Finished FileResourceCleanUpJob");
   }
 
   private static String toIdentifier(FileResource fr) {

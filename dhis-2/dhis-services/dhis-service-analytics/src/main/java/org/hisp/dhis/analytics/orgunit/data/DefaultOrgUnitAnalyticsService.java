@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.analytics.orgunit.data;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
 
 import java.util.Collection;
 import java.util.HashMap;

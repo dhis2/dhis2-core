@@ -35,20 +35,22 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
-import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
@@ -1029,7 +1031,7 @@ public class DataQueryParams {
   /** Returns all dimensions except any period dimension. */
   public List<DimensionalObject> getNonPeriodDimensions() {
     List<DimensionalObject> dims = new ArrayList<>(dimensions);
-    dims.remove(new BaseDimensionalObject(DimensionalObject.PERIOD_DIM_ID));
+    dims.remove(new BaseDimensionalObject(PERIOD_DIM_ID));
     return List.copyOf(dims);
   }
 
@@ -1866,10 +1868,10 @@ public class DataQueryParams {
 
     Map<MeasureFilter, Double> map = new EnumMap<>(MeasureFilter.class);
 
-    String[] criteria = param.split(DimensionalObject.OPTION_SEP);
+    String[] criteria = param.split(OPTION_SEP);
 
     for (String c : criteria) {
-      String[] criterion = c.split(DimensionalObject.DIMENSION_NAME_SEP);
+      String[] criterion = c.split(DIMENSION_NAME_SEP);
 
       if (criterion.length == 2 && MathUtils.isNumeric(criterion[1])) {
         MeasureFilter filter = MeasureFilter.valueOf(criterion[0]);
