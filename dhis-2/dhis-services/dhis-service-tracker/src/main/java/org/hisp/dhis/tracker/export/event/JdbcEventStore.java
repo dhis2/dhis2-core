@@ -783,10 +783,10 @@ class JdbcEventStore implements EventStore {
             .append(" ev.uid as ")
             .append(COLUMN_EVENT_UID)
             .append(", ")
-            .append("ou.uid as ")
+            .append("evou.uid as ")
             .append(COLUMN_ORG_UNIT_UID)
             .append(", ")
-            .append("ou.code as ")
+            .append("evou.code as ")
             .append(COLUMN_ORG_UNIT_CODE)
             .append(", p.uid as ")
             .append(COLUMN_PROGRAM_UID)
@@ -912,9 +912,10 @@ class JdbcEventStore implements EventStore {
         .append(
             "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
         .append(
-            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=evou.organisationunitid) ")
-        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
+            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
+                + " ev.organisationunitid)=ou.organisationunitid) ")
+        .append(
+            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
