@@ -321,7 +321,7 @@ details.op.stable { }
 .box:has(details[data-open]) aside > button.toggle:after { content: '⊠'; }
 .box:has(details[open]) aside > button.toggle, .box:has(details[data-open]) aside > button.toggle { pointer-events: inherit; opacity: inherit; }
 /* schema type markers */
-.schema > summary > code:first-of-type:before { padding: 5px; margin-right: 1rem; color: dimgray; background-color: var(--bg-schema) }
+.schema > summary > code:first-of-type:before { padding: 5px; margin-right: 1rem; color: dimgray; background-color: var(--bg-schema); display: inline-block; }
 .schema.object > summary > code:first-of-type:before { content: '{…}'; }
 .schema.array > summary > code:first-of-type:before { content: '[…]'; }
 .schema.string > summary > code:first-of-type:before { content: '"…"'; }
