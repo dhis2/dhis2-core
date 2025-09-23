@@ -39,12 +39,13 @@ class JdbcUtilsTest {
   void testExtractDatabaseName() {
     // PostgreSQL
     assertDatabase("d42", "jdbc:postgresql:d42");
-    assertDatabase("testdb", "jdbc:postgresql://localhost:5432/testdb");
+    assertDatabase("dhis2", "jdbc:postgresql:dhis2");
+    assertDatabase("prod", "jdbc:postgresql://localhost:5432/prod");
     assertDatabase("dhis2", "jdbc:postgresql://192.168.1.100/dhis2?ssl=true");
 
     // ClickHouse
     assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42");
-    assertDatabase("d42", "jdbc:clickhouse://myserver.org/d42");
+    assertDatabase("d41", "jdbc:clickhouse://myserver.org/d41");
     assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42?characterEncoding=utf8&my_prop=14");
     assertDatabase("system", "jdbc:ch://play.dhis2.org:8123/system");
     assertDatabase("anotherdb", "jdbc:ch://127.0.0.1/anotherdb");
