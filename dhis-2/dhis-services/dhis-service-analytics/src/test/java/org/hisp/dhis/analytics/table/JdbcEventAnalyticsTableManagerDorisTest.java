@@ -204,7 +204,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     String aliasF =
         """
         (select ou.name from dhis2.public.`organisationunit` ou \
-        where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value'))) as `%s`""";
+        where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value'))) as `%s`\
+        """;
     String aliasG =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) end as `%s`";
     String legendsetAlias =
