@@ -29,79 +29,63 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
+import java.util.function.BiFunction;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.OpenApi;
 
 /**
- * @author Lars Helge Overland
+ * All query parameters to read data value sets.
+ *
+ * @author Jan Bernitt
  */
 @Getter
 @Setter
-@Accessors(chain = true)
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataExportParams {
-  private Set<DataElement> dataElements = new HashSet<>();
+  private Set<String> dataElement;
 
-  private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+  private Set<String> dataSet;
 
-  private Set<DataSet> dataSets = new HashSet<>();
+  private Set<String> dataElementGroup;
 
-  private Set<DataElementGroup> dataElementGroups = new HashSet<>();
-
-  private Set<Period> periods = new HashSet<>();
-
-  private Set<PeriodType> periodTypes = new HashSet<>();
+  private Set<String> period;
 
   private Date startDate;
 
   private Date endDate;
 
-  private Date includedDate;
+  private Set<String> orgUnit;
 
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private boolean children;
 
-  private OrganisationUnitSelectionMode ouMode = SELECTED;
+  private Set<String> orgUnitGroup;
 
-  private Integer orgUnitLevel;
+  private Set<String> categoryOptionCombo;
 
-  private boolean includeDescendants;
+  private Set<String> attributeOptionCombo;
 
-  private boolean orderByOrgUnitPath;
+  /**
+   * The <code>categoryCombo</code> and <code>categoryOptions</code> parameters must be specified
+   * together.
+   */
+  private String attributeCombo;
 
-  private boolean orderByPeriod;
-
-  private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
-
-  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
-
-  private Set<CategoryOption> coDimensionConstraints;
-
-  private Set<CategoryOptionGroup> cogDimensionConstraints;
+  /**
+   * The <code>categoryCombo</code> and <code>categoryOptions</code> parameters must be specified
+   * together.
+   */
+  private Set<String> attributeOptions;
 
   private boolean includeDeleted;
 
@@ -110,178 +94,93 @@ public class DataExportParams {
   private String lastUpdatedDuration;
 
   private Integer limit;
+  private Integer offset;
 
-  private IdSchemes outputIdSchemes;
+  private boolean orderByPeriod;
 
-  private BlockingQueue<DeflatedDataValue> blockingQueue;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public DataExportParams() {}
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public Set<DataElement> getAllDataElements() {
-    final Set<DataElement> elements = Sets.newHashSet();
-
-    elements.addAll(dataElements);
-    dataSets.forEach(ds -> elements.addAll(ds.getDataElements()));
-    dataElementGroups.forEach(dg -> elements.addAll(dg.getMembers()));
-
-    return ImmutableSet.copyOf(elements);
-  }
-
-  public Set<OrganisationUnit> getAllOrganisationUnits() {
-    final Set<OrganisationUnit> orgUnits = Sets.newHashSet();
-    orgUnits.addAll(organisationUnits);
-
-    for (OrganisationUnitGroup group : organisationUnitGroups) {
-      orgUnits.addAll(group.getMembers());
-    }
-
-    return ImmutableSet.copyOf(orgUnits);
-  }
-
-  public boolean hasDataElements() {
-    return dataElements != null && !dataElements.isEmpty();
-  }
-
-  public boolean hasDataSets() {
-    return dataSets != null && !dataSets.isEmpty();
-  }
-
-  public boolean hasDataElementGroups() {
-    return dataElementGroups != null && !dataElementGroups.isEmpty();
-  }
-
-  public DataSet getFirstDataSet() {
-    return hasDataSets() ? dataSets.iterator().next() : null;
-  }
-
-  public Period getFirstPeriod() {
-    return hasPeriods() ? periods.iterator().next() : null;
-  }
-
-  public boolean hasPeriods() {
-    return periods != null && !periods.isEmpty();
-  }
-
-  public boolean hasPeriodTypes() {
-    return periodTypes != null && !periodTypes.isEmpty();
-  }
-
-  public boolean hasStartEndDate() {
-    return startDate != null && endDate != null;
-  }
-
-  public boolean hasIncludedDate() {
-    return includedDate != null;
-  }
-
-  public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
-  }
-
-  public boolean isIncludeDescendantsForOrganisationUnits() {
-    return includeDescendants && hasOrganisationUnits();
-  }
-
-  public boolean hasOrgUnitLevel() {
-    return orgUnitLevel != null;
-  }
-
-  public boolean hasBlockingQueue() {
-    return blockingQueue != null;
-  }
-
-  public OrganisationUnit getFirstOrganisationUnit() {
-    return organisationUnits != null && !organisationUnits.isEmpty()
-        ? organisationUnits.iterator().next()
-        : null;
-  }
-
-  public boolean hasOrganisationUnitGroups() {
-    return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
-  }
-
-  public boolean hasCategoryOptionCombos() {
-    return categoryOptionCombos != null && !categoryOptionCombos.isEmpty();
-  }
-
-  public boolean hasAttributeOptionCombos() {
-    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
-  }
-
-  public boolean hasCoDimensionConstraints() {
-    return coDimensionConstraints != null && !coDimensionConstraints.isEmpty();
-  }
-
-  public boolean hasCogDimensionConstraints() {
-    return cogDimensionConstraints != null && !cogDimensionConstraints.isEmpty();
-  }
-
-  public boolean hasLastUpdated() {
-    return lastUpdated != null;
-  }
-
-  public boolean hasLastUpdatedDuration() {
-    return lastUpdatedDuration != null;
-  }
-
-  public boolean hasLimit() {
-    return limit != null;
-  }
-
-  public boolean needsOrgUnitDetails() {
-    return isOrderByOrgUnitPath()
-        || hasOrgUnitLevel()
-        || getOuMode() == DESCENDANTS
-        || isIncludeDescendants();
-  }
-
-  /**
-   * Indicates whether these parameters represent a single data value set, implying that it contains
-   * exactly one of data sets, periods and organisation units.
+  /*
+   * Input IdSchemes
    */
-  public boolean isSingleDataValueSet() {
-    return dataSets.size() == 1
-        && periods.size() == 1
-        && organisationUnits.size() == 1
-        && dataElementGroups.isEmpty();
+
+  private IdentifiableProperty inputIdScheme;
+
+  private IdentifiableProperty inputOrgUnitIdScheme;
+
+  private IdentifiableProperty inputDataElementIdScheme;
+
+  private IdentifiableProperty inputDataSetIdScheme;
+
+  private IdentifiableProperty inputDataElementGroupIdScheme;
+
+  /*
+   * Output IdSchemes (for backwards compatibility not named with prefix
+   * output)
+   */
+
+  private String idScheme;
+
+  private String dataElementIdScheme;
+
+  private String categoryOptionComboIdScheme;
+
+  private String categoryOptionIdScheme;
+
+  private String categoryIdScheme;
+
+  private String orgUnitIdScheme;
+
+  private String programIdScheme;
+
+  private String programStageIdScheme;
+
+  private String trackedEntityAttributeIdScheme;
+
+  private String dataSetIdScheme;
+
+  private String attributeOptionComboIdScheme;
+
+  @OpenApi.Ignore
+  public IdSchemes getInputIdSchemes() {
+    IdSchemes schemes = new IdSchemes();
+    setNonNull(schemes, inputIdScheme, IdSchemes::setIdScheme);
+    setNonNull(schemes, inputDataElementGroupIdScheme, IdSchemes::setDataElementGroupIdScheme);
+    setNonNull(schemes, inputOrgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
+    setNonNull(schemes, inputDataSetIdScheme, IdSchemes::setDataSetIdScheme);
+    setNonNull(schemes, inputDataElementIdScheme, IdSchemes::setDataElementIdScheme);
+    return schemes;
   }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("data elements", dataElements)
-        .add("data element operands", dataElementOperands)
-        .add("data sets", dataSets)
-        .add("data element groups", dataElementGroups)
-        .add("periods", periods)
-        .add("period types", periodTypes)
-        .add("start date", startDate)
-        .add("end date", endDate)
-        .add("included date", includedDate)
-        .add("org units", organisationUnits)
-        .add("org unit selection mode", ouMode)
-        .add("org unit level", orgUnitLevel)
-        .add("descendants", includeDescendants)
-        .add("order by org unit path", orderByOrgUnitPath)
-        .add("order by period", orderByPeriod)
-        .add("org unit groups", organisationUnitGroups)
-        .add("attribute option combos", attributeOptionCombos)
-        .add("category option dimension constraints", coDimensionConstraints)
-        .add("category option group dimension constraints", cogDimensionConstraints)
-        .add("deleted", includeDeleted)
-        .add("last updated", lastUpdated)
-        .add("last updated duration", lastUpdatedDuration)
-        .add("limit", limit)
-        .add("output id schemes", outputIdSchemes)
-        .add("blockingQueue", blockingQueue)
-        .toString();
+  @OpenApi.Ignore
+  public IdSchemes getOutputIdSchemes() {
+    IdSchemes schemes = new IdSchemes();
+    setNonNull(schemes, idScheme, IdSchemes::setIdScheme);
+    setNonNull(schemes, dataElementIdScheme, IdSchemes::setDataElementIdScheme);
+    setNonNull(schemes, categoryOptionComboIdScheme, IdSchemes::setCategoryOptionComboIdScheme);
+    setNonNull(schemes, categoryOptionIdScheme, IdSchemes::setCategoryOptionIdScheme);
+    setNonNull(schemes, categoryIdScheme, IdSchemes::setCategoryIdScheme);
+    setNonNull(schemes, orgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
+    setNonNull(schemes, programIdScheme, IdSchemes::setProgramIdScheme);
+    setNonNull(schemes, programStageIdScheme, IdSchemes::setProgramStageIdScheme);
+    setNonNull(
+        schemes, trackedEntityAttributeIdScheme, IdSchemes::setTrackedEntityAttributeIdScheme);
+    setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
+    setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
+    return schemes;
+  }
+
+  private static void setNonNull(
+      IdSchemes schemes,
+      IdentifiableProperty property,
+      BiFunction<IdSchemes, String, IdSchemes> setter) {
+    if (property != null) {
+      setNonNull(schemes, property.name(), setter);
+    }
+  }
+
+  private static void setNonNull(
+      IdSchemes schemes, String property, BiFunction<IdSchemes, String, IdSchemes> setter) {
+    if (property != null) {
+      setter.apply(schemes, property);
+    }
   }
 }

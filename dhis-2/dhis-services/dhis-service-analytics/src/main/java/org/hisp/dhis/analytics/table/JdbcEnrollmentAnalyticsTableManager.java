@@ -170,7 +170,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
                 "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "enDeletedClause", sqlBuilder.isFalse("en", "deleted")));
 
-    populateTableInternal(partition, fromClause);
+    String tableName = partition.getName();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+
+    populateTableInternal(tableName, columns, fromClause);
   }
 
   /**

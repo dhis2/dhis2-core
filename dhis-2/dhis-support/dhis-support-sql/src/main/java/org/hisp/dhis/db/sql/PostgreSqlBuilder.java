@@ -208,6 +208,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsUpdateForMultiKeyTable() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return true;
   }

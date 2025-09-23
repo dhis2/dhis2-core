@@ -72,28 +72,28 @@ class SecurityTrackerEventValidator
   @Override
   public void validate(
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent)) {
+    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent)) {
       return;
     }
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    TrackerEvent preheatEvent = bundle.getPreheat().getTrackerEvent(event.getEvent());
+    TrackerEvent preheatEvent = bundle.getPreheat().getTrackerEvent(trackerEvent.getEvent());
 
     ProgramStage programStage =
         strategy.isUpdateOrDelete()
             ? preheatEvent.getProgramStage()
-            : bundle.getPreheat().getProgramStage(event.getProgramStage());
+            : bundle.getPreheat().getProgramStage(trackerEvent.getProgramStage());
     OrganisationUnit organisationUnit =
         strategy.isUpdateOrDelete()
             ? preheatEvent.getOrganisationUnit()
-            : bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
-    UID teUid = getTeUidFromEvent(bundle, event);
+            : bundle.getPreheat().getOrganisationUnit(trackerEvent.getOrgUnit());
+    UID teUid = getTeUidFromEvent(bundle, trackerEvent);
     CategoryOptionCombo categoryOptionCombo =
-        bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
+        bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
     OrganisationUnit ownerOrgUnit =
         getOwnerOrganisationUnit(bundle.getPreheat(), teUid, programStage.getProgram());
     boolean isCreatableInSearchScope =
         strategy.isCreate()
-            ? event.isCreatableInSearchScope()
+            ? trackerEvent.isCreatableInSearchScope()
             : preheatEvent.isCreatableInSearchScope();
 
     // TODO: Discuss with product how this should be fixed.
@@ -103,17 +103,18 @@ class SecurityTrackerEventValidator
     // We need to understand what to do when updating the org unit.
     if (strategy.isCreate() || strategy.isDelete()) {
       checkEventOrgUnitWriteAccess(
-          reporter, event, organisationUnit, isCreatableInSearchScope, bundle.getUser());
+          reporter, trackerEvent, organisationUnit, isCreatableInSearchScope, bundle.getUser());
     }
-    checkProgramStageWriteAccess(reporter, event, programStage, bundle.getUser());
-    checkProgramReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
-    checkTeTypeReadAccess(reporter, event, programStage.getProgram(), bundle.getUser());
+    checkProgramStageWriteAccess(reporter, trackerEvent, programStage, bundle.getUser());
+    checkProgramReadAccess(reporter, trackerEvent, programStage.getProgram(), bundle.getUser());
+    checkTeTypeReadAccess(reporter, trackerEvent, programStage.getProgram(), bundle.getUser());
     checkOwnership(
-        reporter, event, teUid, ownerOrgUnit, programStage.getProgram(), bundle.getUser());
-    checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
+        reporter, trackerEvent, teUid, ownerOrgUnit, programStage.getProgram(), bundle.getUser());
+    checkWriteCategoryOptionComboAccess(
+        reporter, trackerEvent, categoryOptionCombo, bundle.getUser());
 
     if (strategy.isUpdate()) {
-      checkCompletablePermission(reporter, event, preheatEvent, bundle.getUser());
+      checkCompletablePermission(reporter, trackerEvent, preheatEvent, bundle.getUser());
     }
   }
 
@@ -131,7 +132,7 @@ class SecurityTrackerEventValidator
 
   @Nonnull
   private UID getTeUidFromEvent(
-      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
+      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
     if (bundle.getStrategy(event).isUpdateOrDelete()) {
       return UID.of(
           bundle.getPreheat().getTrackerEvent(event.getUid()).getEnrollment().getTrackedEntity());

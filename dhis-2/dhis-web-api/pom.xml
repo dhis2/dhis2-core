@@ -132,10 +132,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.jclouds</groupId>
-      <artifactId>jclouds-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.vdurmont</groupId>
       <artifactId>semver4j</artifactId>
     </dependency>
@@ -411,18 +407,4 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <parameters>true</parameters>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

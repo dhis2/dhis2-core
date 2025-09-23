@@ -44,6 +44,9 @@ public interface ResourceTableService {
   /** Generates data approval resource tables. */
   void generateDataApprovalResourceTables();
 
+  /** Replicates data approval resource tables in the analytics database. */
+  void replicateDataApprovalResourceTables();
+
   /** Create all SQL views. */
   void createAllSqlViews(JobProgress progress);
 
