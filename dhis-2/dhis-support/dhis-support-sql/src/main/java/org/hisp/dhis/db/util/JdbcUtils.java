@@ -42,7 +42,7 @@ public final class JdbcUtils {
    * @param jdbcUrl The JDBC URL string.
    * @return The database name, or null if it cannot be extracted.
    */
-  public static String getDatabaseFromConnectionUrl(String jdbcUrl) {
+  public static String getDatabaseFromUrl(String jdbcUrl) {
     if (jdbcUrl == null || jdbcUrl.isBlank()) {
       return null;
     }
