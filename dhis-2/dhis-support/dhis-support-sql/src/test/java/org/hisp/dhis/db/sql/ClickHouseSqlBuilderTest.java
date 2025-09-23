@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.db.model.Collation;
@@ -45,7 +44,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class ClickHouseSqlBuilderTest {
-  private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder();
+  private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder("dhis2");
 
   private Table getTableA() {
     List<Column> columns =

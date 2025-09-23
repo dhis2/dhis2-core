@@ -30,11 +30,8 @@
 package org.hisp.dhis.db.init;
 
 import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
-
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
@@ -47,6 +44,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class responsible for performing work for initialization of an analytics database.
@@ -138,7 +137,7 @@ public class AnalyticsDatabaseInit {
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
             "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
 
-    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
+    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder(""); //TODO
 
     jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
     jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));

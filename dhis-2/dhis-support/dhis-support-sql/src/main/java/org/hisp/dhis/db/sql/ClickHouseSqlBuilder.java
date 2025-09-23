@@ -31,8 +31,6 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
@@ -41,6 +39,8 @@ import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Implementation of {@link SqlBuilder} for ClickHouse.
@@ -57,6 +57,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "\"";
 
+  private final String database;
+  
   // Database
 
   @Override
