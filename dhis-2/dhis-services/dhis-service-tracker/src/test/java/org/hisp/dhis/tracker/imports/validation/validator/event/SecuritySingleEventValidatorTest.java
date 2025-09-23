@@ -220,9 +220,7 @@ class SecuritySingleEventValidatorTest extends TestBase {
     when(bundle.getStrategy(event)).thenReturn(strategy);
     SingleEvent preheatEvent = getEvent();
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-    lenient()
-        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
-        .thenReturn(outOfScopeOrgUnit);
+    when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit())).thenReturn(outOfScopeOrgUnit);
 
     validator.validate(reporter, bundle, event);
 
