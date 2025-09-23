@@ -29,49 +29,61 @@
  */
 package org.hisp.dhis.db.util;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+/**
+ * Utilities for JDBC operations.
+ *
+ * @author Lars Helge Overland
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JdbcUtils {
+  private static final String PREFIX_POSTGRESQL = "jdbc:postgresql:";
+  private static final String PREFIX_JDBC = "jdbc:";
+
   /**
    * Extracts the database name from a JDBC connection URL.
    *
-   * @param jdbcUrl The JDBC URL string.
+   * @param jdbcUrl The JDBC URL connection URL.
    * @return The database name, or null if it cannot be extracted.
    */
   public static String getDatabaseFromUrl(String jdbcUrl) {
-    if (jdbcUrl == null || jdbcUrl.isBlank()) {
+    if (isBlank(jdbcUrl)) {
       return null;
     }
 
-    // Handle the unique PostgreSQL simple format without host/port.
-    if (jdbcUrl.startsWith("jdbc:postgresql:") && !jdbcUrl.contains("//")) {
-      String dbPart = jdbcUrl.substring("jdbc:postgresql:".length());
-      int queryIndex = dbPart.indexOf('?');
+    // Handle PostgreSQL simple format without host and port
+    if (jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains("//")) {
+      String databasePart = jdbcUrl.substring(PREFIX_POSTGRESQL.length());
+
+      int queryIndex = databasePart.indexOf('?');
+
       if (queryIndex != -1) {
-        return dbPart.substring(0, queryIndex);
+        return databasePart.substring(0, queryIndex);
       }
-      return dbPart;
+
+      return trimToNull(databasePart);
     }
 
-    // For all other supported drivers (MySQL, ClickHouse, Doris),
-    // and the full PostgreSQL format, the structure is standard.
+    // Handle standard format for all other drivers (MySQL, ClickHouse, Doris)
     try {
-      // Remove the "jdbc:" prefix to make it a valid URI for parsing.
-      URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+      // Remove "jdbc:" prefix to make it a valid URI for parsing
+      URI uri = new URI(jdbcUrl.substring(PREFIX_JDBC.length()));
       String path = uri.getPath();
 
-      // The path is typically "/<database_name>".
+      // Path is typically "/<database_name>"
       if (path != null && path.length() > 1) {
-        // Remove the leading slash and return the database name.
-        // The URI class correctly handles query parameters.
-        return path.substring(1);
+        // Remove leading slash and return the database name
+        return trimToNull(path.substring(1));
       }
-    } catch (URISyntaxException e) {
-      // The URL is malformed, so we can't extract the name.
+    } catch (URISyntaxException ex) {
+      throw new IllegalArgumentException("Malformed JDBC connection URL: " + jdbcUrl, ex);
     }
 
     return null;
