@@ -47,6 +47,7 @@ public final class JdbcUtils {
   private static final String PREFIX_JDBC = "jdbc:";
   private static final String PREFIX_POSTGRESQL = PREFIX_JDBC + "postgresql:";
   private static final String SLASH = "//";
+  private static final String SEP_PARAM = "?";
 
   /**
    * Extracts the database name from a JDBC connection URL.
@@ -62,7 +63,7 @@ public final class JdbcUtils {
     // Handle PostgreSQL simple format without host and port
     if (jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains(SLASH)) {
       String databasePart = jdbcUrl.substring(PREFIX_POSTGRESQL.length());
-      int queryIndex = databasePart.indexOf('?');
+      int queryIndex = databasePart.indexOf(SEP_PARAM);
 
       if (queryIndex != -1) {
         return databasePart.substring(0, queryIndex);
