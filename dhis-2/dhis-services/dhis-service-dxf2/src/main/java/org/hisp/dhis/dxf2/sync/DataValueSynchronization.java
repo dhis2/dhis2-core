@@ -36,10 +36,11 @@ import java.util.Date;
 import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -58,7 +59,7 @@ import org.springframework.web.client.RestTemplate;
 public class DataValueSynchronization implements DataSynchronizationWithPaging {
   private final DataValueService dataValueService;
 
-  private final DataValueSetService dataValueSetService;
+  private final DataExportPipeline dataExportPipeline;
 
   private final SystemSettingsService settingsService;
 
@@ -177,8 +178,17 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
                   SyncUtils.HEADER_AUTHORIZATION,
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-          dataValueSetService.exportDataValueSetJson(
-              lastUpdatedAfter, request.getBody(), new IdSchemes(), syncPageSize, page);
+          try {
+            DataExportParams params =
+                DataExportParams.builder()
+                    .lastUpdated(lastUpdatedAfter)
+                    .limit(syncPageSize)
+                    .offset((page - 1) * syncPageSize)
+                    .build();
+            dataExportPipeline.exportAsJsonSync(params, request.getBody());
+          } catch (ConflictException ex) {
+            throw new IllegalStateException(ex);
+          }
         };
 
     return SyncUtils.sendSyncRequest(

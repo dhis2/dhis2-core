@@ -29,15 +29,8 @@
  */
 package org.hisp.dhis.period;
 
-import jakarta.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 /**
@@ -46,41 +39,11 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 @Slf4j
 @RequiredArgsConstructor
 public class PeriodTypePopulator extends TransactionContextStartupRoutine {
+
   private final PeriodStore periodStore;
-
-  private final EntityManagerFactory entityManagerFactory;
-
-  // -------------------------------------------------------------------------
-  // Execute
-  // -------------------------------------------------------------------------
 
   @Override
   public void executeInTransaction() {
-    List<PeriodType> types = new ArrayList<>(PeriodType.getAvailablePeriodTypes());
-
-    Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
-
-    types.removeAll(storedTypes);
-
-    // ---------------------------------------------------------------------
-    // Populate missing
-    // ---------------------------------------------------------------------
-
-    StatelessSession session =
-        entityManagerFactory.unwrap(SessionFactory.class).openStatelessSession();
-    session.beginTransaction();
-    try {
-      types.forEach(
-          type -> {
-            session.insert(type);
-            log.debug("Added PeriodType: " + type.getName());
-          });
-    } catch (Exception exception) {
-      exception.printStackTrace();
-    } finally {
-      DbmsUtils.closeStatelessSession(session);
-    }
-
-    types.forEach(type -> periodStore.reloadPeriodType(type));
+    PeriodType.getAvailablePeriodTypes().forEach(periodStore::addPeriodType);
   }
 }

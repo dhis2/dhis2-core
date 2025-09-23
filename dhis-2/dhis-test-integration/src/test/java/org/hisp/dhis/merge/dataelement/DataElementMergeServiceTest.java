@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -34,16 +34,15 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AnalyticalObjectStore;
@@ -64,11 +63,14 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryValue;
+import org.hisp.dhis.datavalue.DataExportStore;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
@@ -178,7 +180,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackerEventStore trackerEventStore;
   @Autowired private SingleEventStore singleEventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
-  @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataExportStore dataExportStore;
+  @Autowired private DataDumpService dataDumpService;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private SingleEventChangeLogService singleEventChangeLogService;
@@ -2758,9 +2761,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
     DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
 
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
+    addDataValues(dv1, dv2, dv3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2770,16 +2771,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValues().stream()
+    List<DataExportValue> sourceItems =
+        dataExportStore.getAllDataValues().stream()
             .filter(
                 dv ->
                     Set.of(deSource1.getUid(), deSource2.getUid())
-                        .contains(dv.getDataElement().getUid()))
+                        .contains(dv.dataElement().getValue()))
             .toList();
-    List<DataValue> targetItems =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+    List<DataExportValue> targetItems =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(deTarget.getUid()))
             .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
@@ -2797,23 +2798,19 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
-  void dataValueAuditMergeTest() throws ConflictException {
+  void dataValueAuditMergeTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     periodService.addPeriod(p1);
 
-    DataValueAudit dva1 = createDataValueAudit(deSource1, "1", p1);
-    DataValueAudit dva2 = createDataValueAudit(deSource1, "2", p1);
-    DataValueAudit dva3 = createDataValueAudit(deSource2, "1", p1);
-    DataValueAudit dva4 = createDataValueAudit(deSource2, "2", p1);
-    DataValueAudit dva5 = createDataValueAudit(deTarget, "1", p1);
+    dataDumpService.upsertValues(
+        createDataValue(deSource1, "1", p1),
+        createDataValue(deSource2, "1", p1),
+        createDataValue(deTarget, "1", p1));
 
-    dataValueAuditStore.addDataValueAudit(dva1);
-    dataValueAuditStore.addDataValueAudit(dva2);
-    dataValueAuditStore.addDataValueAudit(dva3);
-    dataValueAuditStore.addDataValueAudit(dva4);
-    dataValueAuditStore.addDataValueAudit(dva5);
+    dataDumpService.upsertValues(
+        createDataValue(deSource1, "2", p1), createDataValue(deSource2, "2", p1));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2842,23 +2839,19 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "DataValueAudits with references to source DataElements are deleted when sources are deleted")
-  void dataValueAuditMergeDeleteTest() throws ConflictException {
+  void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     periodService.addPeriod(p1);
 
-    DataValueAudit dva1 = createDataValueAudit(deSource1, "1", p1);
-    DataValueAudit dva2 = createDataValueAudit(deSource1, "2", p1);
-    DataValueAudit dva3 = createDataValueAudit(deSource2, "1", p1);
-    DataValueAudit dva4 = createDataValueAudit(deSource2, "2", p1);
-    DataValueAudit dva5 = createDataValueAudit(deTarget, "1", p1);
+    dataDumpService.upsertValues(
+        createDataValue(deSource1, "1", p1),
+        createDataValue(deSource2, "1", p1),
+        createDataValue(deTarget, "1", p1));
 
-    dataValueAuditStore.addDataValueAudit(dva1);
-    dataValueAuditStore.addDataValueAudit(dva2);
-    dataValueAuditStore.addDataValueAudit(dva3);
-    dataValueAuditStore.addDataValueAudit(dva4);
-    dataValueAuditStore.addDataValueAudit(dva5);
+    dataDumpService.upsertValues(
+        createDataValue(deSource1, "2", p1), createDataValue(deSource2, "2", p1));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -3065,17 +3058,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
         event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
-  private DataValueAudit createDataValueAudit(DataElement de, String value, Period p) {
-    DataValueAudit dva = new DataValueAudit();
-    dva.setDataElement(de);
-    dva.setValue(value);
-    dva.setAuditType(AuditOperationType.CREATE);
-    dva.setCreated(new Date());
-    dva.setCategoryOptionCombo(coc1);
-    dva.setAttributeOptionCombo(coc1);
-    dva.setPeriod(p);
-    dva.setOrganisationUnit(ou1);
-    return dva;
+  private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {
+    return new DataEntryValue.Input(
+        de.getUid(), ou1.getUid(), coc1.getUid(), coc1.getUid(), p.getIsoDate(), value, null);
   }
 
   private DataValueAuditQueryParams getQueryParams(
@@ -3162,5 +3147,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     return changeLogs.stream()
         .filter(cl -> dataElements.contains(cl.dataElement().getUid()))
         .toList();
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -54,8 +55,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -85,13 +88,15 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
+  @Autowired private DataSetService dataSetService;
+
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
 
@@ -130,11 +135,6 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
     mar = periodService.reloadPeriod(mar);
     q1 = periodService.reloadPeriod(q1);
 
-    DataElement deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
-    DataElement deB = createDataElement('B', ValueType.TEXT, AggregationType.NONE);
-    dataElementService.addDataElement(deA);
-    dataElementService.addDataElement(deB);
-
     ouA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(ouA);
 
@@ -148,6 +148,19 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
     CategoryCombo categoryComboA = createCategoryCombo('A', categoryA);
     categoryService.addCategoryCombo(categoryComboA);
+
+    DataElement deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
+    deA.setCategoryCombo(categoryComboA);
+    DataElement deB = createDataElement('B', ValueType.TEXT, AggregationType.NONE);
+    deB.setCategoryCombo(categoryComboA);
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+
+    DataSet dsA = createDataSet('A', jan.getPeriodType());
+    dsA.addDataSetElement(deA);
+    dsA.addDataSetElement(deB);
+    dsA.addOrganisationUnit(ouA);
+    dataSetService.addDataSet(dsA);
 
     CategoryOptionCombo cocA = createCategoryOptionCombo(categoryComboA, optionA);
     CategoryOptionCombo cocB = createCategoryOptionCombo(categoryComboA, optionB);
@@ -170,11 +183,12 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
     indicatorA.setDenominator("1");
     indicatorService.addIndicator(indicatorA);
 
-    dataValueService.addDataValue(newDataValue(deA, jan, ouA, cocA, aocA, "1"));
-    dataValueService.addDataValue(newDataValue(deA, feb, ouA, cocB, aocA, "2"));
-    dataValueService.addDataValue(newDataValue(deA, mar, ouA, cocA, aocA, "3"));
-    dataValueService.addDataValue(newDataValue(deB, jan, ouA, cocA, aocA, "A"));
-    dataValueService.addDataValue(newDataValue(deB, feb, ouA, cocB, aocA, "B"));
+    addDataValues(
+        newDataValue(deA, jan, ouA, cocA, aocA, "1"),
+        newDataValue(deA, feb, ouA, cocB, aocA, "2"),
+        newDataValue(deA, mar, ouA, cocA, aocA, "3"),
+        newDataValue(deB, jan, ouA, cocA, aocA, "A"),
+        newDataValue(deB, feb, ouA, cocB, aocA, "B"));
 
     // We need to make sure that table generation start time is greater than
     // lastUpdated on tables populated in the setup
@@ -458,5 +472,9 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
         .map(e -> e.getKey() + '-' + e.getValue())
         .sorted()
         .collect(Collectors.toList());
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }
