@@ -115,6 +115,20 @@ class PeriodDataProviderTest {
     assertTrue(years.contains(DEFAULT_FIRST_YEAR_SUPPORTED));
   }
 
+  @Test
+  void testGetAvailableYearsSorted() {
+    List<Integer> years = new ArrayList<>(Arrays.asList(2011, 2002, 2010));
+
+    when(jdbcTemplate.queryForList(anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(years);
+
+    List<Integer> returnedYears = periodDataProvider.getAvailableYears(DATABASE);
+
+    assertEquals(13, returnedYears.size());
+    assertTrue(returnedYears.indexOf(2002) < returnedYears.indexOf(2010));
+    assertTrue(returnedYears.indexOf(2010) < returnedYears.indexOf(2011));
+  }
+
   private boolean containsAllSystemDefined(List<Integer> years) {
     for (int year = DEFAULT_FIRST_YEAR_SUPPORTED; year <= DEFAULT_LATEST_YEAR_SUPPORTED; year++) {
       if (!years.contains(year)) {

@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
@@ -90,20 +89,19 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
   @Override
   public boolean validState() {
-    return tableIsNotEmpty("event");
+    // At least one table must have row(s).
+    return tableIsNotEmpty("trackerevent") || tableIsNotEmpty("singleevent");
   }
 
   /**
    * Populates the given analytics table partition using the given columns and join statement.
    *
-   * @param partition the {@link AnalyticsTablePartition}.
+   * @param tableName the table name.
+   * @param columns the table columns.
    * @param fromClause the SQL from clause.
    */
-  protected void populateTableInternal(AnalyticsTablePartition partition, String fromClause) {
-    String tableName = partition.getName();
-
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
-
+  protected void populateTableInternal(
+      String tableName, List<AnalyticsTableColumn> columns, String fromClause) {
     String sql = "insert into " + tableName + " (";
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
     sql += ") select ";
