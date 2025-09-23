@@ -29,10 +29,18 @@
  */
 package org.hisp.dhis.feedback;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import java.util.Map;
+import lombok.Getter;
+import org.hisp.dhis.commons.util.TextUtils;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
 public enum ErrorCode {
+  E0000("Retired error code"),
+
   /* General */
   E1000("API query must be specified"),
   E1001("API query contains an illegal string"),
@@ -155,7 +163,7 @@ public enum ErrorCode {
   E2029("Data value is not a valid option of the data element option set: `{0}`"),
   E2030("Data value must match data element value type: `{0}`"),
   E2031("User does not have write access to category option combo: `{0}`"),
-  E2032("Data value not found or not accessible"),
+  E2032("Data value(s) not found: ${keys:{0}}"),
   E2033("Follow-up must be specified"),
   E2034("Filter not supported: `{0}`"),
   E2035("Operator not supported: `{0}`"),
@@ -581,47 +589,15 @@ public enum ErrorCode {
   E7502("Filter for period is not valid: `{0}`"),
   E7503("Filter for created date period is not valid: `{0}`"),
 
-  /* Data import validation */
-  // Data Set validation
-  E7600("Data set not found or not accessible: `{0}`"),
-  E7601("User does not have write access for DataSet: `{0}`"),
-  E7602("A valid dataset is required"),
-  E7603("Org unit not found or not accessible: `{0}`"),
-  E7604("Attribute option combo not found or not accessible: `{0}`"),
-  // Data Value validation
-  E7610("Data element not found or not accessible: `{0}`"),
+  /* (Old) Data import validation */
+  /* E7600-E7610 retired */
+  E7605("All compulsory data element operands need to be filled: `{0}`"),
   E7611("Period not valid: `{0}`"),
-  E7612("Organisation unit not found or not accessible: `{0}`"),
-  E7613("Category option combo not found or not accessible for writing data: `{0}`"),
-  E7614("Category option combo: `{0}` option not accessible: `{1}`"),
-  E7615("Attribute option combo not found or not accessible for writing data: `{0}`"),
-  E7616("Attribute option combo: `{0}` option not accessible: `{1}`"),
+  /* E7612-E7616 retired */
   E7617("Organisation unit: `{0}` not in hierarchy of current user: `{1}`"),
-  E7618("Data value or comment not specified for data element: `{0}`"),
-  E7619("Value must match value type of data element `{0}`: `{1}`"),
-  E7620("Invalid comment: {0}"),
-  E7621("Data value is not a valid option of the data element option set: `{0}`"),
+  /* E7618-E7621 retired */
   E7622("Current user `{0}` has no access to any organisation unit data"),
-  // Data Value constraints
-  E7630("Category option combo is required but is not specified"),
-  E7631("Attribute option combo is required but is not specified"),
-  E7632("Period type of period: `{0}` not valid for data element: `{1}`"),
-  E7633("Data element: `{0}` is not part of dataset(s): `{1}`"),
-  E7634("Category option combo: `{0}` must be part of category combo of data element: `{1}`"),
-  E7635(
-      "Attribute option combo: `{0}` must be part of category combo of data sets of data element: `{1}`"),
-  E7636("Data element: `{1}` must be assigned through data sets to organisation unit: `{0}`"),
-  E7637("Invalid storedBy: {0}"),
-  E7638("Period: `{0}` is not within date range of attribute option combo: `{1}`"),
-  E7639("Organisation unit: `{0}` is not valid for attribute option combo: `{1}`"),
-  E7640("Current date is past expiry days for period: `{0}`  and data set: `{1}`"),
-  E7641(
-      "Period: `{0}` is after latest open future period: `{3}` for data element: `{1}` and data set: `{2}`"),
-  E7642(
-      "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`"),
-  E7643("Period: `{0}` is not open for this data set at this time: `{1}`"),
-  E7644("Period: `{0}` does not conform to the open periods of associated data sets"),
-  E7645("No data value for file resource exist for the given combination for data element: `{0}`"),
+  /* E7630-E7645 retired */
 
   /* Data store query validation */
   E7650("Not a valid path: `{0}`"),
@@ -643,16 +619,87 @@ public enum ErrorCode {
   E7710("User is not allowed to update the target organisation unit"),
   E7711("Organisation unit cannot be uniquely identified by its name"),
   E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
+
+  /* Data entry (SQL backed implementation) */
+  // set level decoding and general input issues
+  E8000("Atomic mode requires all values to be valid but only {0}/{1} were. First issue: {2}"),
+  E8001("PDF input does not support Acro fields"),
+  E8002("Data set detection failed, found multiple sets: `${datasets:{0}}`"),
+  E8003("Data set detection failed, found no set for data element(s): `${elements:{0}}`"),
+  E8004("Data set UID not valid: `${id:{0}}`"),
+  E8005("Data set not found: `${id:{0}}`"),
+  E8006("PDF file error : ${error:{0}}"),
+  E8007("XML file error : ${error:{0}}"),
+
+  // set level current user access issues: Current user cannot enter...
+  E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
+  E8011("Current user cannot enter data for org unit(s): `${units:{0}}`"),
+  E8012("Current user cannot enter data for category option(s): `${options:{0}}`"),
+  // set level model consistency issues: X not usable with Y
+  E8020("Data set ${ds:{0}} not usable with data element(s): `${elements:{1}}`"),
+  E8021("Data set ${ds:{0}} not usable with period(s): `${periods:{1}}`"),
+  E8022("Data set ${ds:{0}} not usable with org unit(s): `${units:{1}}`"),
+  E8023("Data set ${ds:{0}} not usable with attribute option combo(s): `${combos:{1}}`"),
+  E8024(
+      "Data set ${ds:{0}} + data element ${de:{1}} not usable with category option combo(s): `${combos:{2}}`"),
+  E8025("Attribute option combo ${combo:{0}} not usable with org unit(s): `${units:{1}}`"),
+  // set level timeliness issues: untimely data entry...
+  E8030("Untimely data entry for data set ${ds:{0}} and period(s): `${periods:{1}}`"),
+  E8031("Untimely data entry for org unit ${unit:{0}} and period(s): `${periods:{1}}`"),
+  E8032(
+      "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
+  E8033(
+      "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+  // value level decoding and input issues
+  E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
+  E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),
+  E8102("Value #${index:{0}} data element not defined in group or value: `${dv:{1}}`"),
+  E8103("Value #${index:{0}} data element not found: `${id:{1}}`"),
+  E8104("Value #${index:{0}} data element UID not valid: `${uid:{1}}`"),
+  E8105("Value #${index:{0}} org unit not defined in group or value: `${dv:{1}}`"),
+  E8106("Value #${index:{0}} org unit UID is not valid: `${uid:{1}}`"),
+  E8107("Value #${index:{0}} org unit not found: `${id:{1}}`"),
+  E8108("Value #${index:{0}} category option combo not found: `${id:{1}}`"),
+  E8109("Value #${index:{0}} category option combo UID is not valid: `${uid:{1}}`"),
+  E8110("Value #${index:{0}} attribute option combo not found: `${id:{1}}`"),
+  E8111("Value #${index:{0}} attribute option combo UID is not valid: `${uid:{1}}`"),
+  // value level, value and comment validity issues
+  E8120("Value #${index:{0}} value is required"),
+  E8121("Value #${index:{0}} value or comment is required`"),
+  E8122("Value #${index:{0}} value `${value:{1}}` is no valid ${type:{2}}: ${reason:{3}}"),
+  E8123(
+      "Value #${index:{0}} value `${value:{1}}` is no valid option for data element `${element:{2}}`"),
+  E8124("Value #${index:{0}} comment is restricted to options and does not allow ${comment:{1}}`"),
+  E8125("Value #${index:{0}} comment too long (max ${max:{1}} characters)`"),
+  E8126("Value #${index:{0}} category combo not found: `${combo:{1}}`"),
+  E8127(
+      "Value #${index:{0}} category combo ${combo:{1}} has no option combo for options: `${options:{2}}`"),
+  E8128("Value #${indexes:{0}} all affect the same data value: `${key:{1}}`"),
   ;
 
-  private String message;
+  private final String message;
 
   ErrorCode(String message) {
-    this.message = message;
+    // this is a little trick that allows to name the placeholders (optional)
+    // using ${name:default} syntax where the "default" picked
+    // is always the {index} syntax originally used by the message template
+    this.message = TextUtils.replace(message, Map.of());
   }
 
-  public String getMessage() {
-    return message;
+  /**
+   * {@link ErrorCode}s are deserialized from DB in a few places, so we have to make sure deleted
+   * codes do not cause a racket. Therefore, any reasonable unknown code maps to {@link
+   * ErrorCode#E0000}.
+   */
+  @JsonCreator
+  public static ErrorCode of(String code) {
+    if (code == null) return null;
+    try {
+      return ErrorCode.valueOf(code);
+    } catch (IllegalArgumentException ex) {
+      if (code.matches("E[1-9][0-9]{3}")) return ErrorCode.E0000;
+      throw ex;
+    }
   }
 
   private static class Constants {

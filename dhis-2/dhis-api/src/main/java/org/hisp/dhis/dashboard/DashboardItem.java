@@ -54,6 +54,7 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -83,7 +84,6 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -200,10 +200,12 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
     this.uid = uid;
   }
 
-  // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  private transient Access access;
+  // ----------------------------------------------------------------
+  // Transient properties
+  // ----------------------------------------------------------------
+
+  /** Access information for this object. Applies to current user. */
+  @Transient protected transient Access access;
 
   // -------------------------------------------------------------------------
   // Logic
@@ -493,9 +495,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public String getHref() {
-    return DashboardItem.class.isAssignableFrom(getClass())
-        ? "/dashboardItems/" + getUid()
-        : "/" + getClass().getSimpleName().toLowerCase() + "s/" + getUid();
+    return "/dashboardItems/" + getUid();
   }
 
   @Override
@@ -577,51 +577,6 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   // -------------------------------------------------------------------------
   // Not supported properties
   // -------------------------------------------------------------------------
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   * @return empty set
-   */
-  @Override
-  @Deprecated(since = "44", forRemoval = true)
-  @JsonIgnore
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   */
-  @Override
-  @Deprecated(since = "44", forRemoval = true)
-  @JsonIgnore
-  public boolean isFavorite() {
-    return false;
-  }
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   * @return false
-   */
-  @Deprecated(since = "44", forRemoval = true)
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  /**
-   * @deprecated DashboardItem does not support favorites
-   *     <p>Currently it is only used for web api backward compatibility
-   * @return false
-   */
-  @Deprecated(since = "44", forRemoval = true)
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
-  }
 
   /**
    * @deprecated DashboardItem does not support sharing

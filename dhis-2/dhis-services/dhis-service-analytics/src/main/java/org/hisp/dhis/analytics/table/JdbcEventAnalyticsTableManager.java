@@ -32,7 +32,9 @@ package org.hisp.dhis.analytics.table;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.table.ColumnRegex.NUMERIC_REGEXP;
@@ -42,6 +44,7 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
+import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -51,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -83,6 +87,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -267,23 +272,78 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * Indicates whether event data stored between the given start and end date and for the given
    * program exists.
    *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @param program the program.
-   * @return whether event data exists.
+   * @param startDate start date to look for.
+   * @param endDate end date to look for.
+   * @param program the {@link Program}.
+   * @return true whether event data exists, false otherwise.
    */
   private boolean hasUpdatedLatestData(Date startDate, Date endDate, Program program) {
+    boolean hasNewTrackerEvents = false;
+    boolean hasNewSingleEvents = false;
+
+    if (program.isRegistration()) {
+      hasNewTrackerEvents = hasNewTrackerEvents(startDate, endDate, program);
+    }
+
+    if (program.isWithoutRegistration()) {
+      hasNewSingleEvents = hasNewSingleEvents(startDate, endDate, program);
+    }
+
+    return hasNewTrackerEvents || hasNewSingleEvents;
+  }
+
+  /**
+   * Checks whether we have new single events added into the system.
+   *
+   * @param startDate start date to look for.
+   * @param endDate end date to look for.
+   * @param program the {@link Program}.
+   * @return true if it has a new single event, false otherwise.
+   */
+  private boolean hasNewSingleEvents(Date startDate, Date endDate, Program program) {
+    String programStageId =
+        String.valueOf(
+            program.isSingleProgramStage()
+                ? program.getProgramStages().stream().toList().get(0).getId()
+                : EMPTY);
     String sql =
         replaceQualify(
             sqlBuilder,
             """
-            select ev.eventid \
-            from ${event} ev \
-            inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-            where en.programid = ${programId} \
-            and ev.lastupdated >= '${startDate}' \
-            and ev.lastupdated < '${endDate}' \
-            limit 1;""",
+                select ev.eventid \
+                from ${singleevent} ev \
+                where ev.programstageid = ${programStageId} \
+                and ev.lastupdated >= '${startDate}' \
+                and ev.lastupdated < '${endDate}' \
+                limit 1;""",
+            Map.of(
+                "programStageId", String.valueOf(programStageId),
+                "startDate", toLongDate(startDate),
+                "endDate", toLongDate(endDate)));
+
+    return !jdbcTemplate.queryForList(sql).isEmpty();
+  }
+
+  /**
+   * Checks whether we have new tracker events added into the system.
+   *
+   * @param startDate start date to look for.
+   * @param endDate end date to look for.
+   * @param program the {@link Program}.
+   * @return true if it has a new single event, false otherwise.
+   */
+  private boolean hasNewTrackerEvents(Date startDate, Date endDate, Program program) {
+    String sql =
+        replaceQualify(
+            sqlBuilder,
+            """
+                select ev.eventid \
+                from ${trackerevent} ev \
+                inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                where en.programid = ${programId} \
+                and ev.lastupdated >= '${startDate}' \
+                and ev.lastupdated < '${endDate}' \
+                limit 1;""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -296,26 +356,58 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     for (AnalyticsTable table : tables) {
       AnalyticsTablePartition partition = table.getLatestTablePartition();
+      String sql = null;
+      Program program = table.getProgram();
 
-      String sql =
-          replaceQualify(
-              sqlBuilder,
-              """
-              delete from ${tableName} ax \
-              where ax.event in ( \
-              select ev.uid \
-              from ${event} ev \
-              inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-              where en.programid = ${programId} \
-              and ev.lastupdated >= '${startDate}' \
-              and ev.lastupdated < '${endDate}');""",
-              Map.of(
-                  "tableName", sqlBuilder.qualifyTable(table.getName()),
-                  "programId", String.valueOf(table.getProgram().getId()),
-                  "startDate", toLongDate(partition.getStartDate()),
-                  "endDate", toLongDate(partition.getEndDate())));
+      if (table.getProgram().isRegistration()) {
+        sql =
+            replaceQualify(
+                sqlBuilder,
+                """
+                    delete from ${tableName} ax \
+                    where ax.event in ( \
+                    select ev.uid \
+                    from ${trackerevent} ev \
+                    inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                    where en.programid = ${programId} \
+                    and ev.lastupdated >= '${startDate}' \
+                    and ev.lastupdated < '${endDate}');""",
+                Map.of(
+                    "tableName", sqlBuilder.qualifyTable(table.getName()),
+                    "programId", String.valueOf(program.getId()),
+                    "startDate", toLongDate(partition.getStartDate()),
+                    "endDate", toLongDate(partition.getEndDate())));
+      } else {
+        if (isEmpty(program.getProgramStages()) || program.getProgramStages().size() > 1) {
+          log.warn("Single event program {}, must have one stage", program.getUid());
+        } else {
+          String programStageId =
+              String.valueOf(
+                  program.isSingleProgramStage()
+                      ? program.getProgramStages().stream().toList().get(0).getId()
+                      : EMPTY);
+          sql =
+              replaceQualify(
+                  sqlBuilder,
+                  """
+                    delete from ${tableName} ax \
+                    where ax.event in ( \
+                    select ev.uid \
+                    from ${singleevent} ev \
+                    where ev.programstageid = ${programStageId} \
+                    and ev.lastupdated >= '${startDate}' \
+                    and ev.lastupdated < '${endDate}');""",
+                  Map.of(
+                      "tableName", sqlBuilder.qualifyTable(table.getName()),
+                      "programStageId", String.valueOf(programStageId),
+                      "startDate", toLongDate(partition.getStartDate()),
+                      "endDate", toLongDate(partition.getEndDate())));
+        }
+      }
 
-      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
+      if (isNotBlank(sql)) {
+        invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
+      }
     }
   }
 
@@ -327,40 +419,135 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    List<Integer> availableDataYears =
+    List<Integer> availablePeriodYears =
         periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
-    Integer firstDataYear = availableDataYears.get(0);
-    Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
+    Integer firstYear = availablePeriodYears.get(0);
+    Integer latestYear = availablePeriodYears.get(availablePeriodYears.size() - 1);
     Program program = partition.getMasterTable().getProgram();
-    String partitionClause = getPartitionClause(partition);
+    String partitionClause = getPartitionClause(partition, program.isRegistration());
     String attributeJoinClause = getAttributeValueJoinClause(program);
+    String tableName = partition.getName();
 
+    if (program.isRegistration()) {
+      insertTrackerProgramEvents(
+          params,
+          partition,
+          firstYear,
+          latestYear,
+          program,
+          partitionClause,
+          attributeJoinClause,
+          tableName);
+    } else {
+      insertEventProgramEvents(params, partition, firstYear, latestYear, program, tableName);
+    }
+  }
+
+  /**
+   * It inserts new single events into the given table analytics event table, using the given
+   * parameters.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @param firstYear the initial year of the period/date range.
+   * @param latestYear the end year of the period/date range.
+   * @param program the {@link Program}.
+   * @param tableName the name of the table to be populated.
+   */
+  private void insertEventProgramEvents(
+      AnalyticsTableUpdateParams params,
+      AnalyticsTablePartition partition,
+      Integer firstYear,
+      Integer latestYear,
+      Program program,
+      String tableName) {
+    String partitionClauseSingleEvent = getPartitionClause(partition, program.isRegistration());
+    String programStageId =
+        String.valueOf(
+            program.isSingleProgramStage()
+                ? program.getProgramStages().stream().toList().get(0).getId()
+                : EMPTY);
+    String fromClauseSingleEvent =
+        replaceQualify(
+            sqlBuilder,
+            """
+                \sfrom ${singleevent} ev \
+                inner join ${programstage} ps on ev.programstageid=ps.programstageid \
+                inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+                left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
+                inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+                where ev.lastupdated < '${startTime}' ${partitionClause} \
+                and ev.programstageid = ${programStageId} \
+                and ev.organisationunitid is not null \
+                and (${eventDateExpression}) is not null \
+                and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
+                and dps.year >= ${firstYear} \
+                and dps.year <= ${latestYear} \
+                and ev.status in (${exportableEventStatues}) \
+                and ev.deleted = false""",
+            Map.of(
+                "eventDateExpression", "ev.occurreddate",
+                "partitionClause", partitionClauseSingleEvent,
+                "startTime", toLongDate(params.getStartTime()),
+                "programStageId", programStageId,
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
+                "firstYear", String.valueOf(firstYear),
+                "latestYear", String.valueOf(latestYear),
+                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
+
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    populateTableInternal(tableName, columns, fromClauseSingleEvent);
+  }
+
+  /**
+   * It inserts new tracker events into the given table analytics event table, using the given
+   * parameters.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @param firstYear the initial year of the period/date range.
+   * @param latestYear the end year of the period/date range.
+   * @param program the {@link Program}.
+   * @param tableName the name of the table to be populated.
+   */
+  private void insertTrackerProgramEvents(
+      AnalyticsTableUpdateParams params,
+      AnalyticsTablePartition partition,
+      Integer firstYear,
+      Integer latestYear,
+      Program program,
+      String partitionClause,
+      String attributeJoinClause,
+      String tableName) {
     String fromClause =
         replaceQualify(
             sqlBuilder,
             """
-            \sfrom ${event} ev \
-            inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
-            inner join ${programstage} ps on ev.programstageid=ps.programstageid \
-            inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
-            left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
-            inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
-            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
-            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
-            left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
-            inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
-            ${attributeJoinClause}\
-            where ev.lastupdated < '${startTime}' ${partitionClause} \
-            and pr.programid = ${programId} \
-            and ev.organisationunitid is not null \
-            and (${eventDateExpression}) is not null \
-            and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
-            and dps.year >= ${firstDataYear} \
-            and dps.year <= ${latestDataYear} \
-            and ev.status in (${exportableEventStatues}) \
-            and ev.deleted = false""",
+                \sfrom ${trackerevent} ev \
+                inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
+                inner join ${programstage} ps on ev.programstageid=ps.programstageid \
+                inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
+                left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
+                left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
+                inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
+                left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+                left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
+                left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
+                inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+                ${attributeJoinClause}\
+                where ev.lastupdated < '${startTime}' ${partitionClause} \
+                and pr.programid = ${programId} \
+                and ev.organisationunitid is not null \
+                and (${eventDateExpression}) is not null \
+                and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
+                and dps.year >= ${firstYear} \
+                and dps.year <= ${latestYear} \
+                and ev.status in (${exportableEventStatues}) \
+                and ev.deleted = false""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
@@ -369,26 +556,33 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
                 "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
-                "firstDataYear", String.valueOf(firstDataYear),
-                "latestDataYear", String.valueOf(latestDataYear),
+                "firstYear", String.valueOf(firstYear),
+                "latestYear", String.valueOf(latestYear),
                 "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
 
-    populateTableInternal(partition, fromClause);
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    populateTableInternal(tableName, columns, fromClause);
   }
 
   /**
    * Returns a partition SQL clause.
    *
    * @param partition the {@link AnalyticsTablePartition}.
+   * @param isTrackerProgram flag to distinguish between tracker and single program.
    * @return a partition SQL clause.
    */
-  private String getPartitionClause(AnalyticsTablePartition partition) {
+  private String getPartitionClause(AnalyticsTablePartition partition, boolean isTrackerProgram) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
-    String statusDate = eventDateExpression;
+    String dateExpression = eventDateExpression;
+
+    if (!isTrackerProgram) {
+      dateExpression = "ev.occurreddate";
+    }
+
     String latestFilter = format("and ev.lastupdated >= '{}' ", start);
     String partitionFilter =
-        format("and ({}) >= '{}' and ({}) < '{}' ", statusDate, start, statusDate, end);
+        format("and ({}) >= '{}' and ({}) < '{}' ", dateExpression, start, dateExpression, end);
 
     return partition.isLatestPartition()
         ? latestFilter
@@ -403,7 +597,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns =
-        EventAnalyticsColumn.getColumns(sqlBuilder, useCentroidForOuColumns());
+        EventAnalyticsColumn.getColumns(
+            sqlBuilder, hasCentroidForOuColumns(), program.isRegistration());
+
     columns.addAll(getAttributeCategoryColumns(program));
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
@@ -477,13 +673,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         dataElements.stream()
-            .map(de -> getColumnForDataElement(de, false))
+            .map(de -> getColumnForDataElement(de, false, program.getProgramType()))
             .flatMap(Collection::stream)
             .toList());
 
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map(de -> getColumnForDataElement(de, true))
+            .map(de -> getColumnForDataElement(de, true, program.getProgramType()))
             .flatMap(Collection::stream)
             .toList());
     return columns;
@@ -498,7 +694,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return
    */
   private List<AnalyticsTableColumn> getColumnForDataElement(
-      DataElement dataElement, boolean withLegendSet) {
+      DataElement dataElement, boolean withLegendSet, ProgramType programType) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     DataType dataType = getColumnType(dataElement.getValueType(), isGeospatialSupport());
@@ -511,7 +707,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Skip skipIndex = columnMapper.skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
 
     if (withLegendSet) {
-      return getColumnFromDataElementWithLegendSet(dataElement, columnExpression, dataFilterClause);
+      return getColumnFromDataElementWithLegendSet(
+          dataElement, columnExpression, dataFilterClause, programType);
     }
 
     if (dataElement.getValueType().isOrganisationUnit()) {
@@ -581,7 +778,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         """
             \s(select l.uid \
               from   ${maplegend} l \
-              join   trackedentityattributevalue av \
+              inner join   ${trackedentityattributevalue} av \
                      on av.trackedentityattributeid=${attributeId} \
                     ${numericClause} \
                     and l.maplegendsetid=${legendSetId} \
@@ -623,15 +820,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
-      DataElement dataElement, String selectExpression, String dataFilterClause) {
+      DataElement dataElement,
+      String selectExpression,
+      String dataFilterClause,
+      ProgramType programType) {
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
       return List.of();
     }
 
+    String eventTable = programType == WITHOUT_REGISTRATION ? "singleevent" : "trackerevent";
+
     String query =
         """
         (select l.uid from ${maplegend} l \
-        inner join ${event} on l.startvalue <= ${select} \
+        inner join ${eventTable} on l.startvalue <= ${select} \
         and l.endvalue > ${select} \
         and l.maplegendsetid=${legendSetId} \
         ${dataClause} where eventid = ev.eventid) as ${column}""";
@@ -645,10 +847,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                       sqlBuilder,
                       query,
                       Map.of(
-                          "select", selectExpression,
-                          "legendSetId", String.valueOf(ls.getId()),
-                          "dataClause", dataFilterClause,
-                          "column", column));
+                          "select",
+                          selectExpression,
+                          "legendSetId",
+                          String.valueOf(ls.getId()),
+                          "dataClause",
+                          dataFilterClause,
+                          "column",
+                          column,
+                          "eventTable",
+                          eventTable));
 
               return AnalyticsTableColumn.builder()
                   .name(column)
@@ -685,49 +893,132 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param program the {@link Program}.
-   * @param firstDataYear the first year to include.
-   * @param lastDataYear the last data year to include.
+   * @param firstYear the first year to include.
+   * @param lastYear the last data year to include.
    * @return a list of years for which data exists.
    */
   private List<Integer> getDataYears(
-      AnalyticsTableUpdateParams params,
-      Program program,
-      Integer firstDataYear,
-      Integer lastDataYear) {
+      AnalyticsTableUpdateParams params, Program program, Integer firstYear, Integer lastYear) {
+    Set<Integer> distinctYears = new HashSet<>();
     String fromDate = toMediumDate(params.getFromDate());
+    String dateExpression = eventDateExpression;
+
+    if (program.isWithoutRegistration()) {
+      dateExpression = "ev.occurreddate";
+    }
+
     String fromDateClause =
         params.getFromDate() != null
             ? replace(
                 "and (${eventDateExpression}) >= '${fromDate}'",
                 Map.of(
-                    "eventDateExpression", eventDateExpression,
+                    "eventDateExpression", dateExpression,
                     "fromDate", fromDate))
             : EMPTY;
 
-    String sql =
-        replaceQualify(
-            sqlBuilder,
-            """
-            select temp.supportedyear from \
-            (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from ${event} ev \
-            inner join ${enrollment} en on ev.enrollmentid = en.enrollmentid \
-            where ev.lastupdated <= '${startTime}' and en.programid = ${programId} \
-            and (${eventDateExpression}) is not null \
-            and (${eventDateExpression}) > '1000-01-01' \
-            and ev.deleted = false \
-            ${fromDateClause}) as temp \
-            where temp.supportedyear >= ${firstDataYear} \
-            and temp.supportedyear <= ${latestDataYear}""",
-            Map.of(
-                "eventDateExpression", eventDateExpression,
-                "startTime", toLongDate(params.getStartTime()),
-                "programId", String.valueOf(program.getId()),
-                "fromDateClause", fromDateClause,
-                "firstDataYear", String.valueOf(firstDataYear),
-                "latestDataYear", String.valueOf(lastDataYear)));
+    if (program.isRegistration()) {
+      String sqlTrackerEvents =
+          trackerEventsYearsQuery(params, program, firstYear, lastYear, fromDateClause);
+      distinctYears.addAll(jdbcTemplate.queryForList(sqlTrackerEvents, Integer.class));
+    } else {
+      String sqlSingleEvents =
+          singleEventsYearsQuery(params, program, firstYear, lastYear, fromDateClause);
+      distinctYears.addAll(jdbcTemplate.queryForList(sqlSingleEvents, Integer.class));
+    }
 
-    return jdbcTemplate.queryForList(sql, Integer.class);
+    return distinctYears.stream().toList();
+  }
+
+  /**
+   * Generates a query statement to retrieve all years that have a single event registered within
+   * the range of years informed.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param program {@link Program}.
+   * @param firstYear the initial year of the range.
+   * @param lastYear the end year of the range.
+   * @param fromDateClause the respectice event date clause.
+   * @return the SQL statement.
+   */
+  private String singleEventsYearsQuery(
+      AnalyticsTableUpdateParams params,
+      Program program,
+      Integer firstYear,
+      Integer lastYear,
+      String fromDateClause) {
+    String programStageId =
+        String.valueOf(
+            program.isSingleProgramStage()
+                ? program.getProgramStages().stream().toList().get(0).getId()
+                : EMPTY);
+    return replaceQualify(
+        sqlBuilder,
+        """
+                select temp.supportedyear from \
+                (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+                from ${singleevent} ev \
+                inner join ${programstage} ps on ev.programstageid=ps.programstageid \
+                where ev.lastupdated <= '${startTime}' \
+                and (${eventDateExpression}) is not null \
+                and (${eventDateExpression}) > '1000-01-01' \
+                and ev.programstageid = ${programStageId} \
+                and ev.deleted = false \
+                ${fromDateClause}) as temp \
+                where temp.supportedyear >= ${firstYear} \
+                and temp.supportedyear <= ${latestYear}""",
+        Map.of(
+            "eventDateExpression",
+            "ev.occurreddate",
+            "startTime",
+            toLongDate(params.getStartTime()),
+            "programStageId",
+            programStageId,
+            "fromDateClause",
+            fromDateClause,
+            "firstYear",
+            String.valueOf(firstYear),
+            "latestYear",
+            String.valueOf(lastYear)));
+  }
+
+  /**
+   * Generates a query statement to retrieve all years that have a tracker event registered within
+   * the range of years informed.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param program {@link Program}.
+   * @param firstYear the initial year of the range.
+   * @param lastYear the end year of the range.
+   * @param fromDateClause the respectice event date clause.
+   * @return the SQL statement.
+   */
+  private String trackerEventsYearsQuery(
+      AnalyticsTableUpdateParams params,
+      Program program,
+      Integer firstYear,
+      Integer lastYear,
+      String fromDateClause) {
+    return replaceQualify(
+        sqlBuilder,
+        """
+                select temp.supportedyear from \
+                (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+                from ${trackerevent} ev \
+                inner join ${enrollment} en on ev.enrollmentid = en.enrollmentid \
+                where ev.lastupdated <= '${startTime}' and en.programid = ${programId} \
+                and (${eventDateExpression}) is not null \
+                and (${eventDateExpression}) > '1000-01-01' \
+                and ev.deleted = false \
+                ${fromDateClause}) as temp \
+                where temp.supportedyear >= ${firstYear} \
+                and temp.supportedyear <= ${latestYear}""",
+        Map.of(
+            "eventDateExpression", eventDateExpression,
+            "startTime", toLongDate(params.getStartTime()),
+            "programId", String.valueOf(program.getId()),
+            "fromDateClause", fromDateClause,
+            "firstYear", String.valueOf(firstYear),
+            "latestYear", String.valueOf(lastYear)));
   }
 
   /**
@@ -751,7 +1042,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
   }
 
-  private boolean useCentroidForOuColumns() {
+  /**
+   * Indicates whether the analytics event tables are created with a centroid value for each data
+   * element or tracked entity attributes of type org unit or geometry.
+   *
+   * @return whether geospatial support is enabled.
+   */
+  private boolean hasCentroidForOuColumns() {
     return settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics();
   }
 }

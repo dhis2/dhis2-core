@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -199,8 +198,7 @@ public class TrackerObjectsMapper {
 
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
     dbEvent.setOrganisationUnit(organisationUnit);
-    Program program = preheat.getProgram(event.getProgram());
-    dbEvent.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
+    dbEvent.setEnrollment(preheat.getEnrollment(event.getEnrollment()));
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     dbEvent.setProgramStage(programStage);
 
@@ -272,8 +270,6 @@ public class TrackerObjectsMapper {
 
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
     dbEvent.setOrganisationUnit(organisationUnit);
-    Program program = preheat.getProgram(event.getProgram());
-    dbEvent.setEnrollment(getEnrollment(preheat, event.getEnrollment(), program));
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     dbEvent.setProgramStage(programStage);
 
@@ -424,7 +420,6 @@ public class TrackerObjectsMapper {
     event.setCompletedDate(singleEvent.getCompletedDate());
 
     event.setProgramStage(singleEvent.getProgramStage());
-    event.setEnrollment(singleEvent.getEnrollment());
     event.setOrganisationUnit(singleEvent.getOrganisationUnit());
     event.setRelationshipItems(singleEvent.getRelationshipItems());
 
@@ -436,12 +431,5 @@ public class TrackerObjectsMapper {
     event.setNotes(singleEvent.getNotes());
 
     return event;
-  }
-
-  private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {
-    return switch (program.getProgramType()) {
-      case WITH_REGISTRATION -> preheat.getEnrollment(enrollment);
-      case WITHOUT_REGISTRATION -> preheat.getEnrollmentsWithoutRegistration(program.getUid());
-    };
   }
 }

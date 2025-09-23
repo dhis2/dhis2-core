@@ -142,12 +142,15 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
+    setUpToBeMigrated();
 
-    trackerObjects = testSetup.importTrackerData();
+    manager.flush();
+    manager.clear();
     testSetup.importTrackerData("tracker/tracker_multi_text_attribute_data.json");
 
     manager.flush();
     manager.clear();
+    trackerObjects = testSetup.importTrackerData();
 
     deleteTrackedEntity(UID.of("woitxQbWYNq"));
     switchContextToUser(importUser);
@@ -172,8 +175,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   // Used to generate unique chars for creating TEA in test setup
   private int uniqueAttributeCharCounter = 0;
 
-  @BeforeEach
-  void setUpToBeMigrated() {
+  private void setUpToBeMigrated() {
     owner = makeUser("owner");
 
     orgUnit = createOrganisationUnit('A');
@@ -284,13 +286,15 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
 
     JsonTrackedEntity json =
-        GET("/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit", te.getUid())
+        GET(
+                "/tracker/trackedEntities/{id}?fields=trackedEntityType,orgUnit::rename(org)",
+                te.getUid())
             .content(HttpStatus.OK)
             .as(JsonTrackedEntity.class);
 
-    assertHasOnlyMembers(json, "trackedEntityType", "orgUnit");
+    assertHasOnlyMembers(json, "trackedEntityType", "org");
     assertEquals(te.getTrackedEntityType().getUid(), json.getTrackedEntityType());
-    assertEquals(te.getOrganisationUnit().getUid(), json.getOrgUnit());
+    assertEquals(te.getOrganisationUnit().getUid(), json.getString("org").string());
   }
 
   @Test
@@ -1191,6 +1195,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   private TrackedEntity deleteTrackedEntity(UID uid) {
+    manager.flush();
+    manager.clear();
     TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
     org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
         trackerObjects.getTrackedEntities().stream()

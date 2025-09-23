@@ -31,18 +31,14 @@ package org.hisp.dhis.tracker.imports.note;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
@@ -76,8 +72,7 @@ public class DefaultNoteService implements NoteService {
   @Override
   public void addNoteForEvent(Note note, UID event) throws NotFoundException, BadRequestException {
     // Check event existence and access
-    Program program = getProgramFromEvent(event);
-    if (program.isRegistration()) {
+    if (trackerEventService.exists(event)) {
       trackerEventService.getEvent(event);
       validateNote(note);
       noteStore.saveTrackerEventNote(event, note, CurrentUserUtil.getCurrentUserDetails());
@@ -96,15 +91,5 @@ public class DefaultNoteService implements NoteService {
     if (noteStore.exists(note.getNote())) {
       throw new BadRequestException(String.format("Note `%s` already exists.", note.getNote()));
     }
-  }
-
-  @Nonnull
-  private Program getProgramFromEvent(@Nonnull UID eventUID) throws NotFoundException {
-    TrackerEvent event = manager.get(TrackerEvent.class, eventUID);
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUID);
-    }
-
-    return event.getProgramStage().getProgram();
   }
 }

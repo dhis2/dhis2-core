@@ -131,9 +131,9 @@
     <HikariCP.version>7.0.2</HikariCP.version>
     <postgresql-driver.version>42.7.7</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.10.1</datasource-proxy.version>
+    <datasource-proxy.version>1.11.0</datasource-proxy.version>
     <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.8.6</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.9.2</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -191,7 +191,7 @@
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.8.0</google-api-client.version>
-    <lombok.version>1.18.38</lombok.version>
+    <lombok.version>1.18.40</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.14.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
@@ -212,7 +212,7 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.15.3</micrometer.version>
+    <micrometer.version>1.15.4</micrometer.version>
     <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
@@ -231,6 +231,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
+    <jmh.version>1.37</jmh.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -244,17 +245,17 @@
     <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.19.0</versions-maven-plugin.version>
     <dependency-check-maven.version>12.1.3</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.3.2</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.5</spotless.version>
+    <spotless.version>2.46.1</spotless.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
-    <gson.version>2.13.1</gson.version>
+    <gson.version>2.13.2</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.16.0</opentelemetry.version>
+    <opentelemetry.version>2.20.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -1723,7 +1724,18 @@
         <artifactId>minio</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-core</artifactId>
+        <version>${jmh.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-generator-annprocess</artifactId>
+        <version>${jmh.version}</version>
+        <scope>test</scope>
+      </dependency>
       <!-- Monitoring -->
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -1935,6 +1947,9 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-plugin.version}</version>
+          <configuration>
+            <excludedGroups>benchmark</excludedGroups>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1987,7 +2002,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.9.3</version>
+              <version>4.9.6</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -2396,7 +2411,7 @@ jasperreports.version=${jasperreports.version}
               <skipTests>${skipTests}</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
+              <excludedGroups>benchmark,integration,integrationH2</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
@@ -2422,6 +2437,7 @@ jasperreports.version=${jasperreports.version}
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integration</groups>
+              <excludedGroups>benchmark</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
@@ -2447,6 +2463,7 @@ jasperreports.version=${jasperreports.version}
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
               <groups>integrationH2</groups>
+              <excludedGroups>benchmark</excludedGroups>
               <systemPropertyVariables>
                 <!-- Uncomment if you need to debug the log4j2 config itself -->
                 <!-- <log4j2.debug>true</log4j2.debug> -->
