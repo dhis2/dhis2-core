@@ -44,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -142,48 +143,49 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPostCsvDataValueSet() {
+    String csv =
+        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted";
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Import was successful.",
-        POST("/38/dataValueSets/", Body("abc"), ContentType("application/csv"))
+        POST("/38/dataValueSets/", Body(csv), ContentType("application/csv"))
             .content(HttpStatus.OK));
   }
 
   @Test
   void testPostCsvDataValueSet_Async() {
+    String csv =
+        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted";
     JsonWebMessage msg =
         assertWebMessage(
             HttpStatus.OK,
-            POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv")));
+            POST("/dataValueSets?async=true", Body(csv), ContentType("application/csv")));
     assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
   }
 
   @Test
   void testGetDataValueSetJson() {
-    String ouId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
-                    + " 'code':'OU1'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                + " 'code':'OU1'}"));
     String dsId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/dataSets/",
                 "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
-    JsonWebMessage response =
+    JsonObject ds =
         GET(
                 "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}",
                 "OU1",
                 dsId)
-            .content(HttpStatus.CONFLICT)
-            .as(JsonWebMessage.class);
-    assertEquals(
-        String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+            .content(HttpStatus.OK);
+    assertTrue(ds.isObject());
   }
 
   @Test

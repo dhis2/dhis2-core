@@ -35,6 +35,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +76,7 @@ public class FileResourceCleanUpJob implements Job {
         settingsProvider.getCurrentSettings().getFileResourceRetentionStrategy();
 
     List<Entry<String, String>> deletedOrphans = new ArrayList<>();
-    List<Entry<String, String>> deletedAuditFiles = new ArrayList<>();
+    List<Entry<String, String>> deletedExpired = new ArrayList<>();
     List<Entry<String, String>> deletedFileResourcesForDeletedJobs = new ArrayList<>();
 
     // Delete expired FRs
@@ -87,7 +88,7 @@ public class FileResourceCleanUpJob implements Job {
           FileResourceCleanUpJob::toIdentifier,
           fr -> {
             if (safeDelete(fr)) {
-              deletedAuditFiles.add(new SimpleEntry<>(fr.getName(), fr.getUid()));
+              deletedExpired.add(Map.entry(fr.getName(), fr.getUid()));
             }
           });
     }
@@ -131,11 +132,11 @@ public class FileResourceCleanUpJob implements Job {
               deletedOrphans.size(), prettyPrint(deletedOrphans)));
     }
 
-    if (!deletedAuditFiles.isEmpty()) {
+    if (!deletedExpired.isEmpty()) {
       log.info(
           String.format(
-              "Deleted %d expired FileResource audits: %s",
-              deletedAuditFiles.size(), prettyPrint(deletedAuditFiles)));
+              "Deleted %d expired data value FileResources: %s",
+              deletedExpired.size(), prettyPrint(deletedExpired)));
     }
 
     if (!deletedFileResourcesForDeletedJobs.isEmpty()) {

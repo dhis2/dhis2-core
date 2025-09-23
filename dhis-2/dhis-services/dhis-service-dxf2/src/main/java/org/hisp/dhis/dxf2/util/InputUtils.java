@@ -43,7 +43,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -223,16 +222,5 @@ public class InputUtils {
     }
 
     return attrOptCombo;
-  }
-
-  /**
-   * Checks if user is authorized to force data input.
-   *
-   * @param currentUser the user attempting to force data input
-   * @param force request to force data input
-   * @return true if authorized and requested for it, otherwise false.
-   */
-  public boolean canForceDataInput(UserDetails currentUser, boolean force) {
-    return force && currentUser.isSuper();
   }
 }
