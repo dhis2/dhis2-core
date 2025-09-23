@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1001;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1003;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
@@ -56,6 +57,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -251,7 +253,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   }
 
   @Test
-  void shouldFailWhenCreateTEAndUserHasNoCorrectCaptureScope() {
+  void shouldFailWhenCreateTEAndUserHasNoCaptureScopeAccess() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -265,10 +267,36 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+    User authorizedUser = makeUser("B");
+    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
+    when(bundle.getUser()).thenReturn(userDetails);
 
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, E1000);
+  }
+
+  @Test
+  void shouldFailWhenCreateTEAndUserHasNoWriteAccessToTET() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(TE_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
+            .build();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+    TrackedEntity te = TrackerObjectsMapper.map(preheat, trackedEntity, user);
+    when(trackerAccessManager.canCreate(any(), eq(te))).thenReturn(List.of("error"));
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, E1001);
   }
 
   @Test
@@ -291,6 +319,30 @@ class SecurityOwnershipValidatorTest extends TestBase {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, E1003);
+  }
+
+  @Test
+  void shouldFailWhenDeleteTEAndUserHasNoCaptureScopeAccess() {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+            .trackedEntity(TE_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
+            .build();
+
+    TrackedEntity te = TrackerObjectsMapper.map(preheat, trackedEntity, user);
+    te.setOrganisationUnit(organisationUnit);
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity())).thenReturn(te);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    User authorizedUser = makeUser("B");
+    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
+    when(bundle.getUser()).thenReturn(userDetails);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, E1000);
   }
 
   private TrackedEntity teWithNoEnrollments() {
