@@ -63,6 +63,10 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String SCHEMA = "public";
   protected static final Pattern IS_SINGLE_QUOTED = Pattern.compile("^'.*'$");
 
+  // Database name as extracted from JDBC URL
+  // Can be null if not applicable
+  protected String databaseName;
+
   // Utilities
 
   @Override
@@ -200,8 +204,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   @Override
-  public String qualifyReplicatedTable(String name) {
-    return name;
+  public String getDatabaseName() {
+    return databaseName;
   }
 
   // Mapping

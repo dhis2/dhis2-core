@@ -33,6 +33,8 @@ import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.toCommaSeparated;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -56,6 +58,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
   protected final ColumnMapper columnMapper;
+
+  private static final Pattern ANALYTICS_RS_PATTERN =
+      Pattern.compile("\\b(analytics_rs\\w*)\\b", Pattern.CASE_INSENSITIVE);
 
   public AbstractEventJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -102,7 +107,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    */
   protected void populateTableInternal(
       String tableName, List<AnalyticsTableColumn> columns, String fromClause) {
-    String sql = "insert into " + tableName + " (";
+    String sql = "insert into " + qualifyWithDb(tableName) + " (";
     sql += toCommaSeparated(columns, col -> quote(col.getName()));
     sql += ") select ";
     sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
@@ -130,12 +135,44 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   protected String getAttributeValueJoinClause(Program program) {
     String template =
         """
-        left join trackedentityattributevalue as ${uid} \
+        left join ${teavaluetable} as ${uid} \
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
     return program.getNonConfidentialTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(sqlBuilder, template, toVariableMap(attribute)))
         .collect(Collectors.joining());
+  }
+
+  /**
+   * Prepend the database name (if any) to unqualified resource table names (starting with
+   * "analytics_rs") in the given SQL snippet in the given SQL snippet.
+   *
+   * @param sqlSnippet a SQL snippet
+   * @return the SQL snippet with qualified resource table names
+   */
+  protected String qualifyResourceTables(String sqlSnippet) {
+
+    if (sqlSnippet == null) {
+      return null;
+    }
+
+    if (sqlSnippet.trim().isEmpty()) {
+      return sqlSnippet;
+    }
+
+    StringBuilder result = new StringBuilder();
+    Matcher matcher = ANALYTICS_RS_PATTERN.matcher(sqlSnippet);
+
+    while (matcher.find()) {
+      String tableName = matcher.group(1);
+      String qualifiedName = qualifyWithDb(tableName);
+
+      // Replace the matched table name with the qualified version
+      matcher.appendReplacement(result, Matcher.quoteReplacement(qualifiedName));
+    }
+
+    matcher.appendTail(result);
+    return result.toString();
   }
 }

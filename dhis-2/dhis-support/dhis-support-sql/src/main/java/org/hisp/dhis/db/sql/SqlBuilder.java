@@ -250,7 +250,10 @@ public interface SqlBuilder {
    */
   String qualifyTable(String name);
 
-  String qualifyReplicatedTable(String name);
+  /**
+   * @return The name of the database extracted from the connection URL.
+   */
+  String getDatabaseName();
 
   /**
    * @param timeUnit the time unit as string, e.g. 'hour', 'day', 'year'.

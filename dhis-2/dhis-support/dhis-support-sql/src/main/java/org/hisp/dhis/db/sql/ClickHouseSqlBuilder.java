@@ -57,14 +57,10 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "\"";
 
-  private final String replicatedTablePrefix;
+  public ClickHouseSqlBuilder() {}
 
   public ClickHouseSqlBuilder(String analyticsDatabaseUrl) {
-    this.replicatedTablePrefix = resolveDatabaseName(analyticsDatabaseUrl);
-  }
-
-  public ClickHouseSqlBuilder() {
-    this.replicatedTablePrefix = null;
+    this.databaseName = resolveDatabaseName(analyticsDatabaseUrl);
   }
 
   // Database
@@ -231,13 +227,6 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String qualifyTable(String name) {
     return String.format("postgresql(%s, table=%s)", quote(NAMED_COLLECTION), singleQuote(name));
-  }
-
-  @Override
-  public String qualifyReplicatedTable(String name) {
-    return this.replicatedTablePrefix == null
-        ? name
-        : String.format("%s.%s", this.replicatedTablePrefix, name);
   }
 
   @Override
