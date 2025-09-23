@@ -213,7 +213,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         and l.maplegendsetid=0 \
         and l.startvalue <= CAST(av.value AS DECIMAL) \
         and l.endvalue > CAST(av.value AS DECIMAL) \
-        where av.trackedentityid = en.trackedentityid limit 1) as %s
+        where av.trackedentityid = en.trackedentityid limit 1) as %s\
         """;
 
     AnalyticsTableUpdateParams params =
