@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.db.util;
 
-import static org.hisp.dhis.db.util.JdbcUtils.getDatabaseFromUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -39,58 +38,40 @@ class JdbcUtilsTest {
   @Test
   void testExtractDatabaseName() {
     // PostgreSQL
-    assertEquals("d42", getDatabaseFromUrl("jdbc:postgresql:d42"));
-    assertEquals("testdb", getDatabaseFromUrl("jdbc:postgresql://localhost:5432/testdb"));
-    assertEquals("mydb", getDatabaseFromUrl("jdbc:postgresql://192.168.1.100/mydb?ssl=true"));
+    assertDatabase("d42", "jdbc:postgresql:d42");
+    assertDatabase("testdb", "jdbc:postgresql://localhost:5432/testdb");
+    assertDatabase("dhis2", "jdbc:postgresql://192.168.1.100/dhis2?ssl=true");
 
     // ClickHouse
-    assertEquals("d42", getDatabaseFromUrl("jdbc:clickhouse://localhost:8123/d42"));
-    assertEquals("d42", getDatabaseFromUrl("jdbc:clickhouse://myserver.org/d42"));
-    assertEquals(
-        "d42",
-        getDatabaseFromUrl("jdbc:clickhouse://localhost:8123/d42?time_to_live=12&my_prop=14"));
-    assertEquals("system", getDatabaseFromUrl("jdbc:ch://my-server:8123/system"));
-    assertEquals("anotherdb", getDatabaseFromUrl("jdbc:ch://127.0.0.1/anotherdb"));
+    assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42");
+    assertDatabase("d42", "jdbc:clickhouse://myserver.org/d42");
+    assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42?characterEncoding=utf8&my_prop=14");
+    assertDatabase("system", "jdbc:ch://play.dhis2.org:8123/system");
+    assertDatabase("anotherdb", "jdbc:ch://127.0.0.1/anotherdb");
 
-    // Test cases for MySQL and Apache Doris (using MySQL protocol)
-    assertEquals("demo", getDatabaseFromUrl("jdbc:mysql://12.34.12.34:9030/demo"));
-    assertEquals(
-        "demo",
-        getDatabaseFromUrl(
-            "jdbc:mysql://12.34.12.34:9030/demo?useUnicode=true&characterEncoding=utf8"));
-    assertEquals("sales", getDatabaseFromUrl("jdbc:mysql://localhost/sales"));
-    assertEquals(
-        "reports", getDatabaseFromUrl("jdbc:mysql://10.0.0.5:3306/reports?serverTimezone=UTC"));
-    assertEquals("dorisdb", getDatabaseFromUrl("jdbc:mysql://doris-cluster:9030/dorisdb"));
-    assertNull(getDatabaseFromUrl("jdbc:mysql://localhost:3306/"));
+    // MySQL/Apache Doris
+    assertDatabase("demo", "jdbc:mysql://12.34.12.34:9030/demo");
+    assertDatabase("demo", "jdbc:mysql://12.34.12.34:9030/demo?useUnicode=true&my_prop=24");
+    assertDatabase("sales", "jdbc:mysql://localhost/sales");
+    assertDatabase("reports", "jdbc:mysql://10.0.0.5:3306/reports?serverTimezone=UTC");
+    assertDatabase("dorisdb", "jdbc:mysql://doris-cluster:9030/dorisdb");
 
-    // General and corner cases
-    assertNull(getDatabaseFromUrl(null));
-    assertNull(getDatabaseFromUrl(""));
-    assertNull(getDatabaseFromUrl("   "));
-    assertNull(getDatabaseFromUrl("jdbc:clickhouse://localhost"));
-    assertNull(getDatabaseFromUrl("jdbc:postgresql://localhost"));
+    // Null and corner cases
+    assertNull(JdbcUtils.getDatabaseFromUrl(null));
+    assertNull(JdbcUtils.getDatabaseFromUrl(""));
+    assertNull(JdbcUtils.getDatabaseFromUrl("  "));
+    assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:clickhouse://localhost"));
+    assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:postgresql://localhost"));
+    assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:mysql://localhost:3306/"));
   }
 
-  @Test
-  void testA() {
-    String[] testUrls = {
-      "jdbc:postgresql:d42",
-      "jdbc:clickhouse://localhost:8123/d42",
-      "jdbc:clickhouse://myserver.org/d42",
-      "jdbc:clickhouse://localhost:8123/d42?time_to_live=12&my_prop=14",
-      "jdbc:ch://my-server:8123/system",
-      "jdbc:mysql://FE_IP:FE_PORT/demo?useUnicode=true&characterEncoding=utf8",
-      "jdbc:postgresql://localhost:5432/mydb",
-      "jdbc:mysql://127.0.0.1:3306/mydatabase"
-    };
-
-    for (String url : testUrls) {
-      try {
-        System.out.printf("URL: %-80s => DB Name: %s%n", url, getDatabaseFromUrl(url));
-      } catch (Exception e) {
-        System.out.printf("URL: %-80s => ERROR: %s%n", url, e.getMessage());
-      }
-    }
+  /**
+   * Helper method to assert database extraction.
+   *
+   * @param database the database name.
+   * @param jdbcUrl the JDBC connection URL.
+   */
+  private void assertDatabase(String database, String jdbcUrl) {
+    assertEquals(database, JdbcUtils.getDatabaseFromUrl(jdbcUrl));
   }
 }
