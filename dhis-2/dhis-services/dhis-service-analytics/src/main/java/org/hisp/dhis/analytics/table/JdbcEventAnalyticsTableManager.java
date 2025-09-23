@@ -403,7 +403,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns =
-        EventAnalyticsColumn.getColumns(sqlBuilder, useCentroidForOuColumns());
+        EventAnalyticsColumn.getColumns(sqlBuilder, hasCentroidForOuColumns());
     columns.addAll(getAttributeCategoryColumns(program));
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
@@ -579,16 +579,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String query =
         """
-            \s(select l.uid \
-              from   ${maplegend} l \
-              join   trackedentityattributevalue av \
-                     on av.trackedentityattributeid=${attributeId} \
-                    ${numericClause} \
-                    and l.maplegendsetid=${legendSetId} \
-                    and l.startvalue <= ${castExpr} \
-                    and l.endvalue   > ${castExpr} \
-              where av.trackedentityid = en.trackedentityid \
-              limit  1) as ${column}""";
+        \s(select l.uid \
+        from ${maplegend} l \
+        join trackedentityattributevalue av on av.trackedentityattributeid=${attributeId} \
+        ${numericClause} \
+        and l.maplegendsetid=${legendSetId} \
+        and l.startvalue <= ${castExpr} \
+        and l.endvalue > ${castExpr} \
+        where av.trackedentityid = en.trackedentityid \
+        limit 1) as ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
@@ -751,7 +750,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return ListUtils.mutableCopy(!dataYears.isEmpty() ? dataYears : List.of(Year.now().getValue()));
   }
 
-  private boolean useCentroidForOuColumns() {
+  /**
+   * Indicates whether the analytics event tables are created with a centroid value for each data
+   * element or tracked entity attributes of type org unit or geometry.
+   *
+   * @return whether geospatial support is enabled.
+   */
+  private boolean hasCentroidForOuColumns() {
     return settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics();
   }
 }
