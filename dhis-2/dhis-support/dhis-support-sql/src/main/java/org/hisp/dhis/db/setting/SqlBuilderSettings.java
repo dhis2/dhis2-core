@@ -30,6 +30,7 @@
 package org.hisp.dhis.db.setting;
 
 import static org.hisp.dhis.commons.util.TextUtils.format;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
@@ -58,6 +59,10 @@ public class SqlBuilderSettings {
    */
   public String getAnalyticsDatabaseCatalog() {
     return config.getProperty(ANALYTICS_DATABASE_CATALOG);
+  }
+
+  public String getAnalyticsConnectionUrl() {
+    return config.getProperty(ANALYTICS_CONNECTION_URL);
   }
 
   /**
