@@ -55,6 +55,8 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  * to {@link AnalyticsTableColumn} objects, which are used in analytics tables.
  */
 @Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Transactional(readOnly = true)
 public class ColumnMapper {
 
@@ -181,6 +184,10 @@ public class ColumnMapper {
     } else {
       return columnExpression;
     }
+  }
+
+  public SqlBuilder getSqlBuilder() {
+    return sqlBuilder;
   }
 
   /**
