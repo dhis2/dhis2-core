@@ -110,7 +110,7 @@ public class FieldsParser {
       @Nonnull Map<String, Function<Schema, Set<String>>> presets) {
     FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
     mapPresets(root, schema, getSchema, presets);
-    expandPaths(root, schema, getSchema);
+    expandReferences(root, schema, getSchema);
     return map(root, root.includes.contains(TOKEN_ALL));
   }
 
@@ -334,18 +334,20 @@ public class FieldsParser {
   }
 
   /**
-   * Expands paths for metadata objects similar to FieldPathHelper.applyDefaults(). For reference
-   * objects: expands "dataSets" to "dataSets.id" For complex objects: expands "complexField" to
-   * "complexField[*]" Only applies to objects with proper metadata schemas. Tracker view classes
-   * and other objects without registered schemas are automatically skipped.
+   * Expands fields for classes which have registered a {@code SchemaDescriptor}.
+   *
+   * <p>
+   *
+   * <ul>
+   *   <li>For reference objects: expands {@code "dataSets"} to {@code "dataSets[id]"}
+   *   <li>For complex objects: expands {@code "complexField"} to {@code "complexField[*]"}
+   * </ul>
+   *
+   * Fields for classes which do not have a registered schema are not expanded as well as fields
+   * that do not exist.
    */
-  private static void expandPaths(
+  private static void expandReferences(
       FieldsAccumulator acc, Schema schema, BiFunction<Schema, String, Schema> getSchema) {
-    if (schema == null) {
-      // No schema available - skip expansion
-      return;
-    }
-
     Set<String> fieldsToExpand = new HashSet<>();
     Set<String> expandedFields = new HashSet<>();
 
@@ -353,12 +355,10 @@ public class FieldsParser {
       if (fieldName.equals(TOKEN_ALL)) {
         continue; // Skip *
       }
-      // Note: Valid presets like :identifiable have already been expanded by mapPresets()
-      // Any remaining :prefixed fields are invalid and will be treated as regular field names
 
       Property property = schema.getProperty(fieldName);
       if (property == null) {
-        continue; // Invalid field
+        continue; // Ignore invalid fields
       }
 
       // Check if this field needs expansion and doesn't already have children
@@ -387,7 +387,7 @@ public class FieldsParser {
     for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
       Schema childSchema = getSchema.apply(schema, entry.getKey());
       if (childSchema != null) {
-        expandPaths(entry.getValue(), childSchema, getSchema);
+        expandReferences(entry.getValue(), childSchema, getSchema);
       }
     }
   }
