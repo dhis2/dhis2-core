@@ -57,10 +57,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "\"";
 
-  // Database name as extracted from JDBC URL
-  private String databaseName;
-
-  public ClickHouseSqlBuilder() {}
+  private final String databaseName;
 
   public ClickHouseSqlBuilder(String analyticsDatabaseUrl) {
     this.databaseName = resolveDatabaseName(analyticsDatabaseUrl);
