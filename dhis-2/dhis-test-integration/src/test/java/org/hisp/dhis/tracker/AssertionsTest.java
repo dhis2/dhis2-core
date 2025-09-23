@@ -97,7 +97,7 @@ public class AssertionsTest {
         new ValidationReport(
             List.of(
                 Error.builder().errorCode(ValidationCode.E1000.name()).build(),
-                Error.builder().errorCode(ValidationCode.E1003.name()).build()),
+                Error.builder().errorCode(ValidationCode.E1001.name()).build()),
             List.of());
 
     assertThrows(AssertionError.class, () -> assertHasErrors(report, 3, ValidationCode.E1000));
@@ -110,7 +110,7 @@ public class AssertionsTest {
         new ValidationReport(
             List.of(
                 Error.builder().errorCode(ValidationCode.E1000.name()).build(),
-                Error.builder().errorCode(ValidationCode.E1003.name()).build()),
+                Error.builder().errorCode(ValidationCode.E1001.name()).build()),
             List.of());
 
     assertHasErrors(report, 2, ValidationCode.E1000);

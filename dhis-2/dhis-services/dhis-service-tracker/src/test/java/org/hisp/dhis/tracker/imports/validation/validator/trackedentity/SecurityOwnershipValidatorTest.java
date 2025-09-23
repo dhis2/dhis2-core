@@ -102,7 +102,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   private TrackedEntityType trackedEntityType;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
     organisationUnit.updatePath();
@@ -328,13 +328,6 @@ class SecurityOwnershipValidatorTest extends TestBase {
     User authorizedUser =
         makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.name()));
     authorizedUser.setOrganisationUnits(Set.of(organisationUnit));
-    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
-    when(bundle.getUser()).thenReturn(userDetails);
-    return userDetails;
-  }
-
-  private UserDetails incorrectCaptureScopeUser() {
-    User authorizedUser = makeUser("B");
     UserDetails userDetails = UserDetails.fromUser(authorizedUser);
     when(bundle.getUser()).thenReturn(userDetails);
     return userDetails;

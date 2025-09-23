@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 public enum ValidationCode {
   /* General */
   E1000("User: `{0}` has no write access to OrganisationUnit: `{1}`."),
+  E1001("User: `{0}` has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntity: `{0}`, already exists."),
   E1003("User: `{0}` has no write access to TrackedEntity: `{1}`."),
   E1005("Could not find TrackedEntityType: `{0}`."),

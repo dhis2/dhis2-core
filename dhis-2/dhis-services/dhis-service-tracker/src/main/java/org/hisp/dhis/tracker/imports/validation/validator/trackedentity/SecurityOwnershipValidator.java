@@ -82,7 +82,7 @@ class SecurityOwnershipValidator
     if (strategy.isCreate()) {
       te = map(bundle.getPreheat(), trackedEntity, user);
       if (!trackerAccessManager.canCreate(user, te).isEmpty()) {
-        reporter.addError(trackedEntity, ValidationCode.E1003, user.getUid(), te.getUid());
+        reporter.addError(trackedEntity, ValidationCode.E1001, user.getUid(), te.getUid());
       }
     } else {
       te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
