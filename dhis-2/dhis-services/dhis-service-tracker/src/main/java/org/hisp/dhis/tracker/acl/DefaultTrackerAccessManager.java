@@ -53,6 +53,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,8 +113,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> canUpdateAndDelete(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+  public List<String> canUpdate(UserDetails user, TrackedEntity trackedEntity) {
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
@@ -137,6 +137,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     } else {
       return List.of(OWNERSHIP_ACCESS_DENIED);
     }
+  }
+
+  @Override
+  public List<String> canDelete(@NotNull UserDetails user, TrackedEntity trackedEntity) {
+    return canUpdate(user, trackedEntity);
   }
 
   /** Check Program data write access and Tracked Entity Program Ownership */
@@ -513,13 +518,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
     boolean isBidirectional = relationshipType.isBidirectional();
 
-    errors.addAll(canUpdateAndDelete(user, from.getTrackedEntity()));
+    errors.addAll(canUpdate(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
     errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
     errors.addAll(canWrite(user, from.getSingleEvent()));
 
     if (isBidirectional) {
-      errors.addAll(canUpdateAndDelete(user, to.getTrackedEntity()));
+      errors.addAll(canUpdate(user, to.getTrackedEntity()));
       errors.addAll(canUpdate(user, to.getEnrollment(), false));
       errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
       errors.addAll(canWrite(user, to.getSingleEvent()));
@@ -546,13 +551,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
     boolean isBidirectional = relationshipType.isBidirectional();
 
-    errors.addAll(canUpdateAndDelete(user, from.getTrackedEntity()));
+    errors.addAll(canUpdate(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
     errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
     errors.addAll(canWrite(user, from.getSingleEvent()));
 
     if (isBidirectional) {
-      errors.addAll(canUpdateAndDelete(user, to.getTrackedEntity()));
+      errors.addAll(canUpdate(user, to.getTrackedEntity()));
       errors.addAll(canUpdate(user, to.getEnrollment(), false));
       errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
       errors.addAll(canWrite(user, to.getSingleEvent()));
