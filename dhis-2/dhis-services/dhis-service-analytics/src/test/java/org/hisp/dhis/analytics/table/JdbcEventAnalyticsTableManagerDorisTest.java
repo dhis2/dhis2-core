@@ -208,7 +208,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     String legendsetAlias =
         """
         \s(select l.uid from dhis2.public.`maplegend` l \
-        join trackedentityattributevalue av on av.trackedentityattributeid=0 \
+        inner join trackedentityattributevalue av on av.trackedentityattributeid=0 \
         and value regexp '^(-?[0-9]+)(\\.[0-9]+)?$' \
         and l.maplegendsetid=0 \
         and l.startvalue <= CAST(av.value AS DECIMAL) \

@@ -581,7 +581,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         """
         \s(select l.uid \
         from ${maplegend} l \
-        join trackedentityattributevalue av on av.trackedentityattributeid=${attributeId} \
+        inner join trackedentityattributevalue av on av.trackedentityattributeid=${attributeId}\
         ${numericClause} \
         and l.maplegendsetid=${legendSetId} \
         and l.startvalue <= ${castExpr} \
