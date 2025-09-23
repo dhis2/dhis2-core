@@ -195,6 +195,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsUpdateForMultiKey() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return false;
   }
