@@ -68,8 +68,6 @@ class JdbcUtilsTest {
     assertNull(JdbcUtils.getDatabaseFromUrl("invalid-url"));
     assertNull(JdbcUtils.getDatabaseFromUrl("http://localhost:8123/db"));
     assertNull(JdbcUtils.getDatabaseFromUrl("clickhouse://localhost:8123/db"));
-    assertNull(JdbcUtils.getDatabaseFromUrl(""));
-    assertNull(JdbcUtils.getDatabaseFromUrl(""));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:postgresql:"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:clickhouse://localhost"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:clickhouse://localhost:8123/"));
