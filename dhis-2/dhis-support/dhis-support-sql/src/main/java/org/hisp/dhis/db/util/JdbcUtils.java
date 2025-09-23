@@ -81,7 +81,7 @@ public final class JdbcUtils {
       // Path is typically "/<database_name>"
       if (isNotBlank(path) && path.length() > 1) {
         // Remove leading slash and return the database name
-        return trimToNull(path.substring(1));
+        return path.substring(1);
       }
     } catch (URISyntaxException ex) {
       throw new IllegalArgumentException("Malformed JDBC connection URL: " + jdbcUrl, ex);
