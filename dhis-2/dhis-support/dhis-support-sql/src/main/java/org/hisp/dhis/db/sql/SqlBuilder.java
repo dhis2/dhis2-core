@@ -197,8 +197,7 @@ public interface SqlBuilder {
   boolean supportsMultiStatements();
 
   /**
-   * @return true if the DBMS supports updates for tables based on multiple keys, e.g. composite
-   *     primary key.
+   * @return true if the DBMS supports updates for tables with multiple/composite primary keys.
    */
   boolean supportsUpdateForMultiKeyTable();
 
