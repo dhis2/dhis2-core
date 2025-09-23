@@ -98,10 +98,12 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.program.SingleEventStore;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -145,7 +147,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
-  @Autowired private EventStore eventStore;
+  @Autowired private TrackerEventStore trackerEventStore;
+  @Autowired private SingleEventStore singleEventStore;
   @Autowired private IndicatorService indicatorService;
   @Autowired private DbmsManager dbmsManager;
   @Autowired private ExpressionService expressionService;
@@ -1819,8 +1822,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   // -----------------------------
   @Test
   @DisplayName(
-      "Event attributeOptionCombo references to source COCs are replaced with target COC when using LAST_UPDATED")
-  void eventMergeTest() throws ConflictException {
+      "Tracker event attributeOptionCombo references to source COCs are replaced with target COC when using LAST_UPDATED")
+  void trackerEventMergeTest() throws ConflictException {
     // given
     TrackedEntityType entityType = createTrackedEntityType('T');
     manager.save(entityType);
@@ -1852,7 +1855,57 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     dbmsManager.clearSession();
 
     // then
-    List<TrackerEvent> allEvents = eventStore.getAll();
+    List<TrackerEvent> allEvents = trackerEventStore.getAll();
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(4, allEvents.size(), "Expect 4 entries still");
+    assertEquals(
+        Set.of(cocTarget.getUid(), cocRandom.getUid()),
+        allEvents.stream()
+            .map(e -> e.getAttributeOptionCombo().getUid())
+            .collect(Collectors.toSet()),
+        "All events should only have references to the target coc and the random coc");
+    assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
+    assertTrue(
+        allCategoryOptionCombos.stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet())
+            .contains(cocTarget.getUid()));
+    assertCocCountAfterAutoGenerate(5);
+  }
+
+  @Test
+  @DisplayName(
+      "Single event attributeOptionCombo references to source COCs are replaced with target COC when using LAST_UPDATED")
+  void singleEventMergeTest() throws ConflictException {
+    // given
+    ProgramStage stage = createProgramStage('s', program);
+    manager.save(stage);
+
+    SingleEvent e1 = createSingleEvent(stage, ou1);
+    e1.setAttributeOptionCombo(cocDuplicate);
+    SingleEvent e2 = createSingleEvent(stage, ou1);
+    e2.setAttributeOptionCombo(cocDuplicate2);
+    SingleEvent e3 = createSingleEvent(stage, ou1);
+    e3.setAttributeOptionCombo(cocTarget);
+    SingleEvent e4 = createSingleEvent(stage, ou1);
+    e4.setAttributeOptionCombo(cocRandom);
+
+    manager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
+    dbmsManager.clearSession();
+
+    // when
+    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
+    dbmsManager.clearSession();
+
+    // then
+    List<SingleEvent> allEvents = singleEventStore.getAll();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
 

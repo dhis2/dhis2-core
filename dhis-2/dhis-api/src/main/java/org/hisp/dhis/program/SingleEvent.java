@@ -59,8 +59,6 @@ public class SingleEvent extends SoftDeletableObject {
 
   private Date lastUpdatedAtClient;
 
-  @AuditAttribute private Enrollment enrollment;
-
   @AuditAttribute private ProgramStage programStage;
 
   private String storedBy;

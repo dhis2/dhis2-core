@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,41 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.springframework.stereotype.Component;
 
-/**
- * This service is intended as a temporary solution until we separate event programs from tracker
- * programs. Once they become distinct entities and event programs no longer require a placeholder
- * enrollment, this service should be discontinued.
- */
-public interface EventProgramEnrollmentService {
+@Component
+@RequiredArgsConstructor
+public class SingleEventDeletionHandler extends IdObjectDeletionHandler<SingleEvent> {
+  @Override
+  protected void registerHandler() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
 
-  /**
-   * Returns the list of enrollments in the given program, only if the program is of type {@link
-   * ProgramType#WITHOUT_REGISTRATION}
-   */
-  List<Enrollment> getEnrollments(Program program);
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent where programstageid = :id limit 1",
+        Map.of("id", programStage.getId()));
+  }
 
-  /**
-   * Returns the list of enrollments in the given program and status, only if the program is of type
-   * {@link ProgramType#WITHOUT_REGISTRATION}
-   */
-  List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus);
+  private DeletionVeto allowDeleteProgram(Program program) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent ev join programstage ps on ps.programstageid=ev.programstageid where ps.programid = :id limit 1",
+        Map.of("id", program.getId()));
+  }
+
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from singleevent where eventdatavalues ?? :uid limit 1",
+        Map.of("uid", dataElement.getUid()));
+  }
 }

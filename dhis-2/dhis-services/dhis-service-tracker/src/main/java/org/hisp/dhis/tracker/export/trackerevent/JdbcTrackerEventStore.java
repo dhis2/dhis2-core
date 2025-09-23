@@ -774,7 +774,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user,
       SqlHelper hlp) {
     StringBuilder fromBuilder =
-        new StringBuilder(" from event ev ")
+        new StringBuilder(" from trackerevent ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
@@ -914,8 +914,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
-
-    fromBuilder.append(hlp.whereAnd()).append(" p.type = 'WITH_REGISTRATION' ");
 
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 

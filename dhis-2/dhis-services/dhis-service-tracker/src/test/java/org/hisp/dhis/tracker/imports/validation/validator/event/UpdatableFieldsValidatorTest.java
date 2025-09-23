@@ -126,7 +126,7 @@ class UpdatableFieldsValidatorTest {
 
   @Test
   void verifyEventValidationFailsWhenUpdateEnrollment() {
-    org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event = validEvent();
     event.setEnrollment(UID.generate());
 
     validator.validate(reporter, bundle, event);
@@ -134,7 +134,7 @@ class UpdatableFieldsValidatorTest {
     assertHasError(reporter, event, E1128, "enrollment");
   }
 
-  private org.hisp.dhis.tracker.imports.domain.Event validEvent() {
+  private org.hisp.dhis.tracker.imports.domain.TrackerEvent validEvent() {
     return org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
         .event(EVENT_UID)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
