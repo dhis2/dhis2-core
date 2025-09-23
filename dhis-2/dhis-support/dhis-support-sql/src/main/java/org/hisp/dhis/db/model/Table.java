@@ -34,12 +34,13 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.Validate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Represents a database table.
@@ -300,7 +301,7 @@ public class Table {
     if (isEmpty(tableName)) {
       return tableName;
     }
-    
+
     return tableName.replaceFirst(STAGING_TABLE_SUFFIX_RGX, EMPTY);
   }
 }

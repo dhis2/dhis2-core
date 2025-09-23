@@ -42,8 +42,6 @@ import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Implementation of {@link SqlBuilder} for ClickHouse.

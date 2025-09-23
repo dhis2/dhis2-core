@@ -74,7 +74,7 @@ public class AnalyticsSqlBuilderProvider {
 
     return switch (database) {
       case DORIS -> new DorisAnalyticsSqlBuilder(catalog, driverFilename);
-      case CLICKHOUSE -> new ClickHouseAnalyticsSqlBuilder(""); //TODO
+      case CLICKHOUSE -> new ClickHouseAnalyticsSqlBuilder(""); // TODO
       default -> new PostgreSqlAnalyticsSqlBuilder();
     };
   }
