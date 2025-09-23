@@ -77,6 +77,15 @@ class SecuritySingleEventValidator
         strategy.isUpdateOrDelete()
             ? preheatEvent.getProgramStage()
             : bundle.getPreheat().getProgramStage(event.getProgramStage());
+
+    if (strategy.isUpdate()) {
+      checkOrgUnitInCaptureScope(
+          reporter,
+          event,
+          bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()),
+          bundle.getUser());
+    }
+
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
 
