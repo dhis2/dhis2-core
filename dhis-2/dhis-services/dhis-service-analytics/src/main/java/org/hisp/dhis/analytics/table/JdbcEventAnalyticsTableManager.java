@@ -830,7 +830,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return List.of();
     }
 
-    String eventTable = programType == WITHOUT_REGISTRATION ? "singleevent" : "trackerevent";
+    String eventTable =
+        sqlBuilder.qualifyTable(
+            programType == WITHOUT_REGISTRATION ? "singleevent" : "trackerevent");
 
     String query =
         """
