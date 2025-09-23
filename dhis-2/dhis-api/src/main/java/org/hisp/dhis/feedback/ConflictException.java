@@ -31,62 +31,33 @@ package org.hisp.dhis.feedback;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
 
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webmessage.WebResponse;
 
+@Setter
 @Getter
 @Accessors(chain = true)
 @OpenApi.Response(status = CONFLICT, value = WebResponse.class)
 @SuppressWarnings({"java:S1165", "java:S1948"})
-public final class ConflictException extends Exception implements Error {
-  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
-      throws ConflictException {
-    return Error.rethrow(type, ConflictException::new, operation);
-  }
+public final class ConflictException extends FeedbackException {
 
-  public static <E extends RuntimeException, V> V on(
-      Class<E> type, Function<E, ConflictException> map, Supplier<V> operation)
-      throws ConflictException {
-    return Error.rethrowMapped(type, map, operation);
-  }
-
-  private final ErrorCode code;
-  private final Object[] args;
-
-  @Setter private String devMessage;
-
-  @Setter private ObjectReport objectReport;
-
-  @Setter private MergeReport mergeReport;
+  private String devMessage;
+  private ObjectReport objectReport;
+  private MergeReport mergeReport;
 
   public ConflictException(String message) {
     this(message, null);
   }
 
   public ConflictException(String message, String devMessage) {
-    super(message);
+    super(message, ErrorCode.E1004);
     this.devMessage = devMessage;
-    this.code = ErrorCode.E1004;
-    this.args = new Object[0];
   }
 
   public ConflictException(ErrorCode code, Object... args) {
-    super(MessageFormat.format(code.getMessage(), args));
-    this.code = code;
-    this.args = args;
-  }
-
-  public ConflictException(ErrorMessage message) {
-    super(message.getMessage());
-    this.code = message.getErrorCode();
-    List<String> args = message.getArgs();
-    this.args = args == null ? new Object[0] : args.toArray();
+    super(code, args);
   }
 }

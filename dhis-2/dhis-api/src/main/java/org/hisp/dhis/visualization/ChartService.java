@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -89,5 +90,6 @@ public interface ChartService {
       Period lastPeriod,
       OrganisationUnit organisationUnit,
       int historyLength,
-      I18nFormat format);
+      I18nFormat format)
+      throws ConflictException;
 }
