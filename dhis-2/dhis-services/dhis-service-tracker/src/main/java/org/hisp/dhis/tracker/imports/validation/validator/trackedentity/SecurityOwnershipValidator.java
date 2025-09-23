@@ -86,15 +86,20 @@ class SecurityOwnershipValidator
       }
     } else {
       te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
-      if (!trackerAccessManager.canUpdateAndDelete(user, te).isEmpty()) {
+      if (!trackerAccessManager.canUpdate(user, te).isEmpty()) {
         reporter.addError(trackedEntity, ValidationCode.E1003, user.getUid(), te.getUid());
       }
     }
 
-    if (strategy.isDelete()
-        && te.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
-        && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
-      reporter.addError(trackedEntity, E1100, user, te);
+    if (strategy.isDelete()) {
+      if (!trackerAccessManager.canDelete(user, te).isEmpty()) {
+        reporter.addError(trackedEntity, ValidationCode.E1003, user.getUid(), te.getUid());
+      }
+
+      if (te.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
+          && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
+        reporter.addError(trackedEntity, E1100, user, te);
+      }
     }
   }
 

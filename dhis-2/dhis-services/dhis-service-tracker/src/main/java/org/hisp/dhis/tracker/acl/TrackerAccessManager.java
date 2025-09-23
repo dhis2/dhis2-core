@@ -64,7 +64,10 @@ public interface TrackerAccessManager {
    *
    * @return No errors if a user has write access to the TET and access to at least one program
    */
-  List<String> canUpdateAndDelete(UserDetails user, TrackedEntity trackedEntity);
+  List<String> canUpdate(UserDetails user, TrackedEntity trackedEntity);
+
+  /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
+  List<String> canDelete(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 

@@ -213,7 +213,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te
-    assertNoErrors(trackerAccessManager.canUpdateAndDelete(userDetails, te));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, te));
   }
 
   @Test
@@ -231,7 +231,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can Read
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // Can write
-    assertNoErrors(trackerAccessManager.canUpdateAndDelete(userDetails, te));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, te));
   }
 
   @Test
@@ -248,8 +248,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Cannot Read
     assertHasError(trackerAccessManager.canRead(userDetails, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
-    assertHasError(
-        trackerAccessManager.canUpdateAndDelete(userDetails, te), OWNERSHIP_ACCESS_DENIED);
+    assertHasError(trackerAccessManager.canUpdate(userDetails, te), OWNERSHIP_ACCESS_DENIED);
   }
 
   @Test
@@ -265,7 +264,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
     assertNoErrors(trackerAccessManager.canRead(userDetails, trackedEntityA));
     assertHasError(
-        trackerAccessManager.canUpdateAndDelete(userDetails, trackedEntityA),
+        trackerAccessManager.canUpdate(userDetails, trackedEntityA),
         "User has no data write access to tracked entity type");
   }
 

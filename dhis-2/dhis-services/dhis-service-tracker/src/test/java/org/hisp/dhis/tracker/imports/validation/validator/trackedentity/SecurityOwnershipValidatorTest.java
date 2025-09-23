@@ -145,7 +145,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
-    when(trackerAccessManager.canUpdateAndDelete(any(), eq(te))).thenReturn(List.of());
+    when(trackerAccessManager.canUpdate(any(), eq(te))).thenReturn(List.of());
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
@@ -163,7 +163,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithNoEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canUpdateAndDelete(any(), eq(te))).thenReturn(List.of());
+    when(trackerAccessManager.canDelete(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -203,7 +203,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithDeleteEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canUpdateAndDelete(any(), eq(te))).thenReturn(List.of());
+    when(trackerAccessManager.canDelete(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -226,7 +226,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
 
-    when(trackerAccessManager.canUpdateAndDelete(userDetails, te)).thenReturn(List.of());
+    when(trackerAccessManager.canDelete(userDetails, te)).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -245,7 +245,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canUpdateAndDelete(any(), eq(te))).thenReturn(List.of());
+    when(trackerAccessManager.canDelete(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -314,7 +314,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(trackerAccessManager.canUpdateAndDelete(any(), eq(te))).thenReturn(List.of("error"));
+    when(trackerAccessManager.canUpdate(any(), eq(te))).thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, trackedEntity);
 
