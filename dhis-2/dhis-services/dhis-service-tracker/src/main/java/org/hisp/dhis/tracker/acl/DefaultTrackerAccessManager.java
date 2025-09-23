@@ -53,7 +53,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,7 +139,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(@NotNull UserDetails user, TrackedEntity trackedEntity) {
+  public List<String> canDelete(UserDetails user, TrackedEntity trackedEntity) {
     return canUpdate(user, trackedEntity);
   }
 

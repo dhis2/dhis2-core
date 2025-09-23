@@ -67,7 +67,7 @@ public interface TrackerAccessManager {
   List<String> canUpdate(UserDetails user, TrackedEntity trackedEntity);
 
   /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
-  List<String> canDelete(@Nonnull UserDetails user, TrackedEntity trackedEntity);
+  List<String> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
