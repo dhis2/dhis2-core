@@ -1188,7 +1188,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Disabled("This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtStart() {
     ProgramIndicator pi =
         createProgramIndicatorA(
@@ -1220,7 +1221,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Disabled("This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtEnd() {
     ProgramIndicator pi =
         createProgramIndicatorA(
