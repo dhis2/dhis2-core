@@ -70,8 +70,8 @@ public class ColumnAliasUtils {
     try {
       // Parse as an expression and check it's a Column
       Expression expr = CCJSqlParserUtil.parseExpression(text);
-      if (expr instanceof Column) {
-        return (Column) expr;
+      if (expr instanceof Column column) {
+        return column;
       }
       // Not a plain column reference (could be a function, arithmetic, etc.)
       return null;
