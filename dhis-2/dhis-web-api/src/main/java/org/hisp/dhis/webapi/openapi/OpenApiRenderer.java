@@ -39,12 +39,10 @@ import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
@@ -73,50 +71,46 @@ public class OpenApiRenderer {
   /*
   Reorganizing...
    */
-  record OperationsItem(String entity, Map<String, OperationsGroupItem> groups) {}
+  record EntityPaths(String entity, List<OperationObject> operations) {}
 
-  record OperationsGroupItem(String entity, String group, List<OperationObject> operations) {}
+  record KindSchemas(String kind, List<SchemaObject> schemas) {}
 
-  record SchemasItem(String kind, List<SchemaObject> schemas) {}
-
-  private static final Comparator<OperationObject> SORT_BY_METHOD =
-      comparing(OperationObject::operationMethod)
-          .thenComparing(OperationObject::operationPath)
-          .thenComparing(OperationObject::operationId);
-
-  private List<OperationsItem> groupedOperations() {
-    Map<String, OperationsItem> byEntity = new TreeMap<>();
-    Consumer<OperationObject> add =
-        op -> {
-          String entity = op.x_entity();
-          String group = op.x_group();
-          byEntity
-              .computeIfAbsent(entity, e -> new OperationsItem(e, new TreeMap<>()))
-              .groups()
-              .computeIfAbsent(group, g -> new OperationsGroupItem(entity, g, new ArrayList<>()))
-              .operations()
-              .add(op);
-        };
-    api.operations().forEach(add);
-    if (params.sortEndpointsByMethod)
-      byEntity
-          .values()
-          .forEach(p -> p.groups().values().forEach(g -> g.operations().sort(SORT_BY_METHOD)));
+  private List<EntityPaths> operationsGroupedByEntity() {
+    Map<String, EntityPaths> byEntity = new TreeMap<>();
+    api.operations()
+        .forEach(
+            op -> {
+              String entity = op.x_entity();
+              byEntity
+                  .computeIfAbsent(entity, e -> new EntityPaths(e, new ArrayList<>()))
+                  .operations()
+                  .add(op);
+            });
+    // sort each group by path alphabetically
+    byEntity
+        .values()
+        .forEach(
+            paths ->
+                paths.operations.sort(
+                    comparing(OperationObject::operationMethod)
+                        .thenComparing(OperationObject::operationPath)));
     return List.copyOf(byEntity.values());
   }
 
-  private List<SchemasItem> groupedSchemas() {
-    Map<String, SchemasItem> byKind = new TreeMap<>();
+  private List<KindSchemas> schemasGroupedByKind() {
+    Map<String, KindSchemas> byKind = new TreeMap<>();
     api.components()
         .schemas()
         .forEach(
             (name, schema) -> {
               String kind = schema.x_kind();
               byKind
-                  .computeIfAbsent(kind, k -> new SchemasItem(k, new ArrayList<>()))
+                  .computeIfAbsent(kind, k -> new KindSchemas(k, new ArrayList<>()))
                   .schemas()
                   .add(schema);
             });
+    // sort each group by path alphabetically
+    byKind.values().forEach(paths -> paths.schemas.sort(comparing(SchemaObject::getSharedName)));
     return List.copyOf(byKind.values());
   }
 
@@ -387,23 +381,23 @@ public class OpenApiRenderer {
         "section",
         () -> {
           appendTag("h2", "Paths");
-          groupedOperations().forEach(this::renderPathOperation);
+          operationsGroupedByEntity().forEach(this::renderPathOperation);
         });
   }
 
-  private void renderPathOperation(OperationsItem op) {
-    String id = "-" + op.entity();
+  private void renderPathOperation(EntityPaths paths) {
+    String id = "-" + paths.entity();
     appendDetails(
         id,
         false,
         "paths",
         () -> {
-          appendSummary(id, null, () -> renderPathOperationSummary(op));
-          op.groups().values().forEach(group -> group.operations.forEach(this::renderOperation));
+          appendSummary(id, null, () -> renderPathOperationSummary(paths));
+          paths.operations().forEach(this::renderOperation);
         });
   }
 
-  private void renderPathOperationSummary(OperationsItem op) {
+  private void renderPathOperationSummary(EntityPaths op) {
     appendTag(
         "h3",
         () -> {
@@ -430,7 +424,7 @@ public class OpenApiRenderer {
         operationStyle(op),
         () -> {
           appendSummary(id, "", () -> renderOperationSummary(op));
-          renderBoxToolbar(() -> {});
+          appendExpandCollapseAllButton();
           renderLabelledValue("operationId", op.operationId());
           renderLabelledValue("since", op.x_since());
           renderLabelledValue("requires-authority", op.x_auth());
@@ -453,18 +447,13 @@ public class OpenApiRenderer {
     return style.toString();
   }
 
-  private void renderBoxToolbar(Runnable renderButtons) {
+  private void appendExpandCollapseAllButton() {
     Map<String, String> attrs =
         Map.ofEntries(
             entry("onclick", "openToggleDown1(this)"),
             entry("title", "remembering expand/collapse"),
             entry("class", "toggle"));
-    appendTag(
-        "aside",
-        () -> {
-          appendTag("button", attrs, "All");
-          if (renderButtons != null) renderButtons.run();
-        });
+    appendTag("a", attrs, "[+/-]");
   }
 
   private void renderOperationSummary(OperationObject op) {
@@ -858,7 +847,7 @@ public class OpenApiRenderer {
         "section",
         () -> {
           appendTag("h2", "Schemas");
-          for (SchemasItem kind : groupedSchemas()) {
+          for (KindSchemas kind : schemasGroupedByKind()) {
             String id = "--" + kind.kind;
             appendDetails(
                 id,
@@ -883,13 +872,11 @@ public class OpenApiRenderer {
         () -> {
           appendSummary(schema.getSharedName(), "", () -> renderComponentSchemaSummary(schema));
           // TODO change usages into a section in the schema (that still is computed by JS)
-          renderBoxToolbar(
-              () -> {
-                Map<String, String> attrs =
-                    Map.of("class", "button", "ontoggle", "schemaUsages(this)");
-                appendTag("details", attrs, () -> appendTag("summary", "Usages"));
-              });
+          appendExpandCollapseAllButton();
           renderSchemaDetails(schema, true, false);
+          // usages
+          Map<String, String> attrs = Map.of("class", "button", "ontoggle", "schemaUsages(this)");
+          appendTag("details", attrs, () -> appendTag("summary", "Usages"));
           if (params.isSource()) renderSource("@" + id, schema);
         });
   }

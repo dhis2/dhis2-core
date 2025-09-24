@@ -316,10 +316,8 @@ details.op.stable { }
 .required > summary > code:first-of-type { font-weight: bold; }
 .required > summary > code:first-of-type:after { content: '*'; color: tomato; }
 /* +/- buttons for expand/collapse */
-.box aside > button.toggle { pointer-events: none; opacity: 0.65; }
-.box aside > button.toggle:after { content: '⊟'; padding-left: 0.5rem; }
-.box:has(details[data-open]) aside > button.toggle:after { content: '⊠'; }
-.box:has(details[open]) aside > button.toggle, .box:has(details[data-open]) aside > button.toggle { pointer-events: inherit; opacity: inherit; }
+.box .toggle { pointer-events: none; color: dimgray; position: absolute; margin-left: -5em; }
+.box:has(details[open]) .toggle, .box:has(details[data-open]) .toggle { pointer-events: inherit; color: black; }
 /* schema type markers */
 .schema > summary > code:first-of-type:before { padding: 5px; margin-right: 1rem; color: dimgray; background-color: var(--bg-schema); display: inline-block; }
 .schema.object > summary > code:first-of-type:before { content: '{…}'; }
