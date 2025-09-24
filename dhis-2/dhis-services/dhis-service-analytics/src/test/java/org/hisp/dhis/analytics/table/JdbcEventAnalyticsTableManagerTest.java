@@ -757,7 +757,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + DATE_CLAUSE
-                + ") > '1000-01-01' and ev.deleted = false ) "
+                + ") > '1000-01-01' and ev.\"deleted\" = false ) "
                 + "as temp where temp.supportedyear >= "
                 + startYear
                 + " and temp.supportedyear <= "
@@ -951,7 +951,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + DATE_CLAUSE
-                + ") > '1000-01-01' and ev.deleted = false and ("
+                + ") > '1000-01-01' and ev.\"deleted\" = false and ("
                 + DATE_CLAUSE
                 + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= "
@@ -1023,7 +1023,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + dataClause
             + ") > '1000-01-01' "
             + "and ev.programstageid = 123456 "
-            + "and ev.deleted = false "
+            + "and ev.\"deleted\" = false "
             + ") as temp where temp.supportedyear >= "
             + startYear
             + " and temp.supportedyear <= "
@@ -1052,7 +1052,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + ") is not null and ("
             + DATE_CLAUSE
             + ") > '1000-01-01'"
-            + " and ev.deleted = false ";
+            + " and ev.\"deleted\" = false ";
 
     if (withExecutionDate) {
       sql += "and (" + DATE_CLAUSE + ") >= '2018-01-01'";

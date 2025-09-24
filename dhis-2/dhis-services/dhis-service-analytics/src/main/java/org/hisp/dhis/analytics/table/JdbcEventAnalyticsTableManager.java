@@ -468,9 +468,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 ? program.getProgramStages().stream().toList().get(0).getId()
                 : EMPTY);
     String fromClauseSingleEvent =
-        replaceQualify(
-            sqlBuilder,
-            """
+        qualifyResourceTables(
+            replaceQualify(
+                sqlBuilder,
+                """
                 \sfrom ${singleevent} ev \
                 inner join ${programstage} ps on ev.programstageid=ps.programstageid \
                 inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
@@ -486,17 +487,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 and dps.year >= ${firstYear} \
                 and dps.year <= ${latestYear} \
                 and ev.status in (${exportableEventStatues}) \
-                and ev.deleted = false""",
-            Map.of(
-                "eventDateExpression", "ev.occurreddate",
-                "partitionClause", partitionClauseSingleEvent,
-                "startTime", toLongDate(params.getStartTime()),
-                "programStageId", programStageId,
-                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
-                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
-                "firstYear", String.valueOf(firstYear),
-                "latestYear", String.valueOf(latestYear),
-                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
+                and ${evDeletedClause}""",
+                Map.of(
+                    "eventDateExpression", "ev.occurreddate",
+                    "partitionClause", partitionClauseSingleEvent,
+                    "startTime", toLongDate(params.getStartTime()),
+                    "programStageId", programStageId,
+                    "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                    "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
+                    "firstYear", String.valueOf(firstYear),
+                    "latestYear", String.valueOf(latestYear),
+                    "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
+                    "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     populateTableInternal(tableName, columns, fromClauseSingleEvent);
@@ -828,7 +830,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return List.of();
     }
 
-    String eventTable = programType == WITHOUT_REGISTRATION ? "singleevent" : "trackerevent";
+    String eventTable =
+        sqlBuilder.qualifyTable(
+            programType == WITHOUT_REGISTRATION ? "singleevent" : "trackerevent");
 
     String query =
         """
@@ -962,23 +966,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 and (${eventDateExpression}) is not null \
                 and (${eventDateExpression}) > '1000-01-01' \
                 and ev.programstageid = ${programStageId} \
-                and ev.deleted = false \
+                and ${evDeletedClause} \
                 ${fromDateClause}) as temp \
                 where temp.supportedyear >= ${firstYear} \
                 and temp.supportedyear <= ${latestYear}""",
         Map.of(
-            "eventDateExpression",
-            "ev.occurreddate",
-            "startTime",
-            toLongDate(params.getStartTime()),
-            "programStageId",
-            programStageId,
-            "fromDateClause",
-            fromDateClause,
-            "firstYear",
-            String.valueOf(firstYear),
-            "latestYear",
-            String.valueOf(lastYear)));
+            "eventDateExpression", "ev.occurreddate",
+            "startTime", toLongDate(params.getStartTime()),
+            "programStageId", programStageId,
+            "fromDateClause", fromDateClause,
+            "firstYear", String.valueOf(firstYear),
+            "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
+            "latestYear", String.valueOf(lastYear)));
   }
 
   /**
@@ -998,9 +997,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       Integer firstYear,
       Integer lastYear,
       String fromDateClause) {
-    return replaceQualify(
-        sqlBuilder,
-        """
+    return qualifyResourceTables(
+        replaceQualify(
+            sqlBuilder,
+            """
                 select temp.supportedyear from \
                 (select distinct extract(year from ${eventDateExpression}) as supportedyear \
                 from ${trackerevent} ev \
@@ -1008,17 +1008,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 where ev.lastupdated <= '${startTime}' and en.programid = ${programId} \
                 and (${eventDateExpression}) is not null \
                 and (${eventDateExpression}) > '1000-01-01' \
-                and ev.deleted = false \
+                and ${evDeletedClause} \
                 ${fromDateClause}) as temp \
                 where temp.supportedyear >= ${firstYear} \
                 and temp.supportedyear <= ${latestYear}""",
-        Map.of(
-            "eventDateExpression", eventDateExpression,
-            "startTime", toLongDate(params.getStartTime()),
-            "programId", String.valueOf(program.getId()),
-            "fromDateClause", fromDateClause,
-            "firstYear", String.valueOf(firstYear),
-            "latestYear", String.valueOf(lastYear)));
+            Map.of(
+                "eventDateExpression", eventDateExpression,
+                "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
+                "startTime", toLongDate(params.getStartTime()),
+                "programId", String.valueOf(program.getId()),
+                "fromDateClause", fromDateClause,
+                "firstYear", String.valueOf(firstYear),
+                "latestYear", String.valueOf(lastYear))));
   }
 
   /**
