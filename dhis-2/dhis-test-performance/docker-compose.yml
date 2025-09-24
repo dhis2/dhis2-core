@@ -1,0 +1,72 @@
+services:
+  # https://docs.dhis2.org/en/manage/reference/dhisconf.html
+  web:
+    image: "${DHIS2_IMAGE:-dhis2/core-dev:latest}"
+    mem_limit: 16gb
+    environment:
+      JAVA_OPTS:
+        "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
+        -Xmx10000m -Xms10000m"
+    volumes:
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
+      - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+    ports:
+      - "127.0.0.1:8080:8080" # DHIS2
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Healthcheck sidecar is needed for embedded tomcat images (master branch) that don't have
+  # curl/wget
+  web-healthcheck:
+    image: curlimages/curl:latest
+    network_mode: service:web
+    command: ["sleep", "infinity"]
+    depends_on:
+      - web
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl --fail --silent http://localhost:8080/api/ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 120s
+
+  # https://docs.dhis2.org/en/manage/reference/postgresql.html
+  # https://www.postgresql.org/docs/16/runtime-config-resource.html#RUNTIME-CONFIG-RESOURCE-MEMORY
+  # https://www.cybertec-postgresql.com/en/effective_cache_size-a-practical-example/
+  # https://github.com/mastodon/mastodon/blob/fb6c22f5c275685aa644d84c003e1d6922e15d40/docker-compose.yml#L8
+  # https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server
+  db:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.postgres
+      args:
+        POSTGRES_BASE_IMAGE: postgis/postgis:13-3.5
+        DHIS2_DB_DUMP_URL: "${DHIS2_DB_DUMP_URL:-https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz}"
+    image: dhis2-postgres:13-3.5-${DHIS2_DB_IMAGE_SUFFIX:-sierra-leone-dev}
+    mem_limit: 16gb
+    shm_size: 256mb
+    volumes:
+      - ./docker/postgresql.conf:/etc/postgresql.conf
+    environment:
+      POSTGRES_USER: &postgres_user dhis
+      POSTGRES_DB: &postgres_db dhis
+      POSTGRES_PASSWORD: &postgres_password dhis
+      # https://www.postgresql.org/docs/current/libpq-envars.html
+      PGUSER: *postgres_user
+      PGDATABASE: *postgres_db
+      PGPASSWORD: *postgres_password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'psql --quiet --host=127.0.0.1 --port=5432 --set=application_name=docker --command "/** docker healthcheck **/ SELECT ''ok''" > /dev/null',
+        ]
+      start_period: 120s
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:5432:5432"
+
