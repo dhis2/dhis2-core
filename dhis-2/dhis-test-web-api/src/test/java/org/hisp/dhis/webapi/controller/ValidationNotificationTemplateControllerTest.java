@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,64 +27,61 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Tests the {@link org.hisp.dhis.webapi.controller.validation.ValidationRuleController} using
- * (mocked) REST requests.
- */
-class ValidationRuleControllerTest extends DhisControllerConvenienceTest {
+@Transactional
+class ValidationNotificationTemplateControllerTest extends DhisControllerConvenienceTest {
 
   @Test
-  void testGetExpressionDescription() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Valid",
-        POST("/validationRules/expression/description", "70").content(HttpStatus.OK));
-  }
-
-  @Test
-  void testGetExpressionDescription_MalformedExpression() {
-    assertWebMessage(
-        "OK",
-        200,
-        "ERROR",
-        "Expression is not well-formed",
-        POST("/validationRules/expression/description", "illegal").content(HttpStatus.OK));
-  }
-
-  @Test
-  void patchValidationRuleTest() {
-    // Given a ValidationValidationRule exists with org unit levels
-    assertWebMessage(HttpStatus.OK, POST("/metadata", importMetadata()));
+  @DisplayName(
+      "Patching a ValidationNotificationTemplate with ValidationRules and org unit levels succeeds")
+  void patchTemplateTest() {
+    // Given a ValidationNotificationTemplate exists with ValidationRules, which has org unit levels
+    assertWebMessage(OK, POST("/metadata", importMetadata()));
 
     // When a patch request is submitted to update the name
     assertWebMessage(
-        HttpStatus.OK,
+        OK,
         PATCH(
-            "/validationRules/ValRuleUID1",
+            "/validationNotificationTemplates/VntUid00001",
             "["
                 + "    {"
                 + "        \"op\": \"replace\","
                 + "        \"path\": \"/name\","
-                + "        \"value\": \"test val rule 1 - new name\""
+                + "        \"value\": \"Test template - new name\""
                 + "    }\n"
                 + "]"));
 
     // Then the name should be updated
-    JsonResponse response = GET("/validationRules/ValRuleUID1").content(HttpStatus.OK);
-    assertEquals("test val rule 1 - new name", response.getString("name").string());
+    JsonResponse response = GET("/validationNotificationTemplates/VntUid00001").content(OK);
+    assertEquals("Test template - new name", response.getString("name").string());
+
+    // And ValidationRules are present
+    assertEquals(
+        "ValRuleUID1",
+        response.getArray("validationRules").get(0).asObject().getString("id").string());
   }
 
   private String importMetadata() {
-    return "{\n"
+    return "{"
+        + "  \"validationNotificationTemplates\": ["
+        + "    {"
+        + "      \"id\": \"VntUid00001\","
+        + "      \"name\": \"Test template\","
+        + "      \"validationRules\": ["
+        + "        {"
+        + "          \"id\": \"ValRuleUID1\""
+        + "        }"
+        + "      ]"
+        + "    }"
+        + "  ],"
         + "  \"validationRules\": ["
         + "    {"
         + "      \"id\": \"ValRuleUID1\","
