@@ -122,13 +122,11 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   public Optional<TrackerEvent> findEvent(UID event, boolean includeDeleted) {
-    // TODO(DHIS2-19702): Remove programType filter
     @Language("hql")
     String hql =
         """
         from TrackerEvent e \
         where e.uid = :event \
-        and e.programStage.program.programType = 'WITH_REGISTRATION' \
         """;
     if (!includeDeleted) {
       hql += "and e.deleted = false";
@@ -139,13 +137,11 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   public Optional<SingleEvent> findSingleEvent(UID event, boolean includeDeleted) {
-    // TODO(DHIS2-19702): Remove programType filter
     @Language("hql")
     String hql =
         """
             from SingleEvent e \
             where e.uid = :event \
-            and e.programStage.program.programType = 'WITHOUT_REGISTRATION' \
             """;
     if (!includeDeleted) {
       hql += "and e.deleted = false";

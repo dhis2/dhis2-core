@@ -360,7 +360,6 @@ class NotificationSenderTest {
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     SingleEvent event = new SingleEvent();
     event.setUid(EVENT_UID.getValue());
-    event.setEnrollment(enrollment(program));
     return event;
   }
 

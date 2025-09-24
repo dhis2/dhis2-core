@@ -41,8 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-// TODO(DHIS2-19702): should we create the handler for single events?
-public class EventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> {
+public class TrackerEventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> {
   @Override
   protected void registerHandler() {
     whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
@@ -53,21 +52,21 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> 
   private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
     return vetoIfExists(
         VETO,
-        "select 1 from event where programstageid = :id limit 1",
+        "select 1 from trackerevent where programstageid = :id limit 1",
         Map.of("id", programStage.getId()));
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {
     return vetoIfExists(
         VETO,
-        "select 1 from event ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
+        "select 1 from trackerevent ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
         Map.of("id", program.getId()));
   }
 
   private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
     return vetoIfExists(
         VETO,
-        "select 1 from event where eventdatavalues ?? :uid limit 1",
+        "select 1 from trackerevent where eventdatavalues ?? :uid limit 1",
         Map.of("uid", dataElement.getUid()));
   }
 }

@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -291,22 +290,6 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     assertContainsOnly(
         List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
         events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
-  }
-
-  @Test
-  void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoSingleEvents()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContextUser(userService.getUser("Hop98yh65pL"));
-    SingleEventOperationParams params =
-        operationParamsBuilder
-            .program(UID.of("shPjYNifvMK"))
-            .orgUnit(orgUnit)
-            .orgUnitMode(SELECTED)
-            .build();
-
-    List<SingleEvent> events = singleEventService.findEvents(params);
-
-    assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
 
   @Test

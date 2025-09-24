@@ -95,20 +95,9 @@ public class SingleEvent implements Event {
     return TrackerType.EVENT;
   }
 
-  @Override
-  public UID getEnrollment() {
-    return enrollment;
-  }
-
-  @Override
-  public void setEnrollment(UID enrollment) {
-    this.enrollment = enrollment;
-  }
-
   public static SingleEvent.SingleEventBuilder builderFromEvent(Event event) {
     return SingleEvent.builder()
         .event(event.getEvent())
-        .enrollment(event.getEnrollment())
         .status(event.getStatus())
         .program(event.getProgram())
         .programStage(event.getProgramStage())

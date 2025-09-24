@@ -197,6 +197,11 @@ public interface SqlBuilder {
   boolean supportsMultiStatements();
 
   /**
+   * @return true if the DBMS supports updates for tables with multiple/composite primary keys.
+   */
+  boolean supportsUpdateForMultiKeyTable();
+
+  /**
    * @return true if the DBMS requires indexes for analytics tables for performance.
    */
   boolean requiresIndexesForAnalytics();
@@ -244,6 +249,11 @@ public interface SqlBuilder {
    * @return a fully qualified, quoted table reference specifying the catalog, database and table.
    */
   String qualifyTable(String name);
+
+  /**
+   * @return The name of the database extracted from the connection URL.
+   */
+  String getDatabaseName();
 
   /**
    * @param timeUnit the time unit as string, e.g. 'hour', 'day', 'year'.
