@@ -41,16 +41,11 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -65,8 +60,6 @@ public class DefaultDataSetService implements DataSetService {
   private final DataSetStore dataSetStore;
 
   private final LockExceptionStore lockExceptionStore;
-
-  private final DataApprovalService dataApprovalService;
 
   @Qualifier("jdbcDataSetOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
@@ -136,12 +129,6 @@ public class DefaultDataSetService implements DataSetService {
     return userDetails.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(userDetails);
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataSet> getDataSetsNotAssignedToOrganisationUnits() {
-    return dataSetStore.getDataSetsNotAssignedToOrganisationUnits();
-  }
-
   // -------------------------------------------------------------------------
   // DataSet LockExceptions
   // -------------------------------------------------------------------------
@@ -173,12 +160,6 @@ public class DefaultDataSetService implements DataSetService {
 
   @Override
   @Transactional(readOnly = true)
-  public int getLockExceptionCount() {
-    return lockExceptionStore.getCount();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<LockException> getAllLockExceptions() {
     return lockExceptionStore.getAll();
   }
@@ -193,121 +174,6 @@ public class DefaultDataSetService implements DataSetService {
   @Transactional(readOnly = true)
   public List<LockException> getLockExceptionCombinations() {
     return lockExceptionStore.getLockExceptionCombinations();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public LockStatus getLockStatus(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo) {
-    return getLockStatus(
-        dataSet,
-        period,
-        organisationUnit,
-        attributeOptionCombo,
-        CurrentUserUtil.getCurrentUserDetails(),
-        new Date());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public LockStatus getLockStatus(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      UserDetails user,
-      Date now) {
-    if (dataApprovalService.isApproved(
-        dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo)) {
-      return LockStatus.APPROVED;
-    }
-
-    if (isLocked(user, dataSet, period, organisationUnit, now)) {
-      return LockStatus.LOCKED;
-    }
-
-    return LockStatus.OPEN;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public LockStatus getLockStatus(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      UserDetails user,
-      Date now,
-      boolean useOrgUnitChildren) {
-    if (!useOrgUnitChildren) {
-      return getLockStatus(dataSet, period, organisationUnit, attributeOptionCombo, user, now);
-    }
-
-    if (organisationUnit == null || !organisationUnit.hasChild()) {
-      return LockStatus.OPEN;
-    }
-
-    for (OrganisationUnit child : organisationUnit.getChildren()) {
-      LockStatus childLockStatus =
-          getLockStatus(dataSet, period, child, attributeOptionCombo, user, now);
-      if (!childLockStatus.isOpen()) {
-        return childLockStatus;
-      }
-    }
-
-    return LockStatus.OPEN;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public LockStatus getLockStatus(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      User user,
-      Date now) {
-    return getLockStatus(
-        dataElement,
-        period,
-        organisationUnit,
-        attributeOptionCombo,
-        UserDetails.fromUser(user),
-        now);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public LockStatus getLockStatus(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      @Nonnull UserDetails userDetails,
-      Date now) {
-    if (!userDetails.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
-      now = now != null ? now : new Date();
-      boolean expired = dataElement.isExpired(period, now);
-      if (expired && lockExceptionStore.getCount(dataElement, period, organisationUnit) == 0L) {
-        return LockStatus.LOCKED;
-      }
-    }
-
-    DataSet dataSet = dataElement.getApprovalDataSet();
-
-    if (dataSet == null) {
-      return LockStatus.OPEN;
-    }
-
-    if (dataApprovalService.isApproved(
-        dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo)) {
-      return LockStatus.APPROVED;
-    }
-
-    return LockStatus.OPEN;
   }
 
   @Override
@@ -333,18 +199,6 @@ public class DefaultDataSetService implements DataSetService {
   @Transactional
   public int deleteExpiredLockExceptions(Date createdBefore) {
     return lockExceptionStore.deleteExpiredLockExceptions(createdBefore);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isLocked(
-      UserDetails user,
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit organisationUnit,
-      Date now) {
-    return dataSet.isLocked(user, period, now)
-        && lockExceptionStore.getCount(dataSet, period, organisationUnit) == 0L;
   }
 
   @Override

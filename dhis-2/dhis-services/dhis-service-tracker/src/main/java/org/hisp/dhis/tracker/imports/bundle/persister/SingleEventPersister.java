@@ -44,7 +44,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
@@ -293,10 +292,7 @@ public class SingleEventPersister
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(SingleEvent entity) {
-    return Stream.of(entity.getEnrollment())
-        .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> UID.of(e.getTrackedEntity()))
-        .collect(Collectors.toSet());
+    return Set.of();
   }
 
   private boolean isNewDataValue(

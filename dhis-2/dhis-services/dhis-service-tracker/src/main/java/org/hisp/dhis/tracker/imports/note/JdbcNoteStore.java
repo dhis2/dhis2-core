@@ -71,12 +71,12 @@ public class JdbcNoteStore {
     String sql =
         """
             INSERT INTO trackerevent_notes(eventid, noteid, sort_order)
-            VALUES ((select eventid from event where uid = :event),
+            VALUES ((select eventid from trackerevent where uid = :event),
                     :noteId,
                     coalesce(
                                 (select max(sort_order) + 1
                                 from trackerevent_notes
-                                where eventid = (select eventid from event where uid = :event)
+                                where eventid = (select eventid from trackerevent where uid = :event)
                                 ),
                             1)
                     )
@@ -90,12 +90,12 @@ public class JdbcNoteStore {
     String sql =
         """
                 INSERT INTO singleevent_notes(eventid, noteid, sort_order)
-                VALUES ((select eventid from event where uid = :event),
+                VALUES ((select eventid from singleevent where uid = :event),
                         :noteId,
                         coalesce(
                                     (select max(sort_order) + 1
                                     from singleevent_notes
-                                    where eventid = (select eventid from event where uid = :event)
+                                    where eventid = (select eventid from singleevent where uid = :event)
                                     ),
                                 1)
                         )

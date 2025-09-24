@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
@@ -55,9 +56,12 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -88,7 +92,7 @@ public class AggregateDataExchangeService {
 
   private final DataQueryService dataQueryService;
 
-  private final DataValueSetService dataValueSetService;
+  private final DataEntryPipeline dataEntryPipeline;
 
   private final AclService aclService;
 
@@ -239,7 +243,37 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-    return dataValueSetService.importDataValueSet(dataValueSet, toImportOptions(exchange));
+
+    return dataEntryPipeline.importInputGroups(
+        List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
+  }
+
+  private static DataEntryGroup.Input toDataEntryGroup(DataValueSet set) {
+    return new DataEntryGroup.Input(
+        null,
+        set.getDataSet(),
+        null,
+        set.getOrgUnit(),
+        set.getPeriod(),
+        set.getAttributeOptionCombo(),
+        null,
+        set.getDataValues().stream().map(AggregateDataExchangeService::toDataEntryValue).toList());
+  }
+
+  private static DataEntryValue.Input toDataEntryValue(DataValue v) {
+    return new DataEntryValue.Input(
+        v.getDataElement(),
+        v.getOrgUnit(),
+        v.getCategoryOptionCombo(),
+        null,
+        v.getAttributeOptionCombo(),
+        null,
+        null,
+        v.getPeriod(),
+        v.getValue(),
+        v.getComment(),
+        v.getFollowup(),
+        v.getDeleted());
   }
 
   /**

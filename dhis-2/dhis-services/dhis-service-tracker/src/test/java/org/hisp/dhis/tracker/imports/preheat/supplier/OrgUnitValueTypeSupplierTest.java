@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
@@ -228,7 +227,7 @@ class OrgUnitValueTypeSupplierTest extends TestBase {
     return element;
   }
 
-  private Event event(DataValue... dataValues) {
+  private TrackerEvent event(DataValue... dataValues) {
     return TrackerEvent.builder().event(UID.generate()).dataValues(dataValues(dataValues)).build();
   }
 

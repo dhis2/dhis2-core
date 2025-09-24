@@ -30,6 +30,8 @@
 package org.hisp.dhis.db.model;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
@@ -38,7 +40,6 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -297,6 +298,10 @@ public class Table {
    * @return a main table name.
    */
   public static String fromStaging(String tableName) {
-    return RegExUtils.removePattern(tableName, STAGING_TABLE_SUFFIX_RGX);
+    if (isBlank(tableName)) {
+      return tableName;
+    }
+
+    return tableName.replaceFirst(STAGING_TABLE_SUFFIX_RGX, EMPTY);
   }
 }
