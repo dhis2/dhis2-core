@@ -83,7 +83,8 @@ public class PublicKeysController {
         new RSAKey.Builder(dhisOidcClientRegistration.getRsaPublicKey())
             .keyUse(KeyUse.SIGNATURE)
             .algorithm(JWSAlgorithm.parse(jwsAlgorithm.toString()))
-            .x509CertSHA256Thumbprint(dhisOidcClientRegistration.getJwk().getX509CertSHA256Thumbprint())
+            .x509CertSHA256Thumbprint(
+                dhisOidcClientRegistration.getJwk().getX509CertSHA256Thumbprint())
             .keyID(dhisOidcClientRegistration.getKeyId());
 
     return new JWKSet(builder.build()).toJSONObject();
