@@ -2966,7 +2966,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * clauses can reference the relevant organisation unit columns.
    */
   private void addOrgUnitJoin(SelectBuilder sb, EventQueryParams params) {
-    var x = joinOrgUnitTables(params, getAnalyticsType());
-    sb.addRawJoin(x);
+    sb.addRawJoin(joinOrgUnitTables(params, getAnalyticsType()));
   }
 }
