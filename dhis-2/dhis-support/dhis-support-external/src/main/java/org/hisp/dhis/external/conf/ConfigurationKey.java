@@ -101,6 +101,12 @@ public enum ConfigurationKey {
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
+  /**
+   * If present, overrides the connection.url value - useful when running Apache Doris in a
+   * container
+   */
+  DORIS_CATALOG_CONNECTION_URL("doris.catalog.connection.url", "", false),
+
   /** Analytics Database connection URL. */
   ANALYTICS_CONNECTION_URL("analytics.connection.url", "", false),
 
@@ -118,9 +124,6 @@ public enum ConfigurationKey {
 
   /** Database port number. Applies to ClickHouse. */
   CONNECTION_PORT("connection.port", "5432", false),
-
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_DATABASE("connection.database", "", false),
 
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),

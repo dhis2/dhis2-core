@@ -95,20 +95,14 @@ public class ProgramNotificationInstanceController {
     TrackerEvent storedTrackerEvent = null;
     SingleEvent storedSingleEvent = null;
     if (requestParams.getEvent() != null) {
-      // TODO(tracker) jdbc-hibernate: check the impact on performance
-      // TODO(DHIS2-19702): Simplify this code
-      storedTrackerEvent = manager.get(TrackerEvent.class, requestParams.getEvent());
-      if (storedTrackerEvent != null) {
-        if (storedTrackerEvent.getProgramStage().getProgram().isRegistration()) {
-          trackerEventService.getEvent(requestParams.getEvent());
-        } else {
-          singleEventService.getEvent(requestParams.getEvent());
-          storedTrackerEvent = null;
-          storedSingleEvent = manager.get(SingleEvent.class, requestParams.getEvent());
-        }
+      if (trackerEventService.exists(requestParams.getEvent())) {
+        trackerEventService.getEvent(requestParams.getEvent());
+        // TODO(tracker) jdbc-hibernate: check the impact on performance
+        storedTrackerEvent = manager.get(TrackerEvent.class, requestParams.getEvent());
       } else {
-        throw new NotFoundException(
-            "Event with id " + requestParams.getEvent() + " could not be found.");
+        singleEventService.getEvent(requestParams.getEvent());
+        // TODO(tracker) jdbc-hibernate: check the impact on performance
+        storedSingleEvent = manager.get(SingleEvent.class, requestParams.getEvent());
       }
     }
     Enrollment storedEnrollment = null;

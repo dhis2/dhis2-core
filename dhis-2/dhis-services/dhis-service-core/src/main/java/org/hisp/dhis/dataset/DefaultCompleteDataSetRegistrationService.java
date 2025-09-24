@@ -29,28 +29,32 @@
  */
 package org.hisp.dhis.dataset;
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.feedback.ErrorCode.E7605;
+
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,7 +89,8 @@ public class DefaultCompleteDataSetRegistrationService
 
   @Override
   @Transactional
-  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException {
     registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     checkCompulsoryDeOperands(registration);
 
@@ -130,7 +135,8 @@ public class DefaultCompleteDataSetRegistrationService
    *
    * @param registration registration to check
    */
-  private void checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
+  public void checkCompulsoryDeOperands(CompleteDataSetRegistration registration)
+      throws ConflictException {
     // only get missing compulsory elements if they are actually compulsory
     if (registration.getDataSet().isCompulsoryFieldsCompleteOnly()) {
       List<DataElementOperand> missingDataElementOperands =
@@ -140,19 +146,19 @@ public class DefaultCompleteDataSetRegistrationService
               registration.getSource(),
               registration.getAttributeOptionCombo());
       if (!missingDataElementOperands.isEmpty()) {
-        String deos =
+        String missingDeos =
             missingDataElementOperands.stream()
                 .map(DataElementOperand::getDisplayName)
                 .collect(Collectors.joining(","));
-        throw new IllegalStateException(
-            "All compulsory data element operands need to be filled: [%s]".formatted(deos));
+        throw new ConflictException(E7605, missingDeos);
       }
     }
   }
 
   @Override
   @Transactional
-  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration)
+      throws ConflictException {
     checkCompulsoryDeOperands(registration);
 
     registration.setLastUpdated(new Date());
@@ -215,35 +221,36 @@ public class DefaultCompleteDataSetRegistrationService
     List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 
     if (!dataSet.getCompulsoryDataElementOperands().isEmpty()) {
-      DataExportParams params = new DataExportParams();
+      DataExportStoreParams params = new DataExportStoreParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
-      params.setPeriods(Sets.newHashSet(period));
-      params.setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo));
-      params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+      params.setPeriods(Set.of(period));
+      params.setAttributeOptionCombos(Set.of(attributeOptionCombo));
+      params.setOrganisationUnits(Set.of(organisationUnit));
 
-      List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues(params);
+      Map<Long, Map<Long, Set<Long>>> dataPresent = new HashMap<>();
 
-      MapMapMap<Long, Long, Long, Boolean> dataPresent = new MapMapMap<>();
-
-      for (DeflatedDataValue dv : deflatedDataValues) {
-        dataPresent.putEntry(
-            dv.getSourceId(), dv.getDataElementId(), dv.getCategoryOptionComboId(), true);
+      for (DeflatedDataValue dv : dataValueService.getDeflatedDataValues(params)) {
+        dataPresent
+            .computeIfAbsent(dv.getSourceId(), ou -> new HashMap<>())
+            .computeIfAbsent(dv.getDataElementId(), de -> new HashSet<>())
+            .add(dv.getCategoryOptionComboId());
       }
 
+      UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
       for (DataElementOperand deo : dataSet.getCompulsoryDataElementOperands()) {
-        List<String> errors = accessManager.canWrite(CurrentUserUtil.getCurrentUserDetails(), deo);
+        List<String> errors = accessManager.canWrite(currentUser, deo);
         if (!errors.isEmpty()) {
           continue;
         }
 
-        MapMap<Long, Long, Boolean> ouDataPresent = dataPresent.get(organisationUnit.getId());
+        Map<Long, Set<Long>> ouDataPresent = dataPresent.get(organisationUnit.getId());
 
         if (ouDataPresent != null) {
-          Map<Long, Boolean> deDataPresent = ouDataPresent.get(deo.getDataElement().getId());
+          Set<Long> deDataPresent = ouDataPresent.get(deo.getDataElement().getId());
 
           if (deDataPresent != null
               && (deo.getCategoryOptionCombo() == null
-                  || deDataPresent.get(deo.getCategoryOptionCombo().getId()) != null)) {
+                  || deDataPresent.contains(deo.getCategoryOptionCombo().getId()))) {
             continue;
           }
         }

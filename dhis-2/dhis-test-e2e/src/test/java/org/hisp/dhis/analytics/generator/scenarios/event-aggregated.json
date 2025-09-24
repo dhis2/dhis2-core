@@ -2,9 +2,44 @@
   "scenarios": [
     {
       "name": "financialYear2023Sep",
-      "query": "/api/42/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2023Sep&dimension=A03MvHHogjR.a3kGcGDCuk6&stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2023Sep&dimension=A03MvHHogjR.a3kGcGDCuk6&stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT",
       "version": {
         "min": 42
+      }
+    },
+    {
+      "name": "valueParamAndStageParam",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_10_YEARS&stage=A03MvHHogjR&displayProperty=NAME&value=a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2025-08-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "valueWithStageParamAndStageParam",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_5_YEARS&stage=A03MvHHogjR&displayProperty=NAME&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2025-08-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "valueWithStageParam",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_5_YEARS&displayProperty=NAME&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2025-08-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "valueWithoutStageParam",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_5_YEARS&displayProperty=NAME&value=A03MvHHogjR.a3kGcGDCuk6&aggregationType=AVERAGE&relativePeriodDate=2025-08-01",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "dataElementOrgUnitTypeFilterDimensionAndOrgUnitAsFilter",
+      "query": "/api/analytics/events/aggregate/WSGAb5XwJ3Y.json?dimension=PFDfvmGpsR3.n1rtSHYf6O6:IN:g8upMTyEZGZ&filter=pe:202107;202106&stage=PFDfvmGpsR3&displayProperty=NAME&totalPages=false&outputType=EVENT",
+      "version": {
+        "min": 43
       }
     }
   ]

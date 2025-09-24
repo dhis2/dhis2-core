@@ -34,9 +34,11 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -366,6 +368,17 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
     assertIsEmpty(dataValueChangeLogs);
     assertIsEmpty(eventFieldChangeLogs);
+  }
+
+  @Test
+  void shouldGetEventChangeLogsWithSimpleFieldsFilter() {
+    JsonList<JsonEventChangeLog> changeLogs =
+        GET("/tracker/events/{id}/changeLogs?fields=:simple", event.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonEventChangeLog.class);
+
+    assertFalse(changeLogs.isEmpty(), "should have some change logs");
+    assertHasOnlyMembers(changeLogs.get(0), "createdAt", "type");
   }
 
   private void updateDataValue(String value) {

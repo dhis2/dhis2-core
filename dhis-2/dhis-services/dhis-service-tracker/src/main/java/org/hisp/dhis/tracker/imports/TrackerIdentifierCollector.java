@@ -47,12 +47,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -73,7 +72,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TrackerIdentifierCollector {
-  private final ProgramRuleService programRuleService;
+  private final ProgramRuleActionService programRuleActionService;
 
   public Map<Class<?>, Set<String>> collect(TrackerObjects trackerObjects) {
     final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
@@ -81,23 +80,27 @@ public class TrackerIdentifierCollector {
     collectEnrollments(identifiers, trackerObjects.getEnrollments());
     collectEvents(identifiers, trackerObjects.getEvents());
     collectRelationships(identifiers, trackerObjects.getRelationships());
-    collectProgramRulesFields(identifiers);
+    collectProgramRuleActionFields(identifiers);
     return identifiers;
   }
 
-  private void collectProgramRulesFields(Map<Class<?>, Set<String>> map) {
+  private void collectProgramRuleActionFields(Map<Class<?>, Set<String>> map) {
     // collecting program rule dataElement/attributes deliberately using
     // UIDs
     // Rule engine rules only know UIDs, so we need to be able to get
     // dataElements/attributes from rule actions
     // out of the preheat using UIDs
-    programRuleService
-        .getDataElementsPresentInProgramRules()
+    programRuleActionService
+        .getDataElementsPresentInProgramRuleActions()
         .forEach(de -> addIdentifier(map, DataElement.class, de));
 
-    programRuleService
-        .getTrackedEntityAttributesPresentInProgramRules()
+    programRuleActionService
+        .getTrackedEntityAttributesPresentInProgramRuleActions()
         .forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, attribute));
+
+    programRuleActionService
+        .getProgramStagesUsedInScheduleEventActions()
+        .forEach(stage -> addIdentifier(map, ProgramStage.class, stage));
   }
 
   private void collectTrackedEntities(
@@ -145,7 +148,9 @@ public class TrackerIdentifierCollector {
         });
   }
 
-  private void collectEvents(Map<Class<?>, Set<String>> identifiers, List<Event> events) {
+  private void collectEvents(
+      Map<Class<?>, Set<String>> identifiers,
+      List<org.hisp.dhis.tracker.imports.domain.TrackerEvent> events) {
     events.forEach(
         event -> {
           addIdentifier(identifiers, Enrollment.class, event.getEnrollment());

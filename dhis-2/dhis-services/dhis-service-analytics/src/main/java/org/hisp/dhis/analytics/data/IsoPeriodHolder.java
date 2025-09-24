@@ -30,8 +30,8 @@
 package org.hisp.dhis.analytics.data;
 
 import static java.util.Optional.empty;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_FREE_RANGE_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_FREE_RANGE_SEPARATOR;
 import static org.hisp.dhis.util.DateUtils.safeParseDate;
 
 import java.util.Date;

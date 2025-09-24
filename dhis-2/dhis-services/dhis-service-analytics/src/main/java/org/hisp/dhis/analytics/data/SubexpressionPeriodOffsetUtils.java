@@ -31,7 +31,8 @@ package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.shiftPeriod;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.HashSet;
@@ -154,8 +155,7 @@ public class SubexpressionPeriodOffsetUtils {
             .toList();
 
     DimensionalObject periodDimension =
-        new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriods);
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriods);
 
     return DataQueryParams.newBuilder(params).replaceDimension(periodDimension).build();
   }

@@ -472,16 +472,13 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .occurredAt(newDate)
-                      .scheduledAt(newDate)
-                      .build();
+              e.setOccurredAt(newDate);
+              e.setScheduledAt(newDate);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -491,15 +488,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .scheduledAt(null)
-                      .build();
+              e.setScheduledAt(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -509,15 +503,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .geometry(newGeometry)
-                      .build();
+              e.setGeometry(newGeometry);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -527,15 +518,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .geometry(null)
-                      .build();
+              e.setGeometry(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 

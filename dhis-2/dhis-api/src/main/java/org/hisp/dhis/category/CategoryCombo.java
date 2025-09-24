@@ -33,7 +33,6 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -54,10 +53,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -78,7 +75,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TranslationProperty;
@@ -87,15 +83,10 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -152,18 +143,6 @@ public class CategoryCombo extends BaseMetadataObject
   private Sharing sharing = new Sharing();
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
-
-  // -------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------
-  /** Access information for this object. Applies to current user. */
-  @Transient private transient Access access;
-
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  @Transient private transient String href;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -376,10 +355,6 @@ public class CategoryCombo extends BaseMetadataObject
     return categories;
   }
 
-  public void setCategories(List<Category> categories) {
-    this.categories = categories;
-  }
-
   @JsonProperty("categoryOptionCombos")
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0)
@@ -388,38 +363,16 @@ public class CategoryCombo extends BaseMetadataObject
     return optionCombos;
   }
 
-  public void setOptionCombos(Set<CategoryOptionCombo> optionCombos) {
-    this.optionCombos = optionCombos;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataDimensionType getDataDimensionType() {
     return dataDimensionType;
   }
 
-  public void setDataDimensionType(DataDimensionType dataDimensionType) {
-    this.dataDimensionType = dataDimensionType;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSkipTotal() {
     return skipTotal;
-  }
-
-  public void setSkipTotal(boolean skipTotal) {
-    this.skipTotal = skipTotal;
-  }
-
-  @Override
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @Description("The Unique Identifier for this Object.")
-  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
-  @PropertyRange(min = 11, max = 11)
-  public String getUid() {
-    return uid;
   }
 
   @Override
@@ -450,35 +403,6 @@ public class CategoryCombo extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was created.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getCreated() {
-    return created;
-  }
-
-  @Override
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
@@ -493,43 +417,9 @@ public class CategoryCombo extends BaseMetadataObject
   }
 
   @Override
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
-  public Access getAccess() {
-    return access;
-  }
-
-  @Override
-  @OpenApi.Ignore
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return createdBy;
-  }
-
-  @Override
   public void setUser(User user) {
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
-  }
-
-  @Override
-  @Sortable(value = false)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(isAttribute = true)
-  @Property(PropertyType.URL)
-  public String getHref() {
-    return href;
-  }
-
-  @Override
-  public void setHref(String href) {
-    this.href = href;
   }
 
   @Override
@@ -553,18 +443,6 @@ public class CategoryCombo extends BaseMetadataObject
   @Override
   public long getId() {
     return id;
-  }
-
-  @Override
-  @Gist(included = Include.FALSE)
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
   }
 
   // --------------------------------------------------
@@ -626,25 +504,5 @@ public class CategoryCombo extends BaseMetadataObject
   @Override
   public void removeAttributeValue(String attributeId) {
     // DO NOTHING as this class does not have attributes
-  }
-
-  @Override
-  public Set<String> getFavorites() {
-    return Set.of();
-  }
-
-  @Override
-  public boolean isFavorite() {
-    return false;
-  }
-
-  @Override
-  public boolean setAsFavorite(UserDetails user) {
-    return false;
-  }
-
-  @Override
-  public boolean removeAsFavorite(UserDetails user) {
-    return false;
   }
 }

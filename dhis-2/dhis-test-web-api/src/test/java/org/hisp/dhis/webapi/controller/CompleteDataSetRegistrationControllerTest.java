@@ -41,7 +41,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
-class CompleteDataSetRegistrationControllerTest extends H2ControllerIntegrationTestBase {
+class CompleteDataSetRegistrationControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPostCompleteRegistrationsJson() {

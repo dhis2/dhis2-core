@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -45,6 +46,7 @@ import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.RuleEngineErrorExecutor;
+import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ScheduleEventExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.SetMandatoryFieldExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowErrorExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowErrorOnCompleteExecutor;
@@ -56,6 +58,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class RuleActionEnrollmentMapper {
   private final SystemSettingsProvider settingsProvider;
+  private final AclService aclService;
 
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects, TrackerBundle bundle) {
@@ -101,6 +104,7 @@ class RuleActionEnrollmentMapper {
       case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+      case SCHEDULE_EVENT -> new ScheduleEventExecutor(validationEffect, aclService);
       case RAISE_ERROR ->
           new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };

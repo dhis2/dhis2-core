@@ -35,12 +35,14 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.JdbcUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -111,7 +113,10 @@ public class AnalyticsDatabaseInit {
    * transaction database as an external data source.
    */
   private void createDorisJdbcCatalog() {
-    String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
+    String connectionUrl =
+        StringUtils.firstNonBlank(
+            config.getProperty(ConfigurationKey.DORIS_CATALOG_CONNECTION_URL),
+            config.getProperty(ConfigurationKey.CONNECTION_URL));
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String password = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
 
@@ -126,15 +131,17 @@ public class AnalyticsDatabaseInit {
    * database.
    */
   private void createClickHouseNamedCollection() {
+    String database = JdbcUtils.getDatabaseFromUrl(config.getConnectionUrl());
+
     Map<String, Object> keyValues =
         Map.of(
             "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
             "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
-            "database", config.getProperty(ConfigurationKey.CONNECTION_DATABASE),
+            "database", database,
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
             "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
 
-    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
+    ClickHouseSqlBuilder clickHouseSqlBuilder = (ClickHouseSqlBuilder) sqlBuilder;
 
     jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
     jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));

@@ -131,6 +131,12 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     progress.completedProcess("Analytics tables updated: {}", clock.time());
   }
 
+  /**
+   * Updates the system settings related to last successful analytics table update.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param clock the {@link Clock}.
+   */
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
     if (params.isLatestUpdate()) {
       settingsService.put("keyLastSuccessfulLatestAnalyticsPartitionUpdate", params.getStartTime());
@@ -144,12 +150,10 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   @Override
   public void generateResourceTables(JobProgress progress) {
     final Clock clock = new Clock().startClock();
-
     progress.startingProcess("Generating resource tables");
 
     try {
       generateResourceTablesInternal(progress);
-
       progress.completedProcess("Resource tables generated: {}", clock.time());
     } catch (RuntimeException ex) {
       progress.failedProcess("Resource tables generation: {}", ex.getMessage());

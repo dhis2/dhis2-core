@@ -195,6 +195,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsUpdateForMultiKeyTable() {
+    return false;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return false;
   }
@@ -484,7 +489,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * Doris supports indexes but relies on concurrency and compression for query performance instead
-   * of indexes on arbitrary columns. Read more at {@link https://t.ly/uNK5T}.
+   * of indexes on arbitrary columns. Read more at {@link https://t.ly/AHhJ1}.
    */
   @Override
   public String createIndex(Index index) {

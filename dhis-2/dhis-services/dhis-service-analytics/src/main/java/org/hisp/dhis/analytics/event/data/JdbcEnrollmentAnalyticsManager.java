@@ -31,12 +31,12 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
@@ -45,8 +45,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
@@ -414,7 +414,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
         OrganisationUnit unit = (OrganisationUnit) object;
         sql +=
-            params.getOrgUnitField().getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
+            params
+                    .getOrgUnitField()
+                    .withSqlBuilder(sqlBuilder)
+                    .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
                 + " = '"
                 + unit.getUid()
                 + "' or ";
@@ -554,37 +557,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
-  }
-
-  /**
-   * This method switches or add a new prefix to the given column if needed. It takes into
-   * consideration columns used in functions as well as regular columns and columns with aliases.
-   *
-   * <p>ie:
-   *
-   * <ul>
-   *   <li>ax.value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
-   *   <li>ev.value as "A03MvHHogjR" -> ev.value as "A03MvHHogjR"
-   *   <li>value as "A03MvHHogjR" -> ax.value as "A03MvHHogjR"
-   *   <li>count() as value -> count() as value"
-   *   <li>ST_Y(ax.geometry) -> ST_Y(ax.geometry)
-   * </ul>
-   *
-   * @param column to be prefixed.
-   * @return the prefixed column (if required).
-   */
-  String addEnrollmentPrefix(String column) {
-    String functionColumn = substringBetween(column, "(", ")");
-    boolean hasFunction = functionColumn != null;
-    boolean hasPrefix = column.contains("ax.") || column.contains("ev.");
-
-    if (!hasFunction && !hasPrefix) {
-      column = "ax." + column;
-    } else if (hasFunction && functionColumn.length() > 0 && !hasPrefix) {
-      column = column.replace(functionColumn, "ax." + functionColumn);
-    }
-
-    return column;
   }
 
   /**
@@ -1081,16 +1053,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private void addOrgUnitAggregateColumns(SelectBuilder sb, EventQueryParams params) {
     Set<String> orgColumns = getOrgUnitLevelColumns(params);
-    if (!orgColumns.isEmpty()) {
-      // Add them *exactly in the old order*, then group by them
-      for (String orgColumn : orgColumns) {
-        sb.addColumn(orgColumn.trim());
-        sb.groupBy(orgColumn.trim());
-      }
-    } else {
-      // The old code always ensures we at least include ORGUNIT_DIM_ID if orgColumns is blank
+
+    if (orgColumns.isEmpty() && !isAggregateEnrollment(params)) {
       sb.addColumn(ORGUNIT_DIM_ID);
       sb.groupBy(ORGUNIT_DIM_ID);
+      return;
+    }
+
+    for (String col : orgColumns) {
+      String trimmed = col.trim();
+      sb.addColumn(trimmed);
+      sb.groupBy(trimmed);
     }
   }
 

@@ -52,7 +52,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
@@ -77,8 +76,8 @@ class TrackerIdentifierCollectorTest {
   @BeforeEach
   void setUp() {
 
-    ProgramRuleService programRuleService = mock(ProgramRuleService.class);
-    collector = new TrackerIdentifierCollector(programRuleService);
+    ProgramRuleActionService programRuleActionService = mock(ProgramRuleActionService.class);
+    collector = new TrackerIdentifierCollector(programRuleActionService);
   }
 
   @Test
@@ -131,7 +130,7 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEvents() {
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(uid())
             .enrollment(uid())
@@ -164,7 +163,7 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEventsSkipsNotesWithoutAValue() {
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).build()))

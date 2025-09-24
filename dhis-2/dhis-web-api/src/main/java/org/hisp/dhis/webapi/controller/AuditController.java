@@ -61,6 +61,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueAuditType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -167,7 +168,7 @@ public class AuditController {
           String co,
       @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
           String cc,
-      @RequestParam(required = false) List<AuditOperationType> auditType,
+      @RequestParam(required = false) List<DataValueAuditType> auditType,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -187,7 +188,7 @@ public class AuditController {
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
     CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
     CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
-    List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
+    List<DataValueAuditType> auditTypes = emptyIfNull(auditType);
 
     DataValueAuditQueryParams params =
         new DataValueAuditQueryParams()
@@ -196,7 +197,7 @@ public class AuditController {
             .setOrgUnits(organisationUnits)
             .setCategoryOptionCombo(categoryOptionCombo)
             .setAttributeOptionCombo(attributeOptionCombo)
-            .setAuditTypes(auditOperationTypes);
+            .setAuditTypes(auditTypes);
 
     List<DataValueAudit> dataValueAudits;
     Pager pager = null;
@@ -216,7 +217,7 @@ public class AuditController {
                   .setOrgUnits(organisationUnits)
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
-                  .setAuditTypes(auditOperationTypes)
+                  .setAuditTypes(auditTypes)
                   .setPager(pager));
     }
 
