@@ -37,6 +37,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
@@ -465,13 +467,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "ouA",
             List.of(createOrganisationUnit('A')));
@@ -514,13 +516,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "ouA",
             List.of(createOrganisationUnit('A')));
@@ -553,13 +555,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel() {
     DimensionalObject periods =
         new BaseDimensionalObject(
-            DimensionalObject.PERIOD_DIM_ID,
+            PERIOD_DIM_ID,
             DimensionType.PERIOD,
             List.of(MonthlyPeriodType.getPeriodFromIsoString("201801")));
 
     DimensionalObject multipleOrgUnitsSameLevel =
         new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID,
+            ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT,
             "uidlevel1",
             "Level 1",
@@ -942,6 +944,70 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertEquals(
         "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
         select);
+  }
+
+  @Test
+  void testRemoveAliases() {
+    // Given
+    List<String> columnsWithAliases = List.of("columnA as cA", "columnB", "columnC as cC", "");
+
+    // When
+    List<String> columnsWithNoAliases = eventSubject.removeAliases(columnsWithAliases);
+
+    // Then
+    assertEquals(columnsWithAliases.size(), columnsWithNoAliases.size());
+    assertTrue(columnsWithNoAliases.contains("columnA"));
+    assertTrue(columnsWithNoAliases.contains("columnB"));
+    assertTrue(columnsWithNoAliases.contains("columnC"));
+    assertTrue(columnsWithNoAliases.contains(""));
+  }
+
+  @Test
+  void testGetGroupByColumnNamesWithoutAliases() {
+    // Given
+    DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            PERIOD_DIM_ID,
+            DimensionType.PERIOD,
+            List.of(MonthlyPeriodType.getPeriodFromIsoString("201901")));
+
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT,
+            "ouA",
+            List.of(createOrganisationUnit('A')));
+
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiA)
+            .withCoordinateFields(List.of(deA.getUid()))
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    // When
+    List<String> columns = eventSubject.getGroupByColumnNames(params, false);
+
+    // Then
+    assertThat(columns, hasSize(3));
+    assertThat(
+        columns,
+        containsInAnyOrder(
+            "ax.\"pe\"",
+            "ax.\"ou\"",
+            "'[' || round(ST_X(ST_Centroid(\""
+                + deA.getUid()
+                + "_geom"
+                + "\"))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(\""
+                + deA.getUid()
+                + "_geom"
+                + "\"))::numeric, 6) || ']'"));
   }
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {

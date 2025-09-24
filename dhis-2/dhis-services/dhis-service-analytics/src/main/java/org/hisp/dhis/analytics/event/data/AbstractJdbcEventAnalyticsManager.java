@@ -41,6 +41,7 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
@@ -317,7 +318,21 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * clause.
    */
   protected List<String> getGroupByColumnNames(EventQueryParams params, boolean isAggregated) {
-    return getSelectColumns(params, true, isAggregated);
+    List<String> columns = getSelectColumns(params, true, isAggregated);
+
+    return removeAliases(columns);
+  }
+
+  /**
+   * It removes the aliases from the list of given columns, if any.
+   *
+   * <p>ie: columnA as cA -> columnA
+   *
+   * @param columns the columns that may have aliases.
+   * @return the columns without aliases.
+   */
+  List<String> removeAliases(List<String> columns) {
+    return columns.stream().map(c -> substringBefore(c, " as ")).toList();
   }
 
   /**
