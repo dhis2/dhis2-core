@@ -547,10 +547,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   private OrganisationUnit createOutOfScopeOrgUnit(Character uniqueCharacter) {
-    OrganisationUnit organisationUnit = createOrganisationUnit(uniqueCharacter);
-    organisationUnit.setUid("OUT_OF_SCOPE_ORG_UNIT_UID");
-    organisationUnit.updatePath();
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit(uniqueCharacter);
+    outOfScopeOrgUnit.setUid("OUT_OF_SCOPE_ORG_UNIT_UID");
+    outOfScopeOrgUnit.updatePath();
 
-    return organisationUnit;
+    return outOfScopeOrgUnit;
   }
 }
