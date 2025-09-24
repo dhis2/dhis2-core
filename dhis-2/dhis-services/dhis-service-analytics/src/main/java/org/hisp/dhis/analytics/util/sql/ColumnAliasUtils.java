@@ -36,60 +36,23 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
 public class ColumnAliasUtils {
 
   /**
-   * Returns true if the given column reference is qualified with a table alias/name, e.g. "t.col",
-   * "t.\"column_name\"", "\"T\".\"COLUMN_NAME\"". Notes: - Works with quoted identifiers. - Treats
-   * any qualifier (alias or actual table name) as an "alias". - If the input isn't a plain column
-   * reference (e.g., it's an expression), returns false.
+   * Splits a column reference into its qualifier and column name when the reference is fully
+   * qualified.
+   *
+   * <p>The method accepts identifiers written as {@code qualifier.column}, including quoted
+   * variants, and returns an {@link Optional} containing both pieces. If the input is blank,
+   * contains leading or trailing whitespace, or represents something other than a plain qualified
+   * column, {@link Optional#empty()} is returned.
+   *
+   * @param columnRef textual column reference, e.g. {@code analytics.value}
+   * @return optional qualifier/column pair when the reference is qualified; empty otherwise
    */
-  public static boolean isQualifiedWithAlias(String columnRef) {
-    Column col = parseColumnOrNull(columnRef);
-    if (col == null) return false;
-
-    Table table = col.getTable();
-    // getFullyQualifiedName() includes schema if present; presence means it’s qualified.
-    return table != null && notBlank(table.getFullyQualifiedName());
-  }
-
-  /**
-   * Extracts the alias/qualifier (the part before the dot) or returns null if unqualified. For
-   * "schema.table.col" the qualifier will be "schema.table".
-   */
-  public static String extractQualifier(String columnRef) {
-    Column col = parseColumnOrNull(columnRef);
-    if (col == null) return null;
-
-    Table table = col.getTable();
-    String q = table != null ? table.getFullyQualifiedName() : null;
-    return notBlank(q) ? q : null;
-  }
-
-  /**
-   * Returns just the column name without any qualifier. If the input isn't a simple column
-   * reference, returns the original string.
-   */
-  public static String unqualify(String columnRef) {
-    if (columnRef == null) return null;
-
-    // If it's clearly not a plain column reference, return as-is.
-    // - preserve leading/trailing whitespace exactly
-    // - preserve wildcards like "*", "t.*"
-    // - preserve trailing dot like "t."
-    if (hasOuterWhitespace(columnRef)
-        || columnRef.contains("*")
-        || columnRef.trim().endsWith(".")) {
-      return columnRef;
-    }
-
-    Column col = parseColumnOrNull(columnRef);
-    // If it's a plain column, return the column part exactly as parsed (quotes preserved).
-    return (col != null) ? col.getColumnName() : columnRef;
-  }
-
   public static Optional<QualifiedRef> splitQualified(String columnRef) {
     Column col = parseColumnOrNull(columnRef);
     if (col == null) return Optional.empty();
@@ -102,13 +65,8 @@ public class ColumnAliasUtils {
     return Optional.of(new QualifiedRef(q, col.getColumnName()));
   }
 
-  private static boolean hasOuterWhitespace(String s) {
-    // true if there is at least one leading or trailing whitespace char
-    return s.length() != s.trim().length();
-  }
-
   private static Column parseColumnOrNull(String text) {
-    if (!notBlank(text)) return null;
+    if (StringUtils.isBlank(text)) return null;
     try {
       // Parse as an expression and check it's a Column
       Expression expr = CCJSqlParserUtil.parseExpression(text);
@@ -121,10 +79,6 @@ public class ColumnAliasUtils {
       // Not parseable as an expression — treat as not-a-column
       return null;
     }
-  }
-
-  private static boolean notBlank(String s) {
-    return s != null && !s.isBlank();
   }
 
   public record QualifiedRef(String qualifier, String columnName) {}
