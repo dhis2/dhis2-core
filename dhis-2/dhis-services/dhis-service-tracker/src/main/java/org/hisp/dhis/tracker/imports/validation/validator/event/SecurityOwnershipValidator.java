@@ -216,11 +216,21 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
         teUid,
         preheatEvent.isCreatableInSearchScope());
 
-    if (strategy.isUpdate()
-        && EventStatus.COMPLETED == preheatEvent.getStatus()
-        && event.getStatus() != preheatEvent.getStatus()
-        && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
-      reporter.addError(event, E1083, user);
+    if (strategy.isUpdate()) {
+      if (preheatEvent.getProgramStage().getProgram().isWithoutRegistration()) {
+        OrganisationUnit payloadOrgUnit =
+            bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+        if (!preheatEvent.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
+          checkEventOrgUnitWriteAccess(reporter, event, payloadOrgUnit, false, bundle.getUser());
+        }
+      }
+
+      if (EventStatus.COMPLETED == preheatEvent.getStatus()
+          && event.getStatus() != preheatEvent.getStatus()
+          && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
+
+        reporter.addError(event, E1083, user);
+      }
     }
   }
 
