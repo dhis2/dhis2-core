@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.event.EventStatus.ACTIVE;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
@@ -205,6 +206,36 @@ class SecurityOwnershipValidatorTest extends TestBase {
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void verifyValidationSuccessForNonTrackerEventUsingUpdateStrategy() {
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    UID enrollmentUid = UID.generate();
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.Event.builder()
+            .event(UID.generate())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .build();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
+        .thenReturn(createOutOfScopeOrgUnit('B'));
+    Enrollment enrollment = getEnrollment(enrollmentUid);
+    Event preheatEvent = getEvent();
+    preheatEvent.setStatus(ACTIVE);
+    preheatEvent.setEnrollment(enrollment);
+    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1000);
   }
 
   @Test
@@ -518,5 +549,13 @@ class SecurityOwnershipValidatorTest extends TestBase {
     event.setEnrollment(getEnrollment(UID.generate()));
     event.setStatus(EventStatus.COMPLETED);
     return event;
+  }
+
+  private OrganisationUnit createOutOfScopeOrgUnit(Character uniqueCharacter) {
+    OrganisationUnit organisationUnit = createOrganisationUnit(uniqueCharacter);
+    organisationUnit.setUid("OUT_OF_SCOPE_ORG_UNIT_UID");
+    organisationUnit.updatePath();
+
+    return organisationUnit;
   }
 }
