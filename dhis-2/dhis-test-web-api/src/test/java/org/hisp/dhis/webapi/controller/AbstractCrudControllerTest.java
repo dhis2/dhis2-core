@@ -1818,4 +1818,249 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, indicators.size());
     assertEquals(indicatorId, indicators.getObject(0).getString("id").string());
   }
+
+  // -------------------------------------------------------------------------
+  // IndicatorGroupSet tests
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testIndicatorGroupSetCanBeCreatedSuccessfully() {
+    // Create an IndicatorGroupSet with simple properties
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Test Indicator Group Set',
+                'shortName': 'TIGS',
+                'description': 'A test indicator group set',
+                'code': 'TEST_IGS',
+                'compulsory': false
+            }
+            """));
+
+    // Verify the indicator group set was created correctly
+    JsonObject indicatorGroupSet = GET("/indicatorGroupSets/" + indicatorGroupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    assertNotNull(indicatorGroupSet);
+    assertEquals("Test Indicator Group Set", indicatorGroupSet.getString("name").string());
+    assertEquals("TIGS", indicatorGroupSet.getString("shortName").string());
+    assertEquals("A test indicator group set", indicatorGroupSet.getString("description").string());
+    assertEquals("TEST_IGS", indicatorGroupSet.getString("code").string());
+    assertFalse(indicatorGroupSet.getBoolean("compulsory").booleanValue());
+
+    // Verify that collections are present and empty upon creation
+    assertEquals(0, indicatorGroupSet.getArray("indicatorGroups").size());
+  }
+
+  @Test
+  void testIndicatorGroupSetCanBeCreatedWithMembers() {
+    // Create IndicatorType first (required for indicators)
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Indicator Type',
+                'factor': 100
+            }
+            """));
+
+    // Create Indicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 1',
+                'shortName': 'IND1',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 2',
+                'shortName': 'IND2',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create IndicatorGroups
+    String indicatorGroup1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Indicator Group 1',
+                'shortName': 'IG1',
+                'indicators': [
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator1Id)));
+
+    String indicatorGroup2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Indicator Group 2',
+                'shortName': 'IG2',
+                'indicators': [
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator2Id)));
+
+    // Create IndicatorGroupSet with members
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Test IGS with Members',
+                'shortName': 'TIGSM',
+                'compulsory': true,
+                'indicatorGroups': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicatorGroup1Id, indicatorGroup2Id)));
+
+    // Verify indicator group set has the members
+    JsonObject indicatorGroupSet = GET("/indicatorGroupSets/" + indicatorGroupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    assertTrue(indicatorGroupSet.getBoolean("compulsory").booleanValue());
+
+    JsonArray indicatorGroups = indicatorGroupSet.getArray("indicatorGroups");
+    assertNotNull(indicatorGroups);
+    assertEquals(2, indicatorGroups.size());
+  }
+
+  @Test
+  void testIndicatorGroupSetSupportsAttributeValues() {
+    // Create attribute first
+    String attributeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes/",
+                """
+            {
+                'name': 'Test IGS Attribute',
+                'shortName': 'TIGSA',
+                'valueType': 'TEXT',
+                'indicatorGroupSetAttribute': true
+            }
+            """));
+
+    // Create IndicatorGroupSet with attribute value
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'IGS with Attributes',
+                'shortName': 'IGSWA',
+                'code': 'IGS001',
+                'attributeValues': [
+                    {
+                        'attribute': {'id': '%s'},
+                        'value': 'test igs attribute value'
+                    }
+                ]
+            }
+            """
+                    .formatted(attributeId)));
+
+    // Verify attribute values and code
+    JsonObject indicatorGroupSet = GET("/indicatorGroupSets/" + indicatorGroupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    assertEquals("IGS001", indicatorGroupSet.getString("code").string());
+
+    JsonArray attributeValues = indicatorGroupSet.getArray("attributeValues");
+    assertNotNull(attributeValues);
+    assertEquals(1, attributeValues.size());
+    assertEquals("test igs attribute value", attributeValues.getObject(0).getString("value").string());
+  }
+
+  @Test
+  void testIndicatorGroupSetSupportsTranslations() {
+    // Create IndicatorGroupSet
+    String indicatorGroupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'IGS with Translations',
+                'shortName': 'IGSWT'
+            }
+            """));
+
+    // Add translations
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/indicatorGroupSets/" + indicatorGroupSetId + "/translations",
+            """
+            {
+                'translations': [
+                    {
+                        'locale': 'sv',
+                        'property': 'name',
+                        'value': 'IGS med översättningar'
+                    },
+                    {
+                        'locale': 'fr',
+                        'property': 'name',
+                        'value': 'IGS avec traductions'
+                    }
+                ]
+            }
+            """));
+
+    // Verify translations were added
+    JsonArray translations = GET("/indicatorGroupSets/" + indicatorGroupSetId + "/translations").content().getArray("translations");
+    assertEquals(2, translations.size());
+
+    // Check that translations include the expected locales
+    Set<String> locales = Set.of(
+        translations.get(0, JsonTranslation.class).getLocale(),
+        translations.get(1, JsonTranslation.class).getLocale());
+    assertTrue(locales.contains("sv"));
+    assertTrue(locales.contains("fr"));
+  }
 }
