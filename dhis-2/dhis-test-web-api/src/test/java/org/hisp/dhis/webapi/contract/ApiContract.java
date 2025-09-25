@@ -56,8 +56,8 @@ public record ApiContract(
 
 /**
  * This deserializer takes in a path to a json schema e.g. <code>
- * contracts/category/category-json-schema.json</code> which is expected to be available on the
- * classpath. The contract defines where the schema is located.
+ * api-contracts/contracts/category/category-json-schema.json</code> which is expected to be
+ * available in test resources. The contract defines where the schema is located.
  */
 class JsonSchemaDeserializer extends JsonDeserializer<JsonSchema> {
   @Override
