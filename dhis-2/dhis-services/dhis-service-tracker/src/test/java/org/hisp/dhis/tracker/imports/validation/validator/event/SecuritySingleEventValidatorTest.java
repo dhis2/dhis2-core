@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
@@ -165,8 +166,9 @@ class SecuritySingleEventValidatorTest extends TestBase {
       value = TrackerImportStrategy.class,
       mode = EnumSource.Mode.INCLUDE,
       names = {"UPDATE", "DELETE"})
-  void shouldFailValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForUpdateAndDeleteStrategy(
-      TrackerImportStrategy strategy) {
+  void
+      shouldFailValidationWhenUserDoesNotHaveDatabaseOrgUnitInCaptureScopeForUpdateAndDeleteStrategy(
+          TrackerImportStrategy strategy) {
     UID enrollmentUid = UID.generate();
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
@@ -180,6 +182,45 @@ class SecuritySingleEventValidatorTest extends TestBase {
     when(bundle.getStrategy(event)).thenReturn(strategy);
     SingleEvent preheatEvent = getEvent();
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
+    lenient()
+        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
+        .thenReturn(organisationUnit);
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, E1000);
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = TrackerImportStrategy.class,
+      mode = EnumSource.Mode.INCLUDE,
+      names = {"UPDATE"})
+  void shouldFailValidationWhenUserDoesNotHavePayloadOrgUnitInCaptureScopeForUpdateStrategy(
+      TrackerImportStrategy strategy) {
+    UID enrollmentUid = UID.generate();
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
+            .event(UID.generate())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .build();
+
+    User user = makeUser("B");
+    user.setOrganisationUnits(Set.of(organisationUnit));
+    UserDetails userDetails = UserDetails.fromUser(user);
+    when(bundle.getUser()).thenReturn(userDetails);
+
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('B');
+    outOfScopeOrgUnit.setUid("ORG_UNIT_UID");
+    outOfScopeOrgUnit.updatePath();
+
+    when(bundle.getStrategy(event)).thenReturn(strategy);
+    SingleEvent preheatEvent = getEvent();
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit())).thenReturn(outOfScopeOrgUnit);
 
     validator.validate(reporter, bundle, event);
 
@@ -238,6 +279,9 @@ class SecuritySingleEventValidatorTest extends TestBase {
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(false);
+    lenient()
+        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
+        .thenReturn(organisationUnit);
 
     validator.validate(reporter, bundle, event);
 
@@ -306,6 +350,9 @@ class SecuritySingleEventValidatorTest extends TestBase {
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(false);
+    lenient()
+        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
+        .thenReturn(organisationUnit);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1099);
@@ -339,6 +386,9 @@ class SecuritySingleEventValidatorTest extends TestBase {
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(true);
+    lenient()
+        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
+        .thenReturn(organisationUnit);
 
     validator.validate(reporter, bundle, event);
 
@@ -396,6 +446,7 @@ class SecuritySingleEventValidatorTest extends TestBase {
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
 
     when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit())).thenReturn(organisationUnit);
 
     validator.validate(reporter, bundle, event);
 
