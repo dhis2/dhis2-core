@@ -40,6 +40,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +51,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * Helper class to assist during the validation/assertion in e2e analytics tests.
@@ -186,7 +192,6 @@ public class ValidationHelper {
       boolean expectedMeta) {
 
     // Find the header first to ensure it exists before using index
-    Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
     int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
 
     response
@@ -462,5 +467,92 @@ public class ValidationHelper {
     return response.extractList("headers", Map.class).stream()
         .map(obj -> (Map<String, Object>) obj)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Asserts that two JSON strings representing metadata are equivalent, providing detailed
+   * diagnostics if they are not.
+   *
+   * @param expected the expected JSON string
+   * @param actual the actual JSON string
+   */
+  public static void assertJsonMetadata(String expected, String actual) {
+    try {
+      // First, try the basic comparison
+      JSONAssert.assertEquals(expected, actual, JSONCompareMode.NON_EXTENSIBLE);
+    } catch (AssertionError | JSONException e) {
+      // If it fails, provide detailed diagnostics
+      System.err.println("\n=== JSON ASSERTION FAILURE ===");
+      System.err.println("Error: " + e.getMessage());
+
+      try {
+        JSONObject expectedObj = new JSONObject(expected);
+        JSONObject actualObj = new JSONObject(actual);
+
+        // Check major sections
+        checkSection("items", expectedObj, actualObj);
+        checkSection("dimensions", expectedObj, actualObj);
+
+      } catch (JSONException jsonError) {
+        System.err.println("Additional JSON parsing error: " + jsonError.getMessage());
+      }
+
+      System.err.println("\nExpected JSON (pretty):\n" + prettyPrint(expected));
+      System.err.println("\nActual JSON (pretty):\n" + prettyPrint(actual));
+
+      throw new AssertionError("Metadata JSON comparison failed. See details above.", e);
+    }
+  }
+
+  private static void checkSection(String sectionName, JSONObject expected, JSONObject actual) {
+    if (!actual.has(sectionName)) {
+      System.err.println("MISSING SECTION: " + sectionName);
+      return;
+    }
+
+    if (!expected.has(sectionName)) {
+      System.err.println("UNEXPECTED SECTION: " + sectionName);
+      return;
+    }
+
+    try {
+      JSONObject expectedSection = expected.getJSONObject(sectionName);
+      JSONObject actualSection = actual.getJSONObject(sectionName);
+
+      // Get keys using the proper JSONObject methods
+      Set<String> expectedKeys = getKeys(expectedSection);
+      Set<String> actualKeys = getKeys(actualSection);
+
+      for (String key : expectedKeys) {
+        if (!actualKeys.contains(key)) {
+          System.err.println("MISSING KEY in " + sectionName + ": " + key);
+        }
+      }
+
+      for (String key : actualKeys) {
+        if (!expectedKeys.contains(key)) {
+          System.err.println("UNEXPECTED KEY in " + sectionName + ": " + key);
+        }
+      }
+    } catch (JSONException e) {
+      System.err.println("Error checking section " + sectionName + ": " + e.getMessage());
+    }
+  }
+
+  private static Set<String> getKeys(JSONObject jsonObject) {
+    Set<String> keys = new HashSet<>();
+    Iterator<String> iterator = jsonObject.keys();
+    while (iterator.hasNext()) {
+      keys.add(iterator.next());
+    }
+    return keys;
+  }
+
+  private static String prettyPrint(String json) {
+    try {
+      return new JSONObject(json).toString(2);
+    } catch (JSONException e) {
+      return json;
+    }
   }
 }

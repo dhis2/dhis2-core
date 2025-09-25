@@ -271,10 +271,12 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
   private List<EventQueryParams> groupByPeriod(EventQueryParams params) {
     List<EventQueryParams> queries = new ArrayList<>();
 
-    if ((params.isFirstOrLastPeriodAggregationType()
-            || params.getOrgUnitField().getType().isOwnership()
-            || params.useIndividualQuery())
-        && !params.getPeriods().isEmpty()) {
+    boolean isFirstOrLast = params.isFirstOrLastPeriodAggregationType();
+    boolean isOwnership = params.getOrgUnitField().getType().isOwnership();
+    boolean useIndividual = params.useIndividualQuery();
+    boolean hasPeriods = !params.getPeriods().isEmpty();
+
+    if ((isFirstOrLast || isOwnership || useIndividual) && hasPeriods) {
       for (DimensionalItemObject period : params.getPeriods()) {
         String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
 
