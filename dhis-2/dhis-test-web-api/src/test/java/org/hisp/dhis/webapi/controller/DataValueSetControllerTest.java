@@ -189,6 +189,95 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetDataValueSetJsonDescendants() {
+
+    final String timestampPattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{4}";
+
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU1'}"));
+    String childOrgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Child Unit', 'shortName':'OU2', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU2', 'parent':{'id':'"
+                    + orgUnitId
+                    + "'}}"));
+
+    String deId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
+                "{'name':'My data element', 'shortName':'DE1', 'valueType':'INTEGER', 'domainType':'AGGREGATE', 'aggregationType':'SUM'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'id': 'plLC2RDEbwn', 'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly', "
+                    + "'dataSetElements':[{'dataSet':{'id':'plLC2RDEbwn'}, 'dataElement':{'id':'"
+                    + deId
+                    + "'}}]"
+                    + ", 'organisationUnits':[{'id':'"
+                    + childOrgUnitId
+                    + "'}]}"));
+
+    // Post a data value for the child org unit
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/dataValueSets/",
+            Body(
+                "{'dataValues':[{'dataElement':'"
+                    + deId
+                    + "','period':'202201','orgUnit':'"
+                    + childOrgUnitId
+                    + "','value':'10'}]}")));
+    // Fetch the data value using the parent org unit and descendants=true
+    JsonObject ds =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=202201&dataSet={ds}&children=true",
+                "OU1",
+                dsId)
+            .content(HttpStatus.OK);
+    assertTrue(ds.isObject());
+    assertEquals(1, ds.getArray("dataValues").size());
+    assertEquals(
+        "My data element",
+        ds.getArray("dataValues").getObject(0).getString("dataElement").string());
+    assertEquals("10", ds.getArray("dataValues").getObject(0).getString("value").string());
+    assertEquals(
+        "My Child Unit", ds.getArray("dataValues").getObject(0).getString("orgUnit").string());
+    assertEquals(
+        "default",
+        ds.getArray("dataValues").getObject(0).getString("categoryOptionCombo").string());
+    assertEquals(
+        "default",
+        ds.getArray("dataValues").getObject(0).getString("attributeOptionCombo").string());
+    assertEquals("admin", ds.getArray("dataValues").getObject(0).getString("storedBy").string());
+    // Confirm that the created and lastUpdated fields are timestamp-ish
+    assertTrue(
+        ds.getArray("dataValues")
+            .getObject(0)
+            .getString("created")
+            .string()
+            .matches(timestampPattern));
+    assertTrue(
+        ds.getArray("dataValues")
+            .getObject(0)
+            .getString("lastUpdated")
+            .string()
+            .matches(timestampPattern));
+  }
+
+  @Test
   @DisplayName("Should return error message when user does not have DATA_READ to DataSet")
   void testGetDataValueSetJsonWithNonAccessibleDataSet() {
     String orgUnitId =
