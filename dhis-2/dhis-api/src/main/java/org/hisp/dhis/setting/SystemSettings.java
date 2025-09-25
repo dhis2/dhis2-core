@@ -784,7 +784,7 @@ public non-sealed interface SystemSettings extends Settings {
    *     This engine is only required when using ClickHouse or Doris as the analytics database.
    */
   default boolean getUseExperimentalAnalyticsQueryEngine() {
-    return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
+    return asBoolean("experimentalAnalyticsSqlEngineEnabled", true);
   }
 
   /**
