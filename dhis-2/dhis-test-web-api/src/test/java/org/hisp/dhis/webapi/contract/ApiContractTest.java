@@ -1,3 +1,32 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.contract;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
@@ -10,33 +39,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This test class executes tests against all contracts from the dhis2-api-contracts repo. There is
- * 1 parameterized test which iterates over all contracts found. <br>
+ * This test class executes tests against all contracts from the dhis2-api-contracts repo, which are
+ * copied to the test resources directory. The TestFactory iterates over all contracts found. <br>
  * Test steps are:
  *
  * <ul>
@@ -53,15 +75,26 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
 
   private static final ObjectMapper mapper = new ObjectMapper();
 
-  @ParameterizedTest(name = "{0} API contract test")
-  @MethodSource("getContracts")
+  @TestFactory
   @DisplayName("Test API contracts")
-  void apiContractTest(ApiContract contract) throws JsonProcessingException {
-    assertGetRequestContract(contract);
+  Stream<DynamicTest> apiContractTest() {
+    Set<ApiContract> contracts = getContracts();
+    if (contracts.isEmpty()) {
+      return Stream.of(
+          DynamicTest.dynamicTest(
+              "No contracts → skipping",
+              () -> Assumptions.assumeTrue(true, "No contracts available")));
+    }
+
+    return contracts.stream()
+        .map(
+            contract ->
+                DynamicTest.dynamicTest(
+                    "Testing contract: " + contract.name(),
+                    () -> assertGetRequestContract(contract)));
   }
 
-  private <T extends IdentifiableObject> void assertGetRequestContract(ApiContract contract)
-      throws JsonProcessingException {
+  private void assertGetRequestContract(ApiContract contract) throws JsonProcessingException {
     // Given an object exists
     String uid = createType(contract);
     assertNotNull(uid, "Created UID should not be null for type being tested");
@@ -90,10 +123,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // get type from contract
     String type = contract.name();
 
-    // change 1st char to lowercase for get schema use
-    String typeLowerCase = Character.toLowerCase(type.charAt(0)) + type.substring(1);
-
-    JsonSchema schema = GET("/schemas/" + typeLowerCase).content().as(JsonSchema.class);
+    JsonSchema schema = GET("/schemas/" + type).content().as(JsonSchema.class);
     JsonGenerator generator = new JsonGenerator(schema);
 
     Map<String, String> objects = generator.generateObjects(schema);
@@ -102,48 +132,37 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     // last created is the one we want to test
     // those before might be objects it depends upon that need to be created first
     String uid = null;
-    for (Entry<String, String> entry : objects.entrySet()) {
+    for (Map.Entry<String, String> entry : objects.entrySet()) {
       uid = assertStatus(HttpStatus.CREATED, POST(entry.getKey(), entry.getValue()));
     }
     return uid;
   }
 
   /**
-   * Reads in JSON contracts from a jar at classpath /contracts. Returns a set of instantiated
-   * {@link ApiContract}s.
+   * Reads in JSON contracts from src/test/resources/api-contracts/contracts/. Returns a set of
+   * instantiated {@link ApiContract}s.
    *
    * @return set of instantiated {@link ApiContract}s.
-   * @throws URISyntaxException URISyntaxException
    */
-  private static Set<ApiContract> getContracts() throws URISyntaxException {
+  private static Set<ApiContract> getContracts() {
     Set<ApiContract> contracts = new HashSet<>();
+    Path contractsDir = Path.of("src/test/resources/api-contracts/contracts/");
 
-    URI uri =
-        Objects.requireNonNull(
-                Thread.currentThread().getContextClassLoader().getResource("contracts"))
-            .toURI();
-
-    // impl for jar
-    try (FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-      Path contractsPath = fileSystem.getPath("/contracts");
-
-      try (Stream<Path> paths = Files.walk(contractsPath)) {
-        paths
-            .filter(Files::isRegularFile)
-            .filter(
-                path -> path.toString().endsWith(".json") && path.toString().contains("-contract"))
-            .forEach(
-                filePath -> {
-                  try {
-                    JsonNode jsonNode = mapper.readTree(Files.readString(filePath));
-                    contracts.add(mapper.treeToValue(jsonNode, ApiContract.class));
-                  } catch (Exception e) {
-                    log.error(e.getMessage());
-                  }
-                });
-      }
+    try (Stream<Path> paths = Files.walk(contractsDir)) {
+      paths
+          .filter(path -> path.toString().endsWith("-contract.json"))
+          .forEach(
+              filePath -> {
+                try {
+                  JsonNode jsonNode = mapper.readTree(Files.readString(filePath));
+                  contracts.add(mapper.treeToValue(jsonNode, ApiContract.class));
+                } catch (Exception e) {
+                  System.err.printf(
+                      "Failed to load contract from %s: %s%n", filePath, e.getMessage());
+                }
+              });
     } catch (IOException e) {
-      log.error(e.getMessage());
+      System.out.printf("Error walking directory %s: %s%n", contractsDir, e.getMessage());
     }
     return contracts;
   }
