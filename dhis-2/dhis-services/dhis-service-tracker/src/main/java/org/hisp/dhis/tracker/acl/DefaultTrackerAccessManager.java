@@ -52,6 +52,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,23 +98,28 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+    List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
 
-    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-    if (!aclService.canDataWrite(user, trackedEntityType)) {
-      return List.of(
-          "User has no data write access to tracked entity type: " + trackedEntityType.getUid());
+    if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
+      errors.add(
+          new ErrorMessage(ValidationCode.E1000, List.of(trackedEntity.getOrganisationUnit())));
     }
 
-    return List.of();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      errors.add(new ErrorMessage(ValidationCode.E1001, List.of(trackedEntityType.getUid())));
+    }
+
+    return errors;
   }
 
   @Override
-  public List<String> canUpdate(UserDetails user, TrackedEntity trackedEntity) {
+  public List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity) {
+    List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
@@ -120,27 +127,36 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
     if (!aclService.canDataWrite(user, trackedEntityType)) {
-      return List.of(
-          "User has no data write access to tracked entity type: " + trackedEntityType.getUid());
+      errors.add(new ErrorMessage(ValidationCode.E1001, List.of(trackedEntityType.getUid())));
     }
 
     List<Program> tetPrograms =
         trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
 
     if (tetPrograms.isEmpty()) {
-      return List.of("User has no access to any program");
+      errors.add(new ErrorMessage(ValidationCode.E1323, List.of(trackedEntityType.getUid())));
+    } else if (tetPrograms.stream().noneMatch(p -> canWrite(user, trackedEntity, p))) {
+      errors.add(new ErrorMessage(ValidationCode.E1324, List.of(trackedEntity.getUid())));
     }
 
-    if (tetPrograms.stream().anyMatch(p -> canWrite(user, trackedEntity, p))) {
-      return List.of();
-    } else {
-      return List.of(OWNERSHIP_ACCESS_DENIED);
-    }
+    return errors;
   }
 
   @Override
-  public List<String> canDelete(UserDetails user, TrackedEntity trackedEntity) {
-    return canUpdate(user, trackedEntity);
+  public List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity) {
+    if (user.isSuper() || trackedEntity == null) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
+      errors.add(
+          new ErrorMessage(ValidationCode.E1000, List.of(trackedEntity.getOrganisationUnit())));
+    }
+
+    errors.addAll(canUpdate(user, trackedEntity));
+
+    return errors;
   }
 
   /** Check Program data write access and Tracked Entity Program Ownership */
@@ -376,6 +392,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canDelete(
       @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
+
     if (user.isSuper() || event == null) {
       return List.of();
     }
@@ -389,19 +406,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     Program program = programStage.getProgram();
 
     List<String> errors = new ArrayList<>();
-    if (program.isWithoutRegistration()) {
-      OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserHierarchy(ou.getStoredPath())) {
-        errors.add("User has no delete access to organisation unit: " + ou.getUid());
-      }
 
-      if (!aclService.canDataWrite(user, program)) {
-        errors.add("User has no data write access to program: " + program.getUid());
-      }
-    } else {
-      canCreateOrDeleteWithRegistration(
-          errors, user, event, skipOwnershipCheck, programStage, program);
-    }
+    canCreateOrDeleteWithRegistration(
+        errors, user, event, skipOwnershipCheck, programStage, program);
 
     errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
 
@@ -433,7 +440,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canRead(
       @Nonnull UserDetails user, SingleEvent event, DataElement dataElement) {
-
     if (user.isSuper()) {
       return List.of();
     }
@@ -517,13 +523,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
     boolean isBidirectional = relationshipType.isBidirectional();
 
-    errors.addAll(canUpdate(user, from.getTrackedEntity()));
+    errors.addAll(
+        canUpdate(user, from.getTrackedEntity()).stream()
+            .map(eo -> eo.validationCode().getMessage())
+            .toList());
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
     errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
     errors.addAll(canWrite(user, from.getSingleEvent()));
 
     if (isBidirectional) {
-      errors.addAll(canUpdate(user, to.getTrackedEntity()));
+      errors.addAll(
+          canUpdate(user, to.getTrackedEntity()).stream()
+              .map(eo -> eo.validationCode().getMessage())
+              .toList());
       errors.addAll(canUpdate(user, to.getEnrollment(), false));
       errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
       errors.addAll(canWrite(user, to.getSingleEvent()));
@@ -550,13 +562,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
     boolean isBidirectional = relationshipType.isBidirectional();
 
-    errors.addAll(canUpdate(user, from.getTrackedEntity()));
+    errors.addAll(
+        canUpdate(user, from.getTrackedEntity()).stream()
+            .map(eo -> eo.validationCode().getMessage())
+            .toList());
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
     errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
     errors.addAll(canWrite(user, from.getSingleEvent()));
 
     if (isBidirectional) {
-      errors.addAll(canUpdate(user, to.getTrackedEntity()));
+      errors.addAll(
+          canUpdate(user, to.getTrackedEntity()).stream()
+              .map(eo -> eo.validationCode().getMessage())
+              .toList());
       errors.addAll(canUpdate(user, to.getEnrollment(), false));
       errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
       errors.addAll(canWrite(user, to.getSingleEvent()));

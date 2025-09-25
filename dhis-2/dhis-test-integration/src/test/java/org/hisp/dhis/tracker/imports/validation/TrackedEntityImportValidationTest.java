@@ -40,6 +40,9 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_7;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_8;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_9;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1001;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -144,12 +147,12 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/te-data_with_different_ou.json");
     TrackerImportParams params = new TrackerImportParams();
-    injectSecurityContextUser(userService.getUser(USER_7));
+    injectSecurityContextUser(userService.getUser(USER_9));
     params.setAtomicMode(AtomicMode.OBJECT);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-    assertHasOnlyErrors(importReport, ValidationCode.E1000);
-    assertEquals(2, importReport.getStats().getCreated());
-    assertEquals(1, importReport.getStats().getIgnored());
+    assertHasOnlyErrors(importReport, E1000, E1000, E1000);
+    assertEquals(0, importReport.getStats().getCreated());
+    assertEquals(3, importReport.getStats().getIgnored());
   }
 
   @Test
@@ -190,7 +193,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1003);
+    assertHasOnlyErrors(importReport, E1324);
     assertEquals(2, importReport.getStats().getUpdated());
     assertEquals(1, importReport.getStats().getIgnored());
   }
@@ -203,7 +206,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasErrors(importReport, 13, ValidationCode.E1001);
+    assertHasErrors(importReport, 13, E1001);
   }
 
   @Test
@@ -258,7 +261,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
+  void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferredButHasNoOwnership()
       throws IOException, BadRequestException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
@@ -277,7 +280,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.clear();
 
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_10));
-    assertHasErrors(importReport, 1, ValidationCode.E1003);
+    assertHasErrors(importReport, 1, E1324);
   }
 
   @Test
@@ -351,7 +354,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
     importReport = updateTransferredTrackedEntity(USER_10, UID.of("KKKKj6vYdes"));
-    assertHasErrors(importReport, 1, ValidationCode.E1003);
+    assertHasErrors(importReport, 1, E1324);
   }
 
   @Test

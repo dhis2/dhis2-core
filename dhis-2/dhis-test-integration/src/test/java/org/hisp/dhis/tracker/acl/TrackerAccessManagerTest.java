@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.acl;
 
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -68,6 +69,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -213,7 +216,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, te));
+    assertNoErrorMessages(trackerAccessManager.canUpdate(userDetails, te));
   }
 
   @Test
@@ -231,7 +234,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can Read
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // Can write
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, te));
+    assertNoErrorMessages(trackerAccessManager.canUpdate(userDetails, te));
   }
 
   @Test
@@ -248,7 +251,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Cannot Read
     assertHasError(trackerAccessManager.canRead(userDetails, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
-    assertHasError(trackerAccessManager.canUpdate(userDetails, te), OWNERSHIP_ACCESS_DENIED);
+    assertHasErrorMessage(trackerAccessManager.canUpdate(userDetails, te), E1324);
   }
 
   @Test
@@ -263,9 +266,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityType);
 
     assertNoErrors(trackerAccessManager.canRead(userDetails, trackedEntityA));
-    assertHasError(
-        trackerAccessManager.canUpdate(userDetails, trackedEntityA),
-        "User has no data write access to tracked entity type");
+    assertHasErrorMessage(
+        trackerAccessManager.canUpdate(userDetails, trackedEntityA), ValidationCode.E1001);
   }
 
   @Test
@@ -480,6 +482,10 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     assertIsEmpty(errors);
   }
 
+  private void assertNoErrorMessages(List<ErrorMessage> errors) {
+    assertIsEmpty(errors);
+  }
+
   private void assertHasError(List<String> errors, String error) {
     assertFalse(errors.isEmpty(), "error not found since there are no errors");
     assertAll(
@@ -494,6 +500,23 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
             assertTrue(
                 errors.stream().anyMatch(err -> err.contains(error)),
                 String.format("error '%s' not found in error(s) %s", error, errors)));
+  }
+
+  private void assertHasErrorMessage(List<ErrorMessage> errors, ValidationCode validationCode) {
+    assertFalse(errors.isEmpty(), "error not found since there are no errors");
+    assertAll(
+        () ->
+            assertEquals(
+                1,
+                errors.size(),
+                String.format(
+                    "mismatch in number of expected error(s), want 1, got %d: %s",
+                    errors.size(), errors)),
+        () ->
+            assertTrue(
+                errors.stream().anyMatch(err -> err.validationCode().equals(validationCode)),
+                String.format(
+                    "error '%s' not found in error(s) %s", validationCode.getMessage(), errors)));
   }
 
   private void assertHasError(List<String> errors) {

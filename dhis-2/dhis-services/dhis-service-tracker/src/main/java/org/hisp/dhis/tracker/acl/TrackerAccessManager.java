@@ -37,6 +37,7 @@ import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -56,7 +57,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has write access to the TET.
    */
-  List<String> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
   /**
    * Checks the data write permissions to the TET and ownership of a tracked entity given the
@@ -64,10 +65,10 @@ public interface TrackerAccessManager {
    *
    * @return No errors if a user has write access to the TET and access to at least one program
    */
-  List<String> canUpdate(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity);
 
   /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
-  List<String> canDelete(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
