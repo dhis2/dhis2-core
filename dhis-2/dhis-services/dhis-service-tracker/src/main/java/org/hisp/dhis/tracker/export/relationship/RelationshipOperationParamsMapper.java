@@ -101,7 +101,7 @@ class RelationshipOperationParamsMapper {
             .findEnrollment(enrollmentUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
     if (!trackerAccessManager
-        .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment)
         .isEmpty()) {
       throw new ForbiddenException(Enrollment.class, enrollmentUid);
     }
@@ -113,7 +113,7 @@ class RelationshipOperationParamsMapper {
     Optional<TrackerEvent> event = relationshipStore.findEvent(eventUid, includeDeleted);
     if (event.isPresent()) {
       if (!trackerAccessManager
-          .canRead(CurrentUserUtil.getCurrentUserDetails(), event.get(), false)
+          .canRead(CurrentUserUtil.getCurrentUserDetails(), event.get())
           .isEmpty()) {
         throw new ForbiddenException(Event.class, eventUid);
       }

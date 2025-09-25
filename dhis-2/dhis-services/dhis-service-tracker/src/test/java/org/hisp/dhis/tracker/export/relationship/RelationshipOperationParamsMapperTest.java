@@ -175,7 +175,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   @Test
   void shouldThrowForbiddenExceptionWhenAnEnrollmentIsNotAccessible() {
     when(relationshipStore.findEnrollment(EN_UID, false)).thenReturn(Optional.of(enrollment));
-    when(trackerAccessManager.canRead(user, enrollment, false)).thenReturn(List.of("error"));
+    when(trackerAccessManager.canRead(user, enrollment)).thenReturn(List.of("error"));
     RelationshipOperationParams params = RelationshipOperationParams.builder(enrollment).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
@@ -216,7 +216,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   @Test
   void shouldThrowForbiddenExceptionWhenAnEventIsNotAccessible() {
     when(relationshipStore.findEvent(EV_UID, false)).thenReturn(Optional.of(event));
-    when(trackerAccessManager.canRead(user, event, false)).thenReturn(List.of("error"));
+    when(trackerAccessManager.canRead(user, event)).thenReturn(List.of("error"));
     RelationshipOperationParams params = RelationshipOperationParams.builder(event).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));

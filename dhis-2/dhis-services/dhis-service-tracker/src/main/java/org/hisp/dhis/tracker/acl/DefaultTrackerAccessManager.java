@@ -166,8 +166,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canRead(@Nonnull UserDetails user, Enrollment enrollment) {
     if (user.isSuper() || enrollment == null) {
       return List.of();
     }
@@ -184,8 +183,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
               + program.getTrackedEntityType().getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -193,8 +191,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canCreate(@Nonnull UserDetails user, Enrollment enrollment) {
     if (user.isSuper() || enrollment == null) {
       return List.of();
     }
@@ -218,8 +215,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
                   : null));
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -227,8 +223,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(@Nonnull UserDetails user, Enrollment enrollment) {
     if (user.isSuper() || enrollment == null) {
       return List.of();
     }
@@ -245,8 +240,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
               + program.getTrackedEntityType().getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -254,14 +248,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
-    return canUpdate(user, enrollment, skipOwnershipCheck);
+  public List<String> canDelete(@Nonnull UserDetails user, Enrollment enrollment) {
+    return canUpdate(user, enrollment);
   }
 
   @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
+  public List<String> canRead(@Nonnull UserDetails user, TrackerEvent event) {
     if (user.isSuper() || event == null) {
       return List.of();
     }
@@ -288,9 +280,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
               + program.getTrackedEntityType().getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(
-            user, event.getEnrollment().getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(
+        user, event.getEnrollment().getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -301,17 +292,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(
-      @Nonnull UserDetails user,
-      TrackerEvent event,
-      DataElement dataElement,
-      boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, TrackerEvent event, DataElement dataElement) {
 
     if (user.isSuper()) {
       return List.of();
     }
 
     List<String> errors = new ArrayList<>();
-    errors.addAll(canRead(user, event, skipOwnershipCheck));
+    errors.addAll(canRead(user, event));
 
     if (!aclService.canRead(user, dataElement)) {
       errors.add("User has no read access to data element: " + dataElement.getUid());
@@ -321,8 +309,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
+  public List<String> canCreate(@Nonnull UserDetails user, TrackerEvent event) {
     if (user.isSuper() || event == null) {
       return List.of();
     }
@@ -347,8 +334,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       }
     }
 
-    canCreateOrDeleteWithRegistration(
-        errors, user, event, skipOwnershipCheck, programStage, program);
+    canCreateOrDeleteWithRegistration(errors, user, event, programStage, program);
 
     errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
 
@@ -356,8 +342,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(@Nonnull UserDetails user, TrackerEvent event) {
     if (user.isSuper() || event == null) {
       return List.of();
     }
@@ -378,9 +363,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       errors.add("User has no update access to organisation unit: " + ou.getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(
-            user, event.getEnrollment().getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(
+        user, event.getEnrollment().getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -390,8 +374,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
+  public List<String> canDelete(@Nonnull UserDetails user, TrackerEvent event) {
 
     if (user.isSuper() || event == null) {
       return List.of();
@@ -407,8 +390,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     List<String> errors = new ArrayList<>();
 
-    canCreateOrDeleteWithRegistration(
-        errors, user, event, skipOwnershipCheck, programStage, program);
+    canCreateOrDeleteWithRegistration(errors, user, event, programStage, program);
 
     errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
 
@@ -493,13 +475,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
 
     errors.addAll(canRead(user, from.getTrackedEntity()));
-    errors.addAll(canRead(user, from.getEnrollment(), false));
-    errors.addAll(canRead(user, from.getTrackerEvent(), false));
+    errors.addAll(canRead(user, from.getEnrollment()));
+    errors.addAll(canRead(user, from.getTrackerEvent()));
     errors.addAll(canRead(user, from.getSingleEvent()));
 
     errors.addAll(canRead(user, to.getTrackedEntity()));
-    errors.addAll(canRead(user, to.getEnrollment(), false));
-    errors.addAll(canRead(user, to.getTrackerEvent(), false));
+    errors.addAll(canRead(user, to.getEnrollment()));
+    errors.addAll(canRead(user, to.getTrackerEvent()));
     errors.addAll(canRead(user, to.getSingleEvent()));
 
     return errors;
@@ -527,8 +509,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         canUpdate(user, from.getTrackedEntity()).stream()
             .map(eo -> eo.validationCode().getMessage())
             .toList());
-    errors.addAll(canUpdate(user, from.getEnrollment(), false));
-    errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
+    errors.addAll(canUpdate(user, from.getEnrollment()));
+    errors.addAll(canUpdate(user, from.getTrackerEvent()));
     errors.addAll(canWrite(user, from.getSingleEvent()));
 
     if (isBidirectional) {
@@ -536,13 +518,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           canUpdate(user, to.getTrackedEntity()).stream()
               .map(eo -> eo.validationCode().getMessage())
               .toList());
-      errors.addAll(canUpdate(user, to.getEnrollment(), false));
-      errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
+      errors.addAll(canUpdate(user, to.getEnrollment()));
+      errors.addAll(canUpdate(user, to.getTrackerEvent()));
       errors.addAll(canWrite(user, to.getSingleEvent()));
     } else {
       errors.addAll(canRead(user, to.getTrackedEntity()));
-      errors.addAll(canRead(user, to.getEnrollment(), false));
-      errors.addAll(canRead(user, to.getTrackerEvent(), false));
+      errors.addAll(canRead(user, to.getEnrollment()));
+      errors.addAll(canRead(user, to.getTrackerEvent()));
       errors.addAll(canRead(user, to.getSingleEvent()));
     }
     return errors;
@@ -566,8 +548,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         canUpdate(user, from.getTrackedEntity()).stream()
             .map(eo -> eo.validationCode().getMessage())
             .toList());
-    errors.addAll(canUpdate(user, from.getEnrollment(), false));
-    errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
+    errors.addAll(canUpdate(user, from.getEnrollment()));
+    errors.addAll(canUpdate(user, from.getTrackerEvent()));
     errors.addAll(canWrite(user, from.getSingleEvent()));
 
     if (isBidirectional) {
@@ -575,8 +557,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           canUpdate(user, to.getTrackedEntity()).stream()
               .map(eo -> eo.validationCode().getMessage())
               .toList());
-      errors.addAll(canUpdate(user, to.getEnrollment(), false));
-      errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
+      errors.addAll(canUpdate(user, to.getEnrollment()));
+      errors.addAll(canUpdate(user, to.getTrackerEvent()));
       errors.addAll(canWrite(user, to.getSingleEvent()));
     }
     return errors;
@@ -643,14 +625,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       List<String> errors,
       UserDetails user,
       TrackerEvent event,
-      boolean skipOwnershipCheck,
       ProgramStage programStage,
       Program program) {
     canManageWithRegistration(errors, user, programStage, program);
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(
-            user, event.getEnrollment().getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(
+        user, event.getEnrollment().getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
   }

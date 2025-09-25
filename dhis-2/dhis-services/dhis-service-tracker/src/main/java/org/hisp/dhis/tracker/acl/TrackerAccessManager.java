@@ -70,25 +70,25 @@ public interface TrackerAccessManager {
   /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, Enrollment enrollment);
 
-  List<String> canCreate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, Enrollment enrollment);
 
-  List<String> canUpdate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canUpdate(UserDetails user, Enrollment enrollment);
 
-  List<String> canDelete(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canDelete(UserDetails user, Enrollment enrollment);
 
-  List<String> canRead(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, SingleEvent event);
 
   List<String> canWrite(UserDetails user, SingleEvent event);
 
-  List<String> canCreate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, TrackerEvent event);
 
-  List<String> canUpdate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canUpdate(UserDetails user, TrackerEvent event);
 
-  List<String> canDelete(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
@@ -104,8 +104,7 @@ public interface TrackerAccessManager {
    * @param dataElement DataElement of EventDataValue
    * @return Empty list if read access allowed, list of errors otherwise.
    */
-  List<String> canRead(
-      UserDetails user, TrackerEvent event, DataElement dataElement, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, TrackerEvent event, DataElement dataElement);
 
   /**
    * Checks the sharing read access to EventDataValue

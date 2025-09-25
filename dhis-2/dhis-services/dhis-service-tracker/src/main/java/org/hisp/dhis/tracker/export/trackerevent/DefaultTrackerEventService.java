@@ -137,8 +137,7 @@ class DefaultTrackerEventService implements TrackerEventService {
     }
     TrackerEvent event = events.getItems().get(0);
 
-    List<String> errors =
-        trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement, false);
+    List<String> errors = trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement);
     if (!errors.isEmpty()) {
       throw new NotFoundException(DataElement.class, dataElementUid.getValue());
     }
