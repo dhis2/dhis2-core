@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -43,52 +44,83 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroupService;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class SupplementaryDataProvider {
-  private static final String USER = "USER";
+  private static final String USER_ROLES = "USER_ROLES";
+  private static final String USER_GROUPS = "USER_GROUPS";
 
-  private static final String REGEX =
+  private static final String ORG_UNIT_GROUP_REGEX =
       "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
           + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
-  private static final Pattern PATTERN = Pattern.compile(REGEX);
+  private static final String USER_GROUP_REGEX =
+      "d2:inUserGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)| *'[^']*') *\\)";
+
+  private static final Pattern ORG_UNIT_GROUP_PATTERN = Pattern.compile(ORG_UNIT_GROUP_REGEX);
+  private static final Pattern USER_GROUP_PATTERN = Pattern.compile(USER_GROUP_REGEX);
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
+  @Nonnull private final UserGroupService userGroupService;
 
   public Map<String, List<String>> getSupplementaryData(
       List<ProgramRule> programRules, UserDetails user) {
+    Map<String, List<String>> supplementaryData = Maps.newHashMap();
+
+    Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(programRules);
+    supplementaryData.putAll(orgUnitGroupData);
+
+    Map<String, List<String>> userGroupData = extractUserGroups(programRules, user);
+    supplementaryData.putAll(userGroupData);
+
+    supplementaryData.put(USER_ROLES, new ArrayList<>(user.getUserRoleIds()));
+
+    return supplementaryData;
+  }
+
+  private Map<String, List<String>> extractOrgUnitGroups(List<ProgramRule> programRules) {
     List<String> orgUnitGroups = new ArrayList<>();
-
     for (ProgramRule programRule : programRules) {
-      Matcher matcher = PATTERN.matcher(StringUtils.defaultIfBlank(programRule.getCondition(), ""));
-
+      Matcher matcher =
+          ORG_UNIT_GROUP_PATTERN.matcher(
+              StringUtils.defaultIfBlank(programRule.getCondition(), ""));
       while (matcher.find()) {
         orgUnitGroups.add(StringUtils.replace(matcher.group(1), "'", ""));
       }
     }
 
-    Map<String, List<String>> supplementaryData = Maps.newHashMap();
-
-    if (!orgUnitGroups.isEmpty()) {
-      supplementaryData =
-          orgUnitGroups.stream()
-              .collect(
-                  Collectors.toMap(
-                      g -> g,
-                      g ->
-                          organisationUnitGroupService
-                              .getOrganisationUnitGroup(g)
-                              .getMembers()
-                              .stream()
-                              .map(OrganisationUnit::getUid)
-                              .toList()));
+    if (orgUnitGroups.isEmpty()) {
+      return Collections.emptyMap();
     }
 
-    supplementaryData.put(USER, new ArrayList<>(user.getUserRoleIds()));
+    return orgUnitGroups.stream()
+        .collect(
+            Collectors.toMap(
+                g -> g,
+                g ->
+                    organisationUnitGroupService.getOrganisationUnitGroup(g).getMembers().stream()
+                        .map(OrganisationUnit::getUid)
+                        .toList()));
+  }
 
-    return supplementaryData;
+  private Map<String, List<String>> extractUserGroups(
+      List<ProgramRule> programRules, UserDetails user) {
+    List<String> userGroups = new ArrayList<>();
+    for (ProgramRule programRule : programRules) {
+      Matcher matcher =
+          USER_GROUP_PATTERN.matcher(StringUtils.defaultIfBlank(programRule.getCondition(), ""));
+      while (matcher.find()) {
+        userGroups.add(matcher.group(1));
+      }
+    }
+
+    if (userGroups.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    return Map.of(USER_GROUPS, user.getUserGroupIds().stream().toList());
   }
 }
