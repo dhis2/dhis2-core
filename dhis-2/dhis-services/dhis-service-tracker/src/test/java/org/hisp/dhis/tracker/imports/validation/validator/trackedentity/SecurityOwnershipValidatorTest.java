@@ -41,10 +41,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -405,14 +403,5 @@ class SecurityOwnershipValidatorTest extends TestBase {
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
-  }
-
-  private UserDetails deleteTeiAuthorisedUser() {
-    User authorizedUser =
-        makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.name()));
-    authorizedUser.setOrganisationUnits(Set.of(organisationUnit));
-    UserDetails userDetails = UserDetails.fromUser(authorizedUser);
-    when(bundle.getUser()).thenReturn(userDetails);
-    return userDetails;
   }
 }
