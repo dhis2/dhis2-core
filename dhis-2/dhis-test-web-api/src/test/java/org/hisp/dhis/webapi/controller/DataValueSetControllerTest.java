@@ -191,7 +191,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testGetDataValueSetJsonDescendants() {
 
-    String timestamp_pattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{4}";
+   final String timestampPattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{4}";
 
     String orgUnitId =
         assertStatus(
@@ -268,13 +268,13 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
             .getObject(0)
             .getString("created")
             .string()
-            .matches(timestamp_pattern));
+            .matches(timestampPattern));
     assertTrue(
         ds.getArray("dataValues")
             .getObject(0)
             .getString("lastUpdated")
             .string()
-            .matches(timestamp_pattern));
+            .matches(timestampPattern));
   }
 
   @Test
