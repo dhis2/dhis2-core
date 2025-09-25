@@ -1,6 +1,5 @@
 -- https://dhis2.atlassian.net/browse/DHIS2-19965
 
--- Update geometry column in tracker_event
 ALTER TABLE tracker_event
 ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
 USING CASE
@@ -10,7 +9,6 @@ USING CASE
        ELSE ST_Transform(geometry, 4326)
 END;
 
--- Update geometry column in single_event
 ALTER TABLE single_event
 ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
 USING CASE
