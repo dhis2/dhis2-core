@@ -1,6 +1,6 @@
 -- https://dhis2.atlassian.net/browse/DHIS2-19965
 
-ALTER TABLE tracker_event
+ALTER TABLE trackerevent
 ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
 USING CASE
        WHEN geometry IS NULL THEN NULL
@@ -9,7 +9,7 @@ USING CASE
        ELSE ST_Transform(geometry, 4326)
 END;
 
-ALTER TABLE single_event
+ALTER TABLE singleevent
 ALTER COLUMN geometry TYPE geometry(Geometry, 4326)
 USING CASE
        WHEN geometry IS NULL THEN NULL
