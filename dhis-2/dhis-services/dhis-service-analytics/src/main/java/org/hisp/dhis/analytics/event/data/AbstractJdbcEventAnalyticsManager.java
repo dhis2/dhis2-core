@@ -61,6 +61,8 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.NON_REPEATABLE;
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.REPEATABLE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
@@ -98,6 +100,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1306,6 +1309,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return getQueryItemsAndFiltersWhereClause(params, Set.of(), helper);
   }
 
+  private static RepeatableStateStatus classify(QueryItem qi, EventQueryParams params) {
+    return (qi.hasRepeatableStageParams()
+            && params.getEndpointItem() == ENROLLMENT
+            && params.isComingFromQuery())
+        ? RepeatableStateStatus.REPEATABLE
+        : RepeatableStateStatus.NON_REPEATABLE;
+  }
+
   /**
    * Returns a SQL where clause string for query items and query item filters.
    *
@@ -1314,6 +1325,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getQueryItemsAndFiltersWhereClause(
       EventQueryParams params, Set<QueryItem> exclude, SqlHelper helper) {
+
     if (params.isEnhancedCondition()) {
       return getItemsSqlForEnhancedConditions(params, helper);
     }
@@ -1321,20 +1333,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Creates a map grouping query items referring to repeatable stages and
     // those referring to non-repeatable stages. This is for enrollment
     // only, event query items are treated as non-repeatable.
-    Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
+    Map<RepeatableStateStatus, List<QueryItem>> itemsByRepeatableFlag =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
-            .filter(queryItem -> !exclude.contains(queryItem))
+            .filter(qi -> !exclude.contains(qi))
             .collect(
                 groupingBy(
-                    queryItem ->
-                        queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem() == ENROLLMENT
-                            && params.isComingFromQuery()));
+                    qi -> classify(qi, params),
+                    () -> new EnumMap<>(RepeatableStateStatus.class),
+                    toList()));
 
     // Groups repeatable conditions based on PSI.DEID
     Map<String, List<String>> repeatableConditionsByIdentifier =
-        asSqlCollection(itemsByRepeatableFlag.get(true), params)
+        asSqlCollection(itemsByRepeatableFlag.get(REPEATABLE), params)
             .collect(
                 groupingBy(
                     IdentifiableSql::getIdentifier, mapping(IdentifiableSql::getSql, toList())));
@@ -1347,7 +1358,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // Non-repeatable conditions
     List<String> andConditions =
-        asSqlCollection(itemsByRepeatableFlag.get(false), params)
+        asSqlCollection(itemsByRepeatableFlag.get(NON_REPEATABLE), params)
             .map(IdentifiableSql::getSql)
             .toList();
 
@@ -1362,7 +1373,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * @param relation the relation to quote, e.g. a table or column name.
-   * @return a double quoted relation.
+   * @return a double-quoted relation.
    */
   protected String quote(String relation) {
     return sqlBuilder.quote(relation);
@@ -1539,11 +1550,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * Checks if an enrollment prefix is required. Currently, TEA objects need it because we want to
    * query the enrollment values, as the TEA is associated with the enrollment.
    *
-   * @param item the {@DimensionalItemObject}.
-   * @param params the {@EventQueryParams}.
+   * @param item the {@link DimensionalItemObject}.
+   * @param params the {@link EventQueryParams}.
    * @return true if a prefix is needed, false otherwise.
    */
-  private boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
+  public boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
     return params.getEndpointAction() == AGGREGATE
         && params.getEndpointItem() == ENROLLMENT
         && item instanceof TrackedEntityAttribute;
@@ -2275,24 +2286,29 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   void generateFilterCTEs(
       EventQueryParams params, CteContext cteContext, boolean isAggregateQuery) {
-    // Combine items and item filters
+
+    // Combine items and item filters and filter only those with an actual filter
     List<QueryItem> queryItems =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
             .toList();
 
     // Group query items by repeatable and non-repeatable stages
-    Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
+    Map<RepeatableStateStatus, List<QueryItem>> itemsByRepeatableFlag =
         queryItems.stream()
             .collect(
                 groupingBy(
-                    queryItem ->
-                        queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem()
-                                == RequestTypeAware.EndpointItem.ENROLLMENT));
+                    qi ->
+                        (qi.hasRepeatableStageParams()
+                                && params.getEndpointItem()
+                                    == RequestTypeAware.EndpointItem.ENROLLMENT)
+                            ? REPEATABLE
+                            : NON_REPEATABLE,
+                    () -> new EnumMap<>(RepeatableStateStatus.class),
+                    toList()));
 
     // Process repeatable stage filters
-    itemsByRepeatableFlag.getOrDefault(true, List.of()).stream()
+    itemsByRepeatableFlag.getOrDefault(REPEATABLE, List.of()).stream()
         .collect(groupingBy(CteUtils::getIdentifier))
         .forEach(
             (identifier, items) -> {
@@ -2306,7 +2322,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // Process non-repeatable stage filters
     itemsByRepeatableFlag
-        .getOrDefault(false, List.of())
+        .getOrDefault(NON_REPEATABLE, List.of())
         .forEach(
             queryItem -> {
               if (queryItem.hasProgram() && queryItem.hasProgramStage()) {
@@ -2967,5 +2983,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addOrgUnitJoin(SelectBuilder sb, EventQueryParams params) {
     sb.addRawJoin(joinOrgUnitTables(params, getAnalyticsType()));
+  }
+
+  enum RepeatableStateStatus {
+    REPEATABLE,
+    NON_REPEATABLE,
   }
 }
