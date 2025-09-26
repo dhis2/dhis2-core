@@ -348,9 +348,6 @@ public class FieldsParser {
    */
   private static void expandReferences(
       FieldsAccumulator acc, Schema schema, BiFunction<Schema, String, Schema> getSchema) {
-    Set<String> fieldsToExpand = new HashSet<>();
-    Set<String> expandedFields = new HashSet<>();
-
     for (String fieldName : acc.includes) {
       if (fieldName.equals(TOKEN_ALL)) {
         continue; // Skip *
@@ -363,25 +360,15 @@ public class FieldsParser {
 
       // Check if this field needs expansion and doesn't already have children
       if (needsExpansion(property) && !acc.children.containsKey(fieldName)) {
-        fieldsToExpand.add(fieldName);
-
         if (isReference(property)) {
-          // Reference objects expand to .id
-          expandedFields.add(fieldName);
           FieldsAccumulator child = acc.getOrCreateChild(fieldName);
           child.includes.add("id");
         } else if (isComplex(property)) {
-          // Complex objects expand to [*]
-          expandedFields.add(fieldName);
           FieldsAccumulator child = acc.getOrCreateChild(fieldName);
           child.includes.add(TOKEN_ALL);
         }
       }
     }
-
-    // Remove the original unexpanded fields, keep the expanded ones
-    acc.includes.removeAll(fieldsToExpand);
-    acc.includes.addAll(expandedFields);
 
     // Recursively expand child paths
     for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {

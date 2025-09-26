@@ -62,13 +62,14 @@ public class FieldsConverter implements ConditionalGenericConverter {
   private final SchemaFieldsPresets schemaFieldsPresets;
 
   public static final Map<String, Function<Schema, Set<String>>> PRESETS =
-      Map.of(
-          ":all", FieldsParser.PRESET_ALL,
-          ":simple", SchemaFieldsPresets::mapSimple,
-          ":identifiable", SchemaFieldsPresets::mapIdentifiable,
-          ":nameable", SchemaFieldsPresets::mapNameable,
-          ":owner", SchemaFieldsPresets::mapOwner,
-          ":persisted", SchemaFieldsPresets::mapPersisted);
+      Map.ofEntries(
+          Map.entry(":all", SchemaFieldsPresets::mapAll),
+          Map.entry("*", SchemaFieldsPresets::mapAll),
+          Map.entry(":simple", SchemaFieldsPresets::mapSimple),
+          Map.entry(":identifiable", SchemaFieldsPresets::mapIdentifiable),
+          Map.entry(":nameable", SchemaFieldsPresets::mapNameable),
+          Map.entry(":owner", SchemaFieldsPresets::mapOwner),
+          Map.entry(":persisted", SchemaFieldsPresets::mapPersisted));
 
   @Override
   public boolean matches(@Nonnull TypeDescriptor sourceType, TypeDescriptor targetType) {

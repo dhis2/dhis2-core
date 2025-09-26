@@ -75,6 +75,11 @@ public class SchemaFieldsPresets {
     return propertyFieldNames(schema, Property::isPersisted);
   }
 
+  @Nonnull
+  public static Set<String> mapAll(@Nonnull Schema schema) {
+    return propertyFieldNames(schema, p -> true);
+  }
+
   private static Set<String> propertyFieldNames(Schema schema, Predicate<Property> filter) {
     return schema.getProperties().stream()
         .filter(filter)

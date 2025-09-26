@@ -45,7 +45,9 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -158,7 +160,13 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "dataSets[id],dataSets[id]",
 
         // Order dependency verification
-        "*,!dataSets,dataSets[id]"
+        "*,!dataSets,dataSets[id]",
+
+        // Nested child expansion tests
+        "dataSets[organisationUnits]",
+        "users[organisationUnits]",
+        "groups[organisationUnits]",
+        "dataSets[organisationUnits],users[organisationUnits]"
       })
   void trackerFilterShouldMatchCurrentFilterOnMetadata(String fields)
       throws JsonProcessingException {
@@ -223,6 +231,13 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "relationships[!unknownfield]",
         "relationships[f rom[trackedEntity[ org Unit ]",
         "relationships[from[trackedEntity[ :simple ]",
+
+        // Nested child expansion tests - ensure child paths get expanded recursively
+        "relationships[from]",
+        "relationships[to]",
+        "relationships[from[trackedEntity]]",
+        "relationships[to[event]]",
+        "relationships[from[trackedEntity],to[enrollment]]",
         // transformations
         "dataValues~isEmpty",
         "dataValues|isEmpty",
@@ -313,6 +328,50 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
     unit.setAddress("Address " + uniqueCharacter);
     unit.setContactPerson("Contact Person " + uniqueCharacter);
     unit.setUrl("https://example.com/orgunit" + uniqueCharacter);
+
+    // Add reference/complex objects for nested expansion testing
+    DataSet dataSet1 = new DataSet();
+    dataSet1.setAutoFields();
+    dataSet1.setUid(UID.generate().getValue());
+    dataSet1.setName("DataSet" + uniqueCharacter + "1");
+    dataSet1.setCode("DS" + uniqueCharacter + "1");
+
+    DataSet dataSet2 = new DataSet();
+    dataSet2.setAutoFields();
+    dataSet2.setUid(UID.generate().getValue());
+    dataSet2.setName("DataSet" + uniqueCharacter + "2");
+    dataSet2.setCode("DS" + uniqueCharacter + "2");
+
+    unit.setDataSets(Set.of(dataSet1, dataSet2));
+
+    org.hisp.dhis.user.User user1 = new org.hisp.dhis.user.User();
+    user1.setAutoFields();
+    user1.setUid(UID.generate().getValue());
+    user1.setUsername("user" + uniqueCharacter + "1");
+    user1.setFirstName("User" + uniqueCharacter + "1");
+
+    org.hisp.dhis.user.User user2 = new org.hisp.dhis.user.User();
+    user2.setAutoFields();
+    user2.setUid(UID.generate().getValue());
+    user2.setUsername("user" + uniqueCharacter + "2");
+    user2.setFirstName("User" + uniqueCharacter + "2");
+
+    unit.setUsers(Set.of(user1, user2));
+
+    OrganisationUnitGroup group1 = new OrganisationUnitGroup();
+    group1.setAutoFields();
+    group1.setUid(UID.generate().getValue());
+    group1.setName("Group" + uniqueCharacter + "1");
+    group1.setCode("GRP" + uniqueCharacter + "1");
+
+    OrganisationUnitGroup group2 = new OrganisationUnitGroup();
+    group2.setAutoFields();
+    group2.setUid(UID.generate().getValue());
+    group2.setName("Group" + uniqueCharacter + "2");
+    group2.setCode("GRP" + uniqueCharacter + "2");
+
+    unit.setGroups(Set.of(group1, group2));
+
     unit.updatePath();
     return unit;
   }
