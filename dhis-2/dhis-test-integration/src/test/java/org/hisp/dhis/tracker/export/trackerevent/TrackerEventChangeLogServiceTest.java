@@ -66,6 +66,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -663,6 +664,9 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     GeometryFactory geometryFactory = new GeometryFactory();
     Coordinate coordinate = new Coordinate(x, y);
 
-    return geometryFactory.createPoint(coordinate);
+    Point point = geometryFactory.createPoint(coordinate);
+    point.setSRID(4326);
+
+    return point;
   }
 }
