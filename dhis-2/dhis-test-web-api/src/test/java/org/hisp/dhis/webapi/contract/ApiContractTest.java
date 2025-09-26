@@ -146,7 +146,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
    */
   private static Set<ApiContract> getContracts() {
     Set<ApiContract> contracts = new HashSet<>();
-    Path contractsDir = Path.of("src/test/resources/api-contracts/contracts/");
+    Path contractsDir = Path.of("src/test/resources/contracts/");
 
     try (Stream<Path> paths = Files.walk(contractsDir)) {
       paths
