@@ -618,7 +618,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("outputType=EVENT")
             .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq");
+            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
+            .add("relativePeriodDate=2025-09-20");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -712,7 +713,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("outputType=EVENT")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
-            .add("completedDate=202111");
+            .add("completedDate=202111")
+            .add("relativePeriodDate=2025-09-20");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
