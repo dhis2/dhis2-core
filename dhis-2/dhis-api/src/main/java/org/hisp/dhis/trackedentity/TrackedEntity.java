@@ -31,10 +31,27 @@ package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import org.hibernate.annotations.Type;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -44,7 +61,7 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletable;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -57,35 +74,74 @@ import org.locationtech.jts.geom.Geometry;
  */
 @JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
-public class TrackedEntity extends SoftDeletableObject {
+@Entity
+@Table(name = "trackedentity")
+public class TrackedEntity extends BaseIdentifiableObject implements SoftDeletable {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @SequenceGenerator(sequenceName = "trackedentityinstance_sequence")
+  @Column(name = "trackedentityid")
+  private long id;
+
+  /** Indicates whether the object is soft deleted. */
+  @AuditAttribute
+  @Column(name = "deleted")
+  private boolean deleted = false;
+  
+  @Column(name = "createdatclient")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date createdAtClient;
 
+  @Column(name = "lastupdatedatclient")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdatedAtClient;
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new LinkedHashSet<>();
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<Enrollment> enrollments = new HashSet<>();
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
+  @Column(name = "potentialDuplicate")
   private boolean potentialDuplicate;
 
-  @AuditAttribute private OrganisationUnit organisationUnit;
+  @AuditAttribute
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "organisationunitid", foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"))
+  private OrganisationUnit organisationUnit;
 
-  @AuditAttribute private TrackedEntityType trackedEntityType;
+  @AuditAttribute
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "trackedentitytypeid", foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"))
+  private TrackedEntityType trackedEntityType;
 
-  @AuditAttribute private boolean inactive;
+  @AuditAttribute
+  @Column(name = "inactive")
+  private boolean inactive;
 
+  @Column(name = "geometry")
   private Geometry geometry;
 
+  @Column(name = "lastsynchronized")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastSynchronized = new Date(0);
 
+  @Column(name = "storedby", length = 255)
   private String storedBy;
 
+  @Type(type = "jbUserInfoSnapshot")
+  @Column(name = "createdbyuserinfo")
   private UserInfoSnapshot createdByUserInfo;
 
+  @Type(type = "jbUserInfoSnapshot")
+  @Column(name = "lastupdatedbyuserinfo")
   private UserInfoSnapshot lastUpdatedByUserInfo;
 
   // -------------------------------------------------------------------------
@@ -93,6 +149,16 @@ public class TrackedEntity extends SoftDeletableObject {
   // -------------------------------------------------------------------------
 
   public TrackedEntity() {}
+
+  @Override
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+  @Override
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
+  }
 
   @Override
   public void setAutoFields() {
@@ -124,6 +190,7 @@ public class TrackedEntity extends SoftDeletableObject {
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
+
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
