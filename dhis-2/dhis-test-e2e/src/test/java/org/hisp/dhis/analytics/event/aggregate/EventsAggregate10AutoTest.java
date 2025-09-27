@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.aggregate;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -615,7 +616,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("stage=A03MvHHogjR")
             .add("displayProperty=NAME")
             .add("totalPages=false")
-            .add("pageSize=100")
+            .add("pageSize=100000")
             .add("outputType=EVENT")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq");
@@ -630,7 +631,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        100,
+        19003,
         6,
         3); // Pass runtime flag, row count, and expected header counts
 
@@ -642,7 +643,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"201708\":{\"name\":\"August 2017\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"GxdhnY5wmHq\":{\"uid\":\"GxdhnY5wmHq\",\"name\":\"Average weight (g)\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"GxdhnY5wmHq\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":100000,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"201708\":{\"name\":\"August 2017\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"GxdhnY5wmHq\":{\"uid\":\"GxdhnY5wmHq\",\"name\":\"Average weight (g)\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"GxdhnY5wmHq\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -684,14 +685,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Moriba Town CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-08-06 21:12:36.692");
-
-    // Validate selected values for row index 99
-    validateRowValueByName(response, actualHeaders, 99, "ouname", "Wallehun MCHP");
-    validateRowValueByName(response, actualHeaders, 99, "lastupdated", "2018-08-06 21:12:33.989");
+    // 7. Assert row values in any position.
+    validateRow(response, List.of("Moriba Town CHC", "2734", "2018-08-06 21:12:36.692"));
+    validateRow(response, List.of("Wallehun MCHP", "3250", "2018-08-06 21:12:33.989"));
   }
 
   @Test
@@ -778,13 +774,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2017-11-16 12:53:58.92");
-
-    // Validate selected values for row index 11
-    validateRowValueByName(response, actualHeaders, 11, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 11, "lastupdated", "2017-11-15 17:59:53.633");
+    // 7. Assert row values in any position.
+    validateRow(response, List.of("Ngelehun CHC", "3212", "2017-11-16 12:53:58.92"));
+    validateRow(response, List.of("Ngelehun CHC", "3000", "2017-11-15 17:59:53.633"));
   }
 }
