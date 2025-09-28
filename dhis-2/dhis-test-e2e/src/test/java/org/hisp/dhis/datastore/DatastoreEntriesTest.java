@@ -395,7 +395,7 @@ class DatastoreEntriesTest extends ApiTest {
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
     JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
     assertEquals(
-        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\"}",
         createdBy.toString());
   }
 
@@ -422,7 +422,7 @@ class DatastoreEntriesTest extends ApiTest {
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
     JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
     assertEquals(
-        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\"}",
         createdBy.toString());
   }
 
@@ -478,7 +478,7 @@ class DatastoreEntriesTest extends ApiTest {
     ApiResponse getResponse = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
     JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
     assertEquals(
-        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\"}",
         createdBy.toString());
   }
 
@@ -508,7 +508,7 @@ class DatastoreEntriesTest extends ApiTest {
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(200);
     JsonObject createdBy = getResponse.getBody().getAsJsonObject("createdBy");
     assertEquals(
-        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\",\"username\":\"taadmin\"}",
+        "{\"id\":\"PQD6wXJ2r5k\",\"code\":null,\"name\":\"TA Admin\",\"displayName\":\"TA Admin\"}",
         createdBy.toString());
   }
 
