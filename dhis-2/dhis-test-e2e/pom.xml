@@ -9,7 +9,7 @@
   <properties>
     <rootDir>..</rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spotless.version>2.46.1</spotless.version>
+    <spotless.version>3.0.0</spotless.version>
     <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.4.0</maven-surefire-junit5-tree-reporter.version>
@@ -21,12 +21,12 @@
     <jackson.version.annotation>2.20</jackson.version.annotation>
     <guava.version>33.5.0-jre</guava.version>
     <json-tree.version>1.8.1</json-tree.version>
-    <epam-reportportal.version>5.3.0</epam-reportportal.version>
+    <epam-reportportal.version>5.4.0</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.12.0</opencsv.version>
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
-    <commons-lang3.version>3.18.0</commons-lang3.version>
+    <commons-lang3.version>3.19.0</commons-lang3.version>
     <json-path.version>2.9.0</json-path.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
@@ -35,7 +35,7 @@
     <selenium-java.version>4.35.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
-    <httpclient5.version>5.5</httpclient5.version>
+    <httpclient5.version>5.5.1</httpclient5.version>
     <commons-io.version>2.20.0</commons-io.version>
     <spring.version>6.2.11</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>

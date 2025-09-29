@@ -80,6 +80,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -145,24 +146,24 @@ public class DefaultDataExportService implements DataExportService {
     String groupPeriod = null;
     String groupOrgUnit = null;
     String groupAoc = null;
-    if (params.isSingleDataValueSet()) {
-      groupDataSet = params.getFirstDataSet().getPropertyValue(schemes.getDataSetIdScheme());
-      groupPeriod = params.getFirstPeriod().getIsoDate();
-      groupOrgUnit =
-          params.getFirstOrganisationUnit().getPropertyValue(schemes.getOrgUnitIdScheme());
-    }
-    if (params.getAttributeOptionCombos().size() == 1) {
-      groupAoc =
-          params
-              .getAttributeOptionCombos()
-              .iterator()
-              .next()
-              .getPropertyValue(schemes.getAttributeOptionComboIdScheme());
-    }
+    DataSet ds = getUnique(params.getDataSets());
+    if (ds != null) groupDataSet = ds.getPropertyValue(schemes.getDataSetIdScheme());
+    Period pe = getUnique(params.getPeriods());
+    if (pe != null) groupPeriod = pe.getIsoDate();
+    OrganisationUnit ou = getUnique(params.getOrganisationUnits());
+    if (ou != null && !params.isIncludeDescendants() && !params.hasOrganisationUnitGroups())
+      groupOrgUnit = ou.getPropertyValue(schemes.getOrgUnitIdScheme());
+    CategoryOptionCombo aoc = getUnique(params.getAttributeOptionCombos());
+    if (aoc != null) groupAoc = aoc.getPropertyValue(schemes.getAttributeOptionComboIdScheme());
     DataExportGroup.Output group =
         new DataExportGroup.Output(
             groupDataSet, groupPeriod, groupOrgUnit, groupAoc, null, Set.of(), Stream.empty());
     return group.withValues(encodeValues(group, store.getDataValues(params), schemes));
+  }
+
+  private <T> T getUnique(Collection<T> elements) {
+    if (elements == null || elements.size() != 1) return null;
+    return elements.iterator().next();
   }
 
   @Override

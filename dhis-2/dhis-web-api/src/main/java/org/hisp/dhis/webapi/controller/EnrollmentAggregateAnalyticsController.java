@@ -39,7 +39,6 @@ import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
 import static org.hisp.dhis.system.grid.GridUtils.toXls;
 import static org.hisp.dhis.system.grid.GridUtils.toXlsx;
 import static org.hisp.dhis.system.grid.GridUtils.toXml;
-import static org.hisp.dhis.util.PeriodCriteriaUtils.addDefaultPeriodIfAbsent;
 import static org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy.INSTANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
@@ -60,10 +59,13 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.EnrollmentAggregateService;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.util.AnalyticsPeriodCriteriaUtils;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
@@ -101,6 +103,10 @@ public class EnrollmentAggregateAnalyticsController {
   @Nonnull private DimensionMapperService dimensionMapperService;
 
   @Nonnull private final SystemSettingsProvider settingsProvider;
+
+  @Nonnull private final PeriodDataProvider periodDataProvider;
+
+  @Nonnull private final AnalyticsTableSettings analyticsTableSettings;
 
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
@@ -243,8 +249,14 @@ public class EnrollmentAggregateAnalyticsController {
       boolean analyzeOnly) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     criteria.definePageSize(settings.getAnalyticsMaxLimit());
+    // what is the difference claude
 
-    addDefaultPeriodIfAbsent(criteria, settings.getAnalysisRelativePeriod());
+    AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+        criteria,
+        periodDataProvider,
+        analyticsTableSettings.getMaxPeriodYearsOffset() == null
+            ? PeriodDataProvider.PeriodSource.SYSTEM_DEFINED
+            : PeriodDataProvider.PeriodSource.DATABASE);
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()
