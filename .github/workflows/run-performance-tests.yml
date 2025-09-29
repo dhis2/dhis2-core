@@ -1,7 +1,7 @@
 # Performance test workflow to compare a baseline against a candidate DHIS2 version
 # You can run the workflow using the GitHub CLI like so
 # gh workflow run run-performance-tests.yml \
-# 	--field simulation_class="org.hisp.dhis.test.tracker.EnrollmentsTest" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
 # 	--field dhis2_image_candidate="dhis2/core-dev:latest"
 #
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       simulation_class:
-        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.EnrollmentsTest)'
+        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
         required: true
         type: string
       mvn_args:

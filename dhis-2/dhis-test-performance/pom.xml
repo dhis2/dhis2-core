@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.dhis</groupId>
-  <artifactId>performance-tests-gatling</artifactId>
+  <artifactId>dhis-test-performance</artifactId>
   <version>1.0</version>
   <description>Performance tests for DHIS2 using Gatling framework</description>
 
@@ -16,6 +16,7 @@
     <gatling.version>3.14.3</gatling.version>
     <gatling-maven-plugin.version>4.19.0</gatling-maven-plugin.version>
     <spotless.version>2.46.1</spotless.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
   </properties>
 
   <dependencies>
@@ -33,6 +34,15 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <release>17</release>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>io.gatling</groupId>
         <artifactId>gatling-maven-plugin</artifactId>
@@ -73,5 +83,6 @@
         </configuration>
       </plugin>
     </plugins>
+    <testSourceDirectory>src/test</testSourceDirectory>
   </build>
 </project>
