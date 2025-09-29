@@ -346,7 +346,7 @@
     <dependency>
       <groupId>org.openapitools</groupId>
       <artifactId>openapi-generator</artifactId>
-      <version>7.15.0</version>
+      <version>7.16.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
