@@ -1,0 +1,142 @@
+{
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "dataDimensionType": {
+      "type": "string",
+      "enum": [
+        "DISAGGREGATION",
+        "ATTRIBUTE"
+      ],
+      "default": "DISAGGREGATION"
+    },
+    "id": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "created": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}$"
+    },
+    "createdBy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "code",
+        "displayName",
+        "username"
+      ],
+      "additionalProperties": true
+    },
+    "href": {
+      "type": "string",
+      "format": "uri"
+    },
+    "lastUpdated": {
+      "$ref": "#/definitions/category/properties/created"
+    },
+    "lastUpdatedBy": {
+      "$ref": "#/definitions/category/properties/createdBy"
+    },
+    "sharing": {
+      "type": "object",
+      "properties": {
+        "public": {
+          "type": "string",
+          "const": "rw------"
+        }
+      },
+      "required": [
+        "public"
+      ],
+      "additionalProperties": true
+    },
+    "access": {
+      "type": "object",
+      "properties": {
+        "delete": {
+          "type": "boolean"
+        },
+        "externalize": {
+          "type": "boolean"
+        },
+        "manage": {
+          "type": "boolean"
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "update": {
+          "type": "boolean"
+        },
+        "write": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "read": {
+              "type": "boolean"
+            },
+            "write": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "read",
+            "write"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "delete",
+        "externalize",
+        "manage",
+        "read",
+        "update",
+        "write"
+      ],
+      "additionalProperties": true
+    },
+    "displayShortName": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "displayName",
+    "created",
+    "createdBy",
+    "href",
+    "lastUpdated",
+    "sharing",
+    "access",
+    "displayShortName"
+  ],
+  "additionalProperties": true
+}
