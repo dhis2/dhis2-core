@@ -50,7 +50,6 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -79,12 +78,12 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   @DisplayName("Test API contracts")
   Stream<DynamicTest> apiContractTest() {
     Set<ApiContract> contracts = getContracts();
-    if (contracts.isEmpty()) {
-      return Stream.of(
-          DynamicTest.dynamicTest(
-              "No contracts → skipping",
-              () -> Assumptions.assumeTrue(true, "No contracts available")));
-    }
+    //    if (contracts.isEmpty()) {
+    //      return Stream.of(
+    //          DynamicTest.dynamicTest(
+    //              "Problem reading API contracts",
+    //              () -> Assertions.fail("Problem reading API contracts")));
+    //    }
 
     return contracts.stream()
         .map(
@@ -150,7 +149,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
 
     try (Stream<Path> paths = Files.walk(contractsDir)) {
       paths
-          .filter(path -> path.toString().endsWith("-contract.json"))
+          .filter(path -> path.toString().endsWith("contract.json"))
           .forEach(
               filePath -> {
                 try {
@@ -163,6 +162,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
               });
     } catch (IOException e) {
       System.out.printf("Error walking directory %s: %s%n", contractsDir, e.getMessage());
+      return Set.of();
     }
     return contracts;
   }
