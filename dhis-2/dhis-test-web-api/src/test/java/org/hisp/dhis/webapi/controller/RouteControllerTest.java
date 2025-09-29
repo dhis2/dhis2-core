@@ -66,13 +66,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
 import org.mockserver.model.NottableString;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -97,6 +100,8 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   private static GenericContainer<?> tokenMockServerContainer;
   private static MockServerClient tokenMockServerClient;
 
+  @Autowired private JdbcTemplate jdbcTemplate;
+
   @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
   @Autowired private ObjectMapper jsonMapper;
@@ -106,6 +111,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     public DhisConfigurationProvider dhisConfigurationProvider() {
       Properties override = new Properties();
       override.put(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://*,https://stub");
+      override.put(ConfigurationKey.AUDIT_DATABASE.getKey(), "true");
 
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider(null);
@@ -323,6 +329,43 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                   null));
 
       assertEquals(200, mvcResult.getResponse().getStatus());
+    }
+
+    @Test
+    @Timeout(5000)
+    void testRunRouteIsAudited() throws JsonProcessingException {
+      upstreamMockServerClient
+          .when(request().withPath("/"))
+          .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+      Map<String, Object> route = new HashMap<>();
+      route.put("name", "route-under-test");
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+      HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+      MvcResult mvcResult =
+          webRequestWithAsyncMvcResult(
+              buildMockRequest(
+                  HttpMethod.GET,
+                  "/routes/"
+                      + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                      + "/run",
+                  new ArrayList<>(),
+                  "application/json",
+                  null));
+
+      assertEquals(200, mvcResult.getResponse().getStatus());
+
+      List<Map<String, Object>> auditEntries = Collections.EMPTY_LIST;
+      while (auditEntries.isEmpty()) {
+        auditEntries = jdbcTemplate.queryForList("select * from audit");
+      }
+      assertEquals("API", auditEntries.get(0).get("auditscope"));
+      assertEquals(
+          "Route Run",
+          jsonMapper
+              .readValue(((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class)
+              .get("source"));
     }
 
     @Test

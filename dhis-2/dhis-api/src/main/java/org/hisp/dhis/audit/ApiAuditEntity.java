@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,13 @@
  */
 package org.hisp.dhis.audit;
 
-/**
- * @author Luciano Fiandesio
- */
-public enum AuditScope {
-  METADATA,
-  AGGREGATE,
-  TRACKER,
-  API
+import lombok.Data;
+
+@Data
+@Auditable(scope = AuditScope.API)
+public class ApiAuditEntity {
+
+  @AuditAttribute private String source;
+
+  public ApiAuditEntity() {}
 }

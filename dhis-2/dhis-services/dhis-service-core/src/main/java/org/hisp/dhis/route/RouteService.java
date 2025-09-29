@@ -38,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,6 +56,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -111,6 +117,8 @@ public class RouteService {
 
   private WebClient webClient;
 
+  private final AuditManager auditManager;
+
   protected static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
           "accept",
@@ -165,10 +173,10 @@ public class RouteService {
       throw new IllegalStateException(
           "Allowed route URL scheme must be either http or https: " + host);
     }
-    if ((host.startsWith("http:"))) {
+    if (host.startsWith("http:")) {
       log.warn("Allowed route URL is insecure: {}. You should change the protocol to HTTPS", host);
     }
-    if ((host.equals("https://*"))) {
+    if (host.equals("https://*")) {
       log.warn(
           "Default allowed route URL {} is vulnerable to server-side request forgery (SSRF) attacks. You should further restrict the default allowed route URL such that it contains no wildcards",
           host);
@@ -286,25 +294,26 @@ public class RouteService {
                     .addAll(Arrays.asList(value)));
 
     applyAuthScheme(route, headers, queryParameters);
-    String targetUri = createTargetUri(route, subPath, queryParameters);
+    String upstreamUrl = createTargetUri(route, subPath, queryParameters);
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
-        buildRequestSpec(headers, httpMethod, targetUri, route, request);
+        buildRequestSpec(headers, httpMethod, upstreamUrl, route, request);
 
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
-        targetUri,
+        upstreamUrl,
         route.getName(),
         route.getUid());
 
-    ResponseEntity<Flux<DataBuffer>> responseEntityFlux = retrieve(requestHeadersSpec);
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
+        retrieve(requestHeadersSpec, httpMethod, upstreamUrl, route.getUid(), userDetails);
 
     log.debug(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
-        targetUri,
+        upstreamUrl,
         responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
@@ -316,17 +325,65 @@ public class RouteService {
   }
 
   protected ResponseEntity<Flux<DataBuffer>> retrieve(
-      WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
+      WebClient.RequestHeadersSpec<?> requestHeadersSpec,
+      HttpMethod httpMethod,
+      String upstreamUrl,
+      String routeId,
+      UserDetails userDetails) {
     WebClient.ResponseSpec responseSpec =
         requestHeadersSpec
             .retrieve()
             .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+
+    Audit.AuditBuilder auditBuilder =
+        Audit.builder()
+            .auditScope(AuditScope.API)
+            .createdBy(userDetails.getUsername())
+            .auditType(AuditType.SECURITY);
+
+    RouteRunApiAuditEntity routeRunAuditEntity = new RouteRunApiAuditEntity();
+    routeRunAuditEntity.setSource("Route Run");
+    routeRunAuditEntity.setRouteId(routeId);
+    routeRunAuditEntity.setHttpMethod(httpMethod.name());
+    routeRunAuditEntity.setUpstreamUrl(upstreamUrl);
 
     return responseSpec
         .toEntityFlux(DataBuffer.class)
         .onErrorReturn(
             throwable -> throwable.getCause() instanceof ReadTimeoutException,
             new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+        .doOnError(
+            throwable -> {
+              routeRunAuditEntity.setSuccessful(false);
+              AuditableEntity auditableEntity =
+                  new AuditableEntity(RouteRunApiAuditEntity.class, routeRunAuditEntity);
+              Audit audit =
+                  auditBuilder
+                      .createdAt(LocalDateTime.now())
+                      .data("")
+                      .attributes(
+                          auditManager.collectAuditAttributes(
+                              routeRunAuditEntity, RouteRunApiAuditEntity.class))
+                      .auditableEntity(auditableEntity)
+                      .build();
+              auditManager.send(audit);
+            })
+        .doOnSuccess(
+            fluxResponseEntity -> {
+              routeRunAuditEntity.setSuccessful(true);
+              AuditableEntity auditableEntity =
+                  new AuditableEntity(RouteRunApiAuditEntity.class, routeRunAuditEntity);
+              Audit audit =
+                  auditBuilder
+                      .createdAt(LocalDateTime.now())
+                      .data("")
+                      .attributes(
+                          auditManager.collectAuditAttributes(
+                              routeRunAuditEntity, RouteRunApiAuditEntity.class))
+                      .auditableEntity(auditableEntity)
+                      .build();
+              auditManager.send(audit);
+            })
         .block();
   }
 

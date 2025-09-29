@@ -66,13 +66,14 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
   @Test
   void testCreateTargetUriDoesNotEscapeUrl() throws BadGatewayException {
-    RouteService routeService = new RouteService(null, null, null, null, null);
+    RouteService routeService = new RouteService(null, null, null, null, null, null);
     String targetUri =
         routeService.createTargetUri(
             new Route().setUrl("https://play.im.dhis2.org/stable-2-42-1/api/**"),
@@ -91,7 +92,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
@@ -105,7 +107,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     routeService.postConstruct();
 
     Route route = new Route();
@@ -134,7 +137,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     routeService.postConstruct();
 
     Route route = new Route();
