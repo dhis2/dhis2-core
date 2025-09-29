@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.util.sql.QuoteUtils.unquote;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -736,12 +737,32 @@ public class SelectBuilder {
 
   private SelectBuilder addColumnInternal(
       String expression, java.util.function.Function<String, Column> unqualifiedFactory) {
-    var qc = ColumnAliasUtils.splitQualified(expression);
-    if (qc.isPresent()) {
-      var ref = qc.get();
-      columns.add(new Column(ref.columnName(), ref.qualifier(), null));
+    // Try to parse as a select item to extract alias
+    Optional<ColumnAliasUtils.AliasedColumn> aliasedColumn =
+        ColumnAliasUtils.parseSelectItem(expression);
+
+    if (aliasedColumn.isPresent() && aliasedColumn.get().alias() != null) {
+      ColumnAliasUtils.AliasedColumn ac = aliasedColumn.get();
+      String columnPart = ac.columnExpression();
+      String alias = ac.alias();
+
+      // Check if the column part is qualified
+      Optional<ColumnAliasUtils.QualifiedRef> qc = ColumnAliasUtils.splitQualified(columnPart);
+      if (qc.isPresent()) {
+        var ref = qc.get();
+        columns.add(new Column(ref.columnName(), ref.qualifier(), alias));
+      } else {
+        columns.add(new Column(columnPart, null, alias));
+      }
     } else {
-      columns.add(unqualifiedFactory.apply(expression));
+      // Fallback: if we can't parse it, try to split as qualified column
+      var qc = ColumnAliasUtils.splitQualified(expression);
+      if (qc.isPresent()) {
+        var ref = qc.get();
+        columns.add(new Column(ref.columnName(), ref.qualifier(), null));
+      } else {
+        columns.add(unqualifiedFactory.apply(expression));
+      }
     }
     return this;
   }

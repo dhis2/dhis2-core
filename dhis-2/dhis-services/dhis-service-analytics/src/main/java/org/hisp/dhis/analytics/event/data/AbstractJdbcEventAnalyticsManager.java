@@ -108,6 +108,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -142,6 +143,7 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -276,6 +278,80 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return sql;
   }
 
+  /**
+   * Returns a SQL sort clause, aware of existing CTEs for program indicators and data elements.
+   *
+   * @param cteContext the {@link CteContext}.
+   * @param params the {@link EventQueryParams}.
+   * @return the SQL sort clause.
+   */
+  protected String getCteAwareSortClause(CteContext cteContext, EventQueryParams params) {
+    if (!params.isSorting()) {
+      return "";
+    }
+
+    StringJoiner sortColumns = new StringJoiner(", ", "order by ", " ");
+    addSortColumns(sortColumns, cteContext, params, ASC);
+    addSortColumns(sortColumns, cteContext, params, DESC);
+
+    return sortColumns.toString();
+  }
+
+  private void addSortColumns(
+      StringJoiner joiner, CteContext cteContext, EventQueryParams params, SortOrder order) {
+    List<QueryItem> items = (order == ASC) ? params.getAsc() : params.getDesc();
+
+    for (QueryItem item : items) {
+      String columnExpression = getColumnExpression(cteContext, params, item);
+      String sortClause = columnExpression + getSortOrderClause(order);
+      joiner.add(sortClause);
+    }
+  }
+
+  private String getColumnExpression(
+      CteContext cteContext, EventQueryParams params, QueryItem item) {
+    DimensionItemType itemType = item.getItem().getDimensionItemType();
+
+    if (itemType == null) {
+      return quote(item.getItem().getUid());
+    }
+
+    return switch (itemType) {
+      case PROGRAM_INDICATOR -> getProgramIndicatorColumn(cteContext, item);
+      case DATA_ELEMENT -> getDataElementColumn(cteContext, item);
+      default -> getDefaultColumn(params, item);
+    };
+  }
+
+  private String getProgramIndicatorColumn(CteContext cteContext, QueryItem item) {
+    String cteKey = item.getItem().getUid();
+    CteDefinition cte = cteContext.getDefinitionByKey(cteKey);
+
+    return (cte != null) ? cte.getAlias() + ".value" : quote(cteKey);
+  }
+
+  private String getDataElementColumn(CteContext cteContext, QueryItem item) {
+    String col = getSortColumnForDataElementDimensionType(item, false);
+    String cteKey = col.replace(".", "_");
+    CteDefinition cte = cteContext.getDefinitionByKey(cteKey);
+
+    return (cte != null) ? cte.getAlias() + ".value" : quote(col);
+  }
+
+  private String getDefaultColumn(EventQueryParams params, QueryItem item) {
+    // Query returns UIDs but we want sorting on name or shortName
+    // depending on the display property for OUGS and COGS
+    return Optional.ofNullable(extract(params.getDimensions(), item.getItem()))
+        .filter(this::isSupported)
+        .filter(DimensionalObject::hasItems)
+        .map(dim -> toCase(dim, quote(item.getItem().getUid()), params.getDisplayProperty()))
+        .orElse(quote(item.getItem().getUid()));
+  }
+
+  private String getSortOrderClause(SortOrder order) {
+    return (order == ASC) ? " asc nulls last" : " desc nulls last";
+  }
+
   private String getSortColumns(EventQueryParams params, SortOrder order) {
     String sql = "";
 
@@ -283,7 +359,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (item.getItem().getDimensionItemType() == PROGRAM_INDICATOR) {
         sql += quote(item.getItem().getUid());
       } else if (item.getItem().getDimensionItemType() == DATA_ELEMENT) {
-        sql += getSortColumnForDataElementDimensionType(item);
+        sql += getSortColumnForDataElementDimensionType(item, true);
       } else {
         // Query returns UIDs but we want sorting on name or shortName
         // depending on the display property for OUGS and COGS
@@ -302,20 +378,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return sql;
   }
 
-  private String getSortColumnForDataElementDimensionType(QueryItem item) {
+  private String getSortColumnForDataElementDimensionType(QueryItem item, boolean quoteResult) {
+    String col = null;
     if (ValueType.ORGANISATION_UNIT == item.getValueType()) {
-      return quote(item.getItemName() + OU_NAME_COL_POSTFIX);
+      col = item.getItemName() + OU_NAME_COL_POSTFIX;
     }
 
     if (item.hasRepeatableStageParams()) {
-      return quote(item.getRepeatableStageParams().getDimension());
+      col = item.getRepeatableStageParams().getDimension();
     }
 
     if (item.getProgramStage() != null) {
-      return quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
+      col = item.getProgramStage().getUid() + "." + item.getItem().getUid();
     }
-
-    return quote(item.getItem().getUid());
+    if (col == null) {
+      col = item.getItem().getUid();
+    }
+    return quoteResult ? quote(col) : col;
   }
 
   /**
@@ -1895,7 +1974,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     addWhereClause(sb, params, cteContext);
 
     // 3.6: Append ORDER BY and paging
-    addSortingAndPaging(sb, params);
+    addSortingAndPaging(cteContext, sb, params);
 
     if (needsOptimizedCtes(params, cteContext)) {
       // 3.7 : Add shadow CTEs for optimized query
@@ -2400,9 +2479,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sb.where(Condition.and(baseConditions, cteConditions));
   }
 
-  private void addSortingAndPaging(SelectBuilder builder, EventQueryParams params) {
+  private void addSortingAndPaging(
+      CteContext cteContext, SelectBuilder builder, EventQueryParams params) {
     if (params.isSorting()) {
-      builder.orderBy(getSortClause(params));
+      builder.orderBy(getCteAwareSortClause(cteContext, params));
     }
 
     // Paging with max limit of 5000
@@ -2844,7 +2924,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
     assert baseAggregatedCte != null;
 
-    String cteSql = buildAggregatedCteSql(eventTableName, colName, item, baseAggregatedCte);
+    String cteSql = buildAggregatedCteSql(eventTableName, colName, item);
 
     cteContext.addCte(
         item.getProgramStage(),
@@ -2860,11 +2940,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param eventTableName the event table name
    * @param colName the quoted column name for the item
    * @param item the {@link QueryItem} containing program-stage details
-   * @param baseAggregatedCte the base aggregated CTE
    * @return the aggregated CTE SQL
    */
-  private String buildAggregatedCteSql(
-      String eventTableName, String colName, QueryItem item, CteDefinition baseAggregatedCte) {
+  private String buildAggregatedCteSql(String eventTableName, String colName, QueryItem item) {
     String template =
         """
         select

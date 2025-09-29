@@ -32,10 +32,15 @@ package org.hisp.dhis.analytics.util.sql;
 import java.util.Optional;
 import lombok.experimental.UtilityClass;
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
 import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
@@ -65,6 +70,49 @@ public class ColumnAliasUtils {
     return Optional.of(new QualifiedRef(q, col.getColumnName()));
   }
 
+  /**
+   * Parses a select item expression to extract the column expression and its alias.
+   *
+   * <p>The method accepts select items written as {@code column AS alias} or {@code
+   * qualifier.column AS "alias"}, including quoted variants, and returns an {@link Optional}
+   * containing both the column expression and alias. If the input is blank or cannot be parsed as a
+   * select item, {@link Optional#empty()} is returned.
+   *
+   * @param selectItemText textual select item, e.g. {@code ab.column as "my_alias"}
+   * @return optional containing column expression and alias; empty if not parseable
+   */
+  public static Optional<AliasedColumn> parseSelectItem(String selectItemText) {
+    if (StringUtils.isBlank(selectItemText)) return Optional.empty();
+    try {
+      // Parse as a minimal SELECT statement to extract the select item
+      String sql = "SELECT " + selectItemText + " FROM dual";
+      Select select = (Select) CCJSqlParserUtil.parse(sql);
+      PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+
+      if (plainSelect.getSelectItems() == null || plainSelect.getSelectItems().isEmpty()) {
+        return Optional.empty();
+      }
+
+      SelectItem selectItem = plainSelect.getSelectItems().get(0);
+
+      // In JSQLParser 4.6, SelectItem is an interface implemented by SelectExpressionItem
+      if (selectItem instanceof SelectExpressionItem expressionItem) {
+        Expression expression = expressionItem.getExpression();
+        Alias alias = expressionItem.getAlias();
+
+        String aliasName = alias != null ? alias.getName() : null;
+        String columnExpression = expression.toString();
+
+        return Optional.of(new AliasedColumn(columnExpression, aliasName));
+      }
+
+      return Optional.empty();
+    } catch (JSQLParserException e) {
+      // Not parseable as a select item
+      return Optional.empty();
+    }
+  }
+
   private static Column parseColumnOrNull(String text) {
     if (StringUtils.isBlank(text)) return null;
     try {
@@ -82,4 +130,6 @@ public class ColumnAliasUtils {
   }
 
   public record QualifiedRef(String qualifier, String columnName) {}
+
+  public record AliasedColumn(String columnExpression, String alias) {}
 }
