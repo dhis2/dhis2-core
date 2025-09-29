@@ -2881,7 +2881,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             from ${eventTableName} evt
             join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
             where evt.eventstatus != 'SCHEDULE'
-                and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
+                and evt.ps = '${programStageUid}') evt
         where evt.rn = 1
         """;
 
@@ -2890,13 +2890,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("eventTableName", eventTableName);
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
-    values.put(
-        "aggregateWhereClause",
-        baseAggregatedCte
-            .getAggregateWhereClause()
-            // Replace the "ax." alias (from subqueries) with empty string
-            .replace("ax.", "")
-            .replace("%s", "eb"));
 
     return new StringSubstitutor(values).replace(template);
   }
