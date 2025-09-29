@@ -150,7 +150,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
 
     try (Stream<Path> paths = Files.walk(contractsDir)) {
       paths
-          .filter(path -> path.toString().endsWith("-contract.json"))
+          .filter(path -> path.toString().endsWith("contract.json"))
           .forEach(
               filePath -> {
                 try {
