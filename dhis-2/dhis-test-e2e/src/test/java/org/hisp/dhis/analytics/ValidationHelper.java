@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -228,6 +229,136 @@ public class ValidationHelper {
     // if the expected value is numeric. For simplicity, assuming string comparison works
     // for most cases or expectedValue is already formatted as a string.
     response.validate().body(jsonPath, equalTo(expectedValue));
+  }
+
+  /**
+   * Validates that a row with specific values exists somewhere in the response, regardless of row
+   * order. This is useful for non-deterministic sorting scenarios.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerNamesAndValues A map of header names to their expected values. Only specified
+   *     columns will be checked; other columns in the row are ignored.
+   * @throws AssertionError if no matching row is found.
+   */
+  public static void validateRowExists(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      Map<String, String> headerNamesAndValues) {
+
+    // Extract all rows from response
+    List<List> rawRows = response.extractList("rows", List.class);
+
+    if (rawRows == null || rawRows.isEmpty()) {
+      throw new AssertionError("No rows found in response, cannot validate row existence.");
+    }
+
+    // Build a map of header names to their column indices
+    Map<String, Integer> headerToIndex = new HashMap<>();
+    for (Map.Entry<String, String> entry : headerNamesAndValues.entrySet()) {
+      String headerName = entry.getKey();
+      int colIndex = getHeaderIndexByName(actualHeaders, headerName);
+      headerToIndex.put(headerName, colIndex);
+    }
+
+    // Check each row to see if it matches
+    boolean foundMatch = false;
+    for (List row : rawRows) {
+      boolean rowMatches = true;
+
+      for (Map.Entry<String, String> entry : headerNamesAndValues.entrySet()) {
+        String headerName = entry.getKey();
+        String expectedValue = entry.getValue();
+        int colIndex = headerToIndex.get(headerName);
+
+        // Check if column index is within bounds
+        if (colIndex >= row.size()) {
+          rowMatches = false;
+          break;
+        }
+
+        // Convert to String for comparison
+        Object actualValueObj = row.get(colIndex);
+        String actualValue = actualValueObj != null ? actualValueObj.toString() : null;
+
+        // Handle null values
+        if (!Objects.equals(actualValue, expectedValue)) {
+          rowMatches = false;
+          break;
+        }
+      }
+
+      if (rowMatches) {
+        foundMatch = true;
+        break;
+      }
+    }
+
+    if (!foundMatch) {
+      // Build error message showing what was searched for
+      StringBuilder errorMsg = new StringBuilder("No row found with values: {");
+      for (Map.Entry<String, String> entry : headerNamesAndValues.entrySet()) {
+        errorMsg.append(entry.getKey()).append("='").append(entry.getValue()).append("', ");
+      }
+      if (!headerNamesAndValues.isEmpty()) {
+        errorMsg.setLength(errorMsg.length() - 2); // Remove trailing ", "
+      }
+      errorMsg.append("}. Total rows checked: ").append(rawRows.size());
+
+      throw new AssertionError(errorMsg.toString());
+    }
+  }
+
+  /**
+   * Validates that a row with all the specified values (in header order) exists somewhere in the
+   * response, regardless of row position. This checks all columns in order.
+   *
+   * @param response The ApiResponse object.
+   * @param expectedValues List of expected values in the same order as the headers. Must match the
+   *     exact number of columns.
+   * @throws AssertionError if no matching row is found or if the size doesn't match the number of
+   *     columns.
+   */
+  public static void validateRowExists(ApiResponse response, List<String> expectedValues) {
+    // Extract all rows from response
+    List<List> rawRows = response.extractList("rows", List.class);
+
+    if (rawRows == null || rawRows.isEmpty()) {
+      throw new AssertionError("No rows found in response, cannot validate row existence.");
+    }
+
+    // Check each row to see if it matches
+    boolean foundMatch = false;
+    for (List row : rawRows) {
+      if (row.size() != expectedValues.size()) {
+        continue; // Skip rows with different column count
+      }
+
+      boolean rowMatches = true;
+      for (int i = 0; i < expectedValues.size(); i++) {
+        // Convert to String for comparison
+        Object actualValueObj = row.get(i);
+        String actualValue = actualValueObj != null ? actualValueObj.toString() : null;
+
+        if (!Objects.equals(actualValue, expectedValues.get(i))) {
+          rowMatches = false;
+          break;
+        }
+      }
+
+      if (rowMatches) {
+        foundMatch = true;
+        break;
+      }
+    }
+
+    if (!foundMatch) {
+      throw new AssertionError(
+          "No row found matching values: "
+              + expectedValues
+              + ". Total rows checked: "
+              + rawRows.size());
+    }
   }
 
   /**
