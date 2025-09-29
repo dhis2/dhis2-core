@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
@@ -70,7 +69,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("outputType=EVENT")
-            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6");
+            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -131,16 +131,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "2.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "6");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 2178
-    validateRowValueByName(response, actualHeaders, 2178, "A03MvHHogjR.a3kGcGDCuk6", "0.0");
-    validateRowValueByName(response, actualHeaders, 2178, "value", "5");
-    validateRowValueByName(response, actualHeaders, 2178, "ou", "ImspTQPwCqd");
+    // 7. Assert row values in any order.
+    validateRow(response, List.of("2.0", "ImspTQPwCqd", "20211006", "6"));
+    validateRow(response, List.of("0.0", "ImspTQPwCqd", "20211028", "5"));
   }
 
   @Test
@@ -161,7 +154,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("outputType=EVENT")
             .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6")
-            .add("eventDate=2021S1");
+            .add("eventDate=2021S1")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -222,16 +216,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "1870");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 7
-    validateRowValueByName(response, actualHeaders, 7, "A03MvHHogjR.a3kGcGDCuk6", "2.0");
-    validateRowValueByName(response, actualHeaders, 7, "value", "1847");
-    validateRowValueByName(response, actualHeaders, 7, "ou", "ImspTQPwCqd");
+    // 7. Assert row values in any order.
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "2021S1", "1870"));
+    validateRow(response, List.of("2.0", "ImspTQPwCqd", "2021S1", "1847"));
   }
 
   @Test
@@ -252,7 +239,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("enrollmentDate=202301,202402")
             .add("totalPages=false")
             .add("outputType=EVENT")
-            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6");
+            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -313,16 +301,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "");
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "A03MvHHogjR.a3kGcGDCuk6", "2.0");
-    validateRowValueByName(response, actualHeaders, 5, "value", "236");
-    validateRowValueByName(response, actualHeaders, 5, "ou", "ImspTQPwCqd");
+    // 7. Assert row values in any order.
+    validateRow(response, List.of("", "ImspTQPwCqd", "202201", "1"));
+    validateRow(response, List.of("2.0", "ImspTQPwCqd", "202201", "236"));
   }
 
   @Test
@@ -343,7 +324,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("scheduledDate=LAST_5_FINANCIAL_YEARS")
             .add("outputType=EVENT")
-            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6");
+            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -404,16 +386,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "653");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 20
-    validateRowValueByName(response, actualHeaders, 20, "A03MvHHogjR.a3kGcGDCuk6", "5.0");
-    validateRowValueByName(response, actualHeaders, 20, "value", "1");
-    validateRowValueByName(response, actualHeaders, 20, "ou", "ImspTQPwCqd");
+    // 7. Assert row values in any order.
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "2022Oct", "653"));
+    validateRow(response, List.of("5.0", "ImspTQPwCqd", "2020Oct", "1"));
   }
 
   @Test
@@ -435,7 +410,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("outputType=EVENT")
             .add("incidentDate=2021-03-01_2023-04-30")
-            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6");
+            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -496,16 +472,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "9");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 1470
-    validateRowValueByName(response, actualHeaders, 1470, "A03MvHHogjR.a3kGcGDCuk6", "0.0");
-    validateRowValueByName(response, actualHeaders, 1470, "value", "5");
-    validateRowValueByName(response, actualHeaders, 1470, "ou", "ImspTQPwCqd");
+    // 7. Assert row values in any order.
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "20211008", "9"));
+    validateRow(response, List.of("0.0", "ImspTQPwCqd", "20211028", "5"));
   }
 
   @Test
@@ -528,7 +497,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("scheduledDate=LAST_5_YEARS")
             .add("outputType=EVENT")
             .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6")
-            .add("eventDate=LAST_5_YEARS");
+            .add("eventDate=LAST_5_YEARS")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -589,16 +559,9 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.a3kGcGDCuk6", "7.0");
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 16
-    validateRowValueByName(response, actualHeaders, 16, "A03MvHHogjR.a3kGcGDCuk6", "1.0");
-    validateRowValueByName(response, actualHeaders, 16, "value", "2638");
-    validateRowValueByName(response, actualHeaders, 16, "ou", "ImspTQPwCqd");
+    // 7. Assert row values in any position.
+    validateRow(response, List.of("7.0", "ImspTQPwCqd", "2022", "1"));
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "2022", "2638"));
   }
 
   @Test
@@ -619,7 +582,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("pageSize=100000")
             .add("outputType=EVENT")
             .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq");
+            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -708,7 +672,8 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
             .add("outputType=EVENT")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
-            .add("completedDate=202111");
+            .add("completedDate=202111")
+            .add("relativePeriodDate=2025-09-29");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
