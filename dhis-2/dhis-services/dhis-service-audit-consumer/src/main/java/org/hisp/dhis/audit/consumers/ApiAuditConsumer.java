@@ -39,11 +39,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-/**
- * A MetadataAudit object consumer.
- *
- * @author Luciano Fiandesio
- */
 @Component
 public class ApiAuditConsumer extends AbstractAuditConsumer {
   public ApiAuditConsumer(

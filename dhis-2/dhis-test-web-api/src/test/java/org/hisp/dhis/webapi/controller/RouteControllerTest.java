@@ -335,12 +335,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @Timeout(5000)
     void testRunRouteIsAudited() throws JsonProcessingException {
       upstreamMockServerClient
-          .when(request().withPath("/"))
+          .when(request().withPath("/foo"))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+      route.put(
+          "url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort() + "/**");
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
@@ -349,7 +350,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                   HttpMethod.GET,
                   "/routes/"
                       + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
-                      + "/run",
+                      + "/run/foo?param=secret",
                   new ArrayList<>(),
                   "application/json",
                   null));
@@ -358,14 +359,16 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       List<Map<String, Object>> auditEntries = Collections.EMPTY_LIST;
       while (auditEntries.isEmpty()) {
-        auditEntries = jdbcTemplate.queryForList("select * from audit");
+        auditEntries = jdbcTemplate.queryForList("SELECT * FROM audit ORDER BY createdAt DESC");
       }
       assertEquals("API", auditEntries.get(0).get("auditscope"));
+      Map<String, String> auditEntry =
+          jsonMapper.readValue(
+              ((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class);
+      assertEquals("Route Run", auditEntry.get("source"));
       assertEquals(
-          "Route Run",
-          jsonMapper
-              .readValue(((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class)
-              .get("source"));
+          "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort() + "/foo",
+          auditEntry.get("upstreamUrl"));
     }
 
     @Test

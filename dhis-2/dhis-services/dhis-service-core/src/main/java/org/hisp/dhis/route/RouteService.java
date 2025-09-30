@@ -294,7 +294,10 @@ public class RouteService {
                     .addAll(Arrays.asList(value)));
 
     applyAuthScheme(route, headers, queryParameters);
-    String upstreamUrl = createTargetUri(route, subPath, queryParameters);
+    UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
+    String upstreamUrlWithoutQueryParams = uriComponentsBuilder.build().toUriString();
+    String upstreamUrl = createRequestUrl(uriComponentsBuilder.cloneBuilder(), queryParameters);
+
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
@@ -303,17 +306,22 @@ public class RouteService {
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
-        upstreamUrl,
+        upstreamUrlWithoutQueryParams,
         route.getName(),
         route.getUid());
 
     ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
-        retrieve(requestHeadersSpec, httpMethod, upstreamUrl, route.getUid(), userDetails);
+        retrieve(
+            requestHeadersSpec,
+            httpMethod,
+            upstreamUrlWithoutQueryParams,
+            route.getUid(),
+            userDetails);
 
     log.debug(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
-        upstreamUrl,
+        upstreamUrlWithoutQueryParams,
         responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
@@ -387,18 +395,21 @@ public class RouteService {
         .block();
   }
 
-  protected String createTargetUri(
-      Route route, Optional<String> subPath, Map<String, List<String>> queryParameters)
+  protected UriComponentsBuilder createRequestPathBuilder(Route route, Optional<String> subPath)
       throws BadGatewayException {
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+        UriComponentsBuilder.fromUriString(route.getBaseUrl());
+    uriComponentsBuilder.path(getSubPath(route, subPath));
 
+    return uriComponentsBuilder;
+  }
+
+  protected String createRequestUrl(
+      UriComponentsBuilder uriComponentsBuilder, Map<String, List<String>> queryParameters) {
     for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
       uriComponentsBuilder =
           uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
     }
-
-    uriComponentsBuilder.path(getSubPath(route, subPath));
 
     return uriComponentsBuilder.build().toUriString();
   }

@@ -35,18 +35,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Random;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 class RouteServiceTest {
 
@@ -72,16 +71,16 @@ class RouteServiceTest {
   }
 
   @Test
-  void testCreateTargetUriDoesNotEscapeUrl() throws BadGatewayException {
+  void testCreateRequestUrlDoesNotEscapeUrl() {
     RouteService routeService = new RouteService(null, null, null, null, null, null);
-    String targetUri =
-        routeService.createTargetUri(
-            new Route().setUrl("https://play.im.dhis2.org/stable-2-42-1/api/**"),
-            Optional.of("/organisationUnits"),
+    String upstreamUrl =
+        routeService.createRequestUrl(
+            UriComponentsBuilder.fromUriString(
+                "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits"),
             Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]")));
     assertEquals(
         "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?filter=id:in:[Rp268JB6Ne4,cDw53Ej8rju]",
-        targetUri);
+        upstreamUrl);
   }
 
   @Test
