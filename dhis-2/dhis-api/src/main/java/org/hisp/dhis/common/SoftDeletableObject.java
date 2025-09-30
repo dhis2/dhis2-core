@@ -41,7 +41,7 @@ import org.hisp.dhis.audit.AuditAttribute;
  * @author Enrico Colasante
  */
 @JacksonXmlRootElement(localName = "softDeletableObject", namespace = DxfNamespaces.DXF_2_0)
-public class SoftDeletableObject extends BaseIdentifiableObject {
+public class SoftDeletableObject extends BaseIdentifiableObject implements SoftDeletable {
   /** Indicates whether the object is soft deleted. */
   @AuditAttribute protected boolean deleted = false;
 
@@ -80,10 +80,6 @@ public class SoftDeletableObject extends BaseIdentifiableObject {
             && getRealClass(this) == getRealClass(obj)
             && super.equals(obj)
             && objectEquals((SoftDeletableObject) obj);
-  }
-
-  private boolean objectEquals(SoftDeletableObject that) {
-    return deleted == that.deleted;
   }
 
   @Override
