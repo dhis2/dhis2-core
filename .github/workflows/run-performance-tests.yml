@@ -74,9 +74,10 @@ jobs:
 
     - name: Run performance tests - baseline
       run: |
+        # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
         DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
-        MVN_ARGS="${{ inputs.mvn_args }}" \
+        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         ./run-simulation.sh
@@ -97,12 +98,13 @@ jobs:
     # binary simulation.log into a simulation.csv. CLI releases can be downloaded from
     # https://github.com/dhis2/gatling/releases. The CLI is installed on the self-hosted runner.
     - name: Convert binary simulation.log to simulation.csv
+      id: convert-logs
       if: always()
       run: |
         glog --config ./src/test/resources/gatling.conf --scan-subdirs target/gatling
 
     - name: Upload Gatling report
-      if: always() # reports should always be uploaded as tests can fail due to our performance assertions
+      if: steps.convert-logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: gatling-report-${{ github.run_id }}-${{ github.sha }}

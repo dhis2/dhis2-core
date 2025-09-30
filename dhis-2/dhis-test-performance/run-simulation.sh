@@ -212,7 +212,7 @@ start_profiler
 run_simulation
 stop_profiler
 
-gatling_run_dir="target/gatling/$(cat target/gatling/lastRun.txt)"
+gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
 save_profiler_data "$gatling_run_dir"
 post_process_profiler_data "$gatling_run_dir"
 generate_metadata "$gatling_run_dir"
