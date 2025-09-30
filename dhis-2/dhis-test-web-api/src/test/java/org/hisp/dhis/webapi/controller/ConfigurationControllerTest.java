@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -33,7 +33,6 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -89,14 +88,16 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName("GET /configuration/infrastructuralIndicators should return correct payload")
   void testGetInfrastructuralIndicators() {
     // Test GET endpoint for infrastructuralIndicators when not set (should return null/empty)
-    JsonObject response = GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject response =
+        GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
 
     // When no infrastructural indicators are configured, the response should be empty or null
     assertEquals(0, response.size());
   }
 
   @Test
-  @DisplayName("GET /configuration/infrastructuralIndicators should return indicator group when set")
+  @DisplayName(
+      "GET /configuration/infrastructuralIndicators should return indicator group when set")
   void testGetInfrastructuralIndicatorsWhenSet() {
     // Create an IndicatorType first (required for indicators)
     String indicatorTypeId =
@@ -153,11 +154,13 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
         POST("/configuration/infrastructuralIndicators", "\"" + indicatorGroupId + "\""));
 
     // Now test the GET endpoint
-    JsonObject indicatorGroup = GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject indicatorGroup =
+        GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
 
     assertNotNull(indicatorGroup);
     assertEquals("Infrastructural Indicators", indicatorGroup.getString("name").string());
-    assertEquals("Group for infrastructural indicators", indicatorGroup.getString("description").string());
+    assertEquals(
+        "Group for infrastructural indicators", indicatorGroup.getString("description").string());
     assertEquals(indicatorGroupId, indicatorGroup.getString("id").string());
 
     // Verify the configuration object also reflects this change
@@ -169,7 +172,8 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("POST /configuration/infrastructuralIndicators should set the infrastructural indicators")
+  @DisplayName(
+      "POST /configuration/infrastructuralIndicators should set the infrastructural indicators")
   void testSetInfrastructuralIndicators() {
     // Create an IndicatorGroup
     String indicatorGroupId =
@@ -190,7 +194,8 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
         POST("/configuration/infrastructuralIndicators", "\"" + indicatorGroupId + "\""));
 
     // Verify it was set correctly
-    JsonObject indicatorGroup = GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject indicatorGroup =
+        GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
     assertEquals(indicatorGroupId, indicatorGroup.getString("id").string());
     assertEquals("Test Infrastructure Group", indicatorGroup.getString("name").string());
   }
