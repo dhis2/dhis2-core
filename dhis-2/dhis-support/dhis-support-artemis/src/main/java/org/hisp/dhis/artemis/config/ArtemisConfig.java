@@ -245,6 +245,7 @@ public class ArtemisConfig {
     scopeDestinationMap.put(AuditScope.METADATA, Topics.METADATA_TOPIC_NAME);
     scopeDestinationMap.put(AuditScope.AGGREGATE, Topics.AGGREGATE_TOPIC_NAME);
     scopeDestinationMap.put(AuditScope.TRACKER, Topics.TRACKER_TOPIC_NAME);
+    scopeDestinationMap.put(AuditScope.API, Topics.API_TOPIC_NAME);
 
     return scopeDestinationMap;
   }
