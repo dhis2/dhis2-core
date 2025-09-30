@@ -30,6 +30,7 @@
 package org.hisp.dhis.dashboard.embedded;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,7 +45,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @AllArgsConstructor
-public class EmbeddedSecurity {
+public class EmbeddedSecurity implements Serializable {
   /** Indicates whether queries should be restricted to the user accessible org unit hierarchy. */
   @JsonProperty private boolean restrictOrgUnitHierarchy;
 }
