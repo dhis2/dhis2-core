@@ -140,6 +140,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGen
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.analytics.util.sql.ColumnUtils;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
@@ -1790,7 +1791,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // Remove duplicates
-    return columns.stream().distinct().toList();
+    return columns.stream()
+        // in case of row context == true, a column item can contain multiple columns
+        // that have to be split first
+        .flatMap(column -> ColumnUtils.splitColumns(column).stream())
+        .distinct()
+        .toList();
   }
 
   /**
