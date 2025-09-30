@@ -66,6 +66,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -471,16 +472,13 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .occurredAt(newDate)
-                      .scheduledAt(newDate)
-                      .build();
+              e.setOccurredAt(newDate);
+              e.setScheduledAt(newDate);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -490,15 +488,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .scheduledAt(null)
-                      .build();
+              e.setScheduledAt(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -508,15 +503,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .geometry(newGeometry)
-                      .build();
+              e.setGeometry(newGeometry);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -526,15 +518,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  org.hisp.dhis.tracker.imports.domain.TrackerEvent.builderFromEvent(e)
-                      .geometry(null)
-                      .build();
+              e.setGeometry(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -675,6 +664,9 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     GeometryFactory geometryFactory = new GeometryFactory();
     Coordinate coordinate = new Coordinate(x, y);
 
-    return geometryFactory.createPoint(coordinate);
+    Point point = geometryFactory.createPoint(coordinate);
+    point.setSRID(4326);
+
+    return point;
   }
 }

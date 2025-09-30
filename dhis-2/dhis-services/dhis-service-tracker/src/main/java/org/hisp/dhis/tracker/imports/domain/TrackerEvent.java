@@ -90,32 +90,4 @@ public class TrackerEvent implements Event {
   public UID getUid() {
     return this.event;
   }
-
-  public static TrackerEventBuilder builderFromEvent(Event event) {
-    return builderFromEvent(event, event.getEvent());
-  }
-
-  public static TrackerEventBuilder builderFromEvent(Event event, UID eventUid) {
-    Instant scheduledAt =
-        (event instanceof TrackerEvent trackerEvent) ? trackerEvent.getScheduledAt() : null;
-    return TrackerEvent.builder()
-        .event(eventUid)
-        .status(event.getStatus())
-        .program(event.getProgram())
-        .programStage(event.getProgramStage())
-        .enrollment(event.getEnrollment())
-        .orgUnit(event.getOrgUnit())
-        .occurredAt(event.getOccurredAt())
-        .scheduledAt(scheduledAt)
-        .storedBy(event.getStoredBy())
-        .createdAtClient(event.getCreatedAtClient())
-        .updatedAtClient(event.getUpdatedAtClient())
-        .attributeOptionCombo(event.getAttributeOptionCombo())
-        .attributeCategoryOptions(event.getAttributeCategoryOptions())
-        .geometry(event.getGeometry())
-        .assignedUser(event.getAssignedUser())
-        .completedAt(event.getCompletedAt())
-        .dataValues(event.getDataValues())
-        .notes(event.getNotes());
-  }
 }

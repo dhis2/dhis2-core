@@ -31,6 +31,7 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
@@ -131,6 +132,14 @@ public class DefaultResourceTableService implements ResourceTableService {
     }
   }
 
+  @Override
+  @Transactional
+  public void replicateDataApprovalResourceTables() {
+    for (ResourceTable table : getApprovalResourceTables()) {
+      tableReplicationStore.replicateAnalyticsDatabaseTable(table.getMainTable());
+    }
+  }
+
   /**
    * Returns a list of resource tables.
    *
@@ -213,22 +222,25 @@ public class DefaultResourceTableService implements ResourceTableService {
       int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
       int maxRangeAllowed = Year.now().plus(maxYearsOffset, YEARS).getValue();
 
-      boolean yearsOutOfRange =
-          yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);
+      List<Integer> yearsOutOfRange =
+          yearsToCheck.stream()
+              .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
+              .toList();
 
-      if (yearsOutOfRange) {
+      List<Integer> yearsInRange =
+          yearsToCheck.stream()
+              .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
+              .toList();
+
+      if (isNotEmpty(yearsOutOfRange)) {
         String errorMessage =
-            "Your database contains years out of the allowed offset."
-                + "\n Range of years allowed (based on your system settings and existing data): "
-                + yearsToCheck.stream()
-                    .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
-                    .toList()
-                + "."
-                + "\n Years out of range found: "
-                + yearsToCheck.stream()
-                    .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
-                    .toList()
-                + ".";
+            String.format(
+                """
+                Database contains years outside of the allowed offset. \
+                Years in allowed range: %d \
+                Years out of range: %d\
+                """,
+                yearsInRange, yearsOutOfRange);
 
         log.warn(errorMessage);
         throw new RuntimeException(errorMessage);

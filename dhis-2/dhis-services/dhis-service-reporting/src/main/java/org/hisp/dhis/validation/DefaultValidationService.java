@@ -56,12 +56,14 @@ import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -93,7 +95,7 @@ public class DefaultValidationService implements ValidationService {
 
   private final ExpressionService expressionService;
 
-  private final DataValueService dataValueService;
+  private final DataExportService dataExportService;
 
   private final CategoryService categoryService;
 
@@ -185,11 +187,17 @@ public class DefaultValidationService implements ValidationService {
     if (dataSet.isNoValueRequiresComment()) {
       for (DataElement de : dataSet.getDataElements()) {
         for (CategoryOptionCombo co : de.getCategoryOptionCombos()) {
-          DataValue dv =
-              dataValueService.getDataValue(de, period, organisationUnit, co, attributeOptionCombo);
+          DataExportValue dv = null;
+          DataEntryKey key =
+              new DataEntryKey(de, period, organisationUnit, co, attributeOptionCombo);
+          try {
+            dv = dataExportService.exportValue(key);
+          } catch (ConflictException ex) {
+            log.error("Failed to check required value & comment for " + key, ex);
+          }
 
-          boolean missingValue = dv == null || StringUtils.trimToNull(dv.getValue()) == null;
-          boolean missingComment = dv == null || StringUtils.trimToNull(dv.getComment()) == null;
+          boolean missingValue = dv == null || StringUtils.trimToNull(dv.value()) == null;
+          boolean missingComment = dv == null || StringUtils.trimToNull(dv.comment()) == null;
 
           if (missingValue && missingComment) {
             violations.add(new DataElementOperand(de, co));

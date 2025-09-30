@@ -70,10 +70,10 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
@@ -103,7 +103,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   private User importUser;
 
-  private Event relationship1To;
+  private TrackerEvent relationship1To;
   private Relationship relationship1;
   private TrackedEntity relationship1From;
   private Relationship relationship2;
@@ -942,14 +942,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         .toList();
   }
 
-  private Event getEvent(UID event) {
+  private TrackerEvent getEvent(UID event) {
     return trackerObjects.getEvents().stream()
         .filter(ev -> ev.getEvent().equals(event))
         .findFirst()
         .get();
   }
 
-  private List<Event> getEventsByEnrollment(UID enrollment) {
+  private List<TrackerEvent> getEventsByEnrollment(UID enrollment) {
     return trackerObjects.getEvents().stream()
         .filter(ev -> Objects.equals(ev.getEnrollment(), enrollment))
         .toList();

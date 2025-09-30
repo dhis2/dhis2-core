@@ -125,9 +125,6 @@ public enum ConfigurationKey {
   /** Database port number. Applies to ClickHouse. */
   CONNECTION_PORT("connection.port", "5432", false),
 
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_DATABASE("connection.database", "", false),
-
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
 

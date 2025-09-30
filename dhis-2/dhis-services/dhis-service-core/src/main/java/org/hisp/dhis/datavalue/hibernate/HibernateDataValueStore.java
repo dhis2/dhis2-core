@@ -34,7 +34,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import jakarta.persistence.EntityManager;
@@ -47,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -56,12 +54,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -79,18 +76,15 @@ import org.springframework.stereotype.Repository;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Repository("org.hisp.dhis.datavalue.DataValueStore")
+@Repository
 public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private final PeriodStore periodStore;
 
   private static final String DELETED = "deleted";
 
   private static final String LAST_UPATED = "lastUpdated";
+
+  private final PeriodStore periodStore;
 
   public HibernateDataValueStore(
       EntityManager entityManager,
@@ -104,20 +98,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   // -------------------------------------------------------------------------
   // Basic DataValue
   // -------------------------------------------------------------------------
-
-  @Override
-  public void addDataValue(DataValue dataValue) {
-    dataValue.setPeriod(periodStore.reloadForceAddPeriod(dataValue.getPeriod()));
-
-    getSession().save(dataValue);
-  }
-
-  @Override
-  public void updateDataValue(DataValue dataValue) {
-    dataValue.setPeriod(periodStore.reloadForceAddPeriod(dataValue.getPeriod()));
-
-    getSession().update(dataValue);
-  }
 
   @Override
   public void deleteDataValues(OrganisationUnit organisationUnit) {
@@ -160,84 +140,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .createQuery(hql)
         .setParameter("attributeOptionCombos", attributeOptionCombos)
         .executeUpdate();
-  }
-
-  @Override
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
-    return getDataValue(
-        dataElement, period, source, categoryOptionCombo, attributeOptionCombo, false);
-  }
-
-  @Override
-  public DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      boolean includeDeleted) {
-    Period storedPeriod = periodStore.reloadPeriod(period);
-
-    if (storedPeriod == null) {
-      return null;
-    }
-
-    String includeDeletedSql = includeDeleted ? "" : "and dv.deleted = false ";
-
-    String hql =
-        "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period "
-            + includeDeletedSql
-            + "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
-
-    return getSingleResult(
-        getQuery(hql)
-            .setParameter("dataElement", dataElement)
-            .setParameter("period", storedPeriod)
-            .setParameter("source", source)
-            .setParameter("attributeOptionCombo", attributeOptionCombo)
-            .setParameter("categoryOptionCombo", categoryOptionCombo));
-  }
-
-  @Override
-  public DataValue getSoftDeletedDataValue(DataValue dataValue) {
-    Period storedPeriod = periodStore.reloadPeriod(dataValue.getPeriod());
-
-    if (storedPeriod == null) {
-      return null;
-    }
-
-    dataValue.setPeriod(storedPeriod);
-
-    String sql =
-        """
-        select * from datavalue \
-        where dataelementid = :deid \
-        and periodid = :periodid \
-        and attributeoptioncomboid = :attributeOptionCombo \
-        and categoryoptioncomboid = :categoryOptionCombo \
-        and sourceid = :sourceid \
-        and deleted is true""";
-
-    return getSingleResult(
-        nativeSynchronizedTypedQuery(sql)
-            .setParameter("deid", dataValue.getDataElement().getId())
-            .setParameter("periodid", storedPeriod.getId())
-            .setParameter("attributeOptionCombo", dataValue.getAttributeOptionCombo().getId())
-            .setParameter("categoryOptionCombo", dataValue.getCategoryOptionCombo().getId())
-            .setParameter("sourceid", dataValue.getSource().getId()));
-  }
-
-  @Override
-  public List<DataValue> getAllDataValues() {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get(DELETED), false)));
   }
 
   @Override
@@ -320,149 +222,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   // -------------------------------------------------------------------------
-  // getDataValues and related supportive methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  public List<DataValue> getDataValues(DataExportParams params) {
-    Set<Period> periods = reloadAndFilterPeriods(params.getPeriods());
-    Set<OrganisationUnit> organisationUnits = params.getAllOrganisationUnits();
-
-    // Return empty list if parameters include periods but none exist
-
-    if (params.hasPeriods() && periods.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    String hql = getDataValuesHql(params, periods, organisationUnits);
-
-    Query<DataValue> query = getQuery(hql);
-
-    getDataValuesQueryParameters(params, query, periods, organisationUnits);
-
-    return query.list();
-  }
-
-  /**
-   * Reloads the periods in the given collection, and filters out periods which do not exist in the
-   * database.
-   */
-  private Set<Period> reloadAndFilterPeriods(Collection<Period> periods) {
-    return periods != null
-        ? periods.stream().map(periodStore::reloadPeriod).filter(Objects::nonNull).collect(toSet())
-        : new HashSet<>();
-  }
-
-  /** Gets HQL for getDataValues. */
-  private String getDataValuesHql(
-      DataExportParams params, Set<Period> periods, Set<OrganisationUnit> organisationUnits) {
-    StringBuilder hql =
-        new StringBuilder(
-            """
-            select dv from DataValue dv \
-            inner join dv.dataElement de \
-            inner join dv.period pe \
-            inner join dv.source ou \
-            inner join dv.categoryOptionCombo co \
-            inner join dv.attributeOptionCombo ao \
-            where de.id in (:dataElements) \
-            """);
-
-    if (!periods.isEmpty()) {
-      hql.append("and pe.id in (:periods) ");
-    } else if (params.hasStartEndDate()) {
-      hql.append("and (pe.startDate >= :startDate and pe.endDate <= :endDate) ");
-    }
-
-    if (params.isIncludeDescendantsForOrganisationUnits()) {
-      hql.append("and (");
-
-      hql.append(
-          params.getOrganisationUnits().stream()
-              .map(OrganisationUnit::getStoredPath)
-              .map(p -> "ou.path like '" + p + "%'")
-              .collect(joining(" or ")));
-
-      hql.append(") ");
-    } else if (!organisationUnits.isEmpty()) {
-      hql.append("and ou.id in (:orgUnits) ");
-    }
-
-    if (params.hasCategoryOptionCombos()) {
-      hql.append("and co.id in (:categoryOptionCombos) ");
-    }
-
-    if (params.hasAttributeOptionCombos()) {
-      hql.append("and ao.id in (:attributeOptionCombos) ");
-    }
-
-    if (params.hasLastUpdated() || params.hasLastUpdatedDuration()) {
-      hql.append("and dv.lastUpdated >= :lastUpdated ");
-    }
-
-    if (!params.isIncludeDeleted()) {
-      hql.append("and dv.deleted is false ");
-    }
-
-    if (params.isOrderByOrgUnitPath()) {
-      hql.append("order by ou.path ");
-    }
-
-    if (params.isOrderByPeriod()) {
-      hql.append(params.isOrderByOrgUnitPath() ? "," : "order by")
-          .append(" pe.startDate, pe.endDate ");
-    }
-
-    return hql.toString();
-  }
-
-  /** Sets Query parameters for getDataValues. */
-  private void getDataValuesQueryParameters(
-      DataExportParams params,
-      Query<DataValue> query,
-      Set<Period> periods,
-      Set<OrganisationUnit> organisationUnits) {
-    query.setParameterList("dataElements", getIdentifiers(params.getAllDataElements()));
-
-    if (!periods.isEmpty()) {
-      query.setParameterList("periods", getIdentifiers(periods));
-    } else if (params.hasStartEndDate()) {
-      query
-          .setParameter("startDate", params.getStartDate())
-          .setParameter("endDate", params.getEndDate());
-    }
-
-    if (!params.isIncludeDescendantsForOrganisationUnits() && !organisationUnits.isEmpty()) {
-      query.setParameterList("orgUnits", getIdentifiers(organisationUnits));
-    }
-
-    if (params.hasCategoryOptionCombos()) {
-      query.setParameterList(
-          "categoryOptionCombos", getIdentifiers(params.getCategoryOptionCombos()));
-    }
-
-    if (params.hasAttributeOptionCombos()) {
-      query.setParameterList(
-          "attributeOptionCombos", getIdentifiers(params.getAttributeOptionCombos()));
-    }
-
-    if (params.hasLastUpdated()) {
-      query.setParameter(LAST_UPATED, params.getLastUpdated());
-    } else if (params.hasLastUpdatedDuration()) {
-      query.setParameter(LAST_UPATED, DateUtils.nowMinusDuration(params.getLastUpdatedDuration()));
-    }
-
-    if (params.hasLimit()) {
-      query.setMaxResults(params.getLimit());
-    }
-  }
-
-  // -------------------------------------------------------------------------
   // getDeflatedDataValues and related supportive methods
   // -------------------------------------------------------------------------
 
   @Override
-  public List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params) {
+  public List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params) {
     SqlHelper sqlHelper = new SqlHelper(true);
 
     StringBuilder sql = new StringBuilder();
@@ -504,7 +268,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   /** getDeflatedDataValues - Adds SELECT clause and starts FROM clause. */
-  private void getDdvSelectFrom(DataExportParams params, StringBuilder sql) {
+  private void getDdvSelectFrom(DataExportStoreParams params, StringBuilder sql) {
     sql.append(
             """
             select dv.dataelementid, dv.periodid, dv.sourceid, \
@@ -516,7 +280,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses data elements and data element operands. */
   private void getDdvDataElementsAndOperands(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     List<Long> deIds = new ArrayList<>();
     List<Long> cocIds = new ArrayList<>();
     getDdvDataElementLists(params, deIds, cocIds);
@@ -539,9 +303,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses periods. */
   private void getDdvPeriods(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasPeriods()) {
-      String periodIdList = getCommaDelimitedString(getIdentifiers(params.getPeriods()));
+      String periodIdList = getPeriodIds(params.getPeriods());
 
       where
           .append(sqlHelper.whereAnd())
@@ -572,7 +336,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'")
             .append(" and p.enddate <= '")
-            .append(DateUtils.toMediumDate(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getEndDate()))
             .append("'");
       } else if (params.hasIncludedDate()) {
         where
@@ -589,7 +353,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses organisation units. */
   private void getDdvOrgUnits(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.needsOrgUnitDetails()) {
       sql.append(" join organisationunit ou on ou.organisationunitid = dv.sourceid");
     }
@@ -604,7 +368,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     if (params.hasOrganisationUnits()) {
-      if (params.getOuMode() == DESCENDANTS) {
+      if (params.isIncludeDescendantsForOrganisationUnits()) {
         where.append(sqlHelper.whereAnd()).append("(");
 
         for (OrganisationUnit parent : params.getOrganisationUnits()) {
@@ -631,7 +395,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Chooses attribute option combinations. */
   private void getDdvAttributeOptionCombos(
-      DataExportParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasAttributeOptionCombos()) {
       String aocIdList = getCommaDelimitedString(getIdentifiers(params.getAttributeOptionCombos()));
 
@@ -645,7 +409,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds user dimension constraints. */
   private void getDdvDimensionConstraints(
-      DataExportParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasCogDimensionConstraints() || params.hasCoDimensionConstraints()) {
       sql.append(
           " join categoryoptioncombos_categoryoptions cc on dv.attributeoptioncomboid = cc.categoryoptioncomboid");
@@ -679,7 +443,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds LastUpdated constraint. */
   private void getDdvLastUpdated(
-      DataExportParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasLastUpdated()) {
       where
           .append(sqlHelper.whereAnd())
@@ -690,14 +454,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   /** getDeflatedDataValues - Adds deleted constraint. */
   private void getDdvIncludeDeleted(
-      DataExportParams params, StringBuilder where, SqlHelper sqlHelper) {
+      DataExportStoreParams params, StringBuilder where, SqlHelper sqlHelper) {
     if (!params.isIncludeDeleted()) {
       where.append(sqlHelper.whereAnd()).append("dv.deleted is false");
     }
   }
 
   /** getDeflatedDataValues - Adds ORDER BY. */
-  private void getDdvOrderBy(DataExportParams params, StringBuilder sql) {
+  private void getDdvOrderBy(DataExportStoreParams params, StringBuilder sql) {
     if (params.isOrderByOrgUnitPath()) {
       sql.append(" order by ou.path");
     }
@@ -719,7 +483,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
    * is populated.
    */
   private void getDdvDataElementLists(
-      DataExportParams params, List<Long> deIds, List<Long> cocIds) {
+      DataExportStoreParams params, List<Long> deIds, List<Long> cocIds) {
     // Get a collection of unique DataElement ids.
     Collection<Long> dataElementIds =
         union(
@@ -948,5 +712,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     DATA_ELEMENT,
     CATEGORY_OPTION_COMBO,
     ATTRIBUTE_OPTION_COMBO
+  }
+
+  private String getPeriodIds(Collection<Period> periods) {
+    return periods.stream()
+        .map(periodStore::reloadPeriod)
+        .filter(Objects::nonNull)
+        .map(Period::getId)
+        .map(String::valueOf)
+        .collect(joining(","));
   }
 }

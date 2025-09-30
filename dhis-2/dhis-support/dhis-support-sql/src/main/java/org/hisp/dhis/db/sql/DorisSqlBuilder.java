@@ -195,6 +195,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsUpdateForMultiKeyTable() {
+    return false;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
     return false;
   }

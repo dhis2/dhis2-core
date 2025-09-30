@@ -114,7 +114,7 @@ class ScheduleEventExecutorTest {
   @Test
   void shouldReturnWarningIfEventAlreadyExists() {
     when(validationEffect.data()).thenReturn("2025-12-01");
-    when(preheat.hasProgramStageWithEvents(any(MetadataIdentifier.class), anyString()))
+    when(preheat.hasProgramStageWithTrackerEvents(any(MetadataIdentifier.class), anyString()))
         .thenReturn(true);
 
     Optional<ProgramRuleIssue> result = executor.executeRuleAction(bundle, inputEvent);

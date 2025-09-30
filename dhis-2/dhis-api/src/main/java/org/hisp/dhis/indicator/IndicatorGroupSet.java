@@ -377,7 +377,7 @@ public class IndicatorGroupSet extends BaseMetadataObject implements Identifiabl
   }
 
   @JsonProperty("indicatorGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "indicatorGroups", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0)
   public List<IndicatorGroup> getMembers() {
