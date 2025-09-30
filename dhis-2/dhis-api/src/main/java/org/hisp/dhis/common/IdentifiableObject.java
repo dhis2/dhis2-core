@@ -56,16 +56,12 @@ public interface IdentifiableObject
   @JsonProperty
   String getDisplayName();
 
-  @JsonProperty
   Date getCreated();
 
-  @JsonProperty
   Date getLastUpdated();
 
-  @JsonProperty
   User getLastUpdatedBy();
 
-  @JsonProperty
   AttributeValues getAttributeValues();
 
   void setAttributeValues(AttributeValues attributeValues);
@@ -74,7 +70,6 @@ public interface IdentifiableObject
 
   void removeAttributeValue(String attributeId);
 
-  @JsonProperty
   Set<Translation> getTranslations();
 
   void setAccess(Access access);
@@ -84,7 +79,6 @@ public interface IdentifiableObject
   // -----------------------------------------------------------------------------
 
   /** Return User who created this object This field is immutable and must not be updated */
-  @JsonProperty
   User getCreatedBy();
 
   /**
@@ -92,7 +86,6 @@ public interface IdentifiableObject
    *     web api backward compatibility
    */
   @Deprecated
-  @JsonProperty
   User getUser();
 
   void setCreatedBy(User createdBy);
@@ -104,11 +97,9 @@ public interface IdentifiableObject
   @Deprecated
   void setUser(User user);
 
-  @JsonProperty
   Access getAccess();
 
   /** Return all sharing settings of current object */
-  @JsonProperty
   Sharing getSharing();
 
   void setSharing(Sharing sharing);
