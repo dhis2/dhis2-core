@@ -212,7 +212,7 @@ public class DataValueController {
       return new WebMessage(Status.OK, HttpStatus.ACCEPTED)
           .setResponse(new FileResourceWebMessageResponse(fr));
     } catch (Exception ex) {
-      // in case we fail to save the FR delete the DV as well
+      // in case we fail to save the FR => delete the DV as well
       deleteDataValue(
           DataValueQueryParams.builder().de(de).co(co).cc(cc).cp(cp).pe(pe).ou(ou).build(),
           ds,
