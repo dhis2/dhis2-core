@@ -68,9 +68,11 @@ class ColumnUtilsTest {
   @DisplayName("Should handle complex SQL column definitions")
   void shouldHandleComplexSqlColumns() {
     String input =
-        "djmkd_1.value as \"EPEcjy3FWmI[-1].lJTx9EZ1dk1\",\n"
-            + "coalesce(djmkd_1.rn = 2, false) as \"EPEcjy3FWmI[-1].lJTx9EZ1dk1.exists\",\n"
-            + "djmkd_1.eventstatus as \"EPEcjy3FWmI[-1].lJTx9EZ1dk1.status\"";
+        """
+           djmkd_1.value as "EPEcjy3FWmI[-1].lJTx9EZ1dk1",
+           coalesce(djmkd_1.rn = 2, false) as "EPEcjy3FWmI[-1].lJTx9EZ1dk1.exists",
+           djmkd_1.eventstatus as "EPEcjy3FWmI[-1].lJTx9EZ1dk1.status"
+           """;
 
     List<String> result = ColumnUtils.splitColumns(input);
 
