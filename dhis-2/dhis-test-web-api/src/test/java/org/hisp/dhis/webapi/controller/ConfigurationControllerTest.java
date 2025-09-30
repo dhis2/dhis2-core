@@ -139,7 +139,6 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
                 """
             {
                 'name': 'Infrastructural Indicators',
-                'shortName': 'INFR_IND_GRP',
                 'description': 'Group for infrastructural indicators',
                 'indicators': [
                     {'id': '%s'}
@@ -158,7 +157,6 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
     assertNotNull(indicatorGroup);
     assertEquals("Infrastructural Indicators", indicatorGroup.getString("name").string());
-    assertEquals("INFR_IND_GRP", indicatorGroup.getString("shortName").string());
     assertEquals("Group for infrastructural indicators", indicatorGroup.getString("description").string());
     assertEquals(indicatorGroupId, indicatorGroup.getString("id").string());
 
