@@ -44,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -195,15 +196,29 @@ public class DataValueController {
       @RequestParam(required = false) MultipartFile file)
       throws IOException, ConflictException, BadRequestException {
 
-    FileResource fr = null;
-    if (file != null) fr = fileResourceUtils.saveFileResource(file, FileResourceDomain.DATA_VALUE);
-
-    String value = fr == null ? "" /*=delete*/ : fr.getUid();
+    if (file == null) {
+      // "" as value => delete (old behaviour kept for backwards compatibility)
+      saveDataValue(de, co, cc, cp, pe, ou, ds, "", comment, followUp, force);
+      return new WebMessage(Status.OK, HttpStatus.ACCEPTED);
+    }
+    // value of the DV is the UID of the FR
+    String value = CodeGenerator.generateUid();
+    // save DV first as it might cause validation issue throwing an exception
     saveDataValue(de, co, cc, cp, pe, ou, ds, value, comment, followUp, force);
-
-    WebMessage response = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
-    if (fr != null) response.setResponse(new FileResourceWebMessageResponse(fr));
-    return response;
+    // if we make it here DV is saved, now save the FR
+    try {
+      FileResource fr =
+          fileResourceUtils.saveFileResource(value, file, FileResourceDomain.DATA_VALUE);
+      return new WebMessage(Status.OK, HttpStatus.ACCEPTED)
+          .setResponse(new FileResourceWebMessageResponse(fr));
+    } catch (Exception ex) {
+      // in case we fail to save the FR delete the DV as well
+      deleteDataValue(
+          DataValueQueryParams.builder().de(de).co(co).cc(cc).cp(cp).pe(pe).ou(ou).build(),
+          ds,
+          true);
+      throw ex;
+    }
   }
 
   // ---------------------------------------------------------------------
