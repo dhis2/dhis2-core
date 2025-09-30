@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -47,9 +46,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.OrderColumn;
-import org.hibernate.annotations.ListIndexBase;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,6 +58,7 @@ import java.util.Set;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -99,7 +98,8 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Entity
 @Table(name = "indicatorgroupset")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class IndicatorGroupSet extends BaseMetadataObject implements IdentifiableObject, MetadataObject {
+public class IndicatorGroupSet extends BaseMetadataObject
+    implements IdentifiableObject, MetadataObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -118,11 +118,9 @@ public class IndicatorGroupSet extends BaseMetadataObject implements Identifiabl
   @Column(columnDefinition = "text")
   private String description;
 
-  @Column
-  private Boolean compulsory = false;
+  @Column private Boolean compulsory = false;
 
-  @Embedded
-  private TranslationProperty translations = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @Type(type = "jsbAttributeValues")
   @AuditAttribute
@@ -134,9 +132,14 @@ public class IndicatorGroupSet extends BaseMetadataObject implements Identifiabl
   @OneToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "indicatorgroupsetmembers",
-      joinColumns = @JoinColumn(name = "indicatorgroupsetid", foreignKey = @ForeignKey(name = "fk_indicatorgroupsetmembers_indicatorgroupsetid")),
-      inverseJoinColumns = @JoinColumn(name = "indicatorgroupid", foreignKey = @ForeignKey(name = "fk_indicatorgroupset_indicatorgroupid"))
-  )
+      joinColumns =
+          @JoinColumn(
+              name = "indicatorgroupsetid",
+              foreignKey = @ForeignKey(name = "fk_indicatorgroupsetmembers_indicatorgroupsetid")),
+      inverseJoinColumns =
+          @JoinColumn(
+              name = "indicatorgroupid",
+              foreignKey = @ForeignKey(name = "fk_indicatorgroupset_indicatorgroupid")))
   @OrderColumn(name = "sort_order", nullable = false)
   @ListIndexBase(1)
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

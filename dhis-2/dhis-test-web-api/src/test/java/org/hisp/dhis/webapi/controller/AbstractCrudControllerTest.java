@@ -1998,8 +1998,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         PATCH(
             "/indicatorGroups/" + groupId,
             "[{'op': 'add', 'path': '/indicators/-', 'value': { 'id': '"
-            + indicator3Id
-            + "' } }]"));
+                + indicator3Id
+                + "' } }]"));
 
     // Verify all three indicators are now in the group
     JsonObject group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
@@ -2185,7 +2185,10 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             """));
 
     // Verify the indicator group set was created correctly
-    JsonObject indicatorGroupSet = GET("/indicatorGroupSets/" + indicatorGroupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject indicatorGroupSet =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId)
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
     assertNotNull(indicatorGroupSet);
     assertEquals("Test Indicator Group Set", indicatorGroupSet.getString("name").string());
     assertEquals("TIGS", indicatorGroupSet.getString("shortName").string());
@@ -2302,7 +2305,10 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     .formatted(indicatorGroup1Id, indicatorGroup2Id)));
 
     // Verify indicator group set has the members
-    JsonObject indicatorGroupSet = GET("/indicatorGroupSets/" + indicatorGroupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject indicatorGroupSet =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId)
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
     assertTrue(indicatorGroupSet.getBoolean("compulsory").booleanValue());
 
     JsonArray indicatorGroups = indicatorGroupSet.getArray("indicatorGroups");
@@ -2349,13 +2355,17 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     .formatted(attributeId)));
 
     // Verify attribute values and code
-    JsonObject indicatorGroupSet = GET("/indicatorGroupSets/" + indicatorGroupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonObject indicatorGroupSet =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId)
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
     assertEquals("IGS001", indicatorGroupSet.getString("code").string());
 
     JsonArray attributeValues = indicatorGroupSet.getArray("attributeValues");
     assertNotNull(attributeValues);
     assertEquals(1, attributeValues.size());
-    assertEquals("test igs attribute value", attributeValues.getObject(0).getString("value").string());
+    assertEquals(
+        "test igs attribute value", attributeValues.getObject(0).getString("value").string());
   }
 
   @Test
@@ -2396,13 +2406,17 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             """));
 
     // Verify translations were added
-    JsonArray translations = GET("/indicatorGroupSets/" + indicatorGroupSetId + "/translations").content().getArray("translations");
+    JsonArray translations =
+        GET("/indicatorGroupSets/" + indicatorGroupSetId + "/translations")
+            .content()
+            .getArray("translations");
     assertEquals(2, translations.size());
 
     // Check that translations include the expected locales
-    Set<String> locales = Set.of(
-        translations.get(0, JsonTranslation.class).getLocale(),
-        translations.get(1, JsonTranslation.class).getLocale());
+    Set<String> locales =
+        Set.of(
+            translations.get(0, JsonTranslation.class).getLocale(),
+            translations.get(1, JsonTranslation.class).getLocale());
     assertTrue(locales.contains("sv"));
     assertTrue(locales.contains("fr"));
   }
