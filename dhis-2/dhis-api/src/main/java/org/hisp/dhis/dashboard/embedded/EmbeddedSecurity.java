@@ -33,8 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 /**
  * Encapsulates security options for embedded dashboards.
@@ -43,7 +43,7 @@ import lombok.ToString;
  */
 @Getter
 @Setter
-@ToString
+@NoArgsConstructor
 @AllArgsConstructor
 public class EmbeddedSecurity implements Serializable {
   /** Indicates whether queries should be restricted to the user accessible org unit hierarchy. */
