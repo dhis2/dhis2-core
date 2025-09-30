@@ -161,7 +161,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
     String sql =
         useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params)
+            ? buildAnalyticsQuery(params, maxLimit)
             : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {

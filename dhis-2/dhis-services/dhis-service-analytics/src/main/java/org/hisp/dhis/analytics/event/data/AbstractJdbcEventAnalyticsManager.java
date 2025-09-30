@@ -1948,7 +1948,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams} to drive the query generation.
    * @return a complete SQL query string.
    */
-  String buildAnalyticsQuery(EventQueryParams params) {
+  String buildAnalyticsQuery(EventQueryParams params, int maxLimit) {
 
     // 1. Create the CTE context (collect all CTE definitions for program indicators, program
     // stages, etc.)
@@ -1980,7 +1980,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     addWhereClause(sb, params, cteContext);
 
     // 3.6: Append ORDER BY and paging
-    addSortingAndPaging(cteContext, sb, params);
+    addSortingAndPaging(cteContext, sb, params, maxLimit);
 
     if (needsOptimizedCtes(params, cteContext)) {
       // 3.7 : Add shadow CTEs for optimized query
@@ -2486,7 +2486,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   private void addSortingAndPaging(
-      CteContext cteContext, SelectBuilder builder, EventQueryParams params) {
+      CteContext cteContext, SelectBuilder builder, EventQueryParams params, int maxLimit) {
     if (params.isSorting()) {
       builder.orderBy(getCteAwareSortClause(cteContext, params));
     }
@@ -2494,10 +2494,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Paging with max limit of 5000
     if (params.isPaging()) {
       if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
+        builder.limitWithMax(params.getPageSizeWithDefault(), maxLimit).offset(params.getOffset());
       } else {
         builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
+            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), maxLimit)
             .offset(params.getOffset());
       }
     } else {
