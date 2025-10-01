@@ -45,36 +45,30 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 public class TrackerTest extends Simulation {
 
   public TrackerTest() {
-    String baseUrl = System.getProperty("instance", "http://localhost:8080");
     String repeat = System.getProperty("repeat", "100");
-    String pageSize = System.getProperty("pageSize");
     String program = System.getProperty("program", "VBqh0ynB2wv");
 
     HttpProtocolBuilder httpProtocolBuilder =
-        http.baseUrl(baseUrl)
+        http.baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .maxConnectionsPerHost(100)
             .basicAuth("admin", "district")
             .header("Content-Type", "application/json")
             .userAgentHeader("Gatling/Performance Test")
             .warmUp(
-                baseUrl
-                    + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
+                "http://localhost:8080/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
             .disableCaching(); // to repeat the same request without HTTP cache influence (304)
 
-    String singleEventQuery = "/api/tracker/events/#{eventUid}";
-    String relationshipQuery =
+    String singleEventUrl = "/api/tracker/events/#{eventUid}";
+    String relationshipUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
 
     // get a 100 requests per run irrespective of the response times so comparisons are likely
     // to be more accurate
-    String query =
+    String getEventsUrl =
         "/api/tracker/events?program="
             + program
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
-    if (pageSize != null) {
-      query = query + "&pageSize=" + pageSize;
-    }
 
     ScenarioBuilder scenario = scenario("Single Events");
 
@@ -83,21 +77,21 @@ public class TrackerTest extends Simulation {
             .repeat(Integer.parseInt(repeat))
             .on(
                 exec(http("Go to first page of program " + program)
-                        .get(query)
+                        .get(getEventsUrl)
                         .check(status().is(200)))
                     .exec(
                         http("Go to second page of program " + program)
-                            .get(query + "&page=2")
+                            .get(getEventsUrl + "&page=2")
                             .check(status().is(200)))
                     .exec(
                         http("Go back to first page of program " + program)
-                            .get(query)
+                            .get(getEventsUrl)
                             .check(status().is(200))
                             .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                    .exec(http("Get first event").get(singleEventQuery).check(status().is(200)))
+                    .exec(http("Get first event").get(singleEventUrl).check(status().is(200)))
                     .exec(
                         http("Get relationships for first event")
-                            .get(relationshipQuery)
+                            .get(relationshipUrl)
                             .check(status().is(200))));
 
     // only one user at a time
