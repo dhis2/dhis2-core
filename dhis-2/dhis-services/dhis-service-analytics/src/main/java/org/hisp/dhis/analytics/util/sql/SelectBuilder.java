@@ -735,6 +735,35 @@ public class SelectBuilder {
     return results;
   }
 
+  /**
+   * Internal helper method for adding columns with parsing of qualified names and aliases.
+   *
+   * <p>This method handles three scenarios:
+   *
+   * <ol>
+   *   <li>Columns with explicit aliases (e.g., "u.name AS user_name" or "COUNT(*) AS total")
+   *   <li>Qualified columns without aliases (e.g., "u.name" or "orders.total")
+   *   <li>Simple unqualified columns (e.g., "id" or "COUNT(*)")
+   * </ol>
+   *
+   * <p>The method attempts to parse the expression to extract:
+   *
+   * <ul>
+   *   <li>The column expression or name
+   *   <li>An optional table qualifier/prefix
+   *   <li>An optional alias
+   * </ul>
+   *
+   * <p>If parsing fails or the expression doesn't match expected patterns, the method falls back to
+   * using the provided {@code unqualifiedFactory} function to create a simple column.
+   *
+   * @param expression the column expression to parse and add (may include qualifier and/or alias)
+   * @param unqualifiedFactory a function to create a Column when the expression cannot be parsed as
+   *     a qualified or aliased column
+   * @return this builder instance for method chaining
+   * @see ColumnAliasUtils#parseSelectItem(String)
+   * @see ColumnAliasUtils#splitQualified(String)
+   */
   private SelectBuilder addColumnInternal(
       String expression, java.util.function.Function<String, Column> unqualifiedFactory) {
     // Try to parse as a select item to extract alias

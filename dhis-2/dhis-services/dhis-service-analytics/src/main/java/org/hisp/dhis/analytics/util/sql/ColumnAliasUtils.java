@@ -60,14 +60,16 @@ public class ColumnAliasUtils {
    */
   public static Optional<QualifiedRef> splitQualified(String columnRef) {
     Column col = parseColumnOrNull(columnRef);
-    if (col == null) return Optional.empty();
+    if (col == null) {
+      return Optional.empty();
+    }
 
     Table table = col.getTable();
-    String q = (table != null) ? table.getFullyQualifiedName() : null;
-    if (q == null || q.isBlank()) return Optional.empty();
+    String qualifier = (table != null) ? table.getFullyQualifiedName() : null;
+    if (qualifier == null || qualifier.isBlank()) return Optional.empty();
 
     // Preserve quotes in both qualifier and column name
-    return Optional.of(new QualifiedRef(q, col.getColumnName()));
+    return Optional.of(new QualifiedRef(qualifier, col.getColumnName()));
   }
 
   /**
@@ -129,7 +131,19 @@ public class ColumnAliasUtils {
     }
   }
 
+  /**
+   * Represents a fully qualified column reference, split into its qualifier and column name.
+   *
+   * @param qualifier the qualifier part of the column reference (table qualifier or alias)
+   * @param columnName the actual column name
+   */
   public record QualifiedRef(String qualifier, String columnName) {}
 
+  /**
+   * Represents a column expression along with its alias.
+   *
+   * @param columnExpression the column expression (could be qualified or a function)
+   * @param alias the alias assigned to the column expression
+   */
   public record AliasedColumn(String columnExpression, String alias) {}
 }
