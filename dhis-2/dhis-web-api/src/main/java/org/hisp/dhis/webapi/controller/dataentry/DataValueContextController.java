@@ -66,6 +66,9 @@ public class DataValueContextController {
 
   @GetMapping("/dataValueContext")
   public DataValueContextDto getChangeLog(DataValueQueryParams params) throws ConflictException {
+    // treat "" as null for CC + CP (this endpoint only for backwards compatibility)
+    if ("".equals(params.getCp())) params.setCp(null);
+    if ("".equals(params.getCc())) params.setCc(null);
 
     List<DataValueAuditEntry> audits = dataValueAuditService.getDataValueAudits(params);
 
@@ -82,7 +85,7 @@ public class DataValueContextController {
                 .orgUnit(Set.of(params.getOu()))
                 .categoryOptionCombo(Set.of(params.getCo()))
                 .attributeCombo(params.getCc())
-                .attributeOptions(Set.of(params.getCp().split(";")))
+                .attributeOptions(params.getCp() == null ? null : Set.of(params.getCp().split(";")))
                 .orderByPeriod(true)
                 .build(),
             Function.identity());
