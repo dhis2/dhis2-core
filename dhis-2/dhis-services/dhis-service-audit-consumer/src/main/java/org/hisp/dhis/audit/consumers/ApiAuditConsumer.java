@@ -25,50 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit;
+package org.hisp.dhis.audit.consumers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import javax.jms.TextMessage;
-import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Slf4j
-public abstract class AbstractAuditConsumer implements AuditConsumer {
-  protected AuditService auditService;
+@Component
+public class ApiAuditConsumer extends AbstractAuditConsumer {
+  public ApiAuditConsumer(
+      AuditService auditService, ObjectMapper objectMapper, DhisConfigurationProvider dhisConfig) {
+    this.auditService = auditService;
+    this.objectMapper = objectMapper;
 
-  protected ObjectMapper objectMapper;
+    this.isAuditLogEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_LOGGER);
+    this.isAuditDatabaseEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_DATABASE);
+  }
 
-  protected boolean isAuditLogEnabled;
-
-  protected boolean isAuditDatabaseEnabled;
-
-  protected void _consume(TextMessage message) {
-    try {
-      org.hisp.dhis.artemis.audit.Audit auditMessage =
-          objectMapper.readValue(message.getText(), org.hisp.dhis.artemis.audit.Audit.class);
-
-      if (auditMessage.getData() != null && !(auditMessage.getData() instanceof String)) {
-        auditMessage.setData(objectMapper.writeValueAsString(auditMessage.getData()));
-      }
-
-      org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
-
-      if (isAuditLogEnabled) {
-        log.info(objectMapper.writeValueAsString(audit));
-      }
-
-      if (isAuditDatabaseEnabled) {
-        auditService.addAudit(audit);
-      }
-    } catch (IOException e) {
-      log.error(
-          "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
-          e);
-    } catch (Exception e) {
-      log.error("An error occurred persisting an audit message", e);
-    }
+  @JmsListener(destination = Topics.API_TOPIC_NAME)
+  public void consume(TextMessage message) {
+    _consume(message);
   }
 }
