@@ -332,8 +332,8 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    @Timeout(5000)
-    void testRunRouteIsAudited() throws JsonProcessingException {
+    @Timeout(10)
+    void testRunRouteIsAudited() throws JsonProcessingException, InterruptedException {
       upstreamMockServerClient
           .when(request().withPath("/foo"))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
@@ -360,6 +360,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
       List<Map<String, Object>> auditEntries = Collections.EMPTY_LIST;
       while (auditEntries.isEmpty()) {
         auditEntries = jdbcTemplate.queryForList("SELECT * FROM audit ORDER BY createdAt DESC");
+        Thread.sleep(1000);
       }
       assertEquals("API", auditEntries.get(0).get("auditscope"));
       Map<String, String> auditEntry =
