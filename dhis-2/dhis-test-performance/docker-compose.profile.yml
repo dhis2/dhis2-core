@@ -1,0 +1,49 @@
+services:
+  web:
+    # Required for async-profiler to access perf_events
+    # See: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilingInContainer.md
+    cap_add:
+      - SYS_ADMIN # Access to performance counters
+    security_opt:
+      - seccomp:unconfined # Allow profiling syscalls
+    environment:
+      JAVA_OPTS:
+        "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
+        -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
+        -XX:+UnlockDiagnosticVMOptions \
+        -XX:+DebugNonSafepoints" # Accurate profiling at all code locations
+    volumes:
+        - async-profiler:/usr/local
+        - async-profiler-output:/profiler-output
+    ports:
+      - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
+    depends_on:
+      async-profiler-setup:
+        condition: service_completed_successfully
+
+  async-profiler-setup:
+    image: busybox
+    command: |
+      sh -c '
+        if [ ! -f /usr/local/bin/asprof ]; then
+          echo "Downloading async-profiler..."
+          wget -O /tmp/async-profiler.tar.gz https://github.com/async-profiler/async-profiler/releases/download/v4.0/async-profiler-4.0-linux-x64.tar.gz &&
+          mkdir -p /usr/local/bin /usr/local/lib &&
+          tar -xzf /tmp/async-profiler.tar.gz -C /tmp &&
+          cp /tmp/async-profiler-4.0-linux-x64/bin/* /usr/local/bin/ &&
+          cp /tmp/async-profiler-4.0-linux-x64/lib/* /usr/local/lib/ &&
+          chmod +x /usr/local/bin/asprof &&
+          chmod +x /usr/local/bin/jfrconv &&
+          echo "async-profiler installed to /usr/local"
+        else
+          echo "async-profiler already installed"
+        fi &&
+        chmod 777 /profiler-output
+      '
+    volumes:
+      - async-profiler:/usr/local
+      - async-profiler-output:/profiler-output
+
+volumes:
+  async-profiler: {}
+  async-profiler-output: {}
