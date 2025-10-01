@@ -31,12 +31,12 @@ package org.hisp.dhis.route;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hisp.dhis.audit.ApiAuditEntity;
+import org.hisp.dhis.audit.ApiAuditEntry;
 import org.hisp.dhis.audit.AuditAttribute;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class RouteRunApiAuditEntity extends ApiAuditEntity {
+public class RouteRunApiAuditEntry extends ApiAuditEntry {
 
   @AuditAttribute private String routeId;
 

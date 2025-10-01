@@ -33,9 +33,9 @@ import lombok.Data;
 
 @Data
 @Auditable(scope = AuditScope.API)
-public class ApiAuditEntity {
+public class ApiAuditEntry {
 
   @AuditAttribute private String source;
 
-  public ApiAuditEntity() {}
+  public ApiAuditEntry() {}
 }

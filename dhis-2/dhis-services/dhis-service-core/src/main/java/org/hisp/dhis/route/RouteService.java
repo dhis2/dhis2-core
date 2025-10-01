@@ -347,13 +347,14 @@ public class RouteService {
         Audit.builder()
             .auditScope(AuditScope.API)
             .createdBy(userDetails.getUsername())
-            .auditType(AuditType.SECURITY);
+            .auditType(AuditType.SECURITY)
+            .data("");
 
-    RouteRunApiAuditEntity routeRunAuditEntity = new RouteRunApiAuditEntity();
-    routeRunAuditEntity.setSource("Route Run");
-    routeRunAuditEntity.setRouteId(routeId);
-    routeRunAuditEntity.setHttpMethod(httpMethod.name());
-    routeRunAuditEntity.setUpstreamUrl(upstreamUrl);
+    RouteRunApiAuditEntry auditEntry = new RouteRunApiAuditEntry();
+    auditEntry.setSource("Route Run");
+    auditEntry.setRouteId(routeId);
+    auditEntry.setHttpMethod(httpMethod.name());
+    auditEntry.setUpstreamUrl(upstreamUrl);
 
     return responseSpec
         .toEntityFlux(DataBuffer.class)
@@ -362,32 +363,30 @@ public class RouteService {
             new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
         .doOnError(
             throwable -> {
-              routeRunAuditEntity.setSuccessful(false);
+              auditEntry.setSuccessful(false);
               AuditableEntity auditableEntity =
-                  new AuditableEntity(RouteRunApiAuditEntity.class, routeRunAuditEntity);
+                  new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
               Audit audit =
                   auditBuilder
                       .createdAt(LocalDateTime.now())
-                      .data("")
                       .attributes(
                           auditManager.collectAuditAttributes(
-                              routeRunAuditEntity, RouteRunApiAuditEntity.class))
+                              auditEntry, RouteRunApiAuditEntry.class))
                       .auditableEntity(auditableEntity)
                       .build();
               auditManager.send(audit);
             })
         .doOnSuccess(
             fluxResponseEntity -> {
-              routeRunAuditEntity.setSuccessful(true);
+              auditEntry.setSuccessful(true);
               AuditableEntity auditableEntity =
-                  new AuditableEntity(RouteRunApiAuditEntity.class, routeRunAuditEntity);
+                  new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
               Audit audit =
                   auditBuilder
                       .createdAt(LocalDateTime.now())
-                      .data("")
                       .attributes(
                           auditManager.collectAuditAttributes(
-                              routeRunAuditEntity, RouteRunApiAuditEntity.class))
+                              auditEntry, RouteRunApiAuditEntry.class))
                       .auditableEntity(auditableEntity)
                       .build();
               auditManager.send(audit);
