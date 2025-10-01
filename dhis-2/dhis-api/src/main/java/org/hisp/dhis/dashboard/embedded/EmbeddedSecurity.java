@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Encapsulates metadata for an embedded and externally provided dashboard.
+ * Encapsulates security options for embedded dashboards.
  *
  * @author Lars Helge Overland
  */
@@ -45,16 +45,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmbeddedDashboard implements Serializable {
-  /** Provider of embedded dashboards. */
-  @JsonProperty private EmbeddedProvider provider;
-
-  /** Identifier for embedded dashboard. */
-  @JsonProperty private String id;
-
-  /** Customization options for embedded dashboard. */
-  @JsonProperty private EmbeddedOptions options;
-
-  /** Security options for embedded dashboard. */
-  @JsonProperty private EmbeddedSecurity security;
+public class EmbeddedSecurity implements Serializable {
+  /** Indicates whether queries should be restricted to the user accessible org unit hierarchy. */
+  @JsonProperty private boolean restrictOrgUnitHierarchy;
 }
