@@ -34,7 +34,7 @@ import static java.util.function.Predicate.not;
 import java.util.List;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
@@ -112,8 +112,7 @@ public class SqlQueryCreatorService {
         .filter(not(DimensionIdentifier::hasLegendSet))
         .noneMatch(
             dimensionIdentifier ->
-                StringUtils.equalsIgnoreCase(
-                    dimensionIdentifier.toString(), parsedHeader.toString()));
+                Strings.CI.equals(dimensionIdentifier.toString(), parsedHeader.toString()));
   }
 
   private RenderableSqlQuery mergeQueries(
