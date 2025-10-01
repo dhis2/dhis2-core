@@ -1,11 +1,24 @@
 # Performance test workflow to compare a baseline against a candidate DHIS2 version
-# You can run the workflow using the GitHub CLI like so
+# You can run the workflow using the GitHub CLI like so:
+#
+# Basic example (required args only):
 # gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+#
+# With custom baseline:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
 # 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
 # 	--field dhis2_image_candidate="dhis2/core-dev:latest"
 #
-# To use a specific database version, provide both dump URL and matching image suffix:
+# With specific database version:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="2.42.2" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
 # 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
 # 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
 name: Performance tests
@@ -15,6 +28,10 @@ run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ i
 on:
   workflow_dispatch:
     inputs:
+      perf_tests_git_ref:
+        description: 'Git ref (tag/branch/commit) to checkout dhis2-core performance tests'
+        required: true
+        type: string
       simulation_class:
         description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
         required: true
@@ -57,6 +74,7 @@ jobs:
     - name: Checkout performance tests
       uses: actions/checkout@v5
       with:
+        ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |
           dhis-2/dhis-test-performance
 
