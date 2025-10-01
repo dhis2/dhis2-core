@@ -48,7 +48,8 @@ services:
     mem_limit: 16gb
     shm_size: 256mb
     volumes:
-      - ./docker/postgresql.conf:/etc/postgresql.conf
+      - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     environment:
       POSTGRES_USER: &postgres_user dhis
       POSTGRES_DB: &postgres_db dhis
