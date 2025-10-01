@@ -38,12 +38,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,10 +58,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class DataValueFileResourceControllerTest extends PostgresControllerIntegrationTestBase {
 
+  @Autowired private DataExportStore dataExportStore;
+
   private String pe;
   private String de;
   private String ou;
   private String coc;
+  private String ds;
 
   @BeforeEach
   void setUp() {
@@ -72,7 +77,7 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
     coc = ccDefault.getArray("categoryOptionCombos").getString(0).string();
     de = addDataElement("file data", "FDE1", ValueType.FILE_RESOURCE, null, cc);
     ou = addOrganisationUnit("OU1");
-    addDataSet("My DS", "MDS1", List.of(de), List.of(ou));
+    ds = addDataSet("My DS", "MDS1", List.of(de), List.of(ou));
     // add OU to users hierarchy
     assertStatus(
         HttpStatus.OK,
@@ -100,6 +105,24 @@ class DataValueFileResourceControllerTest extends PostgresControllerIntegrationT
             assertStatus(
                 HttpStatus.CREATED,
                 POST(format("/dataValues?de=%s&pe=%s&ou=%s&co=%s&value=", de, pe, ou, coc))));
+  }
+
+  @Test
+  void testFailedFileUploadDoesNotCreateDisconnectedRow() {
+    int frCountBefore = GET("/fileResources/gist").content().getArray("fileResources").size();
+    int dvCountBefore = dataExportStore.getAllDataValues().size();
+    String url =
+        format(
+            "/api/dataValues/file?ds=%s&de=%s&pe=%s&ou=%s&co=%s", ds, de, pe, "notAnOU7uid", coc);
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    // create the data value with a file resource that is cleared
+    assertStatus(HttpStatus.CONFLICT, POST_MULTIPART(url, image));
+    int frCountAfter = GET("/fileResources/gist").content().getArray("fileResources").size();
+    int dvCountAfter = dataExportStore.getAllDataValues().size();
+    assertEquals(frCountBefore, frCountAfter, "Failed upload left behind a file resource");
+    assertEquals(dvCountBefore, dvCountAfter, "Failed upload left behind a data value");
   }
 
   private void assertClearsFileResourceDataValue(Runnable clearRequest) {
