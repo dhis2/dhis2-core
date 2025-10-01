@@ -60,6 +60,7 @@ import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.user.SystemUser;
@@ -95,8 +96,8 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
         .limit(timeUnit)
         .forEach(
             x ->
-                periods.add(
-                    new MonthlyPeriodType().createPeriod(new DateTime(2014, x, 1, 0, 0).toDate())));
+                periods.add(new PeriodDimension(
+                    new MonthlyPeriodType().createPeriod(new DateTime(2014, x, 1, 0, 0).toDate()))));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -157,7 +158,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()));
+    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -203,7 +204,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()));
+    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -248,7 +249,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     // Set a period for a month with less then 30 days (Feb)
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(PeriodType.getPeriodFromIsoString("201902"));
+    periods.add(new PeriodDimension(PeriodType.getPeriodFromIsoString("201902")));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -297,7 +298,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     // Set a period for a month with more then 30 days (Jan)
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(PeriodType.getPeriodFromIsoString("201901"));
+    periods.add(new PeriodDimension(PeriodType.getPeriodFromIsoString("201901")));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 

@@ -62,8 +62,6 @@ public class VisualizationDeletionHandler
     whenDeleting(DataElement.class, this::deleteDataElement);
     whenDeleting(DataSet.class, this::deleteDataSet);
     whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
-    whenDeleting(Period.class, this::deletePeriod);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
     whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);

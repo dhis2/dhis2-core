@@ -54,6 +54,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -210,8 +211,8 @@ public class EventChartController extends AbstractCrudController<EventChart, Get
     I18nFormat format = i18nManager.getI18nFormat();
 
     if (eventChart.getPeriods() != null && !eventChart.getPeriods().isEmpty()) {
-      for (Period period : eventChart.getPeriods()) {
-        period.setName(format.formatPeriod(period));
+      for (PeriodDimension period : eventChart.getPeriods()) {
+        period.setName(format.formatPeriod(period.getPeriod()));
       }
     }
   }

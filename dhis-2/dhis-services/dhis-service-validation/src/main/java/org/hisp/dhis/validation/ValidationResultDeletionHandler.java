@@ -52,7 +52,6 @@ public class ValidationResultDeletionHandler extends DeletionHandler {
   @Override
   protected void register() {
     whenDeleting(ValidationRule.class, this::deleteValidationRule);
-    whenDeleting(Period.class, this::deletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
     whenVetoing(ValidationRule.class, this::allowDeleteValidationRule);
@@ -64,17 +63,6 @@ public class ValidationResultDeletionHandler extends DeletionHandler {
         .forEach(
             validationResult -> {
               if (validationResult.getValidationRule().equals(validationRule)) {
-                validationResultService.deleteValidationResult(validationResult);
-              }
-            });
-  }
-
-  private void deletePeriod(Period period) {
-    validationResultService
-        .getAllValidationResults()
-        .forEach(
-            validationResult -> {
-              if (validationResult.getPeriod().equals(period)) {
                 validationResultService.deleteValidationResult(validationResult);
               }
             });

@@ -81,6 +81,7 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.stereotype.Component;
@@ -555,7 +556,7 @@ public class DataValidationRunner {
           DataQueryParams.newBuilder()
               .withDataDimensionItems(Lists.newArrayList(analyticsItems))
               .withAttributeOptionCombos(Lists.newArrayList())
-              .withFilterPeriods(Lists.newArrayList(period))
+              .withFilterPeriods(List.of(new PeriodDimension(period)))
               .withOrganisationUnits(orgUnits);
 
       if (hasAttributeOptions) {

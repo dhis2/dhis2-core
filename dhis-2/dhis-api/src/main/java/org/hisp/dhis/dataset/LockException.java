@@ -71,10 +71,10 @@ public class LockException implements PrimaryKeyObject {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getName() {
     if (organisationUnit == null) {
-      return dataSet.getName() + " (" + period.getName() + ")";
+      return dataSet.getName() + " (" + period.getIsoDate() + ")";
     }
 
-    return dataSet.getName() + " (" + organisationUnit.getName() + ", " + period.getName() + ")";
+    return dataSet.getName() + " (" + organisationUnit.getName() + ", " + period.getIsoDate() + ")";
   }
 
   @Override

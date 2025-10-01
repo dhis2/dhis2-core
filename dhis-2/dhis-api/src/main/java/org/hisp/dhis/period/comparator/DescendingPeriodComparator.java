@@ -31,6 +31,7 @@ package org.hisp.dhis.period.comparator;
 
 import java.util.Comparator;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 /**
  * Sorts periods descending based on the end date, then the start date, i.e. the latest period comes
@@ -38,11 +39,11 @@ import org.hisp.dhis.period.Period;
  *
  * @author Lars Helge Overland
  */
-public class DescendingPeriodComparator implements Comparator<Period> {
+public class DescendingPeriodComparator implements Comparator<PeriodDimension> {
   public static final DescendingPeriodComparator INSTANCE = new DescendingPeriodComparator();
 
   @Override
-  public int compare(Period period1, Period period2) {
+  public int compare(PeriodDimension period1, PeriodDimension period2) {
     int endDateCompared = period2.getEndDate().compareTo(period1.getEndDate());
 
     if (endDateCompared != 0) {

@@ -55,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -677,17 +678,6 @@ public class DateUtils {
     cal.add(chronoUnit, addend);
 
     return cal.getTime();
-  }
-
-  /** Sets the name property of each period based on the given I18nFormat. */
-  public static List<Period> setNames(List<Period> periods, I18nFormat format) {
-    for (Period period : periods) {
-      if (period != null) {
-        period.setName(format.formatPeriod(period));
-      }
-    }
-
-    return periods;
   }
 
   /**

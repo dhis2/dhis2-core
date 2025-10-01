@@ -39,14 +39,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -59,7 +56,7 @@ import org.joda.time.Days;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement(localName = "period", namespace = DxfNamespaces.DXF_2_0)
-public class Period extends BaseDimensionalItemObject {
+public class Period {
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
   /**
@@ -94,50 +91,29 @@ public class Period extends BaseDimensionalItemObject {
     return (from == null || !sample.isBefore(from)) && (to == null || !sample.isAfter(to));
   }
 
+  @Getter
+  @Setter private long id;
+
   /** Required. */
+  @Setter
   private PeriodType periodType;
 
   /** Required. Must be unique together with endDate. */
+  @Setter
   private Date startDate;
 
   /** Required. Must be unique together with startDate. */
+  @Setter
   private Date endDate;
 
   /** Transient string holding the ISO representation of the period. */
-  private transient String isoPeriod;
-
-  /** date field this period refers to */
-  @Getter @Setter private transient String dateField;
+  private String isoPeriod;
 
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
 
   public Period() {}
-
-  /**
-   * Creates a period that is not bound to the persistent layer. It represents a detached Period
-   * that is mainly used for displaying purposes.
-   *
-   * @param isoRelativePeriod the ISO relative period
-   */
-  public Period(RelativePeriodEnum isoRelativePeriod) {
-    this.isoPeriod = isoRelativePeriod.toString();
-    this.name = isoRelativePeriod.toString();
-    this.code = isoRelativePeriod.toString();
-    this.setStartDate(new Date());
-    this.setEndDate(new Date());
-  }
-
-  public Period(Period period) {
-    this.id = period.getId();
-    this.periodType = period.getPeriodType();
-    this.startDate = period.getStartDate();
-    this.endDate = period.getEndDate();
-    this.name = period.getName();
-    this.isoPeriod = period.getIsoDate();
-    this.dateField = period.getDateField();
-  }
 
   protected Period(PeriodType periodType, Date startDate, Date endDate) {
     this.periodType = periodType;
@@ -155,38 +131,6 @@ public class Period extends BaseDimensionalItemObject {
 
   public Period next() {
     return periodType.getNextPeriod(this);
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void setAutoFields() {}
-
-  @Override
-  public String getDimensionItem() {
-    return getIsoDate();
-  }
-
-  @Override
-  public String getUid() {
-    return uid != null ? uid : getIsoDate();
-  }
-
-  @Override
-  public String getCode() {
-    return getIsoDate();
-  }
-
-  @Override
-  public String getName() {
-    return name != null ? name : getIsoDate();
-  }
-
-  @Override
-  public String getShortName() {
-    return shortName != null ? shortName : getIsoDate();
   }
 
   /**
@@ -305,42 +249,20 @@ public class Period extends BaseDimensionalItemObject {
     return getEndDate().after(period.getEndDate());
   }
 
-  // -------------------------------------------------------------------------
-  // DimensionalItemObject
-  // -------------------------------------------------------------------------
-
-  @Override
-  public DimensionItemType getDimensionItemType() {
-    return DimensionItemType.PERIOD;
-  }
-
-  // -------------------------------------------------------------------------
-  // hashCode, equals and toString
-  // -------------------------------------------------------------------------
-
   @Override
   public int hashCode() {
-    return Objects.hash(getIsoDate().hashCode(), dateField);
+    return getIsoDate().hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return this == obj || (obj instanceof Period period && objectEquals(period));
-  }
-
-  private boolean objectEquals(Period other) {
-    return Objects.equals(getIsoDate(), other.getIsoDate())
-        && Objects.equals(dateField, other.dateField);
+    return this == obj || (obj instanceof Period other && getIsoDate().equals(other.getIsoDate()));
   }
 
   @Override
   public String toString() {
-    return getIsoDate() + (isDefault() ? "" : ":" + dateField);
+    return getIsoDate();
   }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -348,18 +270,10 @@ public class Period extends BaseDimensionalItemObject {
     return startDate;
   }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getEndDate() {
     return endDate;
-  }
-
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
   }
 
   @JsonProperty
@@ -371,11 +285,5 @@ public class Period extends BaseDimensionalItemObject {
     return periodType;
   }
 
-  public void setPeriodType(PeriodType periodType) {
-    this.periodType = periodType;
-  }
 
-  public boolean isDefault() {
-    return Objects.isNull(dateField);
-  }
 }

@@ -44,6 +44,8 @@ import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.InternalHibernateGenericStoreImpl;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
@@ -76,7 +78,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @Repository
 @Slf4j
-public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Period>
+public class HibernatePeriodStore extends HibernateGenericStore<Period>
     implements PeriodStore {
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
@@ -87,12 +89,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
       EntityManager entityManager,
       DataSource dataSource,
       JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Period.class, aclService, false);
+      ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Period.class, false);
     this.dataSource = dataSource;
-
-    transientIdentifiableProperties = true;
   }
 
   @Override
@@ -114,7 +113,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
    * transaction context.
    */
   @Override
-  public void save(@Nonnull Period period, @Nonnull UserDetails userDetails, boolean clearSharing) {
+  public void save(Period period) {
     String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
     String sql2 =
         """
@@ -153,11 +152,6 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
             .setParameter("iso", isoDate)
             .executeUpdate();
     if (deleted > 0) periodIdByIsoPeriod.remove(isoDate);
-  }
-
-  @Override
-  public void update(@Nonnull Period object, @Nonnull UserDetails userDetails) {
-    throw new UnsupportedOperationException("Periods are never updated.");
   }
 
   @Override

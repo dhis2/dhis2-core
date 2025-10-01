@@ -335,14 +335,10 @@ public abstract class PeriodType implements Serializable {
     Period period;
 
     if (optional.isPresent()) {
-      period = optional.get();
-      period.setDateField(null);
-
       return optional.get();
-    } else {
-      period = createPeriod(date, getCalendar());
-      PERIOD_CACHE.put(getCacheKey(date), period);
     }
+    period = createPeriod(date, getCalendar());
+    PERIOD_CACHE.put(getCacheKey(date), period);
 
     return period;
   }
@@ -381,14 +377,10 @@ public abstract class PeriodType implements Serializable {
     Period period;
 
     if (optional.isPresent()) {
-      period = optional.get();
-      period.setDateField(null);
-
       return optional.get();
-    } else {
-      period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
-      PERIOD_CACHE.put(getCacheKey(calendar, date), period);
     }
+    period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
+    PERIOD_CACHE.put(getCacheKey(calendar, date), period);
 
     return period;
   }

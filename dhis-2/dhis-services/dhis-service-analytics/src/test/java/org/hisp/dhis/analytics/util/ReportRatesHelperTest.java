@@ -39,6 +39,7 @@ import java.util.List;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 
@@ -119,11 +120,11 @@ class ReportRatesHelperTest {
     assertThat(actualResult, is(60.0d));
   }
 
-  public Period stubPeriod() {
+  public PeriodDimension stubPeriod() {
     Period p = new Period();
     p.setStartDate(new Date());
     p.setEndDate(new Date());
     p.setPeriodType(DailyPeriodType.getByNameIgnoreCase("daily"));
-    return p;
+    return new PeriodDimension(p);
   }
 }

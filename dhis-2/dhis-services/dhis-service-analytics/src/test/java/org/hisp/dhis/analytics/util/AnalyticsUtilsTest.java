@@ -95,6 +95,7 @@ import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialNovemberPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -745,10 +746,7 @@ class AnalyticsUtilsTest extends TestBase {
 
   @Test
   void testIsPeriodInPeriods() {
-    Period p1 = PeriodType.getPeriodFromIsoString("202001");
-    Period p2 = PeriodType.getPeriodFromIsoString("202002");
-    Period p3 = PeriodType.getPeriodFromIsoString("202003");
-    List<DimensionalItemObject> periods = List.of(p1, p2, p3);
+    List<PeriodDimension> periods = createPeriodDimensions("202001", "202002", "202003");
     assertTrue(AnalyticsUtils.isPeriodInPeriods("202001", periods));
     assertFalse(AnalyticsUtils.isPeriodInPeriods("202005", periods));
   }

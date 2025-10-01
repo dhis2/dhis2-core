@@ -69,6 +69,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -345,7 +346,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (isNotEmpty(params.getPeriods())) {
       for (DimensionalItemObject item : params.getPeriods()) {
-        Period period = (Period) item;
+        PeriodDimension period = (PeriodDimension) item;
 
         DataQueryParams query =
             DataQueryParams.newBuilder(params)
@@ -360,7 +361,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
         queries.add(query);
       }
     } else if (isNotEmpty(params.getFilterPeriods())) {
-      Period period = (Period) params.getFilterPeriods().get(0);
+      PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
 
       DataQueryParams query =
           DataQueryParams.newBuilder(params)
@@ -676,7 +677,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (params.isFirstOrLastOrLastInPeriodAggregationType() && isNotEmpty(params.getPeriods())) {
       for (DimensionalItemObject period : params.getPeriods()) {
-        String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+        String periodType = ((PeriodDimension) period).getPeriodType().getName().toLowerCase();
 
         DataQueryParams query =
             DataQueryParams.newBuilder(params)

@@ -49,6 +49,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.CalendarPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -59,10 +60,10 @@ import org.junit.jupiter.api.Test;
 class PeriodOffsetUtilsTest {
   @Test
   void verifyAddShiftedPeriods() {
-    Period month1 = createMonthlyPeriod(2020, 1);
-    Period month2 = createMonthlyPeriod(2020, 2);
-    Period month3 = createMonthlyPeriod(2020, 3);
-    Period q1 = createQuarterPeriod(2020, 1);
+    PeriodDimension month1 = createMonthlyPeriod(2020, 1);
+    PeriodDimension month2 = createMonthlyPeriod(2020, 2);
+    PeriodDimension month3 = createMonthlyPeriod(2020, 3);
+    PeriodDimension q1 = createQuarterPeriod(2020, 1);
     DataElement dataElement = createDataElement(-1);
     DataQueryParams queryParams =
         DataQueryParams.newBuilder()
@@ -78,8 +79,8 @@ class PeriodOffsetUtilsTest {
 
   @Test
   void verifyAddShiftedPeriodsWithNothingShifted() {
-    Period month1 = createMonthlyPeriod(2020, 1);
-    Period q1 = createQuarterPeriod(2020, 1);
+    PeriodDimension month1 = createMonthlyPeriod(2020, 1);
+    PeriodDimension q1 = createQuarterPeriod(2020, 1);
     DataElement dataElement = createDataElement(0);
     DataQueryParams queryParams =
         DataQueryParams.newBuilder()
@@ -94,17 +95,17 @@ class PeriodOffsetUtilsTest {
 
   @Test
   void verifyShiftPeriod() {
-    Period p1 = PeriodOffsetUtils.shiftPeriod(createMonthlyPeriod(2020, 1), 12);
+    Period p1 = PeriodOffsetUtils.shiftPeriod(createMonthlyPeriod(2020, 1), 12).getPeriod();
     assertThat(p1.getIsoDate(), is("202101"));
-    Period p2 = PeriodOffsetUtils.shiftPeriod(createQuarterPeriod(2020, 1), 12);
+    Period p2 = PeriodOffsetUtils.shiftPeriod(createQuarterPeriod(2020, 1), 12).getPeriod();
     assertThat(p2.getIsoDate(), is("2023Q1"));
-    Period p3 = PeriodOffsetUtils.shiftPeriod(createWeeklyType(2020, 5, 1), 2);
+    Period p3 = PeriodOffsetUtils.shiftPeriod(createWeeklyType(2020, 5, 1), 2).getPeriod();
     assertThat(p3.getIsoDate(), is("2020W20"));
-    Period p4 = PeriodOffsetUtils.shiftPeriod(createMonthlyPeriod(2020, 1), -12);
+    Period p4 = PeriodOffsetUtils.shiftPeriod(createMonthlyPeriod(2020, 1), -12).getPeriod();
     assertThat(p4.getIsoDate(), is("201901"));
-    Period p5 = PeriodOffsetUtils.shiftPeriod(createQuarterPeriod(2020, 1), -12);
+    Period p5 = PeriodOffsetUtils.shiftPeriod(createQuarterPeriod(2020, 1), -12).getPeriod();
     assertThat(p5.getIsoDate(), is("2017Q1"));
-    Period p6 = PeriodOffsetUtils.shiftPeriod(createWeeklyType(2020, 5, 1), -2);
+    Period p6 = PeriodOffsetUtils.shiftPeriod(createWeeklyType(2020, 5, 1), -2).getPeriod();
     assertThat(p6.getIsoDate(), is("2020W16"));
   }
 
@@ -143,23 +144,23 @@ class PeriodOffsetUtilsTest {
 
   private void assertIsoPeriodsInOrder(List<DimensionalItemObject> periods, String... isoPeriod) {
     List<String> isoPeriods =
-        periods.stream().map(dim -> (Period) dim).map(Period::getIsoDate).toList();
+        periods.stream().map(dim -> (PeriodDimension) dim).map(PeriodDimension::getIsoDate).toList();
     assertThat(isoPeriods, is(Arrays.asList(isoPeriod)));
   }
 
-  private Period createMonthlyPeriod(int year, int month) {
+  private PeriodDimension createMonthlyPeriod(int year, int month) {
     CalendarPeriodType periodType = new MonthlyPeriodType();
-    return periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate());
+    return new PeriodDimension(periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
   }
 
-  private Period createQuarterPeriod(int year, int month) {
+  private PeriodDimension createQuarterPeriod(int year, int month) {
     CalendarPeriodType periodType = new QuarterlyPeriodType();
-    return periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate());
+    return new PeriodDimension(periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
   }
 
-  private Period createWeeklyType(int year, int month, int day) {
+  private PeriodDimension createWeeklyType(int year, int month, int day) {
     CalendarPeriodType periodType = new WeeklyPeriodType();
-    return periodType.createPeriod(new DateTime(year, month, day, 0, 0).toDate());
+    return new PeriodDimension(periodType.createPeriod(new DateTime(year, month, day, 0, 0).toDate()));
   }
 
   private DataElement createDataElement(int offset) {

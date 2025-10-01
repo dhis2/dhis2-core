@@ -45,7 +45,6 @@ public class DataValueAuditDeletionHandler extends JdbcDeletionHandler {
   @Override
   protected void register() {
     whenVetoing(DataElement.class, this::allowDeleteDataElement);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
     whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
   }
@@ -53,11 +52,6 @@ public class DataValueAuditDeletionHandler extends JdbcDeletionHandler {
   private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
     String sql = "select 1 from datavalueaudit where dataelementid=:id limit 1";
     return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
-  }
-
-  private DeletionVeto allowDeletePeriod(Period period) {
-    String sql = "select 1 from datavalueaudit where periodid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
   }
 
   private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {

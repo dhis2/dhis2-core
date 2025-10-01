@@ -48,7 +48,6 @@ public class DataValueDeletionHandler extends JdbcDeletionHandler {
   @Override
   protected void register() {
     whenVetoing(DataElement.class, this::allowDeleteDataElement);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
     whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
   }
@@ -58,11 +57,6 @@ public class DataValueDeletionHandler extends JdbcDeletionHandler {
         VETO,
         "select 1 from datavalue where dataelementid=:id limit 1",
         Map.of("id", dataElement.getId()));
-  }
-
-  private DeletionVeto allowDeletePeriod(Period period) {
-    return vetoIfExists(
-        VETO, "select 1 from datavalue where periodid=:id limit 1", Map.of("id", period.getId()));
   }
 
   private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {

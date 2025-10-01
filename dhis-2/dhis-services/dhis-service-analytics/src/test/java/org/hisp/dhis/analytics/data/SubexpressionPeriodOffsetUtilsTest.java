@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,14 +78,10 @@ class SubexpressionPeriodOffsetUtilsTest {
   private final SubexpressionDimensionItem subExpr =
       new SubexpressionDimensionItem(expression, items, null);
 
-  private final Period periodA = createPeriod("202309");
-
-  private final Period periodB = createPeriod("202310");
-
   private final DataQueryParams params =
       DataQueryParams.newBuilder()
           .withPeriodType("monthly")
-          .withPeriods(List.of(periodA, periodB))
+          .withPeriods(createPeriodDimensions("202309", "202310" ))
           .addDimension(
               new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, getList(subExpr)))
           .build();

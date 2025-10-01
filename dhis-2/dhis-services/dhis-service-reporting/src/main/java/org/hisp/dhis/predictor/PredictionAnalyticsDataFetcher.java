@@ -54,6 +54,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -163,7 +164,7 @@ public class PredictionAnalyticsDataFetcher {
 
     DataQueryParams.Builder paramsBuilder =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
+            .withPeriods(periods.stream().map(PeriodDimension::new).toList())
             .withDataDimensionItems(Lists.newArrayList(dimensionItems))
             .withOrganisationUnits(orgUnits);
 

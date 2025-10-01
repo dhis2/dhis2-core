@@ -50,6 +50,7 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
 import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -89,6 +90,7 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
@@ -594,7 +596,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withPeriods(List.of(createPeriod("202201")), PeriodTypeEnum.MONTHLY.getName())
+            .withPeriods(createPeriodDimensions("202201"), PeriodTypeEnum.MONTHLY.getName())
             .addDimension(
                 new BaseDimensionalObject(
                     "jkYhtGth12t",
@@ -637,7 +639,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     piA.setUid("CCKx3gllb2P");
 
     OrganisationUnit ouA = createOrganisationUnit('A');
-    Period peA = PeriodType.getPeriodFromIsoString("201501");
+    List<PeriodDimension> periods = createPeriodDimensions("201501");
 
     DataElement deA = createDataElement('A');
     deA.setUid("ZE4cgllb2P");
@@ -656,9 +658,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
                 new BaseDimensionalObject(
                     ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
             .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, getList(peA)))
+                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, periods))
             .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, periods))
             .build();
 
     EventQueryParams.Builder eventQueryParamsBuilder =

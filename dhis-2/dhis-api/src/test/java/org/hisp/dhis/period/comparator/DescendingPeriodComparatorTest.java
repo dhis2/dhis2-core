@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,25 +47,25 @@ class DescendingPeriodComparatorTest {
 
   @Test
   void testSort() {
-    Period m03 = MonthlyPeriodType.getPeriodFromIsoString("201603");
-    Period m04 = MonthlyPeriodType.getPeriodFromIsoString("201604");
-    Period m05 = MonthlyPeriodType.getPeriodFromIsoString("201605");
-    Period m06 = MonthlyPeriodType.getPeriodFromIsoString("201606");
-    List<Period> periods = Lists.newArrayList(m04, m03, m06, m05);
-    List<Period> expected = Lists.newArrayList(m06, m05, m04, m03);
-    List<Period> sortedPeriods =
+    PeriodDimension m03 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201603"));
+    PeriodDimension m04 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201604"));
+    PeriodDimension m05 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201605"));
+    PeriodDimension m06 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201606"));
+    List<PeriodDimension> periods = Lists.newArrayList(m04, m03, m06, m05);
+    List<PeriodDimension> expected = Lists.newArrayList(m06, m05, m04, m03);
+    List<PeriodDimension> sortedPeriods =
         periods.stream().sorted(new DescendingPeriodComparator()).collect(Collectors.toList());
     assertEquals(expected, sortedPeriods);
   }
 
   @Test
   void testMin() {
-    Period m03 = MonthlyPeriodType.getPeriodFromIsoString("201603");
-    Period m04 = MonthlyPeriodType.getPeriodFromIsoString("201604");
-    Period m05 = MonthlyPeriodType.getPeriodFromIsoString("201605");
-    Period m06 = MonthlyPeriodType.getPeriodFromIsoString("201606");
-    List<Period> periods = Lists.newArrayList(m04, m03, m06, m05);
-    Optional<Period> latest = periods.stream().min(DescendingPeriodComparator.INSTANCE);
+    PeriodDimension m03 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201603"));
+    PeriodDimension m04 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201604"));
+    PeriodDimension m05 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201605"));
+    PeriodDimension m06 = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201606"));
+    List<PeriodDimension> periods = Lists.newArrayList(m04, m03, m06, m05);
+    Optional<PeriodDimension> latest = periods.stream().min(DescendingPeriodComparator.INSTANCE);
     assertEquals(m06, latest.get());
   }
 }

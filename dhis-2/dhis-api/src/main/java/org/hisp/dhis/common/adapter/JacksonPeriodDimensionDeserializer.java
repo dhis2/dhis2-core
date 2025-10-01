@@ -27,28 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.common.adapter;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
+
+import lombok.Setter;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodType;
 
-/**
- * @author Stian Sandvold
- */
-@Component
-public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(DataInputPeriod.class);
+@Setter
+class LocalPeriodDimension {
+  private String id;
 
-  @Override
-  protected void register() {
-    whenVetoing(Period.class, this::allowDeletePeriod);
+  private String name;
+
+  LocalPeriodDimension() {}
+
+  @JsonProperty
+  public String getId() {
+    return id;
   }
 
-  private DeletionVeto allowDeletePeriod(Period period) {
-    String sql = "select 1 from datainputperiod where periodid= :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
+}
+
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public class JacksonPeriodDimensionDeserializer extends JsonDeserializer<PeriodDimension> {
+  @Override
+  public PeriodDimension deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    LocalPeriodDimension period = jp.readValueAs(LocalPeriodDimension.class);
+    if (period.getId() == null) return null;
+
+    PeriodDimension res = new PeriodDimension(PeriodType.getPeriodFromIsoString(period.getId()));
+    res.setName(period.getName());
+    return res;
   }
 }

@@ -64,6 +64,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -226,8 +227,8 @@ public class MapController extends AbstractCrudController<Map, GetObjectListPara
       }
 
       if (view.getPeriods() != null && !view.getPeriods().isEmpty()) {
-        for (Period period : view.getPeriods()) {
-          period.setName(format.formatPeriod(period));
+        for (PeriodDimension period : view.getPeriods()) {
+          period.setName(format.formatPeriod(period.getPeriod()));
         }
       }
 

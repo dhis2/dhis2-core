@@ -105,6 +105,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -192,7 +193,7 @@ public class DimensionalObjectProvider {
    * @return a period based instance of {@link BaseDimensionalObject}.
    */
   public DimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
-    List<Period> periods = new ArrayList<>();
+    List<PeriodDimension> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
     AnalyticsFinancialYearStartKey financialYearStart =
         settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
@@ -210,7 +211,7 @@ public class DimensionalObjectProvider {
         Period period = getPeriodFromIsoString(isoPeriodHolder.getIsoPeriod());
 
         if (period != null) {
-          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, period);
+          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, new PeriodDimension(period));
         } else {
           addDailyPeriods(periods, dimensionalKeywords, isoPeriodHolder);
         }
@@ -237,14 +238,14 @@ public class DimensionalObjectProvider {
    * @param isoPeriodHolder the object where the ISO period and dates will be extracted from.
    */
   private void addDailyPeriods(
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       IsoPeriodHolder isoPeriodHolder) {
-    Optional<Period> optionalPeriod = isoPeriodHolder.toDailyPeriod();
+    Optional<PeriodDimension> optionalPeriod = isoPeriodHolder.toDailyPeriod();
 
     if (optionalPeriod.isPresent()) {
       I18nFormat format = i18nManager.getI18nFormat();
-      Period periodToAdd = optionalPeriod.get();
+      PeriodDimension periodToAdd = optionalPeriod.get();
       String startDate = format.formatDate(periodToAdd.getStartDate());
       String endDate = format.formatDate(periodToAdd.getEndDate());
 
@@ -268,10 +269,10 @@ public class DimensionalObjectProvider {
    * @param period the object to be set accordingly to the given isoPeriodHolder
    */
   private void addDatePeriods(
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       IsoPeriodHolder isoPeriodHolder,
-      Period period) {
+      PeriodDimension period) {
     I18nFormat format = i18nManager.getI18nFormat();
     I18n i18n = i18nManager.getI18n();
 
@@ -283,7 +284,7 @@ public class DimensionalObjectProvider {
     dimensionalKeywords.addKeyword(
         isoPeriodHolder.getIsoPeriod(),
         format != null
-            ? i18n.getString(format.formatPeriod(period))
+            ? i18n.getString(format.formatPeriod(period.getPeriod()))
             : isoPeriodHolder.getIsoPeriod());
 
     periods.add(period);
@@ -301,7 +302,7 @@ public class DimensionalObjectProvider {
    */
   private void addRelativePeriods(
       DateField relativePeriodDate,
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       AnalyticsFinancialYearStartKey financialYearStart,
       IsoPeriodHolder isoPeriodHolder) {
@@ -312,7 +313,7 @@ public class DimensionalObjectProvider {
     dimensionalKeywords.addKeyword(
         isoPeriodHolder.getIsoPeriod(), i18n.getString(isoPeriodHolder.getIsoPeriod()));
 
-    List<Period> relativePeriods =
+    List<PeriodDimension> relativePeriods =
         getRelativePeriodsFromEnum(
             relativePeriod, relativePeriodDate, format, true, financialYearStart);
 
@@ -332,18 +333,18 @@ public class DimensionalObjectProvider {
    * @param periods the {@link List} of {@link Period}s to be overridden.
    * @param calendar the base calendar where the period identifier will be extracted from.
    */
-  private void overridePeriodAttributes(List<Period> periods, Calendar calendar) {
+  private void overridePeriodAttributes(List<PeriodDimension> periods, Calendar calendar) {
     I18nFormat format = i18nManager.getI18nFormat();
 
-    for (Period period : periods) {
-      String name = format != null ? format.formatPeriod(period) : null;
-      String shortName = format != null ? format.formatPeriod(period, true) : null;
+    for (PeriodDimension period : periods) {
+      String name = format != null ? format.formatPeriod(period.getPeriod()) : null;
+      String shortName = format != null ? format.formatPeriod(period.getPeriod(), true) : null;
 
       period.setName(name);
       period.setShortName(shortName);
 
       if (!calendar.isIso8601()) {
-        period.setUid(getLocalPeriodIdentifier(period, calendar));
+        period.setUid(getLocalPeriodIdentifier(period.getPeriod(), calendar));
       }
     }
   }

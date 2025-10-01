@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -98,6 +100,7 @@ class AnalyticsControllerTest {
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @BeforeEach
+  @SuppressWarnings("unchecked")
   public void setUp() {
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
@@ -112,10 +115,10 @@ class AnalyticsControllerTest {
 
               when(period.getDimensionType()).thenReturn(DimensionType.PERIOD);
 
-              when(period.getItems())
-                  .thenReturn(
-                      ((List<String>) invocation.getArguments()[0])
-                          .stream().map(TestBase::createPeriod).collect(toList()));
+              List<PeriodDimension> periods =
+                  TestBase.createPeriodDimensions(
+                      ((List<String>) invocation.getArguments()[0]).toArray(String[]::new));
+              when(period.getItems()).thenReturn((List) periods);
 
               return period;
             });

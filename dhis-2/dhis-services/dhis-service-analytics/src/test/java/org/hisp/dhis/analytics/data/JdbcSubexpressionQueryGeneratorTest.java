@@ -61,6 +61,7 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -96,7 +97,7 @@ class JdbcSubexpressionQueryGeneratorTest {
   void testGetSql() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
-    Period peA = createPeriod("202305");
+    PeriodDimension peA = new PeriodDimension(createPeriod("202305"));
 
     QueryModifiers queryModsMin = QueryModifiers.builder().aggregationType(MIN).build();
 
@@ -173,7 +174,7 @@ class JdbcSubexpressionQueryGeneratorTest {
   void testGetSql_withPeriodOffset() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
-    Period peA = createPeriod("202305");
+    PeriodDimension peA = new PeriodDimension(createPeriod("202305"));
 
     QueryModifiers queryModsMin = QueryModifiers.builder().periodOffset(-1).build();
 

@@ -53,6 +53,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.joda.time.DateTime;
@@ -207,7 +208,7 @@ public class IdentifiableObjectUtils {
     List<String> localIdentifiers = new ArrayList<>();
 
     for (IdentifiableObject object : periods) {
-      Period period = (Period) object;
+      PeriodDimension period = (PeriodDimension) object;
       DateTimeUnit dateTimeUnit = calendar.fromIso(period.getStartDate());
       localIdentifiers.add(period.getPeriodType().getIsoDate(dateTimeUnit));
     }

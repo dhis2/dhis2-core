@@ -202,7 +202,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
     return "[Org unit: "
         + organisationUnit.getUid()
         + ", period: "
-        + period.getUid()
+        + period.getIsoDate()
         + ", validation rule: "
         + validationRule.getUid()
         + "("

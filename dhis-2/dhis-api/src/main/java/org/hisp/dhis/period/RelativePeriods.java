@@ -334,7 +334,7 @@ public class RelativePeriods implements Serializable {
   }
 
   /** Gets a list of Periods relative to current date. */
-  public List<Period> getRelativePeriods() {
+  public List<PeriodDimension> getRelativePeriods() {
     return getRelativePeriods((Date) null, null, false, FINANCIAL_YEAR_OCTOBER);
   }
 
@@ -345,7 +345,7 @@ public class RelativePeriods implements Serializable {
    * @param format the i18n format.
    * @return a list of relative Periods.
    */
-  public List<Period> getRelativePeriods(I18nFormat format, boolean dynamicNames) {
+  public List<PeriodDimension> getRelativePeriods(I18nFormat format, boolean dynamicNames) {
     return getRelativePeriods((Date) null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER);
   }
 
@@ -359,7 +359,7 @@ public class RelativePeriods implements Serializable {
    *     and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
    * @return a list of relative Periods.
    */
-  public List<Period> getRelativePeriods(
+  public List<PeriodDimension> getRelativePeriods(
       Date date,
       I18nFormat format,
       boolean dynamicNames,
@@ -378,7 +378,7 @@ public class RelativePeriods implements Serializable {
    *     and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
    * @return a list of relative Periods.
    */
-  public List<Period> getRelativePeriods(
+  public List<PeriodDimension> getRelativePeriods(
       DateField dateField,
       I18nFormat format,
       boolean dynamicNames,
@@ -386,7 +386,7 @@ public class RelativePeriods implements Serializable {
 
     dateField = DateField.withDefaultsIfNecessary(dateField);
 
-    List<Period> periods = new ArrayList<>();
+    List<PeriodDimension> periods = new ArrayList<>();
 
     if (isThisFinancialPeriod()) {
       FinancialPeriodType financialPeriodType = financialYearStart.getFinancialPeriodType();
@@ -779,10 +779,10 @@ public class RelativePeriods implements Serializable {
    * @param format the i18n format.
    * @return a list of relative Periods.
    */
-  private List<Period> getRelativeFinancialPeriods(
+  private List<PeriodDimension> getRelativeFinancialPeriods(
       FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames) {
     DateField dateField = DateField.withDefaults();
-    List<Period> periods = new ArrayList<>();
+    List<PeriodDimension> periods = new ArrayList<>();
 
     if (isThisFinancialYear()) {
       periods.add(
@@ -839,14 +839,14 @@ public class RelativePeriods implements Serializable {
    * @param format the I18nFormat.
    * @return a list of periods.
    */
-  private List<Period> getRelativePeriodList(
+  private List<PeriodDimension> getRelativePeriodList(
       CalendarPeriodType periodType,
       List<String> periodNames,
       Date date,
       boolean dynamicNames,
       I18nFormat format) {
     return getRelativePeriodList(
-        periodType.generatePeriods(date), periodNames, dynamicNames, format);
+        periodType.generatePeriods(date).stream().map(PeriodDimension::new).toList(), periodNames, dynamicNames, format);
   }
 
   /**
@@ -860,14 +860,14 @@ public class RelativePeriods implements Serializable {
    * @param format the I18nFormat.
    * @return a list of periods.
    */
-  private List<Period> getRollingRelativePeriodList(
+  private List<PeriodDimension> getRollingRelativePeriodList(
       CalendarPeriodType periodType,
       List<String> periodNames,
       Date date,
       boolean dynamicNames,
       I18nFormat format) {
     return getRelativePeriodList(
-        periodType.generateRollingPeriods(date), periodNames, dynamicNames, format);
+        periodType.generateRollingPeriods(date).stream().map(PeriodDimension::new).toList(), periodNames, dynamicNames, format);
   }
 
   /**
@@ -880,13 +880,13 @@ public class RelativePeriods implements Serializable {
    * @param format the I18nFormat.
    * @return a list of periods.
    */
-  private List<Period> getRelativePeriodList(
-      List<Period> relatives, List<String> periodNames, boolean dynamicNames, I18nFormat format) {
-    List<Period> periods = new ArrayList<>();
+  private List<PeriodDimension> getRelativePeriodList(
+      List<PeriodDimension> relatives, List<String> periodNames, boolean dynamicNames, I18nFormat format) {
+    List<PeriodDimension> periods = new ArrayList<>();
 
     int c = 0;
 
-    for (Period period : relatives) {
+    for (PeriodDimension period : relatives) {
       periods.add(setName(period, periodNames.get(c++), dynamicNames, format));
     }
 
@@ -904,14 +904,14 @@ public class RelativePeriods implements Serializable {
    * @param format the I18nFormat.
    * @return a list of periods.
    */
-  private Period getRelativePeriod(
+  private PeriodDimension getRelativePeriod(
       CalendarPeriodType periodType,
       String periodName,
       DateField dateField,
       boolean dynamicNames,
       I18nFormat format) {
     return setName(
-        periodType.createPeriod(dateField.date(), dateField.dateField()),
+        new PeriodDimension(periodType.createPeriod(dateField.date())).setDateField(dateField.dateField()),
         periodName,
         dynamicNames,
         format);
@@ -927,10 +927,10 @@ public class RelativePeriods implements Serializable {
    * @param format the I18nFormat.
    * @return a period.
    */
-  public static Period setName(
-      Period period, String periodName, boolean dynamicNames, I18nFormat format) {
-    period.setName(dynamicNames && format != null ? format.formatPeriod(period) : periodName);
-    period.setShortName(format != null ? format.formatPeriod(period) : null);
+  public static PeriodDimension setName(
+      PeriodDimension period, String periodName, boolean dynamicNames, I18nFormat format) {
+    period.setName(dynamicNames && format != null ? format.formatPeriod(period.getPeriod()) : periodName);
+    period.setShortName(format != null ? format.formatPeriod(period.getPeriod()) : null);
     return period;
   }
 
@@ -941,7 +941,7 @@ public class RelativePeriods implements Serializable {
    * @param date the relative date to use for generating the relative periods.
    * @return a list of {@link Period}.
    */
-  public static List<Period> getRelativePeriodsFromEnum(
+  public static List<PeriodDimension> getRelativePeriodsFromEnum(
       RelativePeriodEnum relativePeriod, Date date) {
     return getRelativePeriodsFromEnum(
         relativePeriod,
@@ -962,7 +962,7 @@ public class RelativePeriods implements Serializable {
    *     AnalyticsFinancialYearStartKey}.
    * @return a list of {@link Period}.
    */
-  public static List<Period> getRelativePeriodsFromEnum(
+  public static List<PeriodDimension> getRelativePeriodsFromEnum(
       RelativePeriodEnum relativePeriod,
       DateField date,
       I18nFormat format,

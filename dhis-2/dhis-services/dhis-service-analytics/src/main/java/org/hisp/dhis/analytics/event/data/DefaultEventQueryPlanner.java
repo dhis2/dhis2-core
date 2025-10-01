@@ -53,6 +53,7 @@ import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
 
@@ -278,7 +279,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
     if ((isFirstOrLast || isOwnership || useIndividual) && hasPeriods) {
       for (DimensionalItemObject period : params.getPeriods()) {
-        String periodType = ((Period) period).getPeriodType().getName().toLowerCase();
+        String periodType = ((PeriodDimension) period).getPeriodType().getName().toLowerCase();
 
         EventQueryParams query =
             new EventQueryParams.Builder(params)

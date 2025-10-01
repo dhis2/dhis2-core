@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 /** Configurable mock implementation of AnalyticsService for testing purposes. */
 public class MockAnalyticsService implements AnalyticsService {
@@ -152,7 +153,7 @@ public class MockAnalyticsService implements AnalyticsService {
         for (DimensionalObject o : params.getFilters()) {
           if (o.getDimensionType() == DimensionType.PERIOD && o.getItems() != null) {
             for (DimensionalItemObject item : o.getItems()) {
-              Period period = (Period) item;
+              PeriodDimension period = (PeriodDimension) item;
 
               if (period.getStartDate().compareTo(e.getKey()) <= 0
                   && period.getEndDate().compareTo(e.getKey()) >= 0) {

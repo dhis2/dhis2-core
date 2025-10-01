@@ -27,34 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period.comparator;
+package org.hisp.dhis.common.adapter;
 
-import java.util.Comparator;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 
 /**
- * Sorts periods ascending based on the start date, then the end date, i.e. the earliest period
- * comes first. The start date and end date properties cannot be null.
- *
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AscendingPeriodComparator implements Comparator<PeriodDimension> {
-  public static final AscendingPeriodComparator INSTANCE = new AscendingPeriodComparator();
-
+public class JacksonPeriodDimensionSerializer extends JsonSerializer<PeriodDimension> {
   @Override
-  public int compare(PeriodDimension period1, PeriodDimension period2) {
-    PeriodType a = period1.getPeriodType();
-    PeriodType b = period2.getPeriodType();
+  public void serialize(PeriodDimension value, JsonGenerator jgen, SerializerProvider provider)
+      throws IOException {
+    if (value != null && value.getIsoDate() != null) {
+      jgen.writeStartObject();
+      jgen.writeStringField("id", value.getIsoDate());
 
-    int freqCompare = Integer.compare(a.getFrequencyOrder(), b.getFrequencyOrder());
-    int nameCompare = a.getName().compareTo(b.getName());
+      if (value.getName() != null) {
+        jgen.writeStringField("name", value.getName());
+      }
 
-    return freqCompare == 0
-        ? (nameCompare == 0
-            ? period1.getStartDate().compareTo(period2.getStartDate())
-            : nameCompare)
-        : freqCompare;
+      jgen.writeEndObject();
+    }
   }
 }

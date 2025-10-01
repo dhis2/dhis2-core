@@ -62,6 +62,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,7 +82,7 @@ class QueryPlannerGroupByAggregationTypeTest {
   @Test
   void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent() {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
     // DataQueryParams with **two** DataElement with different data type as
     // dimension
     DataQueryParams queryParams =
@@ -141,7 +142,7 @@ class QueryPlannerGroupByAggregationTypeTest {
   @Test
   void verifySingleNonDataElementRetainAggregationTypeButNullDataType() {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
     // DataQueryParams with **one** Indicator
     DataQueryParams queryParams =
         DataQueryParams.newBuilder()
@@ -339,7 +340,7 @@ class QueryPlannerGroupByAggregationTypeTest {
 
   private DataQueryParams createDataQueryParams(DimensionalObject filterDataElements) {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     return DataQueryParams.newBuilder()
         .withDimensions(

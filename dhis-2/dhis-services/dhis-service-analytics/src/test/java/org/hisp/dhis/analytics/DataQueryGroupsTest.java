@@ -103,28 +103,28 @@ class DataQueryGroupsTest extends TestBase {
         DataQueryParams.newBuilder()
             .withDataElements(getList(deA, deB))
             .withOrganisationUnits(getList(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+            .withPeriods(createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
     DataQueryParams paramsB =
         DataQueryParams.newBuilder()
             .withDataElements(getList(deC, deD))
             .withOrganisationUnits(getList(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+            .withPeriods(createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
     DataQueryParams paramsC =
         DataQueryParams.newBuilder()
             .withDataElements(getList(deE))
             .withOrganisationUnits(getList(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+            .withPeriods(createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
     DataQueryParams paramsD =
         DataQueryParams.newBuilder()
             .withDataElements(getList(deF, deG))
             .withOrganisationUnits(getList(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+            .withPeriods(createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
 
@@ -151,7 +151,7 @@ class DataQueryGroupsTest extends TestBase {
         new BaseDimensionalObject(
             ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ouA, ouB, ouC));
     DimensionalObject dimC =
-        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, createPeriods("2000Q1"));
+        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("2000Q1"));
 
     DataQueryParams paramsA =
         DataQueryParams.newBuilder().addDimension(dimA).addDimension(dimB).addFilter(dimC).build();

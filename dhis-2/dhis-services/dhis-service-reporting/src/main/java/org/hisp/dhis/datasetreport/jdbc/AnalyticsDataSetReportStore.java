@@ -53,6 +53,7 @@ import org.hisp.dhis.datasetreport.DataSetReportStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Repository;
 
@@ -82,10 +83,12 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
       return new HashMap<>();
     }
 
+    List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+
     DataQueryParams.Builder params =
         DataQueryParams.newBuilder()
             .withDataElements(dataElements)
-            .withPeriods(periods)
+            .withPeriods(periodDimensions)
             .withOrganisationUnit(unit)
             .withCategoryOptionCombos(Lists.newArrayList());
 
@@ -140,10 +143,12 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
           continue;
         }
 
+        List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+
         DataQueryParams.Builder params =
             DataQueryParams.newBuilder()
                 .withDataElements(dataElements)
-                .withPeriods(periods)
+                .withPeriods(periodDimensions)
                 .withOrganisationUnit(unit)
                 .withCategory(category);
 
@@ -175,10 +180,12 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
       return new HashMap<>();
     }
 
+    List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+
     DataQueryParams.Builder params =
         DataQueryParams.newBuilder()
             .withDataElements(dataElements)
-            .withPeriods(periods)
+            .withPeriods(periodDimensions)
             .withOrganisationUnit(unit);
 
     if (filters != null) {
@@ -207,10 +214,12 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
       return new HashMap<>();
     }
 
+    List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+
     DataQueryParams.Builder params =
         DataQueryParams.newBuilder()
             .withIndicators(indicators)
-            .withPeriods(periods)
+            .withPeriods(periodDimensions)
             .withOrganisationUnit(unit);
 
     if (filters != null) {

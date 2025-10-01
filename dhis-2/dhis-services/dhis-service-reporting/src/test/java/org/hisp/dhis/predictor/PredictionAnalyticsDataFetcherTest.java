@@ -54,6 +54,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -150,7 +151,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     DataQueryParams aocParams =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
+            .withPeriods(periods.stream().map(PeriodDimension::new).toList())
             .withDataDimensionItems(Lists.newArrayList(aocItems))
             .withOrganisationUnits(orgUnits)
             .withAttributeOptionCombos(Collections.emptyList())
@@ -226,7 +227,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     DataQueryParams nonAocParams =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
+            .withPeriods(periods.stream().map(PeriodDimension::new).toList())
             .withDataDimensionItems(Lists.newArrayList(nonAocItems))
             .withOrganisationUnits(orgUnits)
             .build();

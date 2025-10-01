@@ -245,7 +245,7 @@ public class DefaultPreheatService implements PreheatService {
     handleAttributes(params.getObjects(), preheat);
     handleSharing(params, preheat);
 
-    periodStore.getAll().forEach(period -> preheat.getPeriodMap().put(period.getName(), period));
+    periodStore.getAll().forEach(period -> preheat.getPeriodMap().put(period.getIsoDate(), period));
     periodStore
         .getAllPeriodTypes()
         .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
@@ -957,20 +957,6 @@ public class DefaultPreheatService implements PreheatService {
 
   private IdentifiableObject getPersistedObject(
       Preheat preheat, PreheatIdentifier identifier, IdentifiableObject ref) {
-    if (ref instanceof Period) {
-      Period period = preheat.getPeriodMap().get(ref.getName());
-
-      if (period == null) {
-        period = periodService.reloadIsoPeriod(ref.getName());
-      }
-
-      if (period != null) {
-        preheat.getPeriodMap().put(period.getName(), period);
-      }
-
-      return period;
-    }
-
     return preheat.get(identifier, ref);
   }
 

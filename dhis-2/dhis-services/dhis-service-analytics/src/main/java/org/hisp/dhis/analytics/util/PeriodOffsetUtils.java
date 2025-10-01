@@ -52,6 +52,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 
@@ -122,8 +123,8 @@ public final class PeriodOffsetUtils {
    * @param periodOffset a positive or negative integer.
    * @return A Period.
    */
-  public static Period shiftPeriod(Period period, int periodOffset) {
-    return period.getPeriodType().getShiftedPeriod(period, periodOffset);
+  public static PeriodDimension shiftPeriod(PeriodDimension period, int periodOffset) {
+    return new PeriodDimension(period.getPeriodType().getShiftedPeriod(period.getPeriod(), periodOffset));
   }
 
   /**
@@ -136,7 +137,7 @@ public final class PeriodOffsetUtils {
    */
   public static List<Object> getPeriodOffsetRow(List<Object> row, int periodIndex, int offset) {
     String isoPeriod = (String) row.get(periodIndex);
-    Period shifted = shiftPeriod(PeriodType.getPeriodFromIsoString(isoPeriod), -offset);
+    PeriodDimension shifted = shiftPeriod(new PeriodDimension(PeriodType.getPeriodFromIsoString(isoPeriod)), -offset);
 
     List<Object> adjustedRow = new ArrayList<>(row);
     adjustedRow.set(periodIndex, shifted.getIsoDate());
@@ -176,14 +177,14 @@ public final class PeriodOffsetUtils {
       return;
     }
 
-    List<Period> targetPeriods = getTargetPeriodsFromYearToDateItems(yearToDateItems, basePeriods);
+    List<PeriodDimension> targetPeriods = getTargetPeriodsFromYearToDateItems(yearToDateItems, basePeriods);
 
     String rowPeriod = (String) row.get(periodIndex);
 
-    for (Period targetPeriod : targetPeriods) {
+    for (PeriodDimension targetPeriod : targetPeriods) {
       Set<String> inputPeriods =
           yearToDatePeriods(targetPeriod).stream()
-              .map(Period::getIsoDate)
+              .map(PeriodDimension::getIsoDate)
               .collect(toUnmodifiableSet());
 
       if (inputPeriods.contains(rowPeriod)) {
@@ -204,9 +205,9 @@ public final class PeriodOffsetUtils {
    *
    * <p>Because these are yearToDate items, we know that they have queryMods.
    */
-  private static List<Period> getTargetPeriodsFromYearToDateItems(
+  private static List<PeriodDimension> getTargetPeriodsFromYearToDateItems(
       List<DimensionalItemObject> yearToDateItems, List<DimensionalItemObject> basePeriods) {
-    List<Period> targetPeriods = new ArrayList<>();
+    List<PeriodDimension> targetPeriods = new ArrayList<>();
 
     for (DimensionalItemObject item : yearToDateItems) {
       addAllUnique(targetPeriods, shiftPeriods(basePeriods, item.getQueryMods().getPeriodOffset()));
@@ -216,36 +217,36 @@ public final class PeriodOffsetUtils {
   }
 
   /** Shifts a list of periods according to a period offset. The list order is preserved. */
-  private static List<Period> shiftPeriods(List<DimensionalItemObject> periods, int periodOffset) {
-    List<Period> offsetPeriods = new ArrayList<>();
+  private static List<PeriodDimension> shiftPeriods(List<DimensionalItemObject> periods, int periodOffset) {
+    List<PeriodDimension> offsetPeriods = new ArrayList<>();
 
     for (DimensionalItemObject period : periods) {
-      addUnique(offsetPeriods, shiftPeriod((Period) period, periodOffset));
+      addUnique(offsetPeriods, shiftPeriod((PeriodDimension) period, periodOffset));
     }
 
     return offsetPeriods;
   }
 
   /** Finds all periods needed for a year-to-date period. Periods are added in list order. */
-  private static List<Period> yearToDatePeriods(List<DimensionalItemObject> periods) {
-    List<Period> ytdPeriods = new ArrayList<>();
+  private static List<PeriodDimension> yearToDatePeriods(List<DimensionalItemObject> periods) {
+    List<PeriodDimension> ytdPeriods = new ArrayList<>();
 
     for (DimensionalItemObject period : periods) {
-      addAllUnique(ytdPeriods, yearToDatePeriods((Period) period));
+      addAllUnique(ytdPeriods, yearToDatePeriods((PeriodDimension) period));
     }
 
     return ytdPeriods;
   }
 
   /** Generates the periods needed for one year-to-date period. */
-  private static List<Period> yearToDatePeriods(Period period) {
+  private static List<PeriodDimension> yearToDatePeriods(PeriodDimension period) {
     int reportingYear = getReportingYear(period);
 
-    List<Period> periods = new ArrayList<>();
+    List<PeriodDimension> periods = new ArrayList<>();
 
     do {
       periods.add(period);
-      period = period.getPeriodType().getPreviousPeriod(period);
+      period = new PeriodDimension(period.getPeriodType().getPreviousPeriod(period.getPeriod()));
     } while (getReportingYear(period) == reportingYear);
 
     return periods;
@@ -256,7 +257,7 @@ public final class PeriodOffsetUtils {
       int periodIndex,
       int valueIndex,
       List<Object> row,
-      Period targetPeriod,
+      PeriodDimension targetPeriod,
       Map<String, List<Object>> yearToDateRows) {
     List<Object> targetRow = new ArrayList<>(row);
 
@@ -286,7 +287,7 @@ public final class PeriodOffsetUtils {
    *
    * <p>For all other periods, the period start year is returned.
    */
-  private static int getReportingYear(Period period) {
+  private static int getReportingYear(PeriodDimension period) {
     DateTimeUnit periodStart = DateTimeUnit.fromJdkDate(period.getStartDate());
 
     if ((period.getPeriodType() instanceof WeeklyAbstractPeriodType

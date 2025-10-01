@@ -68,6 +68,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -86,7 +87,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -124,7 +125,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -161,7 +162,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -195,7 +196,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -229,7 +230,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToName() {
     List<DataElement> dataElements = stubDataElements();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -260,7 +261,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -298,7 +299,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -333,7 +334,7 @@ class SchemeIdResponseMapperTest {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     DataElement dataElement = stubDataElement();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -368,7 +369,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToName() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -402,7 +403,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCode() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -436,7 +437,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuid() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -470,7 +471,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -504,7 +505,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputIdScheme() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -546,7 +547,7 @@ class SchemeIdResponseMapperTest {
   void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdScheme() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -590,7 +591,7 @@ class SchemeIdResponseMapperTest {
     Indicator indicator = stubIndicator();
     ProgramIndicator programIndicator = stubProgramIndicator();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
 
     Data schemeData =
@@ -637,7 +638,7 @@ class SchemeIdResponseMapperTest {
     Indicator indicator = stubIndicator();
     ProgramIndicator programIndicator = stubProgramIndicator();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    Period period = stubPeriod();
+    PeriodDimension period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -875,8 +876,8 @@ class SchemeIdResponseMapperTest {
         .build();
   }
 
-  private Period stubPeriod() {
-    Period period = getPeriodFromIsoString("202010");
+  private PeriodDimension stubPeriod() {
+    PeriodDimension period = new PeriodDimension(getPeriodFromIsoString("202010"));
     period.setUid("pe");
     period.setName("October 2020");
 

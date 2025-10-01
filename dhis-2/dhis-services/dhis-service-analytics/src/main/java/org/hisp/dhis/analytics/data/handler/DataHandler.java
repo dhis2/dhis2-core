@@ -157,6 +157,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.Timer;
@@ -371,7 +372,7 @@ public class DataHandler {
         permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
 
     List<Period> periods =
-        !filterPeriods.isEmpty() ? filterPeriods : List.of((Period) getPeriodItem(dimensionItems));
+        !filterPeriods.isEmpty() ? filterPeriods : List.of(((PeriodDimension) getPeriodItem(dimensionItems)).getPeriod());
 
     OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem(dimensionItems);
 

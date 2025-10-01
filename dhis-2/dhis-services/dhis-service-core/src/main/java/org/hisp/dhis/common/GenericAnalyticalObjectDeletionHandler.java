@@ -44,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -96,23 +97,6 @@ public abstract class GenericAnalyticalObjectDeletionHandler<
         service.getAnalyticalObjects(programIndicator),
         programIndicator,
         AnalyticalObject::removeDataDimensionItem);
-  }
-
-  protected final void deletePeriod(Period period) {
-    removeItem(
-        service.getAnalyticalObjects(period), period, (ao, di) -> ao.getPeriods().remove(di));
-  }
-
-  protected final DeletionVeto allowDeletePeriod(Period period) {
-    List<T> analyticalObjects = service.getAnalyticalObjects(period);
-
-    for (T analyticalObject : analyticalObjects) {
-      if (analyticalObject.getPeriods().contains(period)) {
-        return VETO;
-      }
-    }
-
-    return ACCEPT;
   }
 
   protected final void deleteOrganisationUnit(OrganisationUnit organisationUnit) {

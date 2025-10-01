@@ -56,6 +56,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.hisp.dhis.test.TestBase.getDate;
@@ -108,6 +109,7 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
@@ -477,7 +479,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new BaseDimensionalObject(
             PERIOD_DIM_ID,
             DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
+            createPeriodDimensions("201701"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -526,7 +528,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new BaseDimensionalObject(
             PERIOD_DIM_ID,
             DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
+            createPeriodDimensions("201701"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -565,7 +567,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new BaseDimensionalObject(
             PERIOD_DIM_ID,
             DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201801")));
+            createPeriodDimensions("201801"));
 
     DimensionalObject multipleOrgUnitsSameLevel =
         new BaseDimensionalObject(
@@ -706,7 +708,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private Builder defaultEventQueryParamsBuilder() {
     return new EventQueryParams.Builder()
-        .withPeriods(List.of(createPeriod("201801")), PeriodTypeEnum.MONTHLY.getName());
+        .withPeriods(createPeriodDimensions("201801"), PeriodTypeEnum.MONTHLY.getName());
   }
 
   @Test
@@ -902,8 +904,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetSelectClauseForAggregatedEnrollments() {
     // Given
-    Period period = new Period(THIS_YEAR);
-    period.setPeriodType(new YearlyPeriodType());
+    PeriodDimension period = new PeriodDimension(THIS_YEAR);
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(createProgram('A'))
@@ -963,8 +964,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetSelectClauseForQueryEnrollments() {
     // Given
-    Period period = new Period(THIS_YEAR);
-    period.setPeriodType(new YearlyPeriodType());
+    PeriodDimension period = new PeriodDimension(THIS_YEAR);
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(createProgram('A'))
@@ -1004,7 +1004,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new BaseDimensionalObject(
             PERIOD_DIM_ID,
             DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201901")));
+            createPeriodDimensions("201901"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -1071,12 +1071,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
       List<String> coordinateFields) {
     DataElement deA = createDataElement('A', TEXT, AggregationType.NONE);
-    Period peA = createPeriod("202201");
     QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
     Program program = createProgram('A');
 
     return new EventQueryParams.Builder()
-        .withPeriods(List.of(peA), PeriodTypeEnum.MONTHLY.getName())
+        .withPeriods(createPeriodDimensions("202201"), PeriodTypeEnum.MONTHLY.getName())
         .withOrganisationUnits(List.of(createOrganisationUnit('A')))
         .addItem(qiA)
         .withProgram(program)

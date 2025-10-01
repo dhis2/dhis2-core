@@ -42,6 +42,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -79,7 +80,7 @@ public class IsoPeriodHolder {
    *
    * @return the Period object
    */
-  public Optional<Period> toDailyPeriod() {
+  public Optional<PeriodDimension> toDailyPeriod() {
     String[] dates = getIsoPeriod().split(PERIOD_FREE_RANGE_SEPARATOR);
 
     if (dates.length == 2) {
@@ -91,9 +92,8 @@ public class IsoPeriodHolder {
         period.setPeriodType(new DailyPeriodType());
         period.setStartDate(start);
         period.setEndDate(end);
-        period.setDateField(getDateField());
 
-        return Optional.of(period);
+        return Optional.of(new PeriodDimension(period).setDateField(getDateField()));
       }
     }
     return empty();

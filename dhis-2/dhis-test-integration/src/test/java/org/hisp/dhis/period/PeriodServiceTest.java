@@ -88,46 +88,6 @@ class PeriodServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteAndGetPeriod() {
-    List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-    Iterator<PeriodType> it = periodTypes.iterator();
-    PeriodType periodTypeA = it.next();
-    PeriodType periodTypeB = it.next();
-    Period periodA = periodTypeA.createPeriod(getDay(1));
-    Period periodB = periodA.next();
-    Period periodC = periodTypeB.createPeriod(getDay(1));
-    Period periodD = periodC.next();
-    periodService.addPeriod(periodA);
-    periodService.addPeriod(periodB);
-    periodService.addPeriod(periodC);
-    periodService.addPeriod(periodD);
-    assertNotEquals(0L, periodA.getId());
-    assertNotEquals(0L, periodB.getId());
-    assertNotEquals(0L, periodC.getId());
-    assertNotEquals(0L, periodC.getId());
-    periodService.deletePeriod(periodA);
-    assertNull(periodService.getPeriod(periodA.getIsoDate()));
-    assertNotNull(periodService.getPeriod(periodB.getIsoDate()));
-    assertNotNull(periodService.getPeriod(periodC.getIsoDate()));
-    assertNotNull(periodService.getPeriod(periodD.getIsoDate()));
-    periodService.deletePeriod(periodB);
-    assertNull(periodService.getPeriod(periodA.getIsoDate()));
-    assertNull(periodService.getPeriod(periodB.getIsoDate()));
-    assertNotNull(periodService.getPeriod(periodC.getIsoDate()));
-    assertNotNull(periodService.getPeriod(periodD.getIsoDate()));
-    periodService.deletePeriod(periodC);
-    assertNull(periodService.getPeriod(periodA.getIsoDate()));
-    assertNull(periodService.getPeriod(periodB.getIsoDate()));
-    assertNull(periodService.getPeriod(periodC.getIsoDate()));
-    assertNotNull(periodService.getPeriod(periodD.getIsoDate()));
-    periodService.deletePeriod(periodD);
-    assertNull(periodService.getPeriod(periodA.getIsoDate()));
-    assertNull(periodService.getPeriod(periodB.getIsoDate()));
-    assertNull(periodService.getPeriod(periodC.getIsoDate()));
-    assertNull(periodService.getPeriod(periodD.getIsoDate()));
-  }
-
-  @Test
   void testGetAllPeriods() {
     PeriodType periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
     Period periodA = new Period(periodType, getDay(1), getDay(2));

@@ -215,7 +215,7 @@ public class DataApprovalAudit implements Serializable {
         + (workflow == null ? "(null)" : workflow.getName())
         + "'"
         + ", period="
-        + (period == null ? "(null)" : period.getName())
+        + (period == null ? "(null)" : period.getIsoDate())
         + ", organisationUnit='"
         + (organisationUnit == null ? "(null)" : organisationUnit.getName())
         + "'"

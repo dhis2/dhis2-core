@@ -84,6 +84,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -1125,10 +1126,10 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
 
   private static boolean samePeriodType(List<DimensionalItemObject> isoPeriods) {
     Iterator<DimensionalItemObject> periods = new ArrayList<>(isoPeriods).iterator();
-    PeriodType first = ((Period) periods.next()).getPeriodType();
+    PeriodType first = ((PeriodDimension) periods.next()).getPeriodType();
 
     while (periods.hasNext()) {
-      PeriodType next = ((Period) periods.next()).getPeriodType();
+      PeriodType next = ((PeriodDimension) periods.next()).getPeriodType();
 
       if (!first.equals(next)) {
         return false;

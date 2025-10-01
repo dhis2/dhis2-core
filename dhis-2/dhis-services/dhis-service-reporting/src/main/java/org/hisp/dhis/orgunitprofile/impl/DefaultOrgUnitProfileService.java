@@ -73,6 +73,7 @@ import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.hisp.dhis.orgunitprofile.ProfileItem;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
@@ -183,7 +184,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
     OrganisationUnit unit = getOrgUnit(orgUnit);
 
-    Period period = getPeriod(isoPeriod);
+    PeriodDimension period = getPeriod(isoPeriod);
 
     OrgUnitProfileData data = new OrgUnitProfileData();
 
@@ -311,7 +312,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
    * @return a list of {@link ProfileItem}.
    */
   private List<ProfileItem> getDataItems(
-      OrgUnitProfile profile, OrganisationUnit orgUnit, Period period) {
+      OrgUnitProfile profile, OrganisationUnit orgUnit, PeriodDimension period) {
     if (CollectionUtils.isEmpty(profile.getDataItems())) {
       return List.of();
     }
@@ -372,11 +373,11 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
    * @param isoPeriod the ISO period string, can be null.
    * @return a {@link Period}.
    */
-  private Period getPeriod(String isoPeriod) {
+  private PeriodDimension getPeriod(String isoPeriod) {
     Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
 
     if (period != null) {
-      return period;
+      return new PeriodDimension(period);
     } else {
       return RelativePeriods.getRelativePeriodsFromEnum(RelativePeriodEnum.THIS_YEAR, new Date())
           .get(0);

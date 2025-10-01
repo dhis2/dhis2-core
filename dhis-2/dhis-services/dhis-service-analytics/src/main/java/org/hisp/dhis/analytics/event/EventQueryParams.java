@@ -95,6 +95,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -622,9 +623,9 @@ public class EventQueryParams extends DataQueryParams {
    * them.
    */
   void replacePeriodsWithDates() {
-    List<Period> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
+    List<PeriodDimension> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
 
-    for (Period period : periods) {
+    for (PeriodDimension period : periods) {
       Date start = period.getStartDate();
       Date end = period.getEndDate();
       DateRange dateRange = new DateRange(start, end);

@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
@@ -137,7 +138,7 @@ class EventQueryServiceTest {
   private EventQueryParams mockEventQueryParams(
       OrganisationUnit mockOrgUnit, Program mockProgram, IdScheme scheme) {
     return new EventQueryParams.Builder()
-        .withPeriods(getList(createPeriod("2000Q1")), "monthly")
+        .withPeriods(createPeriodDimensions("2000Q1"), "monthly")
         .withPartitions(new Partitions())
         .withOrganisationUnits(getList(mockOrgUnit))
         .withProgram(mockProgram)

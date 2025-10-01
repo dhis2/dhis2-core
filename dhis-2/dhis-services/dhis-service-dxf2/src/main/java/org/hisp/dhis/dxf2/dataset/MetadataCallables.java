@@ -50,7 +50,7 @@ class MetadataCallables {
 
   private final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
 
-  private final IdentifiableObjectCallable<Period> periodCallable;
+  private final PeriodCallable periodCallable;
 
   MetadataCallables(
       ImportConfig config,
@@ -64,7 +64,7 @@ class MetadataCallables {
             idObjManager, OrganisationUnit.class, config.getOuScheme(), null);
     optionComboCallable =
         new CategoryOptionComboCallable(categoryService, config.getAocScheme(), null);
-    periodCallable = new PeriodCallable(periodService, null, null);
+    periodCallable = new PeriodCallable(periodService);
   }
 
   IdentifiableObjectCallable<DataSet> getDataSetCallable() {
@@ -79,7 +79,7 @@ class MetadataCallables {
     return optionComboCallable;
   }
 
-  IdentifiableObjectCallable<Period> getPeriodCallable() {
+  PeriodCallable getPeriodCallable() {
     return periodCallable;
   }
 }

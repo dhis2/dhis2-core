@@ -108,6 +108,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
@@ -210,11 +211,11 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   // Note: The periods are not persisted. They don't need to be for event
   // analytics, so the tests should work without them being persisted.
-  private Period peJan = createPeriod("2017-01");
+  private PeriodDimension peJan = new PeriodDimension(createPeriod("2017-01"));
 
-  private Period peFeb = createPeriod("2017-02");
+  private PeriodDimension peFeb = new PeriodDimension(createPeriod("2017-02"));
 
-  private Period peMar = createPeriod("2017-03");
+  private PeriodDimension peMar = new PeriodDimension(createPeriod("2017-03"));
 
   private CategoryOption coA;
 
