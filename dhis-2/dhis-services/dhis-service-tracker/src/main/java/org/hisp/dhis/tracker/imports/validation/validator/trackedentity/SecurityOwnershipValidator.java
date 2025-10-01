@@ -103,7 +103,7 @@ class SecurityOwnershipValidator
         .forEach(
             eo ->
                 reporter.addError(
-                    payloadTrackedEntity, eo.validationCode(), user.getUid(), eo.args()));
+                    payloadTrackedEntity, eo.validationCode(), eo.userUid(), eo.args()));
   }
 
   private void handleUpdate(

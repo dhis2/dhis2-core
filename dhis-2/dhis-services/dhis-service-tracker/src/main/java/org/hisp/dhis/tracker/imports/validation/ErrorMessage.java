@@ -31,4 +31,4 @@ package org.hisp.dhis.tracker.imports.validation;
 
 import java.util.List;
 
-public record ErrorMessage(ValidationCode validationCode, List<Object> args) {}
+public record ErrorMessage(ValidationCode validationCode, String userUid, List<Object> args) {}

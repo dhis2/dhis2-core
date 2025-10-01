@@ -147,12 +147,12 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/te-data_with_different_ou.json");
     TrackerImportParams params = new TrackerImportParams();
-    injectSecurityContextUser(userService.getUser(USER_9));
+    injectSecurityContextUser(userService.getUser(USER_10));
     params.setAtomicMode(AtomicMode.OBJECT);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-    assertHasOnlyErrors(importReport, E1000, E1000, E1000);
-    assertEquals(0, importReport.getStats().getCreated());
-    assertEquals(3, importReport.getStats().getIgnored());
+    assertHasOnlyErrors(importReport, E1000);
+    assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(1, importReport.getStats().getIgnored());
   }
 
   @Test

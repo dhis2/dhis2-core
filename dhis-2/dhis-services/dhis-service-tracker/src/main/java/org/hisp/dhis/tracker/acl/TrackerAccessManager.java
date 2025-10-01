@@ -82,7 +82,7 @@ public interface TrackerAccessManager {
 
   List<String> canRead(UserDetails user, SingleEvent event);
 
-  List<String> canWrite(UserDetails user, SingleEvent event);
+  List<String> canCreate(UserDetails user, SingleEvent event);
 
   List<String> canCreate(UserDetails user, TrackerEvent event);
 
