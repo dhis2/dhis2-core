@@ -38,7 +38,7 @@ services:
         else
           echo "async-profiler already installed"
         fi &&
-        chmod 777 /profiler-output
+        chmod 755 /profiler-output
       '
     volumes:
       - async-profiler:/usr/local
