@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,13 @@
  */
 package org.hisp.dhis.audit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import javax.jms.TextMessage;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Slf4j
-public abstract class AbstractAuditConsumer implements AuditConsumer {
-  protected AuditService auditService;
+@Data
+@Auditable(scope = AuditScope.API)
+public class ApiAuditEntry {
 
-  protected ObjectMapper objectMapper;
+  @AuditAttribute private String source;
 
-  protected boolean isAuditLogEnabled;
-
-  protected boolean isAuditDatabaseEnabled;
-
-  protected void _consume(TextMessage message) {
-    try {
-      org.hisp.dhis.artemis.audit.Audit auditMessage =
-          objectMapper.readValue(message.getText(), org.hisp.dhis.artemis.audit.Audit.class);
-
-      if (auditMessage.getData() != null && !(auditMessage.getData() instanceof String)) {
-        auditMessage.setData(objectMapper.writeValueAsString(auditMessage.getData()));
-      }
-
-      org.hisp.dhis.audit.Audit audit = auditMessage.toAudit();
-
-      if (isAuditLogEnabled) {
-        log.info(objectMapper.writeValueAsString(audit));
-      }
-
-      if (isAuditDatabaseEnabled) {
-        auditService.addAudit(audit);
-      }
-    } catch (IOException e) {
-      log.error(
-          "An error occurred de-serializing the message payload. The message can not be de-serialized to an Audit object.",
-          e);
-    } catch (Exception e) {
-      log.error("An error occurred persisting an audit message", e);
-    }
-  }
+  public ApiAuditEntry() {}
 }
