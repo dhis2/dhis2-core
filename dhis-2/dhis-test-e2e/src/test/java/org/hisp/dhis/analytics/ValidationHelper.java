@@ -355,7 +355,8 @@ public class ValidationHelper {
 
     if (!foundMatch) {
       throw new AssertionError(
-          MessageFormat.format("No row found matching values: {0}. Total rows checked: {1}",
+          MessageFormat.format(
+              "No row found matching values: {0}. Total rows checked: {1}",
               expectedValues, rawRows.size()));
     }
   }
