@@ -29,17 +29,18 @@
  */
 package org.hisp.dhis.login;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseE2ETest;
 import org.hisp.dhis.login.LoginResponse.STATUS;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
@@ -49,10 +50,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.subethamail.wiser.WiserMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 
 @Tag("logintests")
 @Slf4j
@@ -220,7 +230,7 @@ public class LoginTest extends BaseE2ETest {
         template.exchange(
             serverApiUrl + "/account/verifyEmail?token=WRONGTOKEN",
             HttpMethod.GET,
-            new HttpEntity<>(new HashMap(), jsonHeaders()),
+            new HttpEntity<>(new HashMap<>(), jsonHeaders()),
             String.class);
     assertEquals(HttpStatus.FOUND, response.getStatusCode());
     List<String> location = response.getHeaders().get("Location");
