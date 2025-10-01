@@ -1,7 +1,7 @@
 # Performance test workflow to compare a baseline against a candidate DHIS2 version
 # You can run the workflow using the GitHub CLI like so
 # gh workflow run run-performance-tests.yml \
-# 	--field simulation_class="org.hisp.dhis.test.tracker.EnrollmentsTest" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
 # 	--field dhis2_image_candidate="dhis2/core-dev:latest"
 #
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       simulation_class:
-        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.EnrollmentsTest)'
+        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
         required: true
         type: string
       mvn_args:
@@ -74,9 +74,10 @@ jobs:
 
     - name: Run performance tests - baseline
       run: |
+        # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
         DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
-        MVN_ARGS="${{ inputs.mvn_args }}" \
+        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         ./run-simulation.sh
@@ -97,12 +98,13 @@ jobs:
     # binary simulation.log into a simulation.csv. CLI releases can be downloaded from
     # https://github.com/dhis2/gatling/releases. The CLI is installed on the self-hosted runner.
     - name: Convert binary simulation.log to simulation.csv
+      id: convert-logs
       if: always()
       run: |
         glog --config ./src/test/resources/gatling.conf --scan-subdirs target/gatling
 
     - name: Upload Gatling report
-      if: always() # reports should always be uploaded as tests can fail due to our performance assertions
+      if: steps.convert-logs.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: gatling-report-${{ github.run_id }}-${{ github.sha }}
