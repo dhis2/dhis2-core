@@ -40,7 +40,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.ProtocolVersion;
@@ -49,8 +51,13 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HttpContext;
+import org.awaitility.Awaitility;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.PostgresDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.route.Route;
@@ -61,41 +68,101 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockserver.client.MockServerClient;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 @Transactional
+@ContextConfiguration(classes = {RouteControllerTest.DhisConfigurationProviderTestConfig.class})
 class RouteControllerTest extends DhisControllerIntegrationTest {
 
-  private static GenericContainer<?> routeTargetMockServerContainer;
+  private static GenericContainer<?> upstreamMockServerContainer;
 
-  @Autowired private RouteService service;
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private RouteService routeService;
 
   @Autowired private ObjectMapper jsonMapper;
-  private MockServerClient routeTargetMockServerClient;
+
+  private MockServerClient upstreamMockServerClient;
+
+  public static class DhisConfigurationProviderTestConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put(ConfigurationKey.AUDIT_DATABASE.getKey(), "on");
+
+      IntegrationTestConfig integrationTestConfig = new IntegrationTestConfig();
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          (PostgresDhisConfigurationProvider) integrationTestConfig.dhisConfigurationProvider();
+      postgresDhisConfigurationProvider.addProperties(override);
+
+      return postgresDhisConfigurationProvider;
+    }
+  }
 
   @BeforeAll
   public static void beforeAll() {
-    routeTargetMockServerContainer =
+    upstreamMockServerContainer =
         new GenericContainer<>("mockserver/mockserver")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
-    routeTargetMockServerContainer.start();
+    upstreamMockServerContainer.start();
   }
 
   @AfterAll
   public static void afterAll() {
-    routeTargetMockServerContainer.stop();
+    upstreamMockServerContainer.stop();
   }
 
   @Override
   public void integrationTestBefore() {
-    service.postConstruct();
-    routeTargetMockServerClient =
-        new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
-    routeTargetMockServerClient.reset();
+    routeService.postConstruct();
+    upstreamMockServerClient =
+        new MockServerClient("localhost", upstreamMockServerContainer.getFirstMappedPort());
+    upstreamMockServerClient.reset();
+  }
+
+  @Test
+  void testRunRouteIsAudited() throws JsonProcessingException {
+    upstreamMockServerClient
+        .when(request().withPath("/testRunRouteIsAudited"))
+        .respond(org.mockserver.model.HttpResponse.response("{}"));
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put(
+        "url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort() + "/**");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    HttpResponse runHttpResponse =
+        GET(
+            "/routes/{id}/run/testRunRouteIsAudited",
+            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
+
+    Awaitility.await()
+        .untilAsserted(
+            () -> {
+              List<Map<String, Object>> auditEntries =
+                  jdbcTemplate.queryForList("SELECT * FROM audit ORDER BY createdAt DESC");
+              assertFalse(auditEntries.isEmpty());
+              assertEquals("API", auditEntries.get(0).get("auditscope"));
+              Map<String, String> auditEntry =
+                  jsonMapper.readValue(
+                      ((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class);
+              assertEquals("Route Run", auditEntry.get("source"));
+              assertEquals(
+                  "http://localhost:"
+                      + upstreamMockServerContainer.getFirstMappedPort()
+                      + "/testRunRouteIsAudited",
+                  auditEntry.get("upstreamUrl"));
+            });
   }
 
   @Test
@@ -114,7 +181,7 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
         .thenReturn(mockHttpResponse);
 
-    service.setHttpClient(mockHttpClient);
+    routeService.setHttpClient(mockHttpClient);
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
@@ -146,7 +213,7 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
         .thenReturn(mockHttpResponse);
 
-    service.setHttpClient(mockHttpClient);
+    routeService.setHttpClient(mockHttpClient);
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
@@ -258,13 +325,13 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @Test
   void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
       throws JsonProcessingException {
-    routeTargetMockServerClient
+    upstreamMockServerClient
         .when(request().withPath("/"))
         .respond(org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 20));
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+    route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
     route.put("responseTimeoutSeconds", 5);
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
@@ -279,13 +346,13 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   @Test
   void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
       throws JsonProcessingException {
-    routeTargetMockServerClient
+    upstreamMockServerClient
         .when(request().withPath("/"))
         .respond(org.mockserver.model.HttpResponse.response("{}"));
 
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+    route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
     route.put("responseTimeoutSeconds", 5);
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
