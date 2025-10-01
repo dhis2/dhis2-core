@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -66,7 +67,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.MediaType;
 import org.mockserver.model.NottableString;
@@ -332,10 +332,9 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @Test
-    @Timeout(10)
-    void testRunRouteIsAudited() throws JsonProcessingException, InterruptedException {
+    void testRunRouteIsAudited() throws JsonProcessingException {
       upstreamMockServerClient
-          .when(request().withPath("/foo"))
+          .when(request().withPath("/testRunRouteIsAudited"))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
 
       Map<String, Object> route = new HashMap<>();
@@ -350,26 +349,30 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                   HttpMethod.GET,
                   "/routes/"
                       + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
-                      + "/run/foo?param=secret",
+                      + "/run/testRunRouteIsAudited?param=secret",
                   new ArrayList<>(),
                   "application/json",
                   null));
 
       assertEquals(200, mvcResult.getResponse().getStatus());
 
-      List<Map<String, Object>> auditEntries = Collections.EMPTY_LIST;
-      while (auditEntries.isEmpty()) {
-        auditEntries = jdbcTemplate.queryForList("SELECT * FROM audit ORDER BY createdAt DESC");
-        Thread.sleep(1000);
-      }
-      assertEquals("API", auditEntries.get(0).get("auditscope"));
-      Map<String, String> auditEntry =
-          jsonMapper.readValue(
-              ((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class);
-      assertEquals("Route Run", auditEntry.get("source"));
-      assertEquals(
-          "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort() + "/foo",
-          auditEntry.get("upstreamUrl"));
+      await()
+          .untilAsserted(
+              () -> {
+                List<Map<String, Object>> auditEntries =
+                    jdbcTemplate.queryForList("SELECT * FROM audit ORDER BY createdAt DESC");
+                assertFalse(auditEntries.isEmpty());
+                assertEquals("API", auditEntries.get(0).get("auditscope"));
+                Map<String, String> auditEntry =
+                    jsonMapper.readValue(
+                        ((PGobject) auditEntries.get(0).get("attributes")).getValue(), Map.class);
+                assertEquals("Route Run", auditEntry.get("source"));
+                assertEquals(
+                    "http://localhost:"
+                        + upstreamMockServerContainer.getFirstMappedPort()
+                        + "/testRunRouteIsAudited",
+                    auditEntry.get("upstreamUrl"));
+              });
     }
 
     @Test
