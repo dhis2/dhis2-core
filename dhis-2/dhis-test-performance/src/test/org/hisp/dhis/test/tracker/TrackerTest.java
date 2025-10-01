@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.test.tracker;
+
+import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Simulation;
+import io.gatling.javaapi.http.HttpProtocolBuilder;
+
+import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
+import static io.gatling.javaapi.core.CoreDsl.details;
+import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.forAll;
+import static io.gatling.javaapi.core.CoreDsl.jsonPath;
+import static io.gatling.javaapi.core.CoreDsl.nothingFor;
+import static io.gatling.javaapi.core.CoreDsl.pause;
+import static io.gatling.javaapi.core.CoreDsl.scenario;
+import static io.gatling.javaapi.http.HttpDsl.http;
+import static io.gatling.javaapi.http.HttpDsl.status;
+
+public class TrackerTest extends Simulation {
+
+    public TrackerTest() {
+        String baseUrl = System.getProperty("instance", "http://localhost:8080");
+        String repeat = System.getProperty("repeat", "100");
+        String pageSize = System.getProperty("pageSize");
+        String program = System.getProperty("program", "VBqh0ynB2wv");
+
+        HttpProtocolBuilder httpProtocolBuilder =
+                http.baseUrl(baseUrl)
+                        .acceptHeader("application/json")
+                        .maxConnectionsPerHost(100)
+                        .basicAuth("admin", "district")
+                        .header("Content-Type", "application/json")
+                        .userAgentHeader("Gatling/Performance Test")
+                        .warmUp(baseUrl + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
+                        .disableCaching(); // to repeat the same request without HTTP cache influence (304)
+
+        String singleEventQuery = "/api/tracker/events/#{eventUid}";
+        String relationshipQuery = "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
+
+        // get a 100 requests per run irrespective of the response times so comparisons are likely
+        // to be more accurate
+        String query = "/api/tracker/events?program=" + program + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
+        if (pageSize != null) {
+            query = query + "&pageSize=" + pageSize;
+        }
+
+        ScenarioBuilder scenario = scenario("Single Events");
+
+        scenario = scenario.repeat(Integer.parseInt(repeat))
+                .on(
+                        exec(http("Go to first page of program "+ program).get(query).check(status().is(200)))
+                        .exec(http("Go to second page of program "+ program).get(query+"&page=2").check(status().is(200)))
+                        .exec(http("Go back to first page of program " + program ).get(query).check(status().is(200)).check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                        .exec(http("Get first event").get(singleEventQuery).check(status().is(200)))
+                        .exec(http("Get relationships for first event").get(relationshipQuery).check(status().is(200)))
+                );
+
+        // only one user at a time
+        setUp(scenario.injectClosed(constantConcurrentUsers(1).during(1)))
+                .protocols(httpProtocolBuilder)
+                .assertions(
+                        forAll().successfulRequests().percent().gte(100d),
+                        details("Go to first page of program "+ program).responseTime().percentile(90).lte(300),
+                        details("Go to second page of program "+ program).responseTime().percentile(90).lte(300),
+                        details("Go back to first page of program "+ program).responseTime().percentile(90).lte(300),
+                        details("Get first event").responseTime().percentile(90).lte(100),
+                        details("Get relationships for first event").responseTime().percentile(90).lte(50));
+    }
+}
