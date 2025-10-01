@@ -39,6 +39,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -354,10 +355,8 @@ public class ValidationHelper {
 
     if (!foundMatch) {
       throw new AssertionError(
-          "No row found matching values: "
-              + expectedValues
-              + ". Total rows checked: "
-              + rawRows.size());
+          MessageFormat.format("No row found matching values: {0}. Total rows checked: {1}",
+              expectedValues, rawRows.size()));
     }
   }
 
