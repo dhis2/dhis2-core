@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,69 +29,95 @@
  */
 package org.hisp.dhis.test.tracker;
 
-import io.gatling.javaapi.core.ScenarioBuilder;
-import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
-
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
-import static io.gatling.javaapi.core.CoreDsl.nothingFor;
-import static io.gatling.javaapi.core.CoreDsl.pause;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
+import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Simulation;
+import io.gatling.javaapi.http.HttpProtocolBuilder;
+
 public class TrackerTest extends Simulation {
 
-    public TrackerTest() {
-        String baseUrl = System.getProperty("instance", "http://localhost:8080");
-        String repeat = System.getProperty("repeat", "100");
-        String pageSize = System.getProperty("pageSize");
-        String program = System.getProperty("program", "VBqh0ynB2wv");
+  public TrackerTest() {
+    String baseUrl = System.getProperty("instance", "http://localhost:8080");
+    String repeat = System.getProperty("repeat", "100");
+    String pageSize = System.getProperty("pageSize");
+    String program = System.getProperty("program", "VBqh0ynB2wv");
 
-        HttpProtocolBuilder httpProtocolBuilder =
-                http.baseUrl(baseUrl)
-                        .acceptHeader("application/json")
-                        .maxConnectionsPerHost(100)
-                        .basicAuth("admin", "district")
-                        .header("Content-Type", "application/json")
-                        .userAgentHeader("Gatling/Performance Test")
-                        .warmUp(baseUrl + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
-                        .disableCaching(); // to repeat the same request without HTTP cache influence (304)
+    HttpProtocolBuilder httpProtocolBuilder =
+        http.baseUrl(baseUrl)
+            .acceptHeader("application/json")
+            .maxConnectionsPerHost(100)
+            .basicAuth("admin", "district")
+            .header("Content-Type", "application/json")
+            .userAgentHeader("Gatling/Performance Test")
+            .warmUp(
+                baseUrl
+                    + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
+            .disableCaching(); // to repeat the same request without HTTP cache influence (304)
 
-        String singleEventQuery = "/api/tracker/events/#{eventUid}";
-        String relationshipQuery = "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
+    String singleEventQuery = "/api/tracker/events/#{eventUid}";
+    String relationshipQuery =
+        "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
 
-        // get a 100 requests per run irrespective of the response times so comparisons are likely
-        // to be more accurate
-        String query = "/api/tracker/events?program=" + program + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
-        if (pageSize != null) {
-            query = query + "&pageSize=" + pageSize;
-        }
-
-        ScenarioBuilder scenario = scenario("Single Events");
-
-        scenario = scenario.repeat(Integer.parseInt(repeat))
-                .on(
-                        exec(http("Go to first page of program "+ program).get(query).check(status().is(200)))
-                        .exec(http("Go to second page of program "+ program).get(query+"&page=2").check(status().is(200)))
-                        .exec(http("Go back to first page of program " + program ).get(query).check(status().is(200)).check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                        .exec(http("Get first event").get(singleEventQuery).check(status().is(200)))
-                        .exec(http("Get relationships for first event").get(relationshipQuery).check(status().is(200)))
-                );
-
-        // only one user at a time
-        setUp(scenario.injectClosed(constantConcurrentUsers(1).during(1)))
-                .protocols(httpProtocolBuilder)
-                .assertions(
-                        forAll().successfulRequests().percent().gte(100d),
-                        details("Go to first page of program "+ program).responseTime().percentile(90).lte(300),
-                        details("Go to second page of program "+ program).responseTime().percentile(90).lte(300),
-                        details("Go back to first page of program "+ program).responseTime().percentile(90).lte(300),
-                        details("Get first event").responseTime().percentile(90).lte(100),
-                        details("Get relationships for first event").responseTime().percentile(90).lte(50));
+    // get a 100 requests per run irrespective of the response times so comparisons are likely
+    // to be more accurate
+    String query =
+        "/api/tracker/events?program="
+            + program
+            + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
+    if (pageSize != null) {
+      query = query + "&pageSize=" + pageSize;
     }
+
+    ScenarioBuilder scenario = scenario("Single Events");
+
+    scenario =
+        scenario
+            .repeat(Integer.parseInt(repeat))
+            .on(
+                exec(http("Go to first page of program " + program)
+                        .get(query)
+                        .check(status().is(200)))
+                    .exec(
+                        http("Go to second page of program " + program)
+                            .get(query + "&page=2")
+                            .check(status().is(200)))
+                    .exec(
+                        http("Go back to first page of program " + program)
+                            .get(query)
+                            .check(status().is(200))
+                            .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                    .exec(http("Get first event").get(singleEventQuery).check(status().is(200)))
+                    .exec(
+                        http("Get relationships for first event")
+                            .get(relationshipQuery)
+                            .check(status().is(200))));
+
+    // only one user at a time
+    setUp(scenario.injectClosed(constantConcurrentUsers(1).during(1)))
+        .protocols(httpProtocolBuilder)
+        .assertions(
+            forAll().successfulRequests().percent().gte(100d),
+            details("Go to first page of program " + program)
+                .responseTime()
+                .percentile(90)
+                .lte(300),
+            details("Go to second page of program " + program)
+                .responseTime()
+                .percentile(90)
+                .lte(300),
+            details("Go back to first page of program " + program)
+                .responseTime()
+                .percentile(90)
+                .lte(300),
+            details("Get first event").responseTime().percentile(90).lte(100),
+            details("Get relationships for first event").responseTime().percentile(90).lte(50));
+  }
 }
