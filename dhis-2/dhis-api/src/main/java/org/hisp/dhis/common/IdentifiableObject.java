@@ -42,9 +42,6 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
-import org.hisp.dhis.schema.annotation.Gist;
-import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
@@ -58,7 +55,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @OpenApi.Kind("IdentifiableObject")
 public interface IdentifiableObject
     extends PrimaryKeyObject, LinkableObject, Comparable<IdentifiableObject>, Serializable {
-  
+
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   String getCode();
@@ -77,9 +74,6 @@ public interface IdentifiableObject
   Date getCreated();
 
   @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlProperty(isAttribute = true)
   Date getLastUpdated();
 
