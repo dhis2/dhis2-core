@@ -1,4 +1,7 @@
-ARG POSTGRES_BASE_IMAGE=postgis/postgis:13-3.5
+# syntax=docker/dockerfile:1
+# Dockerfile to build the DB dump into the Docker image essentially caching the DB dump using
+# Dockers image/layer caching. The dump will be restored on each container creation.
+ARG POSTGRES_BASE_IMAGE=ghcr.io/baosystems/postgis:14-3.5
 ARG DHIS2_DB_DUMP_URL
 
 FROM busybox AS downloader

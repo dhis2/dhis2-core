@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.test.tracker;
 
+import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
@@ -52,7 +53,6 @@ public class TrackerTest extends Simulation {
         http.baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .maxConnectionsPerHost(100)
-            .basicAuth("admin", "district")
             .header("Content-Type", "application/json")
             .userAgentHeader("Gatling/Performance Test")
             .warmUp(
@@ -74,6 +74,11 @@ public class TrackerTest extends Simulation {
 
     scenario =
         scenario
+            .exec(
+                http("Login")
+                    .post("/api/auth/login")
+                    .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
+                    .check(status().is(200)))
             .repeat(Integer.parseInt(repeat))
             .on(
                 exec(http("Go to first page of program " + program)

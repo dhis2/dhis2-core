@@ -1,11 +1,24 @@
 # Performance test workflow to compare a baseline against a candidate DHIS2 version
-# You can run the workflow using the GitHub CLI like so
+# You can run the workflow using the GitHub CLI like so:
+#
+# Basic example (required args only):
 # gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+#
+# With custom baseline:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
 # 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
 # 	--field dhis2_image_candidate="dhis2/core-dev:latest"
 #
-# To use a specific database version, provide both dump URL and matching image suffix:
+# With specific database version:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="2.42.2" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
 # 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
 # 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
 name: Performance tests
@@ -15,12 +28,21 @@ run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ i
 on:
   workflow_dispatch:
     inputs:
+      perf_tests_git_ref:
+        description: 'Git ref (tag/branch/commit) to checkout dhis2-core performance tests'
+        required: true
+        type: string
       simulation_class:
         description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
         required: true
         type: string
       mvn_args:
         description: 'Additional maven arguments'
+        required: false
+        default: ''
+        type: string
+      prof_args:
+        description: 'Profiler arguments (enables profiling). Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md'
         required: false
         default: ''
         type: string
@@ -57,6 +79,7 @@ jobs:
     - name: Checkout performance tests
       uses: actions/checkout@v5
       with:
+        ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |
           dhis-2/dhis-test-performance
 
@@ -78,6 +101,7 @@ jobs:
         DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         ./run-simulation.sh
@@ -87,6 +111,7 @@ jobs:
         DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }}" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         ./run-simulation.sh
@@ -115,10 +140,70 @@ jobs:
       run: |
         echo "## 🚀 Performance Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Build the command to reproduce this run
+        echo "### 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo -n 'gh workflow run run-performance-tests.yml' >> $GITHUB_STEP_SUMMARY
+        echo ' \' >> $GITHUB_STEP_SUMMARY
+        echo "  --field perf_tests_git_ref=\"${{ inputs.perf_tests_git_ref }}\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field simulation_class=\"${{ inputs.simulation_class }}\" \\" >> $GITHUB_STEP_SUMMARY
+
+        # Add optional fields only if they're not empty or not default
+        if [ -n "${{ inputs.mvn_args }}" ]; then
+          echo "  --field mvn_args=\"${{ inputs.mvn_args }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -n "${{ inputs.prof_args }}" ]; then
+          echo "  --field prof_args=\"${{ inputs.prof_args }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.dhis2_image_baseline }}" != "dhis2/core-dev:latest" ]; then
+          echo "  --field dhis2_image_baseline=\"${{ inputs.dhis2_image_baseline }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "  --field dhis2_image_candidate=\"${{ inputs.dhis2_image_candidate }}\" \\" >> $GITHUB_STEP_SUMMARY
+
+        if [ -n "${{ inputs.dhis2_db_dump_url }}" ]; then
+          echo "  --field dhis2_db_dump_url=\"${{ inputs.dhis2_db_dump_url }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.dhis2_db_image_suffix }}" != "sierra-leone-dev" ]; then
+          echo "  --field dhis2_db_image_suffix=\"${{ inputs.dhis2_db_image_suffix }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "  --ref ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### 📊 Test Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
+        echo "* **Simulation**" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Git ref**: \`${{ inputs.perf_tests_git_ref }}\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`${{ inputs.dhis2_image_baseline }}\`" >> $GITHUB_STEP_SUMMARY
+
+        # Extract and display DHIS2 labels for baseline
+        OUTPUT=$(docker inspect -f '{{json .Config.Labels}}' "${{ inputs.dhis2_image_baseline }}" 2>/dev/null | \
+          jq -r 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "  * **\(.key)**: `\(.value)`"')
+        if [ -z "$OUTPUT" ]; then
+          echo "  * Failed to find DHIS2 related metadata in Docker image" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "* **Candidate**: \`${{ inputs.dhis2_image_candidate }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "* **Simulation Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
+
+        # Extract and display DHIS2 labels for candidate
+        OUTPUT=$(docker inspect -f '{{json .Config.Labels}}' "${{ inputs.dhis2_image_candidate }}" 2>/dev/null | \
+          jq -r 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "  * **\(.key)**: `\(.value)`"')
+        if [ -z "$OUTPUT" ]; then
+          echo "  * Failed to find DHIS2 related metadata in Docker image" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -148,4 +233,7 @@ jobs:
         echo "  * \`simulation-run.txt\` - Test run metadata (indicates baseline/candidate)" >> $GITHUB_STEP_SUMMARY
         echo "  * \`simulation.log\` - Binary test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
         echo "  * \`simulation.csv\` - Parsed binary data in CSV format" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.html\` - Flamegraph visualization (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.jfr\` - JFR profiler data (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.collapsed\` - Collapsed stack traces (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
 

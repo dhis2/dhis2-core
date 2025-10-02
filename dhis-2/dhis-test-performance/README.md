@@ -20,8 +20,9 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `simulation.log` - Binary response times
 * `simulation.csv` - Response times (automated in CI only, [see below](#simulationcsv))
 * `simulation-run.txt` - Run metadata
-* `profile.html` - Flamegraph (when profiling enabled)
-* `profile.jfr` - JFR (Java flight recorder) profiling data (when profiling enabled)
+* `profile.html` - Flamegraph visualization (if profiling enabled with PROF_ARGS)
+* `profile.jfr` - JFR profiler data (if profiling enabled with PROF_ARGS)
+* `profile.collapsed` - Collapsed stack traces (if profiling enabled with PROF_ARGS)
 
 ### simulation.csv
 
