@@ -157,7 +157,7 @@ jobs:
         glog --config ./src/test/resources/gatling.conf --scan-subdirs target/gatling
 
     - name: Upload Gatling report
-      if: steps.convert-logs.outcome == 'success'
+      if: steps.convert-logs.conclusion == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: gatling-report-${{ github.run_id }}-${{ github.sha }}
