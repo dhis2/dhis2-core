@@ -52,6 +52,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -245,7 +246,7 @@ public class OutlierQueryParser {
         .getPeriodDimension(List.of(relativePeriod), relativePeriodDate)
         .getItems()
         .stream()
-        .map(pe -> (Period) pe)
+        .map(pe -> ((PeriodDimension) pe).getPeriod())
         .toList();
   }
 }

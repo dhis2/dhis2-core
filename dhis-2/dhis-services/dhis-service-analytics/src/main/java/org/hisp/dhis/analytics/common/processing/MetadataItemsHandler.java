@@ -66,7 +66,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -409,7 +409,7 @@ public class MetadataItemsHandler {
     Calendar calendar = PeriodType.getCalendar();
 
     if (PERIOD == dimensionType && !calendar.isIso8601()) {
-      Period period = (Period) periodOrDefaultItem;
+      PeriodDimension period = (PeriodDimension) periodOrDefaultItem;
       DateTimeUnit dateTimeUnit = calendar.fromIso(period.getStartDate());
       String isoDate = period.getPeriodType().getIsoDate(dateTimeUnit);
 

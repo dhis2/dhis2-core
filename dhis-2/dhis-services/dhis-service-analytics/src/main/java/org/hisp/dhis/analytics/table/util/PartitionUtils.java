@@ -46,6 +46,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.springframework.util.Assert;
 
 /**
@@ -133,7 +134,7 @@ public class PartitionUtils {
   public static Partitions getPartitions(List<DimensionalItemObject> periods) {
     Set<Integer> years = new HashSet<>();
 
-    periods.forEach(p -> years.addAll(getYears((Period) p)));
+    periods.forEach(p -> years.addAll(getYears(((PeriodDimension) p).getPeriod())));
 
     return new Partitions(years);
   }
@@ -189,7 +190,7 @@ public class PartitionUtils {
     ListMap<String, DimensionalItemObject> map = new ListMap<>();
 
     for (DimensionalItemObject period : periods) {
-      String periodTypeName = ((Period) period).getPeriodType().getName();
+      String periodTypeName = ((PeriodDimension) period).getPeriodType().getName();
       map.putValue(periodTypeName, period);
     }
 

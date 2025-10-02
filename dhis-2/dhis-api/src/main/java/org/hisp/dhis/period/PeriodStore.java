@@ -31,14 +31,14 @@ package org.hisp.dhis.period;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.GenericStore;
+import javax.annotation.CheckForNull;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.
  *
  * @author Torgeir Lorange Ostby
  */
-public interface PeriodStore extends GenericStore<Period> {
+public interface PeriodStore {
 
   void invalidateCache();
 
@@ -52,6 +52,11 @@ public interface PeriodStore extends GenericStore<Period> {
    * @param period the Period to add.
    */
   void addPeriod(Period period);
+
+  @CheckForNull
+  Period get(long id);
+
+  List<Period> getAll();
 
   /**
    * Returns a Period.

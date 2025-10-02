@@ -60,8 +60,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -108,7 +107,7 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
 
   private DataElement deF;
 
-  private Period peA;
+  private PeriodDimension peA;
 
   private OrganisationUnit ouA;
 
@@ -141,7 +140,7 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
     deE.setOptionSet(osA);
     deF = createDataElement('F', ValueType.TEXT, AggregationType.NONE);
     deF.setOptionSet(osA);
-    peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
+    peA = PeriodDimension.of("201701");
     ouA = createOrganisationUnit('A');
     prA = createProgram('A');
     psA = createProgramStage('A', prA);

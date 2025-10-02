@@ -289,7 +289,7 @@ public class DataValue implements Serializable {
     return "[Data element: "
         + dataElement.getUid()
         + ", period: "
-        + period.getUid()
+        + period.getIsoDate()
         + ", source: "
         + source.getUid()
         + ", category option combo: "

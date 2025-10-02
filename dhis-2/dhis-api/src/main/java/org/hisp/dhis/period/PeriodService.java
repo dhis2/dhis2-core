@@ -45,13 +45,6 @@ public interface PeriodService {
   void addPeriod(Period period);
 
   /**
-   * Deletes a Period.
-   *
-   * @param period the Period to delete.
-   */
-  void deletePeriod(Period period);
-
-  /**
    * Returns a Period.
    *
    * @param id the id of the Period to return.

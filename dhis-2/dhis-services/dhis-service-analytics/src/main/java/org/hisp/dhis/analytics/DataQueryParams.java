@@ -117,6 +117,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
 import org.hisp.dhis.program.AnalyticsType;
@@ -687,9 +688,9 @@ public class DataQueryParams {
   }
 
   /** Returns the latest period based on the period end date. */
-  public Period getLatestPeriod() {
+  public PeriodDimension getLatestPeriod() {
     return getAllPeriods().stream()
-        .map(Period.class::cast)
+        .map(PeriodDimension.class::cast)
         .min(DescendingPeriodComparator.INSTANCE)
         .orElse(null);
   }
@@ -702,7 +703,9 @@ public class DataQueryParams {
     // building a Stream<Stream<Date>> to make things easier later
     return Stream.of(
             streamOfOrEmpty(endDate),
-            getAllPeriods().stream().map(Period.class::cast).map(Period::getEndDate),
+            getAllPeriods().stream()
+                .map(PeriodDimension.class::cast)
+                .map(PeriodDimension::getEndDate),
             getTimeDateRanges().values().stream()
                 .flatMap(Collection::stream)
                 .map(DateRange::getEndDate))
@@ -720,7 +723,9 @@ public class DataQueryParams {
     // building a Stream<Stream<Date>> to make things easier later
     return Stream.of(
             streamOfOrEmpty(startDate),
-            getAllPeriods().stream().map(Period.class::cast).map(Period::getStartDate),
+            getAllPeriods().stream()
+                .map(PeriodDimension.class::cast)
+                .map(PeriodDimension::getStartDate),
             getTimeDateRanges().values().stream()
                 .flatMap(Collection::stream)
                 .map(DateRange::getStartDate))
@@ -757,7 +762,7 @@ public class DataQueryParams {
     List<DimensionalItemObject> filterPeriods = getFilterPeriods();
 
     if (!filterPeriods.isEmpty()) {
-      return ((Period) filterPeriods.get(0)).getPeriodType();
+      return ((PeriodDimension) filterPeriods.get(0)).getPeriodType();
     }
 
     return null;
@@ -765,7 +770,10 @@ public class DataQueryParams {
 
   /** Returns the filter periods as period objects. */
   public List<Period> getTypedFilterPeriods() {
-    return getFilterPeriods().stream().map(Period.class::cast).collect(Collectors.toList());
+    return getFilterPeriods().stream()
+        .map(PeriodDimension.class::cast)
+        .map(PeriodDimension::getPeriod)
+        .toList();
   }
 
   /** Returns a list of dimensions which occur more than once, not including the first duplicate. */
@@ -873,23 +881,23 @@ public class DataQueryParams {
 
     if (dataPeriodType != null) {
       for (DimensionalItemObject aggregatePeriod : getDimensionOrFilterItems(PERIOD_DIM_ID)) {
-        Period dataPeriod =
-            dataPeriodType.createPeriod(
-                ((Period) aggregatePeriod).getStartDate(),
-                ((Period) aggregatePeriod).getDateField());
+        PeriodDimension dataPeriod =
+            PeriodDimension.of(
+                    dataPeriodType.createPeriod(((PeriodDimension) aggregatePeriod).getStartDate()))
+                .setDateField(((PeriodDimension) aggregatePeriod).getDateField());
 
         map.putValue(dataPeriod, aggregatePeriod);
 
-        if (((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears()) {
+        if (((PeriodDimension) aggregatePeriod).getPeriodType().spansMultipleCalendarYears()) {
           // When dealing with a period that spans multiple years, add
           // a second aggregated year
           // corresponding to the second part of the financial year so
           // that the query will count both years.
 
-          Period endYear =
-              dataPeriodType.createPeriod(
-                  ((Period) aggregatePeriod).getEndDate(),
-                  ((Period) aggregatePeriod).getDateField());
+          PeriodDimension endYear =
+              PeriodDimension.of(
+                      dataPeriodType.createPeriod(((PeriodDimension) aggregatePeriod).getEndDate()))
+                  .setDateField(((PeriodDimension) aggregatePeriod).getDateField());
           map.putValue(endYear, aggregatePeriod);
         }
       }
@@ -1197,18 +1205,18 @@ public class DataQueryParams {
 
       Assert.isTrue(!periods.isEmpty(), "At least one period must exist");
 
-      Period period = (Period) periods.get(0);
+      PeriodDimension period = (PeriodDimension) periods.get(0);
 
-      return period.getDaysInPeriod();
+      return period.getPeriod().getDaysInPeriod();
     } else if (hasFilter(PERIOD_DIM_ID)) {
       List<DimensionalItemObject> periods = getFilterPeriods();
 
       int totalDays = 0;
 
       for (DimensionalItemObject item : periods) {
-        Period period = (Period) item;
+        PeriodDimension period = (PeriodDimension) item;
 
-        totalDays += period.getDaysInPeriod();
+        totalDays += period.getPeriod().getDaysInPeriod();
       }
 
       return totalDays;

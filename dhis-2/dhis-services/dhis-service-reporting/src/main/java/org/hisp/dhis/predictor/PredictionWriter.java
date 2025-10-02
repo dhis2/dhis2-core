@@ -165,7 +165,7 @@ public class PredictionWriter {
    * @return a key identifying this data value's dimensions.
    */
   private String mapKey(DataValue dv) {
-    return dv.getPeriod().getCode()
+    return dv.getPeriod().getIsoDate()
         + dv.getSource().getUid()
         + dv.getDataElement().getUid()
         + dv.getCategoryOptionCombo().getUid()

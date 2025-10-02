@@ -89,6 +89,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
@@ -214,7 +215,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   // Non-persisted attributes, used for internal operation/rendering phase
   // -------------------------------------------------------------------------
 
-  private transient List<Period> relativePeriodsList = new ArrayList<>();
+  private transient List<PeriodDimension> relativePeriodsList = new ArrayList<>();
 
   /** The name of the visualization. */
   private transient String visualizationPeriodName;
@@ -262,7 +263,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       List<DataElement> dataElements,
       List<Indicator> indicators,
       List<ReportingRate> reportingRates,
-      List<Period> periods,
+      List<PeriodDimension> periods,
       List<OrganisationUnit> organisationUnits,
       boolean doIndicators,
       boolean doPeriods,
@@ -437,11 +438,11 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
   }
 
   @JsonIgnore
-  public List<Period> getRelativePeriodsList() {
+  public List<PeriodDimension> getRelativePeriodsList() {
     return relativePeriodsList;
   }
 
-  public void setRelativePeriodsList(List<Period> relativePeriodsList) {
+  public void setRelativePeriodsList(List<PeriodDimension> relativePeriodsList) {
     this.relativePeriodsList = relativePeriodsList;
   }
 
@@ -914,10 +915,10 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     }
   }
 
-  public List<Period> getAllPeriods() {
-    List<Period> list = new ArrayList<>(relativePeriodsList);
+  public List<PeriodDimension> getAllPeriods() {
+    List<PeriodDimension> list = new ArrayList<>(relativePeriodsList);
 
-    for (Period period : periods) {
+    for (PeriodDimension period : periods) {
       if (!list.contains(period)) {
         list.add(period);
       }
