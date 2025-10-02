@@ -43,7 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -66,12 +66,9 @@ class GridUtilsTest {
 
   @Test
   void testGetGridIndexByDimensionItem() {
-    Period period1 = PeriodType.getPeriodFromIsoString("202010");
-    period1.setUid(CodeGenerator.generateUid());
-    Period period2 = PeriodType.getPeriodFromIsoString("202011");
-    period2.setUid(CodeGenerator.generateUid());
-    Period period3 = PeriodType.getPeriodFromIsoString("202012");
-    period3.setUid(CodeGenerator.generateUid());
+    PeriodDimension period1 = new PeriodDimension(PeriodType.getPeriodFromIsoString("202010"));
+    PeriodDimension period2 = new PeriodDimension(PeriodType.getPeriodFromIsoString("202011"));
+    PeriodDimension period3 = new PeriodDimension(PeriodType.getPeriodFromIsoString("202012"));
     List<DimensionalItemObject> periods = Lists.newArrayList(period1, period2, period3);
     List<Object> row = new ArrayList<>(3);
     // dimension

@@ -48,15 +48,16 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
+@Getter
 @Accessors(chain = true)
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class PeriodDimension extends BaseDimensionalItemObject {
 
-  @Getter @Nonnull @EqualsAndHashCode.Include @JsonIgnore private final Period period;
+  @Nonnull @EqualsAndHashCode.Include @JsonIgnore private final Period period;
 
   /** date field this period refers to */
-  @Getter @Setter @EqualsAndHashCode.Include @JsonProperty private String dateField;
+  @Setter @EqualsAndHashCode.Include @JsonProperty private String dateField;
 
   /**
    * Creates a period that is not bound to the persistent layer. It represents a detached Period
