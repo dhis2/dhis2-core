@@ -140,7 +140,49 @@ jobs:
       run: |
         echo "## 🚀 Performance Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Build the command to reproduce this run
+        echo "### 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo -n 'gh workflow run run-performance-tests.yml' >> $GITHUB_STEP_SUMMARY
+        echo ' \' >> $GITHUB_STEP_SUMMARY
+        echo "  --field perf_tests_git_ref=\"${{ inputs.perf_tests_git_ref }}\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field simulation_class=\"${{ inputs.simulation_class }}\" \\" >> $GITHUB_STEP_SUMMARY
+
+        # Add optional fields only if they're not empty or not default
+        if [ -n "${{ inputs.mvn_args }}" ]; then
+          echo "  --field mvn_args=\"${{ inputs.mvn_args }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -n "${{ inputs.prof_args }}" ]; then
+          echo "  --field prof_args=\"${{ inputs.prof_args }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.dhis2_image_baseline }}" != "dhis2/core-dev:latest" ]; then
+          echo "  --field dhis2_image_baseline=\"${{ inputs.dhis2_image_baseline }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "  --field dhis2_image_candidate=\"${{ inputs.dhis2_image_candidate }}\" \\" >> $GITHUB_STEP_SUMMARY
+
+        if [ -n "${{ inputs.dhis2_db_dump_url }}" ]; then
+          echo "  --field dhis2_db_dump_url=\"${{ inputs.dhis2_db_dump_url }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.dhis2_db_image_suffix }}" != "sierra-leone-dev" ]; then
+          echo "  --field dhis2_db_image_suffix=\"${{ inputs.dhis2_db_image_suffix }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "  --ref ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### 📊 Test Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
+        echo "* **Simulation**" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Git ref**: \`${{ inputs.perf_tests_git_ref }}\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`${{ inputs.dhis2_image_baseline }}\`" >> $GITHUB_STEP_SUMMARY
 
         # Extract and display DHIS2 labels for baseline
@@ -162,8 +204,6 @@ jobs:
         else
           echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
         fi
-
-        echo "* **Simulation Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
