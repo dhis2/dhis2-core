@@ -22,7 +22,6 @@ show_usage() {
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
-  echo "  HEALTHCHECK_INTERVAL  Check interval for DHIS2 startup in seconds (default: 10)"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -52,7 +51,6 @@ MVN_ARGS=${MVN_ARGS:-""}
 DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"}
 DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
-HEALTHCHECK_INTERVAL=${HEALTHCHECK_INTERVAL:-10} # default of 10s
 PROF_ARGS=${PROF_ARGS:=""}
 
 parse_prof_args() {
@@ -86,32 +84,37 @@ cleanup() {
 
 trap cleanup EXIT INT
 
-start_containers() {
-  echo "Testing with image: $DHIS2_IMAGE"
+pull_mutable_image() {
+  # Pull images with mutable tags to ensure we get the latest version. See
+  # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
+  # (dhis2/core-dev:*, dhis2/core-pr:*) are overwritten multiple times a day. Immutable tags
+  # (dhis2/core:2.42.1) are never rebuilt once published. Docker caches images locally, so without
+  # an explicit pull, we may run an outdated version even when using tags like 'latest' or 'master'.
+  # This is especially important on our self-hosted runner as devs will expect their latest change
+  # to be tested.
 
-  if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --detach
-  else
-    docker compose down --volumes
-    docker compose up --detach
+  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+    echo "Pulling mutable image tag: $DHIS2_IMAGE"
+    docker pull "$DHIS2_IMAGE"
   fi
 }
 
-wait_for_health() {
-  echo "Waiting for DHIS2 to start..."
+start_containers() {
+  echo "Testing with image: $DHIS2_IMAGE"
+  echo "Waiting for containers to be ready..."
+
   local start_time
   start_time=$(date +%s)
 
-  while ! docker compose ps web-healthcheck | grep -q "healthy"; do
-    sleep "$HEALTHCHECK_INTERVAL"
-    echo "Still waiting..."
-    if [ $(($(date +%s) - start_time)) -gt "$HEALTHCHECK_TIMEOUT" ]; then
-      echo "Timeout waiting for DHIS2 to start"
-      exit 1
-    fi
-  done
-  echo "DHIS2 is ready! (took $(($(date +%s) - start_time))s)"
+  if [ -n "$PROF_ARGS" ]; then
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+  else
+    docker compose down --volumes
+    docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+  fi
+
+  echo "All containers ready! (took $(($(date +%s) - start_time))s)"
 }
 
 save_profiler_data() {
@@ -147,10 +150,12 @@ post_process_profiler_data() {
 
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
+  # shellcheck disable=SC2086
   docker compose exec --workdir /profiler-output web \
-    jfrconv "$jfrconv_flags" --dot --title "$title" profile.jfr profile.html
+    jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html
+  # shellcheck disable=SC2086
   docker compose exec --workdir /profiler-output web \
-    jfrconv "$jfrconv_flags" --dot profile.jfr profile.collapsed
+    jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed
 
   docker compose cp web:/profiler-output/. "$gatling_dir/"
 
@@ -164,12 +169,14 @@ prepare_database() {
 
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
+    # shellcheck disable=SC2086
     docker compose exec --workdir /profiler-output web asprof start $PROF_ARGS -f profile.jfr 1 > /dev/null
   fi
 }
 
 run_simulation() {
   echo "Running $SIMULATION_CLASS..."
+  # shellcheck disable=SC2086
   mvn gatling:test \
     -Dgatling.simulationClass="$SIMULATION_CLASS" \
     $MVN_ARGS
@@ -189,7 +196,7 @@ generate_metadata() {
   echo "Generating run metadata..."
   {
     echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${HEALTHCHECK_INTERVAL:+ HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT} $0"
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
@@ -198,15 +205,14 @@ generate_metadata() {
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "MVN_ARGS=$MVN_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
-    echo "HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
   } > "$simulation_run_file"
 }
 
+pull_mutable_image
 start_containers
-wait_for_health
 prepare_database
 start_profiler
 run_simulation
