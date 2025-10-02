@@ -142,7 +142,27 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`${{ inputs.dhis2_image_baseline }}\`" >> $GITHUB_STEP_SUMMARY
+
+        # Extract and display DHIS2 labels for baseline
+        OUTPUT=$(docker inspect -f '{{json .Config.Labels}}' "${{ inputs.dhis2_image_baseline }}" 2>/dev/null | \
+          jq -r 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "  * **\(.key)**: `\(.value)`"')
+        if [ -z "$OUTPUT" ]; then
+          echo "  * Failed to find DHIS2 related metadata in Docker image" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "* **Candidate**: \`${{ inputs.dhis2_image_candidate }}\`" >> $GITHUB_STEP_SUMMARY
+
+        # Extract and display DHIS2 labels for candidate
+        OUTPUT=$(docker inspect -f '{{json .Config.Labels}}' "${{ inputs.dhis2_image_candidate }}" 2>/dev/null | \
+          jq -r 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "  * **\(.key)**: `\(.value)`"')
+        if [ -z "$OUTPUT" ]; then
+          echo "  * Failed to find DHIS2 related metadata in Docker image" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "* **Simulation Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
