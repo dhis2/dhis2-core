@@ -39,7 +39,6 @@ import lombok.experimental.UtilityClass;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 
 /** Utility class for checking period dimensions in event analytics queries. */

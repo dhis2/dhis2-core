@@ -46,7 +46,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 
 /**
@@ -173,7 +172,8 @@ public class SubexpressionPeriodOffsetUtils {
    * @return the report periods
    */
   private static List<PeriodDimension> getReportPeriods(DataQueryParams params) {
-    List<PeriodDimension> periods = params.getPeriods().stream().map(PeriodDimension.class::cast).toList();
+    List<PeriodDimension> periods =
+        params.getPeriods().stream().map(PeriodDimension.class::cast).toList();
 
     if (periods.isEmpty()) {
       periods = params.getFilterPeriods().stream().map(PeriodDimension.class::cast).toList();

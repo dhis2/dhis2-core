@@ -159,10 +159,10 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
     I18nFormat format = this.i18nManager.getI18nFormat();
 
-    //TODO DHIS2-20257 we cannot change LockException but also not set the name
-    //for (LockException lockException : lockExceptions) {
+    // TODO DHIS2-20257 we cannot change LockException but also not set the name
+    // for (LockException lockException : lockExceptions) {
     //  lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
-    //}
+    // }
 
     rootNode.addChild(
         fieldFilterService.toCollectionNode(
@@ -183,10 +183,10 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
     I18nFormat format = this.i18nManager.getI18nFormat();
 
-    //TODO DHIS2-20257 we cannot change LockException but also not set the name
-    //for (LockException lockException : lockExceptions) {
+    // TODO DHIS2-20257 we cannot change LockException but also not set the name
+    // for (LockException lockException : lockExceptions) {
     //  lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
-    //}
+    // }
 
     Collections.sort(lockExceptions, new LockExceptionNameComparator());
 

@@ -83,7 +83,6 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -267,8 +266,8 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
     List<DimensionalItemObject> desA = List.of(deA, deB);
     List<DimensionalItemObject> ousA = List.of(ouA, ouB);
     List<DimensionalItemObject> ousB = List.of(ouC, ouD);
-    List<DimensionalItemObject> pesA = List.of(createPeriod("2000Q1"), createPeriod("2000Q2"));
-    List<DimensionalItemObject> pesB = List.of(createPeriod("200001"), createPeriod("200002"));
+    List<? extends DimensionalItemObject> pesA = createPeriodDimensions("2000Q1", "2000Q2");
+    List<? extends DimensionalItemObject> pesB = createPeriodDimensions("200001", "200002");
     DataQueryParams paramsA =
         DataQueryParams.newBuilder()
             .withDataElements(desA)
@@ -466,7 +465,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB))
             .withOrganisationUnits(List.of(ouA, ouB, ouC))
-            .withPeriods(createPeriods("2000Q1", "2000Q2"))
+            .withPeriods(createPeriodDimensions("2000Q1", "2000Q2"))
             .build();
     List<List<DimensionItem>> permutations = params.getDimensionItemPermutations();
     assertNotNull(permutations);
@@ -485,7 +484,8 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deC, deD))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+            .withPeriods(
+                createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .withPeriodType(PeriodTypeEnum.QUARTERLY.getName())
             .withDataPeriodType(new YearlyPeriodType())
             .build();
@@ -515,7 +515,8 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deC, deD))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("200101", "200103", "200105", "200107", "2002Q3", "2002Q4"))
+            .withPeriods(
+                createPeriodDimensions("200101", "200103", "200105", "200107", "2002Q3", "2002Q4"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -543,7 +544,8 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000", "200002", "200003", "200004"))
+            .withPeriods(
+                createPeriodDimensions("2000Q1", "2000Q2", "2000", "200002", "200003", "200004"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -581,7 +583,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3"))
+            .withPeriods(createPeriodDimensions("2000Q1", "2000Q2", "2000Q3"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -610,7 +612,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
             .withDataElements(List.of(deA, deB, deC))
             .withOrganisationUnits(List.of(ouA))
             .withPeriods(
-                createPeriods(
+                createPeriodDimensions(
                     "200001", "200002", "200003", "200004", "200005", "200006", "200007", "200008",
                     "200009"))
             .build();
@@ -640,7 +642,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deC))
             .withPeriods(
-                createPeriods(
+                createPeriodDimensions(
                     "200001", "200002", "200003", "200004", "200005", "200006", "200007", "200008",
                     "200009"))
             .build();
@@ -668,7 +670,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
             .withDataElements(List.of(deA))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
             .withPeriods(
-                createPeriods(
+                createPeriodDimensions(
                     "200001", "200002", "200003", "200004", "200005", "200006", "200007", "200008",
                     "200009"))
             .build();
@@ -699,7 +701,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
             .withDataElements(List.of(deA, deB, deC, deD))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
             .withFilterPeriods(
-                createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+                createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -727,7 +729,8 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deE, deF))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000", "200002", "200003", "200004"))
+            .withPeriods(
+                createPeriodDimensions("2000Q1", "2000Q2", "2000", "200002", "200003", "200004"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -752,7 +755,8 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withReportingRates(List.of(rrA, rrB, rrC, rrD))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD, ouE))
-            .withPeriods(createPeriods("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
+            .withPeriods(
+                createPeriodDimensions("2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -780,7 +784,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deE, deF))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD))
-            .withFilterPeriods(List.of(createPeriod("2000Q1")))
+            .withFilterPeriods(createPeriodDimensions("2000Q1"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -805,7 +809,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deG, deH))
             .withOrganisationUnits(List.of(ouA))
-            .withPeriods(createPeriods("200101", "200103"))
+            .withPeriods(createPeriodDimensions("200101", "200103"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -845,7 +849,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB, deC, deD, deG, deH, deI))
-            .withPeriods(createPeriods("2022"))
+            .withPeriods(createPeriodDimensions("2022"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -888,7 +892,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA))
             .withOrganisationUnits(List.of(ouA))
-            .withPeriods(createPeriods("200101", "200102", "200103", "200104"))
+            .withPeriods(createPeriodDimensions("200101", "200102", "200103", "200104"))
             .withAggregationType(analyticsAggregationType)
             .build();
     QueryPlannerParams plannerParams =
@@ -919,7 +923,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB))
             .withOrganisationUnits(List.of(ouA))
-            .withPeriods(createPeriods("200101", "200102", "200103", "200104"))
+            .withPeriods(createPeriodDimensions("200101", "200102", "200103", "200104"))
             .build();
     List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
     queryGroupers.add(q -> queryPlanner.groupByStartEndDateRestriction(q));
@@ -957,7 +961,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB))
             .withOrganisationUnits(List.of(ouA))
-            .withFilterPeriods(createPeriods("200101", "200102", "200103", "200104"))
+            .withFilterPeriods(createPeriodDimensions("200101", "200102", "200103", "200104"))
             .build();
     List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = new ArrayList<>();
     queryGroupers.add(q -> queryPlanner.groupByStartEndDateRestriction(q));
@@ -995,7 +999,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB))
             .withOrganisationUnits(List.of(ouA))
-            .withPeriods(List.of(createPeriod("200101")))
+            .withPeriods(createPeriodDimensions("200101"))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
     QueryPlannerParams plannerParams =
@@ -1025,7 +1029,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deA, deB))
             .withOrganisationUnits(List.of(ouA))
-            .withPeriods(createPeriods("200101"))
+            .withPeriods(createPeriodDimensions("200101"))
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
     QueryPlannerParams plannerParams =
@@ -1053,7 +1057,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElements(List.of(deI, deJ))
             .withOrganisationUnits(List.of(ouA, ouB, ouC, ouD))
-            .withPeriods(createPeriods("201001", "201003"))
+            .withPeriods(createPeriodDimensions("201001", "201003"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()
@@ -1084,7 +1088,7 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
         DataQueryParams.newBuilder()
             .withDataElementGroupSet(dgsB)
             .withOrganisationUnits(List.of(ouA, ouB))
-            .withPeriods(createPeriods("201001", "201003"))
+            .withPeriods(createPeriodDimensions("201001", "201003"))
             .build();
     QueryPlannerParams plannerParams =
         QueryPlannerParams.newBuilder()

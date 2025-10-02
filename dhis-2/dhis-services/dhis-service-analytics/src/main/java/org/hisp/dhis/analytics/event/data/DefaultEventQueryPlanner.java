@@ -52,7 +52,6 @@ import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;

@@ -846,7 +846,10 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       I18nFormat format) {
     return getRelativePeriodList(
-        periodType.generatePeriods(date).stream().map(PeriodDimension::new).toList(), periodNames, dynamicNames, format);
+        periodType.generatePeriods(date).stream().map(PeriodDimension::new).toList(),
+        periodNames,
+        dynamicNames,
+        format);
   }
 
   /**
@@ -867,7 +870,10 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       I18nFormat format) {
     return getRelativePeriodList(
-        periodType.generateRollingPeriods(date).stream().map(PeriodDimension::new).toList(), periodNames, dynamicNames, format);
+        periodType.generateRollingPeriods(date).stream().map(PeriodDimension::new).toList(),
+        periodNames,
+        dynamicNames,
+        format);
   }
 
   /**
@@ -881,7 +887,10 @@ public class RelativePeriods implements Serializable {
    * @return a list of periods.
    */
   private List<PeriodDimension> getRelativePeriodList(
-      List<PeriodDimension> relatives, List<String> periodNames, boolean dynamicNames, I18nFormat format) {
+      List<PeriodDimension> relatives,
+      List<String> periodNames,
+      boolean dynamicNames,
+      I18nFormat format) {
     List<PeriodDimension> periods = new ArrayList<>();
 
     int c = 0;
@@ -911,7 +920,8 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       I18nFormat format) {
     return setName(
-        new PeriodDimension(periodType.createPeriod(dateField.date())).setDateField(dateField.dateField()),
+        new PeriodDimension(periodType.createPeriod(dateField.date()))
+            .setDateField(dateField.dateField()),
         periodName,
         dynamicNames,
         format);
@@ -929,7 +939,8 @@ public class RelativePeriods implements Serializable {
    */
   public static PeriodDimension setName(
       PeriodDimension period, String periodName, boolean dynamicNames, I18nFormat format) {
-    period.setName(dynamicNames && format != null ? format.formatPeriod(period.getPeriod()) : periodName);
+    period.setName(
+        dynamicNames && format != null ? format.formatPeriod(period.getPeriod()) : periodName);
     period.setShortName(format != null ? format.formatPeriod(period.getPeriod()) : null);
     return period;
   }

@@ -363,7 +363,7 @@ class DataQueryParamsTest extends TestBase {
             .withDataDimensionItems(List.of(createIndicator('A', null), createIndicator('B', null)))
             .withOrganisationUnits(
                 List.of(createOrganisationUnit('A'), createOrganisationUnit('B')))
-            .withFilterPeriods(createPeriodDimensions("201201","201202"))
+            .withFilterPeriods(createPeriodDimensions("201201", "201202"))
             .build();
 
     assertEquals(2, params.getDimensions().size());
@@ -776,7 +776,7 @@ class DataQueryParamsTest extends TestBase {
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
                 .withStartDate(getDate(2000, 1, 1))
-                .withPeriods(createPeriodDimensions("201701","201702"))
+                .withPeriods(createPeriodDimensions("201701", "201702"))
                 .build());
 
     params
@@ -794,7 +794,7 @@ class DataQueryParamsTest extends TestBase {
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
                 .withStartDate(getDate(2000, 1, 1))
-                .withPeriods(createPeriodDimensions("199901","201702"))
+                .withPeriods(createPeriodDimensions("199901", "201702"))
                 .build());
 
     params
@@ -812,7 +812,7 @@ class DataQueryParamsTest extends TestBase {
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
                 .withStartDate(getDate(2000, 1, 1))
-                .withPeriods(createPeriodDimensions("201701","201702"))
+                .withPeriods(createPeriodDimensions("201701", "201702"))
                 .build());
 
     params
@@ -830,7 +830,7 @@ class DataQueryParamsTest extends TestBase {
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
                 .withEndDate(getDate(2020, 1, 1))
-                .withPeriods(createPeriodDimensions("201701","201702"))
+                .withPeriods(createPeriodDimensions("201701", "201702"))
                 .build());
 
     params
@@ -848,7 +848,7 @@ class DataQueryParamsTest extends TestBase {
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
                 .withEndDate(getDate(2000, 1, 1))
-                .withPeriods(createPeriodDimensions("202001","201702"))
+                .withPeriods(createPeriodDimensions("202001", "201702"))
                 .build());
 
     params
@@ -866,7 +866,7 @@ class DataQueryParamsTest extends TestBase {
         EventQueryParams.fromDataQueryParams(
             DataQueryParams.newBuilder()
                 .withEndDate(getDate(2000, 1, 1))
-                .withPeriods(createPeriodDimensions("201701","201702"))
+                .withPeriods(createPeriodDimensions("201701", "201702"))
                 .build());
 
     params

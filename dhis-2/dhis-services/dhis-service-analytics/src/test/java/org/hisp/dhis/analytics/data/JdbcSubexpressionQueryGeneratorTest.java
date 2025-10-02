@@ -60,7 +60,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.junit.jupiter.api.Test;

@@ -91,20 +91,16 @@ public class Period {
     return (from == null || !sample.isBefore(from)) && (to == null || !sample.isAfter(to));
   }
 
-  @Getter
-  @Setter private long id;
+  @Getter @Setter private long id;
 
   /** Required. */
-  @Setter
-  private PeriodType periodType;
+  @Setter private PeriodType periodType;
 
   /** Required. Must be unique together with endDate. */
-  @Setter
-  private Date startDate;
+  @Setter private Date startDate;
 
   /** Required. Must be unique together with startDate. */
-  @Setter
-  private Date endDate;
+  @Setter private Date endDate;
 
   /** Transient string holding the ISO representation of the period. */
   private String isoPeriod;
@@ -284,6 +280,4 @@ public class Period {
   public PeriodType getPeriodType() {
     return periodType;
   }
-
-
 }

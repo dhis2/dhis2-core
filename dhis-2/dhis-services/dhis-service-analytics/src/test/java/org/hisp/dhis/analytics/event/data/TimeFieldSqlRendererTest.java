@@ -48,7 +48,6 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -79,10 +78,18 @@ class TimeFieldSqlRendererTest extends TestBase {
 
   @BeforeEach
   void before() {
-    peA = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2022, 4, 1, 0, 0).toDate()));
-    peB = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2022, 5, 1, 0, 0).toDate()));
-    peC = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2022, 6, 1, 0, 0).toDate()));
-    peD = new PeriodDimension(new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    peA =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2022, 4, 1, 0, 0).toDate()));
+    peB =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2022, 5, 1, 0, 0).toDate()));
+    peC =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2022, 6, 1, 0, 0).toDate()));
+    peD =
+        new PeriodDimension(
+            new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
   }
 
   @Test
@@ -173,11 +180,14 @@ class TimeFieldSqlRendererTest extends TestBase {
 
   @Test
   void testRenderEnrollmentTimeFieldSqlWhenNoContinuousMonthlyPeriodWithTimeFieldAllowed() {
-    PeriodDimension march = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2022, 3, 1, 0, 0).toDate()));
+    PeriodDimension march =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2022, 3, 1, 0, 0).toDate()));
     march.setDateField("SCHEDULED_DATE");
 
-    PeriodDimension september = new PeriodDimension(
-        new MonthlyPeriodType().createPeriod(new DateTime(2022, 9, 1, 0, 0).toDate()));
+    PeriodDimension september =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2022, 9, 1, 0, 0).toDate()));
     september.setDateField("SCHEDULED_DATE");
 
     EventQueryParams params =

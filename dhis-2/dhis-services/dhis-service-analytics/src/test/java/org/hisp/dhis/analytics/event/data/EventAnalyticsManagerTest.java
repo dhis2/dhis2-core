@@ -49,7 +49,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
-import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -89,9 +88,7 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -657,10 +654,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             .addFilter(
                 new BaseDimensionalObject(
                     ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
-            .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, periods))
-            .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, periods))
+            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, periods))
+            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, periods))
             .build();
 
     EventQueryParams.Builder eventQueryParamsBuilder =

@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -65,6 +66,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -462,7 +464,7 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
             .withIndicators(List.of(indicatorA))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .withFilterOrganisationUnits(List.of(ouA))
-            .withPeriods(List.of(periods))
+            .withPeriods(Stream.of(periods).map(PeriodDimension::new).toList())
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build();
 

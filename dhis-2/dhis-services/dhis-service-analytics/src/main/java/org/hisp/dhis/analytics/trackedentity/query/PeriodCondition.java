@@ -49,7 +49,6 @@ import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.util.DateUtils;
 
@@ -87,7 +86,8 @@ public class PeriodCondition extends BaseRenderable {
     this.interval = Pair.of(minDate, maxDate);
     this.timeField =
         TimeField.valueOf(
-            ((PeriodDimension) dimensionIdentifier.getDimension().getDimensionalObject().getItems().get(0))
+            ((PeriodDimension)
+                    dimensionIdentifier.getDimension().getDimensionalObject().getItems().get(0))
                 .getDateField());
   }
 

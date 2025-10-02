@@ -59,7 +59,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
@@ -107,8 +106,12 @@ class DefaultEventQueryPlannerTest extends TestBase {
 
     orgUnitA = createOrganisationUnit('A');
 
-    periodA = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
-    periodB = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate()));
+    periodA =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    periodB =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate()));
 
     currentUser = makeUser("U");
 
@@ -415,10 +418,12 @@ class DefaultEventQueryPlannerTest extends TestBase {
   @Test
   void testPlanAggregateQuery_periodsWithDifferentTypesLastAggregation() {
     // Mix different period types with last aggregation
-    PeriodDimension dailyPeriod = new PeriodDimension(
-        new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
-    PeriodDimension yearlyPeriod = new PeriodDimension(
-        new YearlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    PeriodDimension dailyPeriod =
+        new PeriodDimension(
+            new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    PeriodDimension yearlyPeriod =
+        new PeriodDimension(
+            new YearlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
 
     EventQueryParams params =
         new EventQueryParams.Builder()

@@ -702,7 +702,9 @@ public class DataQueryParams {
     // building a Stream<Stream<Date>> to make things easier later
     return Stream.of(
             streamOfOrEmpty(endDate),
-            getAllPeriods().stream().map(PeriodDimension.class::cast).map(PeriodDimension::getEndDate),
+            getAllPeriods().stream()
+                .map(PeriodDimension.class::cast)
+                .map(PeriodDimension::getEndDate),
             getTimeDateRanges().values().stream()
                 .flatMap(Collection::stream)
                 .map(DateRange::getEndDate))
@@ -720,7 +722,9 @@ public class DataQueryParams {
     // building a Stream<Stream<Date>> to make things easier later
     return Stream.of(
             streamOfOrEmpty(startDate),
-            getAllPeriods().stream().map(PeriodDimension.class::cast).map(PeriodDimension::getStartDate),
+            getAllPeriods().stream()
+                .map(PeriodDimension.class::cast)
+                .map(PeriodDimension::getStartDate),
             getTimeDateRanges().values().stream()
                 .flatMap(Collection::stream)
                 .map(DateRange::getStartDate))
@@ -765,7 +769,10 @@ public class DataQueryParams {
 
   /** Returns the filter periods as period objects. */
   public List<Period> getTypedFilterPeriods() {
-    return getFilterPeriods().stream().map(PeriodDimension.class::cast).map(PeriodDimension::getPeriod).toList();
+    return getFilterPeriods().stream()
+        .map(PeriodDimension.class::cast)
+        .map(PeriodDimension::getPeriod)
+        .toList();
   }
 
   /** Returns a list of dimensions which occur more than once, not including the first duplicate. */
@@ -886,10 +893,10 @@ public class DataQueryParams {
           // corresponding to the second part of the financial year so
           // that the query will count both years.
 
-          PeriodDimension endYear = new PeriodDimension(
-              dataPeriodType.createPeriod(
-                  ((PeriodDimension) aggregatePeriod).getEndDate())).setDateField(
-                  ((PeriodDimension) aggregatePeriod).getDateField());
+          PeriodDimension endYear =
+              new PeriodDimension(
+                      dataPeriodType.createPeriod(((PeriodDimension) aggregatePeriod).getEndDate()))
+                  .setDateField(((PeriodDimension) aggregatePeriod).getDateField());
           map.putValue(endYear, aggregatePeriod);
         }
       }

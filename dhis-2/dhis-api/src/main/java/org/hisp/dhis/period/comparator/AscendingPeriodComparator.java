@@ -30,7 +30,6 @@
 package org.hisp.dhis.period.comparator;
 
 import java.util.Comparator;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 

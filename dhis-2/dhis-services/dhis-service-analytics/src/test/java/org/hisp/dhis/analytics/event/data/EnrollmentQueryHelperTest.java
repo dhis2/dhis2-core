@@ -45,9 +45,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link EnrollmentQueryHelper}. */

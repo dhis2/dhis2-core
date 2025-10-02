@@ -152,8 +152,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             getDate(2016, 4, 30));
     periodService.addPeriod(peA);
     periodService.addPeriod(peB);
-    peAIso = peA.getUid();
-    peBIso = peB.getUid();
+    peAIso = peA.getIsoDate();
+    peBIso = peB.getIsoDate();
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');
@@ -473,7 +473,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     DataExportParams params =
         DataExportParams.builder()
             .orgUnit(Set.of(ouB.getUid()))
-            .period(Set.of(peA.getUid()))
+            .period(Set.of(peA.getIsoDate()))
             .build();
     ConflictException ex =
         assertThrows(ConflictException.class, () -> dataExportPipeline.exportAsJson(params, out));

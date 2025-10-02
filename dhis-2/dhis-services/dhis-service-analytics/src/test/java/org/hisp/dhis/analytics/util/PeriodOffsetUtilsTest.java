@@ -144,23 +144,29 @@ class PeriodOffsetUtilsTest {
 
   private void assertIsoPeriodsInOrder(List<DimensionalItemObject> periods, String... isoPeriod) {
     List<String> isoPeriods =
-        periods.stream().map(dim -> (PeriodDimension) dim).map(PeriodDimension::getIsoDate).toList();
+        periods.stream()
+            .map(dim -> (PeriodDimension) dim)
+            .map(PeriodDimension::getIsoDate)
+            .toList();
     assertThat(isoPeriods, is(Arrays.asList(isoPeriod)));
   }
 
   private PeriodDimension createMonthlyPeriod(int year, int month) {
     CalendarPeriodType periodType = new MonthlyPeriodType();
-    return new PeriodDimension(periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
+    return new PeriodDimension(
+        periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
   }
 
   private PeriodDimension createQuarterPeriod(int year, int month) {
     CalendarPeriodType periodType = new QuarterlyPeriodType();
-    return new PeriodDimension(periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
+    return new PeriodDimension(
+        periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
   }
 
   private PeriodDimension createWeeklyType(int year, int month, int day) {
     CalendarPeriodType periodType = new WeeklyPeriodType();
-    return new PeriodDimension(periodType.createPeriod(new DateTime(year, month, day, 0, 0).toDate()));
+    return new PeriodDimension(
+        periodType.createPeriod(new DateTime(year, month, day, 0, 0).toDate()));
   }
 
   private DataElement createDataElement(int offset) {

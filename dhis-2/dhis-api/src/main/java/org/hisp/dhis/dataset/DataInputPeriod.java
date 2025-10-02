@@ -42,7 +42,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodDimensionDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.period.Period;
 

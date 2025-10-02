@@ -96,8 +96,10 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
         .limit(timeUnit)
         .forEach(
             x ->
-                periods.add(new PeriodDimension(
-                    new MonthlyPeriodType().createPeriod(new DateTime(2014, x, 1, 0, 0).toDate()))));
+                periods.add(
+                    new PeriodDimension(
+                        new MonthlyPeriodType()
+                            .createPeriod(new DateTime(2014, x, 1, 0, 0).toDate()))));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -158,7 +160,9 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
+    periods.add(
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -204,7 +208,9 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
     reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
+    periods.add(
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 

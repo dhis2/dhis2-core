@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.report.impl;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import java.io.OutputStream;
@@ -175,9 +174,12 @@ public class DefaultReportService implements ReportService {
               report.getRelatives().getRelativePeriods(reportDate, null, false, financialYearStart);
 
           String periodString =
-              relativePeriods.stream().map(PeriodDimension::getPeriod).map(periodService::reloadPeriod)
+              relativePeriods.stream()
+                  .map(PeriodDimension::getPeriod)
+                  .map(periodService::reloadPeriod)
                   .filter(p -> p.getId() != 0)
-                  .map(p -> ""+p.getId()).collect(Collectors.joining(","));
+                  .map(p -> "" + p.getId())
+                  .collect(Collectors.joining(","));
           String isoPeriodString =
               getCommaDelimitedString(IdentifiableObjectUtils.getUids(relativePeriods));
 

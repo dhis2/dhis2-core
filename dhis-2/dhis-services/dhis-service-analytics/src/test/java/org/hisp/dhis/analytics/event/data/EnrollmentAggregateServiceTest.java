@@ -65,8 +65,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.SystemUser;
@@ -112,7 +110,8 @@ class EnrollmentAggregateServiceTest {
     DataElement deA = createDataElement('A', TEXT, NONE);
     DataElement deB = createDataElement('B', ValueType.ORGANISATION_UNIT, NONE);
     DataElement deC = createDataElement('C', NUMBER, COUNT);
-    DimensionalObject periods = new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("201701"));
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("201701"));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
             ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
@@ -173,7 +172,8 @@ class EnrollmentAggregateServiceTest {
     deF.setName("unique");
 
     DataElement deB = createDataElement('B', ValueType.ORGANISATION_UNIT, NONE);
-    DimensionalObject periods = new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("201701"));
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("201701"));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
             ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));

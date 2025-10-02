@@ -31,10 +31,7 @@ package org.hisp.dhis.period;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.GenericStore;
-
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.

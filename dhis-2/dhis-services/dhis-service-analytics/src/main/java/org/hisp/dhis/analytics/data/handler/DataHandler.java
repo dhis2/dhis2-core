@@ -372,7 +372,9 @@ public class DataHandler {
         permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
 
     List<Period> periods =
-        !filterPeriods.isEmpty() ? filterPeriods : List.of(((PeriodDimension) getPeriodItem(dimensionItems)).getPeriod());
+        !filterPeriods.isEmpty()
+            ? filterPeriods
+            : List.of(((PeriodDimension) getPeriodItem(dimensionItems)).getPeriod());
 
     OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem(dimensionItems);
 

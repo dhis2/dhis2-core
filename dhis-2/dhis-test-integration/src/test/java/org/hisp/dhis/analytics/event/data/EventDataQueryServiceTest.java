@@ -69,7 +69,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
@@ -212,8 +211,10 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     DimensionalObject pe = params.getDimension("pe");
     assertEquals(3, pe.getItems().size());
     assertTrue(streamOfPeriods(pe).anyMatch(PeriodDimension::isDefault));
-    assertTrue(streamOfPeriods(pe).map(PeriodDimension::getDateField).anyMatch("LAST_UPDATED"::equals));
-    assertTrue(streamOfPeriods(pe).map(PeriodDimension::getDateField).anyMatch("INCIDENT_DATE"::equals));
+    assertTrue(
+        streamOfPeriods(pe).map(PeriodDimension::getDateField).anyMatch("LAST_UPDATED"::equals));
+    assertTrue(
+        streamOfPeriods(pe).map(PeriodDimension::getDateField).anyMatch("INCIDENT_DATE"::equals));
     assertTrue(
         streamOfPeriods(pe)
             .filter(period -> "INCIDENT_DATE".equals(period.getDateField()))
@@ -229,7 +230,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   private Stream<PeriodDimension> streamOfPeriods(DimensionalObject pe) {
-    return pe.getItems().stream().map(dimensionalItemObject -> (PeriodDimension) dimensionalItemObject);
+    return pe.getItems().stream()
+        .map(dimensionalItemObject -> (PeriodDimension) dimensionalItemObject);
   }
 
   @Test

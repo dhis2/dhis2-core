@@ -55,7 +55,6 @@ import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -107,11 +106,8 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -477,9 +473,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            createPeriodDimensions("201701"));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201701"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -526,9 +520,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            createPeriodDimensions("201701"));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201701"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -565,9 +557,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel() {
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            createPeriodDimensions("201801"));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201801"));
 
     DimensionalObject multipleOrgUnitsSameLevel =
         new BaseDimensionalObject(
@@ -1002,9 +992,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            createPeriodDimensions("201901"));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201901"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(

@@ -941,7 +941,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     return Optional.empty();
   }
 
-  private void setPeriodNames(List<PeriodDimension> periods, boolean dynamicNames, I18nFormat format) {
+  private void setPeriodNames(
+      List<PeriodDimension> periods, boolean dynamicNames, I18nFormat format) {
     for (PeriodDimension period : periods) {
       RelativePeriods.setName(period, null, dynamicNames, format);
     }

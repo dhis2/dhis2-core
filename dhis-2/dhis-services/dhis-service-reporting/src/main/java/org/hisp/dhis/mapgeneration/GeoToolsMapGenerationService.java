@@ -50,7 +50,6 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;

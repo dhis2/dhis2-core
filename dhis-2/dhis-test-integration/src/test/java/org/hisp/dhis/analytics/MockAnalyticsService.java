@@ -39,7 +39,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 
 /** Configurable mock implementation of AnalyticsService for testing purposes. */

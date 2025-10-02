@@ -31,9 +31,7 @@ package org.hisp.dhis.system.callable;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 

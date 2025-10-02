@@ -49,7 +49,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 
 /** Helper class to support SQL/query handling for enrollments. */

@@ -65,7 +65,6 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.user.SystemUser;
@@ -136,7 +135,9 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
   @Test
   void metadataContainsIndicatorGroupMetadata() {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
+    periods.add(
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     IndicatorGroup indicatorGroup = new IndicatorGroup("ANC");
     indicatorGroup.setCode("COD_1000");
@@ -228,7 +229,9 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
   @Test
   void metadataContainsDataElementGroupMetadata() {
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
+    periods.add(
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     DataElementGroup dataElementGroup = new DataElementGroup("ANC");
     dataElementGroup.setCode("COD_1000");
@@ -279,7 +282,9 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
 
     List<DimensionalItemObject> periods = new ArrayList<>();
 
-    periods.add(new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
+    periods.add(
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     BaseDimensionalObject periodDimension =
         new BaseDimensionalObject("pe", DimensionType.PERIOD, periods);

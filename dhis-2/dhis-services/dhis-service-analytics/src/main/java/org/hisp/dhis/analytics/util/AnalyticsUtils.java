@@ -113,7 +113,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
@@ -1132,7 +1131,8 @@ public final class AnalyticsUtils {
    * @param periods a list of {@link DimensionalItemObject} of type period.
    * @return true if the period exists in the given list.
    */
-  public static boolean isPeriodInPeriods(String period, List<? extends DimensionalItemObject> periods) {
+  public static boolean isPeriodInPeriods(
+      String period, List<? extends DimensionalItemObject> periods) {
     return periods.stream()
         .map(d -> (PeriodDimension) d)
         .map(PeriodDimension::getIsoDate)

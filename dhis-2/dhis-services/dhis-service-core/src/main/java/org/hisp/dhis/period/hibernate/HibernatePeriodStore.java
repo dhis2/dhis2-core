@@ -43,15 +43,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.common.hibernate.InternalHibernateGenericStoreImpl;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -78,8 +74,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @Repository
 @Slf4j
-public class HibernatePeriodStore extends HibernateGenericStore<Period>
-    implements PeriodStore {
+public class HibernatePeriodStore extends HibernateGenericStore<Period> implements PeriodStore {
 
   private final Map<String, Long> periodIdByIsoPeriod = new ConcurrentHashMap<>();
 

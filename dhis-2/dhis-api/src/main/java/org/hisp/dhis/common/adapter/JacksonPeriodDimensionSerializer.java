@@ -33,7 +33,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 
 /**

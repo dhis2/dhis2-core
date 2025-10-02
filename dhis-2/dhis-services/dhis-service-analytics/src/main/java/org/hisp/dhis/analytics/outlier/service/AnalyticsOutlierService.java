@@ -81,7 +81,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -382,7 +381,7 @@ public class AnalyticsOutlierService {
         outlierRequest.hasPeriods()
             ? outlierRequest.getPeriods().stream()
                 .filter(p -> outlier.getPe().equalsIgnoreCase(p.getIsoDate()))
-            .map(PeriodDimension::new)
+                .map(PeriodDimension::new)
             : dimensionalObjectProducer
                 .getPeriodDimension(List.of(outlier.getPe()), null)
                 .getItems()

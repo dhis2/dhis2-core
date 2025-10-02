@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -43,8 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;

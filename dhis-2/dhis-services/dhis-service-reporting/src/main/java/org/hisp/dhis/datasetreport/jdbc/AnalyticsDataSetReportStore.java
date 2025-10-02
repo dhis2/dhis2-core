@@ -83,7 +83,8 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
       return new HashMap<>();
     }
 
-    List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+    List<PeriodDimension> periodDimensions =
+        periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
 
     DataQueryParams.Builder params =
         DataQueryParams.newBuilder()
@@ -143,7 +144,8 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
           continue;
         }
 
-        List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+        List<PeriodDimension> periodDimensions =
+            periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
 
         DataQueryParams.Builder params =
             DataQueryParams.newBuilder()
@@ -180,7 +182,8 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
       return new HashMap<>();
     }
 
-    List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+    List<PeriodDimension> periodDimensions =
+        periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
 
     DataQueryParams.Builder params =
         DataQueryParams.newBuilder()
@@ -214,7 +217,8 @@ public class AnalyticsDataSetReportStore implements DataSetReportStore {
       return new HashMap<>();
     }
 
-    List<PeriodDimension> periodDimensions = periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
+    List<PeriodDimension> periodDimensions =
+        periods == null ? null : periods.stream().map(PeriodDimension::new).toList();
 
     DataQueryParams.Builder params =
         DataQueryParams.newBuilder()

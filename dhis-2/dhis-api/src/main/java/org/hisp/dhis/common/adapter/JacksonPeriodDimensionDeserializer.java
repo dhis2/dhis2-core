@@ -34,9 +34,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
-
 import lombok.Setter;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 
@@ -64,7 +62,8 @@ class LocalPeriodDimension {
  */
 public class JacksonPeriodDimensionDeserializer extends JsonDeserializer<PeriodDimension> {
   @Override
-  public PeriodDimension deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+  public PeriodDimension deserialize(JsonParser jp, DeserializationContext ctxt)
+      throws IOException {
     LocalPeriodDimension period = jp.readValueAs(LocalPeriodDimension.class);
     if (period.getId() == null) return null;
 

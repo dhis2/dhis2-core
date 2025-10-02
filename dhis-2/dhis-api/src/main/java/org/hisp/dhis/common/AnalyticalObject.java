@@ -36,7 +36,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 

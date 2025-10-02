@@ -68,7 +68,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -113,9 +112,15 @@ class DefaultQueryPlannerTest extends TestBase {
     orgUnitB = createOrganisationUnit('B', "OU_B", "UID_B", 2);
 
     // Create test periods
-    periodA = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
-    periodB = new PeriodDimension(new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate()));
-    quarterPeriod = new PeriodDimension(new QuarterlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    periodA =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    periodB =
+        new PeriodDimension(
+            new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate()));
+    quarterPeriod =
+        new PeriodDimension(
+            new QuarterlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
 
     // Create test user
     currentUser = makeUser("U");
@@ -493,8 +498,10 @@ class DefaultQueryPlannerTest extends TestBase {
     MonthlyPeriodType monthlyType = new MonthlyPeriodType();
     YearlyPeriodType yearlyType = new YearlyPeriodType();
 
-    PeriodDimension monthPeriod = new PeriodDimension(monthlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
-    PeriodDimension yearPeriod = new PeriodDimension(yearlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    PeriodDimension monthPeriod =
+        new PeriodDimension(monthlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+    PeriodDimension yearPeriod =
+        new PeriodDimension(yearlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
 
     DataQueryParams params =
         DataQueryParams.newBuilder()

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.junit.jupiter.api.DisplayName;
@@ -98,7 +97,8 @@ class EventPeriodUtilsTest {
   void hasDefaultPeriod_anyDefault_returnsTrue() {
     PeriodDimension nonDefault = new PeriodDimension(RelativePeriodEnum.THIS_MONTH);
     nonDefault.setDateField(TimeField.ENROLLMENT_DATE.name());
-    PeriodDimension def = new PeriodDimension(RelativePeriodEnum.LAST_MONTH); // default (dateField null)
+    PeriodDimension def =
+        new PeriodDimension(RelativePeriodEnum.LAST_MONTH); // default (dateField null)
 
     EventQueryParams params = paramsWithPeriods(nonDefault, def);
 

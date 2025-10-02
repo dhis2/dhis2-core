@@ -238,7 +238,7 @@ public class DefaultChartService implements ChartService {
   public JFreeChart getJFreePeriodChart(
       Indicator indicator, OrganisationUnit unit, boolean title, I18nFormat format) {
     List<PeriodDimension> periods =
-            new RelativePeriods().setLast12Months(true).getRelativePeriods(format, true);
+        new RelativePeriods().setLast12Months(true).getRelativePeriods(format, true);
 
     Visualization visualization = new Visualization();
 
@@ -265,7 +265,7 @@ public class DefaultChartService implements ChartService {
   public JFreeChart getJFreeOrganisationUnitChart(
       Indicator indicator, OrganisationUnit parent, boolean title, I18nFormat format) {
     List<PeriodDimension> periods =
-            new RelativePeriods().setThisYear(true).getRelativePeriods(format, true);
+        new RelativePeriods().setThisYear(true).getRelativePeriods(format, true);
 
     Visualization visualization = new Visualization();
 
@@ -373,7 +373,8 @@ public class DefaultChartService implements ChartService {
 
         for (Period period : periods) {
           if (++periodCount >= min && periodCount <= max) {
-            metaDataSet.addValue(function.value(periodCount), "Regression value", periodNames.get(period));
+            metaDataSet.addValue(
+                function.value(periodCount), "Regression value", periodNames.get(period));
           }
         }
       } catch (MathRuntimeException ex) {
