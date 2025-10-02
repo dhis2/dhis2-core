@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit;
+package org.hisp.dhis.dashboard.embedded;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * @author Luciano Fiandesio
+ * Encapsulates security options for embedded dashboards.
+ *
+ * @author Lars Helge Overland
  */
-public enum AuditScope {
-  METADATA,
-  AGGREGATE,
-  TRACKER,
-  API
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class EmbeddedSecurity implements Serializable {
+  /** Indicates whether queries should be restricted to the user accessible org unit hierarchy. */
+  @JsonProperty private boolean restrictOrgUnitHierarchy;
 }

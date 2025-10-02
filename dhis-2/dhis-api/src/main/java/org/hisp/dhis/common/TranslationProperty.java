@@ -138,6 +138,7 @@ public class TranslationProperty implements Serializable {
    *     of Translation.
    * @return Set of Translation.
    */
+  @SuppressWarnings("unchecked")
   public static Set<Translation> fromObject(Object translations) {
     if (translations == null) {
       return Set.of();

@@ -101,7 +101,7 @@
     <!-- Security -->
     <spring-security.version>6.5.0</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
-    <spring-authorization-server.version>1.5.1</spring-authorization-server.version>
+    <spring-authorization-server.version>1.5.2</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>10.5</nimbus.jose.jwt.version>
@@ -124,7 +124,7 @@
     <flyway-database-postgresql.version>11.8.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
-    <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
+    <jaxb-runtime.version>4.0.6</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.11.1</c3p0.version>
@@ -227,7 +227,7 @@
     <testcontainers.version>1.21.3</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.32</swagger.version>
+    <swagger.version>2.1.34</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.4.240</h2.version>

@@ -30,7 +30,6 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
@@ -46,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -361,7 +361,7 @@ public class MetadataItem implements Serializable {
    * @return the icon's full path.
    */
   private String getFullIconUrl(String iconName) {
-    String absoluteUrl = appendIfMissing(serverBaseUrl, "/");
+    String absoluteUrl = Strings.CS.appendIfMissing(serverBaseUrl, "/");
     return absoluteUrl + "api/icons/" + iconName + "/icon.svg";
   }
 
