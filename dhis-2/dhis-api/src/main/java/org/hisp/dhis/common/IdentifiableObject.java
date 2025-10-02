@@ -67,10 +67,7 @@ public interface IdentifiableObject
   String getDisplayName();
 
   @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(isAttribute = true)
   Date getCreated();
 
   @JsonProperty
