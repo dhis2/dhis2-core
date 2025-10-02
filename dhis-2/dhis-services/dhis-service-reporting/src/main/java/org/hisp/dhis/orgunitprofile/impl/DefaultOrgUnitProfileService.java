@@ -377,7 +377,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
     Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
 
     if (period != null) {
-      return new PeriodDimension(period);
+      return PeriodDimension.of(period);
     } else {
       return RelativePeriods.getRelativePeriodsFromEnum(RelativePeriodEnum.THIS_YEAR, new Date())
           .get(0);

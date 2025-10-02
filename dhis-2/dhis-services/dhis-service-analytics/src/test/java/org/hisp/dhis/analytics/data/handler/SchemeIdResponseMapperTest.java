@@ -876,7 +876,7 @@ class SchemeIdResponseMapperTest {
   }
 
   private PeriodDimension stubPeriod() {
-    PeriodDimension period = new PeriodDimension(getPeriodFromIsoString("202010"));
+    PeriodDimension period = PeriodDimension.of(getPeriodFromIsoString("202010"));
     period.setUid("pe");
     period.setName("October 2020");
 

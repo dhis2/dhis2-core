@@ -139,8 +139,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    peA = new PeriodDimension(PeriodType.getPeriodFromIsoString("201401"));
-    peB = new PeriodDimension(PeriodType.getPeriodFromIsoString("201402"));
+    peA = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201401"));
+    peB = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201402"));
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(ouA);

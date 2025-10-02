@@ -58,9 +58,9 @@ class EventPeriodUtilsTest {
   @Test
   @DisplayName("hasAllDefaultPeriod returns true when all items have OCCURRED_DATE field")
   void hasAllDefaultPeriod_allOccurredDate_returnsTrue() {
-    PeriodDimension p1 = new PeriodDimension(RelativePeriodEnum.LAST_MONTH);
+    PeriodDimension p1 = PeriodDimension.of(RelativePeriodEnum.LAST_MONTH);
     p1.setDateField(TimeField.OCCURRED_DATE.name());
-    PeriodDimension p2 = new PeriodDimension(RelativePeriodEnum.THIS_MONTH);
+    PeriodDimension p2 = PeriodDimension.of(RelativePeriodEnum.THIS_MONTH);
     p2.setDateField(TimeField.OCCURRED_DATE.name());
 
     EventQueryParams params = paramsWithPeriods(p1, p2);
@@ -72,9 +72,9 @@ class EventPeriodUtilsTest {
   @DisplayName(
       "hasAllDefaultPeriod returns false when any item has non-default, non-OCCURRED_DATE field")
   void hasAllDefaultPeriod_nonDefaultNonOccurredDate_returnsFalse() {
-    PeriodDimension p1 = new PeriodDimension(RelativePeriodEnum.LAST_MONTH);
+    PeriodDimension p1 = PeriodDimension.of(RelativePeriodEnum.LAST_MONTH);
     p1.setDateField(TimeField.ENROLLMENT_DATE.name());
-    PeriodDimension p2 = new PeriodDimension(RelativePeriodEnum.THIS_MONTH);
+    PeriodDimension p2 = PeriodDimension.of(RelativePeriodEnum.THIS_MONTH);
     p2.setDateField(TimeField.COMPLETED_DATE.name());
 
     EventQueryParams params = paramsWithPeriods(p1, p2);
@@ -86,7 +86,7 @@ class EventPeriodUtilsTest {
   @DisplayName("hasAllDefaultPeriod returns true when a default period (no dateField) is present")
   void hasAllDefaultPeriod_defaultPeriod_returnsTrue() {
     PeriodDimension defaultPeriod =
-        new PeriodDimension(RelativePeriodEnum.LAST_MONTH); // dateField is null by default
+        PeriodDimension.of(RelativePeriodEnum.LAST_MONTH); // dateField is null by default
     EventQueryParams params = paramsWithPeriods(defaultPeriod);
 
     assertTrue(EventPeriodUtils.hasAllDefaultPeriod(params));
@@ -95,10 +95,10 @@ class EventPeriodUtilsTest {
   @Test
   @DisplayName("hasDefaultPeriod returns true when any item is default (no dateField)")
   void hasDefaultPeriod_anyDefault_returnsTrue() {
-    PeriodDimension nonDefault = new PeriodDimension(RelativePeriodEnum.THIS_MONTH);
+    PeriodDimension nonDefault = PeriodDimension.of(RelativePeriodEnum.THIS_MONTH);
     nonDefault.setDateField(TimeField.ENROLLMENT_DATE.name());
     PeriodDimension def =
-        new PeriodDimension(RelativePeriodEnum.LAST_MONTH); // default (dateField null)
+        PeriodDimension.of(RelativePeriodEnum.LAST_MONTH); // default (dateField null)
 
     EventQueryParams params = paramsWithPeriods(nonDefault, def);
 
@@ -115,9 +115,9 @@ class EventPeriodUtilsTest {
   @Test
   @DisplayName("hasDefaultPeriod returns false when all items are non-default")
   void hasDefaultPeriod_allNonDefault_returnsFalse() {
-    PeriodDimension p1 = new PeriodDimension(RelativePeriodEnum.LAST_MONTH);
+    PeriodDimension p1 = PeriodDimension.of(RelativePeriodEnum.LAST_MONTH);
     p1.setDateField(TimeField.LAST_UPDATED.name());
-    PeriodDimension p2 = new PeriodDimension(RelativePeriodEnum.THIS_MONTH);
+    PeriodDimension p2 = PeriodDimension.of(RelativePeriodEnum.THIS_MONTH);
     p2.setDateField(TimeField.ENROLLMENT_DATE.name());
 
     EventQueryParams params = paramsWithPeriods(p1, p2);
@@ -128,7 +128,7 @@ class EventPeriodUtilsTest {
   @Test
   @DisplayName("hasPeriodDimension returns true when period dimension is present")
   void hasPeriodDimension_present_returnsTrue() {
-    PeriodDimension p = new PeriodDimension(RelativePeriodEnum.THIS_MONTH);
+    PeriodDimension p = PeriodDimension.of(RelativePeriodEnum.THIS_MONTH);
     EventQueryParams params = paramsWithPeriods(p);
     assertTrue(EventPeriodUtils.hasPeriodDimension(params));
   }

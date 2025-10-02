@@ -846,7 +846,7 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       I18nFormat format) {
     return getRelativePeriodList(
-        periodType.generatePeriods(date).stream().map(PeriodDimension::new).toList(),
+        periodType.generatePeriods(date).stream().map(PeriodDimension::of).toList(),
         periodNames,
         dynamicNames,
         format);
@@ -870,7 +870,7 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       I18nFormat format) {
     return getRelativePeriodList(
-        periodType.generateRollingPeriods(date).stream().map(PeriodDimension::new).toList(),
+        periodType.generateRollingPeriods(date).stream().map(PeriodDimension::of).toList(),
         periodNames,
         dynamicNames,
         format);
@@ -920,7 +920,7 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       I18nFormat format) {
     return setName(
-        new PeriodDimension(periodType.createPeriod(dateField.date()))
+        PeriodDimension.of(periodType.createPeriod(dateField.date()))
             .setDateField(dateField.dateField()),
         periodName,
         dynamicNames,

@@ -66,9 +66,9 @@ class GridUtilsTest {
 
   @Test
   void testGetGridIndexByDimensionItem() {
-    PeriodDimension period1 = new PeriodDimension(PeriodType.getPeriodFromIsoString("202010"));
-    PeriodDimension period2 = new PeriodDimension(PeriodType.getPeriodFromIsoString("202011"));
-    PeriodDimension period3 = new PeriodDimension(PeriodType.getPeriodFromIsoString("202012"));
+    PeriodDimension period1 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("202010"));
+    PeriodDimension period2 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("202011"));
+    PeriodDimension period3 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("202012"));
     List<DimensionalItemObject> periods = Lists.newArrayList(period1, period2, period3);
     List<Object> row = new ArrayList<>(3);
     // dimension

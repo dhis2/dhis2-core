@@ -125,6 +125,6 @@ class ReportRatesHelperTest {
     p.setStartDate(new Date());
     p.setEndDate(new Date());
     p.setPeriodType(DailyPeriodType.getByNameIgnoreCase("daily"));
-    return new PeriodDimension(p);
+    return PeriodDimension.of(p);
   }
 }

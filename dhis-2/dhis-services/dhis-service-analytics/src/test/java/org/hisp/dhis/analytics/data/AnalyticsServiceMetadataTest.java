@@ -91,7 +91,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             // PERIOD
-            .withPeriod(new PeriodDimension(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withPeriod(PeriodDimension.of(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
             // DATA ELEMENTS
             .withDataElements(List.of(createDataElement('A', new CategoryCombo())))
             .withIgnoreLimit(true)
@@ -136,7 +136,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
   void metadataContainsIndicatorGroupMetadata() {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     IndicatorGroup indicatorGroup = new IndicatorGroup("ANC");
@@ -192,7 +192,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             // PERIOD
-            .withPeriod(new PeriodDimension(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withPeriod(PeriodDimension.of(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
             // DATA ELEMENTS
             .withDataElements(List.of(createDataElement('A', new CategoryCombo())))
             .withIgnoreLimit(true)
@@ -230,7 +230,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
   void metadataContainsDataElementGroupMetadata() {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     DataElementGroup dataElementGroup = new DataElementGroup("ANC");
@@ -283,7 +283,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
     List<DimensionalItemObject> periods = new ArrayList<>();
 
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     BaseDimensionalObject periodDimension =

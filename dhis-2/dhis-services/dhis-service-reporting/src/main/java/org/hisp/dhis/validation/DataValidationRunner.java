@@ -556,7 +556,7 @@ public class DataValidationRunner {
           DataQueryParams.newBuilder()
               .withDataDimensionItems(Lists.newArrayList(analyticsItems))
               .withAttributeOptionCombos(Lists.newArrayList())
-              .withFilterPeriods(List.of(new PeriodDimension(period)))
+              .withFilterPeriods(List.of(PeriodDimension.of(period)))
               .withOrganisationUnits(orgUnits);
 
       if (hasAttributeOptions) {

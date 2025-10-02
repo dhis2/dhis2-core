@@ -212,7 +212,7 @@ class JdbcAnalyticsManagerTest {
   private DataQueryParams createParams(AggregationType aggregationType) {
     DataElement deA = createDataElement('A', ValueType.INTEGER, aggregationType);
     OrganisationUnit ouA = createOrganisationUnit('A');
-    PeriodDimension peA = new PeriodDimension(PeriodType.getPeriodFromIsoString("201501"));
+    PeriodDimension peA = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201501"));
 
     return DataQueryParams.newBuilder()
         .withDataType(DataType.NUMERIC)

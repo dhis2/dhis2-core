@@ -68,13 +68,13 @@ class OrgUnitTableJoinerTest extends TestBase {
   private final Program programA = createProgram('A');
 
   private final PeriodDimension periodDaily =
-      new PeriodDimension(PeriodType.getPeriodFromIsoString("20230101"));
+      PeriodDimension.of(PeriodType.getPeriodFromIsoString("20230101"));
 
   private final PeriodDimension periodMonthly =
-      new PeriodDimension(PeriodType.getPeriodFromIsoString("202201"));
+      PeriodDimension.of(PeriodType.getPeriodFromIsoString("202201"));
 
   private final PeriodDimension periodQuarterly =
-      new PeriodDimension(PeriodType.getPeriodFromIsoString("2022Q1"));
+      PeriodDimension.of(PeriodType.getPeriodFromIsoString("2022Q1"));
 
   private final Date dateA = new GregorianCalendar(2022, JANUARY, 1).getTime();
 

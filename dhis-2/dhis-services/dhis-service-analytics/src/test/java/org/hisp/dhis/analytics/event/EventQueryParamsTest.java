@@ -161,13 +161,13 @@ class EventQueryParamsTest extends TestBase {
     ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute(prC, teA);
     prC.setProgramAttributes(List.of(pteA));
     peA =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
     peB =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 5, 1, 0, 0).toDate()));
     peC =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 6, 1, 0, 0).toDate()));
   }
 
@@ -272,15 +272,15 @@ class EventQueryParamsTest extends TestBase {
   void testWithStartEndDatesForPeriodsForScheduledMonthlyWithDateField() {
     // Given
     PeriodDimension periodMay =
-        new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("202305"));
+        PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("202305"));
     periodMay.setDateField(SCHEDULED_DATE.name());
 
     PeriodDimension periodMarch =
-        new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("202303"));
+        PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("202303"));
     periodMarch.setDateField(SCHEDULED_DATE.name());
 
     PeriodDimension periodFebruary =
-        new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("202302"));
+        PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("202302"));
     periodFebruary.setDateField(SCHEDULED_DATE.name());
 
     // When
@@ -319,15 +319,15 @@ class EventQueryParamsTest extends TestBase {
   void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithDateField() {
     // Given
     PeriodDimension weeklyPeriod =
-        new PeriodDimension(WeeklyPeriodType.getPeriodFromIsoString("2023W5"));
+        PeriodDimension.of(WeeklyPeriodType.getPeriodFromIsoString("2023W5"));
     weeklyPeriod.setDateField(SCHEDULED_DATE.name());
 
     PeriodDimension monthlyPeriod =
-        new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("202303"));
+        PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("202303"));
     monthlyPeriod.setDateField(SCHEDULED_DATE.name());
 
     PeriodDimension dailyPeriod =
-        new PeriodDimension(DailyPeriodType.getPeriodFromIsoString("20230105"));
+        PeriodDimension.of(DailyPeriodType.getPeriodFromIsoString("20230105"));
     dailyPeriod.setDateField(SCHEDULED_DATE.name());
 
     List<PeriodDimension> periods = List.of(weeklyPeriod, monthlyPeriod, dailyPeriod);
@@ -350,11 +350,11 @@ class EventQueryParamsTest extends TestBase {
   void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithoutDateField() {
     // Given
     PeriodDimension weeklyPeriod =
-        new PeriodDimension(WeeklyPeriodType.getPeriodFromIsoString("2023W5"));
+        PeriodDimension.of(WeeklyPeriodType.getPeriodFromIsoString("2023W5"));
     PeriodDimension monthlyPeriod =
-        new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("202303"));
+        PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("202303"));
     PeriodDimension dailyPeriod =
-        new PeriodDimension(DailyPeriodType.getPeriodFromIsoString("20230105"));
+        PeriodDimension.of(DailyPeriodType.getPeriodFromIsoString("20230105"));
 
     List<PeriodDimension> periods = List.of(weeklyPeriod, monthlyPeriod, dailyPeriod);
 

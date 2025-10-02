@@ -93,7 +93,7 @@ public class IsoPeriodHolder {
         period.setStartDate(start);
         period.setEndDate(end);
 
-        return Optional.of(new PeriodDimension(period).setDateField(getDateField()));
+        return Optional.of(PeriodDimension.of(period).setDateField(getDateField()));
       }
     }
     return empty();

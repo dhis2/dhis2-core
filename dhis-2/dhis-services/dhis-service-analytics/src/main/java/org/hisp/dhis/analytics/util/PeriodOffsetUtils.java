@@ -123,7 +123,7 @@ public final class PeriodOffsetUtils {
    * @return A Period.
    */
   public static PeriodDimension shiftPeriod(PeriodDimension period, int periodOffset) {
-    return new PeriodDimension(
+    return PeriodDimension.of(
         period.getPeriodType().getShiftedPeriod(period.getPeriod(), periodOffset));
   }
 
@@ -138,7 +138,7 @@ public final class PeriodOffsetUtils {
   public static List<Object> getPeriodOffsetRow(List<Object> row, int periodIndex, int offset) {
     String isoPeriod = (String) row.get(periodIndex);
     PeriodDimension shifted =
-        shiftPeriod(new PeriodDimension(PeriodType.getPeriodFromIsoString(isoPeriod)), -offset);
+        shiftPeriod(PeriodDimension.of(PeriodType.getPeriodFromIsoString(isoPeriod)), -offset);
 
     List<Object> adjustedRow = new ArrayList<>(row);
     adjustedRow.set(periodIndex, shifted.getIsoDate());
@@ -249,7 +249,7 @@ public final class PeriodOffsetUtils {
 
     do {
       periods.add(period);
-      period = new PeriodDimension(period.getPeriodType().getPreviousPeriod(period.getPeriod()));
+      period = PeriodDimension.of(period.getPeriodType().getPreviousPeriod(period.getPeriod()));
     } while (getReportingYear(period) == reportingYear);
 
     return periods;

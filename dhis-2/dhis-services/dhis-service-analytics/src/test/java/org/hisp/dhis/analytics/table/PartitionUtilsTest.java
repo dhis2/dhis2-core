@@ -53,11 +53,11 @@ class PartitionUtilsTest {
   private final PeriodType quarterly = new QuarterlyPeriodType();
 
   private final PeriodDimension q1 =
-      new PeriodDimension(quarterly.createPeriod(new DateTime(2018, 7, 1, 0, 0).toDate()));
+      PeriodDimension.of(quarterly.createPeriod(new DateTime(2018, 7, 1, 0, 0).toDate()));
   private final PeriodDimension q2 =
-      new PeriodDimension(quarterly.createPeriod(new DateTime(2018, 10, 1, 0, 0).toDate()));
+      PeriodDimension.of(quarterly.createPeriod(new DateTime(2018, 10, 1, 0, 0).toDate()));
   private final PeriodDimension q3 =
-      new PeriodDimension(quarterly.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate()));
+      PeriodDimension.of(quarterly.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate()));
 
   @Test
   void testGetPartitions() {

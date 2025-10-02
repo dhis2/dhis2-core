@@ -253,8 +253,8 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
     idObjectManager.save(teaA);
     piA = createProgramIndicator('A', prA, null, null);
     idObjectManager.save(piA);
-    peA = new PeriodDimension(createPeriod("201201"));
-    peB = new PeriodDimension(createPeriod("201202"));
+    peA = PeriodDimension.of(createPeriod("201201"));
+    peB = PeriodDimension.of(createPeriod("201202"));
     peLast12Months = new BaseDimensionalItemObject(LAST_12_MONTHS.toString());
     peA.setUid("201201");
     peB.setUid("201202");

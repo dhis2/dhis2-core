@@ -97,7 +97,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
         .forEach(
             x ->
                 periods.add(
-                    new PeriodDimension(
+                    PeriodDimension.of(
                         new MonthlyPeriodType()
                             .createPeriod(new DateTime(2014, x, 1, 0, 0).toDate()))));
 
@@ -161,7 +161,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
@@ -209,7 +209,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate())));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
@@ -255,7 +255,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     // Set a period for a month with less then 30 days (Feb)
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new PeriodDimension(PeriodType.getPeriodFromIsoString("201902")));
+    periods.add(PeriodDimension.of(PeriodType.getPeriodFromIsoString("201902")));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 
@@ -304,7 +304,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
 
     // Set a period for a month with more then 30 days (Jan)
     List<DimensionalItemObject> periods = new ArrayList<>();
-    periods.add(new PeriodDimension(PeriodType.getPeriodFromIsoString("201901")));
+    periods.add(PeriodDimension.of(PeriodType.getPeriodFromIsoString("201901")));
 
     OrganisationUnit ou = new OrganisationUnit("aaaa");
 

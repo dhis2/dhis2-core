@@ -164,7 +164,7 @@ public class PredictionAnalyticsDataFetcher {
 
     DataQueryParams.Builder paramsBuilder =
         DataQueryParams.newBuilder()
-            .withPeriods(periods.stream().map(PeriodDimension::new).toList())
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(dimensionItems))
             .withOrganisationUnits(orgUnits);
 

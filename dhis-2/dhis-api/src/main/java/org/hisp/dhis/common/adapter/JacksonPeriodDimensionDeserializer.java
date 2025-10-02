@@ -67,7 +67,7 @@ public class JacksonPeriodDimensionDeserializer extends JsonDeserializer<PeriodD
     LocalPeriodDimension period = jp.readValueAs(LocalPeriodDimension.class);
     if (period.getId() == null) return null;
 
-    PeriodDimension res = new PeriodDimension(PeriodType.getPeriodFromIsoString(period.getId()));
+    PeriodDimension res = PeriodDimension.of(PeriodType.getPeriodFromIsoString(period.getId()));
     res.setName(period.getName());
     return res;
   }

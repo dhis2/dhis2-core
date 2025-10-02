@@ -153,19 +153,17 @@ class PeriodOffsetUtilsTest {
 
   private PeriodDimension createMonthlyPeriod(int year, int month) {
     CalendarPeriodType periodType = new MonthlyPeriodType();
-    return new PeriodDimension(
-        periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
+    return PeriodDimension.of(periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
   }
 
   private PeriodDimension createQuarterPeriod(int year, int month) {
     CalendarPeriodType periodType = new QuarterlyPeriodType();
-    return new PeriodDimension(
-        periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
+    return PeriodDimension.of(periodType.createPeriod(new DateTime(year, month, 1, 0, 0).toDate()));
   }
 
   private PeriodDimension createWeeklyType(int year, int month, int day) {
     CalendarPeriodType periodType = new WeeklyPeriodType();
-    return new PeriodDimension(
+    return PeriodDimension.of(
         periodType.createPeriod(new DateTime(year, month, day, 0, 0).toDate()));
   }
 

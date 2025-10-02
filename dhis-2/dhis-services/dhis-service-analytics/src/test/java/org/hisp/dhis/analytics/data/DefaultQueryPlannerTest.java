@@ -113,13 +113,13 @@ class DefaultQueryPlannerTest extends TestBase {
 
     // Create test periods
     periodA =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
     periodB =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate()));
     quarterPeriod =
-        new PeriodDimension(
+        PeriodDimension.of(
             new QuarterlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
 
     // Create test user
@@ -499,9 +499,9 @@ class DefaultQueryPlannerTest extends TestBase {
     YearlyPeriodType yearlyType = new YearlyPeriodType();
 
     PeriodDimension monthPeriod =
-        new PeriodDimension(monthlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+        PeriodDimension.of(monthlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
     PeriodDimension yearPeriod =
-        new PeriodDimension(yearlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
+        PeriodDimension.of(yearlyType.createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
 
     DataQueryParams params =
         DataQueryParams.newBuilder()

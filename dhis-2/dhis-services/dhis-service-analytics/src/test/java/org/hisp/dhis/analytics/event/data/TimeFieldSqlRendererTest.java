@@ -79,16 +79,16 @@ class TimeFieldSqlRendererTest extends TestBase {
   @BeforeEach
   void before() {
     peA =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2022, 4, 1, 0, 0).toDate()));
     peB =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2022, 5, 1, 0, 0).toDate()));
     peC =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2022, 6, 1, 0, 0).toDate()));
     peD =
-        new PeriodDimension(
+        PeriodDimension.of(
             new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
   }
 
@@ -181,12 +181,12 @@ class TimeFieldSqlRendererTest extends TestBase {
   @Test
   void testRenderEnrollmentTimeFieldSqlWhenNoContinuousMonthlyPeriodWithTimeFieldAllowed() {
     PeriodDimension march =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2022, 3, 1, 0, 0).toDate()));
     march.setDateField("SCHEDULED_DATE");
 
     PeriodDimension september =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2022, 9, 1, 0, 0).toDate()));
     september.setDateField("SCHEDULED_DATE");
 

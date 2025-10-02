@@ -83,7 +83,7 @@ class QueryPlannerGroupByAggregationTypeTest {
   void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent() {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
     // DataQueryParams with **two** DataElement with different data type as
     // dimension
@@ -145,7 +145,7 @@ class QueryPlannerGroupByAggregationTypeTest {
   void verifySingleNonDataElementRetainAggregationTypeButNullDataType() {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
     // DataQueryParams with **one** Indicator
     DataQueryParams queryParams =
@@ -345,7 +345,7 @@ class QueryPlannerGroupByAggregationTypeTest {
   private DataQueryParams createDataQueryParams(DimensionalObject filterDataElements) {
     List<DimensionalItemObject> periods = new ArrayList<>();
     periods.add(
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate())));
 
     return DataQueryParams.newBuilder()

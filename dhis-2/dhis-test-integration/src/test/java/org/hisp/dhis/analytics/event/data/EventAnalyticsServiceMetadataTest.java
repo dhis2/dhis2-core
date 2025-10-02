@@ -141,7 +141,7 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
     deE.setOptionSet(osA);
     deF = createDataElement('F', ValueType.TEXT, AggregationType.NONE);
     deF.setOptionSet(osA);
-    peA = new PeriodDimension(MonthlyPeriodType.getPeriodFromIsoString("201701"));
+    peA = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201701"));
     ouA = createOrganisationUnit('A');
     prA = createProgram('A');
     psA = createProgramStage('A', prA);

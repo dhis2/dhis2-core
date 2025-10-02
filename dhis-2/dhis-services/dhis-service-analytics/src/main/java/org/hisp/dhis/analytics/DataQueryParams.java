@@ -882,7 +882,7 @@ public class DataQueryParams {
     if (dataPeriodType != null) {
       for (DimensionalItemObject aggregatePeriod : getDimensionOrFilterItems(PERIOD_DIM_ID)) {
         PeriodDimension dataPeriod =
-            new PeriodDimension(
+            PeriodDimension.of(
                     dataPeriodType.createPeriod(((PeriodDimension) aggregatePeriod).getStartDate()))
                 .setDateField(((PeriodDimension) aggregatePeriod).getDateField());
 
@@ -895,7 +895,7 @@ public class DataQueryParams {
           // that the query will count both years.
 
           PeriodDimension endYear =
-              new PeriodDimension(
+              PeriodDimension.of(
                       dataPeriodType.createPeriod(((PeriodDimension) aggregatePeriod).getEndDate()))
                   .setDateField(((PeriodDimension) aggregatePeriod).getDateField());
           map.putValue(endYear, aggregatePeriod);

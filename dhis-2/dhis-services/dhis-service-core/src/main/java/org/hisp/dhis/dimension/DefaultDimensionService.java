@@ -570,7 +570,7 @@ public class DefaultDimensionService implements DimensionService {
               Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
               if (isoPeriod != null) {
-                periods.add(new PeriodDimension(isoPeriod));
+                periods.add(PeriodDimension.of(isoPeriod));
               }
             }
 

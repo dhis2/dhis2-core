@@ -211,8 +211,7 @@ public class DimensionalObjectProvider {
         Period period = getPeriodFromIsoString(isoPeriodHolder.getIsoPeriod());
 
         if (period != null) {
-          addDatePeriods(
-              periods, dimensionalKeywords, isoPeriodHolder, new PeriodDimension(period));
+          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, PeriodDimension.of(period));
         } else {
           addDailyPeriods(periods, dimensionalKeywords, isoPeriodHolder);
         }

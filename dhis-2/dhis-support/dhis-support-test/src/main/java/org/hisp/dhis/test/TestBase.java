@@ -1178,7 +1178,7 @@ public abstract class TestBase {
   }
 
   public static List<PeriodDimension> createPeriodDimensions(String... isoPeriod) {
-    return createPeriods(isoPeriod).stream().map(PeriodDimension::new).toList();
+    return createPeriods(isoPeriod).stream().map(PeriodDimension::of).toList();
   }
 
   /**

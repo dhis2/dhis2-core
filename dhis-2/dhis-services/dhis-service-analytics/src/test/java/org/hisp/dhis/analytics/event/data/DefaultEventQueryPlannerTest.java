@@ -107,10 +107,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
     orgUnitA = createOrganisationUnit('A');
 
     periodA =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
     periodB =
-        new PeriodDimension(
+        PeriodDimension.of(
             new MonthlyPeriodType().createPeriod(new DateTime(2023, 2, 1, 0, 0).toDate()));
 
     currentUser = makeUser("U");
@@ -419,10 +419,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
   void testPlanAggregateQuery_periodsWithDifferentTypesLastAggregation() {
     // Mix different period types with last aggregation
     PeriodDimension dailyPeriod =
-        new PeriodDimension(
+        PeriodDimension.of(
             new DailyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
     PeriodDimension yearlyPeriod =
-        new PeriodDimension(
+        PeriodDimension.of(
             new YearlyPeriodType().createPeriod(new DateTime(2023, 1, 1, 0, 0).toDate()));
 
     EventQueryParams params =
@@ -482,10 +482,10 @@ class DefaultEventQueryPlannerTest extends TestBase {
   @Test
   void testPlanAggregateQuery_withAggregateData_debug() {
 
-    var periodA = new PeriodDimension(new MonthlyPeriodType().createPeriod("202501"));
-    var periodB = new PeriodDimension(new MonthlyPeriodType().createPeriod("202502"));
-    var periodC = new PeriodDimension(new MonthlyPeriodType().createPeriod("202503"));
-    var periodD = new PeriodDimension(new MonthlyPeriodType().createPeriod("202504"));
+    var periodA = PeriodDimension.of(new MonthlyPeriodType().createPeriod("202501"));
+    var periodB = PeriodDimension.of(new MonthlyPeriodType().createPeriod("202502"));
+    var periodC = PeriodDimension.of(new MonthlyPeriodType().createPeriod("202503"));
+    var periodD = PeriodDimension.of(new MonthlyPeriodType().createPeriod("202504"));
 
     EventQueryParams params =
         new EventQueryParams.Builder()

@@ -464,7 +464,7 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
             .withIndicators(List.of(indicatorA))
             .withAggregationType(AnalyticsAggregationType.SUM)
             .withFilterOrganisationUnits(List.of(ouA))
-            .withPeriods(Stream.of(periods).map(PeriodDimension::new).toList())
+            .withPeriods(Stream.of(periods).map(PeriodDimension::of).toList())
             .withOutputFormat(OutputFormat.ANALYTICS)
             .build();
 

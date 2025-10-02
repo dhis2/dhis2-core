@@ -289,19 +289,19 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     catDef.setUid("cat12345def");
     categoryService.updateCategory(catDef);
 
-    peJan = new PeriodDimension(createPeriod("2017-01"));
-    peFeb = new PeriodDimension(createPeriod("2017-02"));
-    peMar = new PeriodDimension(createPeriod("2017-03"));
-    peApr = new PeriodDimension(createPeriod("2017-04"));
-    peMay = new PeriodDimension(createPeriod("2017-05"));
-    peJun = new PeriodDimension(createPeriod("2017-06"));
-    peJul = new PeriodDimension(createPeriod("2017-07"));
-    peAug = new PeriodDimension(createPeriod("2017-08"));
-    peSep = new PeriodDimension(createPeriod("2017-09"));
+    peJan = PeriodDimension.of(createPeriod("2017-01"));
+    peFeb = PeriodDimension.of(createPeriod("2017-02"));
+    peMar = PeriodDimension.of(createPeriod("2017-03"));
+    peApr = PeriodDimension.of(createPeriod("2017-04"));
+    peMay = PeriodDimension.of(createPeriod("2017-05"));
+    peJun = PeriodDimension.of(createPeriod("2017-06"));
+    peJul = PeriodDimension.of(createPeriod("2017-07"));
+    peAug = PeriodDimension.of(createPeriod("2017-08"));
+    peSep = PeriodDimension.of(createPeriod("2017-09"));
 
     // These periods don't need to be persisted:
-    quarter = new PeriodDimension(createPeriod("2017Q1"));
-    year = new PeriodDimension(createPeriod("2017"));
+    quarter = PeriodDimension.of(createPeriod("2017Q1"));
+    year = PeriodDimension.of(createPeriod("2017"));
 
     periodService.addPeriod(peJan.getPeriod());
     periodService.addPeriod(peFeb.getPeriod());

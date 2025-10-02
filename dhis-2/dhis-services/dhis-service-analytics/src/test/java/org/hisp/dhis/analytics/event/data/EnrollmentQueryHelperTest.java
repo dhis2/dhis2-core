@@ -46,6 +46,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link EnrollmentQueryHelper}. */
@@ -151,7 +152,8 @@ class EnrollmentQueryHelperTest {
 
   @Test
   void testGetPeriodColumns() {
-    PeriodDimension period = new PeriodDimension(LAST_3_DAYS);
+    PeriodDimension period = PeriodDimension.of(LAST_3_DAYS);
+    period.getPeriod().setPeriodType(PeriodType.getPeriodTypeFromIsoString("201101"));
 
     EventQueryParams params =
         new EventQueryParams.Builder()

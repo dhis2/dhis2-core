@@ -108,6 +108,7 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -894,7 +895,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetSelectClauseForAggregatedEnrollments() {
     // Given
-    PeriodDimension period = new PeriodDimension(THIS_YEAR);
+    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
+    period.getPeriod().setPeriodType(new YearlyPeriodType());
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(createProgram('A'))
@@ -954,7 +956,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetSelectClauseForQueryEnrollments() {
     // Given
-    PeriodDimension period = new PeriodDimension(THIS_YEAR);
+    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(createProgram('A'))

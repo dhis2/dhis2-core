@@ -69,7 +69,7 @@ public abstract class PeriodType implements Serializable {
   private static final long serialVersionUID = 2402122626196305083L;
 
   /** Cache for period lookup. */
-  private static Cache<Period> PERIOD_CACHE =
+  private static final Cache<Period> PERIOD_CACHE =
       new SimpleCacheBuilder<Period>()
           .forRegion("periodCache")
           .expireAfterAccess(12, TimeUnit.HOURS)

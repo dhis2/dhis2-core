@@ -101,9 +101,9 @@ class AnalyticsManagerTest extends TestBase {
         new AnalyticsAggregationType(
             AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true);
 
-    PeriodDimension y2017 = new PeriodDimension(createPeriod("2017"));
-    PeriodDimension y2018 = new PeriodDimension(createPeriod("2018"));
-    PeriodDimension finYear2017 = new PeriodDimension(createPeriod(financialYear));
+    PeriodDimension y2017 = PeriodDimension.of(createPeriod("2017"));
+    PeriodDimension y2018 = PeriodDimension.of(createPeriod("2018"));
+    PeriodDimension finYear2017 = PeriodDimension.of(createPeriod(financialYear));
 
     Map<String, Object> dataValueMap = new HashMap<>();
     dataValueMap.put(BASE_UID + "-2018", 1.0);
@@ -186,7 +186,7 @@ class AnalyticsManagerTest extends TestBase {
 
   @Test
   void testReplaceDataPeriodsWithAggregationPeriods() {
-    PeriodDimension y2012 = new PeriodDimension(createPeriod("2012"));
+    PeriodDimension y2012 = PeriodDimension.of(createPeriod("2012"));
 
     AnalyticsAggregationType aggregationType =
         new AnalyticsAggregationType(
@@ -207,10 +207,10 @@ class AnalyticsManagerTest extends TestBase {
 
     ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap =
         new ListMap<>();
-    dataPeriodAggregationPeriodMap.putValue(y2012, new PeriodDimension(createPeriod("2012Q1")));
-    dataPeriodAggregationPeriodMap.putValue(y2012, new PeriodDimension(createPeriod("2012Q2")));
-    dataPeriodAggregationPeriodMap.putValue(y2012, new PeriodDimension(createPeriod("2012Q3")));
-    dataPeriodAggregationPeriodMap.putValue(y2012, new PeriodDimension(createPeriod("2012Q4")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q1")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q2")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q3")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q4")));
 
     analyticsManager.replaceDataPeriodsWithAggregationPeriods(
         dataValueMap, params, dataPeriodAggregationPeriodMap);

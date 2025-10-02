@@ -35,7 +35,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Date;
 import java.util.Objects;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -49,14 +51,17 @@ import org.hisp.dhis.schema.annotation.Property;
 
 @Getter
 @Accessors(chain = true)
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class PeriodDimension extends BaseDimensionalItemObject {
 
-  @Nonnull @EqualsAndHashCode.Include @JsonIgnore private final Period period;
+  public static PeriodDimension of(String isoPeriod) {
+    return PeriodDimension.of(PeriodType.getPeriodFromIsoString(isoPeriod));
+  }
 
-  /** date field this period refers to */
-  @EqualsAndHashCode.Include @JsonProperty private String dateField;
+  public static PeriodDimension of(Period period) {
+    return period == null ? null : new PeriodDimension(period, null);
+  }
 
   /**
    * Creates a period that is not bound to the persistent layer. It represents a detached Period
@@ -64,11 +69,19 @@ public class PeriodDimension extends BaseDimensionalItemObject {
    *
    * @param isoRelativePeriod the ISO relative period
    */
-  public PeriodDimension(RelativePeriodEnum isoRelativePeriod) {
-    this.period = PeriodType.getPeriodFromIsoString(isoRelativePeriod.toString());
-    this.name = isoRelativePeriod.toString();
-    this.code = isoRelativePeriod.toString();
+  public static PeriodDimension of(RelativePeriodEnum isoRelativePeriod) {
+    PeriodDimension res = new PeriodDimension(new Period(), isoRelativePeriod);
+    res.setName(isoRelativePeriod.toString());
+    res.setCode(isoRelativePeriod.toString());
+    return res;
   }
+
+  @Nonnull @EqualsAndHashCode.Include @JsonIgnore private final Period period;
+
+  @CheckForNull private final RelativePeriodEnum relativePeriod;
+
+  /** date field this period refers to */
+  @EqualsAndHashCode.Include @JsonProperty private String dateField;
 
   public PeriodDimension setDateField(String dateField) {
     this.dateField = "".equals(dateField) ? null : dateField;
@@ -77,7 +90,7 @@ public class PeriodDimension extends BaseDimensionalItemObject {
 
   @JsonIgnore
   public String getIsoDate() {
-    return period.getIsoDate();
+    return relativePeriod != null ? relativePeriod.name() : period.getIsoDate();
   }
 
   @JsonProperty

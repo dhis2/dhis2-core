@@ -921,8 +921,8 @@ class RelativePeriodsTest {
     Period aug2022Same = PeriodType.getPeriodFromIsoString("202208");
 
     RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf("LAST_MONTH");
-    PeriodDimension relPeriod = new PeriodDimension(relPeriodTypeEnum);
-    PeriodDimension relPeriodSame = new PeriodDimension(relPeriodTypeEnum);
+    PeriodDimension relPeriod = PeriodDimension.of(relPeriodTypeEnum);
+    PeriodDimension relPeriodSame = PeriodDimension.of(relPeriodTypeEnum);
 
     assertEquals(aug2022, aug2022Same);
     assertEquals(relPeriod, relPeriodSame);

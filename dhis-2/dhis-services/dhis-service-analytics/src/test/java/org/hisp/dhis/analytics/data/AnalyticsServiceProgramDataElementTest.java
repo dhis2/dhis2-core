@@ -84,7 +84,7 @@ class AnalyticsServiceProgramDataElementTest extends AnalyticsServiceBaseTest {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
-            .withPeriod(new PeriodDimension(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withPeriod(PeriodDimension.of(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
             .withDataElements(newArrayList(pded1))
             .withIgnoreLimit(true)
             .withFilters(

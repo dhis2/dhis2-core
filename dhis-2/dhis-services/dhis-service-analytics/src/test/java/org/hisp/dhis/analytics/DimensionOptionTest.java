@@ -63,7 +63,7 @@ class DimensionOptionTest extends TestBase {
   @BeforeEach
   void before() {
     deA = createDataElement('A', new CategoryCombo());
-    peA = new PeriodDimension(createPeriod("2000Q1"));
+    peA = PeriodDimension.of(createPeriod("2000Q1"));
     ouA = createOrganisationUnit('A');
     options = new ArrayList<>();
     options.add(new DimensionItem(DATA_X_DIM_ID, deA));

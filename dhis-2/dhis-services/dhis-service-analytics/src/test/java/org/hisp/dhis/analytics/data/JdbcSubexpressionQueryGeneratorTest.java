@@ -96,7 +96,7 @@ class JdbcSubexpressionQueryGeneratorTest {
   void testGetSql() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
-    PeriodDimension peA = new PeriodDimension(createPeriod("202305"));
+    PeriodDimension peA = PeriodDimension.of(createPeriod("202305"));
 
     QueryModifiers queryModsMin = QueryModifiers.builder().aggregationType(MIN).build();
 
@@ -173,7 +173,7 @@ class JdbcSubexpressionQueryGeneratorTest {
   void testGetSql_withPeriodOffset() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
-    PeriodDimension peA = new PeriodDimension(createPeriod("202305"));
+    PeriodDimension peA = PeriodDimension.of(createPeriod("202305"));
 
     QueryModifiers queryModsMin = QueryModifiers.builder().periodOffset(-1).build();
 

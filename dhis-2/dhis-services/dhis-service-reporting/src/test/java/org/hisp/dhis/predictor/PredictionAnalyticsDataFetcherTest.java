@@ -151,7 +151,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     DataQueryParams aocParams =
         DataQueryParams.newBuilder()
-            .withPeriods(periods.stream().map(PeriodDimension::new).toList())
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(aocItems))
             .withOrganisationUnits(orgUnits)
             .withAttributeOptionCombos(Collections.emptyList())
@@ -227,7 +227,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     DataQueryParams nonAocParams =
         DataQueryParams.newBuilder()
-            .withPeriods(periods.stream().map(PeriodDimension::new).toList())
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(nonAocItems))
             .withOrganisationUnits(orgUnits)
             .build();

@@ -906,7 +906,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     visualization.addDataDimensionItem(deC);
     visualization.getOrganisationUnits().add(ouA);
     visualization.getOrganisationUnits().add(ouB);
-    visualization.getPeriods().add(new PeriodDimension(PeriodType.getPeriodFromIsoString("2012")));
+    visualization.getPeriods().add(PeriodDimension.of(PeriodType.getPeriodFromIsoString("2012")));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(3, params.getDataElements().size());
@@ -929,7 +929,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     ouGroupSetDim.setDimension(ouGroupSetA);
     ouGroupSetDim.setItems(List.of(ouGroupA, ouGroupB, ouGroupC));
     visualization.getOrganisationUnitGroupSetDimensions().add(ouGroupSetDim);
-    visualization.getPeriods().add(new PeriodDimension(PeriodType.getPeriodFromIsoString("2012")));
+    visualization.getPeriods().add(PeriodDimension.of(PeriodType.getPeriodFromIsoString("2012")));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(3, params.getDataElements().size());
@@ -952,7 +952,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     ouGroupSetDim.setDimension(ouGroupSetA);
     ouGroupSetDim.setItems(List.of(ouGroupA, ouGroupB, ouGroupC));
     visualization.getOrganisationUnitGroupSetDimensions().add(ouGroupSetDim);
-    visualization.getPeriods().add(new PeriodDimension(PeriodType.getPeriodFromIsoString("2012")));
+    visualization.getPeriods().add(PeriodDimension.of(PeriodType.getPeriodFromIsoString("2012")));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(1, params.getDataElements().size());

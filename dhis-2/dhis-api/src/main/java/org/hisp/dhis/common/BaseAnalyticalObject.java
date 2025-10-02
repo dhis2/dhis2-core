@@ -711,8 +711,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         rawPeriods = new ArrayList<>();
         rawPeriods.addAll(
             getPeriods().stream()
-                .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
-                .map(period -> period.getDimensionItem())
+                .map(PeriodDimension::getDimensionItem)
+                .filter(dimensionItem -> !rawPeriods.contains(dimensionItem))
                 .collect(toSet()));
       }
 
@@ -720,7 +720,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         for (String period : rawPeriods) {
           if (RelativePeriodEnum.contains(period)) {
             RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
-            PeriodDimension relPeriod = new PeriodDimension(relPeriodTypeEnum);
+            PeriodDimension relPeriod = PeriodDimension.of(relPeriodTypeEnum);
 
             if (!periodList.contains(relPeriod)) {
               periodList.add(relPeriod);
@@ -731,7 +731,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
             boolean addPeriod = isIsoPeriod && !periodList.contains(isoPeriod);
 
             if (addPeriod) {
-              periodList.add(new PeriodDimension(isoPeriod));
+              periodList.add(PeriodDimension.of(isoPeriod));
             }
           }
         }

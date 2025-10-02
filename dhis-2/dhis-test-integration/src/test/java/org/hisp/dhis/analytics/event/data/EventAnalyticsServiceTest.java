@@ -210,11 +210,11 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   // Note: The periods are not persisted. They don't need to be for event
   // analytics, so the tests should work without them being persisted.
-  private PeriodDimension peJan = new PeriodDimension(createPeriod("2017-01"));
+  private PeriodDimension peJan = PeriodDimension.of(createPeriod("2017-01"));
 
-  private PeriodDimension peFeb = new PeriodDimension(createPeriod("2017-02"));
+  private PeriodDimension peFeb = PeriodDimension.of(createPeriod("2017-02"));
 
-  private PeriodDimension peMar = new PeriodDimension(createPeriod("2017-03"));
+  private PeriodDimension peMar = PeriodDimension.of(createPeriod("2017-03"));
 
   private CategoryOption coA;
 
