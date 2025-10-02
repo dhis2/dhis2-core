@@ -211,8 +211,8 @@ class QueryValidatorTest {
     DataSet dsA = createDataSet('A', pt);
 
     rrA = new ReportingRate(dsA);
-    peA = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201501"));
-    peB = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201502"));
+    peA = PeriodDimension.of("201501");
+    peB = PeriodDimension.of("201502");
 
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');

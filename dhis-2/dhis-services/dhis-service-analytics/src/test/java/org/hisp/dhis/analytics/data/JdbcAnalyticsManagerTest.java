@@ -57,7 +57,6 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -212,7 +211,7 @@ class JdbcAnalyticsManagerTest {
   private DataQueryParams createParams(AggregationType aggregationType) {
     DataElement deA = createDataElement('A', ValueType.INTEGER, aggregationType);
     OrganisationUnit ouA = createOrganisationUnit('A');
-    PeriodDimension peA = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201501"));
+    PeriodDimension peA = PeriodDimension.of("201501");
 
     return DataQueryParams.newBuilder()
         .withDataType(DataType.NUMERIC)

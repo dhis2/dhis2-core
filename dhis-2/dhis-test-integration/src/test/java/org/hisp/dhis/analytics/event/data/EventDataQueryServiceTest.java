@@ -70,7 +70,6 @@ import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -139,8 +138,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    peA = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201401"));
-    peB = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201402"));
+    peA = PeriodDimension.of("201401");
+    peB = PeriodDimension.of("201402");
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(ouA);

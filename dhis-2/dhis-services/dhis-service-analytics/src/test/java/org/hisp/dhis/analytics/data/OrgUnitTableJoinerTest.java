@@ -46,7 +46,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
@@ -67,14 +66,11 @@ class OrgUnitTableJoinerTest extends TestBase {
 
   private final Program programA = createProgram('A');
 
-  private final PeriodDimension periodDaily =
-      PeriodDimension.of(PeriodType.getPeriodFromIsoString("20230101"));
+  private final PeriodDimension periodDaily = PeriodDimension.of("20230101");
 
-  private final PeriodDimension periodMonthly =
-      PeriodDimension.of(PeriodType.getPeriodFromIsoString("202201"));
+  private final PeriodDimension periodMonthly = PeriodDimension.of("202201");
 
-  private final PeriodDimension periodQuarterly =
-      PeriodDimension.of(PeriodType.getPeriodFromIsoString("2022Q1"));
+  private final PeriodDimension periodQuarterly = PeriodDimension.of("2022Q1");
 
   private final Date dateA = new GregorianCalendar(2022, JANUARY, 1).getTime();
 

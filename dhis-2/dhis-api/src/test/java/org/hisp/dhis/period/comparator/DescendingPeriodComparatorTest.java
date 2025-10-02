@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodDimension;
 import org.junit.jupiter.api.Test;
 
@@ -46,10 +45,10 @@ class DescendingPeriodComparatorTest {
 
   @Test
   void testSort() {
-    PeriodDimension m03 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201603"));
-    PeriodDimension m04 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201604"));
-    PeriodDimension m05 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201605"));
-    PeriodDimension m06 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201606"));
+    PeriodDimension m03 = PeriodDimension.of("201603");
+    PeriodDimension m04 = PeriodDimension.of("201604");
+    PeriodDimension m05 = PeriodDimension.of("201605");
+    PeriodDimension m06 = PeriodDimension.of("201606");
     List<PeriodDimension> periods = Lists.newArrayList(m04, m03, m06, m05);
     List<PeriodDimension> expected = Lists.newArrayList(m06, m05, m04, m03);
     List<PeriodDimension> sortedPeriods =
@@ -59,10 +58,10 @@ class DescendingPeriodComparatorTest {
 
   @Test
   void testMin() {
-    PeriodDimension m03 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201603"));
-    PeriodDimension m04 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201604"));
-    PeriodDimension m05 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201605"));
-    PeriodDimension m06 = PeriodDimension.of(MonthlyPeriodType.getPeriodFromIsoString("201606"));
+    PeriodDimension m03 = PeriodDimension.of("201603");
+    PeriodDimension m04 = PeriodDimension.of("201604");
+    PeriodDimension m05 = PeriodDimension.of("201605");
+    PeriodDimension m06 = PeriodDimension.of("201606");
     List<PeriodDimension> periods = Lists.newArrayList(m04, m03, m06, m05);
     Optional<PeriodDimension> latest = periods.stream().min(DescendingPeriodComparator.INSTANCE);
     assertEquals(m06, latest.get());

@@ -512,9 +512,9 @@ class DataQueryParamsTest extends TestBase {
 
   @Test
   void testGetLatestPeriod() {
-    PeriodDimension jan_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201601"));
-    PeriodDimension feb_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201602"));
-    PeriodDimension mar_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201603"));
+    PeriodDimension jan_2016 = PeriodDimension.of("201601");
+    PeriodDimension feb_2016 = PeriodDimension.of("201602");
+    PeriodDimension mar_2016 = PeriodDimension.of("201603");
     DataQueryParams paramsA =
         DataQueryParams.newBuilder()
             .withPeriods(List.of(jan_2016))
@@ -531,8 +531,8 @@ class DataQueryParamsTest extends TestBase {
 
   @Test
   void testGetLatestEndDate() {
-    PeriodDimension q1_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("2016Q1"));
-    PeriodDimension q2_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("2016Q2"));
+    PeriodDimension q1_2016 = PeriodDimension.of("2016Q1");
+    PeriodDimension q2_2016 = PeriodDimension.of("2016Q2");
     Calendar today = Calendar.getInstance();
     DataQueryParams paramsA =
         DataQueryParams.newBuilder()
@@ -554,9 +554,9 @@ class DataQueryParamsTest extends TestBase {
 
   @Test
   void testGetEarliestStartDate() {
-    PeriodDimension jan_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201601"));
-    PeriodDimension feb_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201602"));
-    PeriodDimension mar_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201603"));
+    PeriodDimension jan_2016 = PeriodDimension.of("201601");
+    PeriodDimension feb_2016 = PeriodDimension.of("201602");
+    PeriodDimension mar_2016 = PeriodDimension.of("201603");
     Date dec_2015 = getDate(2015, 12, 1);
     DataQueryParams paramsA =
         DataQueryParams.newBuilder()
@@ -578,9 +578,9 @@ class DataQueryParamsTest extends TestBase {
 
   @Test
   void testSetPeriodDimensionWithoutOptionsA() {
-    PeriodDimension mar_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201603"));
-    PeriodDimension apr_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201604"));
-    PeriodDimension may_2016 = PeriodDimension.of(PeriodType.getPeriodFromIsoString("201605"));
+    PeriodDimension mar_2016 = PeriodDimension.of("201603");
+    PeriodDimension apr_2016 = PeriodDimension.of("201604");
+    PeriodDimension may_2016 = PeriodDimension.of("201605");
     DataQueryParams params =
         DataQueryParams.newBuilder().withPeriods(List.of(mar_2016, apr_2016, may_2016)).build();
     assertEquals(3, params.getPeriods().size());
