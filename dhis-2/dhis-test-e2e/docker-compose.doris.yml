@@ -5,6 +5,9 @@ services:
     depends_on:
       doris-be:
         condition: service_healthy
+      doris-fe:
+        condition: service_healthy
+
     networks:
       doris_network:
         ipv4_address: 192.168.100.9
