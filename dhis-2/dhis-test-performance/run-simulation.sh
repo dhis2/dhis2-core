@@ -135,10 +135,12 @@ post_process_profiler_data() {
 
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
+  # shellcheck disable=SC2086
   docker compose exec --workdir /profiler-output web \
-    jfrconv "$jfrconv_flags" --dot --title "$title" profile.jfr profile.html
+    jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html
+  # shellcheck disable=SC2086
   docker compose exec --workdir /profiler-output web \
-    jfrconv "$jfrconv_flags" --dot profile.jfr profile.collapsed
+    jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed
 
   docker compose cp web:/profiler-output/. "$gatling_dir/"
 
@@ -152,12 +154,14 @@ prepare_database() {
 
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
+    # shellcheck disable=SC2086
     docker compose exec --workdir /profiler-output web asprof start $PROF_ARGS -f profile.jfr 1 > /dev/null
   fi
 }
 
 run_simulation() {
   echo "Running $SIMULATION_CLASS..."
+  # shellcheck disable=SC2086
   mvn gatling:test \
     -Dgatling.simulationClass="$SIMULATION_CLASS" \
     $MVN_ARGS
