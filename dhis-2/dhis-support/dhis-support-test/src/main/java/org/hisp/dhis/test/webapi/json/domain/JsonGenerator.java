@@ -62,6 +62,15 @@ public class JsonGenerator {
     }
   }
 
+  public JsonGenerator(JsonSchema schema) {
+    String endpoint = schema.getRelativeApiEndpoint();
+    if (endpoint != null) {
+      schemasByEndpoint.put(endpoint, schema);
+    }
+    // avoid triggering class loading by using getString
+    schemasByKlass.put(schema.getString("klass").string(), schema);
+  }
+
   /**
    * Generates a mapping between a relative API endpoint path (the path used with POST to create
    * objects) and a JSON payload to POST to the endpoint to create the generated object.

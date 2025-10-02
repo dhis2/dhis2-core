@@ -433,16 +433,4 @@ public class IndicatorGroup extends BaseMetadataObject
   public void setName(String name) {
     this.name = name;
   }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setMembers(Set<Indicator> members) {
-    this.members = members;
-  }
-
-  public void setGroupSets(Set<IndicatorGroupSet> groupSets) {
-    this.groupSets = groupSets;
-  }
 }
