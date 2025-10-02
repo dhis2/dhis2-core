@@ -29,84 +29,127 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
+import com.nimbusds.jose.proc.JWSKeySelector;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import java.net.URL;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
-public class DhisOidcUserService extends OidcUserService {
+public class DhisOidcUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
   @Autowired public UserService userService;
-
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
+
+  private final RestTemplate restTemplate = new RestTemplate();
 
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
-    OidcUser oidcUser = super.loadUser(userRequest);
-
     ClientRegistration clientRegistration = userRequest.getClientRegistration();
 
-    DhisOidcClientRegistration oidcClientRegistration =
+    DhisOidcClientRegistration dhisClientReg =
         clientRegistrationRepository.getDhisOidcClientRegistration(
             clientRegistration.getRegistrationId());
 
-    String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
-    Map<String, Object> attributes = oidcUser.getAttributes();
-    Object claimValue = attributes.get(mappingClaimKey);
-    OidcUserInfo userInfo = oidcUser.getUserInfo();
-    if (claimValue == null && userInfo != null) {
-      claimValue = userInfo.getClaim(mappingClaimKey);
+    String userInfoUri =
+        dhisClientReg.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUri();
+
+    if (userInfoUri == null || userInfoUri.isEmpty()) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("missing_user_info_uri"),
+          "Missing UserInfo Endpoint URI in ClientRegistration");
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug(
-          String.format(
-              "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
-              mappingClaimKey, claimValue));
+    HttpHeaders headers = new HttpHeaders();
+    headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
+    headers.setAccept(java.util.Collections.singletonList(MediaType.valueOf("application/jwt")));
+    HttpEntity<String> entity = new HttpEntity<>("", headers);
+
+    ResponseEntity<String> response;
+    try {
+      response = restTemplate.exchange(userInfoUri, HttpMethod.GET, entity, String.class);
+    } catch (Exception e) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("invalid_user_info_response"), "Failed to fetch UserInfo response", e);
     }
 
-    if (claimValue != null) {
-      User user = userService.getUserByOpenId((String) claimValue);
-      if (user != null && user.isExternalAuth()) {
-        if (user.isDisabled() || !user.isAccountNonExpired()) {
-          throw new OAuth2AuthenticationException(
-              new OAuth2Error("user_disabled"), "User is disabled");
-        }
+    String signedJwt = response.getBody();
 
-        UserDetails userDetails = userService.createUserDetails(user);
+    try {
+      ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
 
-        return new DhisOidcUser(
-            userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
+      String jwksUri = userRequest.getClientRegistration().getProviderDetails().getJwkSetUri();
+      JWKSourceBuilder<SecurityContext> securityContextJWKSourceBuilder =
+          JWKSourceBuilder.create(new URL(jwksUri));
+
+      JWKSource<SecurityContext> keySource = securityContextJWKSourceBuilder.build();
+      JWSKeySelector<SecurityContext> keySelector =
+          new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, keySource);
+
+      jwtProcessor.setJWSKeySelector(keySelector);
+
+      // Process the JWT, verify the signature and decode the payload
+      JWTClaimsSet claimsSet = jwtProcessor.process(signedJwt, null);
+      Map<String, Object> claims = claimsSet.toJSONObject();
+
+      String mappingClaimKey = dhisClientReg.getMappingClaimKey();
+      String mappingValue = (String) claims.get(mappingClaimKey);
+      if (mappingValue == null) {
+        throw new OAuth2AuthenticationException(
+            new OAuth2Error("missing_mapping_claim"),
+            "Mapping claim '"
+                + mappingClaimKey
+                + "' not found in UserInfo JWT claims: "
+                + claims.keySet());
       }
+
+      User userByOpenId = userService.getUserByOpenId(mappingValue);
+      if (userByOpenId == null) {
+        throw new OAuth2AuthenticationException(
+            new OAuth2Error("user_not_found"),
+            "No user found for mapping claim '"
+                + mappingClaimKey
+                + "' with value: "
+                + mappingValue);
+      }
+
+      UserDetails currentUserDetails = userService.createUserDetails(userByOpenId);
+      return new DhisOidcUser(
+          currentUserDetails, claims, IdTokenClaimNames.SUB, userRequest.getIdToken());
+
+    } catch (Exception e) {
+      log.error("Error processing UserInfo JWT", e);
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("jwt_processing_error"), "Failed to process UserInfo JWT", e);
     }
-
-    String errorMessage =
-        String.format(
-            "Failed to look up DHIS2 user with OidcUser mapping mapping; mappingClaimKey='%s', claimValue='%s'",
-            mappingClaimKey, claimValue);
-
-    if (log.isDebugEnabled()) {
-      log.debug(errorMessage);
-    }
-
-    OAuth2Error oauth2Error =
-        new OAuth2Error("could_not_map_oidc_user_to_dhis2_user", errorMessage, null);
-
-    throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
   }
 }

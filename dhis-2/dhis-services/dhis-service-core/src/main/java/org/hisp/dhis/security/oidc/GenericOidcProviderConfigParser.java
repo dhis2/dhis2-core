@@ -99,10 +99,10 @@ public final class GenericOidcProviderConfigParser {
     ImmutableMap.Builder<String, Boolean> builder = ImmutableMap.builder();
 
     builder.put(CLIENT_ID, Boolean.TRUE);
-    builder.put(CLIENT_SECRET, Boolean.TRUE);
+    builder.put(CLIENT_SECRET, Boolean.FALSE);
     builder.put(AUTHORIZATION_URI, Boolean.TRUE);
     builder.put(TOKEN_URI, Boolean.TRUE);
-    builder.put(USERINFO_URI, Boolean.TRUE);
+    builder.put(USERINFO_URI, Boolean.FALSE);
     builder.put(JWK_URI, Boolean.TRUE);
 
     builder.put(REDIRECT_URL, Boolean.FALSE);
