@@ -77,6 +77,7 @@ jobs:
 
     steps:
     - name: Checkout performance tests
+      id: checkout
       uses: actions/checkout@v5
       with:
         ref: ${{ inputs.perf_tests_git_ref }}
@@ -175,7 +176,7 @@ jobs:
         echo '```sh' >> $GITHUB_STEP_SUMMARY
         echo -n 'gh workflow run run-performance-tests.yml' >> $GITHUB_STEP_SUMMARY
         echo ' \' >> $GITHUB_STEP_SUMMARY
-        echo "  --field perf_tests_git_ref=\"${{ inputs.perf_tests_git_ref }}\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field perf_tests_git_ref=\"${{ steps.checkout.outputs.commit }}\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field simulation_class=\"${{ inputs.simulation_class }}\" \\" >> $GITHUB_STEP_SUMMARY
 
         # Add optional fields only if they're not empty or not default
@@ -201,7 +202,7 @@ jobs:
           echo "  --field dhis2_db_image_suffix=\"${{ inputs.dhis2_db_image_suffix }}\" \\" >> $GITHUB_STEP_SUMMARY
         fi
 
-        echo "  --ref ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
@@ -210,7 +211,7 @@ jobs:
         echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
         echo "* **Simulation**" >> $GITHUB_STEP_SUMMARY
         echo "  * **Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "  * **Git ref**: \`${{ inputs.perf_tests_git_ref }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Git ref**: \`${{ inputs.perf_tests_git_ref }}\` (\`${{ steps.checkout.outputs.commit }}\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`${{ inputs.dhis2_image_baseline }}\`" >> $GITHUB_STEP_SUMMARY
 
         # Extract and display DHIS2 labels for baseline
