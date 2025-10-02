@@ -26,7 +26,7 @@ services:
       - FE_SERVERS=fe1:192.168.100.10:9010
       - FE_ID=1
     volumes:
-      - ./config/doris/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
+      - ./config/doris/postgresql-42.7.7.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
       - ./config/doris/fe.conf:/opt/apache-doris/fe/conf/fe.conf
       - doris-fe-meta:/opt/apache-doris/fe/doris-meta
       - doris-fe-log:/opt/apache-doris/fe/log
