@@ -52,8 +52,7 @@ DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone
 DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
-SKIP_INITIAL_DOWN=${SKIP_INITIAL_DOWN:-"false"}
-SKIP_CLEANUP=${SKIP_CLEANUP:-"false"}
+WARMUP=${WARMUP:-"false"}
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -84,9 +83,7 @@ cleanup() {
   fi
 }
 
-if [ "$SKIP_CLEANUP" != "true" ]; then
-  trap cleanup EXIT INT
-fi
+trap cleanup EXIT INT
 
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
@@ -111,14 +108,10 @@ start_containers() {
   start_time=$(date +%s)
 
   if [ -n "$PROF_ARGS" ]; then
-    if [ "$SKIP_INITIAL_DOWN" != "true" ]; then
-      docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    fi
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
     docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
   else
-    if [ "$SKIP_INITIAL_DOWN" != "true" ]; then
-      docker compose down --volumes
-    fi
+    docker compose down --volumes
     docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
   fi
 
@@ -182,14 +175,6 @@ start_profiler() {
   fi
 }
 
-run_simulation() {
-  echo "Running $SIMULATION_CLASS..."
-  # shellcheck disable=SC2086
-  mvn gatling:test \
-    -Dgatling.simulationClass="$SIMULATION_CLASS" \
-    $MVN_ARGS
-}
-
 stop_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     echo "Stopping profiler..."
@@ -217,21 +202,40 @@ generate_metadata() {
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
   } > "$simulation_run_file"
+
+  echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
+}
+
+run_simulation() {
+  local extra_mvn_args="${1:-}"
+
+  start_profiler
+
+  echo "Running $SIMULATION_CLASS..."
+  # shellcheck disable=SC2086
+  mvn gatling:test \
+    -Dgatling.simulationClass="$SIMULATION_CLASS" \
+    $MVN_ARGS $extra_mvn_args
+
+  stop_profiler
+  gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
+  echo "Gatling test results are in: $gatling_run_dir"
+  save_profiler_data "$gatling_run_dir"
+  post_process_profiler_data "$gatling_run_dir"
+  generate_metadata "$gatling_run_dir"
 }
 
 pull_mutable_image
 start_containers
 prepare_database
-start_profiler
-run_simulation
-stop_profiler
 
-gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
-save_profiler_data "$gatling_run_dir"
-post_process_profiler_data "$gatling_run_dir"
-generate_metadata "$gatling_run_dir"
+if [ "$WARMUP" = "true" ]; then
+  echo "Running warmup iteration..."
+  run_simulation "-Dgatling.failOnError=false"
+  echo "Warmup complete."
+fi
+
+run_simulation
 
 echo "Completed test for $DHIS2_IMAGE"
-echo "Gatling test results are in: $gatling_run_dir"
-echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
 

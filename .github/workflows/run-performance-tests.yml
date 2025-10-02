@@ -100,17 +100,6 @@ jobs:
     - name: Clean target directory
       run: mvn clean
 
-    - name: Run performance tests - baseline warmup
-      run: |
-        DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
-        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
-        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
-        PROF_ARGS="${{ inputs.prof_args }}" \
-        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
-        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        SKIP_CLEANUP=true \
-        ./run-simulation.sh
-
     - name: Run performance tests - baseline
       run: |
         # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
@@ -120,18 +109,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        SKIP_INITIAL_DOWN=true \
-        ./run-simulation.sh
-
-    - name: Run performance tests - candidate warmup
-      run: |
-        DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
-        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
-        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
-        PROF_ARGS="${{ inputs.prof_args }}" \
-        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
-        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        SKIP_CLEANUP=true \
+        WARMUP=true \
         ./run-simulation.sh
 
     - name: Run performance tests - candidate
@@ -142,7 +120,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        SKIP_INITIAL_DOWN=true \
+        WARMUP=true \
         ./run-simulation.sh
 
     # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test
@@ -202,7 +180,7 @@ jobs:
           echo "  --field dhis2_db_image_suffix=\"${{ inputs.dhis2_db_image_suffix }}\" \\" >> $GITHUB_STEP_SUMMARY
         fi
 
-        echo "  --ref ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.sha }} # git sha of workflow" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
