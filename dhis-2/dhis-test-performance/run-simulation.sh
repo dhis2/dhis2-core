@@ -84,6 +84,21 @@ cleanup() {
 
 trap cleanup EXIT INT
 
+pull_mutable_image() {
+  # Pull images with mutable tags to ensure we get the latest version. See
+  # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
+  # (dhis2/core-dev:*, dhis2/core-pr:*) are overwritten multiple times a day. Immutable tags
+  # (dhis2/core:2.42.1) are never rebuilt once published. Docker caches images locally, so without
+  # an explicit pull, we may run an outdated version even when using tags like 'latest' or 'master'.
+  # This is especially important on our self-hosted runner as devs will expect their latest change
+  # to be tested.
+
+  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+    echo "Pulling mutable image tag: $DHIS2_IMAGE"
+    docker pull "$DHIS2_IMAGE"
+  fi
+}
+
 start_containers() {
   echo "Testing with image: $DHIS2_IMAGE"
   echo "Waiting for containers to be ready..."
@@ -196,6 +211,7 @@ generate_metadata() {
   } > "$simulation_run_file"
 }
 
+pull_mutable_image
 start_containers
 prepare_database
 start_profiler
