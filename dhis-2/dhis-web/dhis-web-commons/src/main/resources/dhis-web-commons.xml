@@ -76,12 +76,6 @@
         <interceptor-ref name="commonInterceptors" />
       </interceptor-stack>
 
-      <interceptor-stack name="fileUploadStack">
-        <interceptor-ref name="exceptionInterceptor" />
-        <interceptor-ref name="fileUpload" />
-        <interceptor-ref name="commonInterceptors" />
-      </interceptor-stack>
-
       <interceptor-stack name="organisationUnitTreeStack">
         <interceptor-ref name="exceptionInterceptor" />
         <interceptor-ref name="organisationUnitTreeInterceptor" />
