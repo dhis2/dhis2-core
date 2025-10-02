@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests the Configuration controller endpoints.
  *
- * @author Generated Test
+ * @author viet
  */
 @Transactional
 class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
