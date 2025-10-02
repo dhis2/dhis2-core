@@ -29,7 +29,12 @@
  */
 package org.hisp.dhis.login;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,7 +54,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.subethamail.wiser.WiserMessage;
@@ -220,7 +231,7 @@ public class LoginTest extends BaseE2ETest {
         template.exchange(
             serverApiUrl + "/account/verifyEmail?token=WRONGTOKEN",
             HttpMethod.GET,
-            new HttpEntity<>(new HashMap(), jsonHeaders()),
+            new HttpEntity<>(new HashMap<>(), jsonHeaders()),
             String.class);
     assertEquals(HttpStatus.FOUND, response.getStatusCode());
     List<String> location = response.getHeaders().get("Location");

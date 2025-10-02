@@ -27,14 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit;
+package org.hisp.dhis.audit.consumers;
 
-/**
- * @author Luciano Fiandesio
- */
-public enum AuditScope {
-  METADATA,
-  AGGREGATE,
-  TRACKER,
-  API
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.jms.TextMessage;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
+
+@Component
+public class ApiAuditConsumer extends AbstractAuditConsumer {
+  public ApiAuditConsumer(
+      AuditService auditService, ObjectMapper objectMapper, DhisConfigurationProvider dhisConfig) {
+    this.auditService = auditService;
+    this.objectMapper = objectMapper;
+
+    this.isAuditLogEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_LOGGER);
+    this.isAuditDatabaseEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_DATABASE);
+  }
+
+  @JmsListener(destination = Topics.API_TOPIC_NAME)
+  public void consume(TextMessage message) {
+    _consume(message);
+  }
 }
