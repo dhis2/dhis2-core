@@ -184,12 +184,13 @@ stop_profiler() {
 
 generate_metadata() {
   local gatling_run_dir="$1"
+  local is_warmup="${2:-false}"
   local simulation_run_file="$gatling_run_dir/simulation-run.txt"
 
   echo "Generating run metadata..."
   {
     echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP} $0"
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
@@ -198,6 +199,7 @@ generate_metadata() {
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "MVN_ARGS=$MVN_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
+    echo "WARMUP=$is_warmup"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
@@ -207,7 +209,12 @@ generate_metadata() {
 }
 
 run_simulation() {
-  local extra_mvn_args="${1:-}"
+  local is_warmup="${1:-false}"
+  local extra_mvn_args=""
+
+  if [ "$is_warmup" = "true" ]; then
+    extra_mvn_args="-Dgatling.failOnError=false"
+  fi
 
   start_profiler
 
@@ -219,10 +226,17 @@ run_simulation() {
 
   stop_profiler
   gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
+
+  if [ "$is_warmup" = "true" ]; then
+    local warmup_dir="${gatling_run_dir}-warmup"
+    mv "$gatling_run_dir" "$warmup_dir"
+    gatling_run_dir="$warmup_dir"
+  fi
+
   echo "Gatling test results are in: $gatling_run_dir"
   save_profiler_data "$gatling_run_dir"
   post_process_profiler_data "$gatling_run_dir"
-  generate_metadata "$gatling_run_dir"
+  generate_metadata "$gatling_run_dir" "$is_warmup"
 }
 
 pull_mutable_image
@@ -231,7 +245,7 @@ prepare_database
 
 if [ "$WARMUP" = "true" ]; then
   echo "Running warmup iteration..."
-  run_simulation "-Dgatling.failOnError=false"
+  run_simulation "true"
   echo "Warmup complete."
 fi
 
