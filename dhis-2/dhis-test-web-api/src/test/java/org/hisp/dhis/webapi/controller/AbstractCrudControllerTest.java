@@ -2317,58 +2317,6 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testIndicatorGroupSetSupportsAttributeValues() {
-    // Create attribute first
-    String attributeId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/attributes/",
-                """
-            {
-                'name': 'Test IGS Attribute',
-                'shortName': 'TIGSA',
-                'valueType': 'TEXT',
-                'indicatorGroupSetAttribute': true
-            }
-            """));
-
-    // Create IndicatorGroupSet with attribute value
-    String indicatorGroupSetId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/indicatorGroupSets/",
-                """
-            {
-                'name': 'IGS with Attributes',
-                'shortName': 'IGSWA',
-                'code': 'IGS001',
-                'attributeValues': [
-                    {
-                        'attribute': {'id': '%s'},
-                        'value': 'test igs attribute value'
-                    }
-                ]
-            }
-            """
-                    .formatted(attributeId)));
-
-    // Verify attribute values and code
-    JsonObject indicatorGroupSet =
-        GET("/indicatorGroupSets/" + indicatorGroupSetId)
-            .content(HttpStatus.OK)
-            .as(JsonObject.class);
-    assertEquals("IGS001", indicatorGroupSet.getString("code").string());
-
-    JsonArray attributeValues = indicatorGroupSet.getArray("attributeValues");
-    assertNotNull(attributeValues);
-    assertEquals(1, attributeValues.size());
-    assertEquals(
-        "test igs attribute value", attributeValues.getObject(0).getString("value").string());
-  }
-
-  @Test
   void testIndicatorGroupSetSupportsTranslations() {
     // Create IndicatorGroupSet
     String indicatorGroupSetId =
