@@ -41,6 +41,11 @@ on:
         required: false
         default: ''
         type: string
+      prof_args:
+        description: 'Profiler arguments (enables profiling). Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md'
+        required: false
+        default: ''
+        type: string
       # Read https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md on how we publish
       # DHIS2 Docker images
       dhis2_image_baseline:
@@ -96,6 +101,7 @@ jobs:
         DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         ./run-simulation.sh
@@ -105,6 +111,7 @@ jobs:
         DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }}" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         ./run-simulation.sh
@@ -166,4 +173,7 @@ jobs:
         echo "  * \`simulation-run.txt\` - Test run metadata (indicates baseline/candidate)" >> $GITHUB_STEP_SUMMARY
         echo "  * \`simulation.log\` - Binary test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
         echo "  * \`simulation.csv\` - Parsed binary data in CSV format" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.html\` - Flamegraph visualization (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.jfr\` - JFR profiler data (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.collapsed\` - Collapsed stack traces (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
 
