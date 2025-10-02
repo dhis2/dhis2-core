@@ -1,0 +1,74 @@
+services:
+  web:
+    volumes:
+      - ./config/doris/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      doris-be:
+        condition: service_healthy
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.9
+
+  db:
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.8
+
+  doris-fe:
+    image: apache/doris:fe-${DORIS_VERSION}
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.10
+    ports:
+      - "9030:9030"
+      - "8030:8030"
+    environment:
+      - FE_SERVERS=fe1:192.168.100.10:9010
+      - FE_ID=1
+    volumes:
+      - ./config/doris/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
+      - ./config/doris/fe.conf:/opt/apache-doris/fe/conf/fe.conf
+      - doris-fe-meta:/opt/apache-doris/fe/doris-meta
+      - doris-fe-log:/opt/apache-doris/fe/log
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8030/home || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  doris-be:
+    image: apache/doris:be-${DORIS_VERSION}
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.11
+    environment:
+      - FE_SERVERS=fe1:192.168.100.10:9010
+      - BE_ADDR=192.168.100.11:9050
+    ports:
+      - 8041:8040
+    depends_on:
+      doris-fe:
+        condition: service_healthy
+    volumes:
+      - ./config/doris/postgresql-42.7.7.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
+      - ./config/doris/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
+      - doris-be-storage:/opt/apache-doris/be/storage
+      - doris-be-log:/opt/apache-doris/be/log
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -fsS http://localhost:8040/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  doris-fe-meta:
+  doris-fe-log:
+  doris-be-storage:
+  doris-be-log:
+
+networks:
+  doris_network:
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
