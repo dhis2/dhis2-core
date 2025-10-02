@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.junit.jupiter.api.Test;
@@ -676,16 +675,38 @@ class RelativePeriodsTest {
                 .stream()
                 .map(PeriodDimension::getPeriod)
                 .toList();
-    int year =
-        Iso8601Calendar.getInstance().today().getYear()
-            - (Iso8601Calendar.getInstance().today().getMonth() >= 10 ? 10 : 11);
+    ;
     assertEquals(10, relatives.size());
-    for (int i = 0; i < 10; i++) {
-      assertEquals(
-          new Period(
-              new FinancialOctoberPeriodType(), getDate(year, 10, 1), getDate(++year, 9, 30)),
-          relatives.get(i));
-    }
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1990, 10, 1), getDate(1991, 9, 30)),
+        relatives.get(0));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1991, 10, 1), getDate(1992, 9, 30)),
+        relatives.get(1));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1992, 10, 1), getDate(1993, 9, 30)),
+        relatives.get(2));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1993, 10, 1), getDate(1994, 9, 30)),
+        relatives.get(3));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1994, 10, 1), getDate(1995, 9, 30)),
+        relatives.get(4));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1995, 10, 1), getDate(1996, 9, 30)),
+        relatives.get(5));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1996, 10, 1), getDate(1997, 9, 30)),
+        relatives.get(6));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1997, 10, 1), getDate(1998, 9, 30)),
+        relatives.get(7));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1998, 10, 1), getDate(1999, 9, 30)),
+        relatives.get(8));
+    assertEquals(
+        new Period(new FinancialOctoberPeriodType(), getDate(1999, 10, 1), getDate(2000, 9, 30)),
+        relatives.get(9));
   }
 
   @Test
