@@ -59,6 +59,8 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory {
         return handleTracker(object);
       case AGGREGATE:
         return handleAggregate(object);
+      case API:
+        return handleApi(object);
     }
     return null;
   }
@@ -68,6 +70,10 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory {
   }
 
   private String handleAggregate(Object object) {
+    return toJson(object);
+  }
+
+  private String handleApi(Object object) {
     return toJson(object);
   }
 
