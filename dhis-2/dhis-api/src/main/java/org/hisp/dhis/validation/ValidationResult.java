@@ -227,7 +227,7 @@ public class ValidationResult implements Comparable<ValidationResult>, Serializa
   public int compareTo(ValidationResult other) {
     return new CompareToBuilder()
         .append(this.validationRule, other.getValidationRule())
-        .append(this.period, other.getPeriod())
+        .append(this.period.getIsoDate(), other.getPeriod().getIsoDate())
         .append(this.attributeOptionCombo, other.getAttributeOptionCombo())
         .append(this.organisationUnit, other.getOrganisationUnit())
         .append(this.id, other.getId())

@@ -39,7 +39,6 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -57,7 +56,7 @@ public class PeriodDimension extends BaseDimensionalItemObject {
   @Nonnull @EqualsAndHashCode.Include @JsonIgnore private final Period period;
 
   /** date field this period refers to */
-  @Setter @EqualsAndHashCode.Include @JsonProperty private String dateField;
+  @EqualsAndHashCode.Include @JsonProperty private String dateField;
 
   /**
    * Creates a period that is not bound to the persistent layer. It represents a detached Period
@@ -69,6 +68,11 @@ public class PeriodDimension extends BaseDimensionalItemObject {
     this.period = PeriodType.getPeriodFromIsoString(isoRelativePeriod.toString());
     this.name = isoRelativePeriod.toString();
     this.code = isoRelativePeriod.toString();
+  }
+
+  public PeriodDimension setDateField(String dateField) {
+    this.dateField = "".equals(dateField) ? null : dateField;
+    return this;
   }
 
   @JsonIgnore

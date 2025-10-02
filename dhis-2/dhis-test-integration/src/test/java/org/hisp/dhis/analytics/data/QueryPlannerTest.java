@@ -492,16 +492,28 @@ class QueryPlannerTest extends PostgresIntegrationTestBase {
     ListMap<DimensionalItemObject, DimensionalItemObject> map =
         params.getDataPeriodAggregationPeriodMap();
     assertEquals(2, map.size());
-    assertTrue(map.containsKey(createPeriod("2000")));
-    assertTrue(map.containsKey(createPeriod("2001")));
-    assertEquals(4, map.get(createPeriod("2000")).size());
-    assertEquals(2, map.get(createPeriod("2001")).size());
-    assertTrue(map.get(createPeriod("2000")).contains(createPeriod("2000Q1")));
-    assertTrue(map.get(createPeriod("2000")).contains(createPeriod("2000Q2")));
-    assertTrue(map.get(createPeriod("2000")).contains(createPeriod("2000Q3")));
-    assertTrue(map.get(createPeriod("2000")).contains(createPeriod("2000Q4")));
-    assertTrue(map.get(createPeriod("2001")).contains(createPeriod("2001Q1")));
-    assertTrue(map.get(createPeriod("2001")).contains(createPeriod("2001Q2")));
+    assertTrue(map.containsKey(new PeriodDimension(createPeriod("2000"))));
+    assertTrue(map.containsKey(new PeriodDimension(createPeriod("2001"))));
+    assertEquals(4, map.get(new PeriodDimension(createPeriod("2000"))).size());
+    assertEquals(2, map.get(new PeriodDimension(createPeriod("2001"))).size());
+    assertTrue(
+        map.get(new PeriodDimension(createPeriod("2000")))
+            .contains(new PeriodDimension(createPeriod("2000Q1"))));
+    assertTrue(
+        map.get(new PeriodDimension(createPeriod("2000")))
+            .contains(new PeriodDimension(createPeriod("2000Q2"))));
+    assertTrue(
+        map.get(new PeriodDimension(createPeriod("2000")))
+            .contains(new PeriodDimension(createPeriod("2000Q3"))));
+    assertTrue(
+        map.get(new PeriodDimension(createPeriod("2000")))
+            .contains(new PeriodDimension(createPeriod("2000Q4"))));
+    assertTrue(
+        map.get(new PeriodDimension(createPeriod("2001")))
+            .contains(new PeriodDimension(createPeriod("2001Q1"))));
+    assertTrue(
+        map.get(new PeriodDimension(createPeriod("2001")))
+            .contains(new PeriodDimension(createPeriod("2001Q2"))));
   }
 
   /**
