@@ -92,8 +92,23 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
+    - name: Cleanup containers
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+
     - name: Clean target directory
       run: mvn clean
+
+    - name: Run performance tests - baseline warmup
+      run: |
+        DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
+        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
+        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
+        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
+        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        SKIP_CLEANUP=true \
+        ./run-simulation.sh
 
     - name: Run performance tests - baseline
       run: |
@@ -104,6 +119,18 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        SKIP_INITIAL_DOWN=true \
+        ./run-simulation.sh
+
+    - name: Run performance tests - candidate warmup
+      run: |
+        DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
+        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
+        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
+        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
+        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        SKIP_CLEANUP=true \
         ./run-simulation.sh
 
     - name: Run performance tests - candidate
@@ -114,6 +141,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        SKIP_INITIAL_DOWN=true \
         ./run-simulation.sh
 
     # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test

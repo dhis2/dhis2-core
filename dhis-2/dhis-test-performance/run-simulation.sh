@@ -52,6 +52,8 @@ DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone
 DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
+SKIP_INITIAL_DOWN=${SKIP_INITIAL_DOWN:-"false"}
+SKIP_CLEANUP=${SKIP_CLEANUP:-"false"}
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -82,7 +84,9 @@ cleanup() {
   fi
 }
 
-trap cleanup EXIT INT
+if [ "$SKIP_CLEANUP" != "true" ]; then
+  trap cleanup EXIT INT
+fi
 
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
@@ -107,10 +111,14 @@ start_containers() {
   start_time=$(date +%s)
 
   if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+    if [ "$SKIP_INITIAL_DOWN" != "true" ]; then
+      docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
+    fi
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
   else
-    docker compose down --volumes
+    if [ "$SKIP_INITIAL_DOWN" != "true" ]; then
+      docker compose down --volumes
+    fi
     docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
   fi
 
