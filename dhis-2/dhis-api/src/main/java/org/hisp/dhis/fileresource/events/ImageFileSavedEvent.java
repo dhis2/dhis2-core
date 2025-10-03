@@ -29,13 +29,11 @@
  */
 package org.hisp.dhis.fileresource.events;
 
+
 import java.io.File;
-import java.util.Map;
-import org.hisp.dhis.fileresource.ImageFileDimension;
 
 /**
  * @author Zubair Asghar.
  * @author Luca Cambi convert to record.
  */
-public record ImageFileSavedEvent(
-    String fileResource, Map<ImageFileDimension, File> imageFiles, String userUid) {}
+public record ImageFileSavedEvent(String fileResource, File file, String userUid) {}
