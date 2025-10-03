@@ -66,20 +66,18 @@ class FileResourceEventListenerTest extends PostgresIntegrationTestBase {
 
   @Mock HibernateFileResourceStore fileResourceStore;
 
+  @Mock ImageProcessingService imageProcessingService;
+
   @BeforeEach
   public void init() {
     createAndAddUser("file_resource_user");
     fileResourceEventListener =
         new FileResourceEventListener(
             new DefaultFileResourceService(
-                fileResourceStore,
-                null,
-                fileResourceContentStore,
-                null,
-                null,
-                mock(EntityManager.class)),
+                fileResourceStore, null, fileResourceContentStore, null, mock(EntityManager.class)),
             fileResourceContentStore,
-            new DefaultAuthenticationService(userService));
+            new DefaultAuthenticationService(userService),
+            imageProcessingService);
   }
 
   @Test
@@ -99,7 +97,9 @@ class FileResourceEventListenerTest extends PostgresIntegrationTestBase {
         () ->
             fileResourceEventListener.saveImageFile(
                 new ImageFileSavedEvent(
-                    fileResource.getUid(), map, CurrentUserUtil.getCurrentUserDetails().getUid())));
+                    fileResource.getUid(),
+                    file,
+                    CurrentUserUtil.getCurrentUserDetails().getUid())));
 
     verify(fileResourceStore).update(any(FileResource.class), any(UserDetails.class));
   }
