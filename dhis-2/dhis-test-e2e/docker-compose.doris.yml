@@ -1,11 +1,28 @@
 services:
+  # web:
+  #   volumes:
+  #     - ./config/doris/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+  #   depends_on:
+  #     doris-be:
+  #       condition: service_healthy
+  #     doris-fe:
+  #       condition: service_healthy
   web:
+    image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
+    # Only container ports are specified, as the E2E tests run in parallel in Jenkins and using explicit host ports causes collision
+    ports:
+      - "8080" # DHIS2
+      - "8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
     volumes:
       - ./config/doris/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081"
     depends_on:
-      doris-be:
+      db:
         condition: service_healthy
-      doris-fe:
+      redis:
+        condition: service_started
+      minio:
         condition: service_healthy
 
     networks:
