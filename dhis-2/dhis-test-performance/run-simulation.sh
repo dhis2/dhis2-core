@@ -22,6 +22,8 @@ show_usage() {
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
+  echo "  WARMUP                Run warmup iteration before actual test (default: false)"
+  echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -30,6 +32,12 @@ show_usage() {
   echo ""
   echo "  # With CPU profiling"
   echo "  PROF_ARGS=\"-e cpu\" \\"
+  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
+  echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
+  echo ""
+  echo "  # With warmup and custom report suffix"
+  echo "  WARMUP=true \\"
+  echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
   echo ""
@@ -53,6 +61,7 @@ DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
 WARMUP=${WARMUP:-"false"}
+REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -190,7 +199,7 @@ generate_metadata() {
   echo "Generating run metadata..."
   {
     echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX} $0"
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
@@ -198,8 +207,10 @@ generate_metadata() {
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "MVN_ARGS=$MVN_ARGS"
+    echo "PROF_ARGS=$PROF_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$is_warmup"
+    echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
@@ -227,10 +238,22 @@ run_simulation() {
   stop_profiler
   gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
 
+  # Build suffix from REPORT_SUFFIX and warmup indicator
+  local suffix_parts=()
+  if [ -n "$REPORT_SUFFIX" ]; then
+    suffix_parts+=("$REPORT_SUFFIX")
+  fi
   if [ "$is_warmup" = "true" ]; then
-    local warmup_dir="${gatling_run_dir}-warmup"
-    mv "$gatling_run_dir" "$warmup_dir"
-    gatling_run_dir="$warmup_dir"
+    suffix_parts+=("warmup")
+  fi
+
+  # Only rename if we have a suffix
+  if [ ${#suffix_parts[@]} -gt 0 ]; then
+    local combined_suffix
+    combined_suffix=$(IFS=- ; echo "${suffix_parts[*]}")
+    local new_dir="${gatling_run_dir}-${combined_suffix}"
+    mv "$gatling_run_dir" "$new_dir"
+    gatling_run_dir="$new_dir"
   fi
 
   echo "Gatling test results are in: $gatling_run_dir"

@@ -110,6 +110,7 @@ jobs:
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=true \
+        REPORT_SUFFIX="baseline" \
         ./run-simulation.sh
 
     - name: Run performance tests - candidate
@@ -121,6 +122,7 @@ jobs:
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=true \
+        REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 
     # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test
