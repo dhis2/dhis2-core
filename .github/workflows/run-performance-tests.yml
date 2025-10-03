@@ -109,7 +109,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        WARMUP=true \
+        WARMUP=1 \
         REPORT_SUFFIX="baseline" \
         ./run-simulation.sh
 
@@ -121,7 +121,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        WARMUP=true \
+        WARMUP=1 \
         REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 

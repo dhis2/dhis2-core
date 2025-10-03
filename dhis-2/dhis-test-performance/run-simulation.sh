@@ -22,7 +22,7 @@ show_usage() {
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
-  echo "  WARMUP                Run warmup iteration before actual test (default: false)"
+  echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo ""
   echo "EXAMPLES:"
@@ -36,7 +36,7 @@ show_usage() {
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
   echo ""
   echo "  # With warmup and custom report suffix"
-  echo "  WARMUP=true \\"
+  echo "  WARMUP=1 \\"
   echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
@@ -60,7 +60,7 @@ DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone
 DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
-WARMUP=${WARMUP:-"false"}
+WARMUP=${WARMUP:-0}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 
 parse_prof_args() {
@@ -274,12 +274,14 @@ echo "========================================"
 start_containers
 prepare_database
 
-if [ "$WARMUP" = "true" ]; then
-  echo ""
-  echo "========================================"
-  echo "PHASE: Warmup Run"
-  echo "========================================"
-  run_simulation "true"
+if [ "$WARMUP" -gt 0 ]; then
+  for i in $(seq 1 "$WARMUP"); do
+    echo ""
+    echo "========================================"
+    echo "PHASE: Warmup Run $i/$WARMUP"
+    echo "========================================"
+    run_simulation "true"
+  done
   echo "Warmup complete."
 fi
 
