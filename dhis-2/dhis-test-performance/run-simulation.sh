@@ -262,17 +262,36 @@ run_simulation() {
   generate_metadata "$gatling_run_dir" "$is_warmup"
 }
 
+echo "========================================"
+echo "PHASE: Image Pull"
+echo "========================================"
 pull_mutable_image
+
+echo ""
+echo "========================================"
+echo "PHASE: Container Startup"
+echo "========================================"
 start_containers
 prepare_database
 
 if [ "$WARMUP" = "true" ]; then
-  echo "Running warmup iteration..."
+  echo ""
+  echo "========================================"
+  echo "PHASE: Warmup Run"
+  echo "========================================"
   run_simulation "true"
   echo "Warmup complete."
 fi
 
+echo ""
+echo "========================================"
+echo "PHASE: Performance Test"
+echo "========================================"
 run_simulation
 
+echo ""
+echo "========================================"
+echo "PHASE: Complete"
+echo "========================================"
 echo "Completed test for $DHIS2_IMAGE"
 
