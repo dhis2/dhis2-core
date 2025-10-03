@@ -61,6 +61,8 @@ public class FileResourceEventListener {
 
   private final AuthenticationService authenticationService;
 
+  private final ImageProcessingService imageProcessingService;
+
   @TransactionalEventListener
   @Async
   public void save(FileSavedEvent fileSavedEvent) {
@@ -83,10 +85,11 @@ public class FileResourceEventListener {
   public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) throws NotFoundException {
     DateTime startTime = DateTime.now();
 
-    Map<ImageFileDimension, File> imageFiles = imageFileSavedEvent.imageFiles();
-
     FileResource fileResource =
         fileResourceService.getFileResource(imageFileSavedEvent.fileResource());
+
+    Map<ImageFileDimension, File> imageFiles =
+        imageProcessingService.createImages(fileResource, imageFileSavedEvent.file());
 
     String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, imageFiles);
 
