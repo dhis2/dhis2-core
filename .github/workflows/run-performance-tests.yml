@@ -187,6 +187,10 @@ jobs:
           echo "  --field dhis2_db_image_suffix=\"${{ inputs.dhis2_db_image_suffix }}\" \\" >> $GITHUB_STEP_SUMMARY
         fi
 
+        if [ "${{ inputs.warmup }}" != "1" ]; then
+          echo "  --field warmup=\"${{ inputs.warmup }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "  --ref ${{ github.sha }} # git sha of workflow" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -197,6 +201,7 @@ jobs:
         echo "* **Simulation**" >> $GITHUB_STEP_SUMMARY
         echo "  * **Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
         echo "  * **Git ref**: \`${{ inputs.perf_tests_git_ref }}\` (\`${{ steps.checkout.outputs.commit }}\`)" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Warmup iterations**: ${{ inputs.warmup }}" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`${{ inputs.dhis2_image_baseline }}\`" >> $GITHUB_STEP_SUMMARY
 
         # Extract and display DHIS2 labels for baseline
