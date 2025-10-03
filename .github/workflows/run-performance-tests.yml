@@ -66,6 +66,11 @@ on:
         required: false
         default: 'sierra-leone-dev'
         type: string
+      warmup:
+        description: 'Number of warmup iterations before actual test'
+        required: false
+        default: 1
+        type: number
 
 jobs:
   performance-tests:
@@ -109,7 +114,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        WARMUP=1 \
+        WARMUP=${{ inputs.warmup }} \
         REPORT_SUFFIX="baseline" \
         ./run-simulation.sh
 
@@ -121,7 +126,7 @@ jobs:
         PROF_ARGS="${{ inputs.prof_args }}" \
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        WARMUP=1 \
+        WARMUP=${{ inputs.warmup }} \
         REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 
