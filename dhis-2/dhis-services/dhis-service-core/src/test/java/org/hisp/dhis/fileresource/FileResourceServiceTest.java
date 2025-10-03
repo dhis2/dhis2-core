@@ -42,7 +42,6 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import java.io.File;
-import java.util.Map;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
@@ -161,10 +160,6 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
     fileResource.setUid("imageUid1");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
@@ -220,11 +215,7 @@ class FileResourceServiceTest {
             FileResourceDomain.ORG_UNIT);
 
     File file = new File("");
-
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
+    
     fileResource.setUid("imageUid1");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
