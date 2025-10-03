@@ -36,8 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -64,9 +64,11 @@ import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
 import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Stian Sandvold
@@ -326,9 +328,20 @@ public class JCloudsAppStorageService implements AppStorageService {
       String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
       return new FileSystemResource(
           locationManager.getFileForReading(cleanedFilepath.replaceAll("/+", "/")));
+    } else if (jCloudsStore.isUsingTransient()) {
+      return new InputStreamResource(fileResourceContentStore.getFileResourceContent(filePath)) {
+        @Override
+        public String getFilename() {
+          return StringUtils.getFilename(filePath);
+        }
+
+        @Override
+        public long lastModified() {
+          return new Date().getTime();
+        }
+      };
     } else {
-      URI uri = fileResourceContentStore.getSignedGetContentUri(filePath);
-      return new UrlResource(uri);
+      return new UrlResource(fileResourceContentStore.getSignedGetContentUri(filePath));
     }
   }
 
