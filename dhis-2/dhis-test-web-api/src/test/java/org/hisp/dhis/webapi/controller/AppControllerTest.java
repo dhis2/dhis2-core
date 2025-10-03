@@ -76,6 +76,14 @@ class AppControllerTest extends DhisControllerConvenienceTest {
   @Autowired private AppManager appManager;
 
   @Test
+  void testGetAppIndexResourceDoesNotHaveContentEncodingHeader() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip");
+
+    HttpResponse response = GET("/apps/test/index.html");
+    assertNull(response.header("Content-Encoding"));
+  }
+
+  @Test
   void testGetApps() {
     HttpResponse response = GET("/apps");
     JsonArray apps = response.content(HttpStatus.OK);
