@@ -29,20 +29,33 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
+import static org.hisp.dhis.util.DateUtils.ISO8601_NO_TZ_PATTERN;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class WriteDateStdSerializer extends JsonSerializer<Date> {
+  private final DateTimeFormatter formatter;
+
+  public WriteDateStdSerializer() {
+    this.formatter =
+        DateTimeFormatter.ofPattern(ISO8601_NO_TZ_PATTERN).withZone(ZoneId.systemDefault());
+  }
+
   @Override
   public void serialize(Date date, JsonGenerator generator, SerializerProvider provider)
       throws IOException {
-    generator.writeString(DateUtils.toIso8601NoTz(date));
+    // Use ofEpochMilli to handle both java.util.Date and java.sql.Date
+    // java.sql.Date.toInstant() throws UnsupportedOperationException
+    generator.writeString(formatter.format(Instant.ofEpochMilli(date.getTime())));
   }
 }
