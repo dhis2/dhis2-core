@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.fileresource.events;
 
-
 import java.io.File;
 
 /**
