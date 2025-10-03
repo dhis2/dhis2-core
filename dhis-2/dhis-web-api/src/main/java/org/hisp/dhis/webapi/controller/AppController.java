@@ -292,7 +292,7 @@ public class AppController {
       PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
       try {
         while (iterator.hasNext()) {
-          String line = iterator.nextLine();
+          String line = iterator.next();
           output.println(
               line.replace("__DHIS2_BASE_URL__", contextPath)
                   .replace("__DHIS2_APP_ROOT_URL__", appBaseUrl));
@@ -300,7 +300,6 @@ public class AppController {
       } finally {
         iterator.close();
         response.setContentLength(bout.size());
-        response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
         bout.writeTo(response.getOutputStream());
       }
     } else {

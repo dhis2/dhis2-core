@@ -226,4 +226,8 @@ public class JCloudsStore {
   public boolean isUsingFileSystem() {
     return JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(fileStoreConfig.provider());
   }
+
+  public boolean isUsingTransient() {
+    return JCLOUDS_PROVIDER_KEY_TRANSIENT.equals(fileStoreConfig.provider());
+  }
 }
