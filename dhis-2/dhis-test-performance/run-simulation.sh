@@ -193,7 +193,6 @@ stop_profiler() {
 
 generate_metadata() {
   local gatling_run_dir="$1"
-  local is_warmup="${2:-false}"
   local simulation_run_file="$gatling_run_dir/simulation-run.txt"
 
   echo "Generating run metadata..."
@@ -209,7 +208,7 @@ generate_metadata() {
     echo "MVN_ARGS=$MVN_ARGS"
     echo "PROF_ARGS=$PROF_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
-    echo "WARMUP=$is_warmup"
+    echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
@@ -259,7 +258,7 @@ run_simulation() {
   echo "Gatling test results are in: $gatling_run_dir"
   save_profiler_data "$gatling_run_dir"
   post_process_profiler_data "$gatling_run_dir"
-  generate_metadata "$gatling_run_dir" "$is_warmup"
+  generate_metadata "$gatling_run_dir"
 }
 
 echo "========================================"
