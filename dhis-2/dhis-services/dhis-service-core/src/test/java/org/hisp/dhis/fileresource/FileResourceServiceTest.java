@@ -215,7 +215,7 @@ class FileResourceServiceTest {
             FileResourceDomain.ORG_UNIT);
 
     File file = new File("");
-    
+
     fileResource.setUid("imageUid1");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
