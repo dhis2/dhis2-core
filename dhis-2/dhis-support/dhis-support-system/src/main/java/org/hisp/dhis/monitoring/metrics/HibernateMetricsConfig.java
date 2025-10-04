@@ -41,7 +41,7 @@ import jakarta.persistence.PersistenceException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -91,7 +91,7 @@ public class HibernateMetricsConfig {
    */
   private String getEntityManagerFactoryName(String beanName) {
     if (beanName.length() > ENTITY_MANAGER_FACTORY_SUFFIX.length()
-        && StringUtils.endsWithIgnoreCase(beanName, ENTITY_MANAGER_FACTORY_SUFFIX)) {
+        && Strings.CI.endsWith(beanName, ENTITY_MANAGER_FACTORY_SUFFIX)) {
       return beanName.substring(0, beanName.length() - ENTITY_MANAGER_FACTORY_SUFFIX.length());
     }
     return beanName;
