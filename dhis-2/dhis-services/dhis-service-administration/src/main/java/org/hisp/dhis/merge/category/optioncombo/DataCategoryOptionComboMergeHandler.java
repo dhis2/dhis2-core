@@ -54,7 +54,6 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
@@ -138,10 +137,12 @@ public class DataCategoryOptionComboMergeHandler {
           sourceDas.stream()
               .collect(Collectors.partitioningBy(dv -> dataApprovalDuplicates.test(dv, targetDas)));
 
-      if (!sourceDuplicateList.get(false).isEmpty())
+      if (!sourceDuplicateList.get(false).isEmpty()) {
         handleDaNonDuplicates(sourceDuplicateList.get(false), target);
-      if (!sourceDuplicateList.get(true).isEmpty())
+      }
+      if (!sourceDuplicateList.get(true).isEmpty()) {
         handleDaDuplicates(sourceDuplicateList.get(true), targetDas, target, sources);
+      }
     }
   }
 
@@ -398,13 +399,6 @@ public class DataCategoryOptionComboMergeHandler {
     dataApprovals.forEach(sourceDataApproval -> sourceDataApproval.setAttributeOptionCombo(target));
   }
 
-  private static final Function<DataValue, String> getCocDataValueKey =
-      dv ->
-          String.valueOf(dv.getPeriod().getId())
-              + dv.getSource().getId()
-              + dv.getDataElement().getId()
-              + dv.getAttributeOptionCombo().getId();
-
   private static final Function<DataApproval, String> getDataApprovalKey =
       da ->
           String.valueOf(da.getPeriod().getId())
@@ -412,21 +406,8 @@ public class DataCategoryOptionComboMergeHandler {
               + da.getWorkflow().getId()
               + da.getOrganisationUnit().getId();
 
-  private static final BiPredicate<DataValue, Map<String, DataValue>> cocDataValueDuplicates =
-      (sourceDv, targetDvs) -> targetDvs.containsKey(getCocDataValueKey.apply(sourceDv));
-
   private static final BiPredicate<DataApproval, Map<String, DataApproval>> dataApprovalDuplicates =
       (sourceDa, targetDas) -> targetDas.containsKey(getDataApprovalKey.apply(sourceDa));
-
-  private static final Function<DataValue, String> getAocDataValueKey =
-      dv ->
-          String.valueOf(dv.getPeriod().getId())
-              + dv.getSource().getId()
-              + dv.getDataElement().getId()
-              + dv.getCategoryOptionCombo().getId();
-
-  private static final BiPredicate<DataValue, Map<String, DataValue>> aocDataValueDuplicates =
-      (sourceDv, targetDvs) -> targetDvs.containsKey(getAocDataValueKey.apply(sourceDv));
 
   private static final Function<CompleteDataSetRegistration, String> getCdsrKey =
       cdsr ->

@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
@@ -90,7 +90,7 @@ public class DataSourcePoolMetricsConfig {
      */
     private String getDataSourceName(String beanName) {
       if (beanName.length() > DATASOURCE_SUFFIX.length()
-          && StringUtils.endsWithIgnoreCase(beanName, DATASOURCE_SUFFIX)) {
+          && Strings.CI.endsWith(beanName, DATASOURCE_SUFFIX)) {
         return beanName.substring(0, beanName.length() - DATASOURCE_SUFFIX.length());
       }
       return beanName;
