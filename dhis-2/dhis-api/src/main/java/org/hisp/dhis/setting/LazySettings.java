@@ -63,7 +63,7 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -219,8 +219,10 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Nonnull
   @Override
   public Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue) {
-    if (orDefault(key, defaultValue) instanceof Locale value) return value;
-    return asParseValue(key, defaultValue, LocaleUtils::toLocale);
+    if (orDefault(key, defaultValue) instanceof Locale value) {
+      return value;
+    }
+    return asParseValue(key, defaultValue, LocaleUtils::parse);
   }
 
   @Override
@@ -279,7 +281,8 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
-    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
+    if (defaultValue instanceof Locale l)
+      return Json.of(LocaleUtils.toUnderscoreFormat(asLocale(key, l)));
     if (defaultValue instanceof Enum<?> e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type
@@ -300,7 +303,8 @@ final class LazySettings implements SystemSettings, UserSettings {
       if (defaultValue instanceof Double) return Double.valueOf(value) != null;
       if (defaultValue instanceof Number) return Integer.valueOf(value) != null;
       if (defaultValue instanceof Date) return parseDate(value) != null;
-      if (defaultValue instanceof Locale) return LocaleUtils.toLocale(value) != null;
+      if (defaultValue instanceof Locale)
+        return org.apache.commons.lang3.LocaleUtils.toLocale(value) != null;
       if (defaultValue instanceof Enum<?>)
         return parseEnum(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
       return true;
