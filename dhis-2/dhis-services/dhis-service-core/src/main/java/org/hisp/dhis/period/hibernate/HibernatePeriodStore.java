@@ -118,16 +118,18 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     String sql1 = "SELECT periodid FROM period WHERE iso = :iso";
     String sql2 =
         """
-      INSERT INTO period (periodid, periodtypeid, startdate, enddate, iso)
-      VALUES (nextval('hibernate_sequence'),
-        (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
+        INSERT INTO period (periodid, periodtypeid, startdate, enddate, iso)
+        VALUES (nextval('hibernate_sequence'),
+          (SELECT periodtypeid FROM periodtype WHERE name = :type), :start, :end, :iso)""";
     String isoDate = period.getIsoDate();
     Object id =
         runAutoJoinTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("iso", isoDate));
-              if (pk != null) return pk;
+              if (pk != null) {
+                return pk;
+              }
               session
                   .createNativeQuery(sql2)
                   .setParameter("type", period.getPeriodType().getName())
@@ -152,7 +154,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
             .createNativeQuery("DELETE FROM period where iso = :iso")
             .setParameter("iso", isoDate)
             .executeUpdate();
-    if (deleted > 0) periodIdByIsoPeriod.remove(isoDate);
+    if (deleted > 0) {
+      periodIdByIsoPeriod.remove(isoDate);
+    }
   }
 
   @Override
@@ -216,7 +220,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   @CheckForNull
   public Period reloadPeriod(Period period) {
     Long id = getPeriodId(period);
-    if (id == null) return null;
+    if (id == null) {
+      return null;
+    }
     period.setId(id); // link the transient instance by supplying the persisted ID
     return period;
   }
@@ -224,7 +230,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
   @CheckForNull
   private Long getPeriodId(Period period) {
     Long cachedId = periodIdByIsoPeriod.get(period.getIsoDate());
-    if (cachedId != null) return cachedId;
+    if (cachedId != null) {
+      return cachedId;
+    }
     String isoDate = period.getIsoDate();
     String sql = "select periodid from period p where p.iso = :iso";
     NativeQuery<?> q = getSession().createNativeQuery(sql).setParameter("iso", isoDate);
@@ -253,14 +261,16 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     String sql1 = "SELECT periodtypeid from periodtype where name = :name";
     String sql2 =
         """
-      INSERT INTO periodtype (periodtypeid, name)
-      VALUES (nextval('hibernate_sequence'), :name)""";
+        INSERT INTO periodtype (periodtypeid, name)
+        VALUES (nextval('hibernate_sequence'), :name)""";
     Object id =
         runAutoJoinTransaction(
             session -> {
               Object pk =
                   getSingleResult(session.createNativeQuery(sql1).setParameter("name", name));
-              if (pk != null) return pk;
+              if (pk != null) {
+                return pk;
+              }
               session.createNativeQuery(sql2).setParameter("name", name).executeUpdate();
               return session.createNativeQuery("SELECT lastval()").uniqueResult();
             });
@@ -300,7 +310,9 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
       return result;
     } catch (RuntimeException e) {
       // Handle rollback for self-managed transactions
-      if (transaction != null && transaction.isActive()) transaction.rollback();
+      if (transaction != null && transaction.isActive()) {
+        transaction.rollback();
+      }
       throw e;
     } finally {
       try {

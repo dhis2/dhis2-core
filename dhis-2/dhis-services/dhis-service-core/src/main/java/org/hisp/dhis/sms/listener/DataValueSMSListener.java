@@ -42,6 +42,7 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -137,7 +138,7 @@ public class DataValueSMSListener extends CommandSMSListener {
     String message = sms.getText();
 
     Date date = SmsUtils.lookForDate(message);
-    String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
+    String senderPhoneNumber = Strings.CS.replace(sms.getOriginator(), "+", "");
 
     OrganisationUnit orgUnit = null;
 
@@ -233,7 +234,9 @@ public class DataValueSMSListener extends CommandSMSListener {
     }
 
     String formula = code.getFormula();
-    if (formula == null) return;
+    if (formula == null) {
+      return;
+    }
 
     String targetDataElementId = formula.substring(1);
     String operation = String.valueOf(formula.charAt(0));
@@ -252,7 +255,9 @@ public class DataValueSMSListener extends CommandSMSListener {
     int val = 0;
     if (curValue != null) {
       String valStr = curValue.value();
-      if (valStr != null) val = parseInt(valStr);
+      if (valStr != null) {
+        val = parseInt(valStr);
+      }
     }
 
     if (operation.equals("+")) {
