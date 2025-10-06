@@ -30,9 +30,10 @@
 package org.hisp.dhis.fileresource.events;
 
 import java.io.File;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Zubair Asghar.
  * @author Luca Cambi convert to record.
  */
-public record ImageFileSavedEvent(String fileResource, File file, String userUid) {}
+public record ImageFileSavedEvent(UID fileResourceUid, File file, UID userUid) {}

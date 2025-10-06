@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.fileresource.hibernate.HibernateFileResourceStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -91,7 +92,9 @@ class FileResourceEventListenerTest extends PostgresIntegrationTestBase {
 
     ImageFileSavedEvent event =
         new ImageFileSavedEvent(
-            fileResource.getUid(), file, CurrentUserUtil.getCurrentUserDetails().getUid());
+            UID.of(fileResource.getUid()),
+            file,
+            UID.of(CurrentUserUtil.getCurrentUserDetails().getUid()));
 
     when(fileResourceContentStore.saveFileResourceContent(fileResource, map)).thenReturn("uid");
     when(fileResourceStore.getByUid(fileResource.getUid())).thenReturn(fileResource);

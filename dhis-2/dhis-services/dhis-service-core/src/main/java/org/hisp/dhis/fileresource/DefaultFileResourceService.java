@@ -49,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -199,7 +200,9 @@ public class DefaultFileResourceService implements FileResourceService {
     if (hasMultiDimensionImageSupport(fileResource)) {
       fileEventPublisher.publishEvent(
           new ImageFileSavedEvent(
-              fileResource.getUid(), file, CurrentUserUtil.getCurrentUserDetails().getUid()));
+              UID.of(fileResource.getUid()),
+              file,
+              UID.of(CurrentUserUtil.getCurrentUserDetails().getUid())));
       return;
     }
 

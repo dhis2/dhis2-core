@@ -147,11 +147,11 @@ public interface FileResourceService {
   @Nonnull
   InputStream getFileResourceContent(FileResource fileResource) throws ConflictException;
 
-  /** Copy fileResource content to outputStream and Return File content length */
+  /** Copy fileResourceUid content to outputStream and Return File content length */
   void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
       throws IOException, NoSuchElementException;
 
-  /** Copy fileResource content to a byte array */
+  /** Copy fileResourceUid content to a byte array */
   byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException;
 
