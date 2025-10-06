@@ -30,8 +30,9 @@
 package org.hisp.dhis.db.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class JdbcUtilsTest {
@@ -73,6 +74,12 @@ class JdbcUtilsTest {
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:clickhouse://localhost:8123/"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:postgresql://localhost"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:mysql://localhost:3306/"));
+  }
+  
+  @Test
+  void testIsPostgreSqlSimpleFormat() {
+    assertTrue(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql:d42"));
+    assertFalse(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql://localhost:5432/prod"));
   }
 
   /**

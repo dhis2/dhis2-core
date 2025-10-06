@@ -32,7 +32,6 @@ package org.hisp.dhis.db.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.AccessLevel;
@@ -88,5 +87,15 @@ public final class JdbcUtils {
     }
 
     return null;
+  }
+  
+  /**
+   * Determines if the given JDBC URL is for PostgreSQL in simple format (without host and port).
+   *
+   * @param jdbcUrl The JDBC URL connection URL.
+   * @return true if the URL PostgreSQL simple format, false otherwise.
+   */
+  static boolean isPostgreSqlSimpleFormat(String jdbcUrl) {
+    return jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains(SLASH);
   }
 }
