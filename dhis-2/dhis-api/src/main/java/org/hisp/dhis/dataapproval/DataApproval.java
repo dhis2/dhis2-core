@@ -46,6 +46,8 @@ import java.util.Objects;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -237,6 +239,8 @@ public class DataApproval implements Serializable {
     this.workflow = workflow;
   }
 
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   public Period getPeriod() {
     return period;
   }

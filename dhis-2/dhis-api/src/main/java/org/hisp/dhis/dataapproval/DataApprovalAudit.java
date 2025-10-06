@@ -30,12 +30,16 @@
 package org.hisp.dhis.dataapproval;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
@@ -127,6 +131,8 @@ public class DataApprovalAudit implements Serializable {
   }
 
   @JsonProperty
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Period getPeriod() {
     return period;

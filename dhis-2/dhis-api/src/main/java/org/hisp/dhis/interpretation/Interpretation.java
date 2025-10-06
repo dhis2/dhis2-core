@@ -48,10 +48,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.analytics.AnalyticsFavoriteType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -60,6 +63,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.UsesPeriodRelations;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
@@ -69,7 +73,7 @@ import org.hisp.dhis.visualization.Visualization;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement(localName = "interpretation", namespace = DXF_2_0)
-public class Interpretation extends BaseIdentifiableObject {
+public class Interpretation extends BaseIdentifiableObject implements UsesPeriodRelations {
   private Visualization visualization;
 
   private EventVisualization eventVisualization;
@@ -349,7 +353,8 @@ public class Interpretation extends BaseIdentifiableObject {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Period getPeriod() {
     return period;
@@ -357,6 +362,17 @@ public class Interpretation extends BaseIdentifiableObject {
 
   public void setPeriod(Period period) {
     this.period = period;
+  }
+
+  @CheckForNull
+  @Override
+  public List<Period> getPersistedPeriods() {
+    return period == null ? null : List.of(period);
+  }
+
+  @Override
+  public void setPersistedPeriods(@CheckForNull List<Period> periods) {
+    if (periods != null && periods.size() >= 1) period = periods.get(0);
   }
 
   @JsonProperty

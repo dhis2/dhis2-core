@@ -1339,6 +1339,20 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     this.periods = periods;
   }
 
+  @JsonIgnore
+  @Override
+  public List<Period> getPersistedPeriods() {
+    return periods == null ? null : periods.stream().map(PeriodDimension::getPeriod).toList();
+  }
+
+  @Override
+  public void setPersistedPeriods(List<Period> periods) {
+    this.periods =
+        periods == null
+            ? null
+            : new ArrayList<>(periods.stream().map(PeriodDimension::of).toList());
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getStartDate() {

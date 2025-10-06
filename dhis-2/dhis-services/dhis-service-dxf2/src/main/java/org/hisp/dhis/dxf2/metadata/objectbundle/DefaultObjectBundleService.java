@@ -39,13 +39,13 @@ import jakarta.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
@@ -58,6 +58,9 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.UsesPeriodRelations;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
@@ -68,7 +71,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,17 +82,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultObjectBundleService implements ObjectBundleService {
 
-  private final UserService userService;
   private final PreheatService preheatService;
   private final SchemaService schemaService;
   private final EntityManager entityManager;
-  private final IdentifiableObjectManager manager;
   private final DbmsManager dbmsManager;
   private final HibernateCacheManager cacheManager;
   private final MetadataMergeService metadataMergeService;
   private final ObjectBundleHooks objectBundleHooks;
   private final EventHookPublisher eventHookPublisher;
   private final DeletionManager deletionManager;
+  private final PeriodStore periodStore;
 
   @Override
   @Transactional(readOnly = true)
@@ -131,6 +132,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     }
 
     List<Class<? extends IdentifiableObject>> klasses = getSortedClasses(bundle);
+    commitPeriods(bundle, klasses);
     Session session = entityManager.unwrap(Session.class);
 
     List<ObjectBundleHook<?>> commitHooks = objectBundleHooks.getCommitHooks(klasses);
@@ -150,6 +152,43 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     bundle.setObjectBundleStatus(ObjectBundleStatus.COMMITTED);
 
     return commitReport;
+  }
+
+  /**
+   * {@link Period} and {@link org.hisp.dhis.period.PeriodDimension}s are decoded by jackson into
+   * shallow "values". While {@link org.hisp.dhis.period.PeriodDimension} is an {@link
+   * IdentifiableObject} they are not handled by the normal mechanism. Therefore, this method makes
+   * sure that before any of the {@link IdentifiableObject}s is saved any period relation is mapped
+   * to a unique instance per ISO period value and persisted.
+   */
+  private void commitPeriods(ObjectBundle bundle, List<Class<? extends IdentifiableObject>> types) {
+    Map<String, Period> isoToPeriod = new HashMap<>();
+    // make sure all objects referencing periods use the same instances
+    // for the same ISO period
+    for (Class<? extends IdentifiableObject> type : types) {
+      if (UsesPeriodRelations.class.isAssignableFrom(type)) {
+        List<?> nonPersistedObjects = bundle.getObjects(type, false);
+        List<?> persistedObjects = bundle.getObjects(type, true);
+        Stream.concat(nonPersistedObjects.stream(), persistedObjects.stream())
+            .forEach(
+                obj -> {
+                  UsesPeriodRelations target = (UsesPeriodRelations) obj;
+                  List<Period> periods = target.getPersistedPeriods();
+                  if (periods != null) {
+                    target.setPersistedPeriods(
+                        periods.stream()
+                            .map(
+                                p -> {
+                                  Period unique = isoToPeriod.putIfAbsent(p.getIsoDate(), p);
+                                  return unique == null ? p : unique;
+                                })
+                            .toList());
+                  }
+                });
+      }
+    }
+    // make sure the unique instances picked do exist in DB
+    isoToPeriod.values().forEach(periodStore::reloadForceAddPeriod);
   }
 
   private <T extends IdentifiableObject> void commitObjectType(
