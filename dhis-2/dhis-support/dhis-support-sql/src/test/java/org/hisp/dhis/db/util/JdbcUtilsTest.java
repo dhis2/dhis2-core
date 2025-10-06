@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +78,13 @@ class JdbcUtilsTest {
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:mysql://localhost:3306/"));
   }
 
+  @Test
+  void testIsJdbcUrl() {
+    assertTrue(JdbcUtils.isJdbcUrl("jdbc:postgresql:d42"));
+    assertTrue(JdbcUtils.isJdbcUrl("jdbc:postgresql://localhost:5432/prod"));
+    assertFalse(JdbcUtils.isJdbcUrl("https://www.postgresql.org/download/"));
+  }
+  
   @Test
   void testIsPostgreSqlSimpleFormat() {
     assertTrue(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql:d42"));
