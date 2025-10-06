@@ -115,7 +115,7 @@ class JdbcUtilsTest {
     // ClickHouse
     assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42");
     assertDatabase("d41", "jdbc:clickhouse://myserver.org/d41");
-    assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42?characterEncoding=utf8&my_prop=14");
+    assertDatabase("d42", "jdbc:clickhouse://localhost:8123/d42?characterEncoding=utf8");
     assertDatabase("emis", "jdbc:ch://play.dhis2.org:8123/emis");
     assertDatabase("logistics", "jdbc:ch://127.0.0.1/logistics");
     assertDatabase("analytics", "jdbc:clickhouse://localhost:8123/analytics?ssl=true&user=admin");
