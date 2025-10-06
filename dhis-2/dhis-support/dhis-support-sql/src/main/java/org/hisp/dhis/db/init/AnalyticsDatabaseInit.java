@@ -124,6 +124,8 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(dorisSqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(dorisSqlBuilder.createCatalog(connectionUrl, username, password));
+
+    log.info("Doris JDBC catalog created");
   }
 
   /**
@@ -148,5 +150,11 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
     jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));
+
+    log.info(
+        "ClickHouse named collection created using host: '{}', port: {}, database: '{}'",
+        host,
+        port,
+        database);
   }
 }
