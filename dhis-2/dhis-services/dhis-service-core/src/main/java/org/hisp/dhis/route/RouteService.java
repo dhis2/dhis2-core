@@ -34,10 +34,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -52,6 +54,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.UserDetails;
@@ -88,6 +95,8 @@ public class RouteService {
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
   @Getter @Setter private CloseableHttpClient httpClient;
+
+  private final AuditManager auditManager;
 
   protected static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -203,49 +212,105 @@ public class RouteService {
     HttpEntity<String> entity = new HttpEntity<>(body, headers);
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.resolve(request.getMethod()), HttpMethod.GET);
-    String targetUri = createTargetUri(route, subPath, queryParameters);
+
+    UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
+    String upstreamUrlWithoutQueryParams = uriComponentsBuilder.build().toUriString();
+    String upstreamUrl = createRequestUrl(uriComponentsBuilder.cloneBuilder(), queryParameters);
 
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
-        targetUri,
+        upstreamUrlWithoutQueryParams,
         route.getName(),
         route.getUid());
 
     RestTemplate restTemplate = newRestTemplate(route);
     ResponseEntity<String> response =
-        restTemplate.exchange(targetUri, httpMethod, entity, String.class);
+        restTemplate.exchange(upstreamUrl, httpMethod, entity, String.class);
+
+    audit(userDetails, route, httpMethod, upstreamUrlWithoutQueryParams, response);
 
     HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
-
-    String responseBody = response.getBody();
-
     responseHeaders.forEach(
         (String name, List<String> values) ->
             log.debug("Response header {}={}", name, values.toString()));
+
     log.info(
         "Request {} {} responded with HTTP status {} via route {} ({})",
         httpMethod,
-        targetUri,
+        upstreamUrlWithoutQueryParams,
         response.getStatusCode(),
         route.getName(),
         route.getUid());
 
+    String responseBody = response.getBody();
     return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
   }
 
-  protected String createTargetUri(
-      Route route, Optional<String> subPath, MultiValueMap<String, String> queryParameters)
+  protected void audit(
+      UserDetails userDetails,
+      Route route,
+      HttpMethod httpMethod,
+      String upstreamUrl,
+      ResponseEntity<String> response) {
+    Audit.AuditBuilder auditBuilder =
+        Audit.builder()
+            .auditScope(AuditScope.API)
+            .createdBy(userDetails.getUsername())
+            .auditType(AuditType.SECURITY)
+            .data("");
+
+    RouteRunApiAuditEntry auditEntry = new RouteRunApiAuditEntry();
+    auditEntry.setSource("Route Run");
+    auditEntry.setRouteId(route.getUid());
+    auditEntry.setHttpMethod(httpMethod.name());
+    auditEntry.setUpstreamUrl(upstreamUrl);
+
+    if (response.getStatusCode().isError()) {
+      auditEntry.setSuccessful(false);
+
+      AuditableEntity auditableEntity =
+          new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
+
+      Audit audit =
+          auditBuilder
+              .createdAt(LocalDateTime.now())
+              .attributes(
+                  auditManager.collectAuditAttributes(auditEntry, RouteRunApiAuditEntry.class))
+              .auditableEntity(auditableEntity)
+              .build();
+      auditManager.send(audit);
+    } else {
+      auditEntry.setSuccessful(true);
+
+      AuditableEntity auditableEntity =
+          new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
+
+      Audit audit =
+          auditBuilder
+              .createdAt(LocalDateTime.now())
+              .attributes(
+                  auditManager.collectAuditAttributes(auditEntry, RouteRunApiAuditEntry.class))
+              .auditableEntity(auditableEntity)
+              .build();
+      auditManager.send(audit);
+    }
+  }
+
+  protected UriComponentsBuilder createRequestPathBuilder(Route route, Optional<String> subPath)
       throws BadRequestException {
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
+        UriComponentsBuilder.fromUriString(route.getBaseUrl());
+    uriComponentsBuilder.path(getSubPath(route, subPath));
 
-    if (subPath.isPresent()) {
-      if (!route.allowsSubpaths()) {
-        throw new BadRequestException(
-            String.format("Route '%s' does not allow sub-paths", route.getId()));
-      }
-      uriComponentsBuilder.path(subPath.get());
+    return uriComponentsBuilder;
+  }
+
+  protected String createRequestUrl(
+      UriComponentsBuilder uriComponentsBuilder, Map<String, List<String>> queryParameters) {
+    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      uriComponentsBuilder =
+          uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
     }
 
     return uriComponentsBuilder.build().toUriString();
@@ -262,6 +327,18 @@ public class RouteService {
     requestFactory.setHttpClient(httpClient);
 
     return new RestTemplate(requestFactory);
+  }
+
+  protected String getSubPath(Route route, Optional<String> subPath) throws BadRequestException {
+    if (subPath.isPresent()) {
+      if (!route.allowsSubpaths()) {
+        throw new BadRequestException(
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
+      }
+      return subPath.get();
+    } else {
+      return "";
+    }
   }
 
   /**
