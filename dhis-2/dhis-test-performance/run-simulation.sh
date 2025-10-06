@@ -219,10 +219,10 @@ generate_metadata() {
 }
 
 run_simulation() {
-  local is_warmup="${1:-false}"
+  local warmup_num="${1:-0}"
   local extra_mvn_args=""
 
-  if [ "$is_warmup" = "true" ]; then
+  if [ "$warmup_num" -gt 0 ]; then
     extra_mvn_args="-Dgatling.failOnError=false"
   fi
 
@@ -242,8 +242,13 @@ run_simulation() {
   if [ -n "$REPORT_SUFFIX" ]; then
     suffix_parts+=("$REPORT_SUFFIX")
   fi
-  if [ "$is_warmup" = "true" ]; then
-    suffix_parts+=("warmup")
+  if [ "$warmup_num" -gt 0 ]; then
+    # Calculate padding width based on total warmup count
+    local padding_width=${#WARMUP}
+    # Zero-pad the warmup number
+    local padded_num
+    padded_num=$(printf "%0${padding_width}d" "$warmup_num")
+    suffix_parts+=("warmup-${padded_num}")
   fi
 
   # Only rename if we have a suffix
@@ -279,7 +284,7 @@ if [ "$WARMUP" -gt 0 ]; then
     echo "========================================"
     echo "PHASE: Warmup Run $i/$WARMUP"
     echo "========================================"
-    run_simulation "true"
+    run_simulation "$i"
   done
   echo "Warmup complete."
 fi
