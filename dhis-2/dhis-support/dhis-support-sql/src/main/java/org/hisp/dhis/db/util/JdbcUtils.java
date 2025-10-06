@@ -32,6 +32,7 @@ package org.hisp.dhis.db.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.AccessLevel;
@@ -88,7 +89,7 @@ public final class JdbcUtils {
 
     return null;
   }
-  
+
   /**
    * Determines if the given JDBC URL is for PostgreSQL in simple format (without host and port).
    *

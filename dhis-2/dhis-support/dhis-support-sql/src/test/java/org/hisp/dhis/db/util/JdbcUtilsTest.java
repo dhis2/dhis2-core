@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
 class JdbcUtilsTest {
@@ -75,7 +76,7 @@ class JdbcUtilsTest {
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:postgresql://localhost"));
     assertNull(JdbcUtils.getDatabaseFromUrl("jdbc:mysql://localhost:3306/"));
   }
-  
+
   @Test
   void testIsPostgreSqlSimpleFormat() {
     assertTrue(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql:d42"));
