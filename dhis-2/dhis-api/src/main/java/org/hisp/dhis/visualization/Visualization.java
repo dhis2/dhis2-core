@@ -88,7 +88,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -1218,7 +1217,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     StringBuilder sb = new StringBuilder();
 
     for (DimensionalItemObject object : objects) {
-      if (object instanceof Period) {
+      if (object instanceof PeriodDimension) {
         sb.append(object.getName()).append(NAME_SEP);
       } else {
         sb.append(object != null ? (object.getShortName() + NAME_SEP) : EMPTY);

@@ -229,7 +229,7 @@ public abstract class TimeFieldSqlRenderer {
   }
 
   protected boolean isPeriod(DimensionalItemObject dimensionalItemObject) {
-    return dimensionalItemObject instanceof Period;
+    return dimensionalItemObject instanceof PeriodDimension;
   }
 
   @Data
