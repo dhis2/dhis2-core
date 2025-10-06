@@ -33,18 +33,18 @@ import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
 
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsDataSourceFactory;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.JdbcUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -70,9 +70,10 @@ public class AnalyticsDatabaseInit {
 
   private final SqlBuilderSettings settings;
 
-  private final SqlBuilder sqlBuilder;
+  @Qualifier("analyticsJdbcTemplate")
+  private final JdbcTemplate jdbcTemplate;
 
-  private final AnalyticsDataSourceFactory dataSourceFactory;
+  private final SqlBuilder sqlBuilder;
 
   @PostConstruct
   public void init() {
@@ -82,25 +83,13 @@ public class AnalyticsDatabaseInit {
 
     Database database = settings.getAnalyticsDatabase();
 
-    // Use try-with-resources to ensure the datasource is closed
-    try (AnalyticsDataSourceFactory.TemporaryDataSourceWrapper wrapper =
-        dataSourceFactory.createTemporaryAnalyticsDataSource()) {
-
-      // Get the DataSource correctly through the wrapper
-      DataSource dataSource = wrapper.dataSource();
-      JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-      jdbcTemplate.setFetchSize(1000);
-
-      switch (database) {
-        case POSTGRESQL -> initPostgreSql();
-        case DORIS -> initDoris(jdbcTemplate);
-        case CLICKHOUSE -> initClickHouse(jdbcTemplate);
-      }
-
-      log.info("Initialized analytics database: '{}'", database);
-    } catch (Exception e) {
-      log.error("Failed to initialize analytics database", e);
+    switch (database) {
+      case POSTGRESQL -> initPostgreSql();
+      case DORIS -> initDoris();
+      case CLICKHOUSE -> initClickHouse();
     }
+
+    log.info("Initialized analytics database: '{}'", database);
   }
 
   /** Work for initializing a PostgreSQL analytics database. */
@@ -109,13 +98,13 @@ public class AnalyticsDatabaseInit {
   }
 
   /** Work for initializing a Doris analytics database. */
-  private void initDoris(JdbcTemplate jdbcTemplate) {
+  private void initDoris() {
     createDorisJdbcCatalog(jdbcTemplate);
   }
 
   /** Work for initializing a ClickHouse analytics database. */
-  private void initClickHouse(JdbcTemplate jdbcTemplate) {
-    createClickHouseNamedCollection(jdbcTemplate);
+  private void initClickHouse() {
+    createClickHouseNamedCollection();
   }
 
   /**
@@ -131,24 +120,37 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(dorisSqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(dorisSqlBuilder.createCatalog(connectionUrl, username, password));
+
+    log.info("Doris JDBC catalog created");
   }
 
   /**
-   * Creates a ClickHouse named collection with connection information for the DHIS 2 PostgreSQL
+   * Creates a ClickHouse named collection with connection information for the DHIS2 PostgreSQL
    * database.
    */
-  private void createClickHouseNamedCollection(JdbcTemplate jdbcTemplate) {
+  private void createClickHouseNamedCollection() {
+    String jdbcUrl = config.getConnectionUrl();
+    String host = JdbcUtils.getHostFromUrl(jdbcUrl);
+    int port = JdbcUtils.getPortFromUrl(jdbcUrl, JdbcUtils.POSTGRESQL_PORT);
+    String database = JdbcUtils.getDatabaseFromUrl(jdbcUrl);
+
     Map<String, Object> keyValues =
         Map.of(
-            "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
-            "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
-            "database", config.getProperty(ConfigurationKey.CONNECTION_DATABASE),
+            "host", host,
+            "port", port,
+            "database", database,
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
             "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
 
-    ClickHouseSqlBuilder clickHouseSqlBuilder = new ClickHouseSqlBuilder();
+    ClickHouseSqlBuilder clickHouseSqlBuilder = (ClickHouseSqlBuilder) sqlBuilder;
 
     jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
     jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));
+
+    log.info(
+        "ClickHouse named collection created using host: '{}', port: {}, database: '{}'",
+        host,
+        port,
+        database);
   }
 }

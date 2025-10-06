@@ -118,6 +118,11 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   }
 
   @Override
+  public String getConnectionUrl() {
+    return null;
+  }
+
+  @Override
   public boolean isReadOnlyMode() {
     return false;
   }
@@ -177,8 +182,7 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
                 v ->
                     v.isConfidential()
                         ? ""
-                        : getPropertyOrDefault(
-                            v, ObjectUtils.defaultIfNull(v.getDefaultValue(), ""))));
+                        : getPropertyOrDefault(v, ObjectUtils.getIfNull(v.getDefaultValue(), ""))));
   }
 
   protected Properties getPropertiesFromFile(String fileName) {
