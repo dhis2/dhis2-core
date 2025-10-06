@@ -30,11 +30,10 @@
 package org.hisp.dhis.external.conf;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-
 import java.util.Arrays;
 import java.util.Optional;
-import lombok.Getter;
 import org.hisp.dhis.security.utils.CspConstants;
+import lombok.Getter;
 
 /**
  * @author Lars Helge Overland
@@ -118,9 +117,6 @@ public enum ConfigurationKey {
 
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
-
-  /** Database host (hostname or IP). Applies to ClickHouse. */
-  CONNECTION_HOST("connection.host", "", false),
 
   /** Database port number. Applies to ClickHouse. */
   CONNECTION_PORT("connection.port", "5432", false),
