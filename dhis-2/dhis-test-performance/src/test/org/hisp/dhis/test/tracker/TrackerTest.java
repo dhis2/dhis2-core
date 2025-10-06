@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -34,6 +34,7 @@ import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
+import static io.gatling.javaapi.core.CoreDsl.group;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
@@ -70,14 +71,12 @@ public class TrackerTest extends Simulation {
             + program
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
 
-    ScenarioBuilder scenario = scenario("Single Events");
-
-    scenario =
-        scenario
+    ScenarioBuilder singleEvents =
+        scenario("Single Events")
             .exec(
                 http("Login")
                     .post("/api/auth/login")
-                    .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
+                    .body(StringBody("{\"username\":\"tracker\",\"password\":\"Tracker123\"}"))
                     .check(status().is(200)))
             .repeat(Integer.parseInt(repeat))
             .on(
@@ -93,14 +92,16 @@ public class TrackerTest extends Simulation {
                             .get(getEventsUrl)
                             .check(status().is(200))
                             .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                    .exec(http("Get first event").get(singleEventUrl).check(status().is(200)))
                     .exec(
-                        http("Get relationships for first event")
-                            .get(relationshipUrl)
-                            .check(status().is(200))));
+                        group("Access single event")
+                            .on(
+                                http("Get first event").get(singleEventUrl).check(status().is(200)),
+                                http("Get relationships for first event")
+                                    .get(relationshipUrl)
+                                    .check(status().is(200)))));
 
     // only one user at a time
-    setUp(scenario.injectClosed(constantConcurrentUsers(1).during(1)))
+    setUp(singleEvents.injectClosed(constantConcurrentUsers(1).during(1)))
         .protocols(httpProtocolBuilder)
         .assertions(
             forAll().successfulRequests().percent().gte(100d),
@@ -116,7 +117,13 @@ public class TrackerTest extends Simulation {
                 .responseTime()
                 .percentile(90)
                 .lte(100),
-            details("Get first event").responseTime().percentile(90).lte(25),
-            details("Get relationships for first event").responseTime().percentile(90).lte(10));
+            details("Access single event", "Get first event")
+                .responseTime()
+                .percentile(90)
+                .lte(25),
+            details("Access single event", "Get relationships for first event")
+                .responseTime()
+                .percentile(90)
+                .lte(10));
   }
 }
