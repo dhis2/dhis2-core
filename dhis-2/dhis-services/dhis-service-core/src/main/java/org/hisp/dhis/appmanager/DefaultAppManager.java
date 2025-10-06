@@ -411,8 +411,7 @@ public class DefaultAppManager implements AppManager {
         return urlConnection.getContentLength();
       }
     } catch (IOException e) {
-      log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
-      e.printStackTrace();
+      log.error("Error trying to retrieve content length of Resource: {}", e.getMessage(), e);
       return -1;
     }
   }
