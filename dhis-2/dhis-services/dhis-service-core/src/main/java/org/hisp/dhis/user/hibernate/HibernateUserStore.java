@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,7 +58,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -206,7 +206,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       convertedOrder = Order.parse(orders);
       String order = createOrderHql(convertedOrder, false, userSchema);
       hql = "select distinct u";
-      if (order != null) hql += "," + order;
+      if (order != null) {
+        hql += "," + order;
+      }
       hql += " ";
     }
 
@@ -325,7 +327,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     if (fetch) {
       String orderExpression = createOrderHql(convertedOrder, true, userSchema);
-      hql += "order by " + StringUtils.defaultString(orderExpression, "u.surname, u.firstName");
+      hql += "order by " + Objects.toString(orderExpression, "u.surname, u.firstName");
     }
 
     // ---------------------------------------------------------------------
@@ -502,8 +504,12 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   private static Locale toLocale(Object value) {
-    if (value == null) return null;
-    if (value instanceof Locale l) return l;
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Locale l) {
+      return l;
+    }
     return Locale.forLanguageTag(value.toString());
   }
 
@@ -676,10 +682,14 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   @CheckForNull
   private static String createOrderHql(
       @CheckForNull List<Order> orders, boolean direction, Schema userSchema) {
-    if (orders == null || orders.isEmpty()) return null;
+    if (orders == null || orders.isEmpty()) {
+      return null;
+    }
     List<Order> persistedOrders =
         orders.stream().filter(o -> userSchema.getProperty(o.getProperty()).isPersisted()).toList();
-    if (persistedOrders.isEmpty()) return null;
+    if (persistedOrders.isEmpty()) {
+      return null;
+    }
     return persistedOrders.stream()
         .map(
             o -> {
@@ -688,7 +698,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               boolean ignoreCase = o.isIgnoreCase() && String.class == p.getKlass();
               String order =
                   ignoreCase ? "lower(u.%s)".formatted(property) : "u.%s".formatted(property);
-              if (!direction) return order;
+              if (!direction) {
+                return order;
+              }
               return o.isAscending() ? order + " asc" : order + " desc";
             })
         .collect(joining(","));

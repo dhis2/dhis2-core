@@ -30,6 +30,7 @@
 package org.hisp.dhis.pushanalysis;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import com.google.common.hash.Hashing;
@@ -139,26 +140,23 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
     // Pre-check
     // ----------------------------------------------------------------------
     PushAnalysis pushAnalysis = pushAnalysisStore.getByUid(uid);
-    progress.startingStage(
-        "Starting pre-check on PushAnalysis "
-            + uid
-            + ": "
-            + ((pushAnalysis != null) ? pushAnalysis.getName() : ""));
+    String name = pushAnalysis != null ? pushAnalysis.getName() : EMPTY;
+    progress.startingStage("Starting pre-check for PushAnalysis '{}' '{}' ", uid, name);
 
     if (pushAnalysis == null) {
       progress.failedStage(
-          "PushAnalysis with uid '{}' was not found. Terminating PushAnalysis.", uid);
+          "PushAnalysis with UID '{}' was not found. Terminating PushAnalysis.", uid);
       return;
     }
     if (pushAnalysis.getRecipientUserGroups().isEmpty()) {
       progress.failedStage(
-          "PushAnalysis with uid '{}' has no userGroups assigned. Terminating PushAnalysis.", uid);
+          "PushAnalysis with UID '{}' has no userGroups assigned. Terminating PushAnalysis.", uid);
       return;
     }
 
     if (pushAnalysis.getDashboard() == null) {
       progress.failedStage(
-          "PushAnalysis with uid '{}' has no dashboard assigned. Terminating PushAnalysis.", uid);
+          "PushAnalysis with UID '{}' has no dashboard assigned. Terminating PushAnalysis.", uid);
       return;
     }
 
@@ -193,9 +191,9 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
         skippedUsers.stream().map(User::getUsername).collect(joining(",")));
 
     // ----------------------------------------------------------------------
-    // Generating reports
+    // Generate reports
     // ----------------------------------------------------------------------
-    String name = pushAnalysis.getName();
+
     progress.startingStage(
         "Generating and sending reports for PushAnalysis " + name,
         receivingUsers.size(),

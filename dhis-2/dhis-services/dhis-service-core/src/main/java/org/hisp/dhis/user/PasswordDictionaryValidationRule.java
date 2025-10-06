@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.user;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_RESERVED_WORD;
 
 import java.util.List;
+import org.apache.commons.lang3.Strings;
 
 /**
  * @author Zubair
@@ -45,7 +45,7 @@ public class PasswordDictionaryValidationRule implements PasswordValidationRule 
   @Override
   public PasswordValidationResult validate(CredentialsInfo credentials) {
     for (String reserved : DICTIONARY) {
-      if (containsIgnoreCase(credentials.getPassword(), reserved)) {
+      if (Strings.CI.contains(credentials.getPassword(), reserved)) {
         return new PasswordValidationResult(PASSWORD_CONTAINS_RESERVED_WORD);
       }
     }
