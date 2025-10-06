@@ -33,10 +33,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 
 class JdbcUtilsTest {
+  @Test
+  void testExtractHost() {
+    // PostgreSQL
+    assertHost("localhost", "jdbc:postgresql:d42");
+    assertHost("localhost", "jdbc:postgresql://localhost:5432/prod");
+    assertHost("192.168.1.100", "jdbc:postgresql://192.168.1.100/dhis2?ssl=true");
+
+    // ClickHouse
+    assertHost("localhost", "jdbc:clickhouse://localhost:8123/d42");
+    assertHost("127.0.0.1", "jdbc:ch://127.0.0.1/logistics");
+    assertHost(
+        "134.12.134.14", "jdbc:clickhouse://134.12.134.14:8123/analytics?ssl=true&user=admin");
+
+    // MySQL/Apache Doris
+    assertHost("localhost", "jdbc:mysql://localhost/sales");
+    assertHost("12.34.12.34", "jdbc:mysql://12.34.12.34:9030/demo");
+  }
+
   @Test
   void testExtractDatabaseName() {
     // PostgreSQL
@@ -58,9 +77,9 @@ class JdbcUtilsTest {
     assertDatabase("dev-copy_2025", "jdbc:clickhouse://localhost:8123/dev-copy_2025");
 
     // MySQL/Apache Doris
+    assertDatabase("sales", "jdbc:mysql://localhost/sales");
     assertDatabase("demo", "jdbc:mysql://12.34.12.34:9030/demo");
     assertDatabase("demo", "jdbc:mysql://12.34.12.34:9030/demo?useUnicode=true&my_prop=24");
-    assertDatabase("sales", "jdbc:mysql://localhost/sales");
     assertDatabase("reports", "jdbc:mysql://10.0.0.5:3306/reports?serverTimezone=UTC");
     assertDatabase("dorisdb", "jdbc:mysql://doris-cluster:9030/dorisdb");
 
@@ -84,7 +103,7 @@ class JdbcUtilsTest {
     assertTrue(JdbcUtils.isJdbcUrl("jdbc:postgresql://localhost:5432/prod"));
     assertFalse(JdbcUtils.isJdbcUrl("https://www.postgresql.org/download/"));
   }
-  
+
   @Test
   void testIsPostgreSqlSimpleFormat() {
     assertTrue(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql:d42"));
@@ -99,6 +118,16 @@ class JdbcUtilsTest {
     assertEquals(5439, uri.getPort());
     assertEquals("/dhis2", uri.getPath());
     assertEquals("ssl=true", uri.getQuery());
+  }
+
+  /**
+   * Helper method to assert host extraction.
+   *
+   * @param host the expected host.
+   * @param jdbcUrl the JDBC connection URL.
+   */
+  private void assertHost(String host, String jdbcUrl) {
+    assertEquals(host, JdbcUtils.getHostFromUrl(jdbcUrl));
   }
 
   /**

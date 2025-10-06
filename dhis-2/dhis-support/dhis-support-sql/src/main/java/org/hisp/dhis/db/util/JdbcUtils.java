@@ -31,6 +31,7 @@ package org.hisp.dhis.db.util;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.AccessLevel;
@@ -47,17 +48,30 @@ public final class JdbcUtils {
   private static final String PREFIX_POSTGRESQL = PREFIX_JDBC + "postgresql:";
   private static final String SLASH = "//";
   private static final String SEP_PARAM = "?";
-  
 
+  /**
+   * Extracts the host from a JDBC connection URL.
+   *
+   * @param jdbcUrl The JDBC URL connection URL.
+   * @return the host, or null if it cannot be extracted.
+   */
   public static String getHostFromUrl(String jdbcUrl) {
-    return null;
+    if (!isJdbcUrl(jdbcUrl)) {
+      return null;
+    }
+
+    if (isPostgreSqlSimpleFormat(jdbcUrl)) {
+      return "localhost";
+    }
+
+    return toUri(jdbcUrl).getHost();
   }
-  
+
   /**
    * Extracts the database name from a JDBC connection URL.
    *
    * @param jdbcUrl The JDBC URL connection URL.
-   * @return The database name, or null if it cannot be extracted.
+   * @return the database name, or null if it cannot be extracted.
    */
   public static String getDatabaseFromUrl(String jdbcUrl) {
     if (!isJdbcUrl(jdbcUrl)) {
@@ -88,7 +102,7 @@ public final class JdbcUtils {
 
     return null;
   }
-  
+
   /**
    * Determines if the given string is a valid JDBC URL.
    *
@@ -98,7 +112,7 @@ public final class JdbcUtils {
   static boolean isJdbcUrl(String jdbcUrl) {
     return isNotBlank(jdbcUrl) && jdbcUrl.startsWith(PREFIX_JDBC);
   }
-  
+
   /**
    * Determines if the given JDBC URL is for PostgreSQL in simple format without host and port.
    *

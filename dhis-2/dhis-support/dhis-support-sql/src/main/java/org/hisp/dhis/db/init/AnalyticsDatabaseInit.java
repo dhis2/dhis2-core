@@ -131,11 +131,13 @@ public class AnalyticsDatabaseInit {
    * database.
    */
   private void createClickHouseNamedCollection() {
-    String database = JdbcUtils.getDatabaseFromUrl(config.getConnectionUrl());
+    String jdbcUrl = config.getConnectionUrl();
+    String host = JdbcUtils.getHostFromUrl(jdbcUrl);
+    String database = JdbcUtils.getDatabaseFromUrl(jdbcUrl);
 
     Map<String, Object> keyValues =
         Map.of(
-            "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
+            "host", host,
             "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
             "database", database,
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
