@@ -31,11 +31,11 @@ package org.hisp.dhis.security;
 
 import static org.apache.commons.lang3.StringUtils.firstNonEmpty;
 
-import com.clickhouse.client.internal.org.apache.commons.lang3.StringUtils;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
