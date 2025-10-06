@@ -32,6 +32,7 @@ package org.hisp.dhis.db.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.AccessLevel;
@@ -68,22 +69,18 @@ public final class JdbcUtils {
       if (queryIndex != -1) {
         return databasePart.substring(0, queryIndex);
       }
+
       return trimToNull(databasePart);
     }
 
     // Handle standard format for all other drivers (MySQL, ClickHouse, Doris)
-    try {
-      // Remove "jdbc:" prefix to make it a valid URI for parsing
-      URI uri = new URI(jdbcUrl.substring(PREFIX_JDBC.length()));
-      String path = uri.getPath();
+    URI uri = toUri(jdbcUrl);
+    String path = uri.getPath();
 
-      // Path is typically "/<database_name>"
-      if (isNotBlank(path) && path.length() > 1) {
-        // Remove leading slash and return the database name
-        return path.substring(1);
-      }
-    } catch (URISyntaxException ex) {
-      throw new IllegalArgumentException("Malformed JDBC connection URL: " + jdbcUrl, ex);
+    // Path is typically "/<database_name>"
+    if (isNotBlank(path) && path.length() > 1) {
+      // Remove leading slash and return the database name
+      return path.substring(1);
     }
 
     return null;
@@ -97,5 +94,21 @@ public final class JdbcUtils {
    */
   static boolean isPostgreSqlSimpleFormat(String jdbcUrl) {
     return jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains(SLASH);
+  }
+
+  /**
+   * Converts a JDBC connection URL to a URI. Removes "jdbc:" prefix to make it a valid URI before
+   * parsing.
+   *
+   * @param jdbcUrl The JDBC connection URL.
+   * @return The corresponding URI.
+   * @throws IllegalArgumentException if the URL is malformed.
+   */
+  static URI toUri(String jdbcUrl) throws IllegalArgumentException {
+    try {
+      return new URI(jdbcUrl.substring(PREFIX_JDBC.length()));
+    } catch (URISyntaxException ex) {
+      throw new IllegalArgumentException("Malformed JDBC connection URL: " + jdbcUrl, ex);
+    }
   }
 }

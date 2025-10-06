@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 
 class JdbcUtilsTest {
@@ -44,6 +45,7 @@ class JdbcUtilsTest {
     assertDatabase("dhis2", "jdbc:postgresql:dhis2");
     assertDatabase("prod", "jdbc:postgresql://localhost:5432/prod");
     assertDatabase("dhis2", "jdbc:postgresql://192.168.1.100/dhis2?ssl=true");
+    assertDatabase("dhis2", "jdbc:postgresql://192.168.1.100:5439/dhis2?ssl=true");
     assertDatabase("hmis", "jdbc:postgresql://db.dhis2.org/hmis?timeout=180");
 
     // ClickHouse
@@ -81,6 +83,16 @@ class JdbcUtilsTest {
   void testIsPostgreSqlSimpleFormat() {
     assertTrue(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql:d42"));
     assertFalse(JdbcUtils.isPostgreSqlSimpleFormat("jdbc:postgresql://localhost:5432/prod"));
+  }
+
+  @Test
+  void testToUri() {
+    URI uri = JdbcUtils.toUri("jdbc:postgresql://192.168.1.100:5439/dhis2?ssl=true");
+
+    assertEquals("192.168.1.100", uri.getHost());
+    assertEquals(5439, uri.getPort());
+    assertEquals("/dhis2", uri.getPath());
+    assertEquals("ssl=true", uri.getQuery());
   }
 
   /**
