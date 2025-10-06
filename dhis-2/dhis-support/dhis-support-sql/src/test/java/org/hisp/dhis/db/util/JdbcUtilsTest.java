@@ -49,8 +49,7 @@ class JdbcUtilsTest {
     // ClickHouse
     assertHost("localhost", "jdbc:clickhouse://localhost:8123/d42");
     assertHost("127.0.0.1", "jdbc:ch://127.0.0.1/logistics");
-    assertHost(
-        "134.12.134.14", "jdbc:clickhouse://134.12.134.14:8123/analytics?ssl=true&user=admin");
+    assertHost("134.12.134.14", "jdbc:clickhouse://134.12.134.14:8123/analytics?ssl=true");
 
     // MySQL/Apache Doris
     assertHost("localhost", "jdbc:mysql://localhost/sales");
