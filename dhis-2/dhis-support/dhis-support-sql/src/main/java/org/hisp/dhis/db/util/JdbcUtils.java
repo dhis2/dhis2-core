@@ -71,11 +71,11 @@ public final class JdbcUtils {
   }
 
   /**
-   * Extracts the port from a JDBC connection URL. If port cannot be extracted, returns the given
-   * default port.
+   * Extracts the port number from a JDBC connection URL. If port cannot be extracted, returns the
+   * given default port.
    *
    * @param jdbcUrl the JDBC URL connection URL.
-   * @param defaultPort the default port to return if none is specified in the URL.
+   * @param defaultPort the default port number to return if none is specified in the URL.
    * @return the port, of the default port if it cannot be extracted.
    */
   public static int getPortFromUrl(String jdbcUrl, int defaultPort) {

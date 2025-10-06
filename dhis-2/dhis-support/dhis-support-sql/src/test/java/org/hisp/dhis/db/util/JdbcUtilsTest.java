@@ -188,8 +188,9 @@ class JdbcUtilsTest {
   /**
    * Helper method to assert host extraction with default port.
    *
-   * @param host the expected host.
+   * @param port the expected port number.
    * @param jdbcUrl the JDBC connection URL.
+   * @param defaultPort the default port number.
    */
   private void assertPortDefault(int port, String jdbcUrl, int defaultPort) {
     assertEquals(port, JdbcUtils.getPortFromUrl(jdbcUrl, defaultPort));
