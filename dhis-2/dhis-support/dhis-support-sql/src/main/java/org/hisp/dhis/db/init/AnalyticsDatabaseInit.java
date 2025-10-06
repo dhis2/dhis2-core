@@ -133,12 +133,13 @@ public class AnalyticsDatabaseInit {
   private void createClickHouseNamedCollection() {
     String jdbcUrl = config.getConnectionUrl();
     String host = JdbcUtils.getHostFromUrl(jdbcUrl);
+    int port = JdbcUtils.getPortFromUrl(jdbcUrl, JdbcUtils.POSTGRESQL_PORT);
     String database = JdbcUtils.getDatabaseFromUrl(jdbcUrl);
 
     Map<String, Object> keyValues =
         Map.of(
             "host", host,
-            "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
+            "port", port,
             "database", database,
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
             "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));

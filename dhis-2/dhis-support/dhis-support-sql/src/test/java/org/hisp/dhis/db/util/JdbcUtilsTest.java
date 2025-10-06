@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.db.util;
 
+import static org.hisp.dhis.db.util.JdbcUtils.POSTGRESQL_PORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -54,6 +55,52 @@ class JdbcUtilsTest {
     // MySQL/Apache Doris
     assertHost("localhost", "jdbc:mysql://localhost/sales");
     assertHost("12.34.12.34", "jdbc:mysql://12.34.12.34:9030/demo");
+  }
+
+  @Test
+  void testExtractPort() {
+    // PostgreSQL
+    assertPort(5432, "jdbc:postgresql:d42");
+    assertPort(5432, "jdbc:postgresql:d42");
+    assertPort(5432, "jdbc:postgresql://localhost:5432/prod");
+    assertPort(5439, "jdbc:postgresql://localhost:5439/prod");
+    assertPort(5439, "jdbc:postgresql://34.234.34.234:5439/dev");
+    assertPort(5439, "jdbc:postgresql://34.234.34.234:5439/dev");
+    assertPort(-1, "https://www.postgresql.org/download/");
+
+    // ClickHouse
+    assertPort(8123, "jdbc:clickhouse://localhost:8123/d42");
+    assertPort(-1, "jdbc:clickhouse://localhost/d42");
+    assertPort(8123, "jdbc:clickhouse://localhost:8123/analytics?ssl=true&user=admin");
+    assertPort(-1, "jdbc:ch://play.dhis2.org/emis");
+
+    // MySQL/Apache Doris
+    assertPort(9030, "jdbc:mysql://localhost:9030/sales");
+    assertPort(-1, "jdbc:mysql://localhost/sales");
+    assertPort(9030, "jdbc:mysql://12.34.12.34:9030/demo");
+  }
+
+  @Test
+  void testExtractPortWithDefault() {
+    // PostgreSQL
+    assertPortDefault(5432, "jdbc:postgresql:d42", POSTGRESQL_PORT);
+    assertPortDefault(5432, "jdbc:postgresql:d42", POSTGRESQL_PORT);
+    assertPortDefault(5432, "jdbc:postgresql://localhost:5432/prod", POSTGRESQL_PORT);
+    assertPortDefault(5439, "jdbc:postgresql://localhost:5439/prod", POSTGRESQL_PORT);
+    assertPortDefault(5439, "jdbc:postgresql://34.234.34.234:5439/dev", POSTGRESQL_PORT);
+    assertPortDefault(5439, "jdbc:postgresql://34.234.34.234:5439/dev", POSTGRESQL_PORT);
+    assertPortDefault(5432, "https://www.postgresql.org/download/", POSTGRESQL_PORT);
+
+    // ClickHouse
+    assertPortDefault(8123, "jdbc:clickhouse://localhost:8123/d42", 8123);
+    assertPortDefault(8123, "jdbc:clickhouse://localhost/d42", 8123);
+    assertPortDefault(8123, "jdbc:clickhouse://localhost:8123/analytics?ssl=true", 8123);
+    assertPortDefault(8123, "jdbc:ch://play.dhis2.org/emis", 8123);
+
+    // MySQL/Apache Doris
+    assertPortDefault(9030, "jdbc:mysql://localhost:9030/sales", 9030);
+    assertPortDefault(9030, "jdbc:mysql://localhost/sales", 9030);
+    assertPortDefault(9030, "jdbc:mysql://12.34.12.34:9030/demo", 9030);
   }
 
   @Test
@@ -128,6 +175,26 @@ class JdbcUtilsTest {
    */
   private void assertHost(String host, String jdbcUrl) {
     assertEquals(host, JdbcUtils.getHostFromUrl(jdbcUrl));
+  }
+
+  /**
+   * Helper method to assert port extraction.
+   *
+   * @param port the expected port.
+   * @param jdbcUrl the JDBC connection URL.
+   */
+  private void assertPort(int port, String jdbcUrl) {
+    assertEquals(port, JdbcUtils.getPortFromUrl(jdbcUrl));
+  }
+
+  /**
+   * Helper method to assert host extraction with default port.
+   *
+   * @param host the expected host.
+   * @param jdbcUrl the JDBC connection URL.
+   */
+  private void assertPortDefault(int port, String jdbcUrl, int defaultPort) {
+    assertEquals(port, JdbcUtils.getPortFromUrl(jdbcUrl, defaultPort));
   }
 
   /**
