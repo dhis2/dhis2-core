@@ -178,7 +178,7 @@ class JdbcUtilsTest {
   /**
    * Helper method to assert port extraction.
    *
-   * @param port the expected port.
+   * @param port the expected port number.
    * @param jdbcUrl the JDBC connection URL.
    */
   private void assertPort(int port, String jdbcUrl) {
