@@ -69,6 +69,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -230,6 +231,7 @@ class DirectType {
     oneOf(Serializable.class, schema -> schema.type("boolean"));
 
     oneOf(Period.class, schema -> schema.type("string").format("period"));
+    oneOf(PeriodDimension.class, schema -> schema.type("string").format("period"));
     oneOf(
         PeriodType.class,
         schema ->
