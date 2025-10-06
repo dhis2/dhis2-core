@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.common.RegexUtils;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -123,7 +124,7 @@ public class TextUtils {
   public static String removeLastOr(String string) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, "or");
+    return Strings.CI.removeEnd(string, "or");
   }
 
   /**
@@ -136,7 +137,7 @@ public class TextUtils {
   public static String removeLastAnd(String string) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, "and");
+    return Strings.CI.removeEnd(string, "and");
   }
 
   /**
@@ -149,7 +150,7 @@ public class TextUtils {
   public static String removeLastComma(String string) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, ",");
+    return Strings.CI.removeEnd(string, ",");
   }
 
   /**
@@ -180,7 +181,7 @@ public class TextUtils {
   public static String removeLast(String string, String remove) {
     string = StringUtils.stripEnd(string, " ");
 
-    return StringUtils.removeEndIgnoreCase(string, remove);
+    return Strings.CI.removeEnd(string, remove);
   }
 
   /**
@@ -570,8 +571,9 @@ public class TextUtils {
           int endVar = (startDefault > 0 && startDefault < endBrace) ? startDefault : endBrace;
           String varName = template.substring(startVar, endVar);
           String value = variables.get(varName);
-          if (value == null && startDefault < 0)
+          if (value == null && startDefault < 0) {
             throw new IllegalArgumentException("Undefined variable: " + varName);
+          }
           if (value != null) {
             res.append(value);
           } else {

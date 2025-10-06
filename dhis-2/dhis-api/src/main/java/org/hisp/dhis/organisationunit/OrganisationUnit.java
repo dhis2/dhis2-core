@@ -39,7 +39,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -56,6 +55,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -567,7 +567,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
+        .anyMatch(uid -> Strings.CS.contains(this.getStoredPath(), uid));
   }
 
   /**
@@ -583,7 +583,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
     return ancestors.stream()
         .filter(Objects::nonNull)
-        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
+        .anyMatch(uid -> Strings.CS.contains(this.getStoredPath(), uid));
   }
 
   /**
@@ -597,7 +597,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
       return false;
     }
 
-    return StringUtils.contains(this.getStoredPath(), ancestor.getUid());
+    return Strings.CS.contains(this.getStoredPath(), ancestor.getUid());
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
@@ -1098,7 +1098,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @param geometryAsJsonString String containing a GeoJSON JSON payload
    */
   public void setGeometryAsJson(String geometryAsJsonString) {
-    if (!Strings.isNullOrEmpty(geometryAsJsonString)) {
+    if (StringUtils.isNotEmpty(geometryAsJsonString)) {
       try {
         GeometryJSON geometryJSON = new GeometryJSON();
 

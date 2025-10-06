@@ -57,6 +57,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "\"";
 
+  private final String databaseName;
+
   // Database
 
   @Override
@@ -282,9 +284,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * ClickHouse standard true/false predicates against PostgreSQL tables with boolean data type
-   * columns do not work.
-   *
-   * @see https://github.com/ClickHouse/ClickHouse/issues/67080
+   * columns do not work. See this <a
+   * href="https://github.com/ClickHouse/ClickHouse/issues/67080">Clickhouse issue</a> for more
+   * info.
    */
   @Override
   public String isFalse(String alias, String column) {
@@ -434,6 +436,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
    */
   public String dropNamedCollectionIfExists(String name) {
     return String.format("drop named collection if exists %s;", quote(name));
+  }
+
+  @Override
+  public String getDatabaseName() {
+    return this.databaseName;
   }
 
   /**

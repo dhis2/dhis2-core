@@ -363,6 +363,7 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   }
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }

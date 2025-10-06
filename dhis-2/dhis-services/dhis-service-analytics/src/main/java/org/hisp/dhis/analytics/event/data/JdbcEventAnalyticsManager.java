@@ -161,7 +161,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
     String sql =
         useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params)
+            ? buildAnalyticsQuery(params, maxLimit)
             : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
@@ -526,7 +526,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
       String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
       if (StringUtils.isNotBlank(timeFieldSql)) {
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+        sql += hlp.whereAnd() + " " + timeFieldSql;
       }
     }
 
@@ -722,6 +722,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (!params.isSkipPartitioning()
         && params.hasPartitions()
+        && !params.hasTimeDateRanges()
         && !params.hasNonDefaultBoundaries()
         && !params.hasTimeField()
         && !params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {

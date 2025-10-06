@@ -119,15 +119,6 @@ public enum ConfigurationKey {
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
 
-  /** Database host (hostname or IP). Applies to ClickHouse. */
-  CONNECTION_HOST("connection.host", "", false),
-
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_PORT("connection.port", "5432", false),
-
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_DATABASE("connection.database", "", false),
-
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
 
@@ -613,6 +604,9 @@ public enum ConfigurationKey {
 
   /** Sets the audit matrix for tracker. (default: none). */
   AUDIT_TRACKER_MATRIX("audit.tracker", "", false),
+
+  /** Sets the audit matrix for API. (default: none). */
+  AUDIT_API_MATRIX("audit.api", "", false),
 
   /** Enable OIDC. (default: off). */
   OIDC_OAUTH2_LOGIN_ENABLED("oidc.oauth2.login.enabled", Constants.OFF, false),
