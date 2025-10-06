@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -249,16 +250,41 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1303");
-    validateRowValueByName(response, actualHeaders, 0, "ZzYYXq4fJie.pOe0ogW4OWd", "1");
-
-    // Validate selected values for row index 36
-    validateRowValueByName(response, actualHeaders, 36, "value", "2");
-    validateRowValueByName(response, actualHeaders, 36, "ZzYYXq4fJie.pOe0ogW4OWd", "");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1239",
+            "A03MvHHogjR.a3kGcGDCuk6", "2",
+            "ZzYYXq4fJie.pOe0ogW4OWd", "1"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "827",
+            "A03MvHHogjR.a3kGcGDCuk6", "1",
+            "ZzYYXq4fJie.pOe0ogW4OWd", "1"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "A03MvHHogjR.a3kGcGDCuk6", "8",
+            "ZzYYXq4fJie.pOe0ogW4OWd", "2"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "887",
+            "A03MvHHogjR.a3kGcGDCuk6", "0",
+            "ZzYYXq4fJie.pOe0ogW4OWd", "2"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "846",
+            "A03MvHHogjR.a3kGcGDCuk6", "2",
+            "ZzYYXq4fJie.pOe0ogW4OWd", "2"));
   }
 
   @Test
@@ -322,8 +348,6 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "longitude", false);
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
-
-    // rowContext not found or empty in the response, skipping assertions.
 
     // No rows found in response, skipping row assertions.
   }
@@ -404,18 +428,48 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "GxdhnY5wmHq", "12");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 2496
-    validateRowValueByName(response, actualHeaders, 2496, "value", "4");
-    validateRowValueByName(response, actualHeaders, 2496, "GxdhnY5wmHq", "");
-    validateRowValueByName(response, actualHeaders, 2496, "ou", "ImspTQPwCqd");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "GxdhnY5wmHq", "12",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "GxdhnY5wmHq", "3818.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "GxdhnY5wmHq", "2805",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "4",
+            "GxdhnY5wmHq", "",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "5",
+            "GxdhnY5wmHq", "3544.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "8",
+            "GxdhnY5wmHq", "3164.5",
+            "ou", "ImspTQPwCqd"));
   }
 
   @Test
@@ -494,18 +548,69 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "GxdhnY5wmHq", "12");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 2496
-    validateRowValueByName(response, actualHeaders, 2496, "value", "4");
-    validateRowValueByName(response, actualHeaders, 2496, "GxdhnY5wmHq", "");
-    validateRowValueByName(response, actualHeaders, 2496, "ou", "ImspTQPwCqd");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "GxdhnY5wmHq", "12",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "GxdhnY5wmHq", "2815.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "GxdhnY5wmHq", "2663.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "4",
+            "GxdhnY5wmHq", "2926.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "4",
+            "GxdhnY5wmHq", "",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "5",
+            "GxdhnY5wmHq", "3351.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "6",
+            "GxdhnY5wmHq", "3424.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "7",
+            "GxdhnY5wmHq", "3002.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "8",
+            "GxdhnY5wmHq", "3235.5",
+            "ou", "ImspTQPwCqd"));
   }
 
   @Test
@@ -584,18 +689,57 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "GxdhnY5wmHq", "12",
+            "ou", "ImspTQPwCqd"));
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "GxdhnY5wmHq", "12");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "GxdhnY5wmHq", "2569",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "GxdhnY5wmHq", "3862.5",
+            "ou", "ImspTQPwCqd"));
 
-    // Validate selected values for row index 2496
-    validateRowValueByName(response, actualHeaders, 2496, "value", "4");
-    validateRowValueByName(response, actualHeaders, 2496, "GxdhnY5wmHq", "");
-    validateRowValueByName(response, actualHeaders, 2496, "ou", "ImspTQPwCqd");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "4",
+            "GxdhnY5wmHq", "",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "5",
+            "GxdhnY5wmHq", "3610.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "6",
+            "GxdhnY5wmHq", "3176.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "7",
+            "GxdhnY5wmHq", "3269",
+            "ou", "ImspTQPwCqd"));
   }
 
   @Test

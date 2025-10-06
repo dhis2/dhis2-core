@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.user;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_NAME_OR_EMAIL;
+
+import org.apache.commons.lang3.Strings;
 
 /**
  * @author Zubair
@@ -44,8 +45,8 @@ public class UserParameterValidationRule implements PasswordValidationRule {
     String username = credentials.getUsername();
 
     // Password should not contain part of either username or email
-    if (containsIgnoreCase(password, defaultIfEmpty(username, null))
-        || containsIgnoreCase(password, defaultIfEmpty(email, null))) {
+    if (Strings.CI.contains(password, defaultIfEmpty(username, null))
+        || Strings.CI.contains(password, defaultIfEmpty(email, null))) {
       return new PasswordValidationResult(PASSWORD_CONTAINS_NAME_OR_EMAIL);
     }
     return PasswordValidationResult.VALID;
