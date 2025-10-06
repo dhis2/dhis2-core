@@ -17,19 +17,21 @@ Run `./run-simulation.sh` for full usage including profiling and database option
 Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 
 * `index.html` - Gatling HTML report
-* `simulation.log` - Binary response times
-* `simulation.csv` - Response times (automated in CI only, [see below](#simulationcsv))
-* `simulation-run.txt` - Run metadata
+* `simulation.log` - Gatling binary response times and user injection profile
+* `simulation.csv` - CSV version of `simulation.log` (automated in CI only, [see
+below](#simulationcsv))
+* `simulation-run.txt` - Metadata to reproduce the run
 * `profile.html` - Flamegraph visualization (if profiling enabled with PROF_ARGS)
 * `profile.jfr` - JFR profiler data (if profiling enabled with PROF_ARGS)
 * `profile.collapsed` - Collapsed stack traces (if profiling enabled with PROF_ARGS)
 
-### simulation.csv
+### Analysis
 
-If `index.html` doesn't provide the analysis you need, convert `simulation.log` to `simulation.csv`
-for advanced analysis with [gatling-statistics](https://github.com/dhis2/gatling-statistics).
+* look at Gatlings own `index.html`
+* if it doesn't provide the analysis you need, try
+[gatling-statistics](https://github.com/dhis2/gatling-statistics)
 
-Since Gatling 3.12, test results are written in binary format. Use
+Since Gatling 3.12, test results are written in binary format. For local runs you'll need
 [glog](https://github.com/dhis2/gatling/releases) (a CLI from our Gatling fork) to convert:
 
 ```sh
