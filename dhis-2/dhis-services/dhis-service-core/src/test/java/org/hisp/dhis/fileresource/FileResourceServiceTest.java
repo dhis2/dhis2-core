@@ -78,6 +78,8 @@ class FileResourceServiceTest {
 
   @Mock private EntityManager entityManager;
 
+  @Mock private UserDetails userDetails;
+
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
   @Captor private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
@@ -97,6 +99,8 @@ class FileResourceServiceTest {
             fileResourceContentStore,
             fileEventPublisher,
             entityManager);
+
+    user.setUid("userUid0001");
   }
 
   @Test
@@ -160,13 +164,13 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    fileResource.setUid("imageUid1");
+    fileResource.setUid("imageUid001");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
+      userUtilMockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
+
+      userUtilMockedStatic.when(userDetails::getUid).thenReturn("userUid0001");
 
       subject.asyncSaveFileResource(fileResource, file);
 
@@ -177,7 +181,7 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResource(), is("imageUid1"));
+      assertThat(event.fileResource().getValue(), is("imageUid001"));
       assertNotNull(event.file());
       assertEquals(user.getUid(), event.user().getValue());
     }
@@ -216,13 +220,13 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    fileResource.setUid("imageUid1");
+    fileResource.setUid("imageUid001");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
+      userUtilMockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
+
+      userUtilMockedStatic.when(userDetails::getUid).thenReturn("userUid0001");
 
       subject.asyncSaveFileResource(fileResource, file);
 
@@ -233,7 +237,7 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResource(), is("imageUid1"));
+      assertThat(event.fileResource().getValue(), is("imageUid001"));
       assertNotNull(event.file());
       assertEquals(user.getUid(), event.user().getValue());
     }
