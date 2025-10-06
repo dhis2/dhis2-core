@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -71,7 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Halvdan Hoem Grelland
  */
-@Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.fileresource.FileResourceService")
 public class DefaultFileResourceService implements FileResourceService {

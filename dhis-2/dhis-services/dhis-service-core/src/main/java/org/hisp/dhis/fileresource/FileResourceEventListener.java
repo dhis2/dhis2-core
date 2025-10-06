@@ -81,7 +81,7 @@ public class FileResourceEventListener {
   }
 
   /**
-   * Listens for an {@link ImageFileSavedEvent}. When triggered, It will create all {@link
+   * Listens for an {@link ImageFileSavedEvent}. When triggered, it will create all {@link
    * ImageFileDimension} files and save them to storage. If the {@link FileResource} cannot be found
    * then the operation is skipped with a warning log.
    *
@@ -95,12 +95,12 @@ public class FileResourceEventListener {
     DateTime startTime = DateTime.now();
 
     FileResource fileResource =
-        fileResourceService.getFileResource(imageFileSavedEvent.fileResourceUid().getValue());
+        fileResourceService.getFileResource(imageFileSavedEvent.fileResource().getValue());
 
     if (fileResource == null) {
       log.warn(
           "Could not find file resource for {}, skip saving image files",
-          imageFileSavedEvent.fileResourceUid());
+          imageFileSavedEvent.fileResource());
       return;
     }
 

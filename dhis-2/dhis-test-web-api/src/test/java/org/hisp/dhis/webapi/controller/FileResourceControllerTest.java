@@ -113,7 +113,7 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
         new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
     JsonObject savedObject =
-        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResourceUid");
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("dhis2.png", savedObject.getString("name").string());
   }
 
@@ -125,7 +125,7 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
             "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT", image);
     JsonObject savedObject =
-        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResourceUid");
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("OU_profile_image.png", savedObject.getString("name").string());
 
     String uid = savedObject.getString("id").string();
@@ -144,7 +144,7 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
             "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789a", image);
     JsonObject savedObject =
-        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResourceUid");
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("OU_profile_image.png", savedObject.getString("name").string());
     assertEquals("0123456789a", savedObject.getString("id").string());
   }
@@ -157,7 +157,7 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
             "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image);
     JsonObject savedObject =
-        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResourceUid");
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("OU_profile_image.png", savedObject.getString("name").string());
     assertEquals("0123456789x", savedObject.getString("id").string());
 
