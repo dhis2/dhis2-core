@@ -1,6 +1,9 @@
 #!/bin/bash
 # Run Gatling simulations against a DHIS2 instance running in Docker
-set -euo pipefail
+
+# Note: We don't use -e (exit on error) because Maven assertion failures are expected outcomes
+# that we want to capture and analyze. Post-processing (logs, profiler data) must always run.
+set -uo pipefail
 
 show_usage() {
   echo ""
@@ -24,6 +27,9 @@ show_usage() {
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
+  echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
+  echo "                        Set to any non-empty value to enable (default: disabled)"
+  echo "                        Analysis requires pgbadger: https://github.com/darold/pgbadger"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -62,6 +68,7 @@ HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
 WARMUP=${WARMUP:-0}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
+CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -118,10 +125,16 @@ start_containers() {
 
   if [ -n "$PROF_ARGS" ]; then
     docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+    if ! docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+      echo "Error: Failed to start containers"
+      exit 1
+    fi
   else
     docker compose down --volumes
-    docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+    if ! docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+      echo "Error: Failed to start containers"
+      exit 1
+    fi
   fi
 
   echo "All containers ready! (took $(($(date +%s) - start_time))s)"
@@ -135,10 +148,23 @@ save_profiler_data() {
   fi
 
   echo "Saving profiler data..."
-
   docker compose cp web:/profiler-output/. "$gatling_dir/"
-
   echo "Profiler data saved to $gatling_dir"
+}
+
+save_sql_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_SQL_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  echo ""
+  echo "Saving SQL logs..."
+  docker compose cp db:/var/lib/postgresql/data/log/postgresql.log "$gatling_dir/postgresql.log"
+  echo "SQL logs saved to $gatling_dir"
+  echo ""
 }
 
 post_process_profiler_data() {
@@ -172,9 +198,36 @@ post_process_profiler_data() {
   echo "Post-processing profiler data complete. Files saved to $gatling_dir"
 }
 
+post_process_sql_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_SQL_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  if ! command -v pgbadger &> /dev/null; then
+    echo ""
+    echo "Warning: pgbadger not found in PATH. Skipping SQL log post-processing."
+    echo "Install pgbadger to enable SQL log analysis: https://github.com/darold/pgbadger"
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  echo "Post-processing SQL logs..."
+  pgbadger \
+    --title "$SIMULATION_CLASS on $DHIS2_IMAGE" \
+    --prefix '%t [%p]: user=%u,db=%d,app=%a ' \
+    --dbname dhis \
+    --outfile "$gatling_dir/pgbadger.html" "$gatling_dir/postgresql.log"
+  echo "Post-processing SQL logs complete. File saved to $gatling_dir/pgbadger.html"
+  echo ""
+}
+
 prepare_database() {
   echo "Preparing database..."
-  docker compose exec db psql -U dhis -c 'VACUUM;'
+  docker compose exec db psql --username=dhis --quiet --command='VACUUM;' > /dev/null
 }
 
 start_profiler() {
@@ -198,7 +251,7 @@ generate_metadata() {
   echo "Generating run metadata..."
   {
     echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
@@ -210,12 +263,30 @@ generate_metadata() {
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
+    echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
   } > "$simulation_run_file"
 
   echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
+}
+
+enable_sql_logs() {
+  local warmup_num="${1:-0}"
+
+  if [ -z "$CAPTURE_SQL_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  # enable logging of all queries only on demand as it is expensive
+  echo "Enabling SQL query logging..."
+  docker compose exec db psql --username=dhis --quiet --command="ALTER SYSTEM SET log_min_duration_statement = 0;" > /dev/null
+  docker compose exec db psql --username=dhis --quiet --command="SELECT pg_reload_conf();" > /dev/null
+
+  # let postgres create a new log file so we only capture queries related to the test run
+  docker compose exec db rm -f /var/lib/postgresql/data/log/postgresql.log
+  docker compose exec db psql --username=dhis --quiet --command="SELECT pg_rotate_logfile();" > /dev/null
 }
 
 run_simulation() {
@@ -226,6 +297,7 @@ run_simulation() {
     extra_mvn_args="-Dgatling.failOnError=false"
   fi
 
+  enable_sql_logs "$warmup_num"
   start_profiler
 
   echo "Running $SIMULATION_CLASS..."
@@ -262,7 +334,9 @@ run_simulation() {
 
   echo "Gatling test results are in: $gatling_run_dir"
   save_profiler_data "$gatling_run_dir"
+  save_sql_logs "$gatling_run_dir" "$warmup_num"
   post_process_profiler_data "$gatling_run_dir"
+  post_process_sql_logs "$gatling_run_dir" "$warmup_num"
   generate_metadata "$gatling_run_dir"
 }
 
