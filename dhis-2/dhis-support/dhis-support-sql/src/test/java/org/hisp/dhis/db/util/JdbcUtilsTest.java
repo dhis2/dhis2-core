@@ -87,7 +87,6 @@ class JdbcUtilsTest {
     assertPortDefault(5432, "jdbc:postgresql://localhost:5432/prod", POSTGRESQL_PORT);
     assertPortDefault(5439, "jdbc:postgresql://localhost:5439/prod", POSTGRESQL_PORT);
     assertPortDefault(5439, "jdbc:postgresql://34.234.34.234:5439/dev", POSTGRESQL_PORT);
-    assertPortDefault(5439, "jdbc:postgresql://34.234.34.234:5439/dev", POSTGRESQL_PORT);
     assertPortDefault(5432, "https://www.postgresql.org/download/", POSTGRESQL_PORT);
 
     // ClickHouse
