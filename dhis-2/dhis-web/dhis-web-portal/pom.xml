@@ -14,7 +14,7 @@
   <properties>
     <rootDir>../../</rootDir>
     <jib.version>3.4.4</jib.version>
-    <jib.from.image>tomcat:9.0.96-jre17</jib.from.image>
+    <jib.from.image>tomcat:9.0.109-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
     <jib.container.user>65534</jib.container.user>
@@ -63,6 +63,38 @@
     <finalName>dhis</finalName>
     <pluginManagement>
       <plugins>
+        <!-- remove rest-management-private-classpath from eh-cache-->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <configuration>
+                <target>
+                  <delete dir="./target/tmp" quiet="true"/>
+                  <unzip dest="./target/tmp" src="./target/dhis.war">
+                    <patternset>
+                      <include name="WEB-INF/lib/ehcache-2.10.9.2.jar"/>
+                    </patternset>
+                    <mapper type="flatten"/>
+                  </unzip>
+                  <zip destfile="./target/ehcache-2.10.9.2.jar">
+                    <zipfileset src="./target/tmp/ehcache-2.10.9.2.jar" excludes="**/rest-management-private-classpath/" />
+                  </zip>
+                  <delete dir="./target/tmp"/>
+                  <zip destfile="./target/dhis.war" update="true">
+                    <zipfileset dir="./target" includes="ehcache-2.10.9.2.jar" prefix="WEB-INF/lib"/>
+                  </zip>
+                  <delete file="./target/ehcache-2.10.9.2.jar"/>
+                </target>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
         <plugin>
           <groupId>com.google.cloud.tools</groupId>
           <artifactId>jib-maven-plugin</artifactId>
