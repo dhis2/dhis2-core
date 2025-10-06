@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.util.sql.QuoteUtils.unquote;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,7 @@ public class SelectBuilder {
   private static final Pattern ORDER_BY_PATTERN = Pattern.compile("^(?i)order\\s+by\\s+");
 
   public enum JoinType {
+    RAW(""),
     INNER("inner join"),
     LEFT("left join"),
     CROSS("cross join");
@@ -202,6 +204,10 @@ public class SelectBuilder {
    */
   public record Join(JoinType type, String table, String alias, String condition) {
     public String toSql() {
+      if (type == JoinType.RAW) {
+        return table;
+      }
+
       if (type == JoinType.CROSS) {
         return String.format("%s %s as %s", type.toSql(), table, alias);
       }
@@ -259,8 +265,7 @@ public class SelectBuilder {
    * @return this builder instance
    */
   public SelectBuilder addColumn(String expression, String tablePrefix) {
-    columns.add(Column.withPrefix(expression, tablePrefix));
-    return this;
+    return addColumnInternal(expression, expr -> Column.withPrefix(expr, tablePrefix));
   }
 
   public List<String> getColumnNames() {
@@ -287,8 +292,7 @@ public class SelectBuilder {
    * @return this builder instance
    */
   public SelectBuilder addColumn(String expression) {
-    columns.add(Column.of(expression));
-    return this;
+    return addColumnInternal(expression, Column::of);
   }
 
   public SelectBuilder addColumnIfNotExist(String expression) {
@@ -374,6 +378,19 @@ public class SelectBuilder {
    */
   public SelectBuilder innerJoin(String table, String alias, JoinCondition condition) {
     joins.add(new Join(JoinType.INNER, table, alias, condition.build(alias)));
+    return this;
+  }
+
+  /**
+   * Add a raw join clause to the query. Use with caution to avoid SQL injection. The String is
+   * added as-is to the query and it's expected to be a valid SQL join clause, starting with "left
+   * join", "inner join", "cross join", etc.
+   *
+   * @param rawJoin the raw join clause
+   * @return this builder instance
+   */
+  public SelectBuilder addRawJoin(String rawJoin) {
+    joins.add(new Join(JoinType.RAW, rawJoin, null, null));
     return this;
   }
 
@@ -716,6 +733,67 @@ public class SelectBuilder {
     }
 
     return results;
+  }
+
+  /**
+   * Internal helper method for adding columns with parsing of qualified names and aliases.
+   *
+   * <p>This method handles three scenarios:
+   *
+   * <ol>
+   *   <li>Columns with explicit aliases (e.g., "u.name AS user_name" or "COUNT(*) AS total")
+   *   <li>Qualified columns without aliases (e.g., "u.name" or "orders.total")
+   *   <li>Simple unqualified columns (e.g., "id" or "COUNT(*)")
+   * </ol>
+   *
+   * <p>The method attempts to parse the expression to extract:
+   *
+   * <ul>
+   *   <li>The column expression or name
+   *   <li>An optional table qualifier/prefix
+   *   <li>An optional alias
+   * </ul>
+   *
+   * <p>If parsing fails or the expression doesn't match expected patterns, the method falls back to
+   * using the provided {@code unqualifiedFactory} function to create a simple column.
+   *
+   * @param expression the column expression to parse and add (may include qualifier and/or alias)
+   * @param unqualifiedFactory a function to create a Column when the expression cannot be parsed as
+   *     a qualified or aliased column
+   * @return this builder instance for method chaining
+   * @see ColumnAliasUtils#parseSelectItem(String)
+   * @see ColumnAliasUtils#splitQualified(String)
+   */
+  private SelectBuilder addColumnInternal(
+      String expression, java.util.function.Function<String, Column> unqualifiedFactory) {
+    // Try to parse as a select item to extract alias
+    Optional<ColumnAliasUtils.AliasedColumn> aliasedColumn =
+        ColumnAliasUtils.parseSelectItem(expression);
+
+    if (aliasedColumn.isPresent() && aliasedColumn.get().alias() != null) {
+      ColumnAliasUtils.AliasedColumn ac = aliasedColumn.get();
+      String columnPart = ac.columnExpression();
+      String alias = ac.alias();
+
+      // Check if the column part is qualified
+      Optional<ColumnAliasUtils.QualifiedRef> qc = ColumnAliasUtils.splitQualified(columnPart);
+      if (qc.isPresent()) {
+        var ref = qc.get();
+        columns.add(new Column(ref.columnName(), ref.qualifier(), alias));
+      } else {
+        columns.add(new Column(columnPart, null, alias));
+      }
+    } else {
+      // Fallback: if we can't parse it, try to split as qualified column
+      var qc = ColumnAliasUtils.splitQualified(expression);
+      if (qc.isPresent()) {
+        var ref = qc.get();
+        columns.add(new Column(ref.columnName(), ref.qualifier(), null));
+      } else {
+        columns.add(unqualifiedFactory.apply(expression));
+      }
+    }
+    return this;
   }
 
   private String[] extractDirectionAndNulls(String expr) {

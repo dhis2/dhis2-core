@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,8 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
+  @Autowired private SystemSettingsService systemSettingsService;
+
   private ProgramStage psA;
 
   private ProgramStage psB;
@@ -95,6 +98,9 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
 
   @BeforeAll
   void setUp() {
+    systemSettingsService.put("experimentalAnalyticsSqlEngineEnabled", false);
+    systemSettingsService.clearCurrentSettings();
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------

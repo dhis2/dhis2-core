@@ -557,7 +557,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       if (hasRelativePeriods()) {
         items.addAll(
-            relatives.getRelativePeriods(date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER));
+            getRelatives().getRelativePeriods(date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER));
       }
 
       type = DimensionType.PERIOD;

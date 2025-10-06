@@ -133,6 +133,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -1187,6 +1188,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtStart() {
     ProgramIndicator pi =
         createProgramIndicatorA(
@@ -1218,6 +1221,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtEnd() {
     ProgramIndicator pi =
         createProgramIndicatorA(

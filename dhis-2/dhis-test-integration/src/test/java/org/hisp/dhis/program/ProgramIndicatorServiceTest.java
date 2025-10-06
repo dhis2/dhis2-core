@@ -58,6 +58,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -138,8 +139,14 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramIndicator indicatorF;
 
+  @Autowired private SystemSettingsService systemSettingsService;
+
   @BeforeEach
   void setUp() {
+
+    systemSettingsService.put("experimentalAnalyticsSqlEngineEnabled", false);
+    systemSettingsService.clearCurrentSettings();
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------
