@@ -124,6 +124,8 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(dorisSqlBuilder.dropCatalogIfExists());
     jdbcTemplate.execute(dorisSqlBuilder.createCatalog(connectionUrl, username, password));
+
+    log.info("Doris JDBC catalog created");
   }
 
   /**
@@ -131,12 +133,15 @@ public class AnalyticsDatabaseInit {
    * database.
    */
   private void createClickHouseNamedCollection() {
-    String database = JdbcUtils.getDatabaseFromUrl(config.getConnectionUrl());
+    String jdbcUrl = config.getConnectionUrl();
+    String host = JdbcUtils.getHostFromUrl(jdbcUrl);
+    int port = JdbcUtils.getPortFromUrl(jdbcUrl, JdbcUtils.POSTGRESQL_PORT);
+    String database = JdbcUtils.getDatabaseFromUrl(jdbcUrl);
 
     Map<String, Object> keyValues =
         Map.of(
-            "host", config.getProperty(ConfigurationKey.CONNECTION_HOST),
-            "port", config.getIntProperty(ConfigurationKey.CONNECTION_PORT),
+            "host", host,
+            "port", port,
             "database", database,
             "username", config.getProperty(ConfigurationKey.CONNECTION_USERNAME),
             "password", config.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
@@ -145,5 +150,11 @@ public class AnalyticsDatabaseInit {
 
     jdbcTemplate.execute(clickHouseSqlBuilder.dropNamedCollectionIfExists(NAMED_COLLECTION));
     jdbcTemplate.execute(clickHouseSqlBuilder.createNamedCollection(NAMED_COLLECTION, keyValues));
+
+    log.info(
+        "ClickHouse named collection created using host: '{}', port: {}, database: '{}'",
+        host,
+        port,
+        database);
   }
 }

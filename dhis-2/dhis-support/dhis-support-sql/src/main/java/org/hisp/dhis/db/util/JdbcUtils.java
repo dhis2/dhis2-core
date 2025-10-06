@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.db.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
@@ -45,48 +44,132 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JdbcUtils {
+  public static final int POSTGRESQL_PORT = 5432;
+
   private static final String PREFIX_JDBC = "jdbc:";
   private static final String PREFIX_POSTGRESQL = PREFIX_JDBC + "postgresql:";
   private static final String SLASH = "//";
   private static final String SEP_PARAM = "?";
+  private static final String LOCALHOST = "localhost";
+
+  /**
+   * Extracts the host from a JDBC connection URL.
+   *
+   * @param jdbcUrl the JDBC URL connection URL.
+   * @return the host, or null if it cannot be extracted.
+   */
+  public static String getHostFromUrl(String jdbcUrl) {
+    if (!isJdbcUrl(jdbcUrl)) {
+      return null;
+    }
+
+    if (isPostgreSqlSimpleFormat(jdbcUrl)) {
+      return LOCALHOST;
+    }
+
+    return toUri(jdbcUrl).getHost();
+  }
+
+  /**
+   * Extracts the port number from a JDBC connection URL. If port cannot be extracted, returns the
+   * given default port.
+   *
+   * @param jdbcUrl the JDBC URL connection URL.
+   * @param defaultPort the default port number to return if none is specified in the URL.
+   * @return the port, of the default port if it cannot be extracted.
+   */
+  public static int getPortFromUrl(String jdbcUrl, int defaultPort) {
+    int port = getPortFromUrl(jdbcUrl);
+    return port == -1 ? defaultPort : port;
+  }
+
+  /**
+   * Extracts the port from a JDBC connection URL.
+   *
+   * @param jdbcUrl The JDBC URL connection URL.
+   * @return the port, or -1 if it cannot be extracted.
+   */
+  public static int getPortFromUrl(String jdbcUrl) {
+    if (!isJdbcUrl(jdbcUrl)) {
+      return -1;
+    }
+
+    if (isPostgreSqlSimpleFormat(jdbcUrl)) {
+      return POSTGRESQL_PORT;
+    }
+
+    return toUri(jdbcUrl).getPort();
+  }
 
   /**
    * Extracts the database name from a JDBC connection URL.
    *
    * @param jdbcUrl The JDBC URL connection URL.
-   * @return The database name, or null if it cannot be extracted.
+   * @return the database name, or null if it cannot be extracted.
    */
   public static String getDatabaseFromUrl(String jdbcUrl) {
-    if (isBlank(jdbcUrl) || !jdbcUrl.startsWith(PREFIX_JDBC)) {
+    if (!isJdbcUrl(jdbcUrl)) {
       return null;
     }
 
     // Handle PostgreSQL simple format without host and port
-    if (jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains(SLASH)) {
+    if (isPostgreSqlSimpleFormat(jdbcUrl)) {
       String databasePart = jdbcUrl.substring(PREFIX_POSTGRESQL.length());
       int queryIndex = databasePart.indexOf(SEP_PARAM);
 
       if (queryIndex != -1) {
         return databasePart.substring(0, queryIndex);
       }
+
       return trimToNull(databasePart);
     }
 
     // Handle standard format for all other drivers (MySQL, ClickHouse, Doris)
-    try {
-      // Remove "jdbc:" prefix to make it a valid URI for parsing
-      URI uri = new URI(jdbcUrl.substring(PREFIX_JDBC.length()));
-      String path = uri.getPath();
+    URI uri = toUri(jdbcUrl);
+    String path = uri.getPath();
 
-      // Path is typically "/<database_name>"
-      if (isNotBlank(path) && path.length() > 1) {
-        // Remove leading slash and return the database name
-        return path.substring(1);
-      }
-    } catch (URISyntaxException ex) {
-      throw new IllegalArgumentException("Malformed JDBC connection URL: " + jdbcUrl, ex);
+    // Path is typically "/<database_name>"
+    if (isNotBlank(path) && path.length() > 1) {
+      // Remove leading slash and return the database name
+      return path.substring(1);
     }
 
     return null;
+  }
+
+  /**
+   * Determines if the given string is a valid JDBC URL.
+   *
+   * @param jdbcUrl the JDBC URL connection URL.
+   * @return true if the URL is a valid JDBC URL, false otherwise.
+   */
+  static boolean isJdbcUrl(String jdbcUrl) {
+    return isNotBlank(jdbcUrl) && jdbcUrl.startsWith(PREFIX_JDBC);
+  }
+
+  /**
+   * Determines if the given JDBC URL is for PostgreSQL in simple format without host and port.
+   *
+   * @param jdbcUrl the JDBC URL connection URL.
+   * @return true if the URL PostgreSQL simple format, false otherwise.
+   */
+  static boolean isPostgreSqlSimpleFormat(String jdbcUrl) {
+    return jdbcUrl.startsWith(PREFIX_POSTGRESQL) && !jdbcUrl.contains(SLASH);
+  }
+
+  /**
+   * Converts a JDBC connection URL to a URI. Removes "jdbc:" prefix to make it a valid URI before
+   * parsing.
+   *
+   * @param jdbcUrl the JDBC connection URL.
+   * @return the corresponding URI.
+   * @throws IllegalArgumentException if the URL is malformed.
+   */
+  static URI toUri(String jdbcUrl) throws IllegalArgumentException {
+    try {
+      return new URI(jdbcUrl.substring(PREFIX_JDBC.length()));
+    } catch (URISyntaxException ex) {
+      throw new IllegalArgumentException("Malformed JDBC connection URL: " + jdbcUrl, ex);
+    }
   }
 }
