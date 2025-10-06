@@ -177,9 +177,9 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResourceUid(), is("imageUid1"));
+      assertThat(event.fileResource(), is("imageUid1"));
       assertNotNull(event.file());
-      assertEquals(user.getUid(), event.userUid());
+      assertEquals(user.getUid(), event.user().getValue());
     }
   }
 
@@ -233,9 +233,9 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResourceUid(), is("imageUid1"));
+      assertThat(event.fileResource(), is("imageUid1"));
       assertNotNull(event.file());
-      assertEquals(user.getUid(), event.userUid());
+      assertEquals(user.getUid(), event.user().getValue());
     }
   }
 }

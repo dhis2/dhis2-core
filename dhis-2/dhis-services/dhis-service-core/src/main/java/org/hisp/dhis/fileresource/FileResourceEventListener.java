@@ -113,7 +113,7 @@ public class FileResourceEventListener {
       fileResource.setHasMultipleStorageFiles(true);
 
       try {
-        authenticationService.obtainAuthentication(imageFileSavedEvent.userUid().getValue());
+        authenticationService.obtainAuthentication(imageFileSavedEvent.user().getValue());
         fileResourceService.updateFileResource(fileResource);
       } finally {
         authenticationService.clearAuthentication();

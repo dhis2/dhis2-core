@@ -36,4 +36,4 @@ import org.hisp.dhis.common.UID;
  * @author Zubair Asghar.
  * @author Luca Cambi convert to record.
  */
-public record ImageFileSavedEvent(UID fileResource, File file, UID userUid) {}
+public record ImageFileSavedEvent(UID fileResource, File file, UID user) {}
