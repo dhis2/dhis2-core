@@ -48,6 +48,7 @@ public final class JdbcUtils {
   private static final String PREFIX_POSTGRESQL = PREFIX_JDBC + "postgresql:";
   private static final String SLASH = "//";
   private static final String SEP_PARAM = "?";
+  private static final String LOCALHOST = "localhost";
 
   /**
    * Extracts the host from a JDBC connection URL.
@@ -61,7 +62,7 @@ public final class JdbcUtils {
     }
 
     if (isPostgreSqlSimpleFormat(jdbcUrl)) {
-      return "localhost";
+      return LOCALHOST;
     }
 
     return toUri(jdbcUrl).getHost();
