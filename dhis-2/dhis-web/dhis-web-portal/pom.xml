@@ -69,10 +69,10 @@
           <artifactId>maven-antrun-plugin</artifactId>
           <executions>
             <execution>
-              <phase>package</phase>
               <goals>
                 <goal>run</goal>
               </goals>
+              <phase>package</phase>
               <configuration>
                 <target>
                   <delete dir="./target/tmp" quiet="true"/>
@@ -83,7 +83,7 @@
                     <mapper type="flatten"/>
                   </unzip>
                   <zip destfile="./target/ehcache-2.10.9.2.jar">
-                    <zipfileset src="./target/tmp/ehcache-2.10.9.2.jar" excludes="**/rest-management-private-classpath/" />
+                    <zipfileset excludes="**/rest-management-private-classpath/" src="./target/tmp/ehcache-2.10.9.2.jar"/>
                   </zip>
                   <delete dir="./target/tmp"/>
                   <zip destfile="./target/dhis.war" update="true">
