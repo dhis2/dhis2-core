@@ -91,4 +91,15 @@ public class HibernateProgramStageStore extends HibernateIdentifiableObjectStore
 
     return getQuery(hql).setParameter("program", program).list();
   }
+
+  @Override
+  public List<ProgramStage> getProgramStages(List<String> uids) {
+    if (uids == null || uids.isEmpty()) {
+      return List.of();
+    }
+
+    final String hql = "from ProgramStage p where p.uid in (:uids)";
+
+    return getQuery(hql).setParameterList("uids", uids).list();
+  }
 }
