@@ -84,7 +84,7 @@ public class JsonPatchManager {
       return null;
     }
 
-    Class realClass = HibernateProxyUtils.getRealClass(object);
+    Class<?> realClass = HibernateProxyUtils.getRealClass(object);
     Schema schema = schemaService.getSchema(realClass);
     JsonNode node = jsonMapper.valueToTree(object);
 

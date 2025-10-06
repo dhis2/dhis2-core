@@ -30,7 +30,6 @@
 package org.hisp.dhis.notification;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,7 +45,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -90,7 +88,7 @@ public class SingleEventNotificationMessageRenderer
               .build();
 
   private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-      ImmutableSet.of(
+      Set.of(
           ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
           ExpressionType.VARIABLE,
           ExpressionType.DATA_ELEMENT);
@@ -142,24 +140,6 @@ public class SingleEventNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private String filterValue(TrackedEntityAttributeValue av) {
-    String value = av.getPlainValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
-
-    // If the AV has an OptionSet -> substitute value with the name of the
-    // Option
-    if (av.getAttribute().hasOptionSet()) {
-      Optional<Option> option =
-          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
-      if (option.isPresent()) value = option.get().getName();
-    }
-
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
-  }
-
   private String filterValue(EventDataValue dv, DataElement dataElement) {
     String value = dv.getValue();
 
@@ -172,7 +152,9 @@ public class SingleEventNotificationMessageRenderer
     if (dataElement != null && dataElement.hasOptionSet()) {
       Optional<Option> option =
           optionService.findOptionByCode(dataElement.getOptionSet().getUid(), value);
-      if (option.isPresent()) value = option.get().getName();
+      if (option.isPresent()) {
+        value = option.get().getName();
+      }
     }
 
     return value != null ? value : MISSING_VALUE_REPLACEMENT;
