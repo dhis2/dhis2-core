@@ -29,12 +29,15 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_HTTP_SIZE_LIMIT;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jose.util.DefaultResourceRetriever;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
@@ -107,9 +110,12 @@ public class DhisOidcUserService implements OAuth2UserService<OidcUserRequest, O
     try {
       ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
 
+      DefaultResourceRetriever retriever =
+          new DefaultResourceRetriever(5000, 5000, DEFAULT_HTTP_SIZE_LIMIT);
+
       String jwksUri = userRequest.getClientRegistration().getProviderDetails().getJwkSetUri();
       JWKSourceBuilder<SecurityContext> securityContextJWKSourceBuilder =
-          JWKSourceBuilder.create(new URL(jwksUri));
+          JWKSourceBuilder.create(new URL(jwksUri), retriever);
 
       JWKSource<SecurityContext> keySource = securityContextJWKSourceBuilder.build();
       JWSKeySelector<SecurityContext> keySelector =
