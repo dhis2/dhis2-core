@@ -28,12 +28,12 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -190,17 +190,9 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
     return ProgramRuleActionValidationResult.builder().valid(true).build();
   }
 
-  public List<ProgramStage> getRequiredProgramStages(
-      ProgramRuleActionValidationContext validationContext, Program program) {
-    if (validationContext == null || program == null) {
-      return Collections.emptyList();
-    }
-
+  private List<ProgramStage> getRequiredProgramStages(
+      @Nonnull ProgramRuleActionValidationContext validationContext, @Nonnull Program program) {
     List<ProgramStage> availableStages = validationContext.getProgramStages();
-
-    if (availableStages == null) {
-      availableStages = new ArrayList<>();
-    }
 
     if (hasAllProgramStages(availableStages, program)) {
       return availableStages;
@@ -212,8 +204,9 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
     return combineStages(availableStages, missingStages);
   }
 
-  private boolean hasAllProgramStages(List<ProgramStage> availableStages, Program program) {
-    if (availableStages == null || program == null || program.getProgramStages() == null) {
+  private boolean hasAllProgramStages(
+      @Nonnull List<ProgramStage> availableStages, @Nonnull Program program) {
+    if (program.getProgramStages() == null) {
       return false;
     }
 
@@ -237,7 +230,7 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
       Program program,
       List<ProgramStage> availableStages) {
     if (program.getProgramStages() == null) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     Set<String> availableStageIds =
@@ -254,7 +247,7 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
             .toList();
 
     if (missingStageIds.isEmpty()) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     ProgramStageService stageService =
@@ -264,18 +257,13 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
   }
 
   private List<ProgramStage> combineStages(
-      List<ProgramStage> availableStages, List<ProgramStage> missingStages) {
-    List<ProgramStage> combined = new ArrayList<>(availableStages);
-
-    if (missingStages != null && !missingStages.isEmpty()) {
-      Set<String> existingIds =
-          availableStages.stream().map(ProgramStage::getUid).collect(Collectors.toSet());
-
-      missingStages.stream()
-          .filter(stage -> !existingIds.contains(stage.getUid()))
-          .forEach(combined::add);
+      @Nonnull List<ProgramStage> availableStages, @Nonnull List<ProgramStage> missingStages) {
+    if (missingStages.isEmpty()) {
+      return availableStages;
     }
 
+    List<ProgramStage> combined = new ArrayList<>(availableStages);
+    combined.addAll(missingStages);
     return combined;
   }
 }

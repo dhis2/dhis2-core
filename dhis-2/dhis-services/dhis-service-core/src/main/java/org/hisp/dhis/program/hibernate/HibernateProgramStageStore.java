@@ -29,6 +29,7 @@ package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -93,8 +94,8 @@ public class HibernateProgramStageStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<ProgramStage> getProgramStages(List<String> uids) {
-    if (uids == null || uids.isEmpty()) {
+  public List<ProgramStage> getProgramStages(@Nonnull List<String> uids) {
+    if (uids.isEmpty()) {
       return List.of();
     }
 
