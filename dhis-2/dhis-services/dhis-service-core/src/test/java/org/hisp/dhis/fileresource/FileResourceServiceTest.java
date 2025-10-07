@@ -63,9 +63,7 @@ class FileResourceServiceTest {
   @Mock private SessionFactory sessionFactory;
 
   @Mock private FileResourceContentStore fileResourceContentStore;
-
-  @Mock private ImageProcessingService imageProcessingService;
-
+  
   @Mock private ApplicationEventPublisher fileEventPublisher;
 
   @Mock private Session session;
