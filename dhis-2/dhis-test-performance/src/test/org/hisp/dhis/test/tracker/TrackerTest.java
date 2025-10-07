@@ -107,16 +107,16 @@ public class TrackerTest extends Simulation {
             details("Go to first page of program " + program)
                 .responseTime()
                 .percentile(90)
-                .lte(300),
+                .lte(100),
             details("Go to second page of program " + program)
                 .responseTime()
                 .percentile(90)
-                .lte(300),
+                .lte(100),
             details("Go back to first page of program " + program)
                 .responseTime()
                 .percentile(90)
-                .lte(300),
-            details("Get first event").responseTime().percentile(90).lte(100),
-            details("Get relationships for first event").responseTime().percentile(90).lte(50));
+                .lte(100),
+            details("Get first event").responseTime().percentile(90).lte(25),
+            details("Get relationships for first event").responseTime().percentile(90).lte(10));
   }
 }

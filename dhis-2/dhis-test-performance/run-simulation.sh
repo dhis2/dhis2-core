@@ -22,6 +22,8 @@ show_usage() {
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
+  echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
+  echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -30,6 +32,12 @@ show_usage() {
   echo ""
   echo "  # With CPU profiling"
   echo "  PROF_ARGS=\"-e cpu\" \\"
+  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
+  echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
+  echo ""
+  echo "  # With warmup and custom report suffix"
+  echo "  WARMUP=1 \\"
+  echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
   echo ""
@@ -52,6 +60,8 @@ DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone
 DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
+WARMUP=${WARMUP:-0}
+REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -108,7 +118,7 @@ start_containers() {
 
   if [ -n "$PROF_ARGS" ]; then
     docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
   else
     docker compose down --volumes
     docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
@@ -174,14 +184,6 @@ start_profiler() {
   fi
 }
 
-run_simulation() {
-  echo "Running $SIMULATION_CLASS..."
-  # shellcheck disable=SC2086
-  mvn gatling:test \
-    -Dgatling.simulationClass="$SIMULATION_CLASS" \
-    $MVN_ARGS
-}
-
 stop_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     echo "Stopping profiler..."
@@ -196,7 +198,7 @@ generate_metadata() {
   echo "Generating run metadata..."
   {
     echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX} $0"
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
@@ -204,26 +206,98 @@ generate_metadata() {
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "MVN_ARGS=$MVN_ARGS"
+    echo "PROF_ARGS=$PROF_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
+    echo "WARMUP=$WARMUP"
+    echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
   } > "$simulation_run_file"
+
+  echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
 }
 
+run_simulation() {
+  local warmup_num="${1:-0}"
+  local extra_mvn_args=""
+
+  if [ "$warmup_num" -gt 0 ]; then
+    extra_mvn_args="-Dgatling.failOnError=false"
+  fi
+
+  start_profiler
+
+  echo "Running $SIMULATION_CLASS..."
+  # shellcheck disable=SC2086
+  mvn gatling:test \
+    -Dgatling.simulationClass="$SIMULATION_CLASS" \
+    $MVN_ARGS $extra_mvn_args
+
+  stop_profiler
+  gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
+
+  # Build suffix from REPORT_SUFFIX and warmup indicator
+  local suffix_parts=()
+  if [ -n "$REPORT_SUFFIX" ]; then
+    suffix_parts+=("$REPORT_SUFFIX")
+  fi
+  if [ "$warmup_num" -gt 0 ]; then
+    # Calculate padding width based on total warmup count
+    local padding_width=${#WARMUP}
+    # Zero-pad the warmup number
+    local padded_num
+    padded_num=$(printf "%0${padding_width}d" "$warmup_num")
+    suffix_parts+=("warmup-${padded_num}")
+  fi
+
+  # Only rename if we have a suffix
+  if [ ${#suffix_parts[@]} -gt 0 ]; then
+    local combined_suffix
+    combined_suffix=$(IFS=- ; echo "${suffix_parts[*]}")
+    local new_dir="${gatling_run_dir}-${combined_suffix}"
+    mv "$gatling_run_dir" "$new_dir"
+    gatling_run_dir="$new_dir"
+  fi
+
+  echo "Gatling test results are in: $gatling_run_dir"
+  save_profiler_data "$gatling_run_dir"
+  post_process_profiler_data "$gatling_run_dir"
+  generate_metadata "$gatling_run_dir"
+}
+
+echo "========================================"
+echo "PHASE: Image Pull"
+echo "========================================"
 pull_mutable_image
+
+echo ""
+echo "========================================"
+echo "PHASE: Container Startup"
+echo "========================================"
 start_containers
 prepare_database
-start_profiler
+
+if [ "$WARMUP" -gt 0 ]; then
+  for i in $(seq 1 "$WARMUP"); do
+    echo ""
+    echo "========================================"
+    echo "PHASE: Warmup Run $i/$WARMUP"
+    echo "========================================"
+    run_simulation "$i"
+  done
+  echo "Warmup complete."
+fi
+
+echo ""
+echo "========================================"
+echo "PHASE: Performance Test"
+echo "========================================"
 run_simulation
-stop_profiler
 
-gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
-save_profiler_data "$gatling_run_dir"
-post_process_profiler_data "$gatling_run_dir"
-generate_metadata "$gatling_run_dir"
-
+echo ""
+echo "========================================"
+echo "PHASE: Complete"
+echo "========================================"
 echo "Completed test for $DHIS2_IMAGE"
-echo "Gatling test results are in: $gatling_run_dir"
-echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
 
