@@ -28,8 +28,6 @@
 package org.hisp.dhis.fileresource.events;
 
 import java.io.File;
-import java.util.Map;
-import org.hisp.dhis.fileresource.ImageFileDimension;
 
 /**
  * @Author Zubair Asghar.
@@ -37,18 +35,18 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 public class ImageFileSavedEvent {
   private String fileResource;
 
-  private Map<ImageFileDimension, File> imageFiles;
+  private File file;
 
-  public ImageFileSavedEvent(String fileResource, Map<ImageFileDimension, File> imageFiles) {
+  public ImageFileSavedEvent(String fileResource, File file) {
     this.fileResource = fileResource;
-    this.imageFiles = imageFiles;
+    this.file = file;
   }
 
   public String getFileResource() {
     return fileResource;
   }
 
-  public Map<ImageFileDimension, File> getImageFiles() {
-    return imageFiles;
+  public File getFile() {
+    return file;
   }
 }
