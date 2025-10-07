@@ -21,7 +21,6 @@
     <jackson.version.annotation>2.20</jackson.version.annotation>
     <guava.version>33.5.0-jre</guava.version>
     <json-tree.version>1.8.1</json-tree.version>
-    <epam-reportportal.version>5.3.0</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.12.0</opencsv.version>
     <owner.version>1.0.12</owner.version>
@@ -41,6 +40,7 @@
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
+    <jsr305.version>3.0.2</jsr305.version>
   </properties>
 
   <dependencies>
@@ -113,15 +113,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.epam.reportportal</groupId>
-      <artifactId>agent-java-junit5</artifactId>
-      <version>${epam-reportportal.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.epam.reportportal</groupId>
-      <artifactId>logger-java-log4j</artifactId>
-      <version>${epam-reportportal.version}</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -216,6 +210,12 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
