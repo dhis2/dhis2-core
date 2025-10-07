@@ -33,6 +33,7 @@ import static org.hisp.dhis.db.sql.ClickHouseSqlBuilder.NAMED_COLLECTION;
 
 import java.util.Map;
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.db.SqlBuilderProvider;
@@ -70,8 +71,8 @@ public class AnalyticsDatabaseInit {
 
   private final SqlBuilderSettings settings;
 
-  @Qualifier("analyticsJdbcTemplate")
-  private final JdbcTemplate jdbcTemplate;
+  @Qualifier("analyticsActualDataSource")
+  private final DataSource dataSource;
 
   private final SqlBuilder sqlBuilder;
 
@@ -99,7 +100,7 @@ public class AnalyticsDatabaseInit {
 
   /** Work for initializing a Doris analytics database. */
   private void initDoris() {
-    createDorisJdbcCatalog(jdbcTemplate);
+    createDorisJdbcCatalog();
   }
 
   /** Work for initializing a ClickHouse analytics database. */
@@ -111,7 +112,9 @@ public class AnalyticsDatabaseInit {
    * Creates a Doris JDBC catalog which is used to connect to and read from the PostgreSQL
    * transaction database as an external data source.
    */
-  private void createDorisJdbcCatalog(JdbcTemplate jdbcTemplate) {
+  private void createDorisJdbcCatalog() {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
     String connectionUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String password = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
@@ -129,6 +132,8 @@ public class AnalyticsDatabaseInit {
    * database.
    */
   private void createClickHouseNamedCollection() {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
     String jdbcUrl = config.getConnectionUrl();
     String host = JdbcUtils.getHostFromUrl(jdbcUrl);
     int port = JdbcUtils.getPortFromUrl(jdbcUrl, JdbcUtils.POSTGRESQL_PORT);
