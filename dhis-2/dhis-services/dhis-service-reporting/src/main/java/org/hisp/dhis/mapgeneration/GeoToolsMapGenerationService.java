@@ -242,7 +242,7 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
     // Create and setup an internal layer
     InternalMapLayer mapLayer = new InternalMapLayer();
     mapLayer.setName(name);
-    mapLayer.setPeriod(period.getPeriod());
+    mapLayer.setPeriod(period == null ? null : period.getPeriod());
     mapLayer.setMethod(mapView.getMethod());
     mapLayer.setLayer(mapView.getLayer());
     mapLayer.setRadiusLow(radiusLow);
