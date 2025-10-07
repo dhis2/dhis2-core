@@ -104,6 +104,7 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -1330,6 +1331,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @OpenApi.Property(Period.class)
   @JsonSerialize(contentUsing = JacksonPeriodDimensionSerializer.class)
   @JsonDeserialize(contentUsing = JacksonPeriodDimensionDeserializer.class)
+  @Property(persisted = Property.Value.TRUE, owner = Property.Value.TRUE)
   @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
   public List<PeriodDimension> getPeriods() {

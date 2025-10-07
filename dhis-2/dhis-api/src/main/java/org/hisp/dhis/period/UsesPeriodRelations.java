@@ -34,11 +34,16 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 
 /**
- * All classes that have a persisted mapping to one or more periods must implement this interface
- * returning the persisted periods.
+ * All {@link org.hisp.dhis.common.IdentifiableObject} classes that have a persisted mapping to one
+ * or more periods must implement this interface returning the persisted periods.
+ *
+ * @author Jan Bernitt
  */
 public interface UsesPeriodRelations {
 
+  /**
+   * @return null or empty list in case no period(s) are currently set
+   */
   @JsonIgnore
   @CheckForNull
   List<Period> getPersistedPeriods();
@@ -48,7 +53,8 @@ public interface UsesPeriodRelations {
    * {@link Period}. This setter is used to set the original period list returned by the getter but
    * with all the unqiue instances in it.
    *
-   * @param periods the periods to apply to the period relations of the target object
+   * @param periods the periods to apply to the period relations of the target object, null or empty
+   *     removes all relations
    */
   void setPersistedPeriods(@CheckForNull List<Period> periods);
 }

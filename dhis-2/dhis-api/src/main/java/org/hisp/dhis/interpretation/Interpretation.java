@@ -372,7 +372,7 @@ public class Interpretation extends BaseIdentifiableObject implements UsesPeriod
 
   @Override
   public void setPersistedPeriods(@CheckForNull List<Period> periods) {
-    if (periods != null && periods.size() >= 1) period = periods.get(0);
+    period = periods == null || periods.isEmpty() ? null : periods.get(0);
   }
 
   @JsonProperty
