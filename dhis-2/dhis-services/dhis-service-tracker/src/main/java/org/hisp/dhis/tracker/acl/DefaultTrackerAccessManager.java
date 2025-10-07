@@ -70,6 +70,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final TrackerProgramService trackerProgramService;
 
   @Override
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
   public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
@@ -96,6 +97,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
   public List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
     List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper() || trackedEntity == null) {
@@ -119,6 +121,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
   public List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity) {
     List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper() || trackedEntity == null) {
@@ -149,6 +152,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
   public List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity) {
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
