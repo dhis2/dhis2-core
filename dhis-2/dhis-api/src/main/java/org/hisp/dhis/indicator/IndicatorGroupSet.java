@@ -61,10 +61,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.attribute.AttributeValuesDeserializer;
-import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -121,7 +117,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   @Column private Boolean compulsory = false;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
-  
+
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
 
@@ -269,14 +265,14 @@ public class IndicatorGroupSet extends BaseMetadataObject
   public String getShortName() {
     return shortName;
   }
-  
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
   public String getDescription() {
     return description;
   }
-  
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Boolean isCompulsory() {
@@ -290,7 +286,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   public void setCompulsory(Boolean compulsory) {
     this.compulsory = compulsory;
   }
-  
+
   @Gist(included = Include.FALSE)
   @Override
   @Sortable(value = false)
@@ -345,7 +341,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   public List<IndicatorGroup> getMembers() {
     return members;
   }
-  
+
   // -------------------------------------------------------------------------
   // Implementation of IdentifiableObject methods from BaseIdentifiableObject
   // -------------------------------------------------------------------------
@@ -366,7 +362,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
       return name;
     } else if (idScheme.is(IdentifiableProperty.ID)) {
       return id > 0 ? String.valueOf(id) : null;
-    } 
+    }
     return null;
   }
 
@@ -432,20 +428,16 @@ public class IndicatorGroupSet extends BaseMetadataObject
   }
 
   @Override
-  public void setAttributeValues(AttributeValues attributeValues) {
-  }
+  public void setAttributeValues(AttributeValues attributeValues) {}
 
   @Override
-  public void addAttributeValue(String attributeId, String value) {
-  }
+  public void addAttributeValue(String attributeId, String value) {}
 
   @Override
-  public void removeAttributeValue(String attributeId) {
-  }
+  public void removeAttributeValue(String attributeId) {}
 
   @JsonIgnore
   public String getAttributeValue(String attributeUid) {
     return null;
   }
-
 }
