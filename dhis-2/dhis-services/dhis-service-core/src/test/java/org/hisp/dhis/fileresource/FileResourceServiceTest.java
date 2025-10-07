@@ -28,9 +28,8 @@
 package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -84,11 +83,7 @@ class FileResourceServiceTest {
   public void setUp() {
     subject =
         new DefaultFileResourceService(
-            fileResourceStore,
-            sessionFactory,
-            fileResourceContentStore,
-            imageProcessingService,
-            fileEventPublisher);
+            fileResourceStore, sessionFactory, fileResourceContentStore, fileEventPublisher);
   }
 
   @Test
@@ -170,9 +165,7 @@ class FileResourceServiceTest {
     ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
     assertThat(event.getFileResource(), is("imageUid1"));
-    assertFalse(event.getImageFiles().isEmpty());
-    assertThat(event.getImageFiles().size(), is(1));
-    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+    assertNotNull(event.getFile());
   }
 
   @Test
@@ -226,8 +219,6 @@ class FileResourceServiceTest {
     ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
     assertThat(event.getFileResource(), is("imageUid1"));
-    assertFalse(event.getImageFiles().isEmpty());
-    assertThat(event.getImageFiles().size(), is(1));
-    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+    assertNotNull(event.getFile());
   }
 }
