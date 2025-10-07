@@ -300,7 +300,8 @@ post_process_sql_logs() {
 prepare_database() {
   echo ""
   echo "Preparing database..."
-  docker compose exec db psql --username=dhis --quiet --command='VACUUM;' > /dev/null
+  # cleanup and update DB statistics
+  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' > /dev/null
 }
 
 start_profiler() {
