@@ -2,49 +2,9 @@
 # Run Gatling simulations against a DHIS2 instance running in Docker
 set -euo pipefail
 
-# Global variable to track gatling directory for cleanup trap
-GATLING_RUN_DIR=""
-CURRENT_WARMUP_NUM=0
-
-cleanup() {
-  local exit_code=$?
-
-  # Disable exit on error for cleanup to ensure it completes
-  set +e
-
-  echo ""
-  echo "========================================"
-  echo "PHASE: Cleanup & Post-processing"
-  echo "========================================"
-
-  # Only attempt post-processing if we have a gatling directory
-  if [ -n "$GATLING_RUN_DIR" ] && [ -d "$GATLING_RUN_DIR" ]; then
-    save_profiler_data "$GATLING_RUN_DIR" || echo "Warning: Failed to save profiler data"
-    save_sql_logs "$GATLING_RUN_DIR" "$CURRENT_WARMUP_NUM" || echo "Warning: Failed to save SQL logs"
-    post_process_profiler_data "$GATLING_RUN_DIR" || echo "Warning: Failed to post-process profiler data"
-    post_process_sql_logs "$GATLING_RUN_DIR" "$CURRENT_WARMUP_NUM" || echo "Warning: Failed to post-process SQL logs"
-    generate_metadata "$GATLING_RUN_DIR" || echo "Warning: Failed to generate metadata"
-  else
-    if [ -n "$GATLING_RUN_DIR" ]; then
-      echo "Warning: Gatling directory not found: $GATLING_RUN_DIR"
-    else
-      echo "Warning: No Gatling directory to post-process (test may not have run)"
-    fi
-  fi
-
-  # Always attempt container cleanup
-  echo ""
-  echo "Cleaning up containers..."
-  if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes 2>/dev/null || true
-  else
-    docker compose down --volumes 2>/dev/null || true
-  fi
-
-  exit $exit_code
-}
-
-trap cleanup EXIT
+################################################################################
+# USAGE
+################################################################################
 
 show_usage() {
   echo ""
@@ -90,6 +50,10 @@ show_usage() {
   echo ""
 }
 
+################################################################################
+# VALIDATE REQUIRED ENVIRONMENT VARIABLES
+################################################################################
+
 if [ -z "${DHIS2_IMAGE:-}" ]; then
   echo "Error: DHIS2_IMAGE environment variable is required"
   show_usage
@@ -101,6 +65,10 @@ if [ -z "${SIMULATION_CLASS:-}" ]; then
   show_usage
   exit 1
 fi
+
+################################################################################
+# ENVIRONMENT SETUP
+################################################################################
 
 MVN_ARGS=${MVN_ARGS:-""}
 DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"}
@@ -130,6 +98,35 @@ parse_prof_args() {
 
 parse_prof_args
 
+################################################################################
+# CLEANUP & TRAP
+################################################################################
+
+# set -e ensures the script fails with proper exit code which is important for CI steps to fail.
+# This cleanup trap ensures containers are stopped even if the script exits early.
+cleanup() {
+  local exit_code=$?
+
+  # Disable exit on error for cleanup to ensure it completes
+  set +e
+
+  echo ""
+  echo "Cleaning up containers..."
+  if [ -n "$PROF_ARGS" ]; then
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes 2>/dev/null || true
+  else
+    docker compose down --volumes 2>/dev/null || true
+  fi
+
+  exit $exit_code
+}
+
+trap cleanup EXIT
+
+################################################################################
+# FUNCTIONS
+################################################################################
+
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
   # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
@@ -140,6 +137,9 @@ pull_mutable_image() {
   # to be tested.
 
   if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+    echo "========================================"
+    echo "PHASE: Image Pull"
+    echo "========================================"
     echo "Pulling mutable image tag: $DHIS2_IMAGE"
     docker pull "$DHIS2_IMAGE"
   fi
@@ -181,6 +181,7 @@ save_profiler_data() {
     return 1
   fi
 
+  echo ""
   echo "Saving profiler data..."
   if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
     echo "Warning: Failed to copy profiler data from container"
@@ -209,7 +210,6 @@ save_sql_logs() {
     return 1
   fi
   echo "SQL logs saved to $gatling_dir"
-  echo ""
 }
 
 post_process_profiler_data() {
@@ -229,6 +229,7 @@ post_process_profiler_data() {
     return 1
   fi
 
+  echo ""
   echo "Post-processing profiler data..."
 
   local jfrconv_flags="--${EVENT_FLAG}"
@@ -294,10 +295,10 @@ post_process_sql_logs() {
     return 1
   fi
   echo "Post-processing SQL logs complete. File saved to $gatling_dir/pgbadger.html"
-  echo ""
 }
 
 prepare_database() {
+  echo ""
   echo "Preparing database..."
   docker compose exec db psql --username=dhis --quiet --command='VACUUM;' > /dev/null
 }
@@ -365,9 +366,6 @@ run_simulation() {
   local warmup_num="${1:-0}"
   local extra_mvn_args=""
 
-  # Set global variables for cleanup trap
-  CURRENT_WARMUP_NUM="$warmup_num"
-
   if [ "$warmup_num" -gt 0 ]; then
     extra_mvn_args="-Dgatling.failOnError=false"
   fi
@@ -376,47 +374,67 @@ run_simulation() {
   start_profiler
 
   echo "Running $SIMULATION_CLASS..."
+  # Allow Maven to fail (e.g., assertion failures) but continue to post-process results
+  set +e
   # shellcheck disable=SC2086
   mvn gatling:test \
     -Dgatling.simulationClass="$SIMULATION_CLASS" \
     $MVN_ARGS $extra_mvn_args
+  local mvn_exit_code=$?
+  set -e
 
   stop_profiler
-  local gatling_run_dir
-  gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
 
-  # Build suffix from REPORT_SUFFIX and warmup indicator
-  local suffix_parts=()
-  if [ -n "$REPORT_SUFFIX" ]; then
-    suffix_parts+=("$REPORT_SUFFIX")
-  fi
-  if [ "$warmup_num" -gt 0 ]; then
-    # Calculate padding width based on total warmup count
-    local padding_width=${#WARMUP}
-    # Zero-pad the warmup number
-    local padded_num
-    padded_num=$(printf "%0${padding_width}d" "$warmup_num")
-    suffix_parts+=("warmup-${padded_num}")
+  # Find the gatling report directory
+  local gatling_run_dir=""
+  if [ -f target/gatling/lastRun.txt ]; then
+    gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt | tr -d '\n')"
   fi
 
-  # Only rename if we have a suffix
-  if [ ${#suffix_parts[@]} -gt 0 ]; then
-    local combined_suffix
-    combined_suffix=$(IFS=- ; echo "${suffix_parts[*]}")
-    local new_dir="${gatling_run_dir}-${combined_suffix}"
-    mv "$gatling_run_dir" "$new_dir"
-    gatling_run_dir="$new_dir"
+  # If we found a gatling directory, process it
+  if [ -n "$gatling_run_dir" ] && [ -d "$gatling_run_dir" ]; then
+    # Build suffix from REPORT_SUFFIX and warmup indicator
+    local suffix_parts=()
+    if [ -n "$REPORT_SUFFIX" ]; then
+      suffix_parts+=("$REPORT_SUFFIX")
+    fi
+    if [ "$warmup_num" -gt 0 ]; then
+      # Calculate padding width based on total warmup count
+      local padding_width=${#WARMUP}
+      # Zero-pad the warmup number
+      local padded_num
+      padded_num=$(printf "%0${padding_width}d" "$warmup_num")
+      suffix_parts+=("warmup-${padded_num}")
+    fi
+
+    # Only rename if we have a suffix
+    if [ ${#suffix_parts[@]} -gt 0 ]; then
+      local combined_suffix
+      combined_suffix=$(IFS=- ; echo "${suffix_parts[*]}")
+      local new_dir="${gatling_run_dir}-${combined_suffix}"
+      mv "$gatling_run_dir" "$new_dir"
+      gatling_run_dir="$new_dir"
+    fi
+
+    echo "Gatling test results are in: $gatling_run_dir"
+
+    # Post-process results for this run
+    save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
+    save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
+    post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
+    post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
+    generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
+  else
+    echo "Warning: Could not find Gatling report directory"
   fi
 
-  # Set global variable for cleanup trap - this is the final directory after renaming
-  GATLING_RUN_DIR="$gatling_run_dir"
-
-  echo "Gatling test results are in: $gatling_run_dir"
+  # Return the Maven exit code so failures propagate correctly
+  return $mvn_exit_code
 }
 
-echo "========================================"
-echo "PHASE: Image Pull"
-echo "========================================"
+################################################################################
+# MAIN EXECUTION
+################################################################################
 pull_mutable_image
 
 echo ""
