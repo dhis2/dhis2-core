@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -196,8 +195,6 @@ class FileResourceServiceTest {
             FileResourceDomain.ORG_UNIT);
 
     File file = new File("");
-
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
 
     when(sessionFactory.getCurrentSession()).thenReturn(session);
 
