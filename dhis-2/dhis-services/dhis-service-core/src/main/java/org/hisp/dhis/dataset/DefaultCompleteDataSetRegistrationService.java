@@ -91,7 +91,6 @@ public class DefaultCompleteDataSetRegistrationService
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
       throws ConflictException {
-    registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     checkCompulsoryDeOperands(registration);
 
     Date date = new Date();
