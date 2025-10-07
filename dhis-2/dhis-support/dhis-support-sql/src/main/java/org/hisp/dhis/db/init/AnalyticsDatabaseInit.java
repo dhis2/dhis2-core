@@ -70,7 +70,7 @@ public class AnalyticsDatabaseInit {
 
   private final SqlBuilderSettings settings;
 
-  @Qualifier("analyticsJdbcTemplate")
+  @Qualifier("analyticsActualDataSource")
   private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
