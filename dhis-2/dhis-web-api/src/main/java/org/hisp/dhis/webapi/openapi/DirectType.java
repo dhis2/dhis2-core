@@ -113,6 +113,7 @@ class DirectType {
     Integer maxLength;
     List<String> enums;
     String description;
+    Map<String, SimpleType> members;
   }
 
   private static final Map<Class<?>, DirectType> TYPES = new IdentityHashMap<>();
@@ -230,8 +231,20 @@ class DirectType {
     oneOf(Serializable.class, schema -> schema.type("number"));
     oneOf(Serializable.class, schema -> schema.type("boolean"));
 
-    oneOf(Period.class, schema -> schema.type("string").format("period"));
-    oneOf(PeriodDimension.class, schema -> schema.type("string").format("period"));
+    oneOf(
+        Period.class,
+        schema ->
+            schema
+                .type("object")
+                .members(
+                    Map.of("id", SimpleType.builder().type("string").format("period").build())));
+    oneOf(
+        PeriodDimension.class,
+        schema ->
+            schema
+                .type("object")
+                .members(
+                    Map.of("id", SimpleType.builder().type("string").format("period").build())));
     oneOf(
         PeriodType.class,
         schema ->

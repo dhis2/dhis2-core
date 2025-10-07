@@ -47,7 +47,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -209,7 +208,7 @@ public class FieldPathHelper {
         schema.getProperties().forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
       } else if (FieldPreset.OWNER.getName().equals(preset.getName())) {
         schema.getProperties().stream()
-            .filter(FieldPathHelper::isOwner)
+            .filter(Property::isOwner)
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
       } else if (FieldPreset.PERSISTED.getName().equals(preset.getName())) {
         schema.getProperties().stream()
@@ -231,16 +230,6 @@ public class FieldPathHelper {
     }
 
     fieldPaths.forEach(fp -> fieldPathMap.putIfAbsent(fp.toFullPath(), fp));
-  }
-
-  /**
-   * We cannot make periods be owned by objects in the schema as that messes up the importer but, we
-   * can treat them "as if" for backwards compatibility.
-   */
-  private static boolean isOwner(Property p) {
-    return p.isOwner()
-        || p.getKlass() == PeriodDimension.class
-        || p.getItemKlass() == PeriodDimension.class;
   }
 
   public void visitFieldPaths(

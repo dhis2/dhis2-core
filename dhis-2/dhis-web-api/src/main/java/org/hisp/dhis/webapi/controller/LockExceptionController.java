@@ -53,8 +53,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -104,8 +102,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   @Autowired private UserService userService;
 
   @Autowired private FieldFilterService fieldFilterService;
-
-  @Autowired private I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -157,13 +153,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    I18nFormat format = this.i18nManager.getI18nFormat();
-
-    // TODO DHIS2-20257 we cannot change LockException but also not set the name
-    // for (LockException lockException : lockExceptions) {
-    //  lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
-    // }
-
     rootNode.addChild(
         fieldFilterService.toCollectionNode(
             LockException.class, new FieldFilterParams(lockExceptions, fields)));
@@ -181,12 +170,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     }
 
     List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
-    I18nFormat format = this.i18nManager.getI18nFormat();
-
-    // TODO DHIS2-20257 we cannot change LockException but also not set the name
-    // for (LockException lockException : lockExceptions) {
-    //  lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
-    // }
 
     Collections.sort(lockExceptions, new LockExceptionNameComparator());
 

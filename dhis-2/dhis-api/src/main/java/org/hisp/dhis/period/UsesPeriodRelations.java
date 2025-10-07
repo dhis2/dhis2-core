@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.period;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import javax.annotation.CheckForNull;
 
@@ -44,7 +43,6 @@ public interface UsesPeriodRelations {
   /**
    * @return null or empty list in case no period(s) are currently set
    */
-  @JsonIgnore
   @CheckForNull
   List<Period> getPersistedPeriods();
 

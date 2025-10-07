@@ -40,8 +40,8 @@ import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.adapter.JacksonExtendedPeriodSerializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -91,7 +91,7 @@ public class LockException implements PrimaryKeyObject {
   }
 
   @JsonProperty
-  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonSerialize(using = JacksonExtendedPeriodSerializer.class)
   @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Period getPeriod() {

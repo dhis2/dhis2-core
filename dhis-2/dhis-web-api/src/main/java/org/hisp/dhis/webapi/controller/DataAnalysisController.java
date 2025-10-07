@@ -679,12 +679,6 @@ public class DataAnalysisController {
       return deflatedDataValues.subList(0, DataAnalysisService.MAX_OUTLIERS);
     }
 
-    // TODO DHIS2-20257 we cannot change DeflatedDataValue but also not set the name
-    // if this is an important feature a new record response class is needed
-    //    for (DeflatedDataValue dataValue : deflatedDataValues) {
-    //      dataValue.getPeriod().setName(format.formatPeriod(dataValue.getPeriod()));
-    //    }
-
     return deflatedDataValues;
   }
 

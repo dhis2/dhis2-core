@@ -81,8 +81,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
-import org.hisp.dhis.common.adapter.JacksonPeriodDimensionDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodDimensionSerializer;
+import org.hisp.dhis.common.adapter.JacksonExtendedPeriodSerializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
@@ -1327,13 +1327,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   @Override
-  @JsonProperty
-  @OpenApi.Property(Period.class)
-  @JsonSerialize(contentUsing = JacksonPeriodDimensionSerializer.class)
-  @JsonDeserialize(contentUsing = JacksonPeriodDimensionDeserializer.class)
-  @Property(persisted = Property.Value.TRUE)
-  @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public List<PeriodDimension> getPeriods() {
     return periods;
   }
@@ -1342,7 +1336,12 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     this.periods = periods;
   }
 
-  @JsonIgnore
+  @JsonProperty("periods")
+  @JsonSerialize(contentUsing = JacksonExtendedPeriodSerializer.class)
+  @JsonDeserialize(contentUsing = JacksonPeriodDeserializer.class)
+  @Property(persisted = Property.Value.TRUE, owner = Property.Value.TRUE)
+  @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
   @Override
   public List<Period> getPersistedPeriods() {
     return periods == null ? null : periods.stream().map(PeriodDimension::getPeriod).toList();

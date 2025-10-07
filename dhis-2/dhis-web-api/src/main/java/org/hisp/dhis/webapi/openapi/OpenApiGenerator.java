@@ -523,6 +523,15 @@ public class OpenApiGenerator extends JsonGenerator {
     }
 
     addStringMultilineMember("description", simpleType.description());
+    Map<String, DirectType.SimpleType> members = simpleType.members();
+    if (members != null && !members.isEmpty()) {
+      addObjectMember(
+          "properties",
+          () -> {
+            members.forEach(
+                (name, t) -> addObjectMember(name, () -> generateSimpleTypeSchema(t, null)));
+          });
+    }
   }
 
   private void generateUidSchema(Api.Schema schema) {
