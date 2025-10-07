@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -56,7 +57,7 @@ import org.joda.time.Days;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement(localName = "period", namespace = DxfNamespaces.DXF_2_0)
-public class Period {
+public class Period implements Serializable {
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
   /**
@@ -102,7 +103,7 @@ public class Period {
   /** Required. Must be unique together with startDate. */
   @Setter private Date endDate;
 
-  /** Transient string holding the ISO representation of the period. */
+  /** string holding the ISO representation of the period. */
   private String isoPeriod;
 
   // -------------------------------------------------------------------------
@@ -111,14 +112,14 @@ public class Period {
 
   public Period() {}
 
-  protected Period(PeriodType periodType, Date startDate, Date endDate) {
+  public Period(PeriodType periodType, Date startDate, Date endDate) {
     this.periodType = periodType;
     this.startDate = startDate;
     this.endDate = endDate;
     this.isoPeriod = periodType.getIsoDate(this);
   }
 
-  protected Period(PeriodType periodType, Date startDate, Date endDate, String isoPeriod) {
+  public Period(PeriodType periodType, Date startDate, Date endDate, String isoPeriod) {
     this.periodType = periodType;
     this.startDate = startDate;
     this.endDate = endDate;

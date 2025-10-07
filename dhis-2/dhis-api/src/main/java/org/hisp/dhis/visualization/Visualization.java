@@ -271,7 +271,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     addAllDataDimensionItems(dataElements);
     addAllDataDimensionItems(indicators);
     addAllDataDimensionItems(reportingRates);
-    this.periods = periods;
+    setPeriods(periods);
     this.organisationUnits = organisationUnits;
 
     if (doIndicators) {
@@ -698,9 +698,7 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
       I18nFormat format) {
-    verify(
-        (periods != null && !periods.isEmpty()) || hasRelativePeriods(),
-        "Must contain periods or relative periods");
+    verify(hasPeriods() || hasRelativePeriods(), "Must contain periods or relative periods");
 
     this.relativePeriodDate = periodDate;
     this.relativeOrganisationUnit = organisationUnit;

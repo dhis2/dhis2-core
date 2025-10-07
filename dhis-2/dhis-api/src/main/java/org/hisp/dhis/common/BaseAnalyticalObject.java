@@ -204,7 +204,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
-  protected List<PeriodDimension> periods = new ArrayList<>();
+  private List<PeriodDimension> periods = new ArrayList<>();
 
   protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -729,7 +729,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
           } else {
             Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
             boolean isIsoPeriod = isoPeriod != null;
-            boolean addPeriod = isIsoPeriod && !periodList.contains(isoPeriod);
+            boolean addPeriod =
+                isIsoPeriod && periodList.stream().noneMatch(p -> p.getIsoDate().equals(period));
 
             if (addPeriod) {
               periodList.add(PeriodDimension.of(isoPeriod));
@@ -1334,6 +1335,10 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   public void setPeriods(List<PeriodDimension> periods) {
     this.periods = periods;
+  }
+
+  protected final boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
   }
 
   @JsonProperty("periods")
