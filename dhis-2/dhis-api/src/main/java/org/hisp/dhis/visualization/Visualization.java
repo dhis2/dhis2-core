@@ -912,18 +912,6 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
     }
   }
 
-  public List<PeriodDimension> getAllPeriods() {
-    List<PeriodDimension> list = new ArrayList<>(relativePeriodsList);
-
-    for (PeriodDimension period : periods) {
-      if (!list.contains(period)) {
-        list.add(period);
-      }
-    }
-
-    return list;
-  }
-
   // -------------------------------------------------------------------------
   // Display and supportive methods
   // -------------------------------------------------------------------------
