@@ -38,7 +38,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -49,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -86,8 +86,6 @@ public class DefaultFileResourceService implements FileResourceService {
   private final PeriodService periodService;
 
   private final FileResourceContentStore fileResourceContentStore;
-
-  private final ImageProcessingService imageProcessingService;
 
   private final ApplicationEventPublisher fileEventPublisher;
 
@@ -198,12 +196,11 @@ public class DefaultFileResourceService implements FileResourceService {
     entityManager.flush();
 
     if (hasMultiDimensionImageSupport(fileResource)) {
-      Map<ImageFileDimension, File> imageFiles =
-          imageProcessingService.createImages(fileResource, file);
-
       fileEventPublisher.publishEvent(
           new ImageFileSavedEvent(
-              fileResource.getUid(), imageFiles, CurrentUserUtil.getCurrentUserDetails().getUid()));
+              UID.of(fileResource.getUid()),
+              file,
+              UID.of(CurrentUserUtil.getCurrentUserDetails().getUid())));
       return;
     }
 
