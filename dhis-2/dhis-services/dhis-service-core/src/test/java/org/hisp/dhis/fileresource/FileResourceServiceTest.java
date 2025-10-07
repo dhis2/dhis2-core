@@ -28,10 +28,9 @@
 package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mockStatic;
@@ -40,7 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.Map;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
@@ -78,6 +76,8 @@ class FileResourceServiceTest {
 
   @Mock private EntityManager entityManager;
 
+  @Mock private UserDetails userDetails;
+
   @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
   @Captor private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
@@ -95,9 +95,10 @@ class FileResourceServiceTest {
             fileResourceStore,
             periodService,
             fileResourceContentStore,
-            imageProcessingService,
             fileEventPublisher,
             entityManager);
+
+    user.setUid("userUid0001");
   }
 
   @Test
@@ -161,17 +162,12 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
-    fileResource.setUid("imageUid1");
+    fileResource.setUid("imageUid001");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
+      userUtilMockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
+      userUtilMockedStatic.when(userDetails::getUid).thenReturn("userUid0001");
 
       subject.asyncSaveFileResource(fileResource, file);
 
@@ -182,10 +178,8 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResource(), is("imageUid1"));
-      assertFalse(event.imageFiles().isEmpty());
-      assertThat(event.imageFiles().size(), is(1));
-      assertThat(event.imageFiles(), hasKey(ImageFileDimension.LARGE));
+      assertThat(event.fileResource(), is("imageUid001"));
+      assertNotNull(event.file());
       assertEquals(user.getUid(), event.userUid());
     }
   }
@@ -223,17 +217,12 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
-    fileResource.setUid("imageUid1");
+    fileResource.setUid("imageUid001");
 
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
 
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
+      userUtilMockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
+      userUtilMockedStatic.when(userDetails::getUid).thenReturn("userUid0001");
 
       subject.asyncSaveFileResource(fileResource, file);
 
@@ -244,10 +233,8 @@ class FileResourceServiceTest {
 
       ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-      assertThat(event.fileResource(), is("imageUid1"));
-      assertFalse(event.imageFiles().isEmpty());
-      assertThat(event.imageFiles().size(), is(1));
-      assertThat(event.imageFiles(), hasKey(ImageFileDimension.LARGE));
+      assertThat(event.fileResource(), is("imageUid001"));
+      assertNotNull(event.file());
       assertEquals(user.getUid(), event.userUid());
     }
   }

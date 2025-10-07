@@ -68,6 +68,8 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
 
   @Mock HibernateFileResourceStore fileResourceStore;
 
+  @Mock ImageProcessingService imageProcessingService;
+
   @BeforeEach
   public void init() {
     userService = _userService;
@@ -75,14 +77,10 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
     fileResourceEventListener =
         new FileResourceEventListener(
             new DefaultFileResourceService(
-                fileResourceStore,
-                null,
-                fileResourceContentStore,
-                null,
-                null,
-                mock(EntityManager.class)),
+                fileResourceStore, null, fileResourceContentStore, null, mock(EntityManager.class)),
             fileResourceContentStore,
-            new DefaultAuthenticationService(userService));
+            new DefaultAuthenticationService(userService),
+            imageProcessingService);
   }
 
   @Test
@@ -93,16 +91,16 @@ class FileResourceEventListenerTest extends IntegrationTestBase {
     File file = File.createTempFile("file-resource", "test");
 
     Map<ImageFileDimension, File> map = Map.of(ImageFileDimension.LARGE, file);
+    ImageFileSavedEvent event =
+        new ImageFileSavedEvent(
+            fileResource.getUid(), file, CurrentUserUtil.getCurrentUserDetails().getUid());
 
     when(fileResourceContentStore.saveFileResourceContent(fileResource, map)).thenReturn("uid");
     when(fileResourceStore.getByUid(fileResource.getUid())).thenReturn(fileResource);
+    when(imageProcessingService.createImages(fileResource, event.file())).thenReturn(map);
     doCallRealMethod().when(fileResourceStore).update(any(FileResource.class));
 
-    assertDoesNotThrow(
-        () ->
-            fileResourceEventListener.saveImageFile(
-                new ImageFileSavedEvent(
-                    fileResource.getUid(), map, CurrentUserUtil.getCurrentUserDetails().getUid())));
+    assertDoesNotThrow(() -> fileResourceEventListener.saveImageFile(event));
 
     verify(fileResourceStore).update(any(FileResource.class), any(UserDetails.class));
   }
