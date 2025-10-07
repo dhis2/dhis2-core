@@ -144,10 +144,7 @@ class PeriodOffsetUtilsTest {
 
   private void assertIsoPeriodsInOrder(List<DimensionalItemObject> periods, String... isoPeriod) {
     List<String> isoPeriods =
-        periods.stream()
-            .map(dim -> (PeriodDimension) dim)
-            .map(PeriodDimension::getIsoDate)
-            .toList();
+        periods.stream().map(PeriodDimension.class::cast).map(PeriodDimension::getIsoDate).toList();
     assertThat(isoPeriods, is(Arrays.asList(isoPeriod)));
   }
 

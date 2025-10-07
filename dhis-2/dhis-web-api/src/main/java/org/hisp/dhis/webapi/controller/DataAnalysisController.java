@@ -670,7 +670,6 @@ public class DataAnalysisController {
 
   private List<DeflatedDataValue> deflatedValuesListToResponse(
       List<DeflatedDataValue> deflatedDataValues) {
-    I18nFormat format = i18nManager.getI18nFormat();
     if (deflatedDataValues == null) {
       return Collections.emptyList();
     }

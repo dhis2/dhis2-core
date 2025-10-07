@@ -229,8 +229,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   private Stream<PeriodDimension> streamOfPeriods(DimensionalObject pe) {
-    return pe.getItems().stream()
-        .map(dimensionalItemObject -> (PeriodDimension) dimensionalItemObject);
+    return pe.getItems().stream().map(PeriodDimension.class::cast);
   }
 
   @Test

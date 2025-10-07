@@ -528,10 +528,9 @@ public class OpenApiGenerator extends JsonGenerator {
     if (members != null && !members.isEmpty()) {
       addObjectMember(
           "properties",
-          () -> {
-            members.forEach(
-                (name, t) -> addObjectMember(name, () -> generateSimpleTypeSchema(t, null)));
-          });
+          () ->
+              members.forEach(
+                  (name, t) -> addObjectMember(name, () -> generateSimpleTypeSchema(t, null))));
     }
   }
 

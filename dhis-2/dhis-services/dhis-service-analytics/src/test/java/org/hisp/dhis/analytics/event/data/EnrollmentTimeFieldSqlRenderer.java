@@ -79,7 +79,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
       return sql.append(
               periods.stream()
                   .filter(this::isPeriod)
-                  .map(dimensionalItemObject -> (PeriodDimension) dimensionalItemObject)
+                  .map(PeriodDimension.class::cast)
                   .map(period -> toSqlCondition(period, timeField.get()))
                   .collect(Collectors.joining(" or ", "(", ")")))
           .toString();

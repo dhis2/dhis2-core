@@ -1006,7 +1006,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     assertThat(dimension.getItems(), hasSize(5));
     assertThat(
         dimension.getItems().stream()
-            .map(dimensionalItemObject -> (PeriodDimension) dimensionalItemObject)
+            .map(PeriodDimension.class::cast)
             .map(PeriodDimension::getDateField)
             .collect(Collectors.toList()),
         containsInAnyOrder(
@@ -1024,7 +1024,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   private PeriodDimension getPeriod(DimensionalObject dimension, String dateField) {
     return dimension.getItems().stream()
-        .map(dimensionalItemObject -> (PeriodDimension) dimensionalItemObject)
+        .map(PeriodDimension.class::cast)
         .filter(period -> period.getDateField().equals(dateField))
         .findFirst()
         .orElse(null);

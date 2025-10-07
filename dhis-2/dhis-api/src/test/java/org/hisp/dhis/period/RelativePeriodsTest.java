@@ -675,7 +675,6 @@ class RelativePeriodsTest {
                 .stream()
                 .map(PeriodDimension::getPeriod)
                 .toList();
-    ;
     assertEquals(10, relatives.size());
     assertEquals(
         new Period(new FinancialOctoberPeriodType(), getDate(1990, 10, 1), getDate(1991, 9, 30)),
