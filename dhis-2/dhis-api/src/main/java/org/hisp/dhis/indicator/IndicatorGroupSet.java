@@ -121,11 +121,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   @Column private Boolean compulsory = false;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
-
-  @Type(type = "jsbAttributeValues")
-  @AuditAttribute
-  private AttributeValues attributeValues = AttributeValues.empty();
-
+  
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
 
@@ -273,22 +269,14 @@ public class IndicatorGroupSet extends BaseMetadataObject
   public String getShortName() {
     return shortName;
   }
-
-  public void setShortName(String shortName) {
-    this.shortName = shortName;
-  }
-
+  
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
   public String getDescription() {
     return description;
   }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
+  
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Boolean isCompulsory() {
@@ -302,36 +290,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   public void setCompulsory(Boolean compulsory) {
     this.compulsory = compulsory;
   }
-
-  @Override
-  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
-  @JsonProperty("attributeValues")
-  @JsonDeserialize(using = AttributeValuesDeserializer.class)
-  @JsonSerialize(using = AttributeValuesSerializer.class)
-  public AttributeValues getAttributeValues() {
-    return attributeValues;
-  }
-
-  @Override
-  public void setAttributeValues(AttributeValues attributeValues) {
-    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
-  }
-
-  @Override
-  public void addAttributeValue(String attributeId, String value) {
-    this.attributeValues = attributeValues.added(attributeId, value);
-  }
-
-  @Override
-  public void removeAttributeValue(String attributeId) {
-    this.attributeValues = attributeValues.removed(attributeId);
-  }
-
-  @JsonIgnore
-  public String getAttributeValue(String attributeUid) {
-    return attributeValues.get(attributeUid);
-  }
-
+  
   @Gist(included = Include.FALSE)
   @Override
   @Sortable(value = false)
@@ -386,11 +345,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   public List<IndicatorGroup> getMembers() {
     return members;
   }
-
-  public void setMembers(List<IndicatorGroup> members) {
-    this.members = members;
-  }
-
+  
   // -------------------------------------------------------------------------
   // Implementation of IdentifiableObject methods from BaseIdentifiableObject
   // -------------------------------------------------------------------------
@@ -411,9 +366,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
       return name;
     } else if (idScheme.is(IdentifiableProperty.ID)) {
       return id > 0 ? String.valueOf(id) : null;
-    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
-      return attributeValues.get(idScheme.getAttribute());
-    }
+    } 
     return null;
   }
 
@@ -470,4 +423,29 @@ public class IndicatorGroupSet extends BaseMetadataObject
         && Objects.equals(getCode(), other.getCode())
         && Objects.equals(getName(), other.getName());
   }
+
+  // -------------------------------------------------------------------------
+  // Not Supported
+  // -------------------------------------------------------------------------
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return null;
+  }
+
 }
