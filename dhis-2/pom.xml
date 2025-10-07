@@ -241,6 +241,13 @@
     <gson.version>2.13.2</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
     <opentelemetry.version>2.20.1</opentelemetry.version>
+
+    <!--force 3.2.2 as security issue in 3.2.1-->
+    <commons-collections.version>3.2.2</commons-collections.version>
+    <!--security issue in 2.10.6-->
+    <ehcache.version>2.10.9.2</ehcache.version>
+    <!--security issue in 0.20-->
+    <aircompressor.version>0.27</aircompressor.version>
   </properties>
 
   <dependencyManagement>
@@ -964,6 +971,24 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-ehcache</artifactId>
         <version>${hibernate.version}</version>
+      </dependency>
+      <!--security issue in 0.20-->
+      <dependency>
+        <groupId>io.airlift</groupId>
+        <artifactId>aircompressor</artifactId>
+        <version>${aircompressor.version}</version>
+      </dependency>
+      <!--security issue in 2.10.6-->
+      <dependency>
+        <groupId>net.sf.ehcache</groupId>
+        <artifactId>ehcache</artifactId>
+        <version>${ehcache.version}</version>
+      </dependency>
+      <!--force 3.2.2 as security issue in 3.2.1-->
+      <dependency>
+        <groupId>commons-collections</groupId>
+        <artifactId>commons-collections</artifactId>
+        <version>${commons-collections.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.persistence</groupId>
