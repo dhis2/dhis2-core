@@ -29,6 +29,7 @@ package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -90,5 +91,16 @@ public class HibernateProgramStageStore extends HibernateIdentifiableObjectStore
     final String hql = "from ProgramStage p where p.program = :program";
 
     return getQuery(hql).setParameter("program", program).list();
+  }
+
+  @Override
+  public List<ProgramStage> getProgramStages(@Nonnull List<String> uids) {
+    if (uids.isEmpty()) {
+      return List.of();
+    }
+
+    final String hql = "from ProgramStage p where p.uid in (:uids)";
+
+    return getQuery(hql).setParameterList("uids", uids).list();
   }
 }
