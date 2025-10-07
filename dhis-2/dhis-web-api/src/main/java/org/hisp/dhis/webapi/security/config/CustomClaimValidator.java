@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,33 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.core.OAuth2Token;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 /**
- * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
+ * Custom validator for JWT claims.
  *
- * @author Ameen Mohamed
+ * <p>Placeholder for custom claim validation logic to come.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isTestRun(context)) {
-      return true;
-    }
-    if (!isTestRun(context)) {
-      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
-    }
-    return false;
-  }
+@Service
+public final class CustomClaimValidator<T extends OAuth2Token>
+    implements OAuth2TokenValidator<Jwt> {
+
+  @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
+
+  public CustomClaimValidator() {}
 
   @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
+  public OAuth2TokenValidatorResult validate(Jwt token) {
+    Assert.notNull(token, "token cannot be null");
+    return OAuth2TokenValidatorResult.success();
   }
 }

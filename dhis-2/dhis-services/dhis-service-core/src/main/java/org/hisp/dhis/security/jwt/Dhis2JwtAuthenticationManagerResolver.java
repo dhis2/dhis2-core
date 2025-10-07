@@ -30,6 +30,7 @@
 package org.hisp.dhis.security.jwt;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_CLIENT_ID;
 
 import com.nimbusds.jwt.JWTParser;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.User;
@@ -84,8 +87,10 @@ import org.springframework.stereotype.Component;
 public class Dhis2JwtAuthenticationManagerResolver
     implements AuthenticationManagerResolver<HttpServletRequest> {
 
+  @Autowired private DhisConfigurationProvider config;
   @Autowired private UserStore userStore;
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
+  @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
   @Autowired private UserService userService;
 
   private final Map<String, AuthenticationManager> authenticationManagers =
@@ -106,7 +111,6 @@ public class Dhis2JwtAuthenticationManagerResolver
     if (issuer == null) {
       throw new InvalidBearerTokenException("Missing issuer");
     }
-
     return getAuthenticationManager(issuer);
   }
 
@@ -127,46 +131,76 @@ public class Dhis2JwtAuthenticationManagerResolver
     return this.authenticationManagers.computeIfAbsent(
         issuer,
         s -> {
+          Set<String> allRegistrationId = clientRegistrationRepository.getAllRegistrationId();
+          int size = allRegistrationId.size();
+
           DhisOidcClientRegistration clientRegistration =
               clientRegistrationRepository.findByIssuerUri(issuer);
           if (clientRegistration == null) {
             throw new InvalidBearerTokenException("Invalid issuer");
           }
-
+          // Create the authentication provider
           Converter<Jwt, DhisJwtAuthenticationToken> authConverter =
-              getConverter(clientRegistration);
+              getTokenConverter(clientRegistration);
           JwtDecoder decoder = getDecoder(issuer);
-
           return new DhisJwtAuthenticationProvider(decoder, authConverter)::authenticate;
         });
   }
 
+  // Get a JwtDecoder based on the issuer. If a custom decoder has been set directly, use that one.
   private JwtDecoder getDecoder(String issuer) {
+    // Use custom decoder if set directly, used in tests.
     if (jwtDecoder != null) {
       return jwtDecoder;
     }
-
     return JwtDecoders.fromIssuerLocation(issuer);
   }
 
-  private Converter<Jwt, DhisJwtAuthenticationToken> getConverter(
+  /**
+   * Creates a custom Converter that converts a Jwt token into a DhisJwtAuthenticationToken.
+   *
+   * <p>This implementation will look for a user mapping claim value in the token and look up the
+   * user based on this value. If a matching user is not found, an exception is thrown.
+   *
+   * @param clientRegistration the oidc client registration (IdP) that "owning/created" the token
+   * @return a Converter that converts a Jwt token into a DhisJwtAuthenticationToken
+   */
+  private Converter<Jwt, DhisJwtAuthenticationToken> getTokenConverter(
       DhisOidcClientRegistration clientRegistration) {
     return jwt -> {
       List<String> audience = jwt.getAudience();
 
-      Collection<String> clientIds = clientRegistration.getClientIds();
+      // This is only set when when Authorization Server is enabled.
+      String internalDhis2ClientId = config.getProperty(OIDC_DHIS2_INTERNAL_CLIENT_ID);
 
-      Set<String> matchedClientIds =
-          clientIds.stream().filter(audience::contains).collect(Collectors.toSet());
-
-      if (matchedClientIds.isEmpty()) {
-        throw new InvalidBearerTokenException("Invalid audience");
+      if (clientRegistration.getClientRegistration().getClientId().equals(internalDhis2ClientId)) {
+        // Special case for the dhis2-client client id, look up the audience which is a client id
+        // registered in the DHIS2 server.
+        boolean allMatch =
+            audience.stream().allMatch(a -> oAuth2ClientService.findByClientId(a) != null);
+        if (!allMatch) {
+          throw new InvalidBearerTokenException("Invalid audience");
+        }
+      } else {
+        Collection<String> clientIds = clientRegistration.getClientIds();
+        Set<String> matchedClientIds =
+            clientIds.stream().filter(audience::contains).collect(Collectors.toSet());
+        if (matchedClientIds.isEmpty()) {
+          throw new InvalidBearerTokenException("Invalid audience");
+        }
       }
 
       String mappingClaimKey = clientRegistration.getMappingClaimKey();
       String mappingValue = jwt.getClaim(mappingClaimKey);
+      User user;
+      if (mappingClaimKey.equals("username")) {
+        user = userStore.getUserByUsername(mappingValue);
+      } else if (mappingClaimKey.equals("email")) {
+        user = userStore.getUserByOpenId(mappingValue);
+      } else {
+        throw new InvalidBearerTokenException("Invalid mapping claim");
+      }
 
-      User user = userStore.getUserByOpenId(mappingValue);
       if (user == null) {
         throw new InvalidBearerTokenException(
             String.format(
@@ -182,28 +216,25 @@ public class Dhis2JwtAuthenticationManagerResolver
     };
   }
 
-  private static class DhisJwtAuthenticationProvider implements AuthenticationProvider {
-    private final JwtDecoder jwtDecoder;
+  /**
+   * Custom AuthenticationProvider that validates/authenticate the incoming Bearer token, converts
+   * it to a Jwt token and then to a DhisJwtAuthenticationToken.
+   */
+  private record DhisJwtAuthenticationProvider(
+      JwtDecoder jwtDecoder, Converter<Jwt, DhisJwtAuthenticationToken> jwtAuthenticationConverter)
+      implements AuthenticationProvider {
 
-    private final Converter<Jwt, DhisJwtAuthenticationToken> jwtAuthenticationConverter;
-
-    public DhisJwtAuthenticationProvider(
-        JwtDecoder jwtDecoder,
-        Converter<Jwt, DhisJwtAuthenticationToken> jwtAuthenticationConverter) {
+    private DhisJwtAuthenticationProvider {
       checkNotNull(jwtDecoder);
       checkNotNull(jwtAuthenticationConverter);
-
-      this.jwtDecoder = jwtDecoder;
-      this.jwtAuthenticationConverter = jwtAuthenticationConverter;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication)
         throws AuthenticationException {
+
       BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
-
-      Jwt jwt = getJwt(bearer);
-
+      Jwt jwt = decodeTokenString(bearer.getToken());
       DhisJwtAuthenticationToken token = this.jwtAuthenticationConverter.convert(jwt);
       if (token == null) {
         throw new InvalidBearerTokenException("Invalid token");
@@ -215,9 +246,9 @@ public class Dhis2JwtAuthenticationManagerResolver
       return token;
     }
 
-    private Jwt getJwt(BearerTokenAuthenticationToken bearer) {
+    private Jwt decodeTokenString(String token) {
       try {
-        return this.jwtDecoder.decode(bearer.getToken());
+        return this.jwtDecoder.decode(token);
       } catch (BadJwtException failed) {
         throw new InvalidBearerTokenException(failed.getMessage(), failed);
       } catch (JwtException failed) {
@@ -231,13 +262,13 @@ public class Dhis2JwtAuthenticationManagerResolver
     }
   }
 
+  /** Custom converter that extracts the "issuer" claim from the incoming JWT bearer token/string */
   private static class JwtClaimIssuerConverter implements Converter<HttpServletRequest, String> {
     private final BearerTokenResolver resolver = new DefaultBearerTokenResolver();
 
     @Override
     public String convert(HttpServletRequest request) {
       String token = this.resolver.resolve(request);
-
       try {
         String issuer = JWTParser.parse(token).getJWTClaimsSet().getIssuer();
         if (issuer != null) {
@@ -246,7 +277,6 @@ public class Dhis2JwtAuthenticationManagerResolver
       } catch (Exception ex) {
         throw new InvalidBearerTokenException(ex.getMessage(), ex);
       }
-
       throw new InvalidBearerTokenException("Missing issuer");
     }
   }

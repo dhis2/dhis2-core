@@ -34,8 +34,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
+import org.hisp.dhis.security.oidc.provider.Dhis2InternalProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,10 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
 
     addRegistration(GoogleProvider.parse(config.getProperties()));
     addRegistration(Wso2Provider.parse(config.getProperties()));
+
+    if (config.isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED)) {
+      addRegistration(Dhis2InternalProvider.parse(config));
+    }
   }
 
   public void addRegistration(DhisOidcClientRegistration registration) {
