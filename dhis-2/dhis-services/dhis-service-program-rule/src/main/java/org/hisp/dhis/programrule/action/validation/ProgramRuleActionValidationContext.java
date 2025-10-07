@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.dataelement.DataElement;
@@ -67,5 +66,5 @@ public class ProgramRuleActionValidationContext {
 
   private ProgramRuleActionValidationService programRuleActionValidationService;
 
-  @Nonnull private List<ProgramStage> programStages;
+  private List<ProgramStage> programStages;
 }

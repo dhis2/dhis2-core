@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 
@@ -56,12 +55,4 @@ public interface ProgramStageStore extends IdentifiableObjectStore<ProgramStage>
   List<ProgramStage> getByDataEntryForm(DataEntryForm dataEntryForm);
 
   List<ProgramStage> getByProgram(Program program);
-
-  /**
-   * Retrieves a list of ProgramStage objects based on a list of their unique identifiers (UIDs).
-   *
-   * @param uids the list of unique identifiers (UIDs) for the ProgramStages to retrieve.
-   * @return a List of ProgramStage objects corresponding to the provided UIDs.
-   */
-  List<ProgramStage> getProgramStages(@Nonnull List<String> uids);
 }
