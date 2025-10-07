@@ -1331,7 +1331,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   @OpenApi.Property(Period.class)
   @JsonSerialize(contentUsing = JacksonPeriodDimensionSerializer.class)
   @JsonDeserialize(contentUsing = JacksonPeriodDimensionDeserializer.class)
-  @Property(persisted = Property.Value.TRUE, owner = Property.Value.TRUE)
+  @Property(persisted = Property.Value.TRUE)
   @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
   public List<PeriodDimension> getPeriods() {
