@@ -198,10 +198,10 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
       return availableStages;
     }
 
-    List<ProgramStage> missingStages =
-        fetchMissingStages(validationContext, program, availableStages);
-
-    return combineStages(availableStages, missingStages);
+    return validationContext
+        .getProgramRuleActionValidationService()
+        .getProgramStageService()
+        .getProgramStagesByProgram(program);
   }
 
   private boolean hasAllProgramStages(
