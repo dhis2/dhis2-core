@@ -27,16 +27,20 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -110,7 +114,7 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
           .build();
     }
 
-    Set<ProgramStage> stages = program.getProgramStages();
+    List<ProgramStage> stages = getRequiredProgramStages(validationContext, program);
 
     Set<String> dataElements =
         stages.stream()
@@ -162,7 +166,9 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
     }
 
     List<String> trackedEntityAttributes =
-        program.getProgramAttributes().stream().map(att -> att.getAttribute().getUid()).toList();
+        program.getProgramAttributes().stream()
+            .map(att -> att.getAttribute().getUid())
+            .collect(Collectors.toList());
 
     if (!trackedEntityAttributes.contains(attribute.getUid())) {
       log.debug(
@@ -182,5 +188,82 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
     }
 
     return ProgramRuleActionValidationResult.builder().valid(true).build();
+  }
+
+  private List<ProgramStage> getRequiredProgramStages(
+      @Nonnull ProgramRuleActionValidationContext validationContext, @Nonnull Program program) {
+    List<ProgramStage> availableStages = validationContext.getProgramStages();
+
+    if (hasAllProgramStages(availableStages, program)) {
+      return availableStages;
+    }
+
+    List<ProgramStage> missingStages =
+        fetchMissingStages(validationContext, program, availableStages);
+
+    return combineStages(availableStages, missingStages);
+  }
+
+  private boolean hasAllProgramStages(
+      @Nonnull List<ProgramStage> availableStages, @Nonnull Program program) {
+    if (program.getProgramStages() == null) {
+      return false;
+    }
+
+    Set<String> availableStageIds =
+        availableStages.stream()
+            .filter(Objects::nonNull)
+            .map(ProgramStage::getUid)
+            .collect(Collectors.toSet());
+
+    Set<String> allProgramStageIds =
+        program.getProgramStages().stream()
+            .filter(Objects::nonNull)
+            .map(ProgramStage::getUid)
+            .collect(Collectors.toSet());
+
+    return availableStageIds.containsAll(allProgramStageIds);
+  }
+
+  private List<ProgramStage> fetchMissingStages(
+      ProgramRuleActionValidationContext validationContext,
+      Program program,
+      List<ProgramStage> availableStages) {
+    if (program.getProgramStages() == null) {
+      return List.of();
+    }
+
+    Set<String> availableStageIds =
+        availableStages.stream()
+            .filter(Objects::nonNull)
+            .map(ProgramStage::getUid)
+            .collect(Collectors.toSet());
+
+    List<String> missingStageIds =
+        program.getProgramStages().stream()
+            .filter(Objects::nonNull)
+            .map(ProgramStage::getUid)
+            .filter(stageId -> !availableStageIds.contains(stageId))
+            .toList();
+
+    if (missingStageIds.isEmpty()) {
+      return List.of();
+    }
+
+    ProgramStageService stageService =
+        validationContext.getProgramRuleActionValidationService().getProgramStageService();
+
+    return stageService.getProgramStages(missingStageIds);
+  }
+
+  private List<ProgramStage> combineStages(
+      @Nonnull List<ProgramStage> availableStages, @Nonnull List<ProgramStage> missingStages) {
+    if (missingStages.isEmpty()) {
+      return availableStages;
+    }
+
+    List<ProgramStage> combined = new ArrayList<>(availableStages);
+    combined.addAll(missingStages);
+    return combined;
   }
 }
