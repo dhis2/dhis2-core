@@ -89,6 +89,7 @@ volumes:
 
 networks:
   doris_network:
+    external: true
     ipam:
       config:
         - subnet: 192.168.100.0/24
