@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +39,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -223,47 +221,5 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
             .collect(Collectors.toSet());
 
     return availableStageIds.containsAll(allProgramStageIds);
-  }
-
-  private List<ProgramStage> fetchMissingStages(
-      ProgramRuleActionValidationContext validationContext,
-      Program program,
-      List<ProgramStage> availableStages) {
-    if (program.getProgramStages() == null) {
-      return List.of();
-    }
-
-    Set<String> availableStageIds =
-        availableStages.stream()
-            .filter(Objects::nonNull)
-            .map(ProgramStage::getUid)
-            .collect(Collectors.toSet());
-
-    List<String> missingStageIds =
-        program.getProgramStages().stream()
-            .filter(Objects::nonNull)
-            .map(ProgramStage::getUid)
-            .filter(stageId -> !availableStageIds.contains(stageId))
-            .toList();
-
-    if (missingStageIds.isEmpty()) {
-      return List.of();
-    }
-
-    ProgramStageService stageService =
-        validationContext.getProgramRuleActionValidationService().getProgramStageService();
-
-    return stageService.getProgramStages(missingStageIds);
-  }
-
-  private List<ProgramStage> combineStages(
-      @Nonnull List<ProgramStage> availableStages, @Nonnull List<ProgramStage> missingStages) {
-    if (missingStages.isEmpty()) {
-      return availableStages;
-    }
-
-    List<ProgramStage> combined = new ArrayList<>(availableStages);
-    combined.addAll(missingStages);
-    return combined;
   }
 }
