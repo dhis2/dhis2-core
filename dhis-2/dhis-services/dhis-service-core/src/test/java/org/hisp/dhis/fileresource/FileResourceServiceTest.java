@@ -146,11 +146,7 @@ class FileResourceServiceTest {
             FileResourceDomain.DATA_VALUE);
 
     File file = new File("");
-
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
+    
     when(sessionFactory.getCurrentSession()).thenReturn(session);
 
     fileResource.setUid("imageUid1");
@@ -202,9 +198,7 @@ class FileResourceServiceTest {
     File file = new File("");
 
     Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
+    
     when(sessionFactory.getCurrentSession()).thenReturn(session);
 
     fileResource.setUid("imageUid1");
