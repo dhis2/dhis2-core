@@ -48,7 +48,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -215,8 +214,6 @@ class JdbcSingleEventStore {
   }
 
   private List<SingleEvent> fetchEvents(SingleEventQueryParams queryParams, PageParams pageParams) {
-    setAccessiblePrograms(CurrentUserUtil.getCurrentUserDetails(), queryParams);
-
     Map<String, SingleEvent> eventsByUid;
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
@@ -471,7 +468,6 @@ class JdbcSingleEventStore {
 
   private long getEventCount(SingleEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
@@ -754,20 +750,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
     }
 
-    if (params.hasSecurityFilter()) {
-      sqlParameters.addValue(
-          "program_uid",
-          params.getAccessiblePrograms().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessiblePrograms()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (p.uid in (")
-          .append(":program_uid")
-          .append(")) ");
-    }
-
     return fromBuilder;
   }
 
@@ -777,7 +759,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       MapSqlParameterSource mapSqlParameterSource) {
     return switch (params.getOrgUnitMode()) {
       case CAPTURE -> createCaptureSql(user, mapSqlParameterSource);
-      case ACCESSIBLE -> createAccessibleSql(user, params, mapSqlParameterSource);
+      case ACCESSIBLE -> createAccessibleSql(user, mapSqlParameterSource);
       case DESCENDANTS -> createDescendantsSql(user, params, mapSqlParameterSource);
       case CHILDREN -> createChildrenSql(user, params, mapSqlParameterSource);
       case SELECTED -> createSelectedSql(user, params, mapSqlParameterSource);
@@ -790,11 +772,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String createAccessibleSql(
-      UserDetails user,
-      SingleEventQueryParams params,
-      MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, MapSqlParameterSource mapSqlParameterSource) {
 
-    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
+    if (isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
     }
 
@@ -807,11 +787,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SingleEventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
-
-    if (isProgramRestricted(params.getProgram())) {
-      return createCaptureScopeQuery(
-          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
-    }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
     return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
@@ -830,13 +805,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + (params.getOrgUnit().getHierarchyLevel() + 1)
             + " ) ";
 
-    if (isProgramRestricted(params.getProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
-    }
-
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
     return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
         CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
@@ -854,11 +822,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + " "
             + AND
             + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
-
-    if (isProgramRestricted(params.getProgram())) {
-      String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
-      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
-    }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
     return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
@@ -911,10 +874,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         + AND
         + orgUnitMatcher
         + " )) ";
-  }
-
-  private boolean isProgramRestricted(Program program) {
-    return program != null && (program.isProtected() || program.isClosed());
   }
 
   private boolean isUserSearchScopeNotSet(UserDetails user) {
@@ -1090,13 +1049,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } catch (IOException e) {
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
-    }
-  }
-
-  private void setAccessiblePrograms(UserDetails user, SingleEventQueryParams params) {
-    if (isNotSuperUser(user)) {
-      params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
     }
   }
 }
