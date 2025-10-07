@@ -1,9 +1,50 @@
 #!/bin/bash
 # Run Gatling simulations against a DHIS2 instance running in Docker
+set -euo pipefail
 
-# Note: We don't use -e (exit on error) because Maven assertion failures are expected outcomes
-# that we want to capture and analyze. Post-processing (logs, profiler data) must always run.
-set -uo pipefail
+# Global variable to track gatling directory for cleanup trap
+GATLING_RUN_DIR=""
+CURRENT_WARMUP_NUM=0
+
+cleanup() {
+  local exit_code=$?
+
+  # Disable exit on error for cleanup to ensure it completes
+  set +e
+
+  echo ""
+  echo "========================================"
+  echo "PHASE: Cleanup & Post-processing"
+  echo "========================================"
+
+  # Only attempt post-processing if we have a gatling directory
+  if [ -n "$GATLING_RUN_DIR" ] && [ -d "$GATLING_RUN_DIR" ]; then
+    save_profiler_data "$GATLING_RUN_DIR" || echo "Warning: Failed to save profiler data"
+    save_sql_logs "$GATLING_RUN_DIR" "$CURRENT_WARMUP_NUM" || echo "Warning: Failed to save SQL logs"
+    post_process_profiler_data "$GATLING_RUN_DIR" || echo "Warning: Failed to post-process profiler data"
+    post_process_sql_logs "$GATLING_RUN_DIR" "$CURRENT_WARMUP_NUM" || echo "Warning: Failed to post-process SQL logs"
+    generate_metadata "$GATLING_RUN_DIR" || echo "Warning: Failed to generate metadata"
+  else
+    if [ -n "$GATLING_RUN_DIR" ]; then
+      echo "Warning: Gatling directory not found: $GATLING_RUN_DIR"
+    else
+      echo "Warning: No Gatling directory to post-process (test may not have run)"
+    fi
+  fi
+
+  # Always attempt container cleanup
+  echo ""
+  echo "Cleaning up containers..."
+  if [ -n "$PROF_ARGS" ]; then
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes 2>/dev/null || true
+  else
+    docker compose down --volumes 2>/dev/null || true
+  fi
+
+  exit $exit_code
+}
+
+trap cleanup EXIT
 
 show_usage() {
   echo ""
@@ -89,18 +130,6 @@ parse_prof_args() {
 
 parse_prof_args
 
-cleanup() {
-  echo ""
-  echo "Cleaning up..."
-  if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-  else
-    docker compose down --volumes
-  fi
-}
-
-trap cleanup EXIT INT
-
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
   # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
@@ -147,8 +176,16 @@ save_profiler_data() {
     return 0
   fi
 
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save profiler data - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
   echo "Saving profiler data..."
-  docker compose cp web:/profiler-output/. "$gatling_dir/"
+  if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+    echo "Warning: Failed to copy profiler data from container"
+    return 1
+  fi
   echo "Profiler data saved to $gatling_dir"
 }
 
@@ -160,9 +197,17 @@ save_sql_logs() {
     return 0
   fi
 
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save SQL logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
   echo ""
   echo "Saving SQL logs..."
-  docker compose cp db:/var/lib/postgresql/data/log/postgresql.log "$gatling_dir/postgresql.log"
+  if ! docker compose cp db:/var/lib/postgresql/data/log/postgresql.log "$gatling_dir/postgresql.log" 2>/dev/null; then
+    echo "Warning: Failed to copy SQL logs from container"
+    return 1
+  fi
   echo "SQL logs saved to $gatling_dir"
   echo ""
 }
@@ -172,6 +217,16 @@ post_process_profiler_data() {
 
   if [ -z "$PROF_ARGS" ]; then
     return 0
+  fi
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot post-process profiler data - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  if [ ! -f "$gatling_dir/profile.jfr" ]; then
+    echo "Warning: Cannot post-process profiler data - profile.jfr not found"
+    return 1
   fi
 
   echo "Post-processing profiler data..."
@@ -187,13 +242,17 @@ post_process_profiler_data() {
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
   # shellcheck disable=SC2086
-  docker compose exec --workdir /profiler-output web \
-    jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html
+  if ! docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html 2>/dev/null; then
+    echo "Warning: Failed to generate flamegraph"
+    return 1
+  fi
   # shellcheck disable=SC2086
-  docker compose exec --workdir /profiler-output web \
-    jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed
+  docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed 2>/dev/null || true
 
-  docker compose cp web:/profiler-output/. "$gatling_dir/"
+  if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+    echo "Warning: Failed to copy post-processed profiler data"
+    return 1
+  fi
 
   echo "Post-processing profiler data complete. Files saved to $gatling_dir"
 }
@@ -206,6 +265,16 @@ post_process_sql_logs() {
     return 0
   fi
 
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot post-process SQL logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  if [ ! -f "$gatling_dir/postgresql.log" ]; then
+    echo "Warning: Cannot post-process SQL logs - postgresql.log not found"
+    return 1
+  fi
+
   if ! command -v pgbadger &> /dev/null; then
     echo ""
     echo "Warning: pgbadger not found in PATH. Skipping SQL log post-processing."
@@ -216,11 +285,14 @@ post_process_sql_logs() {
 
   echo ""
   echo "Post-processing SQL logs..."
-  pgbadger \
+  if ! pgbadger \
     --title "$SIMULATION_CLASS on $DHIS2_IMAGE" \
     --prefix '%t [%p]: user=%u,db=%d,app=%a ' \
     --dbname dhis \
-    --outfile "$gatling_dir/pgbadger.html" "$gatling_dir/postgresql.log"
+    --outfile "$gatling_dir/pgbadger.html" "$gatling_dir/postgresql.log" 2>/dev/null; then
+    echo "Warning: Failed to generate pgbadger report"
+    return 1
+  fi
   echo "Post-processing SQL logs complete. File saved to $gatling_dir/pgbadger.html"
   echo ""
 }
@@ -293,6 +365,9 @@ run_simulation() {
   local warmup_num="${1:-0}"
   local extra_mvn_args=""
 
+  # Set global variables for cleanup trap
+  CURRENT_WARMUP_NUM="$warmup_num"
+
   if [ "$warmup_num" -gt 0 ]; then
     extra_mvn_args="-Dgatling.failOnError=false"
   fi
@@ -307,6 +382,7 @@ run_simulation() {
     $MVN_ARGS $extra_mvn_args
 
   stop_profiler
+  local gatling_run_dir
   gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
 
   # Build suffix from REPORT_SUFFIX and warmup indicator
@@ -332,12 +408,10 @@ run_simulation() {
     gatling_run_dir="$new_dir"
   fi
 
+  # Set global variable for cleanup trap - this is the final directory after renaming
+  GATLING_RUN_DIR="$gatling_run_dir"
+
   echo "Gatling test results are in: $gatling_run_dir"
-  save_profiler_data "$gatling_run_dir"
-  save_sql_logs "$gatling_run_dir" "$warmup_num"
-  post_process_profiler_data "$gatling_run_dir"
-  post_process_sql_logs "$gatling_run_dir" "$warmup_num"
-  generate_metadata "$gatling_run_dir"
 }
 
 echo "========================================"
