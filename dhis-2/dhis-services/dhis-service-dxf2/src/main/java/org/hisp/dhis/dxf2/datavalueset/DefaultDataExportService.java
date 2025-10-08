@@ -38,7 +38,6 @@ import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.DE;
 import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.OU;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -214,7 +213,7 @@ public class DefaultDataExportService implements DataExportService {
                 .setPeriods(params.getPeriods())
                 .setStartDate(params.getStartDate())
                 .setEndDate(params.getEndDate())
-                .setAttributeOptionCombos(Sets.newHashSet(aoc))
+                .setAttributeOptionCombos(List.of(aoc))
                 .setOrderByOrgUnitPath(true)
                 .setOrderByPeriod(true);
 
