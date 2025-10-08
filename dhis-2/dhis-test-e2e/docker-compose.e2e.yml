@@ -28,6 +28,7 @@ services:
       GPG_KEY_ID: ${GPG_KEY_ID}
       GPG_PASSPHRASE: ${GPG_PASSPHRASE}
       DB_TYPE: ${DB_TYPE:-postgres}
+      TEST_TYPE: ${TEST_TYPE:-e2e}
     command: ["/process-test-reports.sh"]
 
 volumes:

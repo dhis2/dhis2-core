@@ -46,13 +46,7 @@ echo "Found reports directory with $(ls /reports | wc -l) files"
 
 # Process the reports
 echo "Processing surefire reports..."
-python3 ./scripts/process-surefire-reports.py --reports-dir /reports --output-dir reports/core/e2e $DB_TYPE  # Id DB_TYPE is empty, it will default to postgres
-
-# Check if there are changes to commit
-if git diff --cached --quiet && git diff --quiet; then
-    echo "No changes detected - skipping commit"
-    exit 0
-fi
+python3 ./scripts/process-surefire-reports.py --reports-dir /reports --output-dir reports/core/$TEST_TYPE $DB_TYPE  # Id DB_TYPE is empty, it will default to postgres
 
 # Commit and push changes
 echo "Committing changes..."
@@ -65,8 +59,8 @@ else
     echo "Committing with message: $commit_message"
     git commit -m "$commit_message"
     
-    echo "Pushing to master..."
-    git push origin master
+    echo "Pushing to main..."
+    git push origin main
     echo "Successfully pushed test results to dhis2-test-reports"
 fi
 

@@ -324,6 +324,10 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>analytics</groups>
+              <consoleOutputReporter>
+                <disable>false</disable>
+              </consoleOutputReporter>
+              <useFile>false</useFile>
             </configuration>
           </plugin>
         </plugins>
