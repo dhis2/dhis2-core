@@ -46,7 +46,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
  * Support for inline JWKS in OIDC Dynamic Client Registration (DCR).
  *
  * <p>This allows clients to register their public keys directly in the registration request,
- * instead of hosting them at an URL. The keys are stored in the database as a JSON string in the
+ * instead of hosting them at a URL. The keys are stored in the database as a JSON string in the
  * client settings JSONB column, and exposed back as an Java object in the client info response.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -79,6 +79,7 @@ final class InlineJwksClientMetadataConfig {
         cs.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.from(s));
       }
 
+      // Copy, convert and validate the inline JWKS into a JSON string
       Object jwks = claims.get("jwks");
       if (jwks != null) {
         try {

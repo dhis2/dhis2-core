@@ -88,8 +88,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2DcrService {
 
-  public static final String SYSTEM_REGISTRAR_DEVICE_CLIENTS_CLIENTID =
-      "system-dcr-registrar-client";
+  public static final String SYSTEM_REGISTRAR_CLIENTID = "system-dcr-registrar-client";
 
   @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
   @Autowired private Dhis2OAuth2AuthorizationService dhis2OAuth2AuthorizationService;
@@ -115,7 +114,7 @@ public class OAuth2DcrService {
 
     // Ensure a system client exists for registering device clients
     RegisteredClient systemRegistrationClient =
-        oAuth2ClientService.findByClientId(SYSTEM_REGISTRAR_DEVICE_CLIENTS_CLIENTID);
+        oAuth2ClientService.findByClientId(SYSTEM_REGISTRAR_CLIENTID);
     if (systemRegistrationClient == null) {
 
       String uriAllowList =
@@ -124,19 +123,14 @@ public class OAuth2DcrService {
       // Create a client with "client.create" scope to be able to register new clients
       this.registeredClient =
           RegisteredClient.withId(CodeGenerator.generateUid())
-              .clientId(SYSTEM_REGISTRAR_DEVICE_CLIENTS_CLIENTID)
+              .clientId(SYSTEM_REGISTRAR_CLIENTID)
               .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
               .redirectUris(
-                  l -> {
-                    if (uriAllowList != null && !uriAllowList.isBlank()) {
-                      for (String entry : uriAllowList.split(",")) {
-                        String trimmed = entry.trim();
-                        if (!trimmed.isEmpty()) {
-                          l.add(trimmed);
-                        }
-                      }
-                    }
-                  })
+                  l ->
+                      Arrays.stream(uriAllowList.split(","))
+                          .map(String::trim)
+                          .filter(trimmed -> !trimmed.isEmpty())
+                          .forEach(l::add))
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
               .scope("client.create")
               .build();

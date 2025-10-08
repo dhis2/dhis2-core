@@ -67,8 +67,8 @@ public class InlineJwksJwtClientAssertionDecoderFactory
   }
 
   /**
-   * Create a JwtDecoder for the given RegisteredClient. If the client has inline JWKS configured in
-   * its ClientSettings, use that to create an RSA public key JwtDecoder. Otherwise, delegate to
+   * Create a JwtDecoder for the given RegisteredClient. When the client has inline JWKS configured
+   * in its ClientSettings, use that to create an RSA public key JwtDecoder. Otherwise, delegate to
    * default JwtClientAssertionDecoderFactory (which supports jwks_uri, client_secret, etc).
    *
    * @param client the RegisteredClient
@@ -77,7 +77,6 @@ public class InlineJwksJwtClientAssertionDecoderFactory
    */
   @Override
   public JwtDecoder createDecoder(RegisteredClient client) {
-    // check for inline JWKS in client settings
     Object inlineJwks = client.getClientSettings().getSetting(CLIENT_INLINE_JWKS);
     if (inlineJwks instanceof String jwksJson && StringUtils.hasText(jwksJson)) {
       try {

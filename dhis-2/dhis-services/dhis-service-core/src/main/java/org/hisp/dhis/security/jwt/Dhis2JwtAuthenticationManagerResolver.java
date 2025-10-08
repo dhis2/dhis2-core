@@ -168,8 +168,6 @@ public class Dhis2JwtAuthenticationManagerResolver
       // This is only set when when Authorization Server is enabled.
       String internalDhis2ClientId = config.getProperty(OIDC_DHIS2_INTERNAL_CLIENT_ID);
 
-      // Special case for the dhis2-client client id, look up the audience which is a client id
-      // registered in the DHIS2 server.
       if (clientRegistration.getClientRegistration().getClientId().equals(internalDhis2ClientId)) {
         boolean allMatch =
             !audience.isEmpty()

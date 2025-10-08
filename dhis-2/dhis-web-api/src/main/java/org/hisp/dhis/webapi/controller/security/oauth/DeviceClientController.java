@@ -140,8 +140,6 @@ public class DeviceClientController {
   /**
    * Check if the provided redirect URI is allowed based on an allowlist from system settings.
    *
-   * <p>If no allowlist is configured, the following rules apply:
-   *
    * @param redirectUri the redirect URI to check
    * @return true if the redirect URI is allowed, false otherwise
    */
