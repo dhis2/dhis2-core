@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -140,5 +141,45 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Access is denied, requires one Authority from [F_CATEGORY_OPTION_MERGE]",
         mergeResponse.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("Should save and get translation for CategoryOption formName")
+  void testCategoryOptionFormNameTranslation() {
+    // Create a category option with formName
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptions/",
+                "{'name':'Test Category Option', 'shortName':'TCO', 'formName':'Test Form'}"));
+
+    // Verify initial state - no translations
+    JsonArray translations =
+        GET("/categoryOptions/{id}/translations", coId).content().getArray("translations");
+    assertTrue(translations.isEmpty());
+
+    // Add translation for formName
+    PUT(
+            "/categoryOptions/" + coId + "/translations",
+            "{'translations': [{'locale':'fr', 'property':'FORM_NAME', 'value':'Formulaire de Test'}]}")
+        .content(HttpStatus.NO_CONTENT);
+
+    // Verify translation was saved
+    translations = GET("/categoryOptions/{id}/translations", coId).content().getArray("translations");
+    assertEquals(1, translations.size());
+    JsonObject translation = translations.getObject(0);
+    assertEquals("fr", translation.getString("locale").string());
+    assertEquals("FORM_NAME", translation.getString("property").string());
+    assertEquals("Formulaire de Test", translation.getString("value").string());
+
+    // Verify displayFormName returns translated value when locale is set
+    JsonObject categoryOption =
+        GET("/categoryOptions/{id}?locale=fr", coId).content().as(JsonObject.class);
+    assertEquals("Formulaire de Test", categoryOption.getString("displayFormName").string());
+
+    // Verify displayFormName returns original formName when no locale is set
+    categoryOption = GET("/categoryOptions/{id}", coId).content().as(JsonObject.class);
+    assertEquals("Test Form", categoryOption.getString("displayFormName").string());
   }
 }
