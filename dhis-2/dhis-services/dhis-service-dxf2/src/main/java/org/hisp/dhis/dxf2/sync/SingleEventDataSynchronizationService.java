@@ -160,21 +160,23 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   /**
-   * Method that first checks if a {@link User} is logged in. If a {@link User} is logged in then no
-   * action is taken. A logged-in {@link User} is required for an {@link EventSynchronization} as
-   * {@link User} checks are performed in the {@link
-   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventCount(EventQueryParams)} method flow for
-   * example. Without a user logged in, {@link NullPointerException} is thrown and the sync fails.
-   * The {@link User} needs to be initialised and unproxied to avoid {@link
-   * org.hibernate.LazyInitializationException} errors.
+   * Ensures a valid {@link User} is available during event synchronization.
    *
-   * <p>If there is no {@link User} logged in then the {@link User} setup for synchronization will
-   * try to be injected. This {@link User} should have the required authorities to perform
-   * synchronizations. At this point in the flow a valid call has already been made to the remote
-   * server, so we know that valid {@link User} credentials exist for synchronization.
+   * <p>If a {@link User} is already logged in, no action is taken. A logged-in user is required for
+   * {@link EventSynchronization}, since user checks are performed in several downstream calls, such
+   * as {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventCount(EventQueryParams)}.
+   * Without an authenticated user, a {@link NullPointerException} may occur, causing the sync to
+   * fail.
    *
-   * <p>This scheduling behaviour has been fixed in v41, where a valid user is always tied to the
-   * created job when setup and when run.
+   * <p>The {@link User} is initialized and unproxied to prevent {@link
+   * org.hibernate.LazyInitializationException} issues.
+   *
+   * <p>If no {@link User} is logged in, the synchronization user will be injected. This user must
+   * have sufficient authorities to perform synchronization. At this stage, a successful connection
+   * to the remote server ensures valid user credentials are available.
+   *
+   * <p>Note: This scheduling behavior has been corrected in version 2.41, where a valid user is
+   * always associated with the job at both setup and execution time.
    */
   private void initSyncUserIfNoUserLoggedIn() {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
