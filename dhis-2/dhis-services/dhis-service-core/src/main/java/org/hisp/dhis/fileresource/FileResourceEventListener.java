@@ -59,6 +59,8 @@ public class FileResourceEventListener {
 
   private final AuthenticationService authenticationService;
 
+  private final ImageProcessingService imageProcessingService;
+
   @TransactionalEventListener
   @Async
   public void save(FileSavedEvent fileSavedEvent) {
@@ -76,15 +78,32 @@ public class FileResourceEventListener {
     logMessage(storageId, fileResource, timeDiff);
   }
 
-  @TransactionalEventListener
+  /**
+   * Listens for an {@link ImageFileSavedEvent}. When triggered, it will create all {@link
+   * ImageFileDimension} files and save them to storage. If the {@link FileResource} cannot be found
+   * then the operation is skipped with a warning log.
+   *
+   * <p>The process occurs on a separate thread from that which published the event.
+   *
+   * @param imageFileSavedEvent image file saved event
+   */
   @Async
+  @TransactionalEventListener
   public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) throws NotFoundException {
     DateTime startTime = DateTime.now();
 
-    Map<ImageFileDimension, File> imageFiles = imageFileSavedEvent.imageFiles();
-
     FileResource fileResource =
         fileResourceService.getFileResource(imageFileSavedEvent.fileResource());
+
+    if (fileResource == null) {
+      log.warn(
+          "Could not find file resource for {}, skip saving image files",
+          imageFileSavedEvent.fileResource());
+      return;
+    }
+
+    Map<ImageFileDimension, File> imageFiles =
+        imageProcessingService.createImages(fileResource, imageFileSavedEvent.file());
 
     String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, imageFiles);
 
