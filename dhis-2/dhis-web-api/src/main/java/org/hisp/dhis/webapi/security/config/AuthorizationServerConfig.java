@@ -50,7 +50,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -107,9 +106,6 @@ public class AuthorizationServerConfig {
 
   private static final String USERNAME_CLAIM = "username";
   private static final String EMAIL_CLAIM = "email";
-
-  @PostConstruct
-  void init() {}
 
   /**
    * Configures the JWT decoder for the authorization server using the provided JWK source.

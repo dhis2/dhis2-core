@@ -33,6 +33,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_C
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_CLIENT_SECRET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_SERVER_URL;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DEFAULT_MAPPING_CLAIM;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DEFAULT_REDIRECT_TEMPLATE_URL;
 
 import com.google.common.base.Strings;
 import java.util.Objects;
@@ -49,7 +51,7 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Dhis2InternalProvider extends AbstractOidcProvider {
+public class Dhis2InternalProvider {
   public static final String REGISTRATION_ID = "dhis2-internal";
 
   private Dhis2InternalProvider() {

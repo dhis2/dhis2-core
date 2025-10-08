@@ -131,9 +131,6 @@ public class Dhis2JwtAuthenticationManagerResolver
     return this.authenticationManagers.computeIfAbsent(
         issuer,
         s -> {
-          Set<String> allRegistrationId = clientRegistrationRepository.getAllRegistrationId();
-          int size = allRegistrationId.size();
-
           DhisOidcClientRegistration clientRegistration =
               clientRegistrationRepository.findByIssuerUri(issuer);
           if (clientRegistration == null) {

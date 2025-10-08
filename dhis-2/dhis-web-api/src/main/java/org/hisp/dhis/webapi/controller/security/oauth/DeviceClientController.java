@@ -147,7 +147,6 @@ public class DeviceClientController {
    */
   private boolean isRedirectUriAllowed(String redirectUri) {
     if (redirectUri == null || redirectUri.isBlank()) return false;
-
     String allowlist =
         systemSettingsService.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
     if (!allowlist.isBlank()) {
@@ -155,17 +154,12 @@ public class DeviceClientController {
         String trimmed = entry.trim();
         if (trimmed.isEmpty()) continue;
         String regex = TextUtils.createRegexFromGlob(trimmed);
-        if (Pattern.compile(regex).matcher(redirectUri).matches()) {
+        if (Pattern.compile(regex).matcher(redirectUri.toLowerCase()).matches()) {
           return true;
         }
       }
       return false;
     }
-
-    String lower = redirectUri.toLowerCase();
-    if (lower.startsWith("dhis2-android://")) return true;
-    if (lower.startsWith("https://")) return true;
-    if (lower.startsWith("http://localhost")) return true;
     return false;
   }
 }

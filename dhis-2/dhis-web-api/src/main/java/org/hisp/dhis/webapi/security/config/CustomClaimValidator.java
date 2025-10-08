@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
@@ -48,10 +46,6 @@ import org.springframework.util.Assert;
 @Service
 public final class CustomClaimValidator<T extends OAuth2Token>
     implements OAuth2TokenValidator<Jwt> {
-
-  @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
-
-  public CustomClaimValidator() {}
 
   @Override
   public OAuth2TokenValidatorResult validate(Jwt token) {
