@@ -44,9 +44,9 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 public enum SyncEndpoint {
   COMPLETE_DATA_SET_REGISTRATIONS("/api/completeDataSetRegistrations", ImportSummary.class),
   DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class),
-    EVENTS("/api/events", ImportSummaries.class);
+  EVENTS("/api/events", ImportSummaries.class);
 
-    private final String path;
+  private final String path;
 
   private final Class<? extends WebMessageResponse> klass;
 }

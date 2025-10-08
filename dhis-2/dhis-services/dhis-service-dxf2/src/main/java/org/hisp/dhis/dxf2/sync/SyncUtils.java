@@ -372,11 +372,11 @@ public class SyncUtils {
     return new SystemInstance(syncUrl, username, password);
   }
 
-    static SystemInstance getRemoteInstanceWithSyncImportStrategy(
-            SystemSettings settings, SyncEndpoint syncEndpoint) {
-        SystemInstance systemInstance = getRemoteInstance(settings, syncEndpoint);
-        systemInstance.setUrl(systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX);
+  static SystemInstance getRemoteInstanceWithSyncImportStrategy(
+      SystemSettings settings, SyncEndpoint syncEndpoint) {
+    SystemInstance systemInstance = getRemoteInstance(settings, syncEndpoint);
+    systemInstance.setUrl(systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX);
 
-        return systemInstance;
-    }
+    return systemInstance;
+  }
 }
