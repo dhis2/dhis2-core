@@ -781,7 +781,7 @@ public enum ConfigurationKey {
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
-  /** Enable OAuth2 authentication server. (default: off) */
+  /** Enable OAuth2 Spring Authorization Server (SAS). (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
 
   /** Path to the JWT keystore file. */

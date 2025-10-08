@@ -63,9 +63,9 @@ import org.springframework.web.util.UriComponentsBuilder;
     entity = User.class,
     classifiers = {"team:platform", "purpose:support"})
 @RestController
-@RequestMapping("/api/deviceClients")
+@RequestMapping("/api/auth")
 @Conditional(AuthorizationServerEnabledCondition.class)
-public class DeviceClientController {
+public class OAuth2DynamicClientRegistrationController {
 
   @Autowired private SystemSettingsService systemSettingsService;
   @Autowired private OAuth2DcrService oAuth2DcrService;
@@ -80,7 +80,7 @@ public class DeviceClientController {
    * @param response the HTTP response
    * @throws IOException if an I/O error occurs
    */
-  @GetMapping("/enroll")
+  @GetMapping("/enrollDevice")
   public void enroll(
       @RequestParam(value = "redirectUri") String redirectUri,
       @RequestParam(value = "state") String state,

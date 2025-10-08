@@ -200,7 +200,7 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
     // When calling the enroll endpoint
     String location =
         mvc.perform(
-                get("/api/deviceClients/enroll")
+                get("/api/auth/enrollDevice")
                     // Using Basic to bypass login form, user is default admin
                     .header("Authorization", "Basic YWRtaW46ZGlzdHJpY3Q=")
                     .param("deviceVersion", "1.0")

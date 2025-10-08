@@ -47,14 +47,15 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
- * Default OIDC provider when Authorization Server is enabled.
+ * Internal only OIDC provider, used when authorization server is enabled in dhis.conf with
+ * (OAUTH2_SERVER_ENABLED).
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Dhis2InternalProvider {
+public class Dhis2InternalOidcProvider {
   public static final String REGISTRATION_ID = "dhis2-internal";
 
-  private Dhis2InternalProvider() {
+  private Dhis2InternalOidcProvider() {
     throw new IllegalStateException("Utility class");
   }
 
@@ -88,7 +89,7 @@ public class Dhis2InternalProvider {
   private static ClientRegistration buildClientRegistration(
       String clientId, String clientSecret, String providerBaseUrl) {
     ClientRegistration.Builder builder =
-        ClientRegistration.withRegistrationId(Dhis2InternalProvider.REGISTRATION_ID);
+        ClientRegistration.withRegistrationId(Dhis2InternalOidcProvider.REGISTRATION_ID);
     builder.clientName(clientId);
     builder.clientId(clientId);
     builder.clientSecret(clientSecret);
