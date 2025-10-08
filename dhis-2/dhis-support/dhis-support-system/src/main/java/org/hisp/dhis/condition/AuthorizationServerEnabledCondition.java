@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.condition;
 
+import static org.hisp.dhis.commons.util.SystemUtils.isOAuth2AuthorizationServerTest;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -41,7 +43,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isTestRun(context)) {
+    if (isOAuth2AuthorizationServerTest(context.getEnvironment().getActiveProfiles())) {
       return true;
     }
     if (!isTestRun(context)) {

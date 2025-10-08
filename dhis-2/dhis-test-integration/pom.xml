@@ -374,6 +374,7 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>org.hisp.dhis:json-tree</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
           <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
           <ignoredUnusedDeclaredDependencies>

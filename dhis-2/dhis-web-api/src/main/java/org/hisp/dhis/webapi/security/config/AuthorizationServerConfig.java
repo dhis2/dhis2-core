@@ -52,6 +52,7 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
