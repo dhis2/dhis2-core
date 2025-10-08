@@ -132,7 +132,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     program.getOrganisationUnits().add(orgUnit);
     program.setUid("q04UBOqq3rp");
     program.setTrackedEntityType(trackedEntityType);
-    program.setAllowChangeLog(true);
+    program.setEnableChangeLog(true);
     manager.save(program);
 
     dataElement = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
@@ -344,7 +344,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     manager.update(event);
 
     Program program = manager.get(Program.class, event.getProgramStage().getProgram().getUid());
-    program.setAllowChangeLog(false);
+    program.setEnableChangeLog(false);
     manager.update(program);
 
     updateDataValue("new value");

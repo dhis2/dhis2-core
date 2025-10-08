@@ -133,7 +133,7 @@ class JdbcEnrollmentStore {
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.allowchangelog as tet_allowchangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes
+            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes
         """);
 
     if (params.isIncludeAttributes()) {
@@ -396,7 +396,7 @@ class JdbcEnrollmentStore {
       TrackedEntityType trackedEntityType = new TrackedEntityType();
       trackedEntityType.setUid(rs.getString("tet_uid"));
       trackedEntityType.setAllowAuditLog(rs.getBoolean("tet_allowauditlog"));
-      trackedEntityType.setAllowChangeLog(rs.getBoolean("tet_allowchangelog"));
+      trackedEntityType.setEnableChangeLog(rs.getBoolean("tet_enablechangelog"));
       trackedEntityType.setSharing(mapSharingJsonIntoSharingObject(rs.getString("tet_sharing")));
 
       Program program = new Program();

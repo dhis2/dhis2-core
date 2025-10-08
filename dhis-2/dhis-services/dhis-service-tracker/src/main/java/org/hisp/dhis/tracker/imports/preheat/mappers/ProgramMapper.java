@@ -73,7 +73,7 @@ public interface ProgramMapper extends PreheatMapper<Program> {
   @Mapping(target = "completeEventsExpiryDays")
   @Mapping(target = "sharing")
   @Mapping(target = "accessLevel")
-  @Mapping(target = "allowChangeLog")
+  @Mapping(target = "enableChangeLog")
   Program map(Program program);
 
   Set<ProgramStage> mapProgramStages(Set<ProgramStage> programStages);

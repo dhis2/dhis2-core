@@ -106,7 +106,7 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
       String value,
       ChangeLogType changeLogType,
       String userName) {
-    if (program.isAllowChangeLog()) {
+    if (program.isEnableChangeLog()) {
       T eventChangeLog =
           buildEventChangeLog(
               event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
@@ -121,7 +121,7 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
       @Nonnull S event,
       @Nonnull Program program,
       @Nonnull String username) {
-    if (program.isAllowChangeLog()) {
+    if (program.isEnableChangeLog()) {
       addEntityFieldChangeLog(currentEvent, event, username);
     }
   }

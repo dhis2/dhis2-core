@@ -200,8 +200,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   /** Library of Category Mappings available to this program's program indicators */
   private Set<ProgramCategoryMapping> categoryMappings = new HashSet<>();
 
-  /** Property indicating whether change logging is allowed. */
-  private boolean allowChangeLog;
+  /** Property indicating whether change logging is enabled. */
+  private boolean enableChangeLog;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -962,12 +962,12 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isAllowChangeLog() {
-    return allowChangeLog;
+  public boolean isEnableChangeLog() {
+    return enableChangeLog;
   }
 
-  public void setAllowChangeLog(boolean allowChangeLog) {
-    this.allowChangeLog = allowChangeLog;
+  public void setEnableChangeLog(boolean enableChangeLog) {
+    this.enableChangeLog = enableChangeLog;
   }
 
   public static Program shallowCopy(Program original, Map<String, String> options) {
@@ -1023,7 +1023,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setProgramStageLabel(original.getProgramStageLabel());
     copy.setEventLabel(original.getEventLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
-    copy.setAllowChangeLog(original.isAllowChangeLog());
+    copy.setEnableChangeLog(original.isEnableChangeLog());
   }
 
   public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {}

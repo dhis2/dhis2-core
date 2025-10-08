@@ -31,7 +31,7 @@
     
     <property name="allowAuditLog" />
 
-    <property name="allowChangeLog" />
+    <property name="enableChangeLog" />
 
     <property name="translations" type="jblTranslations"/>
 

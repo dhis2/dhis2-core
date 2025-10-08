@@ -52,7 +52,7 @@ public interface TrackedEntityTypeMapper extends PreheatMapper<TrackedEntityType
   @Mapping(target = "sharing")
   @Mapping(target = "trackedEntityTypeAttributes")
   @Mapping(target = "allowAuditLog")
-  @Mapping(target = "allowChangeLog")
+  @Mapping(target = "enableChangeLog")
   TrackedEntityType map(TrackedEntityType trackedEntityType);
 
   List<TrackedEntityTypeAttribute> map(

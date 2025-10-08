@@ -73,8 +73,8 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
    */
   private boolean allowAuditLog;
 
-  /** Property indicating whether change logging is allowed. */
-  private boolean allowChangeLog;
+  /** Property indicating whether change logging is enabled. */
+  private boolean enableChangeLog;
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -150,12 +150,12 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isAllowChangeLog() {
-    return allowChangeLog;
+  public boolean isEnableChangeLog() {
+    return enableChangeLog;
   }
 
-  public void setAllowChangeLog(boolean allowChangeLog) {
-    this.allowChangeLog = allowChangeLog;
+  public void setEnableChangeLog(boolean enableChangeLog) {
+    this.enableChangeLog = enableChangeLog;
   }
 
   // -------------------------------------------------------------------------

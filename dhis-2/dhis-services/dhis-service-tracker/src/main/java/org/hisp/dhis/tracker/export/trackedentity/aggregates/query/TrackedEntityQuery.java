@@ -88,7 +88,7 @@ public class TrackedEntityQuery {
               new TableColumn("tet", "allowauditlog", "type_allowauditlog"))
           .put(
               COLUMNS.TYPE_ALLOW_CHANGELOG,
-              new TableColumn("tet", "allowchangelog", "type_allowchangelog"))
+              new TableColumn("tet", "enableChangeLog", "type_enableChangeLog"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(COLUMNS.ORGUNIT_CODE, new TableColumn("o", "code", "ou_code"))
           .put(COLUMNS.ORGUNIT_NAME, new TableColumn("o", "name", "ou_name"))

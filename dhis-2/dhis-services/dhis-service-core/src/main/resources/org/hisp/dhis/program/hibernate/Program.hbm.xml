@@ -142,7 +142,7 @@
 
         <property name="selectIncidentDatesInFuture"/>
 
-        <property name="allowChangeLog" />
+        <property name="enableChangeLog" />
 
         <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
                      column="relatedprogramid" foreign-key="fk_program_relatedprogram"/>

@@ -238,7 +238,7 @@ class HibernatePotentialDuplicateStore
       ChangeLogType changeLogType) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    if (createOrUpdateTeav.getTrackedEntity().getTrackedEntityType().isAllowChangeLog()) {
+    if (createOrUpdateTeav.getTrackedEntity().getTrackedEntityType().isEnableChangeLog()) {
       TrackedEntityChangeLog updatedTrackedEntityChangeLog =
           new TrackedEntityChangeLog(
               createOrUpdateTeav.getTrackedEntity(),

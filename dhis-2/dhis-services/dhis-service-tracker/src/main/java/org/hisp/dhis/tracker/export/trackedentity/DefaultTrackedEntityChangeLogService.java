@@ -78,7 +78,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username) {
 
-    if (!trackedEntity.getTrackedEntityType().isAllowChangeLog()) {
+    if (!trackedEntity.getTrackedEntityType().isEnableChangeLog()) {
       return;
     }
 

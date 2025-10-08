@@ -255,7 +255,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
   @Test
   void shouldNotLogChangesWhenChangeLogConfigDisabled() {
     TrackedEntityType trackedEntityType = manager.get(TrackedEntityType.class, "ja8NY4PW7Xm");
-    trackedEntityType.setAllowChangeLog(false);
+    trackedEntityType.setEnableChangeLog(false);
     manager.update(trackedEntityType);
 
     String trackedEntityAttribute = "dIVt4l5vIOa";

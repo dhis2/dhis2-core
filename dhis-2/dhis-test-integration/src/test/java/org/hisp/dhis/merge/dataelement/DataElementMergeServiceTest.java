@@ -226,7 +226,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(coc1);
 
     program = createProgram('q');
-    program.setAllowChangeLog(true);
+    program.setEnableChangeLog(true);
     identifiableObjectManager.save(program);
 
     User user = userService.getUserByUsername("admin");
