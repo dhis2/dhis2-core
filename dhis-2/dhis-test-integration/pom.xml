@@ -286,11 +286,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>json-tree</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
       <scope>test</scope>
@@ -350,6 +345,7 @@
       <artifactId>hypersistence-utils-hibernate-55</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
