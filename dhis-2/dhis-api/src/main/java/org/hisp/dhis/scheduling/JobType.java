@@ -78,6 +78,7 @@ public enum JobType {
   RESOURCE_TABLE(),
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
+  SINGLE_EVENT_DATA_SYNC_JOB (null),
   DATA_SYNC(DataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
