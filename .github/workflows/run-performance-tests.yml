@@ -137,20 +137,8 @@ jobs:
         REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 
-    # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test
-    # results into a binary format. Gatling OSS does not support exporting that into an
-    # accessible format for us. The serializer/deserializer are OSS though. Our fork at
-    # https://github.com/dhis2/gatling/tree/glog-cli uses them to provide a CLI to extract the
-    # binary simulation.log into a simulation.csv. CLI releases can be downloaded from
-    # https://github.com/dhis2/gatling/releases. The CLI is installed on the self-hosted runner.
-    - name: Convert binary simulation.log to simulation.csv
-      id: convert-logs
-      if: always()
-      run: |
-        glog --config ./src/test/resources/gatling.conf --scan-subdirs target/gatling
-
     - name: Upload Gatling report
-      if: always() && steps.convert-logs.conclusion == 'success'
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: gatling-report-${{ github.run_id }}-${{ github.sha }}

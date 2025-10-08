@@ -103,12 +103,19 @@ parse_prof_args
 ################################################################################
 
 # set -e ensures the script fails with proper exit code which is important for CI steps to fail.
-# This cleanup trap ensures containers are stopped even if the script exits early.
+# This cleanup trap ensures post-processing and container cleanup happen even if the script exits early.
 cleanup() {
   local exit_code=$?
 
   # Disable exit on error for cleanup to ensure it completes
   set +e
+
+  # Post-processing that has to be done after all runs complete
+  echo ""
+  echo "========================================"
+  echo "PHASE: Post-processing"
+  echo "========================================"
+  post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
 
   echo ""
   echo "Cleaning up containers..."
@@ -116,6 +123,16 @@ cleanup() {
     docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes 2>/dev/null || true
   else
     docker compose down --volumes 2>/dev/null || true
+  fi
+
+  echo ""
+  echo "========================================"
+  echo "PHASE: Complete"
+  echo "========================================"
+  if [ $exit_code -eq 0 ]; then
+    echo -e "\033[0;32m✓\033[0m Test for $DHIS2_IMAGE ran successfully"
+  else
+    echo -e "\033[0;31m✗\033[0m Test for $DHIS2_IMAGE failed"
   fi
 
   exit $exit_code
@@ -297,6 +314,37 @@ post_process_sql_logs() {
   echo "Post-processing SQL logs complete. File saved to $gatling_dir/pgbadger.html"
 }
 
+post_process_gatling_logs() {
+  # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test
+  # results into a binary format. Gatling OSS does not support exporting that into an
+  # accessible format for us. The serializer/deserializer are OSS though. Our fork at
+  # https://github.com/dhis2/gatling/tree/glog-cli uses them to provide a CLI to extract the
+  # binary simulation.log into a simulation.csv. CLI releases can be downloaded from
+  # https://github.com/dhis2/gatling/releases.
+  local gatling_dir="target/gatling"
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot post-process Gatling logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  if ! command -v glog &> /dev/null; then
+    echo ""
+    echo "Warning: glog not found in PATH. Skipping binary simulation.log conversion."
+    echo "Install glog to enable conversion to CSV: https://github.com/dhis2/gatling/releases"
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  echo "Post-processing Gatling logs..."
+  if ! glog --config ./src/test/resources/gatling.conf --scan-subdirs "$gatling_dir" 2>/dev/null; then
+    echo "Warning: Failed to convert simulation.log to simulation.csv"
+    return 1
+  fi
+  echo "Post-processing Gatling logs complete. CSV files saved in subdirectories."
+}
+
 prepare_database() {
   echo ""
   echo "Preparing database..."
@@ -322,6 +370,7 @@ generate_metadata() {
   local gatling_run_dir="$1"
   local simulation_run_file="$gatling_run_dir/simulation-run.txt"
 
+  echo ""
   echo "Generating run metadata..."
   {
     echo "RUN_DIR=$gatling_run_dir"
@@ -417,6 +466,7 @@ run_simulation() {
       gatling_run_dir="$new_dir"
     fi
 
+    echo ""
     echo "Gatling test results are in: $gatling_run_dir"
 
     # Post-process results for this run
@@ -460,11 +510,7 @@ echo ""
 echo "========================================"
 echo "PHASE: Performance Test"
 echo "========================================"
+# run_simulation may fail (e.g., assertion failures). Any code that must always run
+# should be placed in the cleanup trap to ensure execution even on failure.
 run_simulation
-
-echo ""
-echo "========================================"
-echo "PHASE: Complete"
-echo "========================================"
-echo "Completed test for $DHIS2_IMAGE"
 
