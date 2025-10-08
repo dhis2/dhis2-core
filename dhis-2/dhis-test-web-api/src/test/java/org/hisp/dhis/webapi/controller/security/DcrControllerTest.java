@@ -87,6 +87,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -95,6 +96,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@ActiveProfiles("oauth2-authorization-server-test")
 class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
 
   @Autowired private SystemSettingsService systemSettingsService;
