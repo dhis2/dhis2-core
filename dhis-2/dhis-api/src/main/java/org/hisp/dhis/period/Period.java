@@ -93,22 +93,10 @@ public class Period implements Serializable {
   }
 
   @Getter @Setter private long id;
-
-  /** Required. */
   @Setter private PeriodType periodType;
-
-  /** Required. Must be unique together with endDate. */
   @Setter private Date startDate;
-
-  /** Required. Must be unique together with startDate. */
   @Setter private Date endDate;
-
-  /** string holding the ISO representation of the period. */
   private String isoPeriod;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
 
   public Period() {}
 

@@ -45,7 +45,7 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
 @Component
 @AllArgsConstructor
