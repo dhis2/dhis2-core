@@ -37,9 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
@@ -170,32 +168,25 @@ public class Dhis2JwtAuthenticationManagerResolver
       // This is only set when when Authorization Server is enabled.
       String internalDhis2ClientId = config.getProperty(OIDC_DHIS2_INTERNAL_CLIENT_ID);
 
+      // Special case for the dhis2-client client id, look up the audience which is a client id
+      // registered in the DHIS2 server.
       if (clientRegistration.getClientRegistration().getClientId().equals(internalDhis2ClientId)) {
-        // Special case for the dhis2-client client id, look up the audience which is a client id
-        // registered in the DHIS2 server.
         boolean allMatch =
-            audience.stream().allMatch(a -> oAuth2ClientService.findByClientId(a) != null);
-        if (!allMatch) {
-          throw new InvalidBearerTokenException("Invalid audience");
-        }
+            !audience.isEmpty()
+                && audience.stream().allMatch(a -> oAuth2ClientService.findByClientId(a) != null);
+        if (!allMatch) throw new InvalidBearerTokenException("Invalid audience");
       } else {
-        Collection<String> clientIds = clientRegistration.getClientIds();
-        Set<String> matchedClientIds =
-            clientIds.stream().filter(audience::contains).collect(Collectors.toSet());
-        if (matchedClientIds.isEmpty()) {
-          throw new InvalidBearerTokenException("Invalid audience");
-        }
+        boolean anyMatch = clientRegistration.getClientIds().stream().anyMatch(audience::contains);
+        if (!anyMatch) throw new InvalidBearerTokenException("Invalid audience");
       }
 
       String mappingClaimKey = clientRegistration.getMappingClaimKey();
       String mappingValue = jwt.getClaim(mappingClaimKey);
       User user;
-      if (mappingClaimKey.equals("username")) {
-        user = userStore.getUserByUsername(mappingValue);
-      } else if (mappingClaimKey.equals("email")) {
-        user = userStore.getUserByOpenId(mappingValue);
-      } else {
-        throw new InvalidBearerTokenException("Invalid mapping claim");
+      switch (mappingClaimKey) {
+        case "username" -> user = userStore.getUserByUsername(mappingValue);
+        case "email" -> user = userStore.getUserByOpenId(mappingValue);
+        default -> throw new InvalidBearerTokenException("Invalid mapping claim");
       }
 
       if (user == null) {
