@@ -79,26 +79,18 @@ final class InlineJwksClientMetadataConfig {
         cs.tokenEndpointAuthenticationSigningAlgorithm(SignatureAlgorithm.from(s));
       }
 
-      // Accept optional inline "jwks": { ... } or "jwks": "json string"
       Object jwks = claims.get("jwks");
       if (jwks != null) {
         try {
-          // validate it's a JWK Set and store as JSON string
-          String jwksJson =
-              (jwks instanceof String) ? (String) jwks : OBJECT_MAPPER.writeValueAsString(jwks);
+          String jwksJson = OBJECT_MAPPER.writeValueAsString(jwks);
           // Validation
           JWKSet.parse(jwksJson);
           cs.setting(CLIENT_INLINE_JWKS, jwksJson);
         } catch (Exception e) {
           throw new IllegalArgumentException("Invalid inline 'jwks' in registration", e);
         }
-      }
-
-      // Validate redirect_uris is not a single string with spaces (common mistake)
-      Object redirectUris = claims.get("redirect_uris");
-      if (redirectUris instanceof String && ((String) redirectUris).contains(" ")) {
-        throw new IllegalArgumentException(
-            "Invalid 'redirect_uris' in registration: must be an array of strings");
+      } else {
+        throw new IllegalArgumentException("'jwks' must be provided in registration");
       }
 
       return RegisteredClient.from(rc).clientSettings(cs.build()).build();
