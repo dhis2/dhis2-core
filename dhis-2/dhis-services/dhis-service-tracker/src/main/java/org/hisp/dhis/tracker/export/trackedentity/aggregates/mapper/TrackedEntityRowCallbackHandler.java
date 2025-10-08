@@ -66,6 +66,8 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
             rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_ATTRIBUTE_VALUES))));
     trackedEntityType.setAllowAuditLog(
         rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_ALLOW_AUDITLOG)));
+    trackedEntityType.setAllowChangeLog(
+        rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_ALLOW_CHANGELOG)));
     te.setTrackedEntityType(trackedEntityType);
 
     OrganisationUnit orgUnit = new OrganisationUnit();

@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -244,17 +243,17 @@ class HibernatePotentialDuplicateStore
       ChangeLogType changeLogType) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    TrackedEntityChangeLog updatedTrackedEntityChangeLog =
-        new TrackedEntityChangeLog(
-            createOrUpdateTeav.getTrackedEntity(),
-            createOrUpdateTeav.getAttribute(),
-            previousValue,
-            createOrUpdateTeav.getPlainValue(),
-            changeLogType,
-            new Date(),
-            currentUsername);
+    if (createOrUpdateTeav.getTrackedEntity().getTrackedEntityType().isAllowChangeLog()) {
+      TrackedEntityChangeLog updatedTrackedEntityChangeLog =
+          new TrackedEntityChangeLog(
+              createOrUpdateTeav.getTrackedEntity(),
+              createOrUpdateTeav.getAttribute(),
+              previousValue,
+              createOrUpdateTeav.getPlainValue(),
+              changeLogType,
+              new Date(),
+              currentUsername);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
       hibernateTrackedEntityChangeLogStore.addTrackedEntityChangeLog(updatedTrackedEntityChangeLog);
     }
   }

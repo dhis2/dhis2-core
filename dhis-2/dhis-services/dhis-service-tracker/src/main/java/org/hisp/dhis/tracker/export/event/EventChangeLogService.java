@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.export.event;
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -49,6 +48,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -106,28 +106,29 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
   public void addEventChangeLog(
       S event,
       DataElement dataElement,
+      Program program,
       String previousValue,
       String value,
       ChangeLogType changeLogType,
       String userName) {
-    if (config.isDisabled(CHANGELOG_TRACKER)) {
-      return;
+    if (program.isAllowChangeLog()) {
+      T eventChangeLog =
+          buildEventChangeLog(
+              event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
+
+      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
     }
-
-    T eventChangeLog =
-        buildEventChangeLog(
-            event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
-
-    hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
   }
 
   @Transactional
   public void addFieldChangeLog(
-      @Nonnull S currentEvent, @Nonnull S event, @Nonnull String username) {
-    if (config.isDisabled(CHANGELOG_TRACKER)) {
-      return;
+      @Nonnull S currentEvent,
+      @Nonnull S event,
+      @Nonnull Program program,
+      @Nonnull String username) {
+    if (program.isAllowChangeLog()) {
+      addEntityFieldChangeLog(currentEvent, event, username);
     }
-    addEntityFieldChangeLog(currentEvent, event, username);
   }
 
   public abstract void addEntityFieldChangeLog(

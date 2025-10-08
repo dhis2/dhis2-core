@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Date;
 import java.util.List;
@@ -79,7 +78,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username) {
 
-    if (config.isDisabled(CHANGELOG_TRACKER)) {
+    if (!trackedEntity.getTrackedEntityType().isAllowChangeLog()) {
       return;
     }
 

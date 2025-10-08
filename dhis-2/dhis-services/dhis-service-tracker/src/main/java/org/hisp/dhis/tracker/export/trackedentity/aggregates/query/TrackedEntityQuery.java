@@ -53,6 +53,7 @@ public class TrackedEntityQuery {
     TYPE_NAME,
     TYPE_ATTRIBUTE_VALUES,
     TYPE_ALLOW_AUDITLOG,
+    TYPE_ALLOW_CHANGELOG,
     ORGUNIT_UID,
     ORGUNIT_CODE,
     ORGUNIT_NAME,
@@ -85,6 +86,9 @@ public class TrackedEntityQuery {
           .put(
               COLUMNS.TYPE_ALLOW_AUDITLOG,
               new TableColumn("tet", "allowauditlog", "type_allowauditlog"))
+          .put(
+              COLUMNS.TYPE_ALLOW_CHANGELOG,
+              new TableColumn("tet", "allowchangelog", "type_allowchangelog"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(COLUMNS.ORGUNIT_CODE, new TableColumn("o", "code", "ou_code"))
           .put(COLUMNS.ORGUNIT_NAME, new TableColumn("o", "name", "ou_name"))

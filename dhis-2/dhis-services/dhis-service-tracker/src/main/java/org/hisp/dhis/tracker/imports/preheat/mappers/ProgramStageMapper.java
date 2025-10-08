@@ -76,5 +76,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "categoryCombo")
   @Mapping(target = "sharing")
   @Mapping(target = "accessLevel")
+  @Mapping(target = "allowChangeLog")
   Program mapProgram(Program p);
 }
