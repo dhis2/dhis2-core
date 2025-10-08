@@ -190,39 +190,21 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
     return ProgramRuleActionValidationResult.builder().valid(true).build();
   }
 
+  /**
+   * During metadata import, the Preheater loads the Program and its immediate ProgramStages, but
+   * not the DataElements within those stages. This can cause ProgramRuleAction validation to fail
+   * when a referenced DataElement belongs to a ProgramStage not included in the payload (and
+   * therefore not preheated). This method ensures all ProgramStages of the Program are available
+   * for accurate validation.
+   */
   private List<ProgramStage> getRequiredProgramStages(
       @Nonnull ProgramRuleActionValidationContext validationContext, @Nonnull Program program) {
     List<ProgramStage> availableStages = validationContext.getProgramStages();
-
-    if (hasAllProgramStages(availableStages, program)) {
-      return availableStages;
-    }
 
     List<ProgramStage> missingStages =
         fetchMissingStages(validationContext, program, availableStages);
 
     return combineStages(availableStages, missingStages);
-  }
-
-  private boolean hasAllProgramStages(
-      @Nonnull List<ProgramStage> availableStages, @Nonnull Program program) {
-    if (program.getProgramStages() == null) {
-      return false;
-    }
-
-    Set<String> availableStageIds =
-        availableStages.stream()
-            .filter(Objects::nonNull)
-            .map(ProgramStage::getUid)
-            .collect(Collectors.toSet());
-
-    Set<String> allProgramStageIds =
-        program.getProgramStages().stream()
-            .filter(Objects::nonNull)
-            .map(ProgramStage::getUid)
-            .collect(Collectors.toSet());
-
-    return availableStageIds.containsAll(allProgramStageIds);
   }
 
   private List<ProgramStage> fetchMissingStages(
