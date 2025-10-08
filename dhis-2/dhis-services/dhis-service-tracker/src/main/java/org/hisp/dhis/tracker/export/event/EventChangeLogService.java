@@ -46,7 +46,6 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.Page;
@@ -59,15 +58,11 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore;
-  private final DhisConfigurationProvider config;
 
   protected EventChangeLogService(
-      EventService eventService,
-      HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore,
-      DhisConfigurationProvider config) {
+      EventService eventService, HibernateEventChangeLogStore<T, S> hibernateEventChangeLogStore) {
     this.eventService = eventService;
     this.hibernateEventChangeLogStore = hibernateEventChangeLogStore;
-    this.config = config;
   }
 
   public abstract T buildEventChangeLog(
