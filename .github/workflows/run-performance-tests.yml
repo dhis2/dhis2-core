@@ -202,7 +202,7 @@ jobs:
           echo "  --field capture_sql_logs=true \\" >> $GITHUB_STEP_SUMMARY
         fi
 
-        echo "  --ref ${{ github.sha }} # git sha of workflow" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.sha }} # git sha of this workflow (optional but required to faithfully reproduce as it defaults to master)" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
