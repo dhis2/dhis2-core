@@ -40,7 +40,9 @@ import org.hisp.dhis.security.oauth2.dcr.OAuth2DcrService.IatPair;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.security.config.AuthorizationServerEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,6 +64,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/deviceClients")
+@Conditional(AuthorizationServerEnabledCondition.class)
 public class DeviceClientController {
 
   @Autowired private SystemSettingsService systemSettingsService;

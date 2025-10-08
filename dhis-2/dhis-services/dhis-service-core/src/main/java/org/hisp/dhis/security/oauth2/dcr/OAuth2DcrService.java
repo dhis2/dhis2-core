@@ -48,6 +48,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationService;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationServiceImpl;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
@@ -55,6 +56,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -83,6 +85,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
+@Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2DcrService {
 
   public static final String SYSTEM_REGISTRAR_DEVICE_CLIENTS_CLIENTID =
