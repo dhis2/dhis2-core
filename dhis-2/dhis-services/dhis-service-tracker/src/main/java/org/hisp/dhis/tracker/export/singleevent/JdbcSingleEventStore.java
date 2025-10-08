@@ -174,6 +174,8 @@ class JdbcSingleEventStore {
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
           entry("uid", COLUMN_EVENT_UID),
+          // Order by program is here for backwards compatibility but program is mandatory in the
+          // API
           entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
           entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
