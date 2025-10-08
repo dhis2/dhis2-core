@@ -237,7 +237,7 @@ public class OutlierQueryParser {
    * @param relativePeriod, the period dimension.
    * @return list of the {@link Period}.
    */
-  private List<Period> getPeriods(String relativePeriod, Date relativePeriodDate) {
+  private List<PeriodDimension> getPeriods(String relativePeriod, Date relativePeriodDate) {
     if (StringUtils.isBlank(relativePeriod)) {
       return List.of();
     }
@@ -246,7 +246,7 @@ public class OutlierQueryParser {
         .getPeriodDimension(List.of(relativePeriod), relativePeriodDate)
         .getItems()
         .stream()
-        .map(pe -> ((PeriodDimension) pe).getPeriod())
+        .map(PeriodDimension.class::cast)
         .toList();
   }
 }

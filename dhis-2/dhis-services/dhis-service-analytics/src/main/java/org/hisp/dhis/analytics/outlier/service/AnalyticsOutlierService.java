@@ -381,7 +381,6 @@ public class AnalyticsOutlierService {
         outlierRequest.hasPeriods()
             ? outlierRequest.getPeriods().stream()
                 .filter(p -> outlier.getPe().equalsIgnoreCase(p.getIsoDate()))
-                .map(PeriodDimension::of)
             : dimensionalObjectProducer
                 .getPeriodDimension(List.of(outlier.getPe()), null)
                 .getItems()

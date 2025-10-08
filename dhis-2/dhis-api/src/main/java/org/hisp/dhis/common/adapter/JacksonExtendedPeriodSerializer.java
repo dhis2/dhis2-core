@@ -77,7 +77,7 @@ public class JacksonExtendedPeriodSerializer extends JsonSerializer<Period>
         if (period != null) name = period.getName();
       }
       if (name == null && i18nManager != null)
-        name = i18nManager.getI18nFormat().formatPeriod(value);
+        name = i18nManager.getI18n().getString(i18nManager.getI18nFormat().formatPeriod(value));
       if (name != null) jgen.writeStringField("name", name);
       jgen.writeEndObject();
     }
