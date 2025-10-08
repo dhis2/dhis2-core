@@ -123,7 +123,6 @@
       <artifactId>dhis-support-jdbc</artifactId>
       <scope>compile</scope>
     </dependency>
-
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
@@ -132,6 +131,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-external</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>json-tree</artifactId>
       <scope>compile</scope>
     </dependency>
 
