@@ -33,7 +33,9 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
@@ -41,6 +43,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.BeforeAll;
@@ -59,7 +63,8 @@ import org.springframework.transaction.annotation.Transactional;
 class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
   private Program trackerProgramA;
   private ProgramStage trackerProgramStageA, trackerProgramStageB, eventProgramStage;
-  private DataElement dataElement;
+  private DataElement dataElementA;
+  private DataElement dataElementB;
   private ProgramRule programRuleA, programRuleB;
 
   @BeforeAll
@@ -118,7 +123,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
             + "'}, "
             + "'programRuleActionType': 'HIDEPROGRAMSTAGE', "
             + "'dataElement':{'id':'"
-            + dataElement.getUid()
+            + dataElementA.getUid()
             + "'}, "
             + "'programStage': {'id':'"
             + trackerProgramStageA.getUid()
@@ -142,7 +147,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
             + "'}, "
             + "'programRuleActionType': 'SCHEDULEEVENT', "
             + "'dataElement':{'id':'"
-            + dataElement.getUid()
+            + dataElementA.getUid()
             + "'}, "
             + "'programStage': {'id':'"
             + eventProgramStage.getUid()
@@ -167,7 +172,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
             + "'}, "
             + "'programRuleActionType': 'SCHEDULEEVENT', "
             + "'dataElement':{'id':'"
-            + dataElement.getUid()
+            + dataElementA.getUid()
             + "'}, "
             + "'programStage': {'id':'"
             + trackerProgramStageB.getUid()
@@ -192,7 +197,7 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
             + "'}, "
             + "'programRuleActionType': 'SCHEDULEEVENT', "
             + "'dataElement':{'id':'"
-            + dataElement.getUid()
+            + dataElementA.getUid()
             + "'}, "
             + "'programStage': {'id':'"
             + ""
@@ -216,13 +221,49 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
             + "'}, "
             + "'programRuleActionType': 'SCHEDULEEVENT', "
             + "'dataElement':{'id':'"
-            + dataElement.getUid()
+            + dataElementA.getUid()
             + "'}, "
             + "'programStage': {'id':'"
             + trackerProgramStageA.getUid()
             + "'} }";
 
     assertStatus(HttpStatus.CREATED, POST("/programRuleActions", programRuleAction));
+  }
+
+  @Test
+  void testSaveActionsWithValidReferencesAcrossDifferentProgramStages() {
+    String hideProgramStageAction =
+        "{ 'programRule':{'id':'"
+            + programRuleA.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'HIDEPROGRAMSTAGE', "
+            + "'programStage': {'id':'"
+            + trackerProgramStageA.getUid()
+            + "'} }";
+
+    String hideFieldAction =
+        "{ 'programRule':{'id':'"
+            + programRuleA.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'HIDEFIELD', "
+            + "'dataElement':{'id':'"
+            + dataElementB.getUid()
+            + "'} }";
+
+    POST("/programRuleActions", hideProgramStageAction).content(HttpStatus.CREATED);
+    POST("/programRuleActions", hideFieldAction).content(HttpStatus.CREATED);
+
+    List<ProgramRuleAction> actions = manager.getAll(ProgramRuleAction.class);
+    assertEquals(2, actions.size());
+    assertTrue(
+        actions.stream()
+            .anyMatch(a -> a.getProgramRuleActionType() == ProgramRuleActionType.HIDEPROGRAMSTAGE));
+    assertTrue(
+        actions.stream()
+            .anyMatch(a -> a.getProgramRuleActionType() == ProgramRuleActionType.HIDEFIELD));
+
+    actions.forEach(
+        action -> assertEquals(trackerProgramA.getUid(), action.getProgramRule().getProgram().getUid()));
   }
 
   private void createProgramRuleActions() {
@@ -235,21 +276,24 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.save(eventProgram);
 
-    dataElement = createDataElement('A');
-    manager.save(dataElement);
+    dataElementA = createDataElement('A');
+    dataElementB = createDataElement('B');
+    manager.save(dataElementA);
+    manager.save(dataElementB);
 
     trackerProgramStageA = createProgramStage('A', trackerProgramA);
-    trackerProgramStageA.addDataElement(dataElement, 0);
+    trackerProgramStageA.addDataElement(dataElementA, 0);
     trackerProgramStageA.setProgram(trackerProgramA);
     manager.save(trackerProgramStageA);
 
     trackerProgramStageB = createProgramStage('B', trackerProgramB);
-    trackerProgramStageB.addDataElement(dataElement, 0);
+    trackerProgramStageB.addDataElement(dataElementA, 0);
+    trackerProgramStageB.addDataElement(dataElementB, 0);
     trackerProgramStageB.setProgram(trackerProgramB);
     manager.save(trackerProgramStageB);
 
     eventProgramStage = createProgramStage('C', eventProgram);
-    eventProgramStage.addDataElement(dataElement, 0);
+    eventProgramStage.addDataElement(dataElementA, 0);
     eventProgramStage.setProgram(trackerProgramB);
     manager.save(eventProgramStage);
 
