@@ -166,7 +166,8 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
         .content(HttpStatus.NO_CONTENT);
 
     // Verify translation was saved
-    translations = GET("/categoryOptions/{id}/translations", coId).content().getArray("translations");
+    translations =
+        GET("/categoryOptions/{id}/translations", coId).content().getArray("translations");
     assertEquals(1, translations.size());
     JsonObject translation = translations.getObject(0);
     assertEquals("fr", translation.getString("locale").string());
