@@ -71,6 +71,11 @@ on:
         required: false
         default: 1
         type: number
+      capture_sql_logs:
+        description: 'Capture and analyze SQL logs for non-warmup runs'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   performance-tests:
@@ -115,6 +120,7 @@ jobs:
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=${{ inputs.warmup }} \
+        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
         REPORT_SUFFIX="baseline" \
         ./run-simulation.sh
 
@@ -127,6 +133,7 @@ jobs:
         DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=${{ inputs.warmup }} \
+        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
         REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 
@@ -189,6 +196,10 @@ jobs:
 
         if [ "${{ inputs.warmup }}" != "1" ]; then
           echo "  --field warmup=\"${{ inputs.warmup }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.capture_sql_logs }}" == "true" ]; then
+          echo "  --field capture_sql_logs=true \\" >> $GITHUB_STEP_SUMMARY
         fi
 
         echo "  --ref ${{ github.sha }} # git sha of workflow" >> $GITHUB_STEP_SUMMARY
@@ -255,4 +266,6 @@ jobs:
         echo "  * \`profile.html\` - Flamegraph visualization (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
         echo "  * \`profile.jfr\` - JFR profiler data (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
         echo "  * \`profile.collapsed\` - Collapsed stack traces (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled with capture_sql_logs)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled with capture_sql_logs)" >> $GITHUB_STEP_SUMMARY
 
