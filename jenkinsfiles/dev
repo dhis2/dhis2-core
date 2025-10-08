@@ -155,6 +155,7 @@ pipeline {
                 MIN_READY_SECONDS = "240"
                 CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
                 PUBLIC = "true"
+                ALLOW_SUSPEND = "false"
             }
 
             steps {
