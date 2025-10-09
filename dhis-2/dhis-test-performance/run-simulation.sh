@@ -376,9 +376,14 @@ generate_metadata() {
   # Get DHIS2 image digest for reproducibility
   # DHIS2 images are only pushed to Docker Hub, so RepoDigests[0] is the Docker Hub digest
   local dhis2_image_digest=""
+  local dhis2_labels=""
 
   # Get DHIS2 image RepoDigest (registry digest that can be pulled for exact reproduction)
-  dhis2_image_digest=$(docker inspect -f '{{index .RepoDigests 0}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+  dhis2_image_digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+
+  # Extract DHIS2 labels from image (DHIS2_BUILD_BRANCH, DHIS2_BUILD_REVISION, DHIS2_VERSION, etc.)
+  dhis2_labels=$(docker inspect --format '{{json .Config.Labels}}' "$DHIS2_IMAGE" 2>/dev/null | \
+    jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
   # Build reproducible command using RepoDigest
   # DB image is reproducible via DHIS2_DB_DUMP_URL and DHIS2_DB_IMAGE_SUFFIX args
@@ -395,6 +400,9 @@ generate_metadata() {
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
     echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
+    if [ -n "$dhis2_labels" ]; then
+      echo "$dhis2_labels"
+    fi
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
