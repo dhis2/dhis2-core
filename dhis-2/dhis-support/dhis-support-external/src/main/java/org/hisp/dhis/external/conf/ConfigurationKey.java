@@ -781,7 +781,7 @@ public enum ConfigurationKey {
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
-  /** Enable OAuth2 authentication server. (default: off) */
+  /** Enable OAuth2 Spring Authorization Server (SAS). (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
 
   /** Path to the JWT keystore file. */
@@ -807,7 +807,14 @@ public enum ConfigurationKey {
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
-  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false);
+  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
+
+  // OIDC internal provider configuration for DHIS2 when Authorization Server is enabled, with
+  // property: (OAUTH2_SERVER_ENABLED)
+  OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
+  OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
+  OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
 
   private final String key;
 
