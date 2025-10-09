@@ -368,7 +368,7 @@ stop_profiler() {
 
 generate_metadata() {
   local gatling_run_dir="$1"
-  local simulation_run_file="$gatling_run_dir/simulation-run.txt"
+  local simulation_run_file="$gatling_run_dir/run-simulation.env"
 
   echo ""
   echo "Generating run metadata..."
@@ -392,12 +392,21 @@ generate_metadata() {
     dhis2_image_immutable="$dhis2_image_digest"
   fi
 
+  # Get git commit for header resolution
+  local git_commit
+  git_commit=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')
+
   {
-    echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
-    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
-    echo "SCRIPT_NAME=$0"
-    echo "SCRIPT_ARGS=$*"
+    echo "# Reproduce this test run:"
+    echo "#   git checkout $git_commit"
+    echo "#   set -a && source run-simulation.env && set +a && ./run-simulation.sh"
+    echo "#"
+    echo "# Use COMMAND_IMMUTABLE for exact reproduction with pinned image digest"
+    echo ""
+    echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
+    echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
+    echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
     echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
     if [ -n "$dhis2_labels" ]; then
@@ -405,19 +414,17 @@ generate_metadata() {
     fi
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
-    echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "MVN_ARGS=$MVN_ARGS"
     echo "PROF_ARGS=$PROF_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
-    echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
-    echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
-    echo "GIT_DIRTY=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
+    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
   } > "$simulation_run_file"
 
-  echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
+  echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
 }
 
 enable_sql_logs() {
