@@ -420,7 +420,7 @@ generate_metadata() {
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
     echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
-    echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
+    echo "GIT_DIRTY=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
   } > "$simulation_run_file"
 
   echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
