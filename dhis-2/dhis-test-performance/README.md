@@ -21,9 +21,9 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `simulation.csv` - CSV version of `simulation.log` (automated if `glog` is installed)
 * `simulation-run.txt` - Run metadata including:
   * `COMMAND` - Original command with user-provided arguments
-  * `COMMAND_IMMUTABLE` - Reproducible command using exact Docker image SHA256 digests
-  * `DHIS2_IMAGE_SHA` and `DHIS2_DB_IMAGE_SHA` - Image digests for verification
+  * `COMMAND_IMMUTABLE` - Reproducible command using exact DHIS2 image digest from Docker Hub
   * Git branch, commit, and dirty status
+  * ...
 * `profile.html` - Flamegraph visualization (if profiling enabled with PROF_ARGS)
 * `profile.jfr` - JFR profiler data (if profiling enabled with PROF_ARGS)
 * `profile.collapsed` - Collapsed stack traces (if profiling enabled with PROF_ARGS)

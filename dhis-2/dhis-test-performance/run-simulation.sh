@@ -373,30 +373,18 @@ generate_metadata() {
   echo ""
   echo "Generating run metadata..."
 
-  # Get Docker image SHA256 digests for reproducibility
-  local dhis2_image_sha=""
-  local db_image_name=""
-  local db_image_sha=""
+  # Get DHIS2 image digest for reproducibility
+  # DHIS2 images are only pushed to Docker Hub, so RepoDigests[0] is the Docker Hub digest
+  local dhis2_image_digest=""
 
-  # Get DHIS2 image ID
-  dhis2_image_sha=$(docker inspect -f '{{.Id}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+  # Get DHIS2 image RepoDigest (registry digest that can be pulled for exact reproduction)
+  dhis2_image_digest=$(docker inspect -f '{{index .RepoDigests 0}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
 
-  # Get DB image name from docker-compose config (respects DHIS2_DB_IMAGE_SUFFIX)
-  db_image_name=$(docker compose config --format json 2>/dev/null | jq -r '.services.db.image' || echo "unknown")
-
-  # Get DB image ID
-  if [ "$db_image_name" != "unknown" ]; then
-    db_image_sha=$(docker inspect -f '{{.Id}}' "$db_image_name" 2>/dev/null || echo "unknown")
-  else
-    db_image_sha="unknown"
-  fi
-
-  # Build reproducible command using SHA256 ID for DHIS2 image
+  # Build reproducible command using RepoDigest
+  # DB image is reproducible via DHIS2_DB_DUMP_URL and DHIS2_DB_IMAGE_SUFFIX args
   local dhis2_image_immutable="$DHIS2_IMAGE"
-  if [ "$dhis2_image_sha" != "unknown" ] && [ -n "$dhis2_image_sha" ]; then
-    # Extract repository name without tag (e.g., dhis2/core-dev:latest -> dhis2/core-dev)
-    local dhis2_repo="${DHIS2_IMAGE%:*}"
-    dhis2_image_immutable="${dhis2_repo}@${dhis2_image_sha}"
+  if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
+    dhis2_image_immutable="$dhis2_image_digest"
   fi
 
   {
@@ -406,9 +394,7 @@ generate_metadata() {
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
-    echo "DHIS2_IMAGE_SHA=$dhis2_image_sha"
-    echo "DHIS2_DB_IMAGE=$db_image_name"
-    echo "DHIS2_DB_IMAGE_SHA=$db_image_sha"
+    echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
