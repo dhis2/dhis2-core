@@ -70,6 +70,11 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALID
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+
+import com.google.common.collect.ImmutableMap;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -77,18 +82,14 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import com.google.common.collect.ImmutableMap;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
