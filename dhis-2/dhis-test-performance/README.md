@@ -19,7 +19,11 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `index.html` - Gatling HTML report
 * `simulation.log` - Gatling binary response times and user injection profile
 * `simulation.csv` - CSV version of `simulation.log` (automated if `glog` is installed)
-* `simulation-run.txt` - Metadata to reproduce the run
+* `simulation-run.txt` - Run metadata including:
+  * `COMMAND` - Original command with user-provided arguments
+  * `COMMAND_IMMUTABLE` - Reproducible command using exact Docker image SHA256 digests
+  * `DHIS2_IMAGE_SHA` and `DHIS2_DB_IMAGE_SHA` - Image digests for verification
+  * Git branch, commit, and dirty status
 * `profile.html` - Flamegraph visualization (if profiling enabled with PROF_ARGS)
 * `profile.jfr` - JFR profiler data (if profiling enabled with PROF_ARGS)
 * `profile.collapsed` - Collapsed stack traces (if profiling enabled with PROF_ARGS)

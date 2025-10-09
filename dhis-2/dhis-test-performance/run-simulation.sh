@@ -372,12 +372,43 @@ generate_metadata() {
 
   echo ""
   echo "Generating run metadata..."
+
+  # Get Docker image SHA256 digests for reproducibility
+  local dhis2_image_sha=""
+  local db_image_name=""
+  local db_image_sha=""
+
+  # Get DHIS2 image ID
+  dhis2_image_sha=$(docker inspect -f '{{.Id}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+
+  # Get DB image name from docker-compose config (respects DHIS2_DB_IMAGE_SUFFIX)
+  db_image_name=$(docker compose config --format json 2>/dev/null | jq -r '.services.db.image' || echo "unknown")
+
+  # Get DB image ID
+  if [ "$db_image_name" != "unknown" ]; then
+    db_image_sha=$(docker inspect -f '{{.Id}}' "$db_image_name" 2>/dev/null || echo "unknown")
+  else
+    db_image_sha="unknown"
+  fi
+
+  # Build reproducible command using SHA256 ID for DHIS2 image
+  local dhis2_image_immutable="$DHIS2_IMAGE"
+  if [ "$dhis2_image_sha" != "unknown" ] && [ -n "$dhis2_image_sha" ]; then
+    # Extract repository name without tag (e.g., dhis2/core-dev:latest -> dhis2/core-dev)
+    local dhis2_repo="${DHIS2_IMAGE%:*}"
+    dhis2_image_immutable="${dhis2_repo}@${dhis2_image_sha}"
+  fi
+
   {
     echo "RUN_DIR=$gatling_run_dir"
     echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
+    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
     echo "SCRIPT_NAME=$0"
     echo "SCRIPT_ARGS=$*"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
+    echo "DHIS2_IMAGE_SHA=$dhis2_image_sha"
+    echo "DHIS2_DB_IMAGE=$db_image_name"
+    echo "DHIS2_DB_IMAGE_SHA=$db_image_sha"
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
