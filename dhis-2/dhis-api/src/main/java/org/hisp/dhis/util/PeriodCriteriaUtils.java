@@ -85,6 +85,8 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
+        || !isBlank(criteria.getCreatedDate())
+        || !isBlank(criteria.getCompletedDate())
         || criteria.getRelativePeriodDate() != null;
   }
 
@@ -97,11 +99,14 @@ public class PeriodCriteriaUtils {
    */
   public static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
+        || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getLastUpdated())
+        || !isBlank(criteria.getCreatedDate())
+        || !isBlank(criteria.getCompletedDate())
         || criteria.getRelativePeriodDate() != null;
   }
 }

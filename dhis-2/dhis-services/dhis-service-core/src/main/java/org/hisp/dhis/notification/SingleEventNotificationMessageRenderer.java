@@ -30,7 +30,6 @@
 package org.hisp.dhis.notification;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,7 +45,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -82,30 +80,15 @@ public class SingleEventNotificationMessageRenderer
                   ProgramStageTemplateVariable.EVENT_ORG_UNIT_ID,
                   event -> event.getOrganisationUnit().getUid())
               .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_ID,
-                  event -> event.getEnrollment().getOrganisationUnit().getUid())
-              .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_NAME,
-                  event -> event.getEnrollment().getOrganisationUnit().getName())
-              .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_CODE,
-                  event -> event.getEnrollment().getOrganisationUnit().getCode())
-              .put(
                   ProgramStageTemplateVariable.PROGRAM_ID,
                   event -> event.getProgramStage().getProgram().getUid())
               .put(
                   ProgramStageTemplateVariable.PROGRAM_STAGE_ID,
                   event -> event.getProgramStage().getUid())
-              .put(
-                  ProgramStageTemplateVariable.ENROLLMENT_ID,
-                  event -> event.getEnrollment().getUid())
-              .put(
-                  ProgramStageTemplateVariable.TRACKED_ENTITY_ID,
-                  event -> event.getEnrollment().getTrackedEntity().getUid())
               .build();
 
   private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
-      ImmutableSet.of(
+      Set.of(
           ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
           ExpressionType.VARIABLE,
           ExpressionType.DATA_ELEMENT);
@@ -122,13 +105,7 @@ public class SingleEventNotificationMessageRenderer
   @Override
   protected Map<String, String> resolveTrackedEntityAttributeValues(
       Set<String> attributeKeys, SingleEvent entity) {
-    if (attributeKeys.isEmpty()) {
-      return Maps.newHashMap();
-    }
-
-    return entity.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues().stream()
-        .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
+    return Maps.newHashMap();
   }
 
   @Override
@@ -163,24 +140,6 @@ public class SingleEventNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private String filterValue(TrackedEntityAttributeValue av) {
-    String value = av.getPlainValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
-
-    // If the AV has an OptionSet -> substitute value with the name of the
-    // Option
-    if (av.getAttribute().hasOptionSet()) {
-      Optional<Option> option =
-          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
-      if (option.isPresent()) value = option.get().getName();
-    }
-
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
-  }
-
   private String filterValue(EventDataValue dv, DataElement dataElement) {
     String value = dv.getValue();
 
@@ -193,7 +152,9 @@ public class SingleEventNotificationMessageRenderer
     if (dataElement != null && dataElement.hasOptionSet()) {
       Optional<Option> option =
           optionService.findOptionByCode(dataElement.getOptionSet().getUid(), value);
-      if (option.isPresent()) value = option.get().getName();
+      if (option.isPresent()) {
+        value = option.get().getName();
+      }
     }
 
     return value != null ? value : MISSING_VALUE_REPLACEMENT;

@@ -45,7 +45,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class ClickHouseSqlBuilderTest {
-  private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder();
+  private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder("dhis2");
 
   private Table getTableA() {
     List<Column> columns =
@@ -110,7 +110,7 @@ class ClickHouseSqlBuilderTest {
 
   @Test
   void testIndexTypes() {
-    assertThrows(UnsupportedOperationException.class, () -> sqlBuilder.indexTypeBtree());
+    assertThrows(UnsupportedOperationException.class, sqlBuilder::indexTypeBtree);
   }
 
   // Capabilities
@@ -456,7 +456,7 @@ class ClickHouseSqlBuilderTest {
   void testCountRows() {
     String expected =
         """
-        select count(*) as row_count from \"immunization\";""";
+        select count(*) as row_count from "immunization";""";
 
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }

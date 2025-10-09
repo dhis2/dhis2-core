@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.dhis</groupId>
+  <artifactId>dhis-test-performance</artifactId>
+  <version>1.0</version>
+  <description>Performance tests for DHIS2 using Gatling framework</description>
+
+  <properties>
+    <rootDir>..</rootDir>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <gatling.version>3.14.3</gatling.version>
+    <gatling-maven-plugin.version>4.19.0</gatling-maven-plugin.version>
+    <spotless.version>2.46.1</spotless.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.gatling</groupId>
+      <artifactId>gatling-app</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.gatling.highcharts</groupId>
+      <artifactId>gatling-charts-highcharts</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <release>17</release>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>io.gatling</groupId>
+        <artifactId>gatling-maven-plugin</artifactId>
+        <version>${gatling-maven-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <upToDateChecking>
+            <enabled>true</enabled>
+          </upToDateChecking>
+          <java>
+            <googleJavaFormat>
+              <version>1.27.0</version>
+              <style>GOOGLE</style>
+            </googleJavaFormat>
+            <trimTrailingWhitespace/>
+            <licenseHeader>
+              <file>${rootDir}/license-header</file>
+            </licenseHeader>
+            <toggleOffOn/>
+          </java>
+          <pom>
+            <toggleOffOn>
+              <off>@formatter:off</off>
+              <on>@formatter:on</on>
+            </toggleOffOn>
+            <includes>
+              <include>pom.xml</include>
+            </includes>
+            <sortPom>
+              <expandEmptyElements>false</expandEmptyElements>
+            </sortPom>
+          </pom>
+          <lineEndings>UNIX</lineEndings>
+        </configuration>
+      </plugin>
+    </plugins>
+    <testSourceDirectory>src/test</testSourceDirectory>
+  </build>
+</project>

@@ -56,6 +56,13 @@ public class DefaultImageProcessingService implements ImageProcessingService {
           ImageFileDimension.MEDIUM, new ImageSize(512, 512),
           ImageFileDimension.LARGE, new ImageSize(1024, 1024));
 
+  /**
+   * Create new image files for each {@link ImageFileDimension}
+   *
+   * @param fileResource file resource with image content type
+   * @param file the original image file
+   * @return the created image files in a map or empty if an error
+   */
   @Override
   public Map<ImageFileDimension, File> createImages(FileResource fileResource, File file) {
     if (!isInputValid(fileResource, file)) {

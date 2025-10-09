@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -42,6 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 class RouteServiceTest {
 
@@ -61,8 +65,22 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
+  }
+
+  @Test
+  void testCreateRequestUrlDoesNotEscapeUrl() {
+    RouteService routeService = new RouteService(null, null, null, null, null, null);
+    String upstreamUrl =
+        routeService.createRequestUrl(
+            UriComponentsBuilder.fromUriString(
+                "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits"),
+            Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]")));
+    assertEquals(
+        "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?filter=id:in:[Rp268JB6Ne4,cDw53Ej8rju]",
+        upstreamUrl);
   }
 
   @Test
@@ -73,7 +91,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
@@ -87,7 +106,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     routeService.postConstruct();
 
     Route route = new Route();
@@ -116,7 +136,8 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    RouteService routeService =
+        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
     routeService.postConstruct();
 
     Route route = new Route();

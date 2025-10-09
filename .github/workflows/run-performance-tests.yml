@@ -1,0 +1,271 @@
+# Performance test workflow to compare a baseline against a candidate DHIS2 version
+# You can run the workflow using the GitHub CLI like so:
+#
+# Basic example (required args only):
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+#
+# With custom baseline:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+#
+# With specific database version:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="2.42.2" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
+# 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
+# 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
+name: Performance tests
+description: Compare performance between baseline and candidate DHIS2 versions
+run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ inputs.dhis2_image_candidate }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      perf_tests_git_ref:
+        description: 'Git ref (tag/branch/commit) to checkout dhis2-core performance tests'
+        required: true
+        type: string
+      simulation_class:
+        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
+        required: true
+        type: string
+      mvn_args:
+        description: 'Additional maven arguments'
+        required: false
+        default: ''
+        type: string
+      prof_args:
+        description: 'Profiler arguments (enables profiling). Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md'
+        required: false
+        default: ''
+        type: string
+      # Read https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md on how we publish
+      # DHIS2 Docker images
+      dhis2_image_baseline:
+        description: 'Baseline DHIS2 image for comparison'
+        required: false
+        default: 'dhis2/core-dev:latest'
+        type: string
+      dhis2_image_candidate:
+        description: 'Candidate DHIS2 image to compare against baseline'
+        required: true
+        type: string
+      dhis2_db_dump_url:
+        description: 'URL to DHIS2 database dump (optional)'
+        required: false
+        type: string
+      dhis2_db_image_suffix:
+        description: 'Docker image suffix for the DB image (e.g., sierra-leone-2.42.2). WARNING: Must match the version in dhis2_db_dump_url'
+        required: false
+        default: 'sierra-leone-dev'
+        type: string
+      warmup:
+        description: 'Number of warmup iterations before actual test'
+        required: false
+        default: 1
+        type: number
+      capture_sql_logs:
+        description: 'Capture and analyze SQL logs for non-warmup runs'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  performance-tests:
+    runs-on: perf
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: dhis-2/dhis-test-performance
+
+    steps:
+    - name: Checkout performance tests
+      id: checkout
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.perf_tests_git_ref }}
+        sparse-checkout: |
+          dhis-2/dhis-test-performance
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
+    - name: Cleanup containers
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+
+    - name: Clean target directory
+      run: mvn clean
+
+    - name: Run performance tests - baseline
+      run: |
+        # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
+        DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
+        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
+        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
+        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
+        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        WARMUP=${{ inputs.warmup }} \
+        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        REPORT_SUFFIX="baseline" \
+        ./run-simulation.sh
+
+    - name: Run performance tests - candidate
+      run: |
+        DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
+        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
+        MVN_ARGS="${{ inputs.mvn_args }}" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
+        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
+        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        WARMUP=${{ inputs.warmup }} \
+        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        REPORT_SUFFIX="candidate" \
+        ./run-simulation.sh
+
+    # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test
+    # results into a binary format. Gatling OSS does not support exporting that into an
+    # accessible format for us. The serializer/deserializer are OSS though. Our fork at
+    # https://github.com/dhis2/gatling/tree/glog-cli uses them to provide a CLI to extract the
+    # binary simulation.log into a simulation.csv. CLI releases can be downloaded from
+    # https://github.com/dhis2/gatling/releases. The CLI is installed on the self-hosted runner.
+    - name: Convert binary simulation.log to simulation.csv
+      id: convert-logs
+      if: always()
+      run: |
+        glog --config ./src/test/resources/gatling.conf --scan-subdirs target/gatling
+
+    - name: Upload Gatling report
+      if: always() && steps.convert-logs.conclusion == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: gatling-report-${{ github.run_id }}-${{ github.sha }}
+        path: dhis-2/dhis-test-performance/target/gatling/
+
+    - name: Create test result analysis instructions
+      if: always()
+      run: |
+        echo "## 🚀 Performance Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Build the command to reproduce this run
+        echo "### 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo -n 'gh workflow run run-performance-tests.yml' >> $GITHUB_STEP_SUMMARY
+        echo ' \' >> $GITHUB_STEP_SUMMARY
+        echo "  --field perf_tests_git_ref=\"${{ steps.checkout.outputs.commit }}\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field simulation_class=\"${{ inputs.simulation_class }}\" \\" >> $GITHUB_STEP_SUMMARY
+
+        # Add optional fields only if they're not empty or not default
+        if [ -n "${{ inputs.mvn_args }}" ]; then
+          echo "  --field mvn_args=\"${{ inputs.mvn_args }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -n "${{ inputs.prof_args }}" ]; then
+          echo "  --field prof_args=\"${{ inputs.prof_args }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.dhis2_image_baseline }}" != "dhis2/core-dev:latest" ]; then
+          echo "  --field dhis2_image_baseline=\"${{ inputs.dhis2_image_baseline }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "  --field dhis2_image_candidate=\"${{ inputs.dhis2_image_candidate }}\" \\" >> $GITHUB_STEP_SUMMARY
+
+        if [ -n "${{ inputs.dhis2_db_dump_url }}" ]; then
+          echo "  --field dhis2_db_dump_url=\"${{ inputs.dhis2_db_dump_url }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.dhis2_db_image_suffix }}" != "sierra-leone-dev" ]; then
+          echo "  --field dhis2_db_image_suffix=\"${{ inputs.dhis2_db_image_suffix }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.warmup }}" != "1" ]; then
+          echo "  --field warmup=\"${{ inputs.warmup }}\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ inputs.capture_sql_logs }}" == "true" ]; then
+          echo "  --field capture_sql_logs=true \\" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "  --ref ${{ github.sha }} # git sha of workflow" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### 📊 Test Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
+        echo "* **Simulation**" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Class**: \`${{ inputs.simulation_class }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Git ref**: \`${{ inputs.perf_tests_git_ref }}\` (\`${{ steps.checkout.outputs.commit }}\`)" >> $GITHUB_STEP_SUMMARY
+        echo "  * **Warmup iterations**: ${{ inputs.warmup }}" >> $GITHUB_STEP_SUMMARY
+        echo "* **Baseline**: \`${{ inputs.dhis2_image_baseline }}\`" >> $GITHUB_STEP_SUMMARY
+
+        # Extract and display DHIS2 labels for baseline
+        OUTPUT=$(docker inspect -f '{{json .Config.Labels}}' "${{ inputs.dhis2_image_baseline }}" 2>/dev/null | \
+          jq -r 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "  * **\(.key)**: `\(.value)`"')
+        if [ -z "$OUTPUT" ]; then
+          echo "  * Failed to find DHIS2 related metadata in Docker image" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "* **Candidate**: \`${{ inputs.dhis2_image_candidate }}\`" >> $GITHUB_STEP_SUMMARY
+
+        # Extract and display DHIS2 labels for candidate
+        OUTPUT=$(docker inspect -f '{{json .Config.Labels}}' "${{ inputs.dhis2_image_candidate }}" 2>/dev/null | \
+          jq -r 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "  * **\(.key)**: `\(.value)`"')
+        if [ -z "$OUTPUT" ]; then
+          echo "  * Failed to find DHIS2 related metadata in Docker image" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Tests run on self-hosted runner with the following specifications:" >> $GITHUB_STEP_SUMMARY
+        echo "* **CPU**: Intel(R) Xeon(R) CPU E3-1275 v6 @ 3.80GHz (8 core)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Memory**: 64GiB System Memory" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📥 Download Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Use GitHub CLI to download the performance test results:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Download this run's data:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Download latest run's data for current branch:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download \$(gh run list --workflow=\"Performance tests\" --branch=\"\$(git branch --show-current)\" --limit=1 --json databaseId --jq '.[0].databaseId')" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 View Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Results are in \`gatling-report-${{ github.run_id }}-${{ github.sha }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "* **\`<simulation-class>-<timestamp>/\`** - one for each test run (baseline has earlier timestamp)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`index.html\` - Gatling HTML report (open in browser)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`simulation-run.txt\` - Test run metadata (indicates baseline/candidate)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`simulation.log\` - Binary test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`simulation.csv\` - Parsed binary data in CSV format" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.html\` - Flamegraph visualization (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.jfr\` - JFR profiler data (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`profile.collapsed\` - Collapsed stack traces (if profiling enabled with prof_args)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled with capture_sql_logs)" >> $GITHUB_STEP_SUMMARY
+        echo "  * \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled with capture_sql_logs)" >> $GITHUB_STEP_SUMMARY
+

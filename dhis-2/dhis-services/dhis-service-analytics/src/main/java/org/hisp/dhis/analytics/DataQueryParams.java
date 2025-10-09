@@ -79,6 +79,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
@@ -1088,7 +1089,7 @@ public class DataQueryParams {
   private static List<DimensionalItemObject> getItems(
       Collection<DimensionalObject> dimensionalObjects, String key) {
     return dimensionalObjects.stream()
-        .filter(dimensionalObject -> StringUtils.equals(dimensionalObject.getDimension(), key))
+        .filter(dimensionalObject -> Strings.CS.equals(dimensionalObject.getDimension(), key))
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
         .toList();

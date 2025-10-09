@@ -42,7 +42,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.table.ColumnSuffix.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -161,7 +161,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
     String sql =
         useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params)
+            ? buildAnalyticsQuery(params, maxLimit)
             : getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
@@ -526,7 +526,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
       String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
       if (StringUtils.isNotBlank(timeFieldSql)) {
-        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+        sql += hlp.whereAnd() + " " + timeFieldSql;
       }
     }
 
@@ -722,6 +722,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (!params.isSkipPartitioning()
         && params.hasPartitions()
+        && !params.hasTimeDateRanges()
         && !params.hasNonDefaultBoundaries()
         && !params.hasTimeField()
         && !params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
@@ -958,7 +959,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         if (queryItem.getItem().getUid().equals(coordinateFields.get(i))
             && queryItem.getValueType() == ValueType.ORGANISATION_UNIT) {
           coors.set(
-              i, coors.get(i).replaceAll(coors.get(i), coors.get(i) + OU_GEOMETRY_COL_SUFFIX));
+              i, coors.get(i).replaceAll(coors.get(i), coors.get(i) + OU_GEOMETRY_COL_POSTFIX));
         }
       }
     }

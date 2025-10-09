@@ -133,6 +133,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -1187,6 +1188,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtStart() {
     ProgramIndicator pi =
         createProgramIndicatorA(
@@ -1218,6 +1221,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Disabled(
+      "This test is disabled because the scenario is not possible: event aggregate does not support Program Indicators")
   void testEnrollmentProgramIndicatorWithOrgUnitFieldAtEnd() {
     ProgramIndicator pi =
         createProgramIndicatorA(
@@ -1710,8 +1715,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
    */
   private void assertGridContains(List<String> headers, List<List<Object>> rows, Grid grid) {
     // Assert grid contains the expected number of rows
-    assertEquals(
-        rows.size(), grid.getHeight(), "Expected " + rows.size() + " rows in grid " + grid);
+    if (rows.size() != grid.getHeight()) {
+      System.out.println("❌ ROW COUNT MISMATCH:");
+      System.out.println("   Expected: " + rows.size() + " rows");
+      System.out.println("   Actual:   " + grid.getHeight() + " rows");
+      printGridComparison(headers, rows, grid);
+      assertEquals(rows.size(), grid.getHeight(), "Expected " + rows.size() + " rows in grid");
+    }
 
     // Make a map from header name to grid column index
     Map<String, Integer> headerMap =
@@ -1720,9 +1730,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toMap(i -> grid.getHeaders().get(i).getName(), identity()));
 
     // Assert grid contains all the expected headers (column names)
-    assertTrue(
-        headerMap.keySet().containsAll(headers),
-        "Expected headers " + headers + " in grid " + grid);
+    if (!headerMap.keySet().containsAll(headers)) {
+      System.out.println("❌ HEADER MISMATCH:");
+      System.out.println("   Expected headers: " + headers);
+      System.out.println("   Available headers: " + headerMap.keySet());
+      assertTrue(
+          headerMap.keySet().containsAll(headers), "Expected headers " + headers + " in grid");
+    }
 
     // Make colA:row1value/colB:row1value, colA:row2value/colB:row2value...
     List<String> expected =
@@ -1736,7 +1750,105 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .collect(toList());
 
     // Assert the expected rows are present with the expected values
-    assertEquals(expected, actual);
+    if (!expected.equals(actual)) {
+      System.out.println("❌ GRID CONTENT MISMATCH:");
+      printGridComparison(headers, rows, grid);
+      assertEquals(expected, actual, "Grid content does not match expected values");
+    }
+  }
+
+  private void printGridComparison(
+      List<String> headers, List<List<Object>> expectedRows, Grid actualGrid) {
+    System.out.println("\n📊 GRID COMPARISON:");
+    System.out.println("=".repeat(80));
+
+    // Print headers
+    System.out.println("HEADERS: " + headers);
+    System.out.println();
+
+    // Print expected data
+    System.out.println("✅ EXPECTED (" + expectedRows.size() + " rows):");
+    System.out.println("-".repeat(40));
+    printFormattedRows(headers, expectedRows);
+
+    System.out.println();
+
+    // Print actual data
+    System.out.println("❌ ACTUAL (" + actualGrid.getHeight() + " rows):");
+    System.out.println("-".repeat(40));
+
+    if (actualGrid.getHeight() == 0) {
+      System.out.println("   (no rows)");
+    } else {
+      // Extract actual rows for the specified headers
+      Map<String, Integer> headerMap =
+          range(0, actualGrid.getHeaders().size())
+              .boxed()
+              .collect(Collectors.toMap(i -> actualGrid.getHeaders().get(i).getName(), identity()));
+
+      List<List<Object>> actualRows =
+          actualGrid.getRows().stream()
+              .map(
+                  row ->
+                      headers.stream()
+                          .map(
+                              header ->
+                                  headerMap.containsKey(header)
+                                      ? row.get(headerMap.get(header))
+                                      : "N/A")
+                          .collect(toList()))
+              .collect(toList());
+
+      printFormattedRows(headers, actualRows);
+    }
+
+    System.out.println();
+    System.out.println("=".repeat(80));
+  }
+
+  private void printFormattedRows(List<String> headers, List<List<Object>> rows) {
+    if (rows.isEmpty()) {
+      System.out.println("   (no rows)");
+      return;
+    }
+
+    // Calculate column widths
+    int[] widths = new int[headers.size()];
+    for (int i = 0; i < headers.size(); i++) {
+      widths[i] = Math.max(headers.get(i).length(), 10);
+      for (List<Object> row : rows) {
+        if (i < row.size()) {
+          widths[i] = Math.max(widths[i], String.valueOf(row.get(i)).length());
+        }
+      }
+    }
+
+    // Print header row
+    System.out.print("   ");
+    for (int i = 0; i < headers.size(); i++) {
+      System.out.printf("%-" + widths[i] + "s", headers.get(i));
+      if (i < headers.size() - 1) System.out.print(" | ");
+    }
+    System.out.println();
+
+    // Print separator
+    System.out.print("   ");
+    for (int i = 0; i < headers.size(); i++) {
+      System.out.print("-".repeat(widths[i]));
+      if (i < headers.size() - 1) System.out.print("-+-");
+    }
+    System.out.println();
+
+    // Print data rows
+    for (List<Object> row : rows) {
+      System.out.print("   ");
+      for (int i = 0; i < headers.size(); i++) {
+        String value = i < row.size() ? String.valueOf(row.get(i)) : "N/A";
+        System.out.printf("%-" + widths[i] + "s", value);
+        if (i < headers.size() - 1) System.out.print(" | ");
+      }
+      System.out.println();
+    }
   }
 
   /**

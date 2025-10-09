@@ -650,13 +650,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         new StringBuilder()
             .append("select ev.uid as ")
             .append(COLUMN_EVENT_UID)
-            .append(", ou.uid as ")
+            .append(", evou.uid as ")
             .append(COLUMN_ORG_UNIT_UID)
-            .append(", ou.code as ")
+            .append(", evou.code as ")
             .append(COLUMN_ORG_UNIT_CODE)
-            .append(", ou.name as ")
+            .append(", evou.name as ")
             .append(COLUMN_ORG_UNIT_NAME)
-            .append(", ou.attributevalues as ")
+            .append(", evou.attributevalues as ")
             .append(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)
             .append(", p.uid as ")
             .append(COLUMN_PROGRAM_UID)
@@ -774,7 +774,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user,
       SqlHelper hlp) {
     StringBuilder fromBuilder =
-        new StringBuilder(" from event ev ")
+        new StringBuilder(" from trackerevent ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
@@ -783,10 +783,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     fromBuilder
         .append(
             "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+        .append("inner join organisationunit ou on (po.organisationunitid=ou.organisationunitid) ")
         .append(
-            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=evou.organisationunitid) ")
-        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
+            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
@@ -915,8 +914,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
-
-    fromBuilder.append(hlp.whereAnd()).append(" p.type = 'WITH_REGISTRATION' ");
 
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 

@@ -29,15 +29,14 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -61,26 +60,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class DataValueStoreTest extends PostgresIntegrationTestBase {
   private @PersistenceContext EntityManager manager;
-  @Autowired private DataValueStore dataValueStore;
 
-  @Test
-  void testGetSoftDeletedDataValue() {
-    Period period = createPeriod(new Date(), new Date());
-    DataValue dataValue = createDataValue('A', period, "test");
-    dataValueStore.addDataValue(dataValue);
-    dataValue.setDeleted(true);
-    dataValueStore.updateDataValue(dataValue);
-    DataValue deletedDataValue = dataValueStore.getSoftDeletedDataValue(dataValue);
-    assertEquals(dataValue.getDataElement().getId(), deletedDataValue.getDataElement().getId());
-    assertEquals(dataValue.getSource().getId(), deletedDataValue.getSource().getId());
-    assertEquals(
-        dataValue.getCategoryOptionCombo().getId(),
-        deletedDataValue.getCategoryOptionCombo().getId());
-    assertEquals(
-        dataValue.getAttributeOptionCombo().getId(),
-        deletedDataValue.getAttributeOptionCombo().getId());
-    assertEquals(dataValue.getValue(), deletedDataValue.getValue());
-  }
+  @Autowired private DataDumpService dataDumpService;
+  @Autowired private DataExportStore dataExportStore;
+  @Autowired private DataValueStore dataValueStore;
 
   @Test
   @DisplayName(
@@ -99,71 +82,65 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // data values with same period, org unit, data element and attr opt combo
     // which will be identified as duplicates during merging
-    DataValue dv1 = createDataValue('1', p1, "dv test 1");
-    dv1.setCategoryOptionCombo(categoryMetadata.coc1());
-    dv1.setAttributeOptionCombo(categoryMetadata.coc4());
-    dv1.setDataElement(de);
-    dv1.setSource(ou);
-    dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
-
-    DataValue dv2 = createDataValue('2', p1, "dv test 2 - last updated");
-    dv2.setCategoryOptionCombo(categoryMetadata.coc2());
-    dv2.setAttributeOptionCombo(categoryMetadata.coc4());
-    dv2.setDataElement(de);
-    dv2.setSource(ou);
-    dv2.setLastUpdated(DateUtils.parseDate("2025-01-08"));
-
-    DataValue dv3 = createDataValue('3', p1, "dv test 3");
-    dv3.setCategoryOptionCombo(categoryMetadata.coc3());
-    dv3.setAttributeOptionCombo(categoryMetadata.coc4());
-    dv3.setDataElement(de);
-    dv3.setSource(ou);
-    dv3.setLastUpdated(DateUtils.parseDate("2024-12-06"));
-
-    DataValue dv4 = createDataValue('4', p1, "dv test 4, untouched");
+    DataValue dv4 = persistDataValue('4', p1, "dv test 4, untouched");
     dv4.setCategoryOptionCombo(categoryMetadata.coc4());
     dv4.setAttributeOptionCombo(categoryMetadata.coc4());
     dv4.setDataElement(de);
     dv4.setSource(ou);
-    dv4.setLastUpdated(DateUtils.parseDate("2024-11-02"));
+    addDataValues(dv4);
 
-    addDataValues(dv1, dv2, dv3, dv4);
+    DataValue dv1 = persistDataValue('1', p1, "dv test 1");
+    dv1.setCategoryOptionCombo(categoryMetadata.coc1());
+    dv1.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv1.setDataElement(de);
+    dv1.setSource(ou);
+    addDataValues(dv1);
+
+    DataValue dv3 = persistDataValue('3', p1, "dv test 3");
+    dv3.setCategoryOptionCombo(categoryMetadata.coc3());
+    dv3.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv3.setDataElement(de);
+    dv3.setSource(ou);
+    addDataValues(dv3);
+
+    DataValue dv2 = persistDataValue('2', p1, "dv test 2 - last updated");
+    dv2.setCategoryOptionCombo(categoryMetadata.coc2());
+    dv2.setAttributeOptionCombo(categoryMetadata.coc4());
+    dv2.setDataElement(de);
+    dv2.setSource(ou);
+    addDataValues(dv2);
 
     // check pre merge state
-    List<DataValue> preMergeState =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+    List<DataExportValue> preMergeState =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, preMergeState.size(), "there should be 4 data values");
     checkCocIdsPresent(
         preMergeState,
         List.of(
-            categoryMetadata.coc1().getId(),
-            categoryMetadata.coc2().getId(),
-            categoryMetadata.coc3().getId(),
-            categoryMetadata.coc4().getId()));
+            categoryMetadata.coc1().getUid(),
+            categoryMetadata.coc2().getUid(),
+            categoryMetadata.coc3().getUid(),
+            categoryMetadata.coc4().getUid()));
 
     // when
     mergeDataValues(
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValue> postMergeState =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+    List<DataExportValue> postMergeState =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(2, postMergeState.size(), "there should be 2 data values");
     checkCocIdsPresent(
-        preMergeState, List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId()));
+        preMergeState, List.of(categoryMetadata.coc3().getUid(), categoryMetadata.coc4().getUid()));
 
     checkDataValuesPresent(
         postMergeState, List.of("dv test 2 - last updated", "dv test 4, untouched"));
-
-    checkDatesPresent(
-        postMergeState,
-        List.of(DateUtils.parseDate("2025-01-08"), DateUtils.parseDate("2024-11-02")));
   }
 
   @Test
@@ -183,28 +160,28 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
 
     // data values with same period, org unit, data element and attr opt combo
     // which will be identified as duplicates during merging
-    DataValue dv1 = createDataValue('1', p1, "dv test 1");
+    DataValue dv1 = persistDataValue('1', p1, "dv test 1");
     dv1.setCategoryOptionCombo(categoryMetadata.coc1());
     dv1.setAttributeOptionCombo(categoryMetadata.coc4());
     dv1.setDataElement(de);
     dv1.setSource(ou);
     dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
 
-    DataValue dv2 = createDataValue('2', p1, "dv test 2");
+    DataValue dv2 = persistDataValue('2', p1, "dv test 2");
     dv2.setCategoryOptionCombo(categoryMetadata.coc2());
     dv2.setAttributeOptionCombo(categoryMetadata.coc4());
     dv2.setDataElement(de);
     dv2.setSource(ou);
     dv2.setLastUpdated(DateUtils.parseDate("2025-01-02"));
 
-    DataValue dv3 = createDataValue('3', p1, "dv test 3 - last updated");
+    DataValue dv3 = persistDataValue('3', p1, "dv test 3 - last updated");
     dv3.setCategoryOptionCombo(categoryMetadata.coc3());
     dv3.setAttributeOptionCombo(categoryMetadata.coc4());
     dv3.setDataElement(de);
     dv3.setSource(ou);
     dv3.setLastUpdated(DateUtils.parseDate("2025-01-06"));
 
-    DataValue dv4 = createDataValue('4', p1, "dv test 4, untouched");
+    DataValue dv4 = persistDataValue('4', p1, "dv test 4, untouched");
     dv4.setCategoryOptionCombo(categoryMetadata.coc4());
     dv4.setAttributeOptionCombo(categoryMetadata.coc4());
     dv4.setDataElement(de);
@@ -214,40 +191,37 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValue> preMergeState =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+    List<DataExportValue> preMergeState =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, preMergeState.size(), "there should be 4 data values");
     checkCocIdsPresent(
         preMergeState,
         List.of(
-            categoryMetadata.coc1().getId(),
-            categoryMetadata.coc2().getId(),
-            categoryMetadata.coc3().getId(),
-            categoryMetadata.coc4().getId()));
+            categoryMetadata.coc1().getUid(),
+            categoryMetadata.coc2().getUid(),
+            categoryMetadata.coc3().getUid(),
+            categoryMetadata.coc4().getUid()));
 
     // when
     mergeDataValues(
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValue> postMergeState =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+    List<DataExportValue> postMergeState =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(2, postMergeState.size(), "there should be 2 data values");
     checkCocIdsPresent(
-        postMergeState, List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId()));
+        postMergeState,
+        List.of(categoryMetadata.coc3().getUid(), categoryMetadata.coc4().getUid()));
 
     checkDataValuesPresent(
         postMergeState, List.of("dv test 3 - last updated", "dv test 4, untouched"));
-
-    checkDatesPresent(
-        postMergeState,
-        List.of(DateUtils.parseDate("2025-01-06"), DateUtils.parseDate("2024-11-02")));
   }
 
   @Test
@@ -269,103 +243,74 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     manager.persist(ou);
 
     // data values with different period, so no duplicates detected during merging
-    DataValue dv1 = createDataValue('1', p1, "dv test 1");
+    DataValue dv1 = persistDataValue('1', p1, "dv test 1");
     dv1.setCategoryOptionCombo(categoryMetadata.coc1());
     dv1.setAttributeOptionCombo(categoryMetadata.coc4());
     dv1.setDataElement(de);
     dv1.setSource(ou);
-    dv1.setLastUpdated(DateUtils.parseDate("2024-12-01"));
 
-    DataValue dv2 = createDataValue('2', p2, "dv test 2 - last updated");
+    DataValue dv2 = persistDataValue('2', p2, "dv test 2 - last updated");
     dv2.setCategoryOptionCombo(categoryMetadata.coc2());
     dv2.setAttributeOptionCombo(categoryMetadata.coc4());
     dv2.setDataElement(de);
     dv2.setSource(ou);
-    dv2.setLastUpdated(DateUtils.parseDate("2025-01-08"));
 
-    DataValue dv3 = createDataValue('3', p3, "dv test 3");
+    DataValue dv3 = persistDataValue('3', p3, "dv test 3");
     dv3.setCategoryOptionCombo(categoryMetadata.coc3());
     dv3.setAttributeOptionCombo(categoryMetadata.coc4());
     dv3.setDataElement(de);
     dv3.setSource(ou);
-    dv3.setLastUpdated(DateUtils.parseDate("2024-12-06"));
 
-    DataValue dv4 = createDataValue('4', p4, "dv test 4, untouched");
+    DataValue dv4 = persistDataValue('4', p4, "dv test 4, untouched");
     dv4.setCategoryOptionCombo(categoryMetadata.coc4());
     dv4.setAttributeOptionCombo(categoryMetadata.coc4());
     dv4.setDataElement(de);
     dv4.setSource(ou);
-    dv4.setLastUpdated(DateUtils.parseDate("2024-11-02"));
 
     addDataValues(dv1, dv2, dv3, dv4);
 
     // check pre merge state
-    List<DataValue> preMergeState =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+    List<DataExportValue> preMergeState =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, preMergeState.size(), "there should be 4 data values");
     checkCocIdsPresent(
         preMergeState,
         List.of(
-            categoryMetadata.coc1().getId(),
-            categoryMetadata.coc2().getId(),
-            categoryMetadata.coc3().getId(),
-            categoryMetadata.coc4().getId()));
+            categoryMetadata.coc1().getUid(),
+            categoryMetadata.coc2().getUid(),
+            categoryMetadata.coc3().getUid(),
+            categoryMetadata.coc4().getUid()));
 
     // when
     mergeDataValues(
         categoryMetadata.coc3(), List.of(categoryMetadata.coc1(), categoryMetadata.coc2()));
 
     // then
-    List<DataValue> postMergeState =
-        dataValueStore.getAllDataValues().stream()
-            .filter(dv -> dv.getDataElement().getUid().equals(de.getUid()))
+    List<DataExportValue> postMergeState =
+        dataExportStore.getAllDataValues().stream()
+            .filter(dv -> dv.dataElement().getValue().equals(de.getUid()))
             .toList();
 
     assertEquals(4, postMergeState.size(), "there should still be 4 data values");
     checkCocIdsPresent(
-        postMergeState, List.of(categoryMetadata.coc3().getId(), categoryMetadata.coc4().getId()));
+        postMergeState,
+        List.of(categoryMetadata.coc3().getUid(), categoryMetadata.coc4().getUid()));
 
     checkDataValuesPresent(
         postMergeState,
         List.of("dv test 1", "dv test 2 - last updated", "dv test 3", "dv test 4, untouched"));
-
-    checkDatesPresent(
-        postMergeState,
-        List.of(
-            DateUtils.parseDate("2025-01-08"),
-            DateUtils.parseDate("2024-11-02"),
-            DateUtils.parseDate("2024-12-01"),
-            DateUtils.parseDate("2024-12-06")));
   }
 
-  private void checkDatesPresent(List<DataValue> dataValues, List<Date> dates) {
-    assertTrue(
-        dataValues.stream()
-            .map(DataValue::getLastUpdated)
-            .collect(Collectors.toSet())
-            .containsAll(dates),
-        "Expected dates should be present");
+  private void checkDataValuesPresent(List<DataExportValue> dataValues, List<String> values) {
+    assertContainsAll(values, dataValues.stream().map(DataExportValue::value).toList());
   }
 
-  private void checkDataValuesPresent(List<DataValue> dataValues, List<String> values) {
-    assertTrue(
-        dataValues.stream()
-            .map(DataValue::getValue)
-            .collect(Collectors.toSet())
-            .containsAll(values),
-        "Expected DataValues should be present");
-  }
-
-  private void checkCocIdsPresent(List<DataValue> dataValues, List<Long> cocIds) {
-    assertTrue(
-        dataValues.stream()
-            .map(dv -> dv.getCategoryOptionCombo().getId())
-            .collect(Collectors.toSet())
-            .containsAll(cocIds),
-        "Data values have expected category option combos");
+  private void checkCocIdsPresent(List<DataExportValue> dataValues, List<String> cocIds) {
+    assertContainsAll(
+        cocIds, dataValues.stream().map(dv -> dv.categoryOptionCombo().getValue()).toList());
   }
 
   private void mergeDataValues(CategoryOptionCombo target, List<CategoryOptionCombo> sources) {
@@ -375,12 +320,17 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     entityManager.clear();
   }
 
-  private void addDataValues(DataValue... dvs) {
-    for (DataValue dv : dvs) dataValueStore.addDataValue(dv);
-    entityManager.flush();
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValuesForJdbcTest(values) < values.length)
+      fail("Failed to upsert test data");
+    try {
+      Thread.sleep(2L);
+    } catch (InterruptedException e) {
+      // fine, just wanted to wait some
+    }
   }
 
-  private DataValue createDataValue(char uniqueChar, Period period, String value) {
+  private DataValue persistDataValue(char uniqueChar, Period period, String value) {
     DataElement dataElement = createDataElement(uniqueChar);
     dataElement.setValueType(ValueType.TEXT);
     CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo(uniqueChar);
@@ -389,7 +339,6 @@ class DataValueStoreTest extends PostgresIntegrationTestBase {
     period.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     manager.persist(dataElement);
     manager.persist(organisationUnitA);
-    manager.persist(period);
     manager.persist(defaultCategoryOptionCombo);
     CategoryOption categoryOption = createCategoryOption(uniqueChar);
     categoryOption.setCategoryOptionCombos(Sets.newHashSet(defaultCategoryOptionCombo));

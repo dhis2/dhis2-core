@@ -40,7 +40,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * Defines the functionality for persisting DataValues.
@@ -48,40 +47,25 @@ import org.hisp.dhis.period.Period;
  * @author Torgeir Lorange Ostby
  */
 public interface DataValueStore {
-  String ID = DataValueStore.class.getName();
 
   /** Special {@see DeflatedDataValue} to signal "End of file" for queued DDVs. */
-  public static final DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
+  DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
 
   /**
    * Timeout value for {@see DeflatedDataValue} queue, to prevent waiting forever if the other
    * thread has aborted.
    */
-  public static final int DDV_QUEUE_TIMEOUT_VALUE = 10;
+  int DDV_QUEUE_TIMEOUT_VALUE = 10;
 
   /**
    * Timeout unit for {@see DeflatedDataValue} queue, to prevent waiting forever if the other thread
    * has aborted.
    */
-  public static final TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
+  TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
 
   // -------------------------------------------------------------------------
   // Basic DataValue
   // -------------------------------------------------------------------------
-
-  /**
-   * Adds a DataValue.
-   *
-   * @param dataValue the DataValue to add.
-   */
-  void addDataValue(DataValue dataValue);
-
-  /**
-   * Updates a DataValue.
-   *
-   * @param dataValue the DataValue to update.
-   */
-  void updateDataValue(DataValue dataValue);
 
   /**
    * Deletes all data values for the given organisation unit.
@@ -121,75 +105,12 @@ public interface DataValueStore {
       @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
   /**
-   * Returns a DataValue.
-   *
-   * @param dataElement the DataElement of the DataValue.
-   * @param period the Period of the DataValue.
-   * @param source the Source of the DataValue.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @return the DataValue which corresponds to the given parameters, or null if no match.
-   */
-  DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo);
-
-  /**
-   * Returns a DataValue.
-   *
-   * @param dataElement the DataElement of the DataValue.
-   * @param period the Period of the DataValue.
-   * @param source the Source of the DataValue.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param includeDeleted Include deleted data values
-   * @return the DataValue which corresponds to the given parameters, or null if no match.
-   */
-  DataValue getDataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      boolean includeDeleted);
-
-  /**
-   * Returns a soft deleted DataValue.
-   *
-   * @param dataValue the DataValue to use as parameters.
-   * @return the DataValue which corresponds to the given parameters, or null if no match.
-   */
-  DataValue getSoftDeletedDataValue(DataValue dataValue);
-
-  // -------------------------------------------------------------------------
-  // Collections of DataValues
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns data values for the given data export parameters.
-   *
-   * @param params the data export parameters.
-   * @return a list of data values.
-   */
-  List<DataValue> getDataValues(DataExportParams params);
-
-  /**
-   * Returns all DataValues.
-   *
-   * @return a list of all DataValues.
-   */
-  List<DataValue> getAllDataValues();
-
-  /**
    * Returns deflated data values for the given data export parameters.
    *
    * @param params the data export parameters.
    * @return a list of deflated data values.
    */
-  List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
+  List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params);
 
   /**
    * Gets the number of DataValues which have been updated between the given start and end date.
@@ -220,20 +141,20 @@ public interface DataValueStore {
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
-   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
-   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
-   * constraint. <br>
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#getLastUpdated()}
+   * values are kept, the rest are deleted. Only one of these entries can exist due to the composite
+   * key constraint. <br>
    * The 3 execution paths are:
    *
    * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
-   * DataValue#categoryOptionCombo} updated to that of the target.
+   * DataValue#getCategoryOptionCombo()} updated to that of the target.
    *
    * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
-   * DataValue#lastUpdated} value, it is deleted.
+   * DataValue#getLastUpdated()} value, it is deleted.
    *
    * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
-   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
-   * has its {@link DataValue#categoryOptionCombo} updated to that of the target.
+   * DataValue#getLastUpdated()} value, the target {@link DataValue} is deleted. The source is kept
+   * and has its {@link DataValue#getCategoryOptionCombo()} updated to that of the target.
    *
    * @param target target {@link CategoryOptionCombo}
    * @param sources source {@link CategoryOptionCombo}s
@@ -242,20 +163,20 @@ public interface DataValueStore {
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
-   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
-   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
-   * constraint. <br>
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#getLastUpdated()}
+   * values are kept, the rest are deleted. Only one of these entries can exist due to the composite
+   * key constraint. <br>
    * The 3 execution paths are:
    *
    * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
-   * DataValue#attributeOptionCombo} updated to that of the target.
+   * DataValue#getAttributeOptionCombo()} updated to that of the target.
    *
    * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
-   * DataValue#lastUpdated} value, it is deleted.
+   * DataValue#getLastUpdated()} value, it is deleted.
    *
    * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
-   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
-   * has its {@link DataValue#attributeOptionCombo} updated to that of the target.
+   * DataValue#getLastUpdated()} value, the target {@link DataValue} is deleted. The source is kept
+   * and has its {@link DataValue#getAttributeOptionCombo()} updated to that of the target.
    *
    * @param target target {@link CategoryOptionCombo} id
    * @param sources source {@link CategoryOptionCombo} ids
@@ -264,20 +185,20 @@ public interface DataValueStore {
 
   /**
    * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
-   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
-   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
-   * constraint. <br>
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#getLastUpdated()}
+   * values are kept, the rest are deleted. Only one of these entries can exist due to the composite
+   * key constraint. <br>
    * The 3 execution paths are:
    *
    * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
-   * DataValue#dataElement} updated to that of the target.
+   * DataValue#getDataElement()} updated to that of the target.
    *
    * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
-   * DataValue#lastUpdated} value, it is deleted.
+   * DataValue#getLastUpdated()} value, it is deleted.
    *
    * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
-   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
-   * has its {@link DataValue#dataElement} updated to that of the target.
+   * DataValue#getLastUpdated()} value, the target {@link DataValue} is deleted. The source is kept
+   * and has its {@link DataValue#getDataElement()} updated to that of the target.
    *
    * @param target target {@link DataElement} id
    * @param sources source {@link DataElement} ids

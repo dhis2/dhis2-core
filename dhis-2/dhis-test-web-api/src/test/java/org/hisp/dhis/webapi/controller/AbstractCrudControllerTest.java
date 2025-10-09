@@ -1325,6 +1325,161 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Child Health", response.get(1).getDisplayName());
   }
 
+  @Test
+  void testCreateCategoryOption() {
+    // First create an organisation unit to reference from the category option
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{"
+                    + "'name':'OU A',"
+                    + "'shortName':'OUA',"
+                    + "'openingDate':'2020-01-01'"
+                    + "}"));
+
+    // Create category option with various scalar properties and the organisationUnits collection
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptions",
+                "{"
+                    + "'name':'CO A',"
+                    + "'shortName':'COA',"
+                    + "'code':'C-A',"
+                    + "'description':'A category option',"
+                    + "'formName':'Form A',"
+                    + "'organisationUnits':[{'id':'"
+                    + ouId
+                    + "'}]"
+                    + "}"));
+
+    // Fetch and verify all properties including collections
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+
+    assertEquals("CO A", co.getString("displayName").string());
+    assertEquals("COA", co.getString("shortName").string());
+    assertEquals("C-A", co.getString("code").string());
+    assertEquals("A category option", co.getString("description").string());
+    assertEquals("Form A", co.getString("formName").string());
+
+    // organisationUnits collection should contain the created OU
+    JsonArray ouArr = co.getArray("organisationUnits");
+    assertNotNull(ouArr);
+    assertEquals(1, ouArr.size());
+    assertEquals(ouId, ouArr.getObject(0).getString("id").string());
+
+    // Other collections should be present and empty upon creation
+    assertEquals(0, co.getArray("categories").size());
+    assertEquals(0, co.getArray("categoryOptionCombos").size());
+    // property name for groups is categoryOptionGroups in JSON
+    assertEquals(0, co.getArray("categoryOptionGroups").size());
+  }
+
+  @Test
+  void testCategoryOptionCategoriesPopulatedAfterLinkingCategory() {
+    // Create a category option
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name':'CO B', 'shortName':'COB' }"));
+
+    // Create a category that includes the created category option
+    String catId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name':'Cat A', 'shortName':'CatA', 'dataDimensionType':'DISAGGREGATION',"
+                    + " 'categoryOptions': [ { 'id': '"
+                    + coId
+                    + "' } ] }"));
+
+    // Verify the category option now shows the category in its categories collection
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray cats = co.getArray("categories");
+    assertNotNull(cats);
+    assertEquals(1, cats.size());
+    assertEquals(catId, cats.getObject(0).getString("id").string());
+  }
+
+  @Test
+  void testCategoryOptionCombosPopulatedAfterCreatingCategoryCombo() {
+    // Create a category option
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name':'CO C', 'shortName':'COC' }"));
+
+    // Create a category that includes the created category option
+    String catId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name':'Cat B', 'shortName':'CatB', 'dataDimensionType':'DISAGGREGATION',"
+                    + " 'categoryOptions': [ { 'id': '"
+                    + coId
+                    + "' } ] }"));
+
+    // Create a category combo that includes the category
+    String ccId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name':'CC B', 'dataDimensionType':'DISAGGREGATION', 'categories': [ { 'id': '"
+                    + catId
+                    + "' } ] }"));
+
+    // Read the category combo to get the generated category option combo id
+    JsonObject cc = GET("/categoryCombos/" + ccId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray comboCocs = cc.getArray("categoryOptionCombos");
+    assertNotNull(comboCocs);
+    assertTrue(comboCocs.size() >= 1);
+    String expectedCocId = comboCocs.getObject(0).getString("id").string();
+
+    // Verify the category option now shows the related COC in its categoryOptionCombos collection
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray coCocs = co.getArray("categoryOptionCombos");
+    assertNotNull(coCocs);
+    assertTrue(coCocs.size() >= 1);
+    boolean contains = false;
+    for (int i = 0; i < coCocs.size(); i++) {
+      if (expectedCocId.equals(coCocs.getObject(i).getString("id").string())) {
+        contains = true;
+        break;
+      }
+    }
+    assertTrue(contains);
+  }
+
+  @Test
+  void testCategoryOptionGroupsPopulatedAfterLinkingGroup() {
+    // Create a category option
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name':'CO D', 'shortName':'COD' }"));
+
+    // Create a category option group that includes the category option as a member
+    String cogId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptionGroups",
+                "{ 'name':'Group A', 'shortName':'GroupA', 'dataDimensionType':'DISAGGREGATION',"
+                    + " 'categoryOptions': [ { 'id': '"
+                    + coId
+                    + "' } ] }"));
+
+    // Verify the category option now shows the group in its categoryOptionGroups collection
+    JsonObject co = GET("/categoryOptions/" + coId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray groups = co.getArray("categoryOptionGroups");
+    assertNotNull(groups);
+    assertEquals(1, groups.size());
+    assertEquals(cogId, groups.getObject(0).getString("id").string());
+  }
+
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
     JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
     JsonList<JsonErrorReport> errorReports = msg.getTypeReport().getErrorReports();
@@ -1353,5 +1508,657 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     JsonList<JsonUser> usersInGroup =
         GET("/userGroups/{uid}/users/", groupId).content().getList("users", JsonUser.class);
     assertEquals(0, usersInGroup.size());
+  }
+
+  // -------------------------------------------------------------------------
+  // Section tests
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testSectionCanBeCreatedSuccessfully() {
+    // First create a DataSet (required for Section)
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
+            {
+                'name': 'Test DataSet',
+                'shortName': 'TDS',
+                'periodType': 'Monthly'
+            }
+            """));
+
+    // Create a Section
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
+            {
+                'name': 'Test Section',
+                'description': 'A test section',
+                'dataSet': {
+                    'id': '%s'
+                },
+                'sortOrder': 1
+            }
+            """
+                    .formatted(dataSetId)));
+
+    // Verify the section was created correctly
+    JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
+    assertNotNull(section);
+    assertEquals("Test Section", section.getString("name").string());
+    assertEquals("A test section", section.getString("description").string());
+    assertEquals(1, section.getNumber("sortOrder").intValue());
+    assertEquals(dataSetId, section.getObject("dataSet").getString("id").string());
+  }
+
+  @Test
+  void testSectionCanBeCreatedWithDataElements() {
+    // Create DataSet
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
+            {
+                'name': 'Test DataSet',
+                'shortName': 'TDS',
+                'periodType': 'Monthly'
+            }
+            """));
+
+    // Create DataElements
+    String de1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
+                """
+            {
+                'name': 'Data Element 1',
+                'shortName': 'DE1',
+                'valueType': 'TEXT',
+                'domainType': 'AGGREGATE',
+                'aggregationType': 'SUM'
+            }
+            """));
+
+    String de2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
+                """
+            {
+                'name': 'Data Element 2',
+                'shortName': 'DE2',
+                'valueType': 'TEXT',
+                'domainType': 'AGGREGATE',
+                'aggregationType': 'SUM'
+            }
+            """));
+
+    // Create Section with DataElements
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
+            {
+                'name': 'Test Section with DEs',
+                'dataSet': {
+                    'id': '%s'
+                },
+                'dataElements': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ],
+                'sortOrder': 1
+            }
+            """
+                    .formatted(dataSetId, de1Id, de2Id)));
+
+    // Verify section has the data elements
+    JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray dataElements = section.getArray("dataElements");
+    assertNotNull(dataElements);
+    assertEquals(2, dataElements.size());
+  }
+
+  @Test
+  void testSectionCanBeCreatedWithDisplayOptions() {
+    // Create DataSet
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
+            {
+                'name': 'Test DataSet',
+                'shortName': 'TDS',
+                'periodType': 'Monthly'
+            }
+            """));
+
+    // Create Section with display options
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
+            {
+                'name': 'Section with Display Options',
+                'dataSet': {
+                    'id': '%s'
+                },
+                'showRowTotals': true,
+                'showColumnTotals': false,
+                'disableDataElementAutoGroup': true,
+                'sortOrder': 1
+            }
+            """
+                    .formatted(dataSetId)));
+
+    // Verify display options
+    JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
+    assertTrue(section.getBoolean("showRowTotals").booleanValue());
+    assertFalse(section.getBoolean("showColumnTotals").booleanValue());
+    assertTrue(section.getBoolean("disableDataElementAutoGroup").booleanValue());
+  }
+
+  @Test
+  void testSectionSupportsAttributeValues() {
+    // Create attribute first
+    String attributeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes/",
+                """
+            {
+                'name': 'Test Attribute',
+                'shortName': 'TA',
+                'valueType': 'TEXT',
+                'sectionAttribute': true
+            }
+            """));
+
+    // Create DataSet
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
+            {
+                'name': 'Test DataSet',
+                'shortName': 'TDS',
+                'periodType': 'Monthly'
+            }
+            """));
+
+    // Create Section with attribute value
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
+            {
+                'name': 'Section with Attributes',
+                'code': 'SEC001',
+                'dataSet': {
+                    'id': '%s'
+                },
+                'attributeValues': [
+                    {
+                        'attribute': {'id': '%s'},
+                        'value': 'test attribute value'
+                    }
+                ],
+                'sortOrder': 1
+            }
+            """
+                    .formatted(dataSetId, attributeId)));
+
+    // Verify attribute values and code
+    JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
+    assertEquals("SEC001", section.getString("code").string());
+
+    JsonArray attributeValues = section.getArray("attributeValues");
+    assertNotNull(attributeValues);
+    assertEquals(1, attributeValues.size());
+    assertEquals("test attribute value", attributeValues.getObject(0).getString("value").string());
+  }
+
+  @Test
+  void testSectionCanBeCreatedWithIndicators() {
+    // Create DataSet
+    String dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                """
+            {
+                'name': 'Test DataSet',
+                'shortName': 'TDS',
+                'periodType': 'Monthly'
+            }
+            """));
+
+    // Create IndicatorType first
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Indicator Type',
+                'factor': 100
+            }
+            """));
+
+    // Create Indicator
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Test Indicator',
+                'shortName': 'TI',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create Section with indicators
+    String sectionId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/sections/",
+                """
+            {
+                'name': 'Section with Indicators',
+                'description': 'Section with indicators',
+                'dataSet': {
+                    'id': '%s'
+                },
+                'indicators': [
+                    {'id': '%s'}
+                ],
+                'sortOrder': 2
+            }
+            """
+                    .formatted(dataSetId, indicatorId)));
+
+    // Verify the section with indicators
+    JsonObject section = GET("/sections/" + sectionId).content(HttpStatus.OK).as(JsonObject.class);
+    assertEquals("Section with Indicators", section.getString("name").string());
+
+    JsonArray indicators = section.getArray("indicators");
+    assertNotNull(indicators);
+    assertEquals(1, indicators.size());
+    assertEquals(indicatorId, indicators.getObject(0).getString("id").string());
+  }
+
+  @Test
+  @DisplayName("Test creating IndicatorGroup with Indicators and bi-directional relationship")
+  void testCreateIndicatorGroupWithIndicators() {
+    // Create IndicatorType first
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Indicator Type',
+                'factor': 100
+            }
+            """));
+
+    // Create Indicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Test Indicator 1',
+                'shortName': 'TI1',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Test Indicator 2',
+                'shortName': 'TI2',
+                'indicatorType': {
+                    'id': '%s'
+                },
+                'numerator': '2',
+                'denominator': '2'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create IndicatorGroup with indicators (members collection)
+    String indicatorGroupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Test Indicator Group',
+                'shortName': 'TIG',
+                'indicators': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator1Id, indicator2Id)));
+
+    // Verify the indicator group was created with the indicators
+    JsonObject indicatorGroup =
+        GET("/indicatorGroups/" + indicatorGroupId).content(HttpStatus.OK).as(JsonObject.class);
+    assertNotNull(indicatorGroup);
+    assertEquals("Test Indicator Group", indicatorGroup.getString("name").string());
+
+    // Verify indicators collection (members mapping)
+    JsonArray indicators = indicatorGroup.getArray("indicators");
+    assertNotNull(indicators);
+    assertEquals(2, indicators.size());
+
+    // Verify bi-directional relationship
+    JsonObject indicator1 =
+        GET("/indicators/" + indicator1Id).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray indicator1Groups = indicator1.getArray("indicatorGroups");
+    assertNotNull(indicator1Groups);
+    assertEquals(1, indicator1Groups.size());
+    assertEquals(indicatorGroupId, indicator1Groups.getObject(0).getString("id").string());
+  }
+
+  @Test
+  @DisplayName("Test adding/removing IndicatorGroup members using PATCH")
+  void testIndicatorGroupMembersWithPATCH() {
+    // Create IndicatorType
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorTypes/",
+                """
+            {
+                'name': 'Test Type',
+                'factor': 1
+            }
+            """));
+
+    // Create three indicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 1',
+                'shortName': 'I1',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 2',
+                'shortName': 'I2',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String indicator3Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Indicator 3',
+                'shortName': 'I3',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    // Create IndicatorGroup with initial indicators
+    String groupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Dynamic Group',
+                'indicators': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(indicator1Id, indicator2Id)));
+
+    // Test adding an indicator via PATCH
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/indicatorGroups/" + groupId,
+            "[{'op': 'add', 'path': '/indicators/-', 'value': { 'id': '"
+                + indicator3Id
+                + "' } }]"));
+
+    // Verify all three indicators are now in the group
+    JsonObject group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
+    assertEquals(3, group.getArray("indicators").size());
+
+    // Test removing an indicator via PATCH remove-by-id
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/indicatorGroups/" + groupId,
+            "[{'op': 'remove-by-id', 'path': '/indicators', 'id': '" + indicator1Id + "'}]"));
+
+    // Verify only two indicators remain
+    group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
+    assertEquals(2, group.getArray("indicators").size());
+
+    // Verify the correct indicators are present
+    JsonArray remainingIndicators = group.getArray("indicators");
+    List<String> remainingIds =
+        List.of(
+            remainingIndicators.getObject(0).getString("id").string(),
+            remainingIndicators.getObject(1).getString("id").string());
+    assertTrue(remainingIds.contains(indicator2Id));
+    assertTrue(remainingIds.contains(indicator3Id));
+    assertFalse(remainingIds.contains(indicator1Id));
+  }
+
+  @Test
+  @DisplayName("Test IndicatorGroupSets with IndicatorGroups and bi-directional relationship")
+  void testCreateIndicatorGroupSetsWithIndicators() {
+    // Create two IndicatorGroups
+    String group1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Group 1',
+                'shortName': 'G1'
+            }
+            """));
+
+    String group2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Group 2',
+                'shortName': 'G2'
+            }
+            """));
+
+    // Create IndicatorGroupSet that includes both groups
+    String groupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Test Group Set',
+                'shortName': 'TGS',
+                'indicatorGroups': [
+                    {'id': '%s'},
+                    {'id': '%s'}
+                ]
+            }
+            """
+                    .formatted(group1Id, group2Id)));
+
+    // Verify the groups are in the group set
+    JsonObject groupSet =
+        GET("/indicatorGroupSets/" + groupSetId).content(HttpStatus.OK).as(JsonObject.class);
+    JsonArray groupsInSet = groupSet.getArray("indicatorGroups");
+    assertNotNull(groupsInSet);
+    assertEquals(2, groupsInSet.size());
+
+    // Verify inverse relationship - groups should reference the group set
+    JsonObject group1 = GET("/indicatorGroups/" + group1Id).content().as(JsonObject.class);
+    JsonArray group1Sets = group1.getArray("groupSets");
+    assertNotNull(group1Sets);
+    assertEquals(1, group1Sets.size());
+    assertEquals(groupSetId, group1Sets.getObject(0).getString("id").string());
+
+    JsonObject group2 = GET("/indicatorGroups/" + group2Id).content().as(JsonObject.class);
+    JsonArray group2Sets = group2.getArray("groupSets");
+    assertNotNull(group2Sets);
+    assertEquals(1, group2Sets.size());
+    assertEquals(groupSetId, group2Sets.getObject(0).getString("id").string());
+  }
+
+  @Test
+  @DisplayName(
+      "Should create IndicatorGroup with Indicators and verify lazy loading of collections")
+  void testIndicatorGroupWithIndicators() {
+    String indicatorTypeId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/indicatorTypes/", "{'name': 'Basic Type', 'factor': 1}"));
+
+    String indicatorId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators/",
+                """
+            {
+                'name': 'Basic Indicator',
+                'shortName': 'BI',
+                'indicatorType': {'id': '%s'},
+                'numerator': '1',
+                'denominator': '1'
+            }
+            """
+                    .formatted(indicatorTypeId)));
+
+    String groupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroups/",
+                """
+            {
+                'name': 'Lazy Test Group',
+                'indicators': [{'id': '%s'}]
+            }
+            """
+                    .formatted(indicatorId)));
+
+    String groupSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicatorGroupSets/",
+                """
+            {
+                'name': 'Lazy Test Group Set',
+                'shortName': 'LTGS',
+                'indicatorGroups': [{'id': '%s'}]
+            }
+            """
+                    .formatted(groupId)));
+
+    JsonObject group = GET("/indicatorGroups/" + groupId).content().as(JsonObject.class);
+
+    // Test members collection accessibility
+    JsonArray indicators = group.getArray("indicators");
+    assertNotNull(indicators);
+    assertEquals(1, indicators.size());
+
+    // Test groupSets collection accessibility
+    JsonArray groupSets = group.getArray("groupSets");
+    assertNotNull(groupSets);
+    assertEquals(1, groupSets.size());
+
+    // Verify the relationships persist correctly
+    assertEquals(indicatorId, indicators.getObject(0).getString("id").string());
+    assertEquals(groupSetId, groupSets.getObject(0).getString("id").string());
   }
 }

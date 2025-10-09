@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.common;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import java.io.Serializable;
@@ -42,7 +41,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
@@ -61,10 +59,7 @@ import org.hisp.dhis.translation.Translation;
 @AllArgsConstructor
 public class TranslationProperty implements Serializable {
 
-  @Column
-  @Type(
-      type = "jblTranslations",
-      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
+  @Type(type = "jblTranslations")
   private Set<Translation> translations = new HashSet<>();
 
   /**
@@ -143,6 +138,7 @@ public class TranslationProperty implements Serializable {
    *     of Translation.
    * @return Set of Translation.
    */
+  @SuppressWarnings("unchecked")
   public static Set<Translation> fromObject(Object translations) {
     if (translations == null) {
       return Set.of();

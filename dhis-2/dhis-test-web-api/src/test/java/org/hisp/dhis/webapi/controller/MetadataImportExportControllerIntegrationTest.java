@@ -41,6 +41,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +95,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals("OK", initialImport.getStatus());
-    assertEquals(13, initialImport.getStats().getCreated());
+    assertEquals(14, initialImport.getStats().getCreated());
 
     // When importing the existing CategoryCombo with an additional Category
     // Then the import should succeed with the expected message & stats
@@ -119,7 +120,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals("OK", initialImport.getStatus());
-    assertEquals(13, initialImport.getStats().getCreated());
+    assertEquals(14, initialImport.getStats().getCreated());
 
     User currentUser = getCurrentUser();
 
@@ -162,7 +163,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals("OK", initialImport.getStatus());
-    assertEquals(13, initialImport.getStats().getCreated());
+    assertEquals(14, initialImport.getStats().getCreated());
 
     User currentUser = getCurrentUser();
 
@@ -177,12 +178,27 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     // Then the import should succeed with the expected message & stats
     JsonImportSummary updateImport =
         POST("/metadata", Body(metadataImport()))
-            .content(HttpStatus.OK)
+            .content()
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals("OK", updateImport.getStatus());
-    assertEquals(13, updateImport.getStats().getUpdated());
+    assertEquals(14, updateImport.getStats().getUpdated());
     assertEquals(0, updateImport.getStats().getIgnored());
+  }
+
+  @Test
+  @DisplayName("Importing a new CategoryCombo with no Categories succeeds")
+  void importNewCategoryComboNoCategoriesTest() {
+    // When importing a new Category Combo with no Categories
+    JsonImportSummary importSummary =
+        POST("/metadata", Body(getCatComboWithoutCategory()))
+            .content()
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // Then it shows as success & created
+    assertEquals("OK", importSummary.getStatus());
+    assertEquals(1, importSummary.getStats().getCreated());
   }
 
   private String updateUserOrgUnit(String orgUnit) {
@@ -216,6 +232,7 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
       """;
   }
 
+  @Language("JSON")
   private String metadataImport() {
     return """
       {
@@ -234,8 +251,19 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
                   "domainType": "AGGREGATE",
                   "name": "test de 1 - central v1",
                   "shortName": "test de 1 - central v1",
-                  "valueType": "TEXT"
+                  "valueType": "TEXT",
+                  "categoryCombo": {"id": "CatComUid01"}
               }
+          ],
+          "dataSets": [
+            {
+              "id": "DsUid000001",
+              "name": "MyDS1",
+              "shortName": "DS1",
+              "periodType": "Daily",
+              "dataSetElements": [{ "dataElement": { "id": "DeUid000001" }}],
+              "organisationUnits": [{"id": "OrgUnitUid1"}]
+            }
           ],
            "categoryOptions": [
                {
@@ -416,5 +444,20 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
           ]
       }
       """;
+  }
+
+  private String getCatComboWithoutCategory() {
+    return """
+          {
+            "categoryCombos": [
+               {
+                 "id": "CatComUid11",
+                 "name": "cat combo 11",
+                 "dataDimensionType": "DISAGGREGATION",
+                 "categories": []
+               }
+             ]
+          }
+          """;
   }
 }

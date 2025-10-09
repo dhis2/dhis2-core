@@ -254,7 +254,9 @@ public interface JobProgress {
    */
   @Nonnull
   default <T> T nonNullStagePostCondition(@CheckForNull T value) throws CancellationException {
-    if (value == null) throw new CancellationException("Post-condition was null");
+    if (value == null) {
+      throw new CancellationException("Post-condition was null");
+    }
     return value;
   }
 
@@ -535,6 +537,42 @@ public interface JobProgress {
     }
   }
 
+  default <T, E extends Exception> T runStageAndRethrow(
+      @Nonnull Class<E> exception, @Nonnull Callable<T> work) throws E {
+    return runStageAndRethrow(exception, null, work);
+  }
+
+  /**
+   * @since 2.43
+   * @param exception the specific exception that should be re-thrown after recording the stage as
+   *     failed
+   * @param summary used when stage completes successfully (return value to summary)
+   * @param work work for the entire stage
+   * @return the value returned by work task when successful or null in case an exception was thrown
+   *     that is not an instance of the #exception. Note that any exception will always fail the
+   *     stage.
+   * @throws E the type of exception that is re-thrown rather than returning null
+   */
+  @CheckForNull
+  @SuppressWarnings("unchecked")
+  default <T, E extends Exception> T runStageAndRethrow(
+      @Nonnull Class<E> exception,
+      @CheckForNull Function<T, String> summary,
+      @Nonnull Callable<T> work)
+      throws E {
+    try {
+      T res = work.call();
+      completedStage(summary == null ? null : summary.apply(res));
+      return res;
+    } catch (Exception ex) {
+      failedStage(ex);
+      if (exception.isInstance(ex)) {
+        throw (E) ex;
+      }
+      return null;
+    }
+  }
+
   /**
    * Runs the work items of a stage with the given parallelism. At most a parallelism equal to the
    * number of available processor cores is used.
@@ -613,7 +651,8 @@ public interface JobProgress {
   }
 
   /**
-   * Returns a formatted string, or null if the given format is null.
+   * Returns a formatted string using <code>{}</code> as variable markers, or null if the given
+   * format is null.
    *
    * @param pattern the pattern string.
    * @param args the pattern arguments.

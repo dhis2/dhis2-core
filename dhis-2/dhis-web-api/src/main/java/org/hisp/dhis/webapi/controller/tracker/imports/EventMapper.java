@@ -44,7 +44,8 @@ import org.mapstruct.Mapping;
       InstantMapper.class,
       MetadataIdentifierMapper.class
     })
-interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.imports.domain.Event> {
+interface EventMapper
+    extends DomainMapper<Event, org.hisp.dhis.tracker.imports.domain.TrackerEvent> {
   @Override
   @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
   @Mapping(

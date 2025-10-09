@@ -22,7 +22,7 @@
     <!-- uid=65532(nonroot) gid=65532(nonroot) present in the Distroless image -->
     <jib.container.user>65532</jib.container.user>
     <jib.container.appRoot>/app</jib.container.appRoot>
-    <spring-boot-maven-plugin.version>3.5.3</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>3.5.6</spring-boot-maven-plugin.version>
     <packaging.type>war</packaging.type>
   </properties>
 
