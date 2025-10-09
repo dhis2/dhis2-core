@@ -298,7 +298,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
 
     return compulsory;
   }
-  
+
   @Gist(included = Include.FALSE)
   @Override
   @Sortable(value = false)
@@ -435,35 +435,25 @@ public class IndicatorGroupSet extends BaseMetadataObject
   // Not Supported
   // -------------------------------------------------------------------------
 
-  /**
-   * Attributes are not supported.
-   */
+  /** Attributes are not supported. */
   @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
-  /**
-   * Attributes are not supported.
-   */
+  /** Attributes are not supported. */
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {}
 
-  /**
-   * Attributes are not supported.
-   */
+  /** Attributes are not supported. */
   @Override
   public void addAttributeValue(String attributeId, String value) {}
 
-  /**
-   * Attributes are not supported.
-   */
+  /** Attributes are not supported. */
   @Override
   public void removeAttributeValue(String attributeId) {}
 
-  /**
-   * Attributes are not supported.
-   */
+  /** Attributes are not supported. */
   @JsonIgnore
   public String getAttributeValue(String attributeUid) {
     return null;
