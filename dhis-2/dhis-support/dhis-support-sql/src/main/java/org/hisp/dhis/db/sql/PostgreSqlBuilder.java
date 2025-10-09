@@ -211,6 +211,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return true;
   }
 
+  @Override
+  public boolean supportsPercentileCont() {
+    return true;
+  }
+
   // Utilities
 
   @Override
