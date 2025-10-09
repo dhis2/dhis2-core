@@ -206,7 +206,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Download latest run's data for current branch:**" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download \\\$(gh run list --workflow=\"Performance tests\" --branch=\"\\\$(git branch --show-current)\" --limit=1 --json databaseId --jq '.[0].databaseId')" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download \$(gh run list --workflow=\"Performance tests\" --branch=\"\$(git branch --show-current)\" --limit=1 --json databaseId --jq '.[0].databaseId')" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
