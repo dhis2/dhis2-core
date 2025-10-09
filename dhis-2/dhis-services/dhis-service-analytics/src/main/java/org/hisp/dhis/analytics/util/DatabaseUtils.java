@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,52 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.scheduling;
+package org.hisp.dhis.analytics.util;
 
-import java.util.Date;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.util.DatabaseUtils;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
 
-/**
- * Job for full analytics table update.
- *
- * @author Lars Helge Overland
- */
+/** Utility class for database-related checks. */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsTableJob implements Job {
-  private final AnalyticsTableGenerator analyticsTableGenerator;
-  private final DatabaseUtils databaseUtils;
+public class DatabaseUtils {
+  private final DhisConfigurationProvider config;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.ANALYTICS_TABLE;
+  /**
+   * Checks if the current analytics database supports outlier detection.
+   *
+   * @return true if the database supports outliers, false otherwise
+   */
+  public boolean supportsOutliers() {
+    return isPostgres();
   }
 
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    AnalyticsJobParameters parameters =
-        (AnalyticsJobParameters) jobConfiguration.getJobParameters();
-
-    AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .lastYears(parameters.getLastYears())
-            .skipResourceTables(parameters.isSkipResourceTables())
-            .skipOutliers(parameters.isSkipOutliers() || !databaseUtils.supportsOutliers())
-            .skipTableTypes(parameters.getSkipTableTypes())
-            .skipPrograms(parameters.getSkipPrograms())
-            .jobId(jobConfiguration)
-            .startTime(new Date())
-            .build();
-
-    analyticsTableGenerator.generateAnalyticsTables(params, progress);
+  /**
+   * Determines if the configured analytics database is PostgreSQL.
+   *
+   * @return true if the database is PostgreSQL, false otherwise
+   */
+  private boolean isPostgres() {
+    String analyticsDatabase = config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim();
+    return !("doris".equalsIgnoreCase(analyticsDatabase)
+        || "clickhouse".equalsIgnoreCase(analyticsDatabase));
   }
 }
