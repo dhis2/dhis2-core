@@ -53,7 +53,7 @@ jobs:
           cache: maven
 
       - name: Codeql-init
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: java
           config-file: ./.github/codeql/codeql-config.yml
@@ -62,4 +62,4 @@ jobs:
         run: mvn clean install -f ./dhis-2/pom.xml --batch-mode --no-transfer-progress --update-snapshots -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4

@@ -65,6 +65,9 @@ public class AnalyticsTableUpdateParams {
   /** Indicates whether to skip update of analytics tables, outliers stats columns. */
   private final boolean skipOutliers;
 
+  /** Indicates whether to refresh the period resource table before analytics table update. */
+  private final boolean refreshPeriodResourceTable;
+
   /** Analytics table types to skip. */
   @Builder.Default private final Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
@@ -138,6 +141,7 @@ public class AnalyticsTableUpdateParams {
     return MoreObjects.toStringHelper(this)
         .add("last years", lastYears)
         .add("skip resource tables", skipResourceTables)
+        .add("refresh period resource table", refreshPeriodResourceTable)
         .add("skip table types", skipTableTypes)
         .add("skip programs", skipPrograms)
         .add("skip outliers statistics", skipOutliers)
@@ -178,6 +182,9 @@ public class AnalyticsTableUpdateParams {
   }
 
   public AnalyticsTableUpdateParams withLatestPartition() {
-    return this.toBuilder().lastYears(AnalyticsTablePartition.LATEST_PARTITION).build();
+    return this.toBuilder()
+        .lastYears(AnalyticsTablePartition.LATEST_PARTITION)
+        .refreshPeriodResourceTable(true)
+        .build();
   }
 }
