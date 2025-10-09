@@ -31,10 +31,27 @@ package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import org.hibernate.annotations.Type;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -43,49 +60,99 @@ import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.SoftDeletable;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.common.IdScheme;
 import org.locationtech.jts.geom.Geometry;
+import lombok.Setter;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
 @JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
-public class TrackedEntity extends SoftDeletableObject {
+@Setter
+@Entity
+@Table(name = "trackedentity")
+public class TrackedEntity extends BaseMetadataObject implements IdentifiableObject, SoftDeletable {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @SequenceGenerator(sequenceName = "trackedentityinstance_sequence")
+  @Column(name = "trackedentityid")
+  private long id;
+
+  /** Indicates whether the object is soft deleted. */
+  @AuditAttribute
+  @Column(name = "deleted")
+  private boolean deleted = false;
+  
+  @Column(name = "createdatclient")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date createdAtClient;
 
+  @Column(name = "lastupdatedatclient")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdatedAtClient;
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new LinkedHashSet<>();
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<Enrollment> enrollments = new HashSet<>();
 
+  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
+  @Column(name = "potentialDuplicate")
   private boolean potentialDuplicate;
 
-  @AuditAttribute private OrganisationUnit organisationUnit;
+  @AuditAttribute
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "organisationunitid", foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"))
+  private OrganisationUnit organisationUnit;
 
-  @AuditAttribute private TrackedEntityType trackedEntityType;
+  @AuditAttribute
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "trackedentitytypeid", foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"))
+  private TrackedEntityType trackedEntityType;
 
-  @AuditAttribute private boolean inactive;
+  @AuditAttribute
+  @Column(name = "inactive")
+  private boolean inactive;
 
+  @Column(name = "geometry")
   private Geometry geometry;
 
+  @Column(name = "lastsynchronized")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastSynchronized = new Date(0);
 
+  @Column(name = "storedby", length = 255)
   private String storedBy;
 
+  @Type(type = "jbUserInfoSnapshot")
+  @Column(name = "createdbyuserinfo")
   private UserInfoSnapshot createdByUserInfo;
 
+  @Type(type = "jbUserInfoSnapshot")
+  @Column(name = "lastupdatedbyuserinfo")
   private UserInfoSnapshot lastUpdatedByUserInfo;
 
   // -------------------------------------------------------------------------
@@ -95,16 +162,13 @@ public class TrackedEntity extends SoftDeletableObject {
   public TrackedEntity() {}
 
   @Override
-  public void setAutoFields() {
-    super.setAutoFields();
+  public boolean isDeleted() {
+    return deleted;
+  }
 
-    if (createdAtClient == null) {
-      createdAtClient = created;
-    }
-
-    if (lastUpdatedAtClient == null) {
-      lastUpdatedAtClient = lastUpdated;
-    }
+  @Override
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
   }
 
   // -------------------------------------------------------------------------
@@ -125,15 +189,13 @@ public class TrackedEntity extends SoftDeletableObject {
   // Getters and setters
   // -------------------------------------------------------------------------
 
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isPotentialDuplicate() {
     return potentialDuplicate;
   }
 
-  public void setPotentialDuplicate(boolean potentialDuplicate) {
-    this.potentialDuplicate = potentialDuplicate;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -141,9 +203,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return createdAtClient;
   }
 
-  public void setCreatedAtClient(Date createdAtClient) {
-    this.createdAtClient = createdAtClient;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -151,9 +210,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return lastUpdatedAtClient;
   }
 
-  public void setLastUpdatedAtClient(Date lastUpdatedAtClient) {
-    this.lastUpdatedAtClient = lastUpdatedAtClient;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -161,9 +217,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return storedBy;
   }
 
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -172,9 +225,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return organisationUnit;
   }
 
-  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-  }
 
   @JsonProperty("trackedEntityAttributeValues")
   @JacksonXmlElementWrapper(
@@ -185,22 +235,13 @@ public class TrackedEntity extends SoftDeletableObject {
     return trackedEntityAttributeValues;
   }
 
-  public void setTrackedEntityAttributeValues(
-      Set<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    this.trackedEntityAttributeValues = trackedEntityAttributeValues;
-  }
-
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "enrollments", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
   public Set<Enrollment> getEnrollments() {
     return enrollments;
   }
-
-  public void setEnrollments(Set<Enrollment> enrollments) {
-    this.enrollments = enrollments;
-  }
-
+  
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
@@ -208,9 +249,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return programOwners;
   }
 
-  public void setProgramOwners(Set<TrackedEntityProgramOwner> programOwners) {
-    this.programOwners = programOwners;
-  }
 
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
@@ -219,9 +257,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return trackedEntityType;
   }
 
-  public void setTrackedEntityType(TrackedEntityType trackedEntityType) {
-    this.trackedEntityType = trackedEntityType;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
@@ -229,18 +264,12 @@ public class TrackedEntity extends SoftDeletableObject {
     return inactive;
   }
 
-  public void setInactive(boolean inactive) {
-    this.inactive = inactive;
-  }
 
   @JsonIgnore
   public Date getLastSynchronized() {
     return lastSynchronized;
   }
 
-  public void setLastSynchronized(Date lastSynchronized) {
-    this.lastSynchronized = lastSynchronized;
-  }
 
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
@@ -249,9 +278,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return relationshipItems;
   }
 
-  public void setRelationshipItems(Set<RelationshipItem> relationshipItems) {
-    this.relationshipItems = relationshipItems;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -259,9 +285,6 @@ public class TrackedEntity extends SoftDeletableObject {
     return geometry;
   }
 
-  public void setGeometry(Geometry geometry) {
-    this.geometry = geometry;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -269,18 +292,11 @@ public class TrackedEntity extends SoftDeletableObject {
     return createdByUserInfo;
   }
 
-  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
-    this.createdByUserInfo = createdByUserInfo;
-  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public UserInfoSnapshot getLastUpdatedByUserInfo() {
     return lastUpdatedByUserInfo;
-  }
-
-  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
-    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
   }
 
   @Override
@@ -290,9 +306,6 @@ public class TrackedEntity extends SoftDeletableObject {
         + id
         + ", uid='"
         + uid
-        + '\''
-        + ", name='"
-        + name
         + '\''
         + ", organisationUnit="
         + organisationUnit
@@ -305,5 +318,179 @@ public class TrackedEntity extends SoftDeletableObject {
         + ", lastSynchronized="
         + lastSynchronized
         + '}';
+  }
+  
+  // -------------------------------------------------------------------------
+  // Not supported methods
+  // -------------------------------------------------------------------------
+  
+  @Override
+  public Set<Translation> getTranslations() {
+    return Set.of();
+  }
+  
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    // not supported
+  }
+  
+  // implement all missing methods from interfaces with empty bodies
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public String getCode() {
+    return null;
+  }
+
+  @Override
+  public void setCode(String code) {
+    // not supported
+  }
+
+  @Override
+  public String getName() {
+    return null;
+  }
+
+  @Override
+  public void setName(String name) {
+    // not supported
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
+  public Date getCreated() {
+    return null;
+  }
+
+  @Override
+  public void setCreated(Date created) {
+    // not supported
+  }
+
+  @Override
+  public Date getLastUpdated() {
+    return null;
+  }
+
+  @Override
+  public void setLastUpdated(Date lastUpdated) {
+    // not supported
+  }
+
+  @Override
+  public User getLastUpdatedBy() {
+    return null;
+  }
+
+  @Override
+  public void setLastUpdatedBy(User user) {
+    // not supported
+  }
+
+  @Override
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // not supported
+  }
+
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {
+    // not supported
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    // not supported
+  }
+
+  @Override
+  public User getCreatedBy() {
+    return null;
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {
+    // not supported
+  }
+
+  @Override
+  public User getUser() {
+    return getCreatedBy();
+  }
+
+  @Override
+  public void setUser(User user) {
+    // not supported
+  }
+
+  @Override
+  public Access getAccess() {
+    return null;
+  }
+
+  @Override
+  public void setAccess(Access access) {
+    // not supported
+  }
+
+  @Override
+  public Sharing getSharing() {
+    return new Sharing();
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    // not supported
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    }
+    if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getUid();
+    } else if (idScheme.is(IdScheme.ID) || idScheme.is(IdScheme.DATABASE_ID)) {
+      return String.valueOf(getId());
+    }
+
+    return null;
+  }
+
+  @Override
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Override
+  public void setUid(String uid) {
+    // not supported
+  }
+
+  @Override
+  public void setOwner(String owner) {
+    // not supported
   }
 }
