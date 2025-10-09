@@ -90,7 +90,9 @@ public class AnalyticsDatabaseInit {
       case CLICKHOUSE -> initClickHouse();
     }
 
-    log.info("Initialized analytics database: '{}'", database);
+    String url = settings.getAnalyticsConnectionUrl();
+
+    log.info("Analytics database initialized: '{}', connection URL: '{}'", database, url);
   }
 
   /** Work for initializing a PostgreSQL analytics database. */
