@@ -138,7 +138,7 @@ class SingleEventOperationParamsMapperTest {
     testUser.setOrganisationUnits(Set.of(orgUnit));
     user = UserDetails.fromUser(testUser);
 
-    eventBuilder = SingleEventOperationParams.builder();
+    eventBuilder = SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"));
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
