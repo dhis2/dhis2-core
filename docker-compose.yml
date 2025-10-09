@@ -1,3 +1,5 @@
+# DO NOT use this Docker Compose file in production! Use the production-ready Docker Compose deployment - https://github.com/dhis2/docker-deployment
+
 x-web-base: &web-base
   image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
   volumes:

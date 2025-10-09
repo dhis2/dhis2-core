@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.common.TableInfoReader;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -73,6 +74,8 @@ public class ContinuousAnalyticsTableJob implements Job {
 
   private final TableInfoReader tableInfoReader;
 
+  private final SqlBuilder sqlBuilder;
+
   @Override
   public JobType getJobType() {
     return JobType.CONTINUOUS_ANALYTICS_TABLE;
@@ -102,7 +105,7 @@ public class ContinuousAnalyticsTableJob implements Job {
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
               .skipResourceTables(false)
-              .skipOutliers(parameters.getSkipOutliers())
+              .skipOutliers(parameters.getSkipOutliers() || !sqlBuilder.supportsPercentileCont())
               .skipTableTypes(parameters.getSkipTableTypes())
               .jobId(jobConfiguration)
               .startTime(startTime)
@@ -121,7 +124,7 @@ public class ContinuousAnalyticsTableJob implements Job {
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
               .skipResourceTables(true)
-              .skipOutliers(parameters.getSkipOutliers())
+              .skipOutliers(parameters.getSkipOutliers() || sqlBuilder.supportsPercentileCont())
               .skipTableTypes(parameters.getSkipTableTypes())
               .jobId(jobConfiguration)
               .startTime(startTime)

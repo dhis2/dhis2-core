@@ -53,6 +53,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
@@ -109,6 +110,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
   private ProgramStage programStage;
 
+  private Program eventProgram;
+
   private TrackedEntityType trackedEntityType;
 
   private TrackerEventOperationParams.TrackerEventOperationParamsBuilder
@@ -130,6 +133,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     singleEventOrgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
+    eventProgram = get(Program.class, "iS7eutanDry");
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
 
     manager.flush();
@@ -144,7 +148,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     trackerEventOperationParamsBuilder =
         TrackerEventOperationParams.builder().orgUnitMode(SELECTED);
-    singleEventOperationParamsBuilder = SingleEventOperationParams.builder().orgUnitMode(SELECTED);
+    singleEventOperationParamsBuilder =
+        SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -1328,61 +1333,6 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
         singleEventOperationParamsBuilder
             .events(UID.of("QRYjLTiJTrA", "lumVtWwwy0O"))
             .orgUnit(singleEventOrgUnit)
-            .build();
-
-    List<String> events = getSingleEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderSingleEventsByEnrollmentProgramUIDAsc()
-      throws ForbiddenException, BadRequestException {
-    SingleEvent ck7DzdxqLqA =
-        get(SingleEvent.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
-    SingleEvent g9PbzJY8bJG =
-        get(SingleEvent.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
-    List<String> expected =
-        new java.util.ArrayList<>(
-            Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
-                .sorted(
-                    Comparator.comparing(event -> event.getProgramStage().getProgram().getUid()))
-                .map(SingleEvent::getUid)
-                .toList());
-
-    SingleEventOperationParams params =
-        singleEventOperationParamsBuilder
-            .orgUnitMode(ACCESSIBLE)
-            .events(UID.of("G9PbzJY8bJG", "ck7DzdxqLqA"))
-            .orderBy("enrollment.program.uid", SortDirection.ASC)
-            .build();
-
-    List<String> events = getSingleEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderSingleEventsByEnrollmentProgramUIDDesc()
-      throws ForbiddenException, BadRequestException {
-    SingleEvent ck7DzdxqLqA =
-        get(SingleEvent.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
-    SingleEvent g9PbzJY8bJG =
-        get(SingleEvent.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
-    List<String> expected =
-        new java.util.ArrayList<>(
-            Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
-                .sorted(
-                    Comparator.comparing(event -> event.getProgramStage().getProgram().getUid()))
-                .map(SingleEvent::getUid)
-                .toList());
-    Collections.reverse(expected);
-
-    SingleEventOperationParams params =
-        singleEventOperationParamsBuilder
-            .orgUnitMode(ACCESSIBLE)
-            .events(UID.of("ck7DzdxqLqA", "G9PbzJY8bJG"))
-            .orderBy("enrollment.program.uid", SortDirection.DESC)
             .build();
 
     List<String> events = getSingleEvents(params);

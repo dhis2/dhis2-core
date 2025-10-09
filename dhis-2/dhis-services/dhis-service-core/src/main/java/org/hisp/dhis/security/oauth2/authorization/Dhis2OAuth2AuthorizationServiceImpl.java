@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.security.oauth2.authorization;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,9 +40,15 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -54,10 +59,12 @@ import org.springframework.security.oauth2.core.OAuth2UserCode;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.stereotype.Service;
@@ -68,6 +75,8 @@ import org.springframework.util.StringUtils;
 /**
  * DHIS2 implementation of Spring Authorization Server's OAuth2AuthorizationService that uses
  * HibernateOAuth2AuthorizationStore for persistence.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
@@ -75,6 +84,8 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     implements Dhis2OAuth2AuthorizationService, OAuth2AuthorizationService {
   private final Dhis2OAuth2AuthorizationStore authorizationStore;
   private final Dhis2OAuth2ClientService clientRepository;
+
+  private final UserService userService;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final String UUID_REGEX =
@@ -82,11 +93,15 @@ public class Dhis2OAuth2AuthorizationServiceImpl
   private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
 
   public Dhis2OAuth2AuthorizationServiceImpl(
-      Dhis2OAuth2AuthorizationStore authorizationStore, Dhis2OAuth2ClientService clientRepository) {
+      Dhis2OAuth2AuthorizationStore authorizationStore,
+      Dhis2OAuth2ClientService clientRepository,
+      UserService userService) {
     Assert.notNull(authorizationStore, "authorizationStore cannot be null");
     Assert.notNull(clientRepository, "clientRepository cannot be null");
+    Assert.notNull(userService, "userService cannot be null");
     this.authorizationStore = authorizationStore;
     this.clientRepository = clientRepository;
+    this.userService = userService;
 
     // Configure Jackson mapper with required modules
     ClassLoader classLoader = Dhis2OAuth2AuthorizationServiceImpl.class.getClassLoader();
@@ -97,12 +112,6 @@ public class Dhis2OAuth2AuthorizationServiceImpl
 
     this.objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
-
-  @JsonTypeInfo(
-      use = JsonTypeInfo.Id.CLASS,
-      include = JsonTypeInfo.As.PROPERTY,
-      property = "@class")
-  public abstract static class SynchronizedSetMixin {}
 
   @Transactional
   @Override
@@ -117,7 +126,23 @@ public class Dhis2OAuth2AuthorizationServiceImpl
       this.authorizationStore.merge(entity, new SystemUser());
     } else {
       log.info("Creating new authorization with id: " + authorization.getId());
-      this.authorizationStore.save(entity);
+
+      Authentication authentication = CurrentUserUtil.getAuthentication();
+      if (authentication.getPrincipal() instanceof Jwt jwt) {
+        String username = jwt.getClaimAsString("sub");
+        User user = userService.getUserByUsername(username);
+        UserDetails userDetails = UserDetails.fromUserDontLoadOrgUnits(user);
+        this.authorizationStore.save(entity, userDetails, true);
+      } else if (authentication instanceof OAuth2ClientAuthenticationToken clientAuth) {
+        String clientId = (String) clientAuth.getPrincipal();
+        Dhis2OAuth2Client registeredClient =
+            this.clientRepository.getAsDhis2OAuth2ClientByClientId(clientId);
+        User owner = registeredClient.getCreatedBy();
+        UserDetails entityUserDetails = UserDetails.fromUserDontLoadOrgUnits(owner);
+        this.authorizationStore.save(entity, entityUserDetails, true);
+      } else {
+        this.authorizationStore.save(entity);
+      }
     }
   }
 
