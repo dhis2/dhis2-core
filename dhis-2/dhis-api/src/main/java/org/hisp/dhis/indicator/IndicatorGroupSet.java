@@ -108,7 +108,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
   @Column(nullable = false, unique = false, length = 230)
   private String name;
 
-  @Column(name = "shortname", nullable = false, unique = true, length = 50)
+  @Column(nullable = false, unique = true, length = 50)
   private String shortName;
 
   @Column(columnDefinition = "text")
@@ -266,11 +266,27 @@ public class IndicatorGroupSet extends BaseMetadataObject
     return shortName;
   }
 
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORT_NAME")
+  public String getDisplayShortName() {
+    return translations.getTranslation("SHORT_NAME", getShortName());
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
   public String getDescription() {
     return description;
+  }
+
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return translations.getTranslation("DESCRIPTION", getDescription());
   }
 
   @JsonProperty
@@ -282,11 +298,7 @@ public class IndicatorGroupSet extends BaseMetadataObject
 
     return compulsory;
   }
-
-  public void setCompulsory(Boolean compulsory) {
-    this.compulsory = compulsory;
-  }
-
+  
   @Gist(included = Include.FALSE)
   @Override
   @Sortable(value = false)
@@ -325,7 +337,6 @@ public class IndicatorGroupSet extends BaseMetadataObject
 
   @Override
   public void setUser(User user) {
-    // TODO remove this after implementing functions for using Owner
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
@@ -423,19 +434,36 @@ public class IndicatorGroupSet extends BaseMetadataObject
   // -------------------------------------------------------------------------
   // Not Supported
   // -------------------------------------------------------------------------
+
+  /**
+   * Attributes are not supported.
+   */
+  @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
+  /**
+   * Attributes are not supported.
+   */
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {}
 
+  /**
+   * Attributes are not supported.
+   */
   @Override
   public void addAttributeValue(String attributeId, String value) {}
 
+  /**
+   * Attributes are not supported.
+   */
   @Override
   public void removeAttributeValue(String attributeId) {}
 
+  /**
+   * Attributes are not supported.
+   */
   @JsonIgnore
   public String getAttributeValue(String attributeUid) {
     return null;
