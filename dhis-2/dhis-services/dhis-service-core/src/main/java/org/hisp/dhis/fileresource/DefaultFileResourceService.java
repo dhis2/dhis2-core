@@ -411,10 +411,10 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<FileResource> getExpiredFileResources(
+  public List<FileResource> getExpiredDataValueFileResources(
       FileResourceRetentionStrategy retentionStrategy) {
     DateTime expires = DateTime.now().minus(retentionStrategy.getRetentionTime());
-    return fileResourceStore.getExpiredFileResources(expires);
+    return fileResourceStore.getExpiredDataValueFileResources(expires);
   }
 
   @Override

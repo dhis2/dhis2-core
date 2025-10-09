@@ -70,18 +70,17 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<FileResource> getExpiredFileResources(DateTime expires) {
+  public List<FileResource> getExpiredDataValueFileResources(DateTime expires) {
     String sql =
         """
         select fr.*
         from fileresource fr
-        inner join (select dva.value
-        from datavalueaudit dva
-        where dva.created < :date
-        and dva.audittype in ('DELETE', 'UPDATE')
-        and dva.dataelementid in
-        (select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva
-        on dva.value = fr.uid
+        inner join (select dv.value
+        from datavalue dv
+        where dv.created < :date
+        and dv.dataelementid in
+        (select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dv
+        on dv.value = fr.uid
         where fr.isassigned = true;
         """;
     return nativeSynchronizedTypedQuery(sql).setParameter("date", expires.toDate()).getResultList();

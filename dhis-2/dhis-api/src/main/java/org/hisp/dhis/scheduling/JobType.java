@@ -119,7 +119,7 @@ public enum JobType {
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
-  FILE_RESOURCE_CLEANUP(daily2am("pd6O228pqr0", "File resource clean up")),
+  FILE_RESOURCE_CLEANUP(every(20, "pd6O228pqr0", "File resource clean up")),
   ACCOUNT_EXPIRY_ALERT(daily2am("fUWM1At1TUx", "User account expiry alert")),
   VALIDATION_RESULTS_NOTIFICATION(daily7am("Js3vHn2AVuG", "Validation result notification")),
   REMOVE_USED_OR_EXPIRED_RESERVED_VALUES(

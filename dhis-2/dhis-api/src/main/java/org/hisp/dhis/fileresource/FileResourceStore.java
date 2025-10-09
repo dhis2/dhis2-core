@@ -37,7 +37,7 @@ import org.hisp.dhis.datavalue.DataValueKey;
 import org.joda.time.DateTime;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource> {
-  List<FileResource> getExpiredFileResources(DateTime expires);
+  List<FileResource> getExpiredDataValueFileResources(DateTime expires);
 
   List<FileResource> getAllUnProcessedImages();
 

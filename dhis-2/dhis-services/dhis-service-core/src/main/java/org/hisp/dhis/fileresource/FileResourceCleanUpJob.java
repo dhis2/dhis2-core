@@ -79,9 +79,11 @@ public class FileResourceCleanUpJob implements Job {
     List<Entry<String, String>> deletedExpired = new ArrayList<>();
     List<Entry<String, String>> deletedFileResourcesForDeletedJobs = new ArrayList<>();
 
-    // Delete expired FRs
+    // Delete expired DV FRs
     if (!FileResourceRetentionStrategy.FOREVER.equals(retentionStrategy)) {
-      List<FileResource> expired = fileResourceService.getExpiredFileResources(retentionStrategy);
+      List<FileResource> expired =
+          fileResourceService.getExpiredDataValueFileResources(retentionStrategy);
+      System.out.println("DV FR expired: " + expired.size());
       progress.startingStage("Deleting expired file resources", expired.size(), SKIP_ITEM_OUTLIER);
       progress.runStage(
           expired,
@@ -125,27 +127,21 @@ public class FileResourceCleanUpJob implements Job {
           }
         });
 
-    if (!deletedOrphans.isEmpty()) {
       log.info(
           String.format(
               "Deleted %d orphaned FileResources: %s",
               deletedOrphans.size(), prettyPrint(deletedOrphans)));
-    }
 
-    if (!deletedExpired.isEmpty()) {
       log.info(
           String.format(
               "Deleted %d expired data value FileResources: %s",
               deletedExpired.size(), prettyPrint(deletedExpired)));
-    }
 
-    if (!deletedFileResourcesForDeletedJobs.isEmpty()) {
       log.info(
           String.format(
               "Deleted %d FileResource(s) for deleted jobs : %s",
               deletedFileResourcesForDeletedJobs.size(),
               prettyPrint(deletedFileResourcesForDeletedJobs)));
-    }
     progress.completedProcess(null);
     log.info("Finished FileResourceCleanUpJob");
   }
