@@ -69,15 +69,15 @@ class CurrentUserUtilTest extends H2ControllerIntegrationTestBase {
   void testCurrentUserDetailsThrowsException() {
     clearSecurityContext();
     RuntimeException exception =
-        assertThrows(RuntimeException.class, () -> CurrentUserUtil.getCurrentUserDetails());
-    assertEquals("No authenticated user found", exception.getMessage());
+        assertThrows(RuntimeException.class, CurrentUserUtil::getCurrentUserDetails);
+    assertEquals("No authentication found", exception.getMessage());
   }
 
   @Test
   void testCurrentUsernameThrowsException() {
     clearSecurityContext();
     RuntimeException exception =
-        assertThrows(RuntimeException.class, () -> CurrentUserUtil.getCurrentUsername());
-    assertEquals("No authenticated user found", exception.getMessage());
+        assertThrows(RuntimeException.class, CurrentUserUtil::getCurrentUsername);
+    assertEquals("No authentication found", exception.getMessage());
   }
 }

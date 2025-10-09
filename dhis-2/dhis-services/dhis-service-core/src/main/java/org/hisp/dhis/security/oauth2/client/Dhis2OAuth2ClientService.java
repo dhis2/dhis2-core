@@ -31,9 +31,15 @@ package org.hisp.dhis.security.oauth2.client;
 
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
+/**
+ * Service for managing OAuth2 clients in DHIS2.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public interface Dhis2OAuth2ClientService {
   void save(RegisteredClient registeredClient);
 
@@ -43,12 +49,36 @@ public interface Dhis2OAuth2ClientService {
 
   RegisteredClient findById(String id);
 
+  /*
+   * Returns the RegisteredClient with the given clientId, or null if not found.
+   */
+  @CheckForNull
   RegisteredClient findByClientId(String clientId);
 
+  Dhis2OAuth2Client getAsDhis2OAuth2ClientByClientId(String clientId);
+
+  /**
+   * Converts a DHIS2 OAuth2Client entity to Spring's RegisteredClient domain object.
+   *
+   * @param client The DHIS2 OAuth2Client entity
+   * @return The Spring RegisteredClient
+   */
   RegisteredClient toObject(Dhis2OAuth2Client client);
 
+  /**
+   * Converts Spring's RegisteredClient domain object to a DHIS2 OAuth2Client entity.
+   *
+   * @param registeredClient The Spring RegisteredClient
+   * @return The DHIS2 OAuth2Client entity
+   */
   Dhis2OAuth2Client toEntity(RegisteredClient registeredClient);
 
+  /**
+   * Converts a Map to a JSON string.
+   *
+   * @param data The Map to convert
+   * @return The JSON string
+   */
   String writeMap(Map<String, Object> data);
 
   List<Dhis2OAuth2Client> getAll();
