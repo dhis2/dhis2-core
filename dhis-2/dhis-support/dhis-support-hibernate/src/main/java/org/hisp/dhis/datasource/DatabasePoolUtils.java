@@ -32,7 +32,6 @@ package org.hisp.dhis.datasource;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_RETRY_ATTEMPTS;
@@ -111,7 +110,6 @@ public final class DatabasePoolUtils {
             .put(CONNECTION_URL, ANALYTICS_CONNECTION_URL)
             .put(CONNECTION_USERNAME, ANALYTICS_CONNECTION_USERNAME)
             .put(CONNECTION_PASSWORD, ANALYTICS_CONNECTION_PASSWORD)
-            .put(CONNECTION_DRIVER_CLASS, ANALYTICS_CONNECTION_DRIVER_CLASS)
             .put(CONNECTION_POOL_MAX_SIZE, ANALYTICS_CONNECTION_POOL_MAX_SIZE)
             .put(CONNECTION_POOL_TEST_QUERY, ANALYTICS_CONNECTION_POOL_TEST_QUERY)
             /* hikari-specific */
@@ -151,6 +149,18 @@ public final class DatabasePoolUtils {
     UNPOOLED
   }
 
+  /**
+   * Creates a data source backed by a database connection pool.
+   *
+   * <p>The default driver class name for PostgreSQL operational database is defined in {@code
+   * ConfigurationKey#CONNECTION_DRIVER_CLASS}.
+   *
+   * <p>The analytics database driver class name is inferred from analytics database property and
+   * must be passed using the {@code PoolConfig#driverClassName} property.
+   *
+   * @param config the {@link DbPoolConfig}.
+   * @return a {@link DataSource}.
+   */
   public static DataSource createDbPool(DbPoolConfig config)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
@@ -160,10 +170,9 @@ public final class DatabasePoolUtils {
     log.info("Database pool type value is '{}'", dbPoolType);
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
+
     final String driverClassName =
-        firstNonNull(
-            config.getDriverClassName(),
-            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS)));
+        firstNonNull(config.getDriverClassName(), dhisConfig.getProperty(CONNECTION_DRIVER_CLASS));
     final String jdbcUrl =
         firstNonNull(
             config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));

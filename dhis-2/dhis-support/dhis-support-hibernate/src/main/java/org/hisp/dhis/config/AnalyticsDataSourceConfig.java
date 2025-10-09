@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.config;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
@@ -174,7 +173,7 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
    */
   private DataSource getAnalyticsDataSource() {
     final String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
-    final String driverClassName = inferDriverClassName();
+    final String driverClassName = getDriverClassName();
     final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
@@ -209,17 +208,6 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
-  }
-
-  /**
-   * If the driver class name is not explicitly specified, returns the driver class name based on
-   * the specified analytics database.
-   *
-   * @return a driver class name.
-   */
-  private String inferDriverClassName() {
-    String driverClass = config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS);
-    return isBlank(driverClass) ? getDriverClassName() : driverClass;
   }
 
   /**
