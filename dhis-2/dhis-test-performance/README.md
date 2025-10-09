@@ -32,7 +32,7 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 
 ### Analysis
 
-* look at Gatlings own `index.html`
+* look at Gatling's own `index.html`
 * if it doesn't provide the analysis you need, try
 [gatling-statistics](https://github.com/dhis2/gatling-statistics)
 
