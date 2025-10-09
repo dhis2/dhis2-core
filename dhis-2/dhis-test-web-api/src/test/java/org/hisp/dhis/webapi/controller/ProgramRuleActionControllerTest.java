@@ -63,7 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
   private Program trackerProgramA;
   private ProgramStage trackerProgramStageA1,
-          trackerProgramStageA2,
+      trackerProgramStageA2,
       trackerProgramStageB,
       eventProgramStage;
   private DataElement dataElementA;
