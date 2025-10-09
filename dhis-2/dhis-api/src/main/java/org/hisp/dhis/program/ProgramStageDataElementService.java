@@ -30,6 +30,8 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -86,4 +88,12 @@ public interface ProgramStageDataElementService {
    *     DataElement}
    */
   List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
+
+  /**
+   * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements)
+   * that have skipSynchronization flag set to true
+   *
+   * @return Map<String, Set<String>>
+   */
+  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 }

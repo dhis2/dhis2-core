@@ -70,7 +70,6 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @AllArgsConstructor
 public class SingleEventDataSynchronizationService implements DataSynchronizationWithPaging {
-
   private final EventService eventService;
   private final SystemSettingsService settingService;
   private final RestTemplate restTemplate;
