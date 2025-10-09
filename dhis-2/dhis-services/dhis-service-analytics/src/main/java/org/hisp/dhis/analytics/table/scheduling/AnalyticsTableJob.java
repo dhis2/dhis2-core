@@ -33,6 +33,7 @@ import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AnalyticsTableJob implements Job {
   private final AnalyticsTableGenerator analyticsTableGenerator;
+  private final SqlBuilder sqlBuilder;
 
   @Override
   public JobType getJobType() {
@@ -64,7 +66,7 @@ public class AnalyticsTableJob implements Job {
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(parameters.getLastYears())
             .skipResourceTables(parameters.isSkipResourceTables())
-            .skipOutliers(parameters.isSkipOutliers())
+            .skipOutliers(parameters.isSkipOutliers() || !sqlBuilder.supportsPercentileCont())
             .skipTableTypes(parameters.getSkipTableTypes())
             .skipPrograms(parameters.getSkipPrograms())
             .jobId(jobConfiguration)
