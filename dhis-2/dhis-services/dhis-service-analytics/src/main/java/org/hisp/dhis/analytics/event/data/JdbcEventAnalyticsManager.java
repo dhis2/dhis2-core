@@ -45,6 +45,7 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -436,6 +437,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (sqlBuilder.supportsGeospatialData()) {
       columns.add(
           getCoordinateSelectExpression(params),
+          getEnrollmentCoordinateSelectExpression(),
           EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
           EventAnalyticsColumnName.LATITUDE_COLUMN_NAME);
     }
@@ -448,6 +450,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
 
     return columns.build();
+  }
+
+  /**
+   * Returns a enrollment coordinate coalesce select expression.
+   *
+   * @return a coordinate coalesce select expression.
+   */
+  private String getEnrollmentCoordinateSelectExpression() {
+    String field = String.format("coalesce(%s)", ENROLLMENT_GEOMETRY.getValue());
+
+    return String.format("ST_AsGeoJSON(%s, 6) as " + ENROLLMENT_GEOMETRY.getValue(), field);
   }
 
   /**
