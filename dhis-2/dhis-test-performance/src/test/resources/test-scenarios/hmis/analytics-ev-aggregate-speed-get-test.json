@@ -1,0 +1,308 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/events/aggregate/Xh88p1nyefp.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_12_MONTHS&dimension=dSwpdHITQ85:dV8Ec2zJrze;RbJ4hRSGQaH&dimension=ang4CLldbIu.Jt68iauILtD:IN:FEMALE;MALE&dimension=ang4CLldbIu.ApNE5GlYotZ&filter=ang4CLldbIu.lWCjuohJSKB&filter=ang4CLldbIu.iZWtxl8sCi6&filter=ang4CLldbIu.sB1IHYu2xQT:LIKE:a&stage=ang4CLldbIu&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&user=Jxt0FoCLgdq&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 85,
+          "max": 220,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 215,
+          "mean": 175
+        },
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 215,
+          "mean": 175
+        },
+        {
+          "release": "42.0-doris",
+          "min": 85,
+          "max": 215,
+          "mean": 160
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/YcxRnVWkbQ1.json?dimension=ou:IWp9dQGM0bS&dimension=pe:LAST_12_MONTHS&stage=G0ePNuYPT87&displayProperty=NAME&totalPages=false&outputType=EVENT&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 85,
+          "max": 195,
+          "mean": 150
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 185,
+          "mean": 140
+        },
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 200,
+          "mean": 150
+        },
+        {
+          "release": "42.0-doris",
+          "min": 75,
+          "max": 185,
+          "mean": 140
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/YcxRnVWkbQ1.json?dimension=ou:IWp9dQGM0bS&dimension=pe:LAST_5_YEARS&dimension=G0ePNuYPT87.Rv8WM2mTuS5&stage=G0ePNuYPT87&displayProperty=NAME&totalPages=false&outputType=EVENT&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 85,
+          "max": 215,
+          "mean": 165
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 185,
+          "mean": 155
+        },
+        {
+          "release": "42.0",
+          "min": 85,
+          "max": 185,
+          "mean": 155
+        },
+        {
+          "release": "42.0-doris",
+          "min": 85,
+          "max": 185,
+          "mean": 155
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/pMIglSEqPGS.json?dimension=ou:IWp9dQGM0bS&dimension=pe:LAST_5_YEARS&dimension=anb2cjLx3WM.oindugucx72:IN:MALE&dimension=anb2cjLx3WM.B8gSDW7bnh0&dimension=anb2cjLx3WM.Bt9xOiBUuDW:IN:NO&filter=anb2cjLx3WM.JO6OoiD83nH:LIKE:a&stage=anb2cjLx3WM&displayProperty=NAME&totalPages=false&outputType=EVENT&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 70,
+          "max": 220,
+          "mean": 145
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 185,
+          "mean": 140
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 205,
+          "mean": 140
+        },
+        {
+          "release": "42.0-doris",
+          "min": 75,
+          "max": 185,
+          "mean": 140
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/M3xtLkYBlKI.json?dimension=ou:IWp9dQGM0bS&dimension=pe:LAST_12_MONTHS&dimension=CWaAcQYKVpq.V1OnhZYfSa2:IN:ACTIVE&filter=CWaAcQYKVpq.Kv4fmHVAzwX:LIKE:a&stage=CWaAcQYKVpq&displayProperty=NAME&totalPages=true&outputType=EVENT&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 75,
+          "max": 200,
+          "mean": 140
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 185,
+          "mean": 135
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 185,
+          "mean": 135
+        },
+        {
+          "release": "42.0-doris",
+          "min": 75,
+          "max": 185,
+          "mean": 135
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/KYzHf1Ta6C4.json?dimension=ou:IWp9dQGM0bS&dimension=pe:LAST_12_MONTHS;LAST_5_YEARS&dimension=ucGVfFax931.oindugucx72:IN:MALE&dimension=ucGVfFax931.FSPdiABIisY:IN:CPC;ETHANOL;PRIMESTORE&filter=ucGVfFax931.sB1IHYu2xQT:LIKE:a&filter=ucGVfFax931.Y66pOFOYt6T&filter=ucGVfFax931.YNDJVRtDxbi&stage=ucGVfFax931&displayProperty=NAME&totalPages=false&outputType=EVENT&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 85,
+          "max": 220,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 185,
+          "mean": 160
+        },
+        {
+          "release": "42.0",
+          "min": 80,
+          "max": 195,
+          "mean": 160
+        },
+        {
+          "release": "42.0-doris",
+          "min": 80,
+          "max": 200,
+          "mean": 160
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/Xh88p1nyefp.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_12_MONTHS&dimension=dSwpdHITQ85:dV8Ec2zJrze;RbJ4hRSGQaH&filter=ang4CLldbIu.lWCjuohJSKB&stage=ang4CLldbIu&displayProperty=NAME&totalPages=false&outputType=EVENT&user=Jxt0FoCLgdq&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 75,
+          "max": 220,
+          "mean": 155
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 185,
+          "mean": 135
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 185,
+          "mean": 135
+        },
+        {
+          "release": "42.0-doris",
+          "min": 75,
+          "max": 185,
+          "mean": 135
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/aggregate/Xh88p1nyefp.json?dimension=ou:USER_ORGUNIT&dimension=pe:LAST_12_MONTHS&dimension=dSwpdHITQ85:dV8Ec2zJrze;RbJ4hRSGQaH&dimension=ang4CLldbIu.Jt68iauILtD:IN:FEMALE;MALE&filter=ang4CLldbIu.lWCjuohJSKB&filter=ang4CLldbIu.iZWtxl8sCi6&filter=ang4CLldbIu.sB1IHYu2xQT:LIKE:a&stage=ang4CLldbIu&displayProperty=NAME&totalPages=false&outputType=EVENT&user=Jxt0FoCLgdq&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 75,
+          "max": 185,
+          "mean": 145
+        },
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 185,
+          "mean": 125
+        },
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 200,
+          "mean": 165
+        },
+        {
+          "release": "42.0",
+          "min": 80,
+          "max": 210,
+          "mean": 165
+        },
+        {
+          "release": "42.0-doris",
+          "min": 80,
+          "max": 200,
+          "mean": 165
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}
