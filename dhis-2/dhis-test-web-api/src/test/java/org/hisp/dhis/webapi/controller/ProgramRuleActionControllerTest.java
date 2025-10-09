@@ -33,13 +33,17 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
@@ -130,5 +134,63 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Program Rule `ProgramRuleA` with Action Type `HIDEPROGRAMSTAGE` has irrelevant reference objects",
         error.getMessage());
+  }
+
+  @Test
+  void testSaveActionsWithValidReferencesAcrossDifferentProgramStages() {
+    Program program = createProgram('A');
+    manager.save(program);
+
+    ProgramStage programStageA = createProgramStage('A', program);
+    ProgramStage programStageB = createProgramStage('B', program);
+    manager.save(programStageA);
+    manager.save(programStageB);
+
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
+    manager.save(dataElementA);
+    manager.save(dataElementB);
+
+    programStageA.addDataElement(dataElementA, 0);
+    programStageB.addDataElement(dataElementB, 0);
+
+    manager.update(programStageA);
+    manager.update(programStageB);
+
+    ProgramRule programRule = createProgramRule('A', program);
+    manager.save(programRule);
+
+    String hideProgramStageAction =
+        "{ 'programRule':{'id':'"
+            + programRule.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'HIDEPROGRAMSTAGE', "
+            + "'programStage': {'id':'"
+            + programStageA.getUid()
+            + "'} }";
+
+    String hideFieldAction =
+        "{ 'programRule':{'id':'"
+            + programRule.getUid()
+            + "'}, "
+            + "'programRuleActionType': 'HIDEFIELD', "
+            + "'dataElement':{'id':'"
+            + dataElementB.getUid()
+            + "'} }";
+
+    POST("/programRuleActions", hideProgramStageAction).content(HttpStatus.CREATED);
+    POST("/programRuleActions", hideFieldAction).content(HttpStatus.CREATED);
+
+    List<ProgramRuleAction> actions = manager.getAll(ProgramRuleAction.class);
+    assertEquals(2, actions.size());
+    assertTrue(
+        actions.stream()
+            .anyMatch(a -> a.getProgramRuleActionType() == ProgramRuleActionType.HIDEPROGRAMSTAGE));
+    assertTrue(
+        actions.stream()
+            .anyMatch(a -> a.getProgramRuleActionType() == ProgramRuleActionType.HIDEFIELD));
+
+    actions.forEach(
+        action -> assertEquals(program.getUid(), action.getProgramRule().getProgram().getUid()));
   }
 }
