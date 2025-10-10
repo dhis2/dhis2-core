@@ -460,7 +460,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   private String getEnrollmentCoordinateSelectExpression() {
     String field = String.format("coalesce(%s)", ENROLLMENT_GEOMETRY.getValue());
 
-    return String.format("ST_AsGeoJSON(%s, 6) as " + ENROLLMENT_GEOMETRY.getValue(), field);
+    return String.format("ST_AsGeoJSON(%s, 6) as %s", field, ENROLLMENT_GEOMETRY.getValue());
   }
 
   /**
