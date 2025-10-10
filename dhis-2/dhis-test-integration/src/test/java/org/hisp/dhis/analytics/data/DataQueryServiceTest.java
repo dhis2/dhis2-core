@@ -88,7 +88,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -906,7 +906,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     visualization.addDataDimensionItem(deC);
     visualization.getOrganisationUnits().add(ouA);
     visualization.getOrganisationUnits().add(ouB);
-    visualization.getPeriods().add(PeriodType.getPeriodFromIsoString("2012"));
+    visualization.getPeriods().add(PeriodDimension.of("2012"));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(3, params.getDataElements().size());
@@ -929,7 +929,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     ouGroupSetDim.setDimension(ouGroupSetA);
     ouGroupSetDim.setItems(List.of(ouGroupA, ouGroupB, ouGroupC));
     visualization.getOrganisationUnitGroupSetDimensions().add(ouGroupSetDim);
-    visualization.getPeriods().add(PeriodType.getPeriodFromIsoString("2012"));
+    visualization.getPeriods().add(PeriodDimension.of("2012"));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(3, params.getDataElements().size());
@@ -952,7 +952,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     ouGroupSetDim.setDimension(ouGroupSetA);
     ouGroupSetDim.setItems(List.of(ouGroupA, ouGroupB, ouGroupC));
     visualization.getOrganisationUnitGroupSetDimensions().add(ouGroupSetDim);
-    visualization.getPeriods().add(PeriodType.getPeriodFromIsoString("2012"));
+    visualization.getPeriods().add(PeriodDimension.of("2012"));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(1, params.getDataElements().size());
@@ -1006,8 +1006,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     assertThat(dimension.getItems(), hasSize(5));
     assertThat(
         dimension.getItems().stream()
-            .map(dimensionalItemObject -> (Period) dimensionalItemObject)
-            .map(Period::getDateField)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
             .collect(Collectors.toList()),
         containsInAnyOrder(
             "EVENT_DATE", "ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "SCHEDULED_DATE"));
@@ -1022,9 +1022,9 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(getPeriod(dimension, "SCHEDULED_DATE").getEndDate(), toMediumDate("2021-03-01"));
   }
 
-  private Period getPeriod(DimensionalObject dimension, String dateField) {
+  private PeriodDimension getPeriod(DimensionalObject dimension, String dateField) {
     return dimension.getItems().stream()
-        .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+        .map(PeriodDimension.class::cast)
         .filter(period -> period.getDateField().equals(dateField))
         .findFirst()
         .orElse(null);

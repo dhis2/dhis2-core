@@ -53,7 +53,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilderAdaptor;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.springframework.stereotype.Service;
 
 /**
@@ -154,8 +154,8 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         .map(DimensionParam::getDimensionalObject)
         .filter(DimensionalObject::hasItems)
         .map(d -> d.getItems().get(0))
-        .map(Period.class::cast)
-        .map(Period::getDateField)
+        .map(PeriodDimension.class::cast)
+        .map(PeriodDimension::getDateField)
         .map(TimeField::valueOf)
         .map(TimeField::getTrackedEntityColumnName)
         .orElseGet(

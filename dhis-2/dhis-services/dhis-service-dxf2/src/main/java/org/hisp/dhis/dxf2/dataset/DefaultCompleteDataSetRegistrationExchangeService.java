@@ -781,7 +781,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     if (!dsPeType.equals(peType)) {
       throw new ImportConflictException(
           new ImportConflict(
-              props.period.getUid(),
+              props.period.getIsoDate(),
               String.format(
                   "Period type of period: %s is not equal to the period type of data set: %s",
                   props.period.getIsoDate(), props.dataSet.getPeriodType())));
@@ -835,7 +835,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     if (!caches.getPeriods().isCacheLoaded() && exceedsThreshold(caches.getPeriods())) {
-      caches.getPeriods().load(idObjManager.getAll(Period.class), pe -> pe.getPropertyValue(null));
+      caches.getPeriods().load(periodService.getAllPeriods(), Period::getIsoDate);
     }
   }
 

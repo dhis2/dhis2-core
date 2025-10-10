@@ -57,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -85,6 +86,8 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private DatastoreService dataStore;
+
+  @Autowired private PeriodService periodService;
 
   private AnalyticsService mockAnalyticsService;
 
@@ -168,7 +171,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
     manager.save(dataElement);
 
     Period period = createPeriod("202106");
-    manager.save(period);
+    periodService.addPeriod(period);
 
     // Mock analytic query for data value
     Map<String, Object> mapDataItem = new HashMap<>();
@@ -208,7 +211,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
     manager.save(dataElement);
 
     Period period = createPeriod("202106");
-    manager.save(period);
+    periodService.addPeriod(period);
 
     OrgUnitProfile orgUnitProfile = new OrgUnitProfile();
     orgUnitProfile.getAttributes().add(attribute.getUid());

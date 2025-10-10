@@ -170,7 +170,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -505,7 +505,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               if (params.isAggregatedEnrollments()
                   && dimension.getDimensionType() == DimensionType.PERIOD) {
                 for (DimensionalItemObject it : dimension.getItems()) {
-                  columns.add(((Period) it).getPeriodType().getPeriodTypeEnum().getName());
+                  columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
                 }
                 return;
               }
@@ -530,14 +530,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   || dimension.getDimensionType() != DimensionType.PERIOD) {
                 columns.add(getTableAndColumn(params, dimension, isGroupByClause));
               } else if (params.hasSinglePeriod()) {
-                Period period = (Period) params.getPeriods().get(0);
+                PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
                 columns.add(
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
-                Period period = (Period) params.getFilterPeriods().get(0);
+                PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
                 columns.add(
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {

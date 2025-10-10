@@ -670,17 +670,12 @@ public class DataAnalysisController {
 
   private List<DeflatedDataValue> deflatedValuesListToResponse(
       List<DeflatedDataValue> deflatedDataValues) {
-    I18nFormat format = i18nManager.getI18nFormat();
     if (deflatedDataValues == null) {
       return Collections.emptyList();
     }
 
     if (deflatedDataValues.size() > DataAnalysisService.MAX_OUTLIERS) {
       return deflatedDataValues.subList(0, DataAnalysisService.MAX_OUTLIERS);
-    }
-
-    for (DeflatedDataValue dataValue : deflatedDataValues) {
-      dataValue.getPeriod().setName(format.formatPeriod(dataValue.getPeriod()));
     }
 
     return deflatedDataValues;

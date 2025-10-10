@@ -43,7 +43,7 @@ import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.ObjectUtils;
 
@@ -180,9 +180,9 @@ public class QueryPlannerUtils {
     ListMap<Integer, DimensionalItemObject> map = new ListMap<>();
 
     for (DimensionalItemObject period : periods) {
-      Period pe = (Period) period;
+      PeriodDimension pe = (PeriodDimension) period;
 
-      map.putValue(pe.getDaysInPeriod(), pe);
+      map.putValue(pe.getPeriod().getDaysInPeriod(), pe);
     }
 
     return map;

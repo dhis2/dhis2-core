@@ -232,7 +232,7 @@ class PredictionContextGeneratorTest extends TestBase {
       Set<Map.Entry<Period, Map<DimensionalItemObject, Object>>> entrySet) {
     List<Map.Entry<Period, Map<DimensionalItemObject, Object>>> entries = new ArrayList<>(entrySet);
 
-    entries.sort(Comparator.comparing(Map.Entry::getKey));
+    entries.sort(Comparator.comparing(e -> e.getKey().getIsoDate()));
 
     return entries;
   }

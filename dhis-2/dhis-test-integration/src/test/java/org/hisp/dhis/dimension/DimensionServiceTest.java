@@ -94,7 +94,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -134,9 +134,9 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramIndicator piA;
 
-  private Period peA;
+  private PeriodDimension peA;
 
-  private Period peB;
+  private PeriodDimension peB;
 
   private DimensionalItemObject peLast12Months;
 
@@ -253,8 +253,8 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
     idObjectManager.save(teaA);
     piA = createProgramIndicator('A', prA, null, null);
     idObjectManager.save(piA);
-    peA = createPeriod("201201");
-    peB = createPeriod("201202");
+    peA = PeriodDimension.of(createPeriod("201201"));
+    peB = PeriodDimension.of(createPeriod("201202"));
     peLast12Months = new BaseDimensionalItemObject(LAST_12_MONTHS.toString());
     peA.setUid("201201");
     peB.setUid("201202");

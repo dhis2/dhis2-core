@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -55,8 +54,6 @@ public class EventReportDeletionHandler
   @Override
   protected void registerHandler() {
     // generic
-    whenDeleting(Period.class, this::deletePeriod);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
     whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);

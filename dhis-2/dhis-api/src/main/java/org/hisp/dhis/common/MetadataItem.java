@@ -57,7 +57,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -239,7 +239,7 @@ public class MetadataItem implements Serializable {
 
     // TODO common interface
 
-    if (dimensionalItemObject instanceof Period period) {
+    if (dimensionalItemObject instanceof PeriodDimension period) {
       this.startDate = period.getStartDate();
       this.endDate = period.getEndDate();
     } else if (dimensionalItemObject instanceof Indicator indicator
@@ -266,7 +266,7 @@ public class MetadataItem implements Serializable {
       return operand.getValueType().toSimplifiedValueType();
     } else if (dimensionalItemObject instanceof TrackedEntityAttribute attribute) {
       return attribute.getValueType().toSimplifiedValueType();
-    } else if (dimensionalItemObject instanceof Period) {
+    } else if (dimensionalItemObject instanceof PeriodDimension) {
       return TEXT;
     } else if (dimensionalItemObject
         instanceof ProgramDataElementDimensionItem programDataElementDimensionItem) {

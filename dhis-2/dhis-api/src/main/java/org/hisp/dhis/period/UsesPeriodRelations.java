@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.period;
 
-import java.util.Map;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import java.util.List;
+import javax.annotation.CheckForNull;
 
 /**
- * @author Stian Sandvold
+ * All {@link org.hisp.dhis.common.IdentifiableObject} classes that have a persisted mapping to one
+ * or more periods must implement this interface returning the persisted periods.
+ *
+ * @author Jan Bernitt
  */
-@Component
-public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(DataInputPeriod.class);
+public interface UsesPeriodRelations {
 
-  @Override
-  protected void register() {
-    whenVetoing(Period.class, this::allowDeletePeriod);
-  }
+  /**
+   * @return null or empty list in case no period(s) are currently set
+   */
+  @CheckForNull
+  List<Period> getPersistedPeriods();
 
-  private DeletionVeto allowDeletePeriod(Period period) {
-    String sql = "select 1 from datainputperiod where periodid= :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
-  }
+  /**
+   * A setter is needed because during an import each ISO period should map to a unique instance of
+   * {@link Period}. This setter is used to set the original period list returned by the getter but
+   * with all the unqiue instances in it.
+   *
+   * @param periods the periods to apply to the period relations of the target object, null or empty
+   *     removes all relations
+   */
+  void setPersistedPeriods(@CheckForNull List<Period> periods);
 }

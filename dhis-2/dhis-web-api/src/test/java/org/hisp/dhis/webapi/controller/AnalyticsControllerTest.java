@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -62,6 +61,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -98,6 +98,7 @@ class AnalyticsControllerTest {
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @BeforeEach
+  @SuppressWarnings("unchecked")
   public void setUp() {
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
@@ -112,10 +113,10 @@ class AnalyticsControllerTest {
 
               when(period.getDimensionType()).thenReturn(DimensionType.PERIOD);
 
-              when(period.getItems())
-                  .thenReturn(
-                      ((List<String>) invocation.getArguments()[0])
-                          .stream().map(TestBase::createPeriod).collect(toList()));
+              List<PeriodDimension> periods =
+                  TestBase.createPeriodDimensions(
+                      ((List<String>) invocation.getArguments()[0]).toArray(String[]::new));
+              when(period.getItems()).thenReturn((List) periods);
 
               return period;
             });

@@ -33,7 +33,6 @@ import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -48,7 +47,6 @@ public class DataValueDeletionHandler extends JdbcDeletionHandler {
   @Override
   protected void register() {
     whenVetoing(DataElement.class, this::allowDeleteDataElement);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
     whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
   }
@@ -58,11 +56,6 @@ public class DataValueDeletionHandler extends JdbcDeletionHandler {
         VETO,
         "select 1 from datavalue where dataelementid=:id limit 1",
         Map.of("id", dataElement.getId()));
-  }
-
-  private DeletionVeto allowDeletePeriod(Period period) {
-    return vetoIfExists(
-        VETO, "select 1 from datavalue where periodid=:id limit 1", Map.of("id", period.getId()));
   }
 
   private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {

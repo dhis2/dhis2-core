@@ -30,21 +30,55 @@
 package org.hisp.dhis.common.adapter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.BeanProperty;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import java.io.IOException;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-public class JacksonPeriodSerializer extends JsonSerializer<Period> {
+@Component
+@AllArgsConstructor
+@NoArgsConstructor
+public class JacksonExtendedPeriodSerializer extends JsonSerializer<Period>
+    implements ContextualSerializer {
+
+  private I18nManager i18nManager;
+
+  @Override
+  public JsonSerializer<?> createContextual(SerializerProvider provider, BeanProperty beanProperty)
+      throws JsonMappingException {
+    Object manager = provider.getAttribute(I18nManager.class);
+    if (manager instanceof I18nManager m) return new JacksonExtendedPeriodSerializer(m);
+    return this;
+  }
+
   @Override
   public void serialize(Period value, JsonGenerator jgen, SerializerProvider provider)
       throws IOException {
     if (value != null) {
       jgen.writeStartObject();
       jgen.writeStringField("id", value.getIsoDate());
+      Object parent = jgen.currentValue();
+      String name = null;
+      if (parent instanceof AnalyticalObject ao) {
+        PeriodDimension period =
+            ao.getPeriods().stream().filter(p -> p.getPeriod() == value).findFirst().orElse(null);
+        if (period != null) name = period.getName();
+      }
+      if (name == null && i18nManager != null)
+        name = i18nManager.getI18n().getString(i18nManager.getI18nFormat().formatPeriod(value));
+      if (name != null) jgen.writeStringField("name", name);
       jgen.writeEndObject();
     }
   }

@@ -52,6 +52,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -236,7 +237,7 @@ public class OutlierQueryParser {
    * @param relativePeriod, the period dimension.
    * @return list of the {@link Period}.
    */
-  private List<Period> getPeriods(String relativePeriod, Date relativePeriodDate) {
+  private List<PeriodDimension> getPeriods(String relativePeriod, Date relativePeriodDate) {
     if (StringUtils.isBlank(relativePeriod)) {
       return List.of();
     }
@@ -245,7 +246,7 @@ public class OutlierQueryParser {
         .getPeriodDimension(List.of(relativePeriod), relativePeriodDate)
         .getItems()
         .stream()
-        .map(pe -> (Period) pe)
+        .map(PeriodDimension.class::cast)
         .toList();
   }
 }

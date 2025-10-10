@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
@@ -74,7 +74,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
       return sql.append(
               periods.stream()
                   .filter(this::isPeriod)
-                  .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+                  .map(PeriodDimension.class::cast)
                   .map(period -> toSqlCondition(period, timeField.get()))
                   .collect(Collectors.joining(" or ", "(", ")")))
           .toString();
@@ -112,7 +112,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     }
   }
 
-  private String toSqlCondition(Period period, TimeField timeField) {
+  private String toSqlCondition(PeriodDimension period, TimeField timeField) {
     String timeCol = sqlBuilder.quoteAx(timeField.getEventColumnName());
     return "( "
         + timeCol
