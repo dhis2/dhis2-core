@@ -60,9 +60,15 @@ These tests are self-contained within the `raw` package and do not affect other 
 ```sh
 DHIS2_IMAGE=dhis2/core-dev:latest \
 SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \
-MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/system-speed-get-test.json -Dversion=42 -Dbaseline=42" \
+MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41" \
+ANALYTICS_GENERATE=true \
 ./run-simulation.sh
 ```
+
+> [!NOTE]
+> Analytics endpoints require `ANALYTICS_GENERATE=true` to pre-generate analytics tables before
+> running tests. This adds ~10 minutes to test setup but is required for analytics queries to
+> succeed.
 
 ### Available Scenarios
 

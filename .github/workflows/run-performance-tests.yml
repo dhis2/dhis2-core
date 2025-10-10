@@ -7,6 +7,14 @@
 # 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_candidate="dhis2/core-dev:latest"
 #
+# Analytics test example (requires analytics_generate=true):
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.raw.GetRawSpeedTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest" \
+# 	--field mvn_args="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41" \
+# 	--field analytics_generate=true
+#
 # With custom baseline:
 # gh workflow run run-performance-tests.yml \
 # 	--field perf_tests_git_ref="master" \
@@ -16,7 +24,7 @@
 #
 # With specific database version:
 # gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="2.42.2" \
+# 	--field perf_tests_git_ref="master" \
 # 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
 # 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
@@ -112,6 +120,16 @@ jobs:
     - name: Run performance tests - baseline
       run: |
         # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
+
+        # Auto-enable analytics generation if mvn_args contains "analytics" (scenario file naming convention)
+        # TODO: This is a temporary workaround because GitHub Actions limits workflow_dispatch to 10 inputs
+        # and we've reached that limit. Ideally this would be an explicit input field.
+        if echo "${{ inputs.mvn_args }}" | grep --quiet "analytics"; then
+          ANALYTICS_GENERATE=true
+        else
+          ANALYTICS_GENERATE=false
+        fi
+
         DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
@@ -120,11 +138,21 @@ jobs:
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=${{ inputs.warmup }} \
         CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        ANALYTICS_GENERATE="$ANALYTICS_GENERATE" \
         REPORT_SUFFIX="baseline" \
         ./run-simulation.sh
 
     - name: Run performance tests - candidate
       run: |
+        # Auto-enable analytics generation if mvn_args contains "analytics" (scenario file naming convention)
+        # TODO: This is a temporary workaround because GitHub Actions limits workflow_dispatch to 10 inputs
+        # and we've reached that limit. Ideally this would be an explicit input field.
+        if echo "${{ inputs.mvn_args }}" | grep --quiet "analytics"; then
+          ANALYTICS_GENERATE=true
+        else
+          ANALYTICS_GENERATE=false
+        fi
+
         DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }}" \
@@ -133,6 +161,7 @@ jobs:
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=${{ inputs.warmup }} \
         CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        ANALYTICS_GENERATE="$ANALYTICS_GENERATE" \
         REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 
