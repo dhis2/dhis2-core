@@ -7,14 +7,6 @@
 # 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_candidate="dhis2/core-dev:latest"
 #
-# Analytics test example (requires analytics_generate=true):
-# gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="master" \
-# 	--field simulation_class="org.hisp.dhis.test.raw.GetRawSpeedTest" \
-# 	--field dhis2_image_candidate="dhis2/core-dev:latest" \
-# 	--field mvn_args="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41" \
-# 	--field analytics_generate=true
-#
 # With custom baseline:
 # gh workflow run run-performance-tests.yml \
 # 	--field perf_tests_git_ref="master" \
@@ -29,6 +21,13 @@
 # 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
 # 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
 # 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
+#
+# Analytics test example:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.raw.GetRawSpeedTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest" \
+# 	--field mvn_args="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41"
 name: Performance tests
 run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ inputs.dhis2_image_candidate }}
 

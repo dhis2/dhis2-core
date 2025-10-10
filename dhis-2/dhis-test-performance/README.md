@@ -120,7 +120,7 @@ Each scenario file contains a list of test scenarios with performance expectatio
 
 * `query`: API endpoint to test
 * `expectations`: Expected response times (ms) for specific DHIS2 releases
-* `version`: DHIS2 version range where this endpoint is valid (usually only `min` is needed)
+* `version`: DHIS2 version range where this scenario is valid (usually only `min` is needed)
 
 ### Adding Scenarios
 
