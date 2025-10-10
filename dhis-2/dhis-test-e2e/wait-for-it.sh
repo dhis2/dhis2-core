@@ -5,6 +5,69 @@ WAITFORIT_cmdname=${0##*/}
 
 echoerr() { if [[ $WAITFORIT_QUIET -ne 1 ]]; then echo "$@" 1>&2; fi }
 
+extract_credentials() {
+    # Extract username and password from DHIS2_E2E_TEST_USER_ARGS
+    # Example: "-Duser.default.username=admin -Duser.default.password=district"
+    local args="${DHIS2_E2E_TEST_USER_ARGS:-}"
+    
+    # Extract username using regex
+    if [[ $args =~ -Duser\.default\.username=([^[:space:]]+) ]]; then
+        DHIS2_USERNAME="${BASH_REMATCH[1]}"
+    else
+        DHIS2_USERNAME="admin"  # fallback default
+    fi
+    
+    # Extract password using regex
+    if [[ $args =~ -Duser\.default\.password=([^[:space:]]+) ]]; then
+        DHIS2_PASSWORD="${BASH_REMATCH[1]}"
+    else
+        DHIS2_PASSWORD="district"  # fallback default
+    fi
+}
+
+call_system_info() {
+    local host="$1"
+    local port="$2"
+    local output_file="${3:-/target/surefire-reports/system_info.json}"
+    
+    # Ensure target directory exists
+    mkdir -p "$(dirname "$output_file")"
+    
+    echoerr "$WAITFORIT_cmdname: calling $host:$port/api/system/info and saving to $output_file"
+    
+    # Extract credentials from environment
+    extract_credentials
+    
+    # Make API call with basic authentication
+    local url="http://$host:$port/api/system/info"
+    local response
+    
+    # Try curl first, then wget as fallback
+    if command -v curl >/dev/null 2>&1; then
+        response=$(curl -s -u "$DHIS2_USERNAME:$DHIS2_PASSWORD" "$url" 2>/dev/null)
+        local curl_exit_code=$?
+        if [[ $curl_exit_code -eq 0 && -n "$response" ]]; then
+            echo "$response" > "$output_file"
+            echoerr "$WAITFORIT_cmdname: system info saved to $output_file"
+            return 0
+        else
+            echoerr "$WAITFORIT_cmdname: failed to retrieve system info with curl (exit code: $curl_exit_code)"
+            return 1
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        if wget -q --user="$DHIS2_USERNAME" --password="$DHIS2_PASSWORD" -O "$output_file" "$url" 2>/dev/null; then
+            echoerr "$WAITFORIT_cmdname: system info saved to $output_file"
+            return 0
+        else
+            echoerr "$WAITFORIT_cmdname: failed to retrieve system info with wget"
+            return 1
+        fi
+    else
+        echoerr "$WAITFORIT_cmdname: neither curl nor wget available for API call"
+        return 1
+    fi
+}
+
 usage()
 {
     cat << USAGE >&2
@@ -42,6 +105,10 @@ wait_for()
         if [[ $WAITFORIT_result -eq 0 ]]; then
             WAITFORIT_end_ts=$(date +%s)
             echoerr "$WAITFORIT_cmdname: $WAITFORIT_HOST:$WAITFORIT_PORT is available after $((WAITFORIT_end_ts - WAITFORIT_start_ts)) seconds"
+            
+            # Call the system info API and save response to file
+            call_system_info "$WAITFORIT_HOST" "$WAITFORIT_PORT"
+            
             break
         fi
         sleep 1
@@ -58,7 +125,7 @@ wait_for_wrapper()
         timeout $WAITFORIT_BUSYTIMEFLAG $WAITFORIT_TIMEOUT $0 --child --host=$WAITFORIT_HOST --port=$WAITFORIT_PORT --timeout=$WAITFORIT_TIMEOUT &
     fi
     WAITFORIT_PID=$!
-    trap "kill -INT -$WAITFORIT_PID" INT
+    trap 'kill -INT -$WAITFORIT_PID' INT
     wait $WAITFORIT_PID
     WAITFORIT_RESULT=$?
     if [[ $WAITFORIT_RESULT -ne 0 ]]; then
@@ -66,6 +133,10 @@ wait_for_wrapper()
     fi
     return $WAITFORIT_RESULT
 }
+
+
+# echo arguments
+echo "Arguments: $@"
 
 # process arguments
 while [[ $# -gt 0 ]]
@@ -167,7 +238,7 @@ else
     fi
 fi
 
-if [[ $WAITFORIT_CLI != "" ]]; then
+if [[ ${#WAITFORIT_CLI[@]} -gt 0 ]]; then
     if [[ $WAITFORIT_RESULT -ne 0 && $WAITFORIT_STRICT -eq 1 ]]; then
         echoerr "$WAITFORIT_cmdname: strict mode, refusing to execute subprocess"
         exit $WAITFORIT_RESULT

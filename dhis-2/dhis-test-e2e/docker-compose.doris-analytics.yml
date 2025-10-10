@@ -1,0 +1,18 @@
+services:
+  web:
+    volumes:
+      - ./config/dhis2_home/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+    networks:
+      - doris_network
+      - default
+  db:
+    networks:
+      - doris_network
+      - default
+
+  test:
+    networks:
+      - doris_network
+      - default
+    environment:
+      DHIS2_E2E_TEST_ARGS: "--activate-profiles analytics -Danalytics.api.query.params=skipTrackedEntities=true&skipOutliers=true"
