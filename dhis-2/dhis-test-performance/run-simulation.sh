@@ -2,6 +2,10 @@
 # Run Gatling simulations against a DHIS2 instance running in Docker
 set -euo pipefail
 
+################################################################################
+# USAGE
+################################################################################
+
 show_usage() {
   echo ""
   echo "USAGE:"
@@ -24,6 +28,9 @@ show_usage() {
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
+  echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
+  echo "                        Set to any non-empty value to enable (default: disabled)"
+  echo "                        Analysis requires pgbadger: https://github.com/darold/pgbadger"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -43,6 +50,10 @@ show_usage() {
   echo ""
 }
 
+################################################################################
+# VALIDATE REQUIRED ENVIRONMENT VARIABLES
+################################################################################
+
 if [ -z "${DHIS2_IMAGE:-}" ]; then
   echo "Error: DHIS2_IMAGE environment variable is required"
   show_usage
@@ -55,6 +66,10 @@ if [ -z "${SIMULATION_CLASS:-}" ]; then
   exit 1
 fi
 
+################################################################################
+# ENVIRONMENT SETUP
+################################################################################
+
 MVN_ARGS=${MVN_ARGS:-""}
 DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"}
 DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
@@ -62,6 +77,7 @@ HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
 WARMUP=${WARMUP:-0}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
+CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -82,17 +98,51 @@ parse_prof_args() {
 
 parse_prof_args
 
+################################################################################
+# CLEANUP & TRAP
+################################################################################
+
+# set -e ensures the script fails with proper exit code which is important for CI steps to fail.
+# This cleanup trap ensures post-processing and container cleanup happen even if the script exits early.
 cleanup() {
+  local exit_code=$?
+
+  # Disable exit on error for cleanup to ensure it completes
+  set +e
+
+  # Post-processing that has to be done after all runs complete
   echo ""
-  echo "Cleaning up..."
+  echo "========================================"
+  echo "PHASE: Post-processing"
+  echo "========================================"
+  post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
+
+  echo ""
+  echo "Cleaning up containers..."
   if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
+    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes 2>/dev/null || true
   else
-    docker compose down --volumes
+    docker compose down --volumes 2>/dev/null || true
   fi
+
+  echo ""
+  echo "========================================"
+  echo "PHASE: Complete"
+  echo "========================================"
+  if [ $exit_code -eq 0 ]; then
+    echo -e "\033[0;32m✓\033[0m Test for $DHIS2_IMAGE ran successfully"
+  else
+    echo -e "\033[0;31m✗\033[0m Test for $DHIS2_IMAGE failed"
+  fi
+
+  exit $exit_code
 }
 
-trap cleanup EXIT INT
+trap cleanup EXIT
+
+################################################################################
+# FUNCTIONS
+################################################################################
 
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
@@ -104,6 +154,9 @@ pull_mutable_image() {
   # to be tested.
 
   if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+    echo "========================================"
+    echo "PHASE: Image Pull"
+    echo "========================================"
     echo "Pulling mutable image tag: $DHIS2_IMAGE"
     docker pull "$DHIS2_IMAGE"
   fi
@@ -118,10 +171,16 @@ start_containers() {
 
   if [ -n "$PROF_ARGS" ]; then
     docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+    if ! docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+      echo "Error: Failed to start containers"
+      exit 1
+    fi
   else
     docker compose down --volumes
-    docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"
+    if ! docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+      echo "Error: Failed to start containers"
+      exit 1
+    fi
   fi
 
   echo "All containers ready! (took $(($(date +%s) - start_time))s)"
@@ -134,11 +193,40 @@ save_profiler_data() {
     return 0
   fi
 
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save profiler data - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  echo ""
   echo "Saving profiler data..."
-
-  docker compose cp web:/profiler-output/. "$gatling_dir/"
-
+  if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+    echo "Warning: Failed to copy profiler data from container"
+    return 1
+  fi
   echo "Profiler data saved to $gatling_dir"
+}
+
+save_sql_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_SQL_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save SQL logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  echo ""
+  echo "Saving SQL logs..."
+  if ! docker compose cp db:/var/lib/postgresql/data/log/postgresql.log "$gatling_dir/postgresql.log" 2>/dev/null; then
+    echo "Warning: Failed to copy SQL logs from container"
+    return 1
+  fi
+  echo "SQL logs saved to $gatling_dir"
 }
 
 post_process_profiler_data() {
@@ -148,6 +236,17 @@ post_process_profiler_data() {
     return 0
   fi
 
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot post-process profiler data - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  if [ ! -f "$gatling_dir/profile.jfr" ]; then
+    echo "Warning: Cannot post-process profiler data - profile.jfr not found"
+    return 1
+  fi
+
+  echo ""
   echo "Post-processing profiler data..."
 
   local jfrconv_flags="--${EVENT_FLAG}"
@@ -161,20 +260,96 @@ post_process_profiler_data() {
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
   # shellcheck disable=SC2086
-  docker compose exec --workdir /profiler-output web \
-    jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html
+  if ! docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html 2>/dev/null; then
+    echo "Warning: Failed to generate flamegraph"
+    return 1
+  fi
   # shellcheck disable=SC2086
-  docker compose exec --workdir /profiler-output web \
-    jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed
+  docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed 2>/dev/null || true
 
-  docker compose cp web:/profiler-output/. "$gatling_dir/"
+  if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+    echo "Warning: Failed to copy post-processed profiler data"
+    return 1
+  fi
 
   echo "Post-processing profiler data complete. Files saved to $gatling_dir"
 }
 
+post_process_sql_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_SQL_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot post-process SQL logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  if [ ! -f "$gatling_dir/postgresql.log" ]; then
+    echo "Warning: Cannot post-process SQL logs - postgresql.log not found"
+    return 1
+  fi
+
+  if ! command -v pgbadger &> /dev/null; then
+    echo ""
+    echo "Warning: pgbadger not found in PATH. Skipping SQL log post-processing."
+    echo "Install pgbadger to enable SQL log analysis: https://github.com/darold/pgbadger"
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  echo "Post-processing SQL logs..."
+  if ! pgbadger \
+    --title "$SIMULATION_CLASS on $DHIS2_IMAGE" \
+    --prefix '%t [%p]: user=%u,db=%d,app=%a ' \
+    --dbname dhis \
+    --outfile "$gatling_dir/pgbadger.html" "$gatling_dir/postgresql.log" 2>/dev/null; then
+    echo "Warning: Failed to generate pgbadger report"
+    return 1
+  fi
+  echo "Post-processing SQL logs complete. File saved to $gatling_dir/pgbadger.html"
+}
+
+post_process_gatling_logs() {
+  # In 3.12 https://github.com/gatling/gatling/issues/4596 Gatling started to write the test
+  # results into a binary format. Gatling OSS does not support exporting that into an
+  # accessible format for us. The serializer/deserializer are OSS though. Our fork at
+  # https://github.com/dhis2/gatling/tree/glog-cli uses them to provide a CLI to extract the
+  # binary simulation.log into a simulation.csv. CLI releases can be downloaded from
+  # https://github.com/dhis2/gatling/releases.
+  local gatling_dir="target/gatling"
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot post-process Gatling logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  if ! command -v glog &> /dev/null; then
+    echo ""
+    echo "Warning: glog not found in PATH. Skipping binary simulation.log conversion."
+    echo "Install glog to enable conversion to CSV: https://github.com/dhis2/gatling/releases"
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  echo "Post-processing Gatling logs..."
+  if ! glog --config ./src/test/resources/gatling.conf --scan-subdirs "$gatling_dir" 2>/dev/null; then
+    echo "Warning: Failed to convert simulation.log to simulation.csv"
+    return 1
+  fi
+  echo "Post-processing Gatling logs complete. CSV files saved in subdirectories."
+}
+
 prepare_database() {
+  echo ""
   echo "Preparing database..."
-  docker compose exec db psql -U dhis -c 'VACUUM;'
+  # cleanup and update DB statistics
+  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' > /dev/null
 }
 
 start_profiler() {
@@ -193,29 +368,80 @@ stop_profiler() {
 
 generate_metadata() {
   local gatling_run_dir="$1"
-  local simulation_run_file="$gatling_run_dir/simulation-run.txt"
+  local simulation_run_file="$gatling_run_dir/run-simulation.env"
 
+  echo ""
   echo "Generating run metadata..."
+
+  # Get DHIS2 image digest for reproducibility
+  # DHIS2 images are only pushed to Docker Hub, so RepoDigests[0] is the Docker Hub digest
+  local dhis2_image_digest=""
+  local dhis2_labels=""
+
+  # Get DHIS2 image RepoDigest (registry digest that can be pulled for exact reproduction)
+  dhis2_image_digest=$(docker inspect --format '{{index .RepoDigests 0}}' "$DHIS2_IMAGE" 2>/dev/null || echo "unknown")
+
+  # Extract DHIS2 labels from image (DHIS2_BUILD_BRANCH, DHIS2_BUILD_REVISION, DHIS2_VERSION, etc.)
+  dhis2_labels=$(docker inspect --format '{{json .Config.Labels}}' "$DHIS2_IMAGE" 2>/dev/null | \
+    jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
+
+  # Build reproducible command using RepoDigest
+  # DB image is reproducible via DHIS2_DB_DUMP_URL and DHIS2_DB_IMAGE_SUFFIX args
+  local dhis2_image_immutable="$DHIS2_IMAGE"
+  if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
+    dhis2_image_immutable="$dhis2_image_digest"
+  fi
+
+  # Get git commit for header resolution
+  local git_commit
+  git_commit=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')
+
   {
-    echo "RUN_DIR=$gatling_run_dir"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=$MVN_ARGS}${PROF_ARGS:+ PROF_ARGS=$PROF_ARGS}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX} $0"
-    echo "SCRIPT_NAME=$0"
-    echo "SCRIPT_ARGS=$*"
+    echo "# Reproduce this test run:"
+    echo "#   git checkout $git_commit"
+    echo "#   set -a && source run-simulation.env && set +a && ./run-simulation.sh"
+    echo "#"
+    echo "# Use COMMAND_IMMUTABLE for exact reproduction with pinned image digest"
+    echo ""
+    echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
+    echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
+    echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
+    echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
+    if [ -n "$dhis2_labels" ]; then
+      echo "$dhis2_labels"
+    fi
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
-    echo "SIMULATION_CLASS=$SIMULATION_CLASS"
     echo "MVN_ARGS=$MVN_ARGS"
     echo "PROF_ARGS=$PROF_ARGS"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
-    echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
-    echo "GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo 'unknown')"
-    echo "GIT_DIRTY=\$([ -n \"\$(git status --porcelain 2>/dev/null)\" ] && echo 'true' || echo 'false')"
+    echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
+    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
   } > "$simulation_run_file"
 
-  echo "Gatling run metadata is in: $gatling_run_dir/simulation-run.txt"
+  echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
+}
+
+enable_sql_logs() {
+  local warmup_num="${1:-0}"
+
+  if [ -z "$CAPTURE_SQL_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  # enable logging of all queries only on demand as it is expensive
+  echo "Enabling SQL query logging..."
+  docker compose exec db psql --username=dhis --quiet --command="ALTER SYSTEM SET log_min_duration_statement = 0;" > /dev/null
+  docker compose exec db psql --username=dhis --quiet --command="SELECT pg_reload_conf();" > /dev/null
+
+  # let postgres create a new log file so we only capture queries related to the test run
+  docker compose exec db rm -f /var/lib/postgresql/data/log/postgresql.log
+  docker compose exec db psql --username=dhis --quiet --command="SELECT pg_rotate_logfile();" > /dev/null
 }
 
 run_simulation() {
@@ -226,49 +452,72 @@ run_simulation() {
     extra_mvn_args="-Dgatling.failOnError=false"
   fi
 
+  enable_sql_logs "$warmup_num"
   start_profiler
 
   echo "Running $SIMULATION_CLASS..."
+  # Allow Maven to fail (e.g., assertion failures) but continue to post-process results
+  set +e
   # shellcheck disable=SC2086
   mvn gatling:test \
     -Dgatling.simulationClass="$SIMULATION_CLASS" \
     $MVN_ARGS $extra_mvn_args
+  local mvn_exit_code=$?
+  set -e
 
   stop_profiler
-  gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt)"
 
-  # Build suffix from REPORT_SUFFIX and warmup indicator
-  local suffix_parts=()
-  if [ -n "$REPORT_SUFFIX" ]; then
-    suffix_parts+=("$REPORT_SUFFIX")
-  fi
-  if [ "$warmup_num" -gt 0 ]; then
-    # Calculate padding width based on total warmup count
-    local padding_width=${#WARMUP}
-    # Zero-pad the warmup number
-    local padded_num
-    padded_num=$(printf "%0${padding_width}d" "$warmup_num")
-    suffix_parts+=("warmup-${padded_num}")
+  # Find the gatling report directory
+  local gatling_run_dir=""
+  if [ -f target/gatling/lastRun.txt ]; then
+    gatling_run_dir="target/gatling/$(head -n 1 target/gatling/lastRun.txt | tr -d '\n')"
   fi
 
-  # Only rename if we have a suffix
-  if [ ${#suffix_parts[@]} -gt 0 ]; then
-    local combined_suffix
-    combined_suffix=$(IFS=- ; echo "${suffix_parts[*]}")
-    local new_dir="${gatling_run_dir}-${combined_suffix}"
-    mv "$gatling_run_dir" "$new_dir"
-    gatling_run_dir="$new_dir"
+  # If we found a gatling directory, process it
+  if [ -n "$gatling_run_dir" ] && [ -d "$gatling_run_dir" ]; then
+    # Build suffix from REPORT_SUFFIX and warmup indicator
+    local suffix_parts=()
+    if [ -n "$REPORT_SUFFIX" ]; then
+      suffix_parts+=("$REPORT_SUFFIX")
+    fi
+    if [ "$warmup_num" -gt 0 ]; then
+      # Calculate padding width based on total warmup count
+      local padding_width=${#WARMUP}
+      # Zero-pad the warmup number
+      local padded_num
+      padded_num=$(printf "%0${padding_width}d" "$warmup_num")
+      suffix_parts+=("warmup-${padded_num}")
+    fi
+
+    # Only rename if we have a suffix
+    if [ ${#suffix_parts[@]} -gt 0 ]; then
+      local combined_suffix
+      combined_suffix=$(IFS=- ; echo "${suffix_parts[*]}")
+      local new_dir="${gatling_run_dir}-${combined_suffix}"
+      mv "$gatling_run_dir" "$new_dir"
+      gatling_run_dir="$new_dir"
+    fi
+
+    echo ""
+    echo "Gatling test results are in: $gatling_run_dir"
+
+    # Post-process results for this run
+    save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
+    save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
+    post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
+    post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
+    generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
+  else
+    echo "Warning: Could not find Gatling report directory"
   fi
 
-  echo "Gatling test results are in: $gatling_run_dir"
-  save_profiler_data "$gatling_run_dir"
-  post_process_profiler_data "$gatling_run_dir"
-  generate_metadata "$gatling_run_dir"
+  # Return the Maven exit code so failures propagate correctly
+  return $mvn_exit_code
 }
 
-echo "========================================"
-echo "PHASE: Image Pull"
-echo "========================================"
+################################################################################
+# MAIN EXECUTION
+################################################################################
 pull_mutable_image
 
 echo ""
@@ -293,11 +542,7 @@ echo ""
 echo "========================================"
 echo "PHASE: Performance Test"
 echo "========================================"
+# run_simulation may fail (e.g., assertion failures). Any code that must always run
+# should be placed in the cleanup trap to ensure execution even on failure.
 run_simulation
-
-echo ""
-echo "========================================"
-echo "PHASE: Complete"
-echo "========================================"
-echo "Completed test for $DHIS2_IMAGE"
 
