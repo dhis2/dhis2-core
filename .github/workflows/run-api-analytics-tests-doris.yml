@@ -67,6 +67,7 @@ jobs:
           source setup_doris_links
           DHIS2_IMAGE="$CORE_IMAGE_NAME" \
           DHIS2_E2E_TEST_DUMP_PATH="$SIERRA_LEONE_DB_PATH" \
+          DORIS_VERSION=3.0.7 \
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml \
             -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml \
             up --remove-orphans --exit-code-from test
