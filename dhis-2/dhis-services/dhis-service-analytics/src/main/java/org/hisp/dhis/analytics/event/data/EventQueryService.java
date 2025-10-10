@@ -272,6 +272,9 @@ public class EventQueryService {
 
     if (isGeospatialSupport()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
+          .addHeader(
+              new GridHeader(
+                  ENROLLMENT_GEOMETRY.getItem(), ENROLLMENT_GEOMETRY.getName(), TEXT, false, true))
           .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))
           .addHeader(new GridHeader(LATITUDE.getItem(), LATITUDE.getName(), NUMBER, false, true));
     }
