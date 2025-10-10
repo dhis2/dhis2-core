@@ -321,6 +321,12 @@ public class DefaultMetadataImportService implements MetadataImportService {
     }
   }
 
+  /**
+   * Filters out MapView objects that are already referenced by Map objects in the bundle to prevent
+   * conflicts during import.
+   *
+   * @param bundleParams The ObjectBundleParams containing the objects to be imported.
+   */
   private void filterConflictingMapViews(ObjectBundleParams bundleParams) {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
         bundleParams.getObjects();
@@ -331,13 +337,11 @@ public class DefaultMetadataImportService implements MetadataImportService {
       Set<String> mapViewIdsInMap = new HashSet<>();
 
       for (IdentifiableObject mapObj : mapObjects) {
-        if (mapObj instanceof org.hisp.dhis.mapping.Map) {
-          org.hisp.dhis.mapping.Map map = (org.hisp.dhis.mapping.Map) mapObj;
-          List<org.hisp.dhis.mapping.MapView> mapViews = map.getMapViews();
-          if (mapViews != null) {
-            for (org.hisp.dhis.mapping.MapView mapView : mapViews) {
-              mapViewIdsInMap.add(mapView.getUid());
-            }
+        org.hisp.dhis.mapping.Map map = (org.hisp.dhis.mapping.Map) mapObj;
+        List<org.hisp.dhis.mapping.MapView> mapViews = map.getMapViews();
+        if (mapViews != null) {
+          for (org.hisp.dhis.mapping.MapView mapView : mapViews) {
+            mapViewIdsInMap.add(mapView.getUid());
           }
         }
       }
