@@ -56,3 +56,6 @@ http-client.private.env.json
 
 # Java version file for jenv
 .java-version
+
+# Bundled apps temporary download folder
+/dhis-web-server/bundled_apps/
