@@ -33,6 +33,8 @@ import com.google.common.base.Enums;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -112,6 +114,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
     ObjectBundleParams bundleParams = params.toObjectBundleParams();
     handleDeprecationIfEventReport(bundleParams);
+    filterConflictingMapViews(bundleParams);
     ObjectBundle bundle = objectBundleService.create(bundleParams);
 
     postCreateBundle(bundle, bundleParams);
@@ -315,6 +318,40 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
     if (userByReference != null) {
       object.setCreatedBy((User) userByReference);
+    }
+  }
+
+  private void filterConflictingMapViews(ObjectBundleParams bundleParams) {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
+        bundleParams.getObjects();
+    List<IdentifiableObject> mapObjects = objects.get(org.hisp.dhis.mapping.Map.class);
+    List<IdentifiableObject> mapViewObjects = objects.get(org.hisp.dhis.mapping.MapView.class);
+
+    if (mapObjects != null && mapViewObjects != null) {
+      Set<String> mapViewIdsInMap = new HashSet<>();
+
+      for (IdentifiableObject mapObj : mapObjects) {
+        if (mapObj instanceof org.hisp.dhis.mapping.Map) {
+          org.hisp.dhis.mapping.Map map = (org.hisp.dhis.mapping.Map) mapObj;
+          List<org.hisp.dhis.mapping.MapView> mapViews = map.getMapViews();
+          if (mapViews != null) {
+            for (org.hisp.dhis.mapping.MapView mapView : mapViews) {
+              mapViewIdsInMap.add(mapView.getUid());
+            }
+          }
+        }
+      }
+
+      List<IdentifiableObject> filteredMapViewObjects =
+          mapViewObjects.stream()
+              .filter(obj -> !mapViewIdsInMap.contains(obj.getUid()))
+              .collect(Collectors.toList());
+
+      if (filteredMapViewObjects.isEmpty()) {
+        objects.remove(org.hisp.dhis.mapping.MapView.class);
+      } else {
+        objects.put(org.hisp.dhis.mapping.MapView.class, filteredMapViewObjects);
+      }
     }
   }
 }
