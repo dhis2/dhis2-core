@@ -1,4 +1,4 @@
-name: Run analytics api tests [Postgres]
+name: Run analytics api tests [Doris]
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
@@ -7,7 +7,7 @@ on:
   pull_request:
     types: [opened, labeled, synchronize]
   schedule:
-    - cron: "16 1 * * *" # Run at 01:16 AM
+    - cron: "36 1 * * *" # Run at 01:36 AM
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow}}-${{ github.ref }}
@@ -22,7 +22,7 @@ jobs:
       SIERRA_LEONE_DB_VERSION: "2.39.6"
 
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests') || (github.event_name == 'workflow_dispatch')
+    if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris') || (github.event_name == 'workflow_dispatch')
     steps:
       - uses: actions/checkout@v5
 
@@ -64,9 +64,11 @@ jobs:
       - name: Run tests
         run: |
           cd dhis-2/dhis-test-e2e
+          source setup_doris_links
           DHIS2_IMAGE="$CORE_IMAGE_NAME" \
           DHIS2_E2E_TEST_DUMP_PATH="$SIERRA_LEONE_DB_PATH" \
-          docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml \
+          docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml \
+            -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml \
             up --remove-orphans --exit-code-from test
 
       - name: Upload logs
@@ -94,5 +96,5 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
           SLACK_CHANNEL: "team-backend"
-          SLACK_MESSAGE: "Latest analytics e2e test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
+          SLACK_MESSAGE: "Latest analytics e2e test run against Doris on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
           SLACK_COLOR: "#ff0000"

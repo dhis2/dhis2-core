@@ -7,13 +7,8 @@ pipeline {
         label 'ec2-jdk17'
     }
 
-    parameters {
-        booleanParam(name: 'RUN_DORIS_TESTS', defaultValue: false, description: 'Run the API tests against Doris')
-    }
-
     triggers {
         cron('H H(9-16)/2 * * 1-5')
-        cron('0 4 * * 0')
         pollSCM('H/30 * * * *')
     }
 
@@ -102,58 +97,6 @@ pipeline {
                                   dir("dhis-2/dhis-test-e2e") {
                                       sh "docker compose logs web > web-logs.txt"
                                       archiveArtifacts artifacts: "web-logs.txt"
-                                  }
-                              }
-                          }
-                      }
-                  }
-              }
-        }
-
-        stage('Run api tests against Doris (every Sunday)') {
-            when {
-                expression {
-                    def causes = currentBuild.rawBuild.getCauses()
-                    def isSundayCron = causes.any { cause ->
-                        // hudson.triggers.TimerTrigger$TimerTriggerCause
-                        cause.class.simpleName == 'TimerTriggerCause' && cause.spec == '0 4 * * 0'
-                    }
-                    return isSundayCron || params.RUN_DORIS_TESTS
-                }
-            }
-            environment {
-                RP_UUID = credentials('report-portal-access-uuid')
-                RP_ENABLE = 'true'
-                RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
-                DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-            }
-
-              stages {
-                  stage('Run tests') {
-                      steps {
-                          script {
-                              dir("dhis-2/dhis-test-e2e") {
-                                  sh 'source setup_doris_links'
-                                  sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                  sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --file docker-compose.yml --file docker-compose.doris.yml --file docker-compose.e2e.yml --file docker-compose.e2e-analytics.yml --file docker-compose.doris-analytics.yml up --remove-orphans --exit-code-from test"
-                              }
-                          }
-                      }
-
-                      post {
-                          always {
-                              script {
-                                  dir("dhis-2/dhis-test-e2e") {
-                                      archiveArtifacts artifacts: "coverage-doris.csv", allowEmptyArchive: true
-                                  }
-                              }
-                          }
-
-                          failure {
-                              script {
-                                  dir("dhis-2/dhis-test-e2e") {
-                                      sh "docker compose logs web > web-logs-doris.txt"
-                                      archiveArtifacts artifacts: "web-logs-doris.txt"
                                   }
                               }
                           }
