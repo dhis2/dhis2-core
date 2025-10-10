@@ -107,8 +107,6 @@ class SingleEventQueryParams {
 
   @Getter private boolean includeDeleted;
 
-  @Getter private Set<UID> accessiblePrograms;
-
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   @Getter private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
@@ -251,15 +249,6 @@ class SingleEventQueryParams {
   public SingleEventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
-  }
-
-  public SingleEventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
-    this.accessiblePrograms = accessiblePrograms;
-    return this;
-  }
-
-  public boolean hasSecurityFilter() {
-    return accessiblePrograms != null;
   }
 
   public SingleEventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {

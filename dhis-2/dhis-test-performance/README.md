@@ -18,25 +18,27 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 
 * `index.html` - Gatling HTML report
 * `simulation.log` - Gatling binary response times and user injection profile
-* `simulation.csv` - CSV version of `simulation.log` (automated in CI only, [see
-below](#simulationcsv))
-* `simulation-run.txt` - Metadata to reproduce the run
+* `simulation.csv` - CSV version of `simulation.log` (automated if `glog` is installed)
+* `simulation-run.txt` - Run metadata including:
+  * `COMMAND` - Original command with user-provided arguments
+  * `COMMAND_IMMUTABLE` - Reproducible command using exact DHIS2 image digest from Docker Hub
+  * Git branch, commit, and dirty status
+  * ...
 * `profile.html` - Flamegraph visualization (if profiling enabled with PROF_ARGS)
 * `profile.jfr` - JFR profiler data (if profiling enabled with PROF_ARGS)
 * `profile.collapsed` - Collapsed stack traces (if profiling enabled with PROF_ARGS)
+* `postgresql.log` - SQL logs (if enabled with CAPTURE_SQL_LOGS)
+* `pgbadger.html` - SQL analysis report (if CAPTURE_SQL_LOGS enabled and `pgbadger` installed)
 
 ### Analysis
 
-* look at Gatlings own `index.html`
+* look at Gatling's own `index.html`
 * if it doesn't provide the analysis you need, try
 [gatling-statistics](https://github.com/dhis2/gatling-statistics)
 
-Since Gatling 3.12, test results are written in binary format. For local runs you'll need
-[glog](https://github.com/dhis2/gatling/releases) (a CLI from our Gatling fork) to convert:
-
-```sh
-glog --config ./src/test/resources/gatling.conf --scan-subdirs target/gatling
-```
+Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
+automatically converts `simulation.log` to `simulation.csv` if
+[glog](https://github.com/dhis2/gatling/releases) is installed.
 
 ## CI Usage
 

@@ -52,4 +52,7 @@ public interface ResourceTableService {
 
   /** Drop all SQL views. */
   void dropAllSqlViews(JobProgress progress);
+
+  /** Update the period resource table with any new periods that have been created. */
+  void updatePeriodResourceTable();
 }

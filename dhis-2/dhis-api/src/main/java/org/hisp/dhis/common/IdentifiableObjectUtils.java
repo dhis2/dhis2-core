@@ -161,7 +161,7 @@ public class IdentifiableObjectUtils {
    */
   public static <T extends IdentifiableObject> List<Long> getIdentifiers(Collection<T> objects) {
     return objects != null
-        ? objects.stream().map(o -> o.getId()).collect(Collectors.toList())
+        ? objects.stream().map(PrimaryKeyObject::getId).distinct().toList()
         : null;
   }
 

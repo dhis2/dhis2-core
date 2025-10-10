@@ -27,28 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.condition;
 
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import static org.hisp.dhis.commons.util.SystemUtils.isOAuth2AuthorizationServerTest;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
+ *
+ * @author Ameen Mohamed
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(ConfigurationExtension.class)
-@ExtendWith(MetadataSetupExtension.class)
-@ExtendWith(CoverageLoggerExtension.class)
-public abstract class ApiTest {
-  @AfterAll
-  public void afterAll() {
-    new LoginActions().loginAsDefaultUser();
-    new TestCleanUp().deleteCreatedEntities();
+public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (isOAuth2AuthorizationServerTest(context.getEnvironment().getActiveProfiles())) {
+      return true;
+    }
+    if (!isTestRun(context)) {
+      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
+    }
+    return false;
+  }
+
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.REGISTER_BEAN;
   }
 }
