@@ -403,7 +403,13 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
     trackerEventChangeLogService.addEventChangeLog(
-        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
+        eventA,
+        dataElement,
+        eventA.getProgramStage().getProgram(),
+        "",
+        "value",
+        UPDATE,
+        getCurrentUsername());
     manager.save(enrollment);
     assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(enrollment);
@@ -423,7 +429,13 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
     singleEventChangeLogService.addEventChangeLog(
-        eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
+        eventA,
+        dataElement,
+        eventA.getProgramStage().getProgram(),
+        "",
+        "value",
+        UPDATE,
+        getCurrentUsername());
     assertTrue(singleEventService.findEvent(UID.of(eventA)).isPresent());
     manager.delete(eventA);
     assertFalse(singleEventService.findEvent(UID.of(eventA)).isPresent());
