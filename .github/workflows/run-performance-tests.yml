@@ -192,6 +192,8 @@ jobs:
           PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
           WARMUP_COUNT=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
           MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
+          PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
+          CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$BASELINE_ENV" | cut -d= -f2-)
         fi
 
         # Parse candidate env
@@ -217,6 +219,12 @@ jobs:
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
         echo "* **Database**: \`$BASELINE_DB_URL\` (\`$BASELINE_DB_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
+          echo "* **SQL logging**: enabled" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$PROF_ARGS_VALUE" ]; then
+          echo "* **Profiler arguments**: \`$PROF_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| | Baseline | Candidate |" >> $GITHUB_STEP_SUMMARY
         echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
@@ -283,9 +291,22 @@ jobs:
         echo ' \' >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field simulation_class=\"$SIM_CLASS\" \\" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$MVN_ARGS_VALUE" ]; then
+          echo "  --field mvn_args=\"$MVN_ARGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$PROF_ARGS_VALUE" ]; then
+          echo "  --field prof_args=\"$PROF_ARGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "  --field dhis2_image_baseline=\"$BASELINE_DIGEST\" \\ # $BASELINE_IMAGE" >> $GITHUB_STEP_SUMMARY
         echo "  --field dhis2_image_candidate=\"$CANDIDATE_DIGEST\" \\ # $CANDIDATE_IMAGE" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$BASELINE_DB_URL" ]; then
+          echo "  --field dhis2_db_dump_url=\"$BASELINE_DB_URL\" \\" >> $GITHUB_STEP_SUMMARY
+          echo "  --field dhis2_db_image_suffix=\"$BASELINE_DB_SUFFIX\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "  --field warmup=\"$WARMUP_COUNT\" \\" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
+          echo "  --field capture_sql_logs=\"$CAPTURE_SQL_LOGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "  --ref $PERF_GIT_COMMIT # git sha of this workflow (optional but required to faithfully reproduce as it defaults to master which is mutable)" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
