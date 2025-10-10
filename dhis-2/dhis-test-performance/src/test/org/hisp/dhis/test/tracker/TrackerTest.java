@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -71,6 +71,11 @@ public class TrackerTest extends Simulation {
             + eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
 
+  String getTEsUrl =
+          "/api/tracker/trackedEntities?order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+                  + trackerProgram
+                  + "&fields=:all,!relationships,programOwner[orgUnit,program]";
+
     ScenarioBuilder singleEventsScenario =
         scenario("Single Events")
             .exec(
@@ -96,14 +101,11 @@ public class TrackerTest extends Simulation {
                     .exec(
                         http("Get relationships for first event")
                             .get(relationshipUrl)
-                            .check(status().is(200))));
-
-    String getTEsUrl =
-        "/api/tracker/trackedEntities?order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
-            + trackerProgram
-            + "&fields=:all,!relationships,programOwner[orgUnit,program]";
-
-    System.out.println("Get TEsUrl: " + getTEsUrl);
+                            .check(status().is(200)))
+                        .exec(
+                            http("Get first page of TEs of program" + trackerProgram)
+                                    .get(getTEsUrl)
+                                    .check(status().is(200))));
 
     ScenarioBuilder trackerProgramScenario =
         scenario("Tracker Program")
@@ -121,8 +123,7 @@ public class TrackerTest extends Simulation {
 
     // only one user at a time
     setUp(
-            singleEventsScenario.injectClosed(constantConcurrentUsers(1).during(1)),
-            trackerProgramScenario.injectClosed(constantConcurrentUsers(1).during(1)))
+            singleEventsScenario.injectClosed(constantConcurrentUsers(1).during(1)))
         .protocols(httpProtocolBuilder)
         .assertions(
             forAll().successfulRequests().percent().gte(100d),
