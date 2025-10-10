@@ -38,16 +38,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.events.Event;
 import org.hisp.dhis.dxf2.events.Events;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -56,8 +56,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -68,24 +66,27 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SingleEventDataSynchronizationService implements DataSynchronizationWithPaging {
+  private static final String PROCESS_NAME = "Event programs data synchronization";
+
   private final EventService eventService;
-  private final SystemSettingsService settingService;
+  private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
   private final UserService userService;
+  private final SyncUtils syncUtils;
 
   @Getter
-  private static final class EventSynchronisationContext extends PagedDataSynchronisationContext {
+  private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> psdesWithSkipSyncTrue;
 
-    public EventSynchronisationContext(Date skipChangedBefore, int pageSize) {
+    public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
       this(skipChangedBefore, 0, null, pageSize, Map.of());
     }
 
-    public EventSynchronisationContext(
+    public EventSynchronizationContext(
         Date skipChangedBefore,
         int objectsToSynchronize,
         SystemInstance instance,
@@ -94,163 +95,148 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
       this.psdesWithSkipSyncTrue = psdesWithSkipSyncTrue;
     }
+
+    public boolean hasNoObjectsToSynchronize() {
+      return getObjectsToSynchronize() == 0;
+    }
   }
 
   @Override
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
-    progress.startingProcess("Starting Event programs data synchronization job.");
-    if (!SyncUtils.testServerAvailability(settingService.getCurrentSettings(), restTemplate)
-        .isAvailable()) {
-      String msg = "Event programs data synchronization failed. Remote server is unavailable.";
-      progress.failedProcess(msg);
-      return SynchronizationResult.failure(msg);
+    progress.startingProcess("Starting " + PROCESS_NAME);
+
+    SystemSettings systemSettings = systemSettingsService.getCurrentSettings();
+
+    if (!isRemoteServerAvailable(systemSettings)) {
+      return failProcess(progress, PROCESS_NAME + " failed. Remote server is unavailable.");
     }
 
-    progress.startingStage("Counting anonymous events ready to be synchronised.");
-    EventSynchronisationContext context =
-        progress.runStage(
-            new EventSynchronisationContext(null, pageSize),
-            ctx ->
-                "Events last changed before "
-                    + ctx.getSkipChangedBefore()
-                    + " will not be synchronized.",
-            () -> createContext(pageSize));
-
-    if (context.getObjectsToSynchronize() == 0) {
-      String msg = "Event programs data synchronization skipped. No new or updated events found.";
-      progress.completedProcess(msg);
-      return SynchronizationResult.success(msg);
+    EventSynchronizationContext context =
+        initializeSynchronizationContext(pageSize, progress, systemSettings);
+    if (context.hasNoObjectsToSynchronize()) {
+      return skipProcess(progress, PROCESS_NAME + " skipped. No new or updated events found.");
     }
 
-    if (runSyncWithPaging(context, progress)) {
-      progress.completedProcess(
-          "SUCCESS! Event programs data sync was successfully done! It took ");
-      return SynchronizationResult.success("Event programs data synchronization done.");
-    }
+    boolean success = executeSynchronizationWithPaging(context, progress, systemSettings);
 
-    String msg =
-        "Event programs data synchronization failed. Not all pages were synchronised successfully.";
-    progress.failedProcess(msg);
-    return SynchronizationResult.failure(msg);
+    return success
+        ? success(progress, PROCESS_NAME + " completed successfully.")
+        : failProcess(
+            progress, PROCESS_NAME + " failed. Not all pages were synchronized successfully.");
   }
 
-  private EventSynchronisationContext createContext(final int pageSize) {
-    initSyncUserIfNoUserLoggedIn();
+  private boolean isRemoteServerAvailable(SystemSettings systemSettings) {
+    return syncUtils.testServerAvailability(systemSettings, restTemplate).isAvailable();
+  }
 
-    Date skipChangedBefore =
-        settingService.getCurrentSettings().getSyncSkipSyncForDataChangedBefore();
+  private EventSynchronizationContext initializeSynchronizationContext(
+      int pageSize, JobProgress progress, SystemSettings systemSettings) {
+    return progress.runStage(
+        new EventSynchronizationContext(null, pageSize),
+        ctx ->
+            "Events last changed before "
+                + ctx.getSkipChangedBefore()
+                + " will not be synchronized.",
+        () -> createSynchronizationContext(pageSize, systemSettings));
+  }
+
+  private EventSynchronizationContext createSynchronizationContext(
+      int pageSize, SystemSettings systemSettings) {
+    ensureAuthentication(systemSettings);
+
+    Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
     int objectsToSynchronize =
         eventService.getAnonymousEventReadyForSynchronizationCount(skipChangedBefore);
 
-    if (objectsToSynchronize != 0) {
-      SystemInstance instance =
-          SyncUtils.getRemoteInstanceWithSyncImportStrategy(
-              settingService.getCurrentSettings(), SyncEndpoint.EVENTS);
-
-      return new EventSynchronisationContext(
-          skipChangedBefore,
-          objectsToSynchronize,
-          instance,
-          pageSize,
-          programStageDataElementService
-              .getProgramStageDataElementsWithSkipSynchronizationSetToTrue());
+    if (objectsToSynchronize == 0) {
+      return new EventSynchronizationContext(skipChangedBefore, pageSize);
     }
-    return new EventSynchronisationContext(skipChangedBefore, pageSize);
+
+    SystemInstance instance =
+        syncUtils.getRemoteInstanceWithSyncImportStrategy(systemSettings, SyncEndpoint.EVENTS);
+
+    Map<String, Set<String>> skipSyncElements =
+        programStageDataElementService
+            .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+
+    return new EventSynchronizationContext(
+        skipChangedBefore, objectsToSynchronize, instance, pageSize, skipSyncElements);
   }
 
-  /**
-   * Ensures a valid {@link User} is available during event synchronization.
-   *
-   * <p>If a {@link User} is already logged in, no action is taken. A logged-in user is required for
-   * {@link EventSynchronization}, since user checks are performed in several downstream calls, such
-   * as {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventCount(EventQueryParams)}.
-   * Without an authenticated user, a {@link NullPointerException} may occur, causing the sync to
-   * fail.
-   *
-   * <p>The {@link User} is initialized and unproxied to prevent {@link
-   * org.hibernate.LazyInitializationException} issues.
-   *
-   * <p>If no {@link User} is logged in, the synchronization user will be injected. This user must
-   * have sufficient authorities to perform synchronization. At this stage, a successful connection
-   * to the remote server ensures valid user credentials are available.
-   *
-   * <p>Note: This scheduling behavior has been corrected in version 2.41, where a valid user is
-   * always associated with the job at both setup and execution time.
-   */
-  private void initSyncUserIfNoUserLoggedIn() {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser == null) {
-      log.info(
-          "CurrentUser is null, before performing EVENT_PROGRAMS_DATA_SYNC, the remote sync user will be injected");
-
-      String remoteUsername = settingService.getCurrentSettings().getRemoteInstanceUsername();
-      User user = userService.getUserByUsername(remoteUsername);
-
-      HibernateProxyUtils.unproxy(user);
-
-      UserDetails currentUserDetails = userService.createUserDetails(user);
-
-      Authentication authentication =
-          new UsernamePasswordAuthenticationToken(
-              currentUserDetails, "", currentUserDetails.getAuthorities());
-      SecurityContext secContext = SecurityContextHolder.createEmptyContext();
-      secContext.setAuthentication(authentication);
-      SecurityContextHolder.setContext(secContext);
+  /** Ensures a valid {@link User} is available during event synchronization. */
+  private void ensureAuthentication(SystemSettings systemSettings) {
+    if (CurrentUserUtil.getCurrentUserDetails() == null) {
+      initializeSyncUser(systemSettings);
     }
   }
 
-  private boolean runSyncWithPaging(EventSynchronisationContext context, JobProgress progress) {
-    String msg =
-        context.getObjectsToSynchronize() + " anonymous Events to synchronize were found.\n";
-    msg +=
-        "Remote server URL for Event programs POST synchronization: "
-            + context.getInstance().getUrl()
-            + "\n";
-    msg +=
-        "Event programs data synchronization job has "
-            + context.getPages()
-            + " pages to synchronize. With page size: "
-            + context.getPageSize();
-    progress.startingStage(msg, context.getPages(), SKIP_ITEM);
+  private void initializeSyncUser(SystemSettings systemSettings) {
+    log.info("CurrentUser is null, initializing remote sync user for EVENT_PROGRAMS_DATA_SYNC");
+
+    String remoteUsername = systemSettings.getRemoteInstanceUsername();
+    User user = userService.getUserByUsername(remoteUsername);
+    UserDetails userDetails = userService.createUserDetails(user);
+
+    var authentication =
+        new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+
+    var securityContext = SecurityContextHolder.createEmptyContext();
+    securityContext.setAuthentication(authentication);
+    SecurityContextHolder.setContext(securityContext);
+  }
+
+  private boolean executeSynchronizationWithPaging(
+      EventSynchronizationContext context, JobProgress progress, SystemSettings systemSettings) {
+    String message =
+        format(
+            "Found %d anonymous Events to synchronize.%nRemote server: %s%nProcessing %d pages with size %d",
+            context.getObjectsToSynchronize(),
+            context.getInstance().getUrl(),
+            context.getPages(),
+            context.getPageSize());
+
+    progress.startingStage(message, context.getPages(), SKIP_ITEM);
+
     progress.runStage(
         IntStream.range(1, context.getPages() + 1).boxed(),
-        page -> format("Synchronizing page %d with page size %d", page, context.getPageSize()),
-        page -> synchronizePage(page, context));
+        page -> format("Synchronizing page %d with size %d", page, context.getPageSize()),
+        page -> synchronizePage(page, context, systemSettings));
+
     return !progress.isSkipCurrentStage();
   }
 
-  protected void synchronizePage(int page, EventSynchronisationContext context) {
+  protected void synchronizePage(
+      int page, EventSynchronizationContext context, SystemSettings systemSettings) {
     Events events =
         eventService.getAnonymousEventsForSync(
             context.getPageSize(),
             context.getSkipChangedBefore(),
             context.getPsdesWithSkipSyncTrue());
-    filterOutDataValuesMarkedWithSkipSynchronizationFlag(events);
 
-    if (log.isDebugEnabled()) {
-      log.debug("Events that are going to be synchronized are: " + events);
-    }
+    filterDataValuesWithSkipSyncFlag(events);
 
-    if (sendSyncRequest(events, context.getInstance())) {
-      List<String> eventsUIDs =
-          events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
-      log.info("The lastSynchronized flag of these Events will be updated: " + eventsUIDs);
-      eventService.updateEventsSyncTimestamp(eventsUIDs, context.getStartTime());
-      return;
-    }
-    throw new MetadataSyncServiceException(format("Page %d synchronisation failed.", page));
-  }
+    log.debug("Events to be synchronized: {}", events);
 
-  private void filterOutDataValuesMarkedWithSkipSynchronizationFlag(Events events) {
-    for (Event event : events.getEvents()) {
-      event.setDataValues(
-          event.getDataValues().stream()
-              .filter(dv -> !dv.isSkipSynchronization())
-              .collect(Collectors.toSet()));
+    if (sendSynchronizationRequest(events, context.getInstance(), systemSettings)) {
+      updateEventsSyncTimestamp(events, context.getStartTime());
+    } else {
+      throw new MetadataSyncServiceException(format("Page %d synchronization failed", page));
     }
   }
 
-  private boolean sendSyncRequest(Events events, SystemInstance instance) {
+  private void filterDataValuesWithSkipSyncFlag(Events events) {
+    events
+        .getEvents()
+        .forEach(
+            event ->
+                event.setDataValues(
+                    event.getDataValues().stream()
+                        .filter(dataValue -> !dataValue.isSkipSynchronization())
+                        .collect(Collectors.toSet())));
+  }
+
+  private boolean sendSynchronizationRequest(
+      Events events, SystemInstance instance, SystemSettings systemSettings) {
     RequestCallback requestCallback =
         request -> {
           request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -262,11 +248,30 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
           renderService.toJson(request.getBody(), events);
         };
 
-    return SyncUtils.sendSyncRequest(
-        settingService.getCurrentSettings(),
-        restTemplate,
-        requestCallback,
-        instance,
-        SyncEndpoint.EVENTS);
+    return syncUtils.sendSyncRequest(
+        systemSettings, restTemplate, requestCallback, instance, SyncEndpoint.EVENTS);
+  }
+
+  private void updateEventsSyncTimestamp(Events events, Date syncTime) {
+    List<String> eventUids =
+        events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
+
+    log.info("Updating lastSynchronized flag for events: {}", eventUids);
+    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
+  }
+
+  private SynchronizationResult success(JobProgress progress, String message) {
+    progress.completedProcess(message);
+    return SynchronizationResult.success(message);
+  }
+
+  private SynchronizationResult skipProcess(JobProgress progress, String message) {
+    progress.completedProcess(message);
+    return SynchronizationResult.success(message);
+  }
+
+  private SynchronizationResult failProcess(JobProgress progress, String message) {
+    progress.failedProcess(message);
+    return SynchronizationResult.failure(message);
   }
 }
