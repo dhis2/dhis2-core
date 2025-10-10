@@ -1,0 +1,124 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/outlierDetection?ds=QoPiHH8oSfy&ou=XKGgynPS1WZ,rO2RVJWHpCe,FRmrFTE63D0,MBZYTqkEgwf,hdeC7uX9Cko,RdNV4tTRNEo,K27JzTKmBKh,hRQsZhmvqgS,sv6c7CpPcrc,dOhqCNenSjS,TOgZ99Jv0bN,pFCZqWnXtoU,IWp9dQGM0bS&startDate=2022-06-01&endDate=2024-01-02&algorithm=Z_SCORE&maxResults=500&orderBy=value&sortOrder=ASC&threshold=3",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 4200,
+          "max": 5150,
+          "mean": 4950
+        },
+        {
+          "release": "42.0",
+          "min": 5450,
+          "max": 6200,
+          "mean": 6150
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/outlierDetection?ds=QoPiHH8oSfy&ou=RdNV4tTRNEo,dOhqCNenSjS,TOgZ99Jv0bN&startDate=2023-11-01&endDate=2024-01-12&algorithm=Z_SCORE&maxResults=35&orderBy=mean&threshold=5",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 125,
+          "max": 320,
+          "mean": 235
+        },
+        {
+          "release": "42.0",
+          "min": 145,
+          "max": 320,
+          "mean": 235
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/outlierDetection?ds=XvcWsuHBsGA&ou=J41dVMJoZF7&startDate=2021-10-01&endDate=2024-01-12&algorithm=MODIFIED_Z_SCORE&maxResults=100&orderBy=median&threshold=10",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 225,
+          "mean": 165
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 225,
+          "mean": 165
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/outlierDetection?dx=iaQuylCoH3u&ou=J41dVMJoZF7&startDate=2020-10-01&endDate=2024-01-02&algorithm=MODIFIED_Z_SCORE&maxResults=100",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 195,
+          "mean": 150
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 200,
+          "mean": 150
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/outlierDetection?dx=mG3LJzaZxb8&headers=aoc,dx,ouname,pe&ou=AoAbkWXFXLo,xDHTXf02C9T,aF0DFWVDW9Z,vBWtCmNNnCG,quFXhkOJGB4&startDate=2020-10-01&endDate=2024-01-02&algorithm=MODIFIED_Z_SCORE&maxResults=100",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 160,
+          "max": 335,
+          "mean": 275
+        },
+        {
+          "release": "42.0",
+          "min": 170,
+          "max": 325,
+          "mean": 270
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/outlierDetection?dx=mG3LJzaZxb8&headers=aoc,dx,ouname,pe&ou=AoAbkWXFXLo,xDHTXf02C9T,aF0DFWVDW9Z,vBWtCmNNnCG,quFXhkOJGB4,IWp9dQGM0bS&startDate=2020-10-01&endDate=2024-01-02&algorithm=MODIFIED_Z_SCORE&maxResults=100&orderBy=modifiedzscore",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 195,
+          "max": 365,
+          "mean": 310
+        },
+        {
+          "release": "42.0",
+          "min": 125,
+          "max": 300,
+          "mean": 230
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    }
+  ]
+}

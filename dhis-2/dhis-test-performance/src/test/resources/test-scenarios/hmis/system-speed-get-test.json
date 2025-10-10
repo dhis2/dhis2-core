@@ -1,0 +1,820 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/systemSettings",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 55,
+          "max": 150,
+          "mean": 100
+        },
+        {
+          "release": "40.2.2",
+          "min": 55,
+          "max": 150,
+          "mean": 100
+        },
+        {
+          "release": "41.0",
+          "min": 55,
+          "max": 130,
+          "mean": 95
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 165,
+          "mean": 105
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/system/info",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 55,
+          "max": 150,
+          "mean": 95
+        },
+        {
+          "release": "40.2.2",
+          "min": 55,
+          "max": 165,
+          "mean": 95
+        },
+        {
+          "release": "41.0",
+          "min": 55,
+          "max": 165,
+          "mean": 95
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 150,
+          "mean": 105
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/userSettings",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 55,
+          "max": 140,
+          "mean": 100
+        },
+        {
+          "release": "40.2.2",
+          "min": 55,
+          "max": 150,
+          "mean": 95
+        },
+        {
+          "release": "41.0",
+          "min": 55,
+          "max": 150,
+          "mean": 95
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 150,
+          "mean": 105
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/me?fields=authorities,avatar,email,name,settings",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 60,
+          "max": 135,
+          "mean": 110
+        },
+        {
+          "release": "40.2.2",
+          "min": 60,
+          "max": 170,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 60,
+          "max": 170,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 60,
+          "max": 170,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/schemas/visualization?fields=apiEndpoint,name,displayName,authorities,singular,plural,shareable,metadata,klass,identifiableObject,translatable,properties[href,writable,collection,collectionName,name,propertyType,persisted,required,min,max,ordered,unique,constants,owner,itemPropertyType,translationKey,embeddedObject]",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 70,
+          "max": 155,
+          "mean": 110
+        },
+        {
+          "release": "40.2.2",
+          "min": 60,
+          "max": 175,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 60,
+          "max": 175,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 80,
+          "max": 175,
+          "mean": 150
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/schemas?fields=apiEndpoint,name,displayName,authorities,singular,plural,shareable,metadata,klass,identifiableObject,translatable,properties[href,writable,collection,collectionName,name,propertyType,persisted,required,min,max,ordered,unique,constants,owner,itemPropertyType,translationKey,embeddedObject]",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 125,
+          "max": 235,
+          "mean": 200
+        },
+        {
+          "release": "40.2.2",
+          "min": 125,
+          "max": 295,
+          "mean": 210
+        },
+        {
+          "release": "41.0",
+          "min": 125,
+          "max": 295,
+          "mean": 210
+        },
+        {
+          "release": "42.0",
+          "min": 125,
+          "max": 295,
+          "mean": 210
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/schemas",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 175,
+          "max": 365,
+          "mean": 315
+        },
+        {
+          "release": "41.0",
+          "min": 175,
+          "max": 365,
+          "mean": 315
+        },
+        {
+          "release": "42.0",
+          "min": 175,
+          "max": 325,
+          "mean": 275
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/attributes",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 155,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 155,
+          "mean": 110
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 155,
+          "mean": 110
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/me",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 160,
+          "mean": 120
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 160,
+          "mean": 120
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 160,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/me/authorization",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 140,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 140,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 140,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/me/dashboard",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 150,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 150,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 150,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/apps",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 150,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 150,
+          "mean": 110
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 150,
+          "mean": 110
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/organisationUnitGroups",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 150,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 150,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 150,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/constants",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 155,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 155,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 160,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/periodTypes",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 165,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 165,
+          "mean": 110
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 165,
+          "mean": 110
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/scheduler",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 160,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 160,
+          "mean": 110
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 160,
+          "mean": 110
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/users",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 85,
+          "max": 180,
+          "mean": 140
+        },
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 180,
+          "mean": 140
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 160,
+          "mean": 130
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/userRoles",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/userGroups",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 140,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 140,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 165,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/filledOrganisationUnitLevels",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 60,
+          "max": 165,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 60,
+          "max": 165,
+          "mean": 110
+        },
+        {
+          "release": "42.0",
+          "min": 60,
+          "max": 165,
+          "mean": 110
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/attributes?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/dataElements?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 115,
+          "max": 215,
+          "mean": 185
+        },
+        {
+          "release": "41.0",
+          "min": 115,
+          "max": 215,
+          "mean": 185
+        },
+        {
+          "release": "42.0",
+          "min": 215,
+          "max": 445,
+          "mean": 405
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/dataElementGroups?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 165,
+          "mean": 120
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 165,
+          "mean": 120
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 165,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/categories?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 155,
+          "mean": 120
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 155,
+          "mean": 120
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 155,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/categoryCombos?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 155,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 155,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 160,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/categoryOptionCombos?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 80,
+          "max": 170,
+          "mean": 135
+        },
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 170,
+          "mean": 135
+        },
+        {
+          "release": "42.0",
+          "min": 95,
+          "max": 200,
+          "mean": 155
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/dataSets?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 75,
+          "max": 150,
+          "mean": 115
+        },
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 150,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 150,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/organisationUnits?filter=name:ne:default&filter=parent.id:eq:ImspTQPwCqd",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 85,
+          "max": 180,
+          "mean": 140
+        },
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 180,
+          "mean": 140
+        },
+        {
+          "release": "42.0",
+          "min": 105,
+          "max": 295,
+          "mean": 240
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/organisationUnits?filter=name:ne:default&order=displayName",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 85,
+          "max": 170,
+          "mean": 140
+        },
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 170,
+          "mean": 140
+        },
+        {
+          "release": "42.0",
+          "min": 115,
+          "max": 300,
+          "mean": 245
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/organisationUnits?filter=id:in:[ImspTQPwCqd]&fields=:all,displayName,path,publicAccess,access,children[id,displayName,path,children::isNotEmpty,publicAccess,access]&paging=false",
+      "expectations": [
+        {
+          "release": "40.2.2",
+          "min": 70,
+          "max": 150,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 150,
+          "mean": 110
+        },
+        {
+          "release": "42.0",
+          "min": 70,
+          "max": 150,
+          "mean": 110
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}

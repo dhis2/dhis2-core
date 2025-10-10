@@ -1,0 +1,32 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/enrollments/query/WSGAb5XwJ3Y?dimension=ou:ImspTQPwCqd,ksBXh8hBmpv:GE:0,Oy1a11KynDC:GE:0,rxNjqzJ7dkK:GE:0&headers=ouname,lastupdated,ksBXh8hBmpv,Oy1a11KynDC,rxNjqzJ7dkK&totalPages=false&lastUpdated=LAST_5_YEARS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 15500,
+          "max": 16850,
+          "mean": 16650
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/ur1Edk5Oe2n?dimension=ou:O6uvpzGd5pu,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6:IN:Female,GUOBQt5K2WI:LIKE:Cape,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ:LE:45:NE:NV:!EQ:44&headers=ouname,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6,GUOBQt5K2WI,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ,lastupdated,createdbydisplayname,lastupdatedbydisplayname,enrollmentdate,programstatus&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&programStatus=ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=OvY4VVhSDeJ&relativePeriodDate=2022-07-01",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 200,
+          "mean": 140
+        }
+      ],
+      "version": {
+        "min": 39
+      }
+    }
+  ]
+}

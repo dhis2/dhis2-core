@@ -1,0 +1,36 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/tracker/events.json?pageSize=100&totalPages=true&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "41.0",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "42",
+          "min": 90,
+          "max": 1800,
+          "mean": 1600
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}

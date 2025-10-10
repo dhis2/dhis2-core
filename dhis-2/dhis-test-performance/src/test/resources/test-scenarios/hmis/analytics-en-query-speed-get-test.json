@@ -1,0 +1,270 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/enrollments/query/M3xtLkYBlKI?dimension=ou:IWp9dQGM0bS;W6sNfkJcXGC;LEVEL-b5jE033nBqM;LEVEL-vFr4zVw6Avn;OU_GROUP-YXlxwXEWex6;OU_GROUP-roGQQw4l3dW;OU_GROUP-VePuVPFoyJ2,cl2RC5MLQYO:GE:0,gDgZ5oXCyWm,DishKl0ppXK,nO7nsEjYcp5,zyTL3AMIkf2,OHeZKzifNYE,d6Sr0B2NJYv,yZmG3RbbBKG,uvMKOn1oWvd.yhX7ljWZV9q:IN:NV,uvMKOn1oWvd.JhpYDsTUfi2:IN:1,CWaAcQYKVpq[1].dbMsAGvictz,CWaAcQYKVpq[2].dbMsAGvictz,CWaAcQYKVpq[0].dbMsAGvictz,CWaAcQYKVpq.ehBd9cR5bq4:EQ:NV,CWaAcQYKVpq.VNM6zoPECqd:GT:0,CWaAcQYKVpq.SaHE38QFFwZ:IN:HILLY_AND_PLATUE;PLATUE;HILLY&headers=ouname,cl2RC5MLQYO,gDgZ5oXCyWm,DishKl0ppXK,nO7nsEjYcp5,zyTL3AMIkf2,OHeZKzifNYE,d6Sr0B2NJYv,yZmG3RbbBKG,uvMKOn1oWvd.yhX7ljWZV9q,uvMKOn1oWvd.JhpYDsTUfi2,CWaAcQYKVpq[1].dbMsAGvictz,CWaAcQYKVpq[2].dbMsAGvictz,CWaAcQYKVpq[0].dbMsAGvictz,CWaAcQYKVpq.ehBd9cR5bq4,CWaAcQYKVpq.VNM6zoPECqd,CWaAcQYKVpq.SaHE38QFFwZ,createdbydisplayname&totalPages=false&lastUpdated=2021-08-01_2024-11-23&enrollmentDate=LAST_12_MONTHS&programStatus=COMPLETED,ACTIVE&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 220,
+          "max": 500,
+          "mean": 310
+        },
+        {
+          "release": "40.2.2",
+          "min": 500,
+          "max": 825,
+          "mean": 780
+        },
+        {
+          "release": "41.0",
+          "min": 500,
+          "max": 825,
+          "mean": 780
+        },
+        {
+          "release": "42.0",
+          "min": 240,
+          "max": 555,
+          "mean": 420
+        },
+        {
+          "release": "42.0-doris",
+          "min": 210,
+          "max": 400,
+          "mean": 335
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/pMIglSEqPGS?dimension=ou:IWp9dQGM0bS;W6sNfkJcXGC;LEVEL-b5jE033nBqM;LEVEL-vFr4zVw6Avn;OU_GROUP-YXlxwXEWex6;OU_GROUP-roGQQw4l3dW;OU_GROUP-VePuVPFoyJ2,JxX12764mmB,ENRjVGxVL6l:ILIKE:a,sB1IHYu2xQT:!ILIKE:r,D917mo9Whvn:IN:1;NV&filter=qDVxzO0Ilkq:GT:0&headers=ouname,JxX12764mmB,ENRjVGxVL6l,sB1IHYu2xQT,D917mo9Whvn&totalPages=false&lastUpdated=2021-08-01_2024-11-23&enrollmentDate=LAST_12_MONTHS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 120,
+          "max": 400,
+          "mean": 205
+        },
+        {
+          "release": "40.2.2",
+          "min": 580,
+          "max": 960,
+          "mean": 830
+        },
+        {
+          "release": "41.0",
+          "min": 580,
+          "max": 960,
+          "mean": 830
+        },
+        {
+          "release": "42.0",
+          "min": 220,
+          "max": 500,
+          "mean": 315
+        },
+        {
+          "release": "42.0-doris",
+          "min": 195,
+          "max": 390,
+          "mean": 305
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/SSLpOM0r1U7?dimension=ou:IWp9dQGM0bS;W6sNfkJcXGC;LEVEL-b5jE033nBqM;LEVEL-vFr4zVw6Avn;OU_GROUP-YXlxwXEWex6;OU_GROUP-roGQQw4l3dW;OU_GROUP-VePuVPFoyJ2,itJqasg1QiC,jMotFa52JAq,s53RFfXA75f.LTdvha8zapG,s53RFfXA75f[-1].LauCl9aicLX:IN:1;NV;0,s53RFfXA75f[0].LauCl9aicLX:IN:1;NV;0,HI9Y7BKVNnC,JQC3DLdCWK8:GE:0,dkaVGV1WUCR,lXDpHyE8wgb&headers=ouname,itJqasg1QiC,jMotFa52JAq,s53RFfXA75f.LTdvha8zapG,s53RFfXA75f[-1].LauCl9aicLX,s53RFfXA75f[0].LauCl9aicLX,HI9Y7BKVNnC,JQC3DLdCWK8,dkaVGV1WUCR,lXDpHyE8wgb&totalPages=false&lastUpdated=2021-08-01_2024-11-23&enrollmentDate=LAST_12_MONTHS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 140,
+          "max": 380,
+          "mean": 215
+        },
+        {
+          "release": "40.2.2",
+          "min": 120,
+          "max": 275,
+          "mean": 250
+        },
+        {
+          "release": "41.0",
+          "min": 120,
+          "max": 400,
+          "mean": 295
+        },
+        {
+          "release": "42.0",
+          "min": 130,
+          "max": 400,
+          "mean": 305
+        },
+        {
+          "release": "42.0-doris",
+          "min": 210,
+          "max": 400,
+          "mean": 335
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/SSLpOM0r1U7?dimension=ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN,itJqasg1QiC,jMotFa52JAq,s53RFfXA75f.LTdvha8zapG,s53RFfXA75f[-1].LauCl9aicLX:IN:1;NV;0,s53RFfXA75f[0].LauCl9aicLX:IN:1;NV;0,HI9Y7BKVNnC,JQC3DLdCWK8:GE:0,dkaVGV1WUCR,lXDpHyE8wgb&headers=ouname,itJqasg1QiC,jMotFa52JAq,s53RFfXA75f.LTdvha8zapG,s53RFfXA75f[-1].LauCl9aicLX,s53RFfXA75f[0].LauCl9aicLX,HI9Y7BKVNnC,JQC3DLdCWK8,dkaVGV1WUCR,lXDpHyE8wgb&totalPages=false&lastUpdated=2021-08-01_2024-11-23&enrollmentDate=LAST_12_MONTHS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 110,
+          "max": 310,
+          "mean": 185
+        },
+        {
+          "release": "40.2.2",
+          "min": 80,
+          "max": 250,
+          "mean": 190
+        },
+        {
+          "release": "41.0",
+          "min": 125,
+          "max": 370,
+          "mean": 225
+        },
+        {
+          "release": "42.0",
+          "min": 125,
+          "max": 350,
+          "mean": 225
+        },
+        {
+          "release": "42.0-doris",
+          "min": 125,
+          "max": 350,
+          "mean": 240
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/Lt6P15ps7f6?dimension=ou:USER_ORGUNIT,ntelZthDPpR,WlgSirxU9bG,oindugucx72,OrvVU0I9wTT:EQ:1&headers=enrollmentdate,ouname,ntelZthDPpR,WlgSirxU9bG,oindugucx72,OrvVU0I9wTT&totalPages=false&enrollmentDate=THIS_YEAR,LAST_5_YEARS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 64000,
+          "max": 69000,
+          "mean": 68500
+        },
+        {
+          "release": "40.2.2",
+          "min": 62000,
+          "max": 76000,
+          "mean": 76000
+        },
+        {
+          "release": "41.0",
+          "min": 62000,
+          "max": 76000,
+          "mean": 76000
+        },
+        {
+          "release": "42.0",
+          "min": 55000,
+          "max": 70000,
+          "mean": 70000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 50000,
+          "max": 65000,
+          "mean": 65000
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/KYzHf1Ta6C4?dimension=ou:USER_ORGUNIT,BdvE9shT6GX,bE3YcdNxA3g:GT:1&headers=enrollmentdate,ouname,BdvE9shT6GX,bE3YcdNxA3g&totalPages=false&enrollmentDate=THIS_YEAR,LAST_YEAR&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 160,
+          "max": 310,
+          "mean": 245
+        },
+        {
+          "release": "40.2.2",
+          "min": 145,
+          "max": 315,
+          "mean": 285
+        },
+        {
+          "release": "41.0",
+          "min": 145,
+          "max": 315,
+          "mean": 285
+        },
+        {
+          "release": "42.0",
+          "min": 170,
+          "max": 385,
+          "mean": 315
+        },
+        {
+          "release": "42.0-doris",
+          "min": 190,
+          "max": 450,
+          "mean": 330
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/enrollments/query/YcxRnVWkbQ1?dimension=ou:IWp9dQGM0bS,sB1IHYu2xQT,ENRjVGxVL6l,oindugucx72,GIb6Ge9PCc4.pXGhYbf5cAP,GIb6Ge9PCc4.LNRDN39NSfY,G0ePNuYPT87.fkqcoDLvzED,cSkxPgrdUKE.kBBrPq9mMEw,F9CrPrvrtb1.bX9jmncMHLC:IN:MEASLES,r9R6DTQdVgR.BLiSlEmoEQH&headers=enrollmentdate,ouname,sB1IHYu2xQT,ENRjVGxVL6l,oindugucx72,GIb6Ge9PCc4.pXGhYbf5cAP,GIb6Ge9PCc4.LNRDN39NSfY,G0ePNuYPT87.fkqcoDLvzED,cSkxPgrdUKE.kBBrPq9mMEw,F9CrPrvrtb1.bX9jmncMHLC,r9R6DTQdVgR.BLiSlEmoEQH&totalPages=false&enrollmentDate=LAST_YEAR&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 5400,
+          "max": 6650,
+          "mean": 6200
+        },
+        {
+          "release": "40.2.2",
+          "min": 5400,
+          "max": 6700,
+          "mean": 6450
+        },
+        {
+          "release": "41.0",
+          "min": 5400,
+          "max": 6700,
+          "mean": 6450
+        },
+        {
+          "release": "42.0",
+          "min": 2300,
+          "max": 3000,
+          "mean": 2800
+        },
+        {
+          "release": "42.0-doris",
+          "min": 1800,
+          "max": 2900,
+          "mean": 2650
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}
