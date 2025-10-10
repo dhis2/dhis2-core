@@ -192,6 +192,7 @@ jobs:
           PERF_GIT_BRANCH=$(grep "^GIT_BRANCH_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
           PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
           WARMUP_COUNT=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
+          MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
         fi
 
         # Parse candidate env
@@ -211,6 +212,9 @@ jobs:
         echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* **Simulation**: \`$SIM_CLASS\`" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$MVN_ARGS_VALUE" ]; then
+          echo "* **Maven arguments**: \`$MVN_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
         echo "* **Database**: \`$BASELINE_DB_URL\` (\`$BASELINE_DB_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
