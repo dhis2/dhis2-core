@@ -47,7 +47,8 @@ public class TrackerTest extends Simulation {
 
   public TrackerTest() {
     String repeat = System.getProperty("repeat", "100");
-    String program = System.getProperty("program", "VBqh0ynB2wv");
+    String eventProgram = System.getProperty("eventProgram", "VBqh0ynB2wv");
+    String trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
 
     HttpProtocolBuilder httpProtocolBuilder =
         http.baseUrl("http://localhost:8080")
@@ -67,13 +68,11 @@ public class TrackerTest extends Simulation {
     // to be more accurate
     String getEventsUrl =
         "/api/tracker/events?program="
-            + program
+            + eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
 
-    ScenarioBuilder scenario = scenario("Single Events");
-
-    scenario =
-        scenario
+    ScenarioBuilder singleEventsScenario =
+        scenario("Single Events")
             .exec(
                 http("Login")
                     .post("/api/auth/login")
@@ -81,15 +80,15 @@ public class TrackerTest extends Simulation {
                     .check(status().is(200)))
             .repeat(Integer.parseInt(repeat))
             .on(
-                exec(http("Go to first page of program " + program)
+                exec(http("Go to first page of program " + eventProgram)
                         .get(getEventsUrl)
                         .check(status().is(200)))
                     .exec(
-                        http("Go to second page of program " + program)
+                        http("Go to second page of program " + eventProgram)
                             .get(getEventsUrl + "&page=2")
                             .check(status().is(200)))
                     .exec(
-                        http("Go back to first page of program " + program)
+                        http("Go back to first page of program " + eventProgram)
                             .get(getEventsUrl)
                             .check(status().is(200))
                             .check(jsonPath("$.events[0].event").saveAs("eventUid")))
@@ -99,24 +98,51 @@ public class TrackerTest extends Simulation {
                             .get(relationshipUrl)
                             .check(status().is(200))));
 
+    String getTEsUrl =
+        "/api/tracker/trackedEntities?order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + trackerProgram
+            + "&fields=:all,!relationships,programOwner[orgUnit,program]";
+
+    System.out.println("Get TEsUrl: " + getTEsUrl);
+
+    ScenarioBuilder trackerProgramScenario =
+        scenario("Tracker Program")
+            .exec(
+                http("Login")
+                    .post("/api/auth/login")
+                    .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
+                    .check(status().is(200)))
+            .repeat(Integer.parseInt(repeat))
+            .on(
+                exec(
+                    http("Get first page of TEs of program" + trackerProgram)
+                        .get(getTEsUrl)
+                        .check(status().is(200))));
+
     // only one user at a time
-    setUp(scenario.injectClosed(constantConcurrentUsers(1).during(1)))
+    setUp(
+            singleEventsScenario.injectClosed(constantConcurrentUsers(1).during(1)),
+            trackerProgramScenario.injectClosed(constantConcurrentUsers(1).during(1)))
         .protocols(httpProtocolBuilder)
         .assertions(
             forAll().successfulRequests().percent().gte(100d),
-            details("Go to first page of program " + program)
+            details("Go to first page of program " + eventProgram)
                 .responseTime()
                 .percentile(90)
                 .lte(100),
-            details("Go to second page of program " + program)
+            details("Go to second page of program " + eventProgram)
                 .responseTime()
                 .percentile(90)
                 .lte(100),
-            details("Go back to first page of program " + program)
+            details("Go back to first page of program " + eventProgram)
                 .responseTime()
                 .percentile(90)
                 .lte(100),
             details("Get first event").responseTime().percentile(90).lte(25),
-            details("Get relationships for first event").responseTime().percentile(90).lte(10));
+            details("Get relationships for first event").responseTime().percentile(90).lte(10),
+            details("Get first page of TEs of program" + trackerProgram)
+                .responseTime()
+                .percentile(90)
+                .lte(300));
   }
 }
