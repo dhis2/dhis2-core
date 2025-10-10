@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -179,6 +179,10 @@ public final class QueryUtils {
     return "'" + value + "'";
   }
 
+  public static Object validateValue(String value) {
+    return (value == null || StringUtils.isEmpty(value)) ? null : value;
+  }
+
   /**
    * Convert a List of select fields into a string as in SQL select query.
    *
@@ -193,9 +197,14 @@ public final class QueryUtils {
     }
     StringBuilder str = new StringBuilder(StringUtils.EMPTY);
     for (int i = 0; i < fields.size(); i++) {
-      str.append(fields.get(i));
-      if (i < fields.size() - 1) {
-        str.append(",");
+      String field = fields.get(i);
+      if (field.equals("*")) {
+        str.append("*");
+      } else {
+        str.append("\"").append(field).append("\"");
+        if (i < fields.size() - 1) {
+          str.append(",");
+        }
       }
     }
     return str.toString();
@@ -221,7 +230,7 @@ public final class QueryUtils {
     StringBuilder str = new StringBuilder("(");
 
     for (int i = 0; i < items.size(); i++) {
-      Object item = QueryUtils.parseValue(items.get(i));
+      Object item = QueryUtils.validateValue(items.get(i));
       if (item != null) {
         str.append(item);
         if (i < items.size() - 1) {
@@ -244,39 +253,43 @@ public final class QueryUtils {
    * @param value value of the current SQL query condition.
    * @return a string contains an SQL expression with operator and value.
    */
-  public static String parseFilterOperator(String operator, String value) {
+  public static QueryPlaceHolderWithArg parseFilterOperator(String operator, String value) {
 
     if (StringUtils.isEmpty(operator)) {
       throw new QueryParserException("Filter Operator is null");
     }
 
     return switch (operator) {
-      case "eq" -> "= " + QueryUtils.parseValue(value);
-      case "ieq" -> " ilike '" + value + "'";
-      case "!eq", "ne", "neq" -> "!= " + QueryUtils.parseValue(value);
-      case "gt" -> "> " + QueryUtils.parseValue(value);
-      case "lt" -> "< " + QueryUtils.parseValue(value);
-      case "gte", "ge" -> ">= " + QueryUtils.parseValue(value);
-      case "lte", "le" -> "<= " + QueryUtils.parseValue(value);
-      case "like" -> "like '%" + value + "%'";
-      case "!like" -> "not like '%" + value + "%'";
-      case "^like" -> " like '" + value + "%'";
-      case "!^like" -> " not like '" + value + "%'";
-      case "$like" -> " like '%" + value + "'";
-      case "!$like" -> " not like '%" + value + "'";
-      case "ilike" -> " ilike '%" + value + "%'";
-      case "!ilike" -> " not ilike '%" + value + "%'";
-      case "^ilike" -> " ilike '" + value + "%'";
-      case "!^ilike" -> " not ilike '" + value + "%'";
-      case "$ilike" -> " ilike '%" + value + "'";
-      case "!$ilike" -> " not ilike '%" + value + "'";
-      case "in" -> "in " + QueryUtils.convertCollectionValue(value);
-      case "!in" -> " not in " + QueryUtils.convertCollectionValue(value);
-      case "null" -> "is null";
-      case "!null" -> "is not null";
+      case "eq" -> new QueryPlaceHolderWithArg("= ?", QueryUtils.validateValue(value));
+      case "ieq" -> new QueryPlaceHolderWithArg(" ilike ?", value);
+      case "!eq", "ne", "neq" ->
+          new QueryPlaceHolderWithArg("!= ?", QueryUtils.validateValue(value));
+      case "gt" -> new QueryPlaceHolderWithArg("> ?", QueryUtils.validateValue(value));
+      case "lt" -> new QueryPlaceHolderWithArg("< ?", QueryUtils.validateValue(value));
+      case "gte", "ge" -> new QueryPlaceHolderWithArg(">= ?", QueryUtils.validateValue(value));
+      case "lte", "le" -> new QueryPlaceHolderWithArg("<= ?", QueryUtils.validateValue(value));
+      case "like" -> new QueryPlaceHolderWithArg("like ?", "%" + value + "%");
+      case "!like" -> new QueryPlaceHolderWithArg("not like ?", "%" + value + "%");
+      case "^like" -> new QueryPlaceHolderWithArg(" like ?", value + "%");
+      case "!^like" -> new QueryPlaceHolderWithArg(" not like ?", value + "%");
+      case "$like" -> new QueryPlaceHolderWithArg(" like ?", "%" + value);
+      case "!$like" -> new QueryPlaceHolderWithArg(" not like ?", "%" + value);
+      case "ilike" -> new QueryPlaceHolderWithArg(" ilike ?", "%" + value + "%");
+      case "!ilike" -> new QueryPlaceHolderWithArg(" not ilike ?", "%" + value + "%");
+      case "^ilike" -> new QueryPlaceHolderWithArg(" ilike ?", value + "%");
+      case "!^ilike" -> new QueryPlaceHolderWithArg(" not ilike ?", value + "%");
+      case "$ilike" -> new QueryPlaceHolderWithArg(" ilike ?", "%" + value);
+      case "!$ilike" -> new QueryPlaceHolderWithArg(" not ilike ?", "%" + value);
+      case "in" -> new QueryPlaceHolderWithArg("in ?", QueryUtils.convertCollectionValue(value));
+      case "!in" ->
+          new QueryPlaceHolderWithArg(" not in ?", QueryUtils.convertCollectionValue(value));
+      case "null" -> new QueryPlaceHolderWithArg("is null", null);
+      case "!null" -> new QueryPlaceHolderWithArg("is not null", null);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
   }
+
+  public record QueryPlaceHolderWithArg(String query, Object arg) {}
 
   /**
    * Returns a single result from the given {@link TypedQuery}. Returns null if no objects could be

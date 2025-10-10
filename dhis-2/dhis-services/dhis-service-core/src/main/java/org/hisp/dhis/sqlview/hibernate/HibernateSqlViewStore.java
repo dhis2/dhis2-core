@@ -33,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 import jakarta.persistence.EntityManager;
+import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.TransactionMode;
@@ -120,11 +121,13 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   }
 
   @Override
-  public void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode) {
+  public void populateSqlViewGrid(
+      Grid grid, String sql, Object[] args, TransactionMode transactionMode) {
+    System.out.println("using sql: " + sql + " \nwith args: " + Arrays.toString(args));
     SqlRowSet rs =
         switch (transactionMode) {
-          case READ -> readOnlyJdbcTemplate.queryForRowSet(sql);
-          case WRITE -> jdbcTemplate.queryForRowSet(sql);
+          case READ -> readOnlyJdbcTemplate.queryForRowSet(sql, args);
+          case WRITE -> jdbcTemplate.queryForRowSet(sql, args);
         };
 
     int maxLimit = settingsProvider.getCurrentSettings().getSqlViewMaxLimit();

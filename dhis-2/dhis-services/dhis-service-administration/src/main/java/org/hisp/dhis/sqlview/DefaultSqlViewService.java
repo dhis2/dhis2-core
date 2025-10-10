@@ -193,12 +193,13 @@ public class DefaultSqlViewService implements SqlViewService {
 
     log.info(String.format("Retrieving data for SQL view: '%s'", sqlView.getUid()));
 
-    String sql =
+    SqlQueryWithArgs sqlQueryWithParams =
         sqlView.isQuery()
             ? getSqlForQuery(sqlView, criteria, variables, filters, fields)
             : getSqlForView(sqlView, criteria, filters, fields);
 
-    sqlViewStore.populateSqlViewGrid(grid, sql, transactionMode);
+    sqlViewStore.populateSqlViewGrid(
+        grid, sqlQueryWithParams.sql(), sqlQueryWithParams.args(), transactionMode);
     return grid;
   }
 
@@ -208,39 +209,43 @@ public class DefaultSqlViewService implements SqlViewService {
     }
   }
 
-  private String parseFilters(List<String> filters, SqlHelper sqlHelper)
+  public record SqlQueryWithArgs(String sql, Object[] args) {}
+
+  private SqlQueryWithArgs parseFilters(List<String> filters, SqlHelper sqlHelper)
       throws QueryParserException {
     String query = "";
+    Object[] queryArgs = new Object[filters.size()];
 
-    for (String filter : filters) {
+    for (int i = 0; i < filters.size(); i++) {
+      String filter = filters.get(i);
       String[] split = filter.split(":");
 
       if (split.length == 3) {
         int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-        query += getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
+        QueryUtils.QueryPlaceHolderWithArg filterQuery =
+            getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
+        query += filterQuery.query();
+        queryArgs[i] = filterQuery.arg();
       } else {
         throw new QueryParserException("Invalid filter => " + filter);
       }
     }
 
-    return query;
+    return new SqlQueryWithArgs(query, queryArgs);
   }
 
-  private String getFilterQuery(
+  private QueryUtils.QueryPlaceHolderWithArg getFilterQuery(
       SqlHelper sqlHelper, String columnName, String operator, String value) {
     String query = "";
+    QueryUtils.QueryPlaceHolderWithArg queryPlaceHolderWithArg =
+        QueryUtils.parseFilterOperator(operator, value);
 
-    query +=
-        sqlHelper.whereAnd()
-            + " "
-            + columnName
-            + " "
-            + QueryUtils.parseFilterOperator(operator, value);
+    query += sqlHelper.whereAnd() + " " + columnName + " " + queryPlaceHolderWithArg.query();
 
-    return query;
+    return new QueryUtils.QueryPlaceHolderWithArg(query, queryPlaceHolderWithArg.arg());
   }
 
-  private String getSqlForQuery(
+  private SqlQueryWithArgs getSqlForQuery(
       SqlView sqlView,
       Map<String, String> criteria,
       Map<String, String> variables,
@@ -265,13 +270,14 @@ public class DefaultSqlViewService implements SqlViewService {
       }
 
       if (hasFilter) {
-        outerSql += parseFilters(filters, sqlHelper);
+        SqlQueryWithArgs sqlQueryWithParams = parseFilters(filters, sqlHelper);
+        outerSql += sqlQueryWithParams.sql();
+        return new SqlQueryWithArgs(outerSql, sqlQueryWithParams.args());
       }
-
-      sql = outerSql;
+      return new SqlQueryWithArgs(outerSql, null);
     }
 
-    return sql;
+    return new SqlQueryWithArgs(sql, null);
   }
 
   private String substituteQueryVariables(SqlView sqlView, Map<String, String> variables) {
@@ -290,7 +296,7 @@ public class DefaultSqlViewService implements SqlViewService {
     return sql;
   }
 
-  private String getSqlForView(
+  private SqlQueryWithArgs getSqlForView(
       SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields) {
     String sql =
         "select "
@@ -311,11 +317,13 @@ public class DefaultSqlViewService implements SqlViewService {
       }
 
       if (hasFilter) {
-        sql += parseFilters(filters, sqlHelper);
+        SqlQueryWithArgs sqlQueryWithArgs = parseFilters(filters, sqlHelper);
+        sql += sqlQueryWithArgs.sql();
+        return new SqlQueryWithArgs(sql, sqlQueryWithArgs.args());
       }
     }
 
-    return sql;
+    return new SqlQueryWithArgs(sql, null);
   }
 
   private String getCriteriaSqlClause(Map<String, String> criteria, SqlHelper sqlHelper) {

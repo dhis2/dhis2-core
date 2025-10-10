@@ -80,7 +80,7 @@ class HibernateSqlViewStoreTest {
   @DisplayName("ensure the correct jdbc template is used for an SQL view with writes")
   void sqlViewJdbcTemplateWriteTest() {
     // when
-    store.populateSqlViewGrid(grid, "sql", WRITE);
+    store.populateSqlViewGrid(grid, "sql", null, WRITE);
 
     // then
     verify(readOnlyJdbcTemplate, times(0)).queryForRowSet(anyString());
@@ -91,7 +91,7 @@ class HibernateSqlViewStoreTest {
   @DisplayName("ensure the correct jdbc template is used for an SQL view with reads")
   void sqlViewReadOnlyJdbcTemplateReadTest() {
     // when
-    store.populateSqlViewGrid(grid, "sql", READ);
+    store.populateSqlViewGrid(grid, "sql", null, READ);
 
     // then
     verify(readOnlyJdbcTemplate, times(1)).queryForRowSet(anyString());
