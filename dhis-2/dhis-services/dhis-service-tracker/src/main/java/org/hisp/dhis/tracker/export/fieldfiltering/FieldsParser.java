@@ -45,6 +45,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.collection.CollectionUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 
 public class FieldsParser {
@@ -108,6 +110,7 @@ public class FieldsParser {
       @Nonnull Map<String, Function<Schema, Set<String>>> presets) {
     FieldsAccumulator root = parseFields(input, new HashSet<>(presets.keySet()));
     mapPresets(root, schema, getSchema, presets);
+    expandReferences(root, schema, getSchema);
     return map(root, root.includes.contains(TOKEN_ALL));
   }
 
@@ -328,6 +331,64 @@ public class FieldsParser {
       }
       mapPresets(entry.getValue(), parent, getSchema, presets);
     }
+  }
+
+  /**
+   * Expands fields for classes which have registered a {@code SchemaDescriptor}.
+   *
+   * <p>
+   *
+   * <ul>
+   *   <li>For reference objects: expands {@code "dataSets"} to {@code "dataSets[id]"}
+   *   <li>For complex objects: expands {@code "complexField"} to {@code "complexField[*]"}
+   * </ul>
+   *
+   * Fields for classes which do not have a registered schema are not expanded as well as fields
+   * that do not exist.
+   */
+  private static void expandReferences(
+      FieldsAccumulator acc, Schema schema, BiFunction<Schema, String, Schema> getSchema) {
+    for (String fieldName : acc.includes) {
+      if (fieldName.equals(TOKEN_ALL)) {
+        continue; // Skip *
+      }
+
+      Property property = schema.getProperty(fieldName);
+      if (property == null) {
+        continue; // Ignore invalid fields
+      }
+
+      // Check if this field needs expansion and doesn't already have children
+      if (needsExpansion(property) && !acc.children.containsKey(fieldName)) {
+        if (isReference(property)) {
+          FieldsAccumulator child = acc.getOrCreateChild(fieldName);
+          child.includes.add("id");
+        } else if (isComplex(property)) {
+          FieldsAccumulator child = acc.getOrCreateChild(fieldName);
+          child.includes.add(TOKEN_ALL);
+        }
+      }
+    }
+
+    // Recursively expand child paths
+    for (Entry<String, FieldsAccumulator> entry : acc.children.entrySet()) {
+      Schema childSchema = getSchema.apply(schema, entry.getKey());
+      if (childSchema != null) {
+        expandReferences(entry.getValue(), childSchema, getSchema);
+      }
+    }
+  }
+
+  private static boolean needsExpansion(Property property) {
+    return isReference(property) || isComplex(property);
+  }
+
+  private static boolean isReference(Property property) {
+    return property.is(PropertyType.REFERENCE) || property.itemIs(PropertyType.REFERENCE);
+  }
+
+  private static boolean isComplex(Property property) {
+    return property.is(PropertyType.COMPLEX) || property.itemIs(PropertyType.COMPLEX);
   }
 
   /** Maps in depth-first search order each field and its children to {@link Fields}. */
