@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.dxf2.sync;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Viet Nguyen
+ * @author Zubair Asghar
  */
-public interface ProgramStageDataElementStore
-    extends IdentifiableObjectStore<ProgramStageDataElement> {
-  String ID = ProgramStageDataElementStore.class.getName();
+@Component
+@AllArgsConstructor
+public class SingleEventDataSynchronizationJob implements Job {
 
-  /**
-   * Retrieve ProgramStageDataElement list on a program stage and a data element
-   *
-   * @param programStage ProgramStage
-   * @param dataElement DataElement
-   * @return ProgramStageDataElement
-   */
-  ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement);
+  private final SingleEventDataSynchronizationService eventSync;
 
-  List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
+  @Override
+  public JobType getJobType() {
+    return JobType.SINGLE_EVENT_DATA_SYNC_JOB;
+  }
 
-  List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
-
-  /**
-   * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements)
-   * that have skipSynchronization flag set to true
-   *
-   * @return Map<String, Set<String>>
-   */
-  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    SingleEventDataSynchronizationJobParameters params =
+        (SingleEventDataSynchronizationJobParameters) config.getJobParameters();
+    eventSync.synchronizeData(params.getPageSize(), progress);
+  }
 }

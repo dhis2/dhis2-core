@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.Setter;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * @author Viet Nguyen
+ * @author Zubair Asghar
  */
-public interface ProgramStageDataElementStore
-    extends IdentifiableObjectStore<ProgramStageDataElement> {
-  String ID = ProgramStageDataElementStore.class.getName();
+@Getter
+@Setter
+public class SingleEventDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-  /**
-   * Retrieve ProgramStageDataElement list on a program stage and a data element
-   *
-   * @param programStage ProgramStage
-   * @param dataElement DataElement
-   * @return ProgramStageDataElement
-   */
-  ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement);
+  static final int PAGE_SIZE_MAX = 200;
 
-  List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
+  @JsonProperty private int pageSize = 60;
 
-  List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
+    }
 
-  /**
-   * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements)
-   * that have skipSynchronization flag set to true
-   *
-   * @return Map<String, Set<String>>
-   */
-  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+    return Optional.empty();
+  }
 }
