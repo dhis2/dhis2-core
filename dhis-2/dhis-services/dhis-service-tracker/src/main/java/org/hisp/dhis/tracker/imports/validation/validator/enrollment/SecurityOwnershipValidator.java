@@ -76,6 +76,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
             : bundle.getPreheat().getProgram(enrollment.getProgram());
     TrackedEntity trackedEntity = getTrackedEntity(bundle, enrollment);
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
+    // TODO(tracker) Validate payload org unit in user scope
 
     checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment, user);
 
