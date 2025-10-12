@@ -31,13 +31,13 @@ package org.hisp.dhis.common;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.Strings;
 
 /**
  * @author Lars Helge Overland
@@ -112,7 +112,7 @@ public enum QueryOperator {
     }
 
     if (string.trim().startsWith("!")) {
-      return valueOf("N" + replaceOnce(string, "!", EMPTY).toUpperCase());
+      return valueOf("N" + Strings.CS.replaceOnce(string, "!", EMPTY).toUpperCase());
     }
 
     // To still support NE operator until it gets removed

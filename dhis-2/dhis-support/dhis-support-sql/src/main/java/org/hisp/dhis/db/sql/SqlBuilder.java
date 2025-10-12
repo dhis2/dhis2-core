@@ -206,6 +206,14 @@ public interface SqlBuilder {
    */
   boolean requiresIndexesForAnalytics();
 
+  /**
+   * The percentile_cont function is a statistical function that calculates the continuous
+   * percentile value for a given set of data.
+   *
+   * @return true if the DBMS supports the percentile_cont function.
+   */
+  boolean supportsPercentileCont();
+
   // Utilities
 
   /**

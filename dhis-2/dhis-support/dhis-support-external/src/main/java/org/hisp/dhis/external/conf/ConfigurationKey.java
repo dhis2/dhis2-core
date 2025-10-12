@@ -95,9 +95,6 @@ public enum ConfigurationKey {
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
-  /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
-
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
@@ -118,12 +115,6 @@ public enum ConfigurationKey {
 
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
-
-  /** Database host (hostname or IP). Applies to ClickHouse. */
-  CONNECTION_HOST("connection.host", "", false),
-
-  /** Database port number. Applies to ClickHouse. */
-  CONNECTION_PORT("connection.port", "5432", false),
 
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
@@ -611,6 +602,9 @@ public enum ConfigurationKey {
   /** Sets the audit matrix for tracker. (default: none). */
   AUDIT_TRACKER_MATRIX("audit.tracker", "", false),
 
+  /** Sets the audit matrix for API. (default: none). */
+  AUDIT_API_MATRIX("audit.api", "", false),
+
   /** Enable OIDC. (default: off). */
   OIDC_OAUTH2_LOGIN_ENABLED("oidc.oauth2.login.enabled", Constants.OFF, false),
 
@@ -784,7 +778,7 @@ public enum ConfigurationKey {
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
-  /** Enable OAuth2 authentication server. (default: off) */
+  /** Enable OAuth2 Spring Authorization Server (SAS). (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
 
   /** Path to the JWT keystore file. */
@@ -810,7 +804,14 @@ public enum ConfigurationKey {
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
-  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false);
+  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
+
+  // OIDC internal provider configuration for DHIS2 when Authorization Server is enabled, with
+  // property: (OAUTH2_SERVER_ENABLED)
+  OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
+  OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
+  OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
 
   private final String key;
 

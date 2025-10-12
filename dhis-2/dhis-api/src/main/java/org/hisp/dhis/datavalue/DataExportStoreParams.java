@@ -32,8 +32,10 @@ package org.hisp.dhis.datavalue;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import lombok.Getter;
@@ -91,9 +93,9 @@ public class DataExportStoreParams {
 
   private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
-  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+  private List<CategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
 
-  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+  private List<CategoryOptionCombo> attributeOptionCombos = new ArrayList<>();
 
   private Set<CategoryOption> coDimensionConstraints;
 
@@ -156,14 +158,6 @@ public class DataExportStoreParams {
     return dataElementGroups != null && !dataElementGroups.isEmpty();
   }
 
-  public DataSet getFirstDataSet() {
-    return hasDataSets() ? dataSets.iterator().next() : null;
-  }
-
-  public Period getFirstPeriod() {
-    return hasPeriods() ? periods.iterator().next() : null;
-  }
-
   public boolean hasPeriods() {
     return periods != null && !periods.isEmpty();
   }
@@ -196,18 +190,8 @@ public class DataExportStoreParams {
     return blockingQueue != null;
   }
 
-  public OrganisationUnit getFirstOrganisationUnit() {
-    return organisationUnits != null && !organisationUnits.isEmpty()
-        ? organisationUnits.iterator().next()
-        : null;
-  }
-
   public boolean hasOrganisationUnitGroups() {
     return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
-  }
-
-  public boolean hasCategoryOptionCombos() {
-    return categoryOptionCombos != null && !categoryOptionCombos.isEmpty();
   }
 
   public boolean hasAttributeOptionCombos() {
@@ -236,17 +220,6 @@ public class DataExportStoreParams {
 
   public boolean needsOrgUnitDetails() {
     return isOrderByOrgUnitPath() || hasOrgUnitLevel() || isIncludeDescendants();
-  }
-
-  /**
-   * Indicates whether these parameters represent a single data value set, implying that it contains
-   * exactly one of data sets, periods and organisation units.
-   */
-  public boolean isSingleDataValueSet() {
-    return dataSets.size() == 1
-        && periods.size() == 1
-        && organisationUnits.size() == 1
-        && dataElementGroups.isEmpty();
   }
 
   @Override

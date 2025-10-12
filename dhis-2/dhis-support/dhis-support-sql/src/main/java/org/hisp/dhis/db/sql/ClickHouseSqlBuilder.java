@@ -206,6 +206,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return false;
   }
 
+  @Override
+  public boolean supportsPercentileCont() {
+    return false;
+  }
+
   // Utilities
 
   @Override

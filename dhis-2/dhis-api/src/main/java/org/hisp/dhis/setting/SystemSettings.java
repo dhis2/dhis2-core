@@ -784,7 +784,7 @@ public non-sealed interface SystemSettings extends Settings {
    *     This engine is only required when using ClickHouse or Doris as the analytics database.
    */
   default boolean getUseExperimentalAnalyticsQueryEngine() {
-    return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
+    return asBoolean("experimentalAnalyticsSqlEngineEnabled", true);
   }
 
   /**
@@ -812,5 +812,31 @@ public non-sealed interface SystemSettings extends Settings {
   default boolean isHideUnapprovedDataInAnalytics() {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of redirect urls that are allowed in device client enrollment and registration,
+   *     delimited by comma. Default is empty string which means all redirect urls are allowed.
+   */
+  default String getDeviceEnrollmentRedirectAllowlist() {
+    return asString("deviceEnrollmentRedirectAllowlist", "");
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of user groups (by name) that are allowed to enroll devices, delimited by comma.
+   *     Default is empty string which means all users can enroll devices.
+   */
+  default String getDeviceEnrollmentAllowedUserGroups() {
+    return asString("deviceEnrollmentAllowedUserGroups", "");
+  }
+
+  /**
+   * @since 2.42
+   * @return the time to live in seconds for the device enrollment IAT (issued at) claim.
+   */
+  default int getDeviceEnrollmentIATTtlSeconds() {
+    return asInt("deviceEnrollmentIATTtlSeconds", 60);
   }
 }

@@ -38,7 +38,6 @@ import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.DE;
 import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.OU;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -80,6 +80,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -140,29 +141,34 @@ public class DefaultDataExportService implements DataExportService {
       validateAccess(params);
     }
 
-    IdSchemes schemes = parameters.getOutputIdSchemes();
+    return exportGroupInternal(params);
+  }
+
+  @Nonnull
+  private DataExportGroup.Output exportGroupInternal(DataExportStoreParams params) {
+    IdSchemes schemes = params.getOutputIdSchemes();
     String groupDataSet = null;
     String groupPeriod = null;
     String groupOrgUnit = null;
     String groupAoc = null;
-    if (params.isSingleDataValueSet()) {
-      groupDataSet = params.getFirstDataSet().getPropertyValue(schemes.getDataSetIdScheme());
-      groupPeriod = params.getFirstPeriod().getIsoDate();
-      groupOrgUnit =
-          params.getFirstOrganisationUnit().getPropertyValue(schemes.getOrgUnitIdScheme());
-    }
-    if (params.getAttributeOptionCombos().size() == 1) {
-      groupAoc =
-          params
-              .getAttributeOptionCombos()
-              .iterator()
-              .next()
-              .getPropertyValue(schemes.getAttributeOptionComboIdScheme());
-    }
+    DataSet ds = getUnique(params.getDataSets());
+    if (ds != null) groupDataSet = ds.getPropertyValue(schemes.getDataSetIdScheme());
+    Period pe = getUnique(params.getPeriods());
+    if (pe != null) groupPeriod = pe.getIsoDate();
+    OrganisationUnit ou = getUnique(params.getOrganisationUnits());
+    if (ou != null && !params.isIncludeDescendants() && !params.hasOrganisationUnitGroups())
+      groupOrgUnit = ou.getPropertyValue(schemes.getOrgUnitIdScheme());
+    CategoryOptionCombo aoc = getUnique(params.getAttributeOptionCombos());
+    if (aoc != null) groupAoc = aoc.getPropertyValue(schemes.getAttributeOptionComboIdScheme());
     DataExportGroup.Output group =
         new DataExportGroup.Output(
             groupDataSet, groupPeriod, groupOrgUnit, groupAoc, null, Set.of(), Stream.empty());
     return group.withValues(encodeValues(group, store.getDataValues(params), schemes));
+  }
+
+  private <T> T getUnique(Collection<T> elements) {
+    if (elements == null || elements.size() != 1) return null;
+    return elements.iterator().next();
   }
 
   @Override
@@ -213,7 +219,7 @@ public class DefaultDataExportService implements DataExportService {
                 .setPeriods(params.getPeriods())
                 .setStartDate(params.getStartDate())
                 .setEndDate(params.getEndDate())
-                .setAttributeOptionCombos(Sets.newHashSet(aoc))
+                .setAttributeOptionCombos(List.of(aoc))
                 .setOrderByOrgUnitPath(true)
                 .setOrderByPeriod(true);
 
@@ -228,6 +234,17 @@ public class DefaultDataExportService implements DataExportService {
 
         Set<String> numericUsedDataElements = new HashSet<>();
         List<DataExportValue.Output> groupValues = new ArrayList<>();
+        IdProperty ouAs = IdProperty.of(ouScheme);
+        Function<UID, String> encodeOu =
+            uid -> {
+              if (ouAs == IdProperty.UID) return uid.getValue();
+              OrganisationUnit ou = unitsById.get(uid);
+              if (ou != null) return ou.getPropertyValue(ouScheme);
+              // ou can be null when children are included!
+              // Note: This single ID lookup is not ideal and only a temporary fix
+              // until use of the object model is replaced in the entire processing
+              return store.getIdMapping(OU, ouAs, Stream.of(uid)).get(uid.getValue());
+            };
         String groupPeriod = null;
         UID currentOrgUnit = null;
         for (DataExportValue dv : store.getDataValues(groupParams).toList()) {
@@ -238,7 +255,7 @@ public class DefaultDataExportService implements DataExportService {
                   new DataExportGroup.Output(
                       groupDataSet,
                       groupPeriod,
-                      unitsById.get(currentOrgUnit).getPropertyValue(ouScheme),
+                      encodeOu.apply(currentOrgUnit),
                       null,
                       groupAttributeOptions,
                       numericUsedDataElements,
@@ -274,7 +291,7 @@ public class DefaultDataExportService implements DataExportService {
               new DataExportGroup.Output(
                   groupDataSet,
                   groupPeriod,
-                  unitsById.get(currentOrgUnit).getPropertyValue(ouScheme),
+                  encodeOu.apply(currentOrgUnit),
                   null,
                   groupAttributeOptions,
                   numericUsedDataElements,

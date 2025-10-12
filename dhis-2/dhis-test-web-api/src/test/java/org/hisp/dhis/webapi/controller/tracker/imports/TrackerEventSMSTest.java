@@ -658,7 +658,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<SingleEvent> events =
         singleEventService.findEvents(
-            SingleEventOperationParams.builder().program(eventProgram).build());
+            SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).build());
     assertHasSize(1, events);
     SingleEvent actual = events.get(0);
     assertAll(

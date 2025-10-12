@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.config;
+package org.hisp.dhis.audit;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import lombok.Data;
 
-/**
- * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
- *
- * @author Ameen Mohamed
- */
-public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (!isTestRun(context)) {
-      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
-    }
-    return false;
-  }
+@Data
+@Auditable(scope = AuditScope.API)
+public class ApiAuditEntry {
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
-  }
+  @AuditAttribute private String source;
+
+  public ApiAuditEntry() {}
 }

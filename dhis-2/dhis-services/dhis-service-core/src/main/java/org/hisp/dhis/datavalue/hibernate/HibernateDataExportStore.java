@@ -183,7 +183,7 @@ public class HibernateDataExportStore implements DataExportStore {
         AND ou.hierarchylevel >= :minLevel
         AND ou.path LIKE ANY(:path)
         AND dv.categoryoptioncomboid = ANY(:coc)
-        AND dv.categoryoptioncomboid = ANY(:aoc)
+        AND dv.attributeoptioncomboid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         -- access check below must be 1 line for erasure
@@ -240,7 +240,7 @@ public class HibernateDataExportStore implements DataExportStore {
   private static Long[] getIds(Collection<? extends IdentifiableObject> objects) {
     return objects == null || objects.isEmpty()
         ? null
-        : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
+        : objects.stream().map(IdentifiableObject::getId).distinct().toArray(Long[]::new);
   }
 
   @Nonnull

@@ -277,7 +277,7 @@ public class IndicatorGroup extends BaseMetadataObject
   }
 
   @JsonProperty("indicatorGroupSet")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.REFERENCE, required = Property.Value.FALSE)
   public IndicatorGroupSet getGroupSet() {
@@ -285,7 +285,7 @@ public class IndicatorGroup extends BaseMetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<IndicatorGroupSet> getGroupSets() {
@@ -432,17 +432,5 @@ public class IndicatorGroup extends BaseMetadataObject
   @Override
   public void setName(String name) {
     this.name = name;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setMembers(Set<Indicator> members) {
-    this.members = members;
-  }
-
-  public void setGroupSets(Set<IndicatorGroupSet> groupSets) {
-    this.groupSets = groupSets;
   }
 }

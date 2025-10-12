@@ -391,7 +391,8 @@ public class RelativePeriods implements Serializable {
     if (isThisFinancialPeriod()) {
       FinancialPeriodType financialPeriodType = financialYearStart.getFinancialPeriodType();
 
-      periods.addAll(getRelativeFinancialPeriods(financialPeriodType, format, dynamicNames));
+      periods.addAll(
+          getRelativeFinancialPeriods(financialPeriodType, dateField, format, dynamicNames));
     }
 
     if (isThisDay()) {
@@ -776,12 +777,16 @@ public class RelativePeriods implements Serializable {
    * RelativePeriods.
    *
    * @param financialPeriodType The financial period type to get
+   * @param dateField the relative date
    * @param format the i18n format.
    * @return a list of relative Periods.
    */
   private List<Period> getRelativeFinancialPeriods(
-      FinancialPeriodType financialPeriodType, I18nFormat format, boolean dynamicNames) {
-    DateField dateField = DateField.withDefaults();
+      FinancialPeriodType financialPeriodType,
+      DateField dateField,
+      I18nFormat format,
+      boolean dynamicNames) {
+
     List<Period> periods = new ArrayList<>();
 
     if (isThisFinancialYear()) {

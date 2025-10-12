@@ -1,0 +1,280 @@
+# Performance test workflow to compare a baseline against a candidate DHIS2 version
+# You can run the workflow using the GitHub CLI like so:
+#
+# Basic example (required args only):
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+#
+# With custom baseline:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+#
+# With specific database version:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="2.42.2" \
+# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
+# 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
+# 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
+# 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
+name: Performance tests
+run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ inputs.dhis2_image_candidate }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      perf_tests_git_ref:
+        description: 'Git ref (tag/branch/commit) to checkout dhis2-core performance tests'
+        required: true
+        type: string
+      simulation_class:
+        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
+        required: true
+        type: string
+      mvn_args:
+        description: 'Additional maven arguments'
+        required: false
+        default: ''
+        type: string
+      prof_args:
+        description: 'Profiler arguments (enables profiling). Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md'
+        required: false
+        default: ''
+        type: string
+      # Read https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md on how we publish
+      # DHIS2 Docker images
+      dhis2_image_baseline:
+        description: 'Baseline DHIS2 image for comparison'
+        required: false
+        default: 'dhis2/core-dev:latest'
+        type: string
+      dhis2_image_candidate:
+        description: 'Candidate DHIS2 image to compare against baseline'
+        required: true
+        type: string
+      dhis2_db_dump_url:
+        description: 'URL to DHIS2 database dump (optional)'
+        required: false
+        type: string
+      dhis2_db_image_suffix:
+        description: 'Docker image suffix for the DB image (e.g., sierra-leone-2.42.2). WARNING: Must match the version in dhis2_db_dump_url'
+        required: false
+        default: 'sierra-leone-dev'
+        type: string
+      warmup:
+        description: 'Number of warmup iterations before actual test'
+        required: false
+        default: 1
+        type: number
+      capture_sql_logs:
+        description: 'Capture and analyze SQL logs for non-warmup runs'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  performance-tests:
+    runs-on: perf
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: dhis-2/dhis-test-performance
+
+    steps:
+    - name: Checkout performance tests
+      id: checkout
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.perf_tests_git_ref }}
+        sparse-checkout: |
+          dhis-2/dhis-test-performance
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
+    - name: Cleanup containers
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+
+    - name: Clean target directory
+      run: mvn clean
+
+    - name: Run performance tests - baseline
+      run: |
+        # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
+        DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
+        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
+        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
+        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
+        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        WARMUP=${{ inputs.warmup }} \
+        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        REPORT_SUFFIX="baseline" \
+        ./run-simulation.sh
+
+    - name: Run performance tests - candidate
+      run: |
+        DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
+        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
+        MVN_ARGS="${{ inputs.mvn_args }}" \
+        PROF_ARGS="${{ inputs.prof_args }}" \
+        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
+        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
+        WARMUP=${{ inputs.warmup }} \
+        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        REPORT_SUFFIX="candidate" \
+        ./run-simulation.sh
+
+    - name: Upload Gatling report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gatling-report-${{ github.run_id }}-${{ github.sha }}
+        path: dhis-2/dhis-test-performance/target/gatling/
+
+    - name: Create job summary
+      if: always()
+      run: |
+        # Read metadata from run-simulation.env files
+        BASELINE_ENV=$(find target/gatling -path "*-baseline/run-simulation.env")
+        CANDIDATE_ENV=$(find target/gatling -path "*-candidate/run-simulation.env")
+
+        # Parse baseline env
+        if [ -f "$BASELINE_ENV" ]; then
+          BASELINE_IMAGE=$(grep "^DHIS2_IMAGE=" "$BASELINE_ENV" | cut -d= -f2-)
+          BASELINE_VERSION=$(grep "^DHIS2_VERSION=" "$BASELINE_ENV" | cut -d= -f2-)
+          BASELINE_BRANCH=$(grep "^DHIS2_BUILD_BRANCH=" "$BASELINE_ENV" | cut -d= -f2-)
+          BASELINE_REVISION=$(grep "^DHIS2_BUILD_REVISION=" "$BASELINE_ENV" | cut -d= -f2-)
+          BASELINE_DIGEST=$(grep "^DHIS2_IMAGE_DIGEST=" "$BASELINE_ENV" | cut -d= -f2-)
+          BASELINE_DB_URL=$(grep "^DHIS2_DB_DUMP_URL=" "$BASELINE_ENV" | cut -d= -f2-)
+          BASELINE_DB_SUFFIX=$(grep "^DHIS2_DB_IMAGE_SUFFIX=" "$BASELINE_ENV" | cut -d= -f2-)
+          SIM_CLASS=$(grep "^SIMULATION_CLASS=" "$BASELINE_ENV" | cut -d= -f2-)
+          PERF_GIT_BRANCH=$(grep "^GIT_BRANCH_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
+          PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
+          WARMUP_COUNT=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
+        fi
+
+        # Parse candidate env
+        if [ -f "$CANDIDATE_ENV" ]; then
+          CANDIDATE_IMAGE=$(grep "^DHIS2_IMAGE=" "$CANDIDATE_ENV" | cut -d= -f2-)
+          CANDIDATE_VERSION=$(grep "^DHIS2_VERSION=" "$CANDIDATE_ENV" | cut -d= -f2-)
+          CANDIDATE_BRANCH=$(grep "^DHIS2_BUILD_BRANCH=" "$CANDIDATE_ENV" | cut -d= -f2-)
+          CANDIDATE_REVISION=$(grep "^DHIS2_BUILD_REVISION=" "$CANDIDATE_ENV" | cut -d= -f2-)
+          CANDIDATE_DIGEST=$(grep "^DHIS2_IMAGE_DIGEST=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        fi
+
+        echo "# 🚀 Performance Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 📊 Test Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* **Simulation**: \`$SIM_CLASS\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
+        echo "* **Database**: \`$BASELINE_DB_URL\` (\`$BASELINE_DB_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| | Baseline | Candidate |" >> $GITHUB_STEP_SUMMARY
+        echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
+        echo "| **Image** | \`$BASELINE_IMAGE\` | \`$CANDIDATE_IMAGE\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| **DHIS2_VERSION** | \`$BASELINE_VERSION\` | \`$CANDIDATE_VERSION\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| **DHIS2_BUILD_BRANCH** | \`$BASELINE_BRANCH\` | \`$CANDIDATE_BRANCH\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| **DHIS2_BUILD_REVISION** | \`$BASELINE_REVISION\` | \`$CANDIDATE_REVISION\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Image Digest** | \`${BASELINE_DIGEST#*@}\` | \`${CANDIDATE_DIGEST#*@}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Use GitHub CLI to download the performance test results:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Download this run's data:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Download latest run's data for current branch:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download \$(gh run list --workflow=\"Performance tests\" --branch=\"\$(git branch --show-current)\" --limit=1 --json databaseId --jq '.[0].databaseId')" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Results are in \`gatling-report-${{ github.run_id }}-${{ github.sha }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* **Baseline warmup runs** (if WARMUP > 0): \`<simulation-class>-<timestamp>-baseline-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **Baseline**: \`<simulation-class>-<timestamp>-baseline/\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **Candidate warmup runs** (if WARMUP > 0): \`<simulation-class>-<timestamp>-candidate-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **Candidate**: \`<simulation-class>-<timestamp>-candidate/\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
+        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases) and can be analyzed using [gatling-statistics](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`profile.collapsed\` - Collapsed stack traces (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Tests ran on self-hosted runner with the following specifications:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* **CPU**: Intel(R) Xeon(R) CPU E3-1275 v6 @ 3.80GHz (8 core)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Memory**: 64GiB System Memory" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### On GitHub" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/run-performance-tests.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
+        echo -n 'gh workflow run run-performance-tests.yml' >> $GITHUB_STEP_SUMMARY
+        echo ' \' >> $GITHUB_STEP_SUMMARY
+        echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field simulation_class=\"$SIM_CLASS\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field dhis2_image_baseline=\"$BASELINE_DIGEST\" \\ # $BASELINE_IMAGE" >> $GITHUB_STEP_SUMMARY
+        echo "  --field dhis2_image_candidate=\"$CANDIDATE_DIGEST\" \\ # $CANDIDATE_IMAGE" >> $GITHUB_STEP_SUMMARY
+        echo "  --field warmup=\"$WARMUP_COUNT\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref $PERF_GIT_COMMIT # git sha of this workflow (optional but required to faithfully reproduce as it defaults to master which is mutable)" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Locally" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Run this locally in the [https://github.com/dhis2/dhis2-core](https://github.com/dhis2/dhis2-core) repo in the \`dhis-2/dhis-test-performance\` directory:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Extract COMMAND_IMMUTABLE from baseline env
+        BASELINE_COMMAND_IMMUTABLE=$(grep "^COMMAND_IMMUTABLE=" "$BASELINE_ENV" | cut -d= -f2-)
+        echo "**Baseline:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
+        echo "git checkout $PERF_GIT_COMMIT && $BASELINE_COMMAND_IMMUTABLE" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Extract COMMAND_IMMUTABLE from candidate env
+        CANDIDATE_COMMAND_IMMUTABLE=$(grep "^COMMAND_IMMUTABLE=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        echo "**Candidate:**" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
+        echo "git checkout $PERF_GIT_COMMIT && $CANDIDATE_COMMAND_IMMUTABLE" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
