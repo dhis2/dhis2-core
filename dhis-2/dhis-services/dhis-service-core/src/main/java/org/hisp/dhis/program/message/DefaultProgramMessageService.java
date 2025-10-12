@@ -247,8 +247,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
         .toList();
   }
 
-  private <T extends BaseIdentifiableObject> T getEntity(
-      Class<T> klass, BaseIdentifiableObject entity) {
+  private <T extends IdentifiableObject> T getEntity(
+      Class<T> klass, IdentifiableObject entity) {
     if (entity == null) {
       return null;
     }

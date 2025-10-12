@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -51,55 +52,54 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import org.hibernate.annotations.Type;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
+import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.BaseTrackerObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.SoftDeletable;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.common.IdScheme;
 import org.locationtech.jts.geom.Geometry;
-import lombok.Setter;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Entity
+@Setter
+@Table(name = "trackedentity")
 @JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
-@Setter
-@Entity
-@Table(name = "trackedentity")
-public class TrackedEntity extends BaseMetadataObject implements IdentifiableObject, SoftDeletable {
+public class TrackedEntity extends BaseTrackerObject implements IdentifiableObject,
+    SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @SequenceGenerator(sequenceName = "trackedentityinstance_sequence")
   @Column(name = "trackedentityid")
   private long id;
-
-  /** Indicates whether the object is soft deleted. */
-  @AuditAttribute
-  @Column(name = "deleted")
-  private boolean deleted = false;
   
+  private boolean deleted = false;
+
   @Column(name = "createdatclient")
   @Temporal(TemporalType.TIMESTAMP)
   private Date createdAtClient;
@@ -108,7 +108,7 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdatedAtClient;
 
-  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new LinkedHashSet<>();
 
   @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -144,9 +144,6 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastSynchronized = new Date(0);
 
-  @Column(name = "storedby", length = 255)
-  private String storedBy;
-
   @Type(type = "jbUserInfoSnapshot")
   @Column(name = "createdbyuserinfo")
   private UserInfoSnapshot createdByUserInfo;
@@ -161,16 +158,29 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
 
   public TrackedEntity() {}
 
-  @Override
-  public boolean isDeleted() {
-    return deleted;
-  }
+  @Override 
+  public void setAutoFields() {
+    if (getUid() == null || getUid().isEmpty()) {
+      setUid(CodeGenerator.generateUid());
+    }
 
-  @Override
-  public void setDeleted(boolean deleted) {
-    this.deleted = deleted;
-  }
+    Date date = new Date();
 
+    if (getCreated() == null) {
+      setCreated(date);
+    }
+
+    setLastUpdated(date);
+    
+    if (createdAtClient == null) {
+      createdAtClient = created;
+    }
+
+    if (lastUpdatedAtClient == null) {
+      lastUpdatedAtClient = lastUpdated;
+    }
+  }
+  
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -184,11 +194,39 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
     trackedEntityAttributeValues.remove(attributeValue);
     attributeValue.setTrackedEntity(null);
   }
+  
+  // -------------------------------------------------------------------------
+  // Equals and hashCode
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), deleted);
+  }
+  
+  public boolean objectEquals(TrackedEntity obj) {
+    return this == obj
+           || getRealClass(this) == getRealClass(obj)
+              && super.equals(obj)
+              && this.isDeleted() == obj.isDeleted();
+  }
 
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
 
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(localName = "deleted", namespace = DxfNamespaces.DXF_2_0)
+  public boolean isDeleted() {
+    return deleted;
+  }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -209,14 +247,6 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
   public Date getLastUpdatedAtClient() {
     return lastUpdatedAtClient;
   }
-
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getStoredBy() {
-    return storedBy;
-  }
-
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
@@ -319,27 +349,67 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
         + lastSynchronized
         + '}';
   }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    }
+    if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
   
   // -------------------------------------------------------------------------
   // Not supported methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String getDisplayName() {
+    return getName();
+  }
+  
+  @Override
+  public Sharing getSharing() {
+    return Sharing.empty();
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+  }
+
+  // -------------------------------------------------------------------------
+  // Not supported properties
   // -------------------------------------------------------------------------
   
   @Override
   public Set<Translation> getTranslations() {
     return Set.of();
   }
-  
+
+  /**
+   * @param user
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
+   * used for web api backward compatibility
+   */
+  @Override
+  public void setUser(User user) {
+    
+  }
+
   @Override
   public void setTranslations(Set<Translation> translations) {
     // not supported
-  }
-  
-  // implement all missing methods from interfaces with empty bodies
-
-  @Override
-  @JsonIgnore
-  public long getId() {
-    return id;
   }
 
   @Override
@@ -361,136 +431,74 @@ public class TrackedEntity extends BaseMetadataObject implements IdentifiableObj
   public void setName(String name) {
     // not supported
   }
-
+  
+  /**
+   * TrackedEntity does not support sharing
+   */
   @Override
-  public String getDisplayName() {
-    return getName();
+  public boolean hasSharing() {
+    return false;
   }
 
+  /**
+   * TrackedEntity does not support sharing
+   */
   @Override
-  public Date getCreated() {
-    return null;
+  public void setOwner(String owner) {
   }
 
-  @Override
-  public void setCreated(Date created) {
-    // not supported
-  }
-
-  @Override
-  public Date getLastUpdated() {
-    return null;
-  }
-
-  @Override
-  public void setLastUpdated(Date lastUpdated) {
-    // not supported
-  }
-
-  @Override
-  public User getLastUpdatedBy() {
-    return null;
-  }
-
-  @Override
-  public void setLastUpdatedBy(User user) {
-    // not supported
-  }
-
+  /**
+   * TrackedEntity does not support AttributeValues
+   */
   @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
+  /**
+   * TrackedEntity does not support AttributeValues
+   */
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
     // not supported
   }
 
+  /**
+   * TrackedEntity does not support AttributeValues
+   */
   @Override
   public void addAttributeValue(String attributeUid, String value) {
     // not supported
   }
 
+  /**
+   * TrackedEntity does not support AttributeValues
+   */
   @Override
   public void removeAttributeValue(String attributeId) {
     // not supported
   }
 
-  @Override
-  public User getCreatedBy() {
-    return null;
-  }
-
-  @Override
-  public void setCreatedBy(User createdBy) {
-    // not supported
-  }
-
+  /**
+   * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
+   */
   @Override
   public User getUser() {
     return getCreatedBy();
   }
 
+  /**
+   * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
+   */
   @Override
-  public void setUser(User user) {
+  public void setCreatedBy(User createdBy) {
     // not supported
   }
 
-  @Override
-  public Access getAccess() {
+  /**
+   * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
+   */  @Override
+  public User getCreatedBy() {
     return null;
-  }
-
-  @Override
-  public void setAccess(Access access) {
-    // not supported
-  }
-
-  @Override
-  public Sharing getSharing() {
-    return new Sharing();
-  }
-
-  @Override
-  public void setSharing(Sharing sharing) {
-    // not supported
-  }
-
-  @Override
-  public String getPropertyValue(IdScheme idScheme) {
-    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return uid;
-    }
-    if (idScheme.is(IdentifiableProperty.ID)) {
-      return id > 0 ? String.valueOf(id) : null;
-    }
-    return null;
-  }
-
-  @Override
-  public String getDisplayPropertyValue(IdScheme idScheme) {
-    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return getUid();
-    } else if (idScheme.is(IdScheme.ID) || idScheme.is(IdScheme.DATABASE_ID)) {
-      return String.valueOf(getId());
-    }
-
-    return null;
-  }
-
-  @Override
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  @Override
-  public void setUid(String uid) {
-    // not supported
-  }
-
-  @Override
-  public void setOwner(String owner) {
-    // not supported
   }
 }

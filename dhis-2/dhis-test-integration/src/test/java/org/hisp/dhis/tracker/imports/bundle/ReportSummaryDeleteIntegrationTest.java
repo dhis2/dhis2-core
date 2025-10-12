@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.program.Enrollment;
@@ -271,7 +272,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
         persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReport().size());
   }
 
-  private long getNumberOfEntities(Class<? extends SoftDeletableObject> clazz) {
+  private long getNumberOfEntities(Class<? extends SoftDeletableEntity> clazz) {
     return manager.getAll(clazz).stream().filter(o -> !o.isDeleted()).count();
   }
 }

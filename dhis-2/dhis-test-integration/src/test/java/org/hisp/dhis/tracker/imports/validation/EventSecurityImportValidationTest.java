@@ -257,7 +257,6 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     manager.update(programA);
     programStageA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programStageA);
-    maleA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(maleA);
     User user = userService.getUser(USER_4);
     user.addOrganisationUnit(organisationUnitA);

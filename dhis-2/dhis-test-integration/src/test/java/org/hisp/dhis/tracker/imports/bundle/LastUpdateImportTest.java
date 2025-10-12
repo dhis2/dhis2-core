@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -677,7 +678,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
    * query for all the entities
    */
   @SuppressWarnings("unchecked")
-  public <T extends SoftDeletableObject> T getEntityJpql(String entity, String uid) {
+  public <T extends SoftDeletableEntity> T getEntityJpql(String entity, String uid) {
 
     return (T)
         entityManager

@@ -45,6 +45,7 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 
@@ -54,7 +55,7 @@ import org.hisp.dhis.common.UID;
  */
 @JacksonXmlRootElement(localName = "relationship", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
-public class Relationship extends SoftDeletableObject implements Serializable {
+public class Relationship extends SoftDeletableObject implements Serializable, SoftDeletableEntity {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 3818815755138507997L;
 

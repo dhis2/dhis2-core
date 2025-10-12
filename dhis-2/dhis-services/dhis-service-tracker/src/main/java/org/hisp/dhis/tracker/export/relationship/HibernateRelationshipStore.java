@@ -46,8 +46,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.SoftDeletable;
-import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;

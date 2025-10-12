@@ -14,6 +14,9 @@
         foreign-key="fk_attributevalue_trackedentityattributeid" />
     </composite-id>
 
+    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+      column="trackedentityid" insert="false" update="false" not-null="true"/>
+
     <property name="created" type="timestamp" not-null="true" />
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
