@@ -67,9 +67,9 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
     HttpResponse response =
         GET(
             QUERY_PATH
-                + "filter=name:ilike:\"test' AND CAST((SELECT password FROM userinfo WHERE username='admin') AS INTEGER) = 1 AND name ILIKE '\"");
-    System.out.println(response.content());
-    assertEquals(HttpStatus.OK, response.status());
+                + "?filter=name:ilike:\"test' AND CAST((SELECT password FROM userinfo WHERE username='admin') AS INTEGER) = 1 AND name ILIKE '\"");
+    assertEquals(
+        0, response.content(HttpStatus.OK).getObject("pager").getNumber("total").intValue());
   }
 
   @ParameterizedTest
