@@ -124,6 +124,8 @@ public class Preheat {
   public <T extends IdentifiableObject> T get(
       PreheatIdentifier identifier, Class<? extends IdentifiableObject> klass, String key) {
     if (klass == PeriodDimension.class)
+      // this is put here as a precaution to notice it
+      // when a PeriodDimension would be attempted to be trated as IdentifiableObject
       throw new IllegalArgumentException("Periods are implicitly created");
 
     Map<String, IdentifiableObject> byKey =
