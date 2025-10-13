@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
 import java.util.Optional;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -74,11 +75,15 @@ public class RouteController extends AbstractCrudController<Route> {
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> run(
+  public ResponseEntity<byte[]> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws IOException,
+          ForbiddenException,
+          NotFoundException,
+          BadRequestException,
+          ServletException {
     return runWithSubpath(id, currentUser, request);
   }
 
@@ -91,11 +96,15 @@ public class RouteController extends AbstractCrudController<Route> {
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> runWithSubpath(
+  public ResponseEntity<byte[]> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws IOException,
+          ForbiddenException,
+          NotFoundException,
+          BadRequestException,
+          ServletException {
     Route route = routeService.getDecryptedRoute(id);
 
     if (route == null) {

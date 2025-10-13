@@ -415,6 +415,9 @@
             // in StaticContentControllerTest.verifyErrorWhenStoringInvalidKey()
             <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
+          <ignoredUsedUndeclaredDependencies>
+            <ignoredUsedUndeclaredDependency>com.sun.mail:jakarta.mail</ignoredUsedUndeclaredDependency>
+          </ignoredUsedUndeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>
