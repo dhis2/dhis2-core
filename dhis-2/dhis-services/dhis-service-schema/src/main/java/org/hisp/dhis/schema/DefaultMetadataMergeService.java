@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +82,10 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
           continue;
         }
 
-        if (targetObject == null) {
+        // Note this exception for Period is sort of a hack
+        // because the collections used for periods might be projection
+        // which might be reflected in them being immutable, so they cannot just be modified
+        if (targetObject == null || property.getItemKlass() == Period.class) {
           targetObject = ReflectionUtils.newCollectionInstance(property.getKlass());
         }
 

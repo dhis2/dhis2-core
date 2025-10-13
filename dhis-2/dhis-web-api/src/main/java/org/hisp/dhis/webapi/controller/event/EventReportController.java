@@ -48,7 +48,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -149,8 +149,8 @@ public class EventReportController
     I18nFormat format = i18nManager.getI18nFormat();
 
     if (report.getPeriods() != null && !report.getPeriods().isEmpty()) {
-      for (Period period : report.getPeriods()) {
-        period.setName(format.formatPeriod(period));
+      for (PeriodDimension period : report.getPeriods()) {
+        period.setName(format.formatPeriod(period.getPeriod()));
       }
     }
   }

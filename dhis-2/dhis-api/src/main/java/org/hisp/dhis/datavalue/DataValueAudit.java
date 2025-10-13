@@ -30,6 +30,8 @@
 package org.hisp.dhis.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Date;
 import lombok.EqualsAndHashCode;
@@ -38,6 +40,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -78,6 +82,8 @@ public class DataValueAudit {
   }
 
   @JsonProperty
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Period getPeriod() {
     return period;
