@@ -47,6 +47,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -87,28 +90,28 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
    * Set of currently running jobs on this node. We use a map to use CAS operation {@link
    * Map#putIfAbsent(Object, Object)} to "atomically" start or abort execution.
    */
-  private final Map<String, RecordingJobProgress> recordingsById = new ConcurrentHashMap<>();
+  private final Map<UID, RecordingJobProgress> recordingsById = new ConcurrentHashMap<>();
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public void createHousekeepingJob(UserDetails actingUser) {
     JobType.Defaults defaults = JobType.HOUSEKEEPING.getDefaults();
     if (defaults == null) return;
-    JobConfiguration config = jobConfigurationStore.getByUid(defaults.uid());
+    JobEntry config = jobConfigurationStore.getJobById(defaults.uid());
     if (config == null) {
       jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING, actingUser);
-    } else if (config.getJobStatus() != JobStatus.SCHEDULED
-        && (config.getLastAlive() == null
-            || currentTimeMillis() - config.getLastAlive().getTime() > 60_000)) {
-      finishRunCancel(config.getUid());
+    } else if (config.status() != JobStatus.SCHEDULED
+        && (config.lastAlive() == null
+            || currentTimeMillis() - config.lastAlive().getTime() > 60_000)) {
+      finishRunCancel(config.id());
     }
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public int applyCancellation() {
     int c = 0;
-    for (String jobId : jobConfigurationStore.getAllCancelledIds()) {
+    for (UID jobId : jobConfigurationStore.getAllCancelledIds()) {
       RecordingJobProgress progress = recordingsById.get(jobId);
       if (progress != null && !progress.isCancelled()) {
         progress.requestCancellation();
@@ -119,76 +122,78 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
+  @NonTransactional
   public boolean tryBecomeLeader(int ttlSeconds) {
     leaderManager.electLeader(ttlSeconds);
     return leaderManager.isLeader();
   }
 
   @Override
+  @NonTransactional
   public void assureAsLeader(int ttlSeconds) {
     leaderManager.renewLeader(ttlSeconds);
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds) {
+  @IndirectTransactional
+  public List<JobEntry> getDueJobConfigurations(int dueInNextSeconds) {
     return jobConfigurationService.getDueJobConfigurations(dueInNextSeconds, false);
   }
 
   @Override
   @CheckForNull
-  @Transactional(readOnly = true)
-  public JobConfiguration getNextInQueue(String queue, int fromPosition) {
+  @IndirectTransactional
+  public JobEntry getNextInQueue(String queue, int fromPosition) {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
-  public JobConfiguration getJobConfiguration(String jobId) {
-    return jobConfigurationStore.getByUid(jobId);
+  public JobEntry getJobConfiguration(UID jobId) {
+    return jobConfigurationStore.getJobById(jobId);
   }
 
   @Override
-  @Transactional
-  public boolean tryRun(@Nonnull String jobId) {
+  @IndirectTransactional
+  public boolean tryRun(@Nonnull UID jobId) {
     if (!jobConfigurationStore.tryStart(jobId)) return false;
-    JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+    JobEntry job = jobConfigurationStore.getJobById(jobId);
     if (job == null) return false;
     doSafely("start", "MDC.put", () -> MDC.put("sessionId", getSessionId(job)));
     doSafely("start", "publishEvent", () -> events.publishEvent(schedulerStart(job)));
     return true;
   }
 
-  private static String getSessionId(JobConfiguration job) {
-    return job.getUid() != null ? "UID:" + job.getUid() : "TYPE:" + job.getJobType().name();
+  private static String getSessionId(JobEntry job) {
+    return "UID:" + job.id().getValue();
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public JobProgress startRun(@Nonnull String jobId, String user, Runnable observer)
+  @IndirectTransactional
+  public JobProgress startRun(@Nonnull UID jobId, UID user, Runnable observer)
       throws NotFoundException {
     if (user != null) {
-      authenticationService.obtainAuthentication(user);
+      authenticationService.obtainAuthentication(user.getValue());
     } else {
       authenticationService.obtainSystemAuthentication();
     }
-    JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+    JobEntry job = jobConfigurationStore.getJobById(jobId);
     if (job == null) return JobProgress.noop();
     return startRecording(job, observer);
   }
 
   @Override
-  @Transactional
-  public void updateAsRunning(@Nonnull String jobId) {
+  @IndirectTransactional
+  public void updateAsRunning(@Nonnull UID jobId) {
     updateProgress(jobId);
   }
 
   @Override
-  @Transactional
-  public boolean finishRunSuccess(@Nonnull String jobId) {
+  @IndirectTransactional
+  public boolean finishRunSuccess(@Nonnull UID jobId) {
     if (!jobConfigurationStore.tryFinish(jobId, JobStatus.COMPLETED)) return false;
-    JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+    JobEntry job = jobConfigurationStore.getJobById(jobId);
     if (job == null) return false;
     doSafely("complete", "stop recording", () -> stopRecording(jobId));
     doSafely("complete", "publishEvent", () -> events.publishEvent(schedulerCompleted(job)));
@@ -196,12 +201,12 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional
-  public void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex) {
+  @IndirectTransactional
+  public void finishRunFail(@Nonnull UID jobId, @CheckForNull Exception ex) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.FAILED)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobEntry job = jobConfigurationStore.getJobById(jobId);
       if (job == null) return;
-      String message = String.format("Job failed: '%s'", job.getName());
+      String message = String.format("Job failed: '%s'", job.name());
       doSafely("fail", "stop recording", () -> stopRecording(jobId));
       doSafely("fail", "log.error", () -> logError(message, ex));
       doSafely("fail", "MDC.remove", () -> MDC.remove("sessionId"));
@@ -223,12 +228,12 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @Transactional
-  public void finishRunCancel(@Nonnull String jobId) {
+  @IndirectTransactional
+  public void finishRunCancel(@Nonnull UID jobId) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.STOPPED)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobEntry job = jobConfigurationStore.getJobById(jobId);
       if (job == null) return;
-      String message = String.format("Job cancelled: '%s'", job.getName());
+      String message = String.format("Job cancelled: '%s'", job.name());
       doSafely("cancel", "stop recording", () -> stopRecording(jobId));
       doSafely("cancel", "log.error", () -> logError(message, null));
       doSafely("cancel", "MDC.remove", () -> MDC.remove("sessionId"));
@@ -238,8 +243,8 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   /** Skip further items in the same queue with {@link JobStatus#NOT_STARTED}. */
-  private void skipRestOfQueue(JobConfiguration job) {
-    String queue = job.getQueueName();
+  private void skipRestOfQueue(JobEntry job) {
+    String queue = job.queueName();
     if (queue != null) jobConfigurationStore.trySkip(queue);
   }
 
@@ -260,29 +265,29 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     }
   }
 
-  private JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer) {
+  private JobProgress startRecording(@Nonnull JobEntry job, @Nonnull Runnable observer) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     boolean nonVerboseLogging = isNonVerboseLogging(job, settings);
     NotificationLevel level =
-        job.getJobType().isUsingNotifications() && !nonVerboseLogging
+        job.type().isUsingNotifications() && !nonVerboseLogging
             ? settings.getNotifierLogLevel()
             : NotificationLevel.ERROR;
-    JobProgress tracker = new NotifierJobProgress(notifier, job, level);
+    JobProgress tracker = new NotifierJobProgress(notifier, job.toKey(), job.parameters(), level);
     RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer, nonVerboseLogging, false);
-    recordingsById.put(job.getUid(), progress);
+        new RecordingJobProgress(
+            messages, job.toKey(), tracker, true, observer, nonVerboseLogging, false);
+    recordingsById.put(job.id(), progress);
     return progress;
   }
 
-  private static boolean isNonVerboseLogging(
-      @Nonnull JobConfiguration job, SystemSettings settings) {
-    return job.getSchedulingType() != SchedulingType.ONCE_ASAP
-        && job.getLastExecuted() != null
-        && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
+  private static boolean isNonVerboseLogging(@Nonnull JobEntry job, SystemSettings settings) {
+    return job.schedulingType() != SchedulingType.ONCE_ASAP
+        && job.lastExecuted() != null
+        && Duration.between(job.lastExecuted().toInstant(), Instant.now()).getSeconds()
             < settings.getJobsLogDebugBelowSeconds();
   }
 
-  private void stopRecording(@Nonnull String jobId) {
+  private void stopRecording(@Nonnull UID jobId) {
     RecordingJobProgress job = recordingsById.get(jobId);
     if (job != null) {
       job.autoComplete();
@@ -291,7 +296,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     }
   }
 
-  private void updateProgress(@Nonnull String jobId) {
+  private void updateProgress(@Nonnull UID jobId) {
     RecordingJobProgress job = recordingsById.get(jobId);
     if (job == null) return;
     try {

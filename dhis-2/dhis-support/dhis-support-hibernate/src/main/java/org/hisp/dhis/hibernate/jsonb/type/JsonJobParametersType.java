@@ -30,23 +30,52 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Henning Håkonsen
  */
 public class JsonJobParametersType extends JsonBinaryType {
-  static final ObjectMapper MAPPER = new ObjectMapper();
 
-  static {
-    MAPPER.enableDefaultTyping(); // TODO remove?
-    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    MAPPER.setAnnotationIntrospector(
-        new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
-  }
+  static final ObjectMapper MAPPER =
+      new ObjectMapper()
+          .enableDefaultTyping()
+          .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+          .setAnnotationIntrospector(
+              new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
+
+  private static final ObjectReader CONFIG_PARAMS_READER =
+      MAPPER
+          .readerFor(JobConfiguration.class)
+          .without(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   @Override
   protected ObjectMapper getResultingMapper() {
     return MAPPER;
+  }
+
+  public static JobParameters fromJson(String json) {
+    if (json == null || "null".equals(json) || "[]".equals(json) || "{}".equals(json)) return null;
+    // The idea here is to reuse the jackson mapping
+    // based on the annotations present on JobConfiguration
+    // for that we wrap the parameters in a shallow job object
+    String config =
+        """
+      {
+        "jobParameters": %s
+      }
+      """
+            .formatted(json);
+    try {
+      JobConfiguration c = CONFIG_PARAMS_READER.readValue(config);
+      return c.getJobParameters();
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 }

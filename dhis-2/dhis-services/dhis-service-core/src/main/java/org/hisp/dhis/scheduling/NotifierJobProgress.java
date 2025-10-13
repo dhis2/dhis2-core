@@ -51,7 +51,8 @@ import org.hisp.dhis.system.notification.Notifier;
 public class NotifierJobProgress implements JobProgress {
 
   private final Notifier notifier;
-  private final JobConfiguration jobId;
+  private final JobKey job;
+  private final JobParameters params;
   private final NotificationLevel level;
   private final AtomicBoolean hasCleared = new AtomicBoolean();
 
@@ -73,15 +74,13 @@ public class NotifierJobProgress implements JobProgress {
   @Override
   public void startingProcess(String description, Object... args) {
     String message =
-        isNotEmpty(description)
-            ? format(description, args)
-            : jobId.getJobType() + " process started";
+        isNotEmpty(description) ? format(description, args) : job.type() + " process started";
     if (hasCleared.compareAndSet(false, true)) {
-      notifier.clear(jobId);
+      notifier.clear(job);
     }
     // Note: intentionally no log level check - always log first
     notifier.notify(
-        jobId,
+        job,
         NotificationLevel.INFO,
         isLoggedInfo() ? message : "",
         false,
@@ -92,13 +91,13 @@ public class NotifierJobProgress implements JobProgress {
   @Override
   public void completedProcess(String summary, Object... args) {
     // Note: intentionally no log level check - always log last
-    notifier.notify(jobId, isLoggedInfo() ? format(summary, args) : "", true);
+    notifier.notify(job, isLoggedInfo() ? format(summary, args) : "", true);
   }
 
   @Override
   public void failedProcess(@CheckForNull String error, Object... args) {
     // Note: intentionally no log level check - always log last
-    notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
+    notifier.notify(job, NotificationLevel.ERROR, format(error, args), true);
   }
 
   @Override
@@ -107,21 +106,21 @@ public class NotifierJobProgress implements JobProgress {
     stageItems = workItems;
     stageItem = 0;
     if (isLoggedInfo() && isNotEmpty(description)) {
-      notifier.notify(jobId, description);
+      notifier.notify(job, description);
     }
   }
 
   @Override
   public void completedStage(String summary, Object... args) {
     if (isLoggedInfo() && isNotEmpty(summary)) {
-      notifier.notify(jobId, format(summary, args));
+      notifier.notify(job, format(summary, args));
     }
   }
 
   @Override
   public void failedStage(@Nonnull String error, Object... args) {
     if (isLoggedError() && isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
+      notifier.notify(job, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
@@ -129,7 +128,7 @@ public class NotifierJobProgress implements JobProgress {
   public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
     if (isLoggedLoop() && isNotEmpty(description)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-      notifier.notify(jobId, NotificationLevel.LOOP, nOf + description, false);
+      notifier.notify(job, NotificationLevel.LOOP, nOf + description, false);
     }
     stageItem++;
   }
@@ -138,23 +137,21 @@ public class NotifierJobProgress implements JobProgress {
   public void completedWorkItem(String summary, Object... args) {
     if (isLoggedLoop() && isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-      notifier.notify(jobId, NotificationLevel.LOOP, nOf + format(summary, args), false);
+      notifier.notify(job, NotificationLevel.LOOP, nOf + format(summary, args), false);
     }
   }
 
   @Override
   public void failedWorkItem(@Nonnull String error, Object... args) {
     if (isLoggedError() && isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
+      notifier.notify(job, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
   private JsonValue getJobParameterData() {
-    JobParameters params = jobId.getJobParameters();
-    if (params == null) {
-      return null;
-    }
+    if (params == null) return null;
     try {
+      // TODO
       return JsonValue.of(new ObjectMapper().writeValueAsString(params));
     } catch (Exception ex) {
       return null;

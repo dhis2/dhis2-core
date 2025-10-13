@@ -43,7 +43,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -51,7 +51,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -67,15 +66,15 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   private final ObjectMapper jsonMapper;
 
   @Override
-  @Transactional
-  public boolean requestCancel(@Nonnull String jobId) {
+  @IndirectTransactional
+  public boolean requestCancel(@Nonnull UID jobId) {
     return jobConfigurationStore.tryCancel(jobId);
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public boolean requestCancel(@Nonnull JobType type) {
-    String jobId = jobConfigurationStore.getLastRunningId(type);
+    UID jobId = jobConfigurationStore.getLastRunningId(type);
     return jobId != null && requestCancel(jobId);
   }
 
@@ -85,69 +84,68 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
    * done in case of continuous execution.
    */
   @Override
-  @NonTransactional
-  public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
+  @IndirectTransactional
+  public void executeNow(@Nonnull UID jobId) throws NotFoundException, ConflictException {
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
+      JobEntry job = jobConfigurationStore.getJobById(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (job.getJobStatus() == JobStatus.RUNNING)
-        throw new ConflictException("Job is already running.");
-      if (job.getSchedulingType() == SchedulingType.ONCE_ASAP && job.getLastFinished() != null)
+      if (job.status() == JobStatus.RUNNING) throw new ConflictException("Job is already running.");
+      if (job.schedulingType() == SchedulingType.ONCE_ASAP && job.lastFinished() != null)
         throw new ConflictException("Job did already run once.");
       throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
     }
     if (!jobRunner.isScheduling()) {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
+      JobEntry job = jobConfigurationStore.getJobById(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
     } else {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
+      JobEntry job = jobConfigurationStore.getJobById(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
-      if (job.getJobType().isUsingContinuousExecution()) {
+      if (job.type().isUsingContinuousExecution()) {
         jobRunner.runIfDue(job);
       }
     }
   }
 
   @Override
-  @Transactional
+  @IndirectTransactional
   public void revertNow(@Nonnull UID jobId)
       throws ConflictException, NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
     if (!currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
       throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
-    if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId.getValue());
+    if (!jobConfigurationStore.tryRevertNow(jobId)) {
+      JobEntry job = jobConfigurationStore.getJobById(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId.getValue());
-      if (job.getJobStatus() != JobStatus.RUNNING)
-        throw new ConflictException("Job is not running");
+      if (job.status() != JobStatus.RUNNING) throw new ConflictException("Job is not running");
       throw new ConflictException("Failed to transition job from RUNNING state");
     }
   }
 
   @Override
+  @IndirectTransactional
   public boolean isRunning(@Nonnull JobType type) {
     return jobConfigurationStore.getRunningTypes().contains(type);
   }
 
   @Nonnull
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public Set<JobType> getRunningTypes() {
     return jobConfigurationStore.getRunningTypes();
   }
 
   @Nonnull
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public Set<JobType> getCompletedTypes() {
     return jobConfigurationStore.getCompletedTypes();
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Progress getProgress(@Nonnull String jobId) {
+  @IndirectTransactional
+  public Progress getProgress(@Nonnull UID jobId) {
     String json = jobConfigurationStore.getProgress(jobId);
     if (json == null) return null;
     Progress progress = mapToProgress(json);
@@ -159,8 +157,8 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
 
   @Nonnull
   @Override
-  @Transactional(readOnly = true)
-  public List<JobProgress.Error> getErrors(@Nonnull String jobId) {
+  @IndirectTransactional
+  public List<JobProgress.Error> getErrors(@Nonnull UID jobId) {
     String json = jobConfigurationStore.getErrors(jobId);
     if (json == null) return List.of();
     Progress progress = mapToProgress("{\"sequence\":[],\"errors\":" + json + "}");
@@ -173,16 +171,16 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public Progress getRunningProgress(@Nonnull JobType type) {
-    String jobId = jobConfigurationStore.getLastRunningId(type);
+    UID jobId = jobConfigurationStore.getLastRunningId(type);
     return jobId == null ? null : getProgress(jobId);
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public Progress getCompletedProgress(@Nonnull JobType type) {
-    String jobId = jobConfigurationStore.getLastCompletedId(type);
+    UID jobId = jobConfigurationStore.getLastCompletedId(type);
     return jobId == null ? null : getProgress(jobId);
   }
 

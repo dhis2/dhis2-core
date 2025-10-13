@@ -41,7 +41,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -69,7 +69,7 @@ public class FileResourceCleanUpJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     log.info("Starting FileResourceCleanUpJob");
     progress.startingProcess("Clean-up file resources");
     FileResourceRetentionStrategy retentionStrategy =

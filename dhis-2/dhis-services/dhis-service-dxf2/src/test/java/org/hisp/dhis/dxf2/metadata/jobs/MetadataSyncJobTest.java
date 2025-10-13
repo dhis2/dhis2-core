@@ -75,7 +75,7 @@ class MetadataSyncJobTest {
     config.setJobType(JobType.META_DATA_SYNC);
     config.setLastExecutedStatus(JobStatus.RUNNING);
 
-    RecordingJobProgress jobProgress = new RecordingJobProgress(config);
+    RecordingJobProgress jobProgress = new RecordingJobProgress(config.toKey());
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(settingsService, null, null, null, null);
@@ -97,7 +97,7 @@ class MetadataSyncJobTest {
     config.setJobType(JobType.META_DATA_SYNC);
     config.setLastExecutedStatus(JobStatus.RUNNING);
 
-    RecordingJobProgress jobProgress = new RecordingJobProgress(config);
+    RecordingJobProgress jobProgress = new RecordingJobProgress(config.toKey());
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
@@ -123,7 +123,7 @@ class MetadataSyncJobTest {
     config.setJobType(JobType.META_DATA_SYNC);
     config.setLastExecutedStatus(JobStatus.RUNNING);
 
-    RecordingJobProgress jobProgress = new RecordingJobProgress(config);
+    RecordingJobProgress jobProgress = new RecordingJobProgress(config.toKey());
 
     MetadataSyncPreProcessor preProcessor =
         new MetadataSyncPreProcessor(
