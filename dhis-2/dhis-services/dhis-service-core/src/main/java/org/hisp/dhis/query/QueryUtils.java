@@ -212,6 +212,7 @@ public final class QueryUtils {
       if (field.equals("*")) {
         str.append("*");
       } else {
+        // this encloses the column in double quotes so it's treated as an identifier
         str.append("\"").append(field).append("\"");
         if (i < fields.size() - 1) {
           str.append(",");

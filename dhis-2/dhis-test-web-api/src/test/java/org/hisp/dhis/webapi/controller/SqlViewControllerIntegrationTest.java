@@ -41,6 +41,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,9 +62,19 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
     POST("/sqlViews/", sqlView()).content(HttpStatus.CREATED);
   }
 
+  @Test
+  void sqlInjectionTest() {
+    HttpResponse response =
+        GET(
+            QUERY_PATH
+                + "filter=name:ilike:\"test' AND CAST((SELECT password FROM userinfo WHERE username='admin') AS INTEGER) = 1 AND name ILIKE '\"");
+    System.out.println(response.content());
+    assertEquals(HttpStatus.OK, response.status());
+  }
+
   @ParameterizedTest
   @MethodSource("sqlViewFilterQueries")
-  void getByNameTest(String query, Set<String> expectedUids, int expectedResults) {
+  void queryFilterTest(String query, Set<String> expectedUids, int expectedResults) {
     JsonMixed content = GET(query).content(HttpStatus.OK);
     assertResponse(content, expectedResults, expectedUids);
   }
