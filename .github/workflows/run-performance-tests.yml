@@ -175,34 +175,43 @@ jobs:
       if: always()
       run: |
         # Read metadata from run-simulation.env files
-        BASELINE_ENV=$(find target/gatling -path "*-baseline/run-simulation.env")
-        CANDIDATE_ENV=$(find target/gatling -path "*-candidate/run-simulation.env")
+        BASELINE_ENV=$(find target/gatling -path "*-baseline/run-simulation.env" 2>/dev/null | head -n1)
+        CANDIDATE_ENV=$(find target/gatling -path "*-candidate/run-simulation.env" 2>/dev/null | head -n1)
 
-        # Parse baseline env
+        # Check if candidate env exists - if not, we cannot generate a full summary
+        if [ ! -f "$CANDIDATE_ENV" ]; then
+          echo "# ⚠️ Performance Test Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The candidate performance test run failed before generating results." >> $GITHUB_STEP_SUMMARY
+          echo "This typically indicates an execution error (not an assertion failure)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the workflow logs above for error details." >> $GITHUB_STEP_SUMMARY
+          exit 0
+        fi
+
+        # Parse candidate env (use this for shared metadata to get the actual MVN_ARGS)
+        CANDIDATE_IMAGE=$(grep "^DHIS2_IMAGE=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        CANDIDATE_VERSION=$(grep "^DHIS2_VERSION=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        CANDIDATE_BRANCH=$(grep "^DHIS2_BUILD_BRANCH=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        CANDIDATE_REVISION=$(grep "^DHIS2_BUILD_REVISION=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        CANDIDATE_DIGEST=$(grep "^DHIS2_IMAGE_DIGEST=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        SIM_CLASS=$(grep "^SIMULATION_CLASS=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        PERF_GIT_BRANCH=$(grep "^GIT_BRANCH_PERFORMANCE_TESTS=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        WARMUP_COUNT=$(grep "^WARMUP=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        DB_DUMP_URL=$(grep "^DHIS2_DB_DUMP_URL=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        DB_IMAGE_SUFFIX=$(grep "^DHIS2_DB_IMAGE_SUFFIX=" "$CANDIDATE_ENV" | cut -d= -f2-)
+
+        # Parse baseline env (only for baseline-specific values)
         if [ -f "$BASELINE_ENV" ]; then
           BASELINE_IMAGE=$(grep "^DHIS2_IMAGE=" "$BASELINE_ENV" | cut -d= -f2-)
           BASELINE_VERSION=$(grep "^DHIS2_VERSION=" "$BASELINE_ENV" | cut -d= -f2-)
           BASELINE_BRANCH=$(grep "^DHIS2_BUILD_BRANCH=" "$BASELINE_ENV" | cut -d= -f2-)
           BASELINE_REVISION=$(grep "^DHIS2_BUILD_REVISION=" "$BASELINE_ENV" | cut -d= -f2-)
           BASELINE_DIGEST=$(grep "^DHIS2_IMAGE_DIGEST=" "$BASELINE_ENV" | cut -d= -f2-)
-          BASELINE_DB_URL=$(grep "^DHIS2_DB_DUMP_URL=" "$BASELINE_ENV" | cut -d= -f2-)
-          BASELINE_DB_SUFFIX=$(grep "^DHIS2_DB_IMAGE_SUFFIX=" "$BASELINE_ENV" | cut -d= -f2-)
-          SIM_CLASS=$(grep "^SIMULATION_CLASS=" "$BASELINE_ENV" | cut -d= -f2-)
-          PERF_GIT_BRANCH=$(grep "^GIT_BRANCH_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
-          PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
-          WARMUP_COUNT=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
-          MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
-          PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
-          CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$BASELINE_ENV" | cut -d= -f2-)
-        fi
-
-        # Parse candidate env
-        if [ -f "$CANDIDATE_ENV" ]; then
-          CANDIDATE_IMAGE=$(grep "^DHIS2_IMAGE=" "$CANDIDATE_ENV" | cut -d= -f2-)
-          CANDIDATE_VERSION=$(grep "^DHIS2_VERSION=" "$CANDIDATE_ENV" | cut -d= -f2-)
-          CANDIDATE_BRANCH=$(grep "^DHIS2_BUILD_BRANCH=" "$CANDIDATE_ENV" | cut -d= -f2-)
-          CANDIDATE_REVISION=$(grep "^DHIS2_BUILD_REVISION=" "$CANDIDATE_ENV" | cut -d= -f2-)
-          CANDIDATE_DIGEST=$(grep "^DHIS2_IMAGE_DIGEST=" "$CANDIDATE_ENV" | cut -d= -f2-)
         fi
 
         echo "# 🚀 Performance Test Results" >> $GITHUB_STEP_SUMMARY
@@ -218,7 +227,7 @@ jobs:
         fi
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
-        echo "* **Database**: \`$BASELINE_DB_URL\` (\`$BASELINE_DB_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Database**: \`$DB_DUMP_URL\` (\`$DB_IMAGE_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
         if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
           echo "* **SQL logging**: enabled" >> $GITHUB_STEP_SUMMARY
         fi
@@ -299,9 +308,9 @@ jobs:
         fi
         echo "  --field dhis2_image_baseline=\"$BASELINE_DIGEST\" \\ # $BASELINE_IMAGE" >> $GITHUB_STEP_SUMMARY
         echo "  --field dhis2_image_candidate=\"$CANDIDATE_DIGEST\" \\ # $CANDIDATE_IMAGE" >> $GITHUB_STEP_SUMMARY
-        if [ -n "$BASELINE_DB_URL" ]; then
-          echo "  --field dhis2_db_dump_url=\"$BASELINE_DB_URL\" \\" >> $GITHUB_STEP_SUMMARY
-          echo "  --field dhis2_db_image_suffix=\"$BASELINE_DB_SUFFIX\" \\" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$DB_DUMP_URL" ]; then
+          echo "  --field dhis2_db_dump_url=\"$DB_DUMP_URL\" \\" >> $GITHUB_STEP_SUMMARY
+          echo "  --field dhis2_db_image_suffix=\"$DB_IMAGE_SUFFIX\" \\" >> $GITHUB_STEP_SUMMARY
         fi
         echo "  --field warmup=\"$WARMUP_COUNT\" \\" >> $GITHUB_STEP_SUMMARY
         if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
