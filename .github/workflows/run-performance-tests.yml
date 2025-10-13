@@ -56,7 +56,7 @@ on:
       # DHIS2 Docker images
       dhis2_image_baseline:
         description: 'Baseline DHIS2 image for comparison'
-        required: false
+        required: true
         default: 'dhis2/core-dev:latest'
         type: string
       dhis2_image_candidate:
