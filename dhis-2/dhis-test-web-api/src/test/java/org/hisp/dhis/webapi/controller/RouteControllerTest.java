@@ -31,6 +31,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,9 +46,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HttpContext;
@@ -72,7 +80,12 @@ import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockPart;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -121,7 +134,8 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Override
-  public void integrationTestBefore() {
+  public void integrationTestBefore() throws Exception {
+    super.integrationTestBefore();
     routeService.postConstruct();
     upstreamMockServerClient =
         new MockServerClient("localhost", upstreamMockServerContainer.getFirstMappedPort());
@@ -229,6 +243,66 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     assertStatus(org.hisp.dhis.web.HttpStatus.OK, runHttpResponse);
     assertEquals(
         "foo", httpUriRequestArgumentCaptor.getValue().getHeaders("X-API-KEY")[0].getValue());
+  }
+
+  @Test
+  void testRunRouteGivenMultipartBody() throws IOException, MessagingException {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
+
+    ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor =
+        ArgumentCaptor.forClass(HttpUriRequest.class);
+    when(mockHttpResponse.getAllHeaders()).thenReturn(new org.apache.http.Header[] {});
+    when(mockHttpResponse.getEntity()).thenReturn(new StringEntity("Hello World!"));
+
+    when(mockHttpResponse.getStatusLine())
+        .thenReturn(
+            new BasicStatusLine(
+                new ProtocolVersion("http", 1, 1), org.apache.http.HttpStatus.SC_OK, "ok"));
+    when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
+        .thenReturn(mockHttpResponse);
+
+    routeService.setHttpClient(mockHttpClient);
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MockHttpServletRequestBuilder multipartHttpServletRequestBuilder =
+        MockMvcRequestBuilders.multipart(
+                org.springframework.http.HttpMethod.POST,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run")
+            .part(new MockPart("domain", "DOCUMENT".getBytes()))
+            .file(new MockMultipartFile("file", "foo", "text/plain", "bar".getBytes()));
+    MvcResult mvcResult = webRequestWithMvcResult(multipartHttpServletRequestBuilder);
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    assertEquals("Hello World!", mvcResult.getResponse().getContentAsString());
+    assertNull(httpUriRequestArgumentCaptor.getValue().getURI().getQuery());
+
+    HttpEntity httpEntity =
+        ((HttpEntityEnclosingRequest) httpUriRequestArgumentCaptor.getValue()).getEntity();
+    MimeMessage mimeMessage =
+        new MimeMessage(Session.getDefaultInstance(new Properties()), httpEntity.getContent());
+    mimeMessage.setHeader(
+        "Content-Type",
+        httpUriRequestArgumentCaptor.getValue().getFirstHeader("Content-Type").getValue());
+    MimeMultipart mimeMultipart = (MimeMultipart) mimeMessage.getContent();
+
+    assertEquals("DOCUMENT\n", mimeMultipart.getPreamble());
+    assertEquals(
+        "form-data; name=\"domain\"",
+        mimeMultipart.getParent().getHeader("Content-Disposition")[0]);
+
+    assertEquals("bar", mimeMultipart.getBodyPart(0).getContent());
+    assertEquals("text/plain", mimeMultipart.getBodyPart(0).getContentType());
+    assertEquals("foo", mimeMultipart.getBodyPart(0).getFileName());
+    assertEquals(
+        "form-data; name=\"file\"; filename=\"foo\"",
+        mimeMultipart.getBodyPart(0).getHeader("Content-Disposition")[0]);
   }
 
   @Test
