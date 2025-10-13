@@ -143,10 +143,8 @@ cleanup() {
   echo "========================================"
   if [ $exit_code -eq 0 ]; then
     echo -e "\033[0;32m✓\033[0m Test for $DHIS2_IMAGE ran successfully"
-  elif [ $exit_code -eq 2 ]; then
-    echo -e "\033[0;31m✗\033[0m Test for $DHIS2_IMAGE failed due to Gatling assertion failures"
   else
-    echo -e "\033[0;31m✗\033[0m Test for $DHIS2_IMAGE failed due to execution error (exit code: $exit_code)"
+    echo -e "\033[0;31m✗\033[0m Test for $DHIS2_IMAGE failed"
   fi
 
   exit $exit_code
