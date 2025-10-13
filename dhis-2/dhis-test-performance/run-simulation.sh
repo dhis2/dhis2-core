@@ -31,6 +31,9 @@ show_usage() {
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
   echo "                        Set to any non-empty value to enable (default: disabled)"
   echo "                        Analysis requires pgbadger: https://github.com/darold/pgbadger"
+  echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
+  echo "                        Required for analytics endpoints that query pre-computed tables"
+  echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -47,6 +50,13 @@ show_usage() {
   echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
+  echo ""
+  echo "  # With analytics table generation (required for analytics endpoints)"
+  echo "  ANALYTICS_GENERATE=true \\"
+  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
+  echo "  SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \\"
+  echo "  MVN_ARGS=\"-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41\" \\"
+  echo "  $0"
   echo ""
 }
 
@@ -78,6 +88,8 @@ PROF_ARGS=${PROF_ARGS:=""}
 WARMUP=${WARMUP:-0}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
+ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
+ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -348,8 +360,74 @@ post_process_gatling_logs() {
 prepare_database() {
   echo ""
   echo "Preparing database..."
-  # cleanup and update DB statistics
   docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' > /dev/null
+
+  if [ "$ANALYTICS_GENERATE" = "true" ]; then
+    echo ""
+    echo "Generating analytics tables (this may take several minutes)..."
+
+    local start_time
+    start_time=$(date +%s)
+
+    local response
+    response=$(curl --silent --user admin:district --request POST http://localhost:8080/api/resourceTables/analytics)
+
+    local job_id
+    job_id=$(echo "$response" | jq --raw-output '.response.id // empty')
+
+    if [ -z "$job_id" ]; then
+      echo "Error: Failed to trigger analytics generation"
+      echo "Response: $response"
+      exit 1
+    fi
+
+    echo "Analytics job started with ID: $job_id"
+    echo "Waiting for completion..."
+
+    while true; do
+      local elapsed=$(($(date +%s) - start_time))
+
+      if [ "$elapsed" -gt "$ANALYTICS_TIMEOUT" ]; then
+        echo "Error: Analytics generation timed out after ${ANALYTICS_TIMEOUT}s"
+        echo "Consider increasing ANALYTICS_TIMEOUT if needed"
+        exit 1
+      fi
+
+      local task_response
+      task_response=$(curl --silent --user admin:district "http://localhost:8080/api/system/tasks/ANALYTICS_TABLE/$job_id")
+
+      local has_completed
+      has_completed=$(echo "$task_response" | jq '[.[] | select(.completed == true)] | length')
+
+      local has_error
+      has_error=$(echo "$task_response" | jq '[.[] | select(.level == "ERROR")] | length')
+
+      if [ "$has_error" -gt 0 ]; then
+        echo "Error: Analytics generation failed"
+        echo "$task_response" | jq '[.[] | select(.level == "ERROR")] | .[0].message' --raw-output
+        exit 1
+      fi
+
+      if [ "$has_completed" -gt 0 ]; then
+        local duration_msg
+        duration_msg=$(echo "$task_response" | jq --raw-output '[.[] | select(.completed == true and (.message | contains("Analytics tables updated")))] | .[0].message // empty')
+        if [ -n "$duration_msg" ]; then
+          echo "$duration_msg"
+        else
+          echo "Analytics tables generated successfully! (took ${elapsed}s)"
+        fi
+        break
+      fi
+
+      if [ $((elapsed % 30)) -eq 0 ]; then
+        local latest_msg
+        latest_msg=$(echo "$task_response" | jq --raw-output '.[0].message // "Processing..."')
+        echo "Status (${elapsed}s): $latest_msg"
+      fi
+
+      sleep 5
+    done
+  fi
 }
 
 start_profiler() {
