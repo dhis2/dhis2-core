@@ -36,6 +36,8 @@ import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
 
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -199,7 +201,10 @@ public class DefaultSqlViewService implements SqlViewService {
             : getSqlForView(sqlView, criteria, filters, fields);
 
     sqlViewStore.populateSqlViewGrid(
-        grid, sqlQueryWithParams.sql(), sqlQueryWithParams.args(), transactionMode);
+        grid,
+        sqlQueryWithParams.sql(),
+        sqlQueryWithParams.args() == null ? null : sqlQueryWithParams.args().toArray(),
+        transactionMode);
     return grid;
   }
 
@@ -209,12 +214,12 @@ public class DefaultSqlViewService implements SqlViewService {
     }
   }
 
-  public record SqlQueryWithArgs(String sql, Object[] args) {}
+  public record SqlQueryWithArgs(String sql, List<Object> args) {}
 
   private SqlQueryWithArgs parseFilters(List<String> filters, SqlHelper sqlHelper)
       throws QueryParserException {
-    String query = "";
-    Object[] queryArgs = new Object[filters.size()];
+    StringBuilder query = new StringBuilder();
+    List<Object> queryArgs = new ArrayList<>();
 
     for (int i = 0; i < filters.size(); i++) {
       String filter = filters.get(i);
@@ -224,14 +229,23 @@ public class DefaultSqlViewService implements SqlViewService {
         int index = split[0].length() + ":".length() + split[1].length() + ":".length();
         QueryUtils.QueryPlaceHolderWithArg filterQuery =
             getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
-        query += filterQuery.query();
-        queryArgs[i] = filterQuery.arg();
+        query.append(filterQuery.query());
+
+        // this arg could be a collection and need to flatten to obj each
+        if (filterQuery.arg() instanceof Collection<?> collection) {
+          queryArgs.addAll(collection);
+        } else {
+          queryArgs.add(filterQuery.arg());
+        }
+
+      } else if (split.length == 2 && (split[1].equals("null") || split[1].equals("!null"))) {
+        query.append(getFilterQuery(sqlHelper, split[0], split[1], null).query());
       } else {
         throw new QueryParserException("Invalid filter => " + filter);
       }
     }
 
-    return new SqlQueryWithArgs(query, queryArgs);
+    return new SqlQueryWithArgs(query.toString(), queryArgs);
   }
 
   private QueryUtils.QueryPlaceHolderWithArg getFilterQuery(

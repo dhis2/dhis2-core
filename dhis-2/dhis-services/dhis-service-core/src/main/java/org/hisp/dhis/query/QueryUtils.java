@@ -35,6 +35,7 @@ import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,17 @@ public final class QueryUtils {
   }
 
   public static Object validateValue(String value) {
-    return (value == null || StringUtils.isEmpty(value)) ? null : value;
+    if (value == null || StringUtils.isEmpty(value)) {
+      return null;
+    }
+    if (NumberUtils.isCreatable(value)) {
+      try {
+        return NumberUtils.createNumber(value);
+      } catch (NumberFormatException e) {
+        throw new QueryParserException("Could not parse number from value: %s".formatted(value));
+      }
+    }
+    return value;
   }
 
   /**
@@ -245,6 +256,34 @@ public final class QueryUtils {
   }
 
   /**
+   * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
+   *
+   * @param value a string contains a collection with JSON format [x,y,z].
+   * @return a string contains a collection with SQL query format (x,y,z).
+   */
+  public static List<Object> convertToCollectionArgs(String value) {
+    if (StringUtils.isEmpty(value)) {
+      throw new QueryParserException("Value is null");
+    }
+
+    if (!value.startsWith("[") || !value.endsWith("]")) {
+      throw new QueryParserException("Invalid query value");
+    }
+
+    String[] split = value.substring(1, value.length() - 1).split(",");
+    List<String> items = Lists.newArrayList(split);
+    List<Object> args = new ArrayList<>();
+
+    for (String s : items) {
+      Object item = QueryUtils.validateValue(s);
+      if (item != null) {
+        args.add(item);
+      }
+    }
+    return args;
+  }
+
+  /**
    * Converts a filter operator into an SQL operator.
    *
    * <p>Example: {@code parseFilterOperator('eq', 5)} will return "=5".
@@ -260,31 +299,39 @@ public final class QueryUtils {
     }
 
     return switch (operator) {
-      case "eq" -> new QueryPlaceHolderWithArg("= ?", QueryUtils.validateValue(value));
-      case "ieq" -> new QueryPlaceHolderWithArg(" ilike ?", value);
+      case "eq" -> new QueryPlaceHolderWithArg(" = ? ", QueryUtils.validateValue(value));
+      case "ieq" -> new QueryPlaceHolderWithArg(" ilike ? ", value);
       case "!eq", "ne", "neq" ->
-          new QueryPlaceHolderWithArg("!= ?", QueryUtils.validateValue(value));
-      case "gt" -> new QueryPlaceHolderWithArg("> ?", QueryUtils.validateValue(value));
-      case "lt" -> new QueryPlaceHolderWithArg("< ?", QueryUtils.validateValue(value));
-      case "gte", "ge" -> new QueryPlaceHolderWithArg(">= ?", QueryUtils.validateValue(value));
-      case "lte", "le" -> new QueryPlaceHolderWithArg("<= ?", QueryUtils.validateValue(value));
-      case "like" -> new QueryPlaceHolderWithArg("like ?", "%" + value + "%");
-      case "!like" -> new QueryPlaceHolderWithArg("not like ?", "%" + value + "%");
-      case "^like" -> new QueryPlaceHolderWithArg(" like ?", value + "%");
-      case "!^like" -> new QueryPlaceHolderWithArg(" not like ?", value + "%");
+          new QueryPlaceHolderWithArg(" != ? ", QueryUtils.validateValue(value));
+      case "gt" -> new QueryPlaceHolderWithArg(" > ? ", QueryUtils.validateValue(value));
+      case "lt" -> new QueryPlaceHolderWithArg(" < ? ", QueryUtils.validateValue(value));
+      case "gte", "ge" -> new QueryPlaceHolderWithArg(" >= ? ", QueryUtils.validateValue(value));
+      case "lte", "le" -> new QueryPlaceHolderWithArg(" <= ? ", QueryUtils.validateValue(value));
+      case "like" -> new QueryPlaceHolderWithArg(" like ? ", "%" + value + "%");
+      case "!like" -> new QueryPlaceHolderWithArg(" not like ? ", "%" + value + "%");
+      case "^like" -> new QueryPlaceHolderWithArg(" like ? ", value + "%");
+      case "!^like" -> new QueryPlaceHolderWithArg(" not like ? ", value + "%");
       case "$like" -> new QueryPlaceHolderWithArg(" like ?", "%" + value);
       case "!$like" -> new QueryPlaceHolderWithArg(" not like ?", "%" + value);
-      case "ilike" -> new QueryPlaceHolderWithArg(" ilike ?", "%" + value + "%");
-      case "!ilike" -> new QueryPlaceHolderWithArg(" not ilike ?", "%" + value + "%");
-      case "^ilike" -> new QueryPlaceHolderWithArg(" ilike ?", value + "%");
-      case "!^ilike" -> new QueryPlaceHolderWithArg(" not ilike ?", value + "%");
-      case "$ilike" -> new QueryPlaceHolderWithArg(" ilike ?", "%" + value);
-      case "!$ilike" -> new QueryPlaceHolderWithArg(" not ilike ?", "%" + value);
-      case "in" -> new QueryPlaceHolderWithArg("in ?", QueryUtils.convertCollectionValue(value));
-      case "!in" ->
-          new QueryPlaceHolderWithArg(" not in ?", QueryUtils.convertCollectionValue(value));
-      case "null" -> new QueryPlaceHolderWithArg("is null", null);
-      case "!null" -> new QueryPlaceHolderWithArg("is not null", null);
+      case "ilike" -> new QueryPlaceHolderWithArg(" ilike ? ", "%" + value + "%");
+      case "!ilike" -> new QueryPlaceHolderWithArg(" not ilike ? ", "%" + value + "%");
+      case "^ilike" -> new QueryPlaceHolderWithArg(" ilike ? ", value + "%");
+      case "!^ilike" -> new QueryPlaceHolderWithArg(" not ilike ? ", value + "%");
+      case "$ilike" -> new QueryPlaceHolderWithArg(" ilike ? ", "%" + value);
+      case "!$ilike" -> new QueryPlaceHolderWithArg(" not ilike ? ", "%" + value);
+      case "in" -> {
+        List<Object> objects = QueryUtils.convertToCollectionArgs(value);
+        yield new QueryPlaceHolderWithArg(
+            " in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ", objects);
+      }
+      case "!in" -> {
+        List<Object> objects = QueryUtils.convertToCollectionArgs(value);
+        yield new QueryPlaceHolderWithArg(
+            " not in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ",
+            objects);
+      }
+      case "null" -> new QueryPlaceHolderWithArg("is null ", null);
+      case "!null" -> new QueryPlaceHolderWithArg("is not null ", null);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
   }
