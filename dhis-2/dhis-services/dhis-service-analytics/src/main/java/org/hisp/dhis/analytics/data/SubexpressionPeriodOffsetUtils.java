@@ -46,7 +46,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 /**
  * Utility methods for generating a subExpression query containing periodOffsets.
@@ -89,14 +89,14 @@ public class SubexpressionPeriodOffsetUtils {
    * @return a join clause to an inline table to map reporting periods to data periods
    */
   protected static String joinPeriodOffsetValues(DataQueryParams params) {
-    List<Period> reportPeriods = getReportPeriods(params);
+    List<PeriodDimension> reportPeriods = getReportPeriods(params);
     List<Integer> periodOffsets = getPeriodOffsets(params);
 
     StringBuilder sb = new StringBuilder(" join (values");
 
     for (Integer delta : periodOffsets) {
-      for (Period reportPeriod : reportPeriods) {
-        Period dataPeriod = shiftPeriod(reportPeriod, delta);
+      for (PeriodDimension reportPeriod : reportPeriods) {
+        PeriodDimension dataPeriod = shiftPeriod(reportPeriod, delta);
         sb.append(
             format("(%s,'%s','%s'),", delta, reportPeriod.getIsoDate(), dataPeriod.getIsoDate()));
       }
@@ -138,11 +138,11 @@ public class SubexpressionPeriodOffsetUtils {
    * @return parameters with data periods
    */
   protected static DataQueryParams getParamsWithOffsetPeriods(DataQueryParams params) {
-    List<Period> reportPeriods = getReportPeriods(params);
+    List<PeriodDimension> reportPeriods = getReportPeriods(params);
     List<Integer> periodOffsets = getPeriodOffsets(params);
 
-    Set<Period> shiftedPeriods = new HashSet<>();
-    for (Period reportPeriod : reportPeriods) {
+    Set<PeriodDimension> shiftedPeriods = new HashSet<>();
+    for (PeriodDimension reportPeriod : reportPeriods) {
       for (Integer periodOffset : periodOffsets) {
         shiftedPeriods.add(shiftPeriod(reportPeriod, periodOffset));
       }
@@ -171,11 +171,12 @@ public class SubexpressionPeriodOffsetUtils {
    * @param params parameters with reporting periods
    * @return the report periods
    */
-  private static List<Period> getReportPeriods(DataQueryParams params) {
-    List<Period> periods = params.getPeriods().stream().map(Period.class::cast).toList();
+  private static List<PeriodDimension> getReportPeriods(DataQueryParams params) {
+    List<PeriodDimension> periods =
+        params.getPeriods().stream().map(PeriodDimension.class::cast).toList();
 
     if (periods.isEmpty()) {
-      periods = params.getFilterPeriods().stream().map(Period.class::cast).toList();
+      periods = params.getFilterPeriods().stream().map(PeriodDimension.class::cast).toList();
     }
     if (periods.isEmpty()) {
       throw new IllegalQueryException(ErrorCode.E7150);

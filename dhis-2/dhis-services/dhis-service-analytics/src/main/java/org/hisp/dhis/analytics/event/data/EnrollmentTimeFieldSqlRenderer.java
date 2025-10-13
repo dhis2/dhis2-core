@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -78,7 +79,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
       return sql.append(
               periods.stream()
                   .filter(this::isPeriod)
-                  .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+                  .map(PeriodDimension.class::cast)
                   .map(period -> toSqlCondition(period, timeField.get()))
                   .collect(Collectors.joining(" or ", "(", ")")))
           .toString();
@@ -170,7 +171,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     return sql;
   }
 
-  private String toSqlCondition(Period period, TimeField timeField) {
+  private String toSqlCondition(PeriodDimension period, TimeField timeField) {
     String timeCol = sqlBuilder.quoteAx(timeField.getEnrollmentColumnName());
     return "( "
         + timeCol
