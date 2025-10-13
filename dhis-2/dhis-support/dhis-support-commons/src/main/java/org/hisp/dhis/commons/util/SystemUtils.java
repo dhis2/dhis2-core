@@ -58,6 +58,10 @@ public class SystemUtils {
     return Arrays.asList(profiles).contains("impersonate-user-test");
   }
 
+  public static boolean isOAuth2AuthorizationServerTest(String[] profiles) {
+    return Arrays.asList(profiles).contains("oauth2-authorization-server-test");
+  }
+
   public static boolean isAuditTest(String[] profiles) {
     return Arrays.asList(profiles).contains("test-audit");
   }

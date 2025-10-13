@@ -27,47 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.action.validation;
+package org.hisp.dhis.condition;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionGroup;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import static org.hisp.dhis.commons.util.SystemUtils.isOAuth2AuthorizationServerTest;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * @author Zubair Asghar
+ * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
+ *
+ * @author Ameen Mohamed
  */
-@Data
-@Builder
-public class ProgramRuleActionValidationContext {
-  private Program program;
+public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (isOAuth2AuthorizationServerTest(context.getEnvironment().getActiveProfiles())) {
+      return true;
+    }
+    if (!isTestRun(context)) {
+      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
+    }
+    return false;
+  }
 
-  private ProgramRule programRule;
-
-  private DataElement dataElement;
-
-  private TrackedEntityAttribute trackedEntityAttribute;
-
-  private ProgramStageSection programStageSection;
-
-  private ProgramStage programStage;
-
-  private Option option;
-
-  private OptionGroup optionGroup;
-
-  private ProgramNotificationTemplate notificationTemplate;
-
-  private ProgramRuleActionValidationService programRuleActionValidationService;
-
-  @Nonnull private List<ProgramStage> programStages;
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.REGISTER_BEAN;
+  }
 }

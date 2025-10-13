@@ -33,7 +33,9 @@ import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -240,6 +242,44 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     assertEquals(ouA.getUid(), dvs.getOrgUnit());
     assertEquals(peAIso, dvs.getPeriod());
     assertEquals(4, dvs.getDataValues().size());
+  }
+
+  @Test
+  void testExportBasic_FilterAoc() throws Exception {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    DataExportParams params =
+        DataExportParams.builder()
+            .dataElement(Set.of(deA.getUid()))
+            .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+            .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
+            .attributeOptionCombo(Set.of(cocA.getUid()))
+            .build();
+    dataExportPipeline.exportAsJson(params, out);
+    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
+    assertNotNull(dvs);
+    assertEquals(cocA.getUid(), dvs.getAttributeOptionCombo());
+    assertEquals(4, dvs.getDataValues().size());
+    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues())
+      assertNull(dv.getAttributeOptionCombo());
+  }
+
+  @Test
+  void testExportBasic_FilterMultiAoc() throws Exception {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    DataExportParams params =
+        DataExportParams.builder()
+            .dataElement(Set.of(deA.getUid()))
+            .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
+            .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
+            .attributeOptionCombo(Set.of(cocA.getUid(), cocB.getUid()))
+            .build();
+    dataExportPipeline.exportAsJson(params, out);
+    DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
+    assertNotNull(dvs);
+    assertNull(dvs.getAttributeOptionCombo());
+    assertEquals(8, dvs.getDataValues().size());
+    for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues())
+      assertTrue(Set.of(cocA.getUid(), cocB.getUid()).contains(dv.getAttributeOptionCombo()));
   }
 
   @Test

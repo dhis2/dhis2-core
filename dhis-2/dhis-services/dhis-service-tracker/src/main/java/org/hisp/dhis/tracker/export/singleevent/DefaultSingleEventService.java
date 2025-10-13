@@ -117,9 +117,8 @@ class DefaultSingleEventService implements SingleEventService {
     Page<SingleEvent> events;
     try {
       SingleEventOperationParams operationParams =
-          SingleEventOperationParams.builder()
+          SingleEventOperationParams.builderForEvent(eventUid)
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-              .events(Set.of(eventUid))
               .filterByDataElement(dataElementUid)
               .build();
       events = findEvents(operationParams, PageParams.single());
@@ -189,9 +188,8 @@ class DefaultSingleEventService implements SingleEventService {
     Page<SingleEvent> events;
     try {
       SingleEventOperationParams operationParams =
-          SingleEventOperationParams.builder()
+          SingleEventOperationParams.builderForEvent(eventUid)
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-              .events(Set.of(eventUid))
               .fields(fields)
               .idSchemeParams(idSchemeParams)
               .build();

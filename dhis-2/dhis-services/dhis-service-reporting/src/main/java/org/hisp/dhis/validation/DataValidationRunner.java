@@ -472,7 +472,7 @@ public class DataValidationRunner {
       params.setCogDimensionConstraints(context.getCogDimensionConstraints());
 
       if (context.getAttributeCombo() != null) {
-        params.setAttributeOptionCombos(Sets.newHashSet(context.getAttributeCombo()));
+        params.setAttributeOptionCombos(List.of(context.getAttributeCombo()));
       }
 
       List<DeflatedDataValue> dataValues = dataValueService.getDeflatedDataValues(params);
