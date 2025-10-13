@@ -305,7 +305,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   private void getDdvPeriods(
       DataExportStoreParams params, StringBuilder sql, StringBuilder where, SqlHelper sqlHelper) {
     if (params.hasPeriods()) {
-      String periodIdList = getPeriodIds(params.getPeriods());
+      Set<Period> periods = params.getPeriods();
+      String periodIdList = getPeriodIds(periods);
+      if (periodIdList.isEmpty() && !periods.isEmpty()) {
+        where.append(sqlHelper.whereAnd()).append(" 1=2 ");
+        // can never be true
+        return;
+      }
 
       where
           .append(sqlHelper.whereAnd())

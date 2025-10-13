@@ -29,28 +29,26 @@
  */
 package org.hisp.dhis.system.callable;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import org.hisp.dhis.common.IdScheme;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 
 /**
  * @author Lars Helge Overland
  */
-public class PeriodCallable extends IdentifiableObjectCallable<Period> {
-  private PeriodService periodService;
+@RequiredArgsConstructor
+public class PeriodCallable implements Callable<Period> {
 
-  public PeriodCallable(PeriodService periodService, IdScheme idScheme, String id) {
-    super(null, Period.class, idScheme, id);
-    this.periodService = periodService;
-  }
+  private final PeriodService periodService;
+  protected String id;
 
   @Override
   public Period call() throws ExecutionException {
     return periodService.reloadIsoPeriodInStatelessSession(id);
   }
 
-  @Override
   public PeriodCallable setId(String id) {
     this.id = id;
     return this;

@@ -1,0 +1,194 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/events/query/KYzHf1Ta6C4?dimension=ou:USER_ORGUNIT,CtUD7DpDhUt,hQP5qXsaTSB:EQ:1798,oindugucx72:IN:FEMALE;OTHER,ENRjVGxVL6l:ILIKE:a,ucGVfFax931.kNR9wGWUqnX,ucGVfFax931.IQ8pRiFktkT:EQ:NV&headers=ouname,eventdate,CtUD7DpDhUt,hQP5qXsaTSB,oindugucx72,ENRjVGxVL6l,ucGVfFax931.kNR9wGWUqnX,ucGVfFax931.IQ8pRiFktkT&totalPages=false&eventDate=LAST_12_MONTHS&lastUpdated=2023-08-01_2023-11-23&displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&includeMetadataDetails=true&stage=ucGVfFax931&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 300000,
+          "max": 315000,
+          "mean": 312000
+        },
+        {
+          "release": "40.2.2",
+          "min": 305000,
+          "max": 320000,
+          "mean": 320000
+        },
+        {
+          "release": "41.0",
+          "min": 305000,
+          "max": 320000,
+          "mean": 320000
+        },
+        {
+          "release": "42.0",
+          "min": 255000,
+          "max": 300000,
+          "mean": 300000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 245000,
+          "max": 280000,
+          "mean": 280000
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/query/M3xtLkYBlKI?dimension=ou:USER_ORGUNIT,CWaAcQYKVpq.HUzRTYRFcYn,zyTL3AMIkf2,CH6wamtY9kK,yZmG3RbbBKG,cl2RC5MLQYO:GE:0,CWaAcQYKVpq.UFTvUJIMiH0:IN:BENDIOCARB01;CARBOSULFAN04;DDT4;DELTAMETHRIN005,CWaAcQYKVpq.X1DpyS5FN3T:IN:INDOOR,CWaAcQYKVpq.V1OnhZYfSa2:IN:ACTIVE;CLEARED&headers=ouname,CWaAcQYKVpq.HUzRTYRFcYn,eventdate,enrollmentdate,programstatus,zyTL3AMIkf2,CH6wamtY9kK,yZmG3RbbBKG,cl2RC5MLQYO,CWaAcQYKVpq.UFTvUJIMiH0,CWaAcQYKVpq.X1DpyS5FN3T,CWaAcQYKVpq.V1OnhZYfSa2&totalPages=false&eventDate=LAST_12_MONTHS&enrollmentDate=LAST_12_MONTHS&programStatus=ACTIVE,COMPLETED&lastUpdated=LAST_12_MONTHS&displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&includeMetadataDetails=true&stage=CWaAcQYKVpq&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 90,
+          "max": 320,
+          "mean": 180
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 285,
+          "mean": 180
+        },
+        {
+          "release": "41.0",
+          "min": 90,
+          "max": 395,
+          "mean": 225
+        },
+        {
+          "release": "42.0",
+          "min": 110,
+          "max": 335,
+          "mean": 200
+        },
+        {
+          "release": "42.0-doris",
+          "min": 90,
+          "max": 275,
+          "mean": 200
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/query/YcxRnVWkbQ1?dimension=pe:LAST_YEAR,ou:USER_ORGUNIT,FfgRrNEF2jY:GE:0,Gl0FmdEmSiz,n0qtoxsujRE,M9IPFKryhga,HSPoIdXLEwa,yGuXefzA4Sy:GE:0,oindugucx72:IN:FEMALE,Rv8WM2mTuS5:EQ:NV&filter=GIb6Ge9PCc4.GsxsEH4GmaR:EQ:NV&headers=ouname,FfgRrNEF2jY,Gl0FmdEmSiz,n0qtoxsujRE,M9IPFKryhga,HSPoIdXLEwa,yGuXefzA4Sy,oindugucx72,Rv8WM2mTuS5&totalPages=false&displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&includeMetadataDetails=true&stage=GIb6Ge9PCc4&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 90,
+          "max": 240,
+          "mean": 165
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 295,
+          "mean": 165
+        },
+        {
+          "release": "41.0",
+          "min": 55000,
+          "max": 70000,
+          "mean": 70000
+        },
+        {
+          "release": "42.0",
+          "min": 40000,
+          "max": 45000,
+          "mean": 45000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 35000,
+          "max": 45000,
+          "mean": 45000
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/query/YcxRnVWkbQ1?dimension=pe:LAST_YEAR,ou:USER_ORGUNIT,FfgRrNEF2jY:GE:0,Gl0FmdEmSiz,n0qtoxsujRE,M9IPFKryhga,HSPoIdXLEwa&filter=GIb6Ge9PCc4.GsxsEH4GmaR:EQ:NV&headers=ouname,FfgRrNEF2jY,Gl0FmdEmSiz,n0qtoxsujRE,M9IPFKryhga,HSPoIdXLEwa&totalPages=false&displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&includeMetadataDetails=true&stage=GIb6Ge9PCc4&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 85,
+          "max": 260,
+          "mean": 165
+        },
+        {
+          "release": "40.2.2",
+          "min": 85,
+          "max": 295,
+          "mean": 165
+        },
+        {
+          "release": "41.0",
+          "min": 2600,
+          "max": 3595,
+          "mean": 3450
+        },
+        {
+          "release": "42.0",
+          "min": 1250,
+          "max": 2200,
+          "mean": 1850
+        },
+        {
+          "release": "42.0-doris",
+          "min": 1000,
+          "max": 2100,
+          "mean": 1750
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics/events/query/YcxRnVWkbQ1?dimension=pe:LAST_YEAR,ou:USER_ORGUNIT,N0mcRJ2kZpO:GE:0,FNysn92uKL9:GE:0,FfgRrNEF2jY:GE:0&filter=GIb6Ge9PCc4.GsxsEH4GmaR:EQ:NV&headers=ouname,N0mcRJ2kZpO,FNysn92uKL9,FfgRrNEF2jY&totalPages=false&displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&includeMetadataDetails=true&stage=GIb6Ge9PCc4&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 85,
+          "max": 265,
+          "mean": 165
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 295,
+          "mean": 165
+        },
+        {
+          "release": "41.0",
+          "min": 20000,
+          "max": 25000,
+          "mean": 25000
+        },
+        {
+          "release": "42.0",
+          "min": 20000,
+          "max": 25000,
+          "mean": 25000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 14000,
+          "max": 20000,
+          "mean": 20000
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}

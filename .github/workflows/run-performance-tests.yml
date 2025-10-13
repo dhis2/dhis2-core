@@ -16,11 +16,18 @@
 #
 # With specific database version:
 # gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="2.42.2" \
+# 	--field perf_tests_git_ref="master" \
 # 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
 # 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
 # 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
 # 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
+#
+# Analytics test example:
+# gh workflow run run-performance-tests.yml \
+# 	--field perf_tests_git_ref="master" \
+# 	--field simulation_class="org.hisp.dhis.test.raw.GetRawSpeedTest" \
+# 	--field dhis2_image_candidate="dhis2/core-dev:latest" \
+# 	--field mvn_args="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41"
 name: Performance tests
 run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ inputs.dhis2_image_candidate }}
 
@@ -49,7 +56,7 @@ on:
       # DHIS2 Docker images
       dhis2_image_baseline:
         description: 'Baseline DHIS2 image for comparison'
-        required: false
+        required: true
         default: 'dhis2/core-dev:latest'
         type: string
       dhis2_image_candidate:
@@ -112,6 +119,16 @@ jobs:
     - name: Run performance tests - baseline
       run: |
         # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
+
+        # Auto-enable analytics generation if mvn_args contains "analytics" (scenario file naming convention)
+        # TODO: This is a temporary workaround because GitHub Actions limits workflow_dispatch to 10 inputs
+        # and we've reached that limit. Ideally this would be an explicit input field.
+        if echo "${{ inputs.mvn_args }}" | grep --quiet "analytics"; then
+          ANALYTICS_GENERATE=true
+        else
+          ANALYTICS_GENERATE=false
+        fi
+
         DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
@@ -120,11 +137,21 @@ jobs:
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=${{ inputs.warmup }} \
         CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        ANALYTICS_GENERATE="$ANALYTICS_GENERATE" \
         REPORT_SUFFIX="baseline" \
         ./run-simulation.sh
 
     - name: Run performance tests - candidate
       run: |
+        # Auto-enable analytics generation if mvn_args contains "analytics" (scenario file naming convention)
+        # TODO: This is a temporary workaround because GitHub Actions limits workflow_dispatch to 10 inputs
+        # and we've reached that limit. Ideally this would be an explicit input field.
+        if echo "${{ inputs.mvn_args }}" | grep --quiet "analytics"; then
+          ANALYTICS_GENERATE=true
+        else
+          ANALYTICS_GENERATE=false
+        fi
+
         DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
         SIMULATION_CLASS="${{ inputs.simulation_class }}" \
         MVN_ARGS="${{ inputs.mvn_args }}" \
@@ -133,6 +160,7 @@ jobs:
         DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
         WARMUP=${{ inputs.warmup }} \
         CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
+        ANALYTICS_GENERATE="$ANALYTICS_GENERATE" \
         REPORT_SUFFIX="candidate" \
         ./run-simulation.sh
 
@@ -163,6 +191,9 @@ jobs:
           PERF_GIT_BRANCH=$(grep "^GIT_BRANCH_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
           PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$BASELINE_ENV" | cut -d= -f2-)
           WARMUP_COUNT=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
+          MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
+          PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
+          CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$BASELINE_ENV" | cut -d= -f2-)
         fi
 
         # Parse candidate env
@@ -182,9 +213,18 @@ jobs:
         echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* **Simulation**: \`$SIM_CLASS\`" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$MVN_ARGS_VALUE" ]; then
+          echo "* **Maven arguments**: \`$MVN_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
         echo "* **Database**: \`$BASELINE_DB_URL\` (\`$BASELINE_DB_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
+          echo "* **SQL logging**: enabled" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$PROF_ARGS_VALUE" ]; then
+          echo "* **Profiler arguments**: \`$PROF_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| | Baseline | Candidate |" >> $GITHUB_STEP_SUMMARY
         echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
@@ -251,9 +291,22 @@ jobs:
         echo ' \' >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field simulation_class=\"$SIM_CLASS\" \\" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$MVN_ARGS_VALUE" ]; then
+          echo "  --field mvn_args=\"$MVN_ARGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$PROF_ARGS_VALUE" ]; then
+          echo "  --field prof_args=\"$PROF_ARGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "  --field dhis2_image_baseline=\"$BASELINE_DIGEST\" \\ # $BASELINE_IMAGE" >> $GITHUB_STEP_SUMMARY
         echo "  --field dhis2_image_candidate=\"$CANDIDATE_DIGEST\" \\ # $CANDIDATE_IMAGE" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$BASELINE_DB_URL" ]; then
+          echo "  --field dhis2_db_dump_url=\"$BASELINE_DB_URL\" \\" >> $GITHUB_STEP_SUMMARY
+          echo "  --field dhis2_db_image_suffix=\"$BASELINE_DB_SUFFIX\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "  --field warmup=\"$WARMUP_COUNT\" \\" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
+          echo "  --field capture_sql_logs=\"$CAPTURE_SQL_LOGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "  --ref $PERF_GIT_COMMIT # git sha of this workflow (optional but required to faithfully reproduce as it defaults to master which is mutable)" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

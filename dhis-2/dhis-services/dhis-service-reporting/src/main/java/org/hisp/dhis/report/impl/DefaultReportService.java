@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.report.impl;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import java.io.OutputStream;
@@ -41,6 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +62,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
@@ -169,11 +170,16 @@ public class DefaultReportService implements ReportService {
           AnalyticsFinancialYearStartKey financialYearStart =
               settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
 
-          List<Period> relativePeriods =
+          List<PeriodDimension> relativePeriods =
               report.getRelatives().getRelativePeriods(reportDate, null, false, financialYearStart);
 
           String periodString =
-              getCommaDelimitedString(getIdentifiers(periodService.reloadPeriods(relativePeriods)));
+              relativePeriods.stream()
+                  .map(PeriodDimension::getPeriod)
+                  .map(periodService::reloadPeriod)
+                  .filter(p -> p.getId() != 0)
+                  .map(p -> "" + p.getId())
+                  .collect(Collectors.joining(","));
           String isoPeriodString =
               getCommaDelimitedString(IdentifiableObjectUtils.getUids(relativePeriods));
 
@@ -242,7 +248,7 @@ public class DefaultReportService implements ReportService {
           settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
 
       if (calendar.isIso8601()) {
-        for (Period period :
+        for (PeriodDimension period :
             report.getRelatives().getRelativePeriods(date, format, true, financialYearStart)) {
           periods.add(period.getIsoDate());
         }

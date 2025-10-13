@@ -187,7 +187,7 @@ public class DataValueController {
           String co,
       @OpenApi.Param({UID.class, CategoryCombo.class}) @RequestParam(required = false) String cc,
       @OpenApi.Param({UID.class, CategoryOption.class}) @RequestParam(required = false) String cp,
-      @OpenApi.Param({UID.class, Period.class}) @RequestParam String pe,
+      @OpenApi.Param({Period.class}) @RequestParam String pe,
       @OpenApi.Param({UID.class, OrganisationUnit.class}) @RequestParam String ou,
       @OpenApi.Param({UID.class, DataSet.class}) @RequestParam(required = false) UID ds,
       @RequestParam(required = false) String comment,

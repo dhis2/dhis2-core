@@ -54,7 +54,6 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -74,8 +73,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private SchemaService schemaService;
 
   @Test
   void testValidate() {

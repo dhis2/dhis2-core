@@ -1,0 +1,36 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/tracker/trackedEntities.json?fields=*,enrollments[*,events[*]]&trackedEntityType=nEenWmSyUEp",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 2000,
+          "mean": 1600
+        },
+        {
+          "release": "40.2.2",
+          "min": 100,
+          "max": 2000,
+          "mean": 1600
+        },
+        {
+          "release": "41.0",
+          "min": 100,
+          "max": 2000,
+          "mean": 1600
+        },
+        {
+          "release": "42",
+          "min": 100,
+          "max": 2000,
+          "mean": 1800
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}

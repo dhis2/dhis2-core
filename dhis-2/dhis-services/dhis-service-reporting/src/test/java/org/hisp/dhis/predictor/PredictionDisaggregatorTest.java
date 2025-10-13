@@ -415,7 +415,7 @@ class PredictionDisaggregatorTest extends TestBase {
 
   private String formatPredictionContext(PredictionContext ctx) {
     return "OutputPeriod: "
-        + ctx.getOutputPeriod().getName()
+        + ctx.getOutputPeriod().getIsoDate()
         + ", OutputCOC: "
         + ctx.getCategoryOptionCombo().getName()
         + ", AOC: "
@@ -427,7 +427,7 @@ class PredictionDisaggregatorTest extends TestBase {
 
   private String formatPeriodValueMap(MapMap<Period, DimensionalItemObject, Object> pvm) {
     return pvm.entrySet().stream()
-        .map(e -> e.getKey().getName() + ": {" + formatValueMap(e.getValue()) + "}")
+        .map(e -> e.getKey().getIsoDate() + ": {" + formatValueMap(e.getValue()) + "}")
         .sorted()
         .collect(joining(", "));
   }
