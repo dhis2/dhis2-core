@@ -1,35 +1,51 @@
 # Performance test workflow to compare a baseline against a candidate DHIS2 version
-# You can run the workflow using the GitHub CLI like so:
 #
-# Basic example (required args only):
-# gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="master" \
-# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
-# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+# This workflow accepts .env file format as input to overcome GitHub Actions' 10-input limit.
+# The baseline_env and candidate_env inputs accept any environment variables that run-simulation.sh
+# supports (see dhis-2/dhis-test-performance/run-simulation.sh).
 #
-# With custom baseline:
-# gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="master" \
-# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
-# 	--field dhis2_image_baseline="dhis2/core:2.42.1" \
-# 	--field dhis2_image_candidate="dhis2/core-dev:latest"
+# After each test run, run-simulation.sh generates a run-simulation.env file containing all
+# the inputs used plus metadata. You can use this file to reproduce runs or as a template
+# for new runs.
 #
-# With specific database version:
-# gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="master" \
-# 	--field simulation_class="org.hisp.dhis.test.tracker.TrackerTest" \
-# 	--field dhis2_image_candidate="dhis2/core:2.42.2" \
-# 	--field dhis2_db_dump_url="https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz" \
-# 	--field dhis2_db_image_suffix="sierra-leone-2.42.2"
+# USAGE EXAMPLES
+# ==============
 #
-# Analytics test example:
+# Basic example with required env vars:
 # gh workflow run run-performance-tests.yml \
-# 	--field perf_tests_git_ref="master" \
-# 	--field simulation_class="org.hisp.dhis.test.raw.GetRawSpeedTest" \
-# 	--field dhis2_image_candidate="dhis2/core-dev:latest" \
-# 	--field mvn_args="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41"
+#   --field perf_tests_git_ref="master" \
+#   --field baseline_env="DHIS2_IMAGE=dhis2/core-dev:latest
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest" \
+#   --field candidate_env="DHIS2_IMAGE=dhis2/core-dev:latest
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest"
+#
+# Analytics test with ANALYTICS_GENERATE:
+# gh workflow run run-performance-tests.yml \
+#   --field perf_tests_git_ref="master" \
+#   --field baseline_env="DHIS2_IMAGE=dhis2/core:2.42.1
+# SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# MVN_ARGS=-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42 -Dbaseline=42
+# ANALYTICS_GENERATE=true" \
+#   --field candidate_env="DHIS2_IMAGE=dhis2/core-dev:latest
+# SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# MVN_ARGS=-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=42
+# ANALYTICS_GENERATE=true"
+#
+# REPRODUCING FROM PREVIOUS RUNS
+# ===============================
+#
+# Download artifacts from a previous run and use the generated run-simulation.env files:
+#
+# Simple (use entire file):
+#   BASELINE_ENV=$(cat baseline-dir/run-simulation.env)
+#   CANDIDATE_ENV=$(cat candidate-dir/run-simulation.env)
+#   gh workflow run run-performance-tests.yml \
+#     --field perf_tests_git_ref="master" \
+#     --field baseline_env="$BASELINE_ENV" \
+#     --field candidate_env="$CANDIDATE_ENV"
+#
 name: Performance tests
-run-name: Performance test comparing ${{ inputs.dhis2_image_baseline }} to ${{ inputs.dhis2_image_candidate }}
+run-name: Performance test ${{ inputs.perf_tests_git_ref }}
 
 on:
   workflow_dispatch:
@@ -38,50 +54,28 @@ on:
         description: 'Git ref (tag/branch/commit) to checkout dhis2-core performance tests'
         required: true
         type: string
-      simulation_class:
-        description: 'Fully qualified Gatling simulation class to run (e.g., org.hisp.dhis.test.TrackerTest)'
+      baseline_env:
+        description: |
+          Baseline configuration in .env file format (multiline).
+          Required: DHIS2_IMAGE, SIMULATION_CLASS
+          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Example:
+          DHIS2_IMAGE=dhis2/core:2.42.1
+          SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+          WARMUP=1
         required: true
         type: string
-      mvn_args:
-        description: 'Additional maven arguments'
-        required: false
-        default: ''
-        type: string
-      prof_args:
-        description: 'Profiler arguments (enables profiling). Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md'
-        required: false
-        default: ''
-        type: string
-      # Read https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md on how we publish
-      # DHIS2 Docker images
-      dhis2_image_baseline:
-        description: 'Baseline DHIS2 image for comparison'
-        required: true
-        default: 'dhis2/core-dev:latest'
-        type: string
-      dhis2_image_candidate:
-        description: 'Candidate DHIS2 image to compare against baseline'
+      candidate_env:
+        description: |
+          Candidate configuration in .env file format (multiline).
+          Required: DHIS2_IMAGE, SIMULATION_CLASS (must match baseline)
+          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Example:
+          DHIS2_IMAGE=dhis2/core-dev:latest
+          SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+          WARMUP=1
         required: true
         type: string
-      dhis2_db_dump_url:
-        description: 'URL to DHIS2 database dump (optional)'
-        required: false
-        type: string
-      dhis2_db_image_suffix:
-        description: 'Docker image suffix for the DB image (e.g., sierra-leone-2.42.2). WARNING: Must match the version in dhis2_db_dump_url'
-        required: false
-        default: 'sierra-leone-dev'
-        type: string
-      warmup:
-        description: 'Number of warmup iterations before actual test'
-        required: false
-        default: 1
-        type: number
-      capture_sql_logs:
-        description: 'Capture and analyze SQL logs for non-warmup runs'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   performance-tests:
@@ -116,52 +110,70 @@ jobs:
     - name: Clean target directory
       run: mvn clean
 
-    - name: Run performance tests - baseline
+    - name: Validate environment configurations
       run: |
-        # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
+        # Extract SIMULATION_CLASS from both env configs
+        BASELINE_SIM=$(echo "${{ inputs.baseline_env }}" | grep "^SIMULATION_CLASS=" | cut -d= -f2-)
+        CANDIDATE_SIM=$(echo "${{ inputs.candidate_env }}" | grep "^SIMULATION_CLASS=" | cut -d= -f2-)
 
-        # Auto-enable analytics generation if mvn_args contains "analytics" (scenario file naming convention)
-        # TODO: This is a temporary workaround because GitHub Actions limits workflow_dispatch to 10 inputs
-        # and we've reached that limit. Ideally this would be an explicit input field.
-        if echo "${{ inputs.mvn_args }}" | grep --quiet "analytics"; then
-          ANALYTICS_GENERATE=true
-        else
-          ANALYTICS_GENERATE=false
+        # Validate SIMULATION_CLASS matches between baseline and candidate
+        # This is a workflow constraint - both runs must test the same simulation
+        if [ -z "$BASELINE_SIM" ]; then
+          echo "Error: SIMULATION_CLASS is required in baseline_env"
+          exit 1
+        fi
+        if [ -z "$CANDIDATE_SIM" ]; then
+          echo "Error: SIMULATION_CLASS is required in candidate_env"
+          exit 1
+        fi
+        if [ "$BASELINE_SIM" != "$CANDIDATE_SIM" ]; then
+          echo "Error: SIMULATION_CLASS must be the same for baseline and candidate"
+          echo "  Baseline: $BASELINE_SIM"
+          echo "  Candidate: $CANDIDATE_SIM"
+          exit 1
         fi
 
-        DHIS2_IMAGE="${{ inputs.dhis2_image_baseline }}" \
-        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
-        MVN_ARGS="${{ inputs.mvn_args }} -Dgatling.failOnError=false" \
-        PROF_ARGS="${{ inputs.prof_args }}" \
-        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
-        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        WARMUP=${{ inputs.warmup }} \
-        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
-        ANALYTICS_GENERATE="$ANALYTICS_GENERATE" \
-        REPORT_SUFFIX="baseline" \
+        echo "✓ Validation passed"
+        echo "  SIMULATION_CLASS: $BASELINE_SIM"
+
+    - name: Run performance tests - baseline
+      run: |
+        # Write baseline env to file
+        cat > baseline.env << 'ENV_EOF'
+        ${{ inputs.baseline_env }}
+        ENV_EOF
+
+        # Source the env file (set -a exports all variables)
+        set -a
+        source baseline.env
+        set +a
+
+        # Override/append workflow-specific settings
+        # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
+        if [ -n "${MVN_ARGS:-}" ]; then
+          export MVN_ARGS="$MVN_ARGS -Dgatling.failOnError=false"
+        else
+          export MVN_ARGS="-Dgatling.failOnError=false"
+        fi
+        export REPORT_SUFFIX="baseline"
+
         ./run-simulation.sh
 
     - name: Run performance tests - candidate
       run: |
-        # Auto-enable analytics generation if mvn_args contains "analytics" (scenario file naming convention)
-        # TODO: This is a temporary workaround because GitHub Actions limits workflow_dispatch to 10 inputs
-        # and we've reached that limit. Ideally this would be an explicit input field.
-        if echo "${{ inputs.mvn_args }}" | grep --quiet "analytics"; then
-          ANALYTICS_GENERATE=true
-        else
-          ANALYTICS_GENERATE=false
-        fi
+        # Write candidate env to file
+        cat > candidate.env << 'ENV_EOF'
+        ${{ inputs.candidate_env }}
+        ENV_EOF
 
-        DHIS2_IMAGE="${{ inputs.dhis2_image_candidate }}" \
-        SIMULATION_CLASS="${{ inputs.simulation_class }}" \
-        MVN_ARGS="${{ inputs.mvn_args }}" \
-        PROF_ARGS="${{ inputs.prof_args }}" \
-        DHIS2_DB_DUMP_URL="${{ inputs.dhis2_db_dump_url }}" \
-        DHIS2_DB_IMAGE_SUFFIX="${{ inputs.dhis2_db_image_suffix }}" \
-        WARMUP=${{ inputs.warmup }} \
-        CAPTURE_SQL_LOGS=${{ inputs.capture_sql_logs && 1 || '' }} \
-        ANALYTICS_GENERATE="$ANALYTICS_GENERATE" \
-        REPORT_SUFFIX="candidate" \
+        # Source the env file (set -a exports all variables)
+        set -a
+        source candidate.env
+        set +a
+
+        # Override workflow-specific settings
+        export REPORT_SUFFIX="candidate"
+
         ./run-simulation.sh
 
     - name: Upload Gatling report
@@ -219,21 +231,37 @@ jobs:
 
         echo "## 📊 Test Configuration" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Performance tests completed comparing:" >> $GITHUB_STEP_SUMMARY
+
+        # Parse baseline-specific values
+        BASELINE_MVN_ARGS=$(grep "^MVN_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
+        BASELINE_WARMUP=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
+        BASELINE_DB_DUMP_URL=$(grep "^DHIS2_DB_DUMP_URL=" "$BASELINE_ENV" | cut -d= -f2-)
+        BASELINE_DB_IMAGE_SUFFIX=$(grep "^DHIS2_DB_IMAGE_SUFFIX=" "$BASELINE_ENV" | cut -d= -f2-)
+
+        echo "**Common settings:**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* **Simulation**: \`$SIM_CLASS\`" >> $GITHUB_STEP_SUMMARY
-        if [ -n "$MVN_ARGS_VALUE" ]; then
-          echo "* **Maven arguments**: \`$MVN_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
-        fi
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
-        echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
-        echo "* **Database**: \`$DB_DUMP_URL\` (\`$DB_IMAGE_SUFFIX\`)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "**Per-run settings:**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| | Baseline | Candidate |" >> $GITHUB_STEP_SUMMARY
+        echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$BASELINE_MVN_ARGS" ] || [ -n "$MVN_ARGS_VALUE" ]; then
+          echo "| **Maven arguments** | \`${BASELINE_MVN_ARGS:-none}\` | \`${MVN_ARGS_VALUE:-none}\` |" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "| **Warmup iterations** | $BASELINE_WARMUP | $WARMUP_COUNT |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Database** | \`$BASELINE_DB_DUMP_URL\` (\`$BASELINE_DB_IMAGE_SUFFIX\`) | \`$DB_DUMP_URL\` (\`$DB_IMAGE_SUFFIX\`) |" >> $GITHUB_STEP_SUMMARY
         if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
-          echo "* **SQL logging**: enabled" >> $GITHUB_STEP_SUMMARY
+          echo "| **SQL logging** | enabled | enabled |" >> $GITHUB_STEP_SUMMARY
         fi
         if [ -n "$PROF_ARGS_VALUE" ]; then
-          echo "* **Profiler arguments**: \`$PROF_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+          echo "| **Profiler arguments** | \`$PROF_ARGS_VALUE\` | \`$PROF_ARGS_VALUE\` |" >> $GITHUB_STEP_SUMMARY
         fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "**DHIS2 images:**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| | Baseline | Candidate |" >> $GITHUB_STEP_SUMMARY
         echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
@@ -242,6 +270,23 @@ jobs:
         echo "| **DHIS2_BUILD_BRANCH** | \`$BASELINE_BRANCH\` | \`$CANDIDATE_BRANCH\` |" >> $GITHUB_STEP_SUMMARY
         echo "| **DHIS2_BUILD_REVISION** | \`$BASELINE_REVISION\` | \`$CANDIDATE_REVISION\` |" >> $GITHUB_STEP_SUMMARY
         echo "| **Image Digest** | \`${BASELINE_DIGEST#*@}\` | \`${CANDIDATE_DIGEST#*@}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary>Complete baseline environment configuration</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "${{ inputs.baseline_env }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary>Complete candidate environment configuration</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "${{ inputs.candidate_env }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
@@ -295,29 +340,30 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/run-performance-tests.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Method 1: Using generated run-simulation.env files (recommended for exact reproduction)**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Download the artifacts and extract the env files. You can use them directly or filter to show only user inputs:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo -n 'gh workflow run run-performance-tests.yml' >> $GITHUB_STEP_SUMMARY
-        echo ' \' >> $GITHUB_STEP_SUMMARY
+        echo "# Simple: use the entire env file (comments and generated vars are harmless)" >> $GITHUB_STEP_SUMMARY
+        echo "BASELINE_ENV=\$(cat baseline-dir/run-simulation.env)" >> $GITHUB_STEP_SUMMARY
+        echo "CANDIDATE_ENV=\$(cat candidate-dir/run-simulation.env)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# Or filter to show only user-provided inputs (cleaner but optional)" >> $GITHUB_STEP_SUMMARY
+        echo "BASELINE_ENV=\$(grep -v \"^#\" baseline-dir/run-simulation.env | \\" >> $GITHUB_STEP_SUMMARY
+        echo "  grep -v \"^GIT_\" | grep -v \"^DHIS2_BUILD_\" | grep -v \"^DHIS2_VERSION\" | \\" >> $GITHUB_STEP_SUMMARY
+        echo "  grep -v \"^DHIS2_IMAGE_DIGEST\" | grep -v \"^COMMAND\" | grep -v \"^REPORT_SUFFIX\")" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "gh workflow run run-performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --field simulation_class=\"$SIM_CLASS\" \\" >> $GITHUB_STEP_SUMMARY
-        if [ -n "$MVN_ARGS_VALUE" ]; then
-          echo "  --field mvn_args=\"$MVN_ARGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
-        fi
-        if [ -n "$PROF_ARGS_VALUE" ]; then
-          echo "  --field prof_args=\"$PROF_ARGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "  --field dhis2_image_baseline=\"$BASELINE_DIGEST\" \\ # $BASELINE_IMAGE" >> $GITHUB_STEP_SUMMARY
-        echo "  --field dhis2_image_candidate=\"$CANDIDATE_DIGEST\" \\ # $CANDIDATE_IMAGE" >> $GITHUB_STEP_SUMMARY
-        if [ -n "$DB_DUMP_URL" ]; then
-          echo "  --field dhis2_db_dump_url=\"$DB_DUMP_URL\" \\" >> $GITHUB_STEP_SUMMARY
-          echo "  --field dhis2_db_image_suffix=\"$DB_IMAGE_SUFFIX\" \\" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "  --field warmup=\"$WARMUP_COUNT\" \\" >> $GITHUB_STEP_SUMMARY
-        if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
-          echo "  --field capture_sql_logs=\"$CAPTURE_SQL_LOGS_VALUE\" \\" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "  --ref $PERF_GIT_COMMIT # git sha of this workflow (optional but required to faithfully reproduce as it defaults to master which is mutable)" >> $GITHUB_STEP_SUMMARY
+        echo "  --field baseline_env=\"\$BASELINE_ENV\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field candidate_env=\"\$CANDIDATE_ENV\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref $PERF_GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Method 2: Using input configurations from this run**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "See the 'Input Configurations' section above for the exact baseline_env and candidate_env values used." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### Locally" >> $GITHUB_STEP_SUMMARY
