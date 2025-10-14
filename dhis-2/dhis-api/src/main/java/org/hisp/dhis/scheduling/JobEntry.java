@@ -37,6 +37,7 @@ import java.util.Date;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 
 /**
  * A transient, read-only version of a {@link JobConfiguration} reduced to the properties relevant
@@ -69,6 +70,30 @@ public record JobEntry(
     requireNonNull(name);
     requireNonNull(schedulingType);
     requireNonNull(status);
+  }
+
+  @UsageTestOnly
+  public JobEntry(UID id, JobType type) {
+    this(id, type, null);
+  }
+
+  @UsageTestOnly
+  public JobEntry(UID id, JobType type, JobParameters parameters) {
+    this(
+        id,
+        type,
+        SchedulingType.ONCE_ASAP,
+        id.getValue(),
+        JobStatus.NOT_STARTED,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        parameters);
   }
 
   public boolean isUsedInQueue() {
