@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.NoSuchElementException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
 
@@ -75,7 +76,7 @@ public class JsonJobParametersType extends JsonBinaryType {
           }
         };
       } catch (NoSuchMethodException e) {
-        throw new RuntimeException("Method not found: " + methodName, e);
+        throw new NoSuchElementException("Method not found: " + methodName, e);
       }
     }
   }

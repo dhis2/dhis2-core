@@ -151,7 +151,6 @@ public class NotifierJobProgress implements JobProgress {
   private JsonValue getJobParameterData() {
     if (params == null) return null;
     try {
-      // TODO
       return JsonValue.of(new ObjectMapper().writeValueAsString(params));
     } catch (Exception ex) {
       return null;

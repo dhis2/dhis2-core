@@ -341,15 +341,6 @@ public class SystemController {
     return codeList;
   }
 
-  private JobConfiguration getJobSafe(JobConfiguration job, JobType jobType, String uid) {
-    if (job == null) {
-      job = new JobConfiguration();
-      job.setJobType(jobType);
-      job.setUid(uid);
-    }
-    return job;
-  }
-
   private static final List<String> FLAGS =
       List.of(
               "afghanistan",

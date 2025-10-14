@@ -728,10 +728,9 @@ public class HibernateJobConfigurationStore
     if (row == null) return null;
     if (!(row instanceof Object[] columns))
       throw new IllegalArgumentException("Job row must be an Object[]");
-    JobType type = JobType.valueOf((String) columns[1]);
     return new JobEntry(
-        UID.ofNullable((String) columns[0]),
-        type,
+        UID.of((String) columns[0]),
+        JobType.valueOf((String) columns[1]),
         SchedulingType.valueOf((String) columns[2]),
         (String) columns[3],
         JobStatus.valueOf((String) columns[4]),
