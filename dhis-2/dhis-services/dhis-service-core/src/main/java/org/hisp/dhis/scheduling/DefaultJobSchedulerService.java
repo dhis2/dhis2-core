@@ -114,10 +114,10 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       throws ConflictException, NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
     if (!currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
-      throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
+      throw new ForbiddenException(JobConfiguration.class, jobId);
     if (!jobConfigurationStore.tryRevertNow(jobId)) {
       JobEntry job = jobConfigurationStore.getJobById(jobId);
-      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId.getValue());
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.status() != JobStatus.RUNNING) throw new ConflictException("Job is not running");
       throw new ConflictException("Failed to transition job from RUNNING state");
     }
