@@ -116,6 +116,10 @@ public class TrackerTest extends Simulation {
                 .responseTime()
                 .percentile(90)
                 .lte(100),
+            details("Get a list of TEs", "Get tracked entities for events")
+                .responseTime()
+                .percentile(90)
+                .lte(200),
             details("Get a list of TEs", "Get first page of TEs of program" + trackerProgram)
                 .responseTime()
                 .percentile(90)
@@ -232,6 +236,11 @@ public class TrackerTest extends Simulation {
             + trackerProgram
             + "&programStage=jdRD35YwbRH&fields=*";
 
+    String getTEsFromEvents =
+        "/api/tracker/trackedEntities?pageSize=15&program="
+            + trackerProgram
+            + "&trackedEntities=#{trackedEntityUids}&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]";
+
     String singleTrackedEntityUrl =
         "/api/tracker/trackedEntities/#{trackedEntityUid}?program"
             + trackerProgram
@@ -274,6 +283,17 @@ public class TrackerTest extends Simulation {
                         .exec(
                             http("Search events by program stage")
                                 .get(searchEventByProgramStage)
+                                .check(status().is(200))
+                                .check(
+                                    jsonPath("$.events[*].trackedEntity")
+                                        .findAll()
+                                        .transform(
+                                            list ->
+                                                String.join(",", list.stream().distinct().toList()))
+                                        .saveAs("trackedEntityUids")))
+                        .exec(
+                            http("Get tracked entities for events")
+                                .get(getTEsFromEvents)
                                 .check(status().is(200)))
                         .exec(
                             http("Get first page of TEs of program" + trackerProgram)
