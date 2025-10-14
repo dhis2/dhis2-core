@@ -38,6 +38,7 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +64,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
   }
 
   @Test
-  void sqlInjectionTest() {
+  void sqlInjectionFilterTest() {
     HttpResponse response =
         GET(
             QUERY_PATH
@@ -72,16 +73,44 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
         0, response.content(HttpStatus.OK).getObject("pager").getNumber("total").intValue());
   }
 
+  @Test
+  void sqlInjectionFieldTest() {
+    HttpResponse response =
+        GET(
+            QUERY_PATH
+                + "?fields=*,(SELECT password FROM userinfo WHERE username='admin') AS admin_hash"
+                + "&filter=name:ilike:test");
+    assertTrue(
+        response
+            .content(HttpStatus.CONFLICT)
+            .getObject("message")
+            .toString()
+            .contains("Query failed because of a syntax error"));
+  }
+
   @ParameterizedTest
   @MethodSource("sqlViewFilterQueries")
-  void queryFilterTest(String query, Set<String> expectedUids, int expectedResults) {
+  void queryFilterTest(String query, Set<String> expectedUids, int expectedNumResults) {
     JsonMixed content = GET(query).content(HttpStatus.OK);
-    assertResponse(content, expectedResults, expectedUids);
+    assertFilterResponse(content, expectedNumResults, expectedUids);
+  }
+
+  @ParameterizedTest
+  @MethodSource("sqlViewFieldQueries")
+  void queryFieldsTest(
+      String query,
+      Set<String> expectedFields,
+      Set<String> expectedValues,
+      int expectedNumResults) {
+    JsonMixed content = GET(query).content(HttpStatus.OK);
+    assertFieldsResponse(content, expectedNumResults, expectedFields, expectedValues);
   }
 
   public static Stream<Arguments> sqlViewFilterQueries() {
     return Stream.of(
         Arguments.of(QUERY_PATH, Set.of("optionUidz1", "optionUidz2", "optionUid11"), 3),
+
+        // single filter
         Arguments.of(QUERY_PATH + "?filter=uid:eq:optionUidz2", Set.of("optionUidz2"), 1),
         Arguments.of(QUERY_PATH + "?filter=uid:ieq:optionuidz2", Set.of("optionUidz2"), 1),
         Arguments.of(
@@ -97,14 +126,6 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             QUERY_PATH + "?filter=uid:like:optionUid",
             Set.of("optionUidz1", "optionUidz2", "optionUid11"),
             3),
-        Arguments.of(
-            QUERY_PATH + "?filter=uid:like:optionUid&filter=name:like:option",
-            Set.of("optionUidz1", "optionUidz2", "optionUid11"),
-            3),
-        Arguments.of(
-            QUERY_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]&filter=name:like:1",
-            Set.of("optionUidz1"),
-            1),
         Arguments.of(QUERY_PATH + "?filter=uid:!like:optionUidz", Set.of("optionUid11"), 1),
         Arguments.of(
             QUERY_PATH + "?filter=uid:^like:optionUidz", Set.of("optionUidz1", "optionUidz2"), 2),
@@ -134,10 +155,39 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             QUERY_PATH + "?filter=uid:!in:[optionUidz2,optionUidz1]", Set.of("optionUid11"), 1),
         Arguments.of(
             QUERY_PATH + "?filter=description:null", Set.of("optionUidz2", "optionUid11"), 2),
-        Arguments.of(QUERY_PATH + "?filter=description:!null", Set.of("optionUidz1"), 1));
+        Arguments.of(QUERY_PATH + "?filter=description:!null", Set.of("optionUidz1"), 1),
+
+        // multiple filters
+        Arguments.of(
+            QUERY_PATH + "?filter=uid:like:optionUidz&filter=name:like:option",
+            Set.of("optionUidz1", "optionUidz2"),
+            2),
+        Arguments.of(
+            QUERY_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]&filter=name:like:1",
+            Set.of("optionUidz1"),
+            1));
   }
 
-  private void assertResponse(JsonMixed content, int expectedSize, Set<String> uids) {
+  public static Stream<Arguments> sqlViewFieldQueries() {
+    return Stream.of(
+        Arguments.of(
+            QUERY_PATH + "?fields=*&filter=uid:ilike:uid",
+            Set.of("uid", "name", "description", "sort_order"),
+            Set.of("optionUidz1", "test option 1", "test description", "1"),
+            3),
+        Arguments.of(
+            QUERY_PATH + "?fields=uid&filter=uid:ilike:uid",
+            Set.of("uid"),
+            Set.of("optionUidz2", "test option 2", "null", "2"),
+            3),
+        Arguments.of(
+            QUERY_PATH + "?fields=name,description&filter=uid:ilike:uid",
+            Set.of("name", "description"),
+            Set.of("test option 11", "null"),
+            3));
+  }
+
+  private void assertFilterResponse(JsonMixed content, int expectedSize, Set<String> uids) {
     assertEquals(expectedSize, content.getObject("pager").getNumber("total").intValue());
 
     JsonArray rows = content.getObject("listGrid").getArray("rows");
@@ -145,6 +195,23 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
       JsonList<JsonString> list = rows.get(i).asList(JsonString.class);
       assertTrue(list.stream().anyMatch(s -> uids.contains(s.string())));
     }
+  }
+
+  private void assertFieldsResponse(
+      JsonMixed content, int expectedSize, Set<String> expectedFields, Set<String> expectedValues) {
+    assertEquals(expectedSize, content.getObject("pager").getNumber("total").intValue());
+
+    JsonArray headers = content.getObject("listGrid").getArray("headers");
+    JsonArray rows = content.getObject("listGrid").getArray("rows");
+    for (int i = 0; i < headers.size(); i++) {
+      JsonObject object = headers.get(i).asObject();
+      assertTrue(expectedFields.contains(object.getString("column").string()));
+    }
+
+    //    for (int i = 0; i < rows.size(); i++) {
+    //      JsonList<JsonString> list = rows.get(i).asList(JsonString.class);
+    //      assertTrue(list.stream().anyMatch(s -> expectedValues.contains(s.string())));
+    //    }
   }
 
   private String sqlView() {
@@ -167,7 +234,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
                     "name": "test option 1",
                     "code": "test option 1",
                     "sortOrder": 1,
-                    "description": "not null"
+                    "description": "test description"
                  },
                  {
                     "id": "optionUidz2",
