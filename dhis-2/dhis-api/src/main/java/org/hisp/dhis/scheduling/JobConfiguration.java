@@ -396,7 +396,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   Instant nextExecutionTime(
       @Nonnull ZoneId zone, @Nonnull Instant now, @Nonnull Duration maxCronDelay) {
     if (isUsedInQueue() && getQueuePosition() > 0) return null;
-    JobTrigger trigger = new JobTrigger(schedulingType, lastExecuted, cronExpression, delay);
+    JobTrigger trigger = new JobTrigger(getSchedulingType(), lastExecuted, cronExpression, delay);
     return trigger.nextExecutionTime(zone, now, maxCronDelay);
   }
 
