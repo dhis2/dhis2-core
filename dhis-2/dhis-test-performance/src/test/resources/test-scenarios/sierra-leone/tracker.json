@@ -1,0 +1,210 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/tracker/enrollments.json",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "41.0",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "42",
+          "min": 90,
+          "max": 800,
+          "mean": 600
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/tracker/events.json?pageSize=100&totalPages=true&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "41.0",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "42",
+          "min": 90,
+          "max": 1800,
+          "mean": 1600
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/tracker/events?order=createdAt:desc&page=1&pageSize=15&orgUnit=DiszpKrYNg8&ouMode=SELECTED&program=IpHINAT79UW&programStage=ZzYYXq4fJie&fields=*",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "41.0",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "42",
+          "min": 90,
+          "max": 800,
+          "mean": 650
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/tracker/trackedEntities?filter=sB1IHYu2xQT:like:Jon&fields=attributes,enrollments,trackedEntity,orgUnit&program=Xh88p1nyefp&page=1&pageSize=5&ouMode=ACCESSIBLE",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 280,
+          "max": 440,
+          "mean": 385
+        },
+        {
+          "release": "40.2.2",
+          "min": 280,
+          "max": 440,
+          "mean": 385
+        },
+        {
+          "release": "41.0",
+          "min": 165,
+          "max": 440,
+          "mean": 385
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/tracker/trackedEntities.json?order=createdAt:desc&page=1&pageSize=15&orgUnit=FV43JisquSm&ouMode=SELECTED&program=Lt6P15ps7f6&fields=:all",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 180,
+          "max": 290,
+          "mean": 240
+        },
+        {
+          "release": "40.2.2",
+          "min": 180,
+          "max": 290,
+          "mean": 240
+        },
+        {
+          "release": "41.0",
+          "min": 155,
+          "max": 290,
+          "mean": 240
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/tracker/events.json?page=1&pageSize=15&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&program=Lt6P15ps7f6&orgUnit=FV43JisquSm&programStage=RB3a5MXMe8g&ouMode=SELECTED&order=occurredAt:desc",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "40.2.2",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "41.0",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/tracker/trackedEntities.json?fields=*,enrollments[*,events[*]]&trackedEntityType=nEenWmSyUEp",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 2000,
+          "mean": 1600
+        },
+        {
+          "release": "40.2.2",
+          "min": 100,
+          "max": 2000,
+          "mean": 1600
+        },
+        {
+          "release": "41.0",
+          "min": 100,
+          "max": 2000,
+          "mean": 1600
+        },
+        {
+          "release": "42",
+          "min": 100,
+          "max": 2000,
+          "mean": 1800
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}
