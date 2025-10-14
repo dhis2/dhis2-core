@@ -31,9 +31,10 @@ package org.hisp.dhis.hibernate.jsonb.type;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
 
@@ -49,31 +50,40 @@ public class JsonJobParametersType extends JsonBinaryType {
           .setAnnotationIntrospector(
               new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
 
-  private static final ObjectReader CONFIG_PARAMS_READER =
-      MAPPER
-          .readerFor(JobConfiguration.class)
-          .without(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  /**
+   * Note that because of the way the Java class information is encoded in the JSON we do need this
+   * work-around to get the exact parsing of the {@link JobParameters} that would occur if the
+   * {@link JobConfiguration#getJobParameters()} property was parsed.
+   */
+  private static final TypeReference<JobParameters> GET_JOB_PARAMETERS =
+      MethodTypeReference.fromMethod(JobConfiguration.class, "getJobParameters");
 
   @Override
   protected ObjectMapper getResultingMapper() {
     return MAPPER;
   }
 
+  private static class MethodTypeReference<T> extends TypeReference<T> {
+    public static <T> TypeReference<T> fromMethod(Class<?> clazz, String methodName) {
+      try {
+        Method method = clazz.getMethod(methodName);
+        Type returnType = method.getGenericReturnType();
+        return new TypeReference<T>() {
+          @Override
+          public Type getType() {
+            return returnType;
+          }
+        };
+      } catch (NoSuchMethodException e) {
+        throw new RuntimeException("Method not found: " + methodName, e);
+      }
+    }
+  }
+
   public static JobParameters fromJson(String json) {
     if (json == null || "null".equals(json) || "[]".equals(json) || "{}".equals(json)) return null;
-    // The idea here is to reuse the jackson mapping
-    // based on the annotations present on JobConfiguration
-    // for that we wrap the parameters in a shallow job object
-    String config =
-        """
-      {
-        "jobParameters": %s
-      }
-      """
-            .formatted(json);
     try {
-      JobConfiguration c = CONFIG_PARAMS_READER.readValue(config);
-      return c.getJobParameters();
+      return MAPPER.readValue(json, GET_JOB_PARAMETERS);
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException(e);
     }

@@ -162,7 +162,7 @@ public class HibernateJobConfigurationStore
   @Override
   public Set<String> getAllQueueNames() {
     String sql = "select distinct queuename from jobconfiguration where queuename is not null";
-    return runReadInStatelessSession(q -> setOf(q.createNativeQuery(sql), Object::toString));
+    return setOf(nativeSynchronizedQuery(sql), Object::toString);
   }
 
   @Override
@@ -183,7 +183,7 @@ public class HibernateJobConfigurationStore
         j.lastalive,
         j.queuename,
         j.queueposition,
-        j.jsonbjobparameters
+        j.jsonbjobparameters #>> '{}'
       from jobconfiguration j
       where uid = :id
       """;
@@ -218,7 +218,7 @@ public class HibernateJobConfigurationStore
         j.lastalive,
         j.queuename,
         j.queueposition,
-        j.jsonbjobparameters
+        j.jsonbjobparameters #>> '{}'
       from jobconfiguration j
       where queuename = :queue and queueposition = :pos
       """;
@@ -255,7 +255,7 @@ public class HibernateJobConfigurationStore
           j.lastalive,
           j.queuename,
           j.queueposition,
-          j.jsonbjobparameters
+          j.jsonbjobparameters #>> '{}'
         from jobconfiguration j
         where jobstatus = 'RUNNING'
         and (
@@ -287,7 +287,7 @@ public class HibernateJobConfigurationStore
           j1.lastalive,
           j1.queuename,
           j1.queueposition,
-          j1.jsonbjobparameters
+          j1.jsonbjobparameters #>> '{}'
         from jobconfiguration j1
         where enabled = true
         and jobstatus = 'SCHEDULED'
@@ -641,8 +641,9 @@ public class HibernateJobConfigurationStore
         > 0;
   }
 
-  private static String getSingleResultOrNull(NativeQuery<?> query) {
-    return (String) query.getResultStream().findFirst().orElse(null);
+  @SuppressWarnings("unchecked")
+  private static <T> T getSingleResultOrNull(NativeQuery<?> query) {
+    return (T) query.getResultStream().findFirst().orElse(null);
   }
 
   @SuppressWarnings("unchecked")
@@ -664,36 +665,62 @@ public class HibernateJobConfigurationStore
   }
 
   private int runWriteInStatelessSession(ToIntFunction<StatelessSession> query) {
+    StatelessSession session = null;
     Transaction transaction = null;
-    try (StatelessSession session = getSession().getSessionFactory().openStatelessSession()) {
+    try {
+      session = getSession().getSessionFactory().openStatelessSession();
       transaction = session.beginTransaction();
       int modifiedRowCount = query.applyAsInt(session);
       transaction.commit();
       return modifiedRowCount;
     } catch (RuntimeException ex) {
-      // Handle rollback for self-managed transactions
+      log.warn("Job write failed:", ex);
       if (transaction != null && transaction.isActive()) {
-        transaction.rollback();
+        try {
+          transaction.rollback();
+        } catch (Exception rollbackEx) {
+          log.trace("Rollback failed (possibly due to prior exception)", rollbackEx);
+        }
       }
-      log.warn("Job update failed:", ex);
       return 0;
+    } finally {
+      if (session != null && session.isOpen()) {
+        try {
+          session.close();
+        } catch (Exception closeEx) {
+          log.trace("Session close failed", closeEx);
+        }
+      }
     }
   }
 
   private <R> R runReadInStatelessSession(Function<StatelessSession, R> query) {
+    StatelessSession session = null;
     Transaction transaction = null;
-    try (StatelessSession session = getSession().getSessionFactory().openStatelessSession()) {
+    try {
+      session = getSession().getSessionFactory().openStatelessSession();
       transaction = session.beginTransaction();
       R res = query.apply(session);
       transaction.commit();
       return res;
     } catch (RuntimeException ex) {
-      // Handle rollback for self-managed transactions
+      log.warn("Job read failed:", ex);
       if (transaction != null && transaction.isActive()) {
-        transaction.rollback();
+        try {
+          transaction.rollback();
+        } catch (Exception rollbackEx) {
+          log.trace("Rollback failed (possibly due to prior exception)", rollbackEx);
+        }
       }
-      log.warn("Job update failed:", ex);
       throw ex;
+    } finally {
+      if (session != null && session.isOpen()) {
+        try {
+          session.close();
+        } catch (Exception closeEx) {
+          log.trace("Session close failed", closeEx);
+        }
+      }
     }
   }
 
@@ -701,9 +728,10 @@ public class HibernateJobConfigurationStore
     if (row == null) return null;
     if (!(row instanceof Object[] columns))
       throw new IllegalArgumentException("Job row must be an Object[]");
+    JobType type = JobType.valueOf((String) columns[1]);
     return new JobEntry(
         UID.ofNullable((String) columns[0]),
-        JobType.valueOf((String) columns[1]),
+        type,
         SchedulingType.valueOf((String) columns[2]),
         (String) columns[3],
         JobStatus.valueOf((String) columns[4]),
