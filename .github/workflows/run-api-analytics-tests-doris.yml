@@ -13,7 +13,7 @@ concurrency:
   group: ${{ github.workflow}}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  api-analytics-test:
+  api-analytics-test-doris:
     env:
       CORE_IMAGE_NAME: "dhis2/core-dev:local"
       PR_NUMBER: ${{ github.event.number }}
@@ -91,7 +91,7 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [api-analytics-test]
+    needs: [api-analytics-test-doris]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
