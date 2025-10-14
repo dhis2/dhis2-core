@@ -21,7 +21,6 @@
     <jackson.version.annotation>2.20</jackson.version.annotation>
     <guava.version>33.5.0-jre</guava.version>
     <json-tree.version>1.8.1</json-tree.version>
-    <epam-reportportal.version>5.4.0</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.12.0</opencsv.version>
     <owner.version>1.0.12</owner.version>
@@ -91,17 +90,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version.databind}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.epam.reportportal</groupId>
-      <artifactId>agent-java-junit5</artifactId>
-      <version>${epam-reportportal.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.epam.reportportal</groupId>
-      <artifactId>logger-java-log4j</artifactId>
-      <version>${epam-reportportal.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
