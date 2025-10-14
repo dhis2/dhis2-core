@@ -1,0 +1,688 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics?dimension=dx:mSFhBWFltjO;hExroXuVSL3;PFPouoPydfU;udy6lknDEdq;rLpzqMZ0W7J;SXnsDURlJoI;DfRgB9P0TWH,pe:LAST_12_MONTHS;LAST_5_YEARS&filter=ou:USER_ORGUNIT&filter=LBwVBieQt45:VePuVPFoyJ2;gHfSdwPrC83;Ky8EJEqdpGP;ZcbWJfYaX5n;U53tdte60Ku;D3WBiIjOENI;rGonVKxJy5U;GiRpQWVJ24q;J8udQscngmZ;bFerqVXQ4Yx;eHQXg22Kk0z;LJw01cWvC6X&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 150500,
+          "max": 165000,
+          "mean": 165000
+        },
+        {
+          "release": "40.2.2",
+          "min": 150500,
+          "max": 165000,
+          "mean": 165000
+        },
+        {
+          "release": "41.0",
+          "min": 150500,
+          "max": 165000,
+          "mean": 165000
+        },
+        {
+          "release": "42.0",
+          "min": 135000,
+          "max": 165000,
+          "mean": 165000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:wPCJ11WI2ql;kTuZmE84bT9.ACTUAL_REPORTS;fQvyH9wHUEc;XTtXqeq6788;P0cCSjPQoq7;EZkN8vYZwjR.ZzoWAqln5xc;nmZkpHBcUd5;zjP3d0WhrLY;EZkN8vYZwjR.yqOaEgX6tOf;FLkRIMC0mq9,pe:MONTHS_THIS_YEAR;2018;2019;2020;2021;2022;2023&filter=ou:IWp9dQGM0bS;W6sNfkJcXGC;YvLOmtTQD6b;XdubcbI8tyT;vAyuVc8hfbK;LEVEL-jKnknQ9Mg6y;LEVEL-qpXLDdXT3po&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 5000,
+          "max": 7450,
+          "mean": 6250
+        },
+        {
+          "release": "40.2.2",
+          "min": 4400,
+          "max": 6750,
+          "mean": 6250
+        },
+        {
+          "release": "41.0",
+          "min": 4400,
+          "max": 6950,
+          "mean": 6250
+        },
+        {
+          "release": "42.0",
+          "min": 3000,
+          "max": 4000,
+          "mean": 3500
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:SH0iOmEe0AR;qQlS4yw9RaV;hHniKx89xJK;QSa605mN246;cKlPzK4efeq;v4o5oChYOcF;bZYLsyngaPn&filter=ou:USER_ORGUNIT&filter=pe:TODAY&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 270000,
+          "max": 283000,
+          "mean": 281000
+        },
+        {
+          "release": "40.2.2",
+          "min": 270000,
+          "max": 285000,
+          "mean": 285000
+        },
+        {
+          "release": "41.0",
+          "min": 270000,
+          "max": 285000,
+          "mean": 285000
+        },
+        {
+          "release": "42.0",
+          "min": 155500,
+          "max": 175500,
+          "mean": 175000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:iKfKE7FhH9H;kqrwj0JOJon;YWOxEKIW5KB;d5VDVBgpNff&filter=ou:USER_ORGUNIT&filter=pe:TODAY&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 171000,
+          "max": 175000,
+          "mean": 175000
+        },
+        {
+          "release": "40.2.2",
+          "min": 171000,
+          "max": 179000,
+          "mean": 179000
+        },
+        {
+          "release": "41.0",
+          "min": 171000,
+          "max": 179000,
+          "mean": 179000
+        },
+        {
+          "release": "42.0",
+          "min": 165000,
+          "max": 180000,
+          "mean": 180000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:KV1LlPytf4f;dx8Y0ZrHji7,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 375,
+          "mean": 165
+        },
+        {
+          "release": "40.2.2",
+          "min": 60,
+          "max": 2950,
+          "mean": 1350
+        },
+        {
+          "release": "41.0",
+          "min": 60,
+          "max": 250,
+          "mean": 185
+        },
+        {
+          "release": "42.0",
+          "min": 80,
+          "max": 250,
+          "mean": 185
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=pe:LAST_12_MONTHS,dx:XvcWsuHBsGA.EXPECTED_REPORTS;XvcWsuHBsGA.ACTUAL_REPORTS;XvcWsuHBsGA.ACTUAL_REPORTS_ON_TIME;bJty1TJXcPN&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 160,
+          "max": 575,
+          "mean": 240
+        },
+        {
+          "release": "40.2.2",
+          "min": 160,
+          "max": 550,
+          "mean": 245
+        },
+        {
+          "release": "41.0",
+          "min": 160,
+          "max": 550,
+          "mean": 245
+        },
+        {
+          "release": "42.0",
+          "min": 160,
+          "max": 500,
+          "mean": 245
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:D6Z8vC4lHkk,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 100,
+          "max": 400,
+          "mean": 155
+        },
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 370,
+          "mean": 150
+        },
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 320,
+          "mean": 150
+        },
+        {
+          "release": "42.0",
+          "min": 80,
+          "max": 320,
+          "mean": 150
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:WicMjw6NoBe;xyKkpvzVXRM;wvZHYMuLtr7;o75SggesHsP&filter=ou:USER_ORGUNIT&filter=pe:THIS_YEAR&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 75,
+          "max": 520,
+          "mean": 135
+        },
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 450,
+          "mean": 130
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 450,
+          "mean": 130
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 400,
+          "mean": 130
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:NAHjKMxxSVR&filter=ou:USER_ORGUNIT&filter=pe:LAST_12_MONTHS&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-01",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 70,
+          "max": 330,
+          "mean": 115
+        },
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 270,
+          "mean": 110
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 220,
+          "mean": 115
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 220,
+          "mean": 115
+        },
+        {
+          "release": "42.0-doris",
+          "min": 65,
+          "max": 215,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:vPVhCdvwbpx;OjnrRUIvYhw;pkS6e0qHVEA;e5sgpF8iidQ;xQkAtHTKfUa,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=true&includeMetadataDetails=true&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 65,
+          "max": 300,
+          "mean": 105
+        },
+        {
+          "release": "40.2.2",
+          "min": 65,
+          "max": 275,
+          "mean": 105
+        },
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 275,
+          "mean": 105
+        },
+        {
+          "release": "42.0",
+          "min": 65,
+          "max": 275,
+          "mean": 105
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 225,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:SgyKp3Zuweo;n2TPjoeLbHl&filter=pe:LAST_5_YEARS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 950,
+          "max": 1650,
+          "mean": 1350
+        },
+        {
+          "release": "40.2.2",
+          "min": 900,
+          "max": 2400,
+          "mean": 1400
+        },
+        {
+          "release": "41.0",
+          "min": 900,
+          "max": 1650,
+          "mean": 1400
+        },
+        {
+          "release": "42.0",
+          "min": 500,
+          "max": 1250,
+          "mean": 850
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 215,
+          "mean": 95
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:C2bwEfFwiBX;rq7eOFDLmQK;HJ7yxI5uok5&filter=ou:USER_ORGUNIT&filter=pe:LAST_6_MONTHS&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 175000,
+          "max": 180000,
+          "mean": 180000
+        },
+        {
+          "release": "40.2.2",
+          "min": 175000,
+          "max": 180000,
+          "mean": 180000
+        },
+        {
+          "release": "41.0",
+          "min": 175000,
+          "max": 180000,
+          "mean": 180000
+        },
+        {
+          "release": "42.0",
+          "min": 115000,
+          "max": 140000,
+          "mean": 140000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 225,
+          "mean": 100
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:ur3uwmCYZhI;t3KwAaBnUVU;waXsOAL7zQC,pe:THIS_MONTH;LAST_5_YEARS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 525,
+          "max": 1250,
+          "mean": 700
+        },
+        {
+          "release": "40.2.2",
+          "min": 400,
+          "max": 950,
+          "mean": 800
+        },
+        {
+          "release": "41.0",
+          "min": 400,
+          "max": 950,
+          "mean": 800
+        },
+        {
+          "release": "42.0",
+          "min": 400,
+          "max": 950,
+          "mean": 750
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 205,
+          "mean": 100
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=pe:LAST_12_MONTHS,ou:LEVEL-vFr4zVw6Avn&filter=dx:pL17czCoSHJ&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 680,
+          "max": 1250,
+          "mean": 850
+        },
+        {
+          "release": "40.2.2",
+          "min": 1150,
+          "max": 2100,
+          "mean": 1800
+        },
+        {
+          "release": "41.0",
+          "min": 1150,
+          "max": 2100,
+          "mean": 1800
+        },
+        {
+          "release": "42.0",
+          "min": 1250,
+          "max": 2100,
+          "mean": 1800
+        },
+        {
+          "release": "42.0-doris",
+          "min": 160,
+          "max": 325,
+          "mean": 220
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=ou:USER_ORGUNIT_GRANDCHILDREN;USER_ORGUNIT_CHILDREN;USER_ORGUNIT,pe:LAST_5_YEARS&filter=dx:MhW02ngnDET&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 235000,
+          "max": 244000,
+          "mean": 244000
+        },
+        {
+          "release": "40.2.2",
+          "min": 235000,
+          "max": 244000,
+          "mean": 244000
+        },
+        {
+          "release": "41.0",
+          "min": 235000,
+          "max": 244000,
+          "mean": 244000
+        },
+        {
+          "release": "42.0",
+          "min": 190000,
+          "max": 230000,
+          "mean": 230000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 75,
+          "max": 230,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=pe:LAST_12_MONTHS,ou:USER_ORGUNIT_GRANDCHILDREN&filter=dx:JuuFw56JNeM&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 900,
+          "max": 1450,
+          "mean": 1250
+        },
+        {
+          "release": "40.2.2",
+          "min": 900,
+          "max": 1450,
+          "mean": 1250
+        },
+        {
+          "release": "41.0",
+          "min": 900,
+          "max": 1450,
+          "mean": 1250
+        },
+        {
+          "release": "42.0",
+          "min": 900,
+          "max": 1450,
+          "mean": 1250
+        },
+        {
+          "release": "42.0-doris",
+          "min": 75,
+          "max": 245,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:GW4OUIj8tJZ;BGxfVk7fZu6;mV0Gr5kqgPJ;gtY3kiw1ipN,pe:LAST_12_WEEKS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 1850,
+          "max": 3350,
+          "mean": 2550
+        },
+        {
+          "release": "40.2.2",
+          "min": 1850,
+          "max": 3000,
+          "mean": 2500
+        },
+        {
+          "release": "41.0",
+          "min": 1850,
+          "max": 3000,
+          "mean": 2500
+        },
+        {
+          "release": "42.0",
+          "min": 1850,
+          "max": 3000,
+          "mean": 2500
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 115
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    },
+    {
+      "query": "/api/analytics?dimension=dx:mA4BjsGtMkI;p03XvZduEYf;p4LDoUzcWd2,pe:LAST_5_YEARS&filter=ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false&relativePeriodDate=2023-11-14",
+      "expectations": [
+        {
+          "release": "38.6",
+          "min": 115,
+          "max": 600,
+          "mean": 250
+        },
+        {
+          "release": "40.2.2",
+          "min": 110,
+          "max": 400,
+          "mean": 235
+        },
+        {
+          "release": "41.0",
+          "min": 115,
+          "max": 500,
+          "mean": 235
+        },
+        {
+          "release": "42.0",
+          "min": 115,
+          "max": 500,
+          "mean": 235
+        },
+        {
+          "release": "42.0-doris",
+          "min": 70,
+          "max": 220,
+          "mean": 120
+        }
+      ],
+      "version": {
+        "min": "38.6"
+      }
+    }
+  ]
+}
