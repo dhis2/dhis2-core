@@ -63,7 +63,6 @@ import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.UserDetails;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Is responsible for the actual execution of the steps that together perform the scheduling.
@@ -149,7 +148,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @CheckForNull
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public JobEntry getJobConfiguration(UID jobId) {
     return jobConfigurationStore.getJobById(jobId);
   }
