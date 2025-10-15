@@ -32,7 +32,7 @@ package org.hisp.dhis.eventhook;
 import com.google.common.base.CaseFormat;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobStatus;
 
 /**
@@ -67,25 +67,25 @@ public final class EventUtils {
         .build();
   }
 
-  public static Event schedulerStart(JobConfiguration object) {
+  public static Event schedulerStart(JobEntry object) {
     return Event.builder()
-        .path(String.format("scheduler.%s.%s", object.getJobType(), object.getUid()))
+        .path(String.format("scheduler.%s.%s", object.type(), object.id().getValue()))
         .meta(Map.of("op", JobStatus.RUNNING))
         .object(object)
         .build();
   }
 
-  public static Event schedulerCompleted(JobConfiguration object) {
+  public static Event schedulerCompleted(JobEntry object) {
     return Event.builder()
-        .path(String.format("scheduler.%s.%s", object.getJobType(), object.getUid()))
+        .path(String.format("scheduler.%s.%s", object.type(), object.id().getValue()))
         .meta(Map.of("op", JobStatus.COMPLETED))
         .object(object)
         .build();
   }
 
-  public static Event schedulerFailed(JobConfiguration object) {
+  public static Event schedulerFailed(JobEntry object) {
     return Event.builder()
-        .path(String.format("scheduler.%s.%s", object.getJobType(), object.getUid()))
+        .path(String.format("scheduler.%s.%s", object.type(), object.id().getValue()))
         .meta(Map.of("op", JobStatus.FAILED))
         .object(object)
         .build();

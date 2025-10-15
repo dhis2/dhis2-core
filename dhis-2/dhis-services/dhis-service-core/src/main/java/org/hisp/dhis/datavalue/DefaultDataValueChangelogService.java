@@ -31,63 +31,55 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UsageTestOnly;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditService {
-  String ID = DataValueAuditService.class.getName();
+@RequiredArgsConstructor
+@Service
+public class DefaultDataValueChangelogService implements DataValueChangelogService {
 
-  /**
-   * Deletes all data value audits for the given organisation unit.
-   *
-   * @param organisationUnit the organisation unit.
-   */
-  void deleteDataValueAudits(OrganisationUnit organisationUnit);
+  private final DataValueChangelogStore dataValueChangelogStore;
 
-  /**
-   * Deletes all data value audits for the given data element.
-   *
-   * @param dataElement the data element.
-   */
-  void deleteDataValueAudits(DataElement dataElement);
+  @Override
+  @Transactional
+  public void deleteByOrgUnit(OrganisationUnit organisationUnit) {
+    dataValueChangelogStore.deleteByOrgUnit(organisationUnit);
+  }
 
-  /**
-   * Returns all DataValueAudits for the given DataValue.
-   *
-   * @param dataValue the DataValue to get DataValueAudits for.
-   * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
-   *     there are no matches.
-   */
-  @UsageTestOnly
-  List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue);
+  @Override
+  @Transactional
+  public void deleteByDataElement(DataElement dataElement) {
+    dataValueChangelogStore.deleteByDataElement(dataElement);
+  }
 
-  /**
-   * Returns data value audits for the given parameters.
-   *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
-   */
-  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataValueChangelogEntry> getChangelogEntries(DataExportValue dataValue) {
+    return dataValueChangelogStore.getEntries(dataValue.toKey());
+  }
 
-  /**
-   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
-   * AOC are unspecified in the parameters the default is used.
-   *
-   * @param params the key to the value
-   * @return the audit events for the value stored most recent to oldest
-   */
-  List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params);
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params) {
+    return dataValueChangelogStore.getEntries(params);
+  }
 
-  /**
-   * Returns the count of data value audits for the given parameters.
-   *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a count of {@link DataValueAudit}.
-   */
-  int countDataValueAudits(DataValueAuditQueryParams params);
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params) {
+    return dataValueChangelogStore.getEntries(params);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public int countEntries(DataValueChangelogQueryParams params) {
+    return dataValueChangelogStore.countEntries(params);
+  }
 }
