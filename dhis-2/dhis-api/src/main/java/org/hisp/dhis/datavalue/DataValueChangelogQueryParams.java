@@ -29,57 +29,39 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Quang Nguyen
- * @author Halvdan Hoem Grelland
+ * Encapsulation of a web API request for data value audit records.
+ *
+ * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-@Service
-public class DefaultDataValueAuditService implements DataValueAuditService {
+@Data
+@Accessors(chain = true)
+public class DataValueChangelogQueryParams {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-  private final DataValueAuditStore dataValueAuditStore;
+  private List<Period> periods = new ArrayList<>();
 
-  @Override
-  @Transactional
-  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
-    dataValueAuditStore.deleteDataValueAudits(organisationUnit);
-  }
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-  @Override
-  @Transactional
-  public void deleteDataValueAudits(DataElement dataElement) {
-    dataValueAuditStore.deleteDataValueAudits(dataElement);
-  }
+  private CategoryOptionCombo categoryOptionCombo;
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue) {
-    return dataValueAuditStore.getAuditsByKey(dataValue.toKey());
-  }
+  private CategoryOptionCombo attributeOptionCombo;
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params) {
-    return dataValueAuditStore.getAuditsByKey(params);
-  }
+  private List<DataValueChangelogType> types = new ArrayList<>();
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.getDataValueAudits(params);
-  }
+  private Pager pager;
 
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.countDataValueAudits(params);
+  public boolean hasPaging() {
+    return pager != null;
   }
 }

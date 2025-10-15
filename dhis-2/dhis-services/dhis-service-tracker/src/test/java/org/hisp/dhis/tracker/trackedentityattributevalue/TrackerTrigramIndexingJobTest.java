@@ -41,8 +41,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -76,9 +78,9 @@ class TrackerTrigramIndexingJobTest {
 
   @Test
   void testRunJobWithoutAnyAttributesInJobParametersAndWithoutAnyObsolete() {
-    JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters(true);
-    jobConfiguration.setJobParameters(jp);
+    JobEntry jobConfiguration =
+        new JobEntry(UID.generate(), JobType.TRACKER_TRIGRAM_INDEX_MAINTENANCE, jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
@@ -92,9 +94,9 @@ class TrackerTrigramIndexingJobTest {
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(Arrays.asList(12L, 13L));
 
-    JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters(true);
-    jobConfiguration.setJobParameters(jp);
+    JobEntry jobConfiguration =
+        new JobEntry(UID.generate(), JobType.TRACKER_TRIGRAM_INDEX_MAINTENANCE, jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
@@ -119,7 +121,9 @@ class TrackerTrigramIndexingJobTest {
     when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(indexableAttributes);
     doNothing().when(trackedEntityAttributeTableManager).createTrigramIndex(any());
-    JobConfiguration jobConfiguration = new JobConfiguration();
+
+    JobEntry jobConfiguration =
+        new JobEntry(UID.generate(), JobType.TRACKER_TRIGRAM_INDEX_MAINTENANCE);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
