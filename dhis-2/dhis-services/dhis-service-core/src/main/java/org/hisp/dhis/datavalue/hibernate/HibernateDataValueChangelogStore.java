@@ -133,6 +133,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
     return new RawNativeQuery(sql, session)
         .setInOrAnyParameter("types", params.getTypes(), DataValueChangelogType::name)
         .setInOrAnyParameter("pe", params.getPeriods(), Period::getIsoDate)
+        .setInOrAnyParameter("ds", params.getDataSets())
         .setInOrAnyParameter("de", params.getDataElements())
         .setInOrAnyParameter("ou", params.getOrgUnits())
         .setParameter("coc", params.getCategoryOptionCombo())
