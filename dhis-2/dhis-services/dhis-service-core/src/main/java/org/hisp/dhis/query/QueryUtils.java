@@ -242,7 +242,7 @@ public final class QueryUtils {
     StringBuilder str = new StringBuilder("(");
 
     for (int i = 0; i < items.size(); i++) {
-      Object item = QueryUtils.validateValue(items.get(i));
+      Object item = QueryUtils.parseValue(items.get(i));
       if (item != null) {
         str.append(item);
         if (i < items.size() - 1) {
@@ -285,13 +285,14 @@ public final class QueryUtils {
   }
 
   /**
-   * Converts a filter operator into an SQL operator.
+   * Converts a filter operator and value into a parameterized filter with the value.
    *
-   * <p>Example: {@code parseFilterOperator('eq', 5)} will return "=5".
+   * <p>Example: {@code parseFilterOperator('eq', 5)} will return a record with values: ['= ?', 5]
    *
    * @param operator the filter operator.
    * @param value value of the current SQL query condition.
-   * @return a string contains an SQL expression with operator and value.
+   * @return {@link OperatorWithPlaceHolderAndArg} record containing the operator with a
+   *     placeholder, and the arg to be used in the placeholder.
    */
   public static OperatorWithPlaceHolderAndArg parseFilterOperator(String operator, String value) {
 
@@ -314,8 +315,8 @@ public final class QueryUtils {
       case "!like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", "%" + value + "%");
       case "^like" -> new OperatorWithPlaceHolderAndArg(" like ? ", value + "%");
       case "!^like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", value + "%");
-      case "$like" -> new OperatorWithPlaceHolderAndArg(" like ?", "%" + value);
-      case "!$like" -> new OperatorWithPlaceHolderAndArg(" not like ?", "%" + value);
+      case "$like" -> new OperatorWithPlaceHolderAndArg(" like ? ", "%" + value);
+      case "!$like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", "%" + value);
       case "ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", "%" + value + "%");
       case "!ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", "%" + value + "%");
       case "^ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", value + "%");

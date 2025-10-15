@@ -38,9 +38,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,7 +122,7 @@ class QueryUtilsTest {
     List<String> fields = new ArrayList<>();
     fields.add("ABC");
     fields.add("DEF");
-    assertEquals("ABC,DEF", QueryUtils.parseSelectFields(fields));
+    assertEquals("\"ABC\",\"DEF\"", QueryUtils.parseSelectFields(fields));
   }
 
   @Test
@@ -132,32 +136,13 @@ class QueryUtilsTest {
     assertEquals("(1,2)", QueryUtils.convertCollectionValue("[1,2]"));
   }
 
-  @Test
-  void testParseFilterOperator() {
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg("= ?", "5"),
-        QueryUtils.parseFilterOperator("eq", "5"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg("= ?", "ABC"),
-        QueryUtils.parseFilterOperator("eq", "ABC"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg(" ilike ?", "abc"),
-        QueryUtils.parseFilterOperator("ieq", "abc"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg("like ?", "%abc%"),
-        QueryUtils.parseFilterOperator("like", "abc"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg(" like ?", "%abc"),
-        QueryUtils.parseFilterOperator("$like", "abc"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg("in ?", "(a,b,c)"),
-        QueryUtils.parseFilterOperator("in", "[a,b,c]"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg("in ?", "(1,2,3)"),
-        QueryUtils.parseFilterOperator("in", "[1,2,3]"));
-    assertEquals(
-        new QueryUtils.OperatorWithPlaceHolderAndArg("is not null", null),
-        QueryUtils.parseFilterOperator("!null", null));
+  @ParameterizedTest
+  @MethodSource("filters")
+  void testParseFilterOperator(
+      String filter, String value, String expectedOperator, Object expectedArg) {
+    QueryUtils.OperatorWithPlaceHolderAndArg output = QueryUtils.parseFilterOperator(filter, value);
+    assertEquals(expectedOperator, output.operatorWithPlaceholder());
+    assertEquals(expectedArg, output.arg());
   }
 
   @Test
@@ -185,5 +170,23 @@ class QueryUtilsTest {
     assertEquals(orders.get(4), Order.idesc("value5"));
     assertEquals(orders.get(5), Order.asc("value6"));
     assertEquals(orders.get(6), Order.asc("value7"));
+  }
+
+  private static Stream<Arguments> filters() {
+    return Stream.of(
+        Arguments.of("eq", "5", " = ? ", 5),
+        Arguments.of("eq", "5", " = ? ", 5),
+        Arguments.of("eq", "ABC", " = ? ", "ABC"),
+        Arguments.of("ieq", "abc", " ilike ? ", "abc"),
+        Arguments.of("like", "abc", " like ? ", "%abc%"),
+        Arguments.of("$like", "abc", " like ? ", "%abc"),
+        Arguments.of("in", "[a,b,c]", " in (?,?,?) ", List.of("a", "b", "c")),
+        Arguments.of("in", "[1,2,3]", " in (?,?,?) ", List.of(1, 2, 3)),
+        Arguments.of("gt", "3", " > ? ", 3),
+        Arguments.of("lt", "3", " < ? ", 3),
+        Arguments.of("lte", "3", " <= ? ", 3),
+        Arguments.of("gte", "3", " >= ? ", 3),
+        Arguments.of("!null", null, "is not null ", null),
+        Arguments.of("null", null, "is null ", null));
   }
 }
