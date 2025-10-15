@@ -44,12 +44,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.events.Event;
 import org.hisp.dhis.dxf2.events.Events;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -141,19 +146,19 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   private EventSynchronizationContext createSynchronizationContext(
-      int pageSize, SystemSettings systemSettings) {
+      int pageSize, SystemSettings systemSettings) throws ForbiddenException, BadRequestException {
     ensureAuthentication(systemSettings);
 
     Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
     int objectsToSynchronize =
-        eventService.getAnonymousEventReadyForSynchronizationCount(skipChangedBefore);
+        eventService.findEvents(EventOperationParams.builder().skipChangedBefore(skipChangedBefore).build()).size();
 
     if (objectsToSynchronize == 0) {
       return new EventSynchronizationContext(skipChangedBefore, pageSize);
     }
 
     SystemInstance instance =
-        syncUtils.getRemoteInstanceWithSyncImportStrategy(systemSettings, SyncEndpoint.EVENTS);
+        SyncUtils.getRemoteInstanceWithSyncImportStrategy(systemSettings, SyncEndpoint.EVENTS);
 
     Map<String, Set<String>> skipSyncElements =
         programStageDataElementService
@@ -165,9 +170,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
   /** Ensures a valid {@link User} is available during event synchronization. */
   private void ensureAuthentication(SystemSettings systemSettings) {
-    if (CurrentUserUtil.getCurrentUserDetails() == null) {
-      initializeSyncUser(systemSettings);
-    }
+      CurrentUserUtil.getCurrentUserDetails();
   }
 
   private void initializeSyncUser(SystemSettings systemSettings) {
