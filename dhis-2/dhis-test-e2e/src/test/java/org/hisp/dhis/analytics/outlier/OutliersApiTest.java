@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,42 +29,12 @@
  */
 package org.hisp.dhis.analytics.outlier;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hisp.dhis.AnalyticsApiTest;
 
-import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
-import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
+public abstract class OutliersApiTest extends AnalyticsApiTest {
 
-@EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
-public class OutliersDetectionDownloadTest extends OutliersApiTest {
-
-  private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
-
-  @Test
-  void queryWithXlsxDownload() {
-    // Given
-    final String TYPE = "application/vnd.ms-excel";
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("endDate=2023-01-02")
-            .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
-            .add("maxResults=30")
-            .add("sortOrder=ASC")
-            .add("orderBy=zscore")
-            .add("threshold=3")
-            .add("startDate=2022-06-01")
-            .add("ds=BfMAe6Itzgt")
-            .add("algorithm=Z_SCORE");
-
-    // When
-    ApiResponse response = actions.download("xlsx").get(params);
-
-    // Then
-    response.validate().statusCode(200).contentType(TYPE);
-
-    assertTrue(isNotBlank(response.getAsString()));
+  static boolean hasOutliersSupport() {
+    return System.getProperty("dhis2.analytics.datasource", "postgres")
+        .equalsIgnoreCase("postgres");
   }
 }
