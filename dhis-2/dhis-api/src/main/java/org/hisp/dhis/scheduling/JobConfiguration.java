@@ -34,12 +34,9 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -49,6 +46,7 @@ import lombok.ToString;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
@@ -71,8 +69,6 @@ import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * This class defines configuration for a job in the system. The job is defined with general
@@ -381,10 +377,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         || queueName != null && queuePosition > 0;
   }
 
-  public boolean isDueBetween(
-      @Nonnull Instant now, @Nonnull Instant then, @Nonnull Duration maxCronDelay) {
-    Instant dueTime = nextExecutionTime(now, maxCronDelay);
-    return dueTime != null && dueTime.isBefore(then);
+  @Nonnull
+  public JobKey toKey() {
+    return new JobKey(UID.of(uid), jobType);
   }
 
   /**
@@ -400,46 +395,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
   Instant nextExecutionTime(
       @Nonnull ZoneId zone, @Nonnull Instant now, @Nonnull Duration maxCronDelay) {
-    // for good measure we offset the last time by 1 second
-    boolean isFirstExecution = lastExecuted == null;
-    Instant since = isFirstExecution ? now : lastExecuted.toInstant().plusSeconds(1);
     if (isUsedInQueue() && getQueuePosition() > 0) return null;
-    return switch (getSchedulingType()) {
-      case ONCE_ASAP -> nextOnceExecutionTime(since);
-      case FIXED_DELAY -> nextDelayExecutionTime(since);
-      case CRON ->
-          nextCronExecutionTime(
-              zone, isFirstExecution ? since.minus(maxCronDelay) : since, now, maxCronDelay);
-    };
-  }
-
-  private Instant nextCronExecutionTime(
-      @Nonnull ZoneId zone, @Nonnull Instant since, Instant now, @Nonnull Duration maxDelay) {
-    if (isUndefinedCronExpression(cronExpression)) return null;
-    // we use a no offset zone for the context as we want the given since value to be taken as is
-    // the zone is not actually used by this is closest to what would be required
-    ZoneOffset noOffsetZone = ZoneOffset.UTC;
-    SimpleTriggerContext context = new SimpleTriggerContext(Clock.fixed(since, noOffsetZone));
-    Date next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
-    if (next == null) return null;
-    while (next != null && now.isAfter(next.toInstant().plus(maxDelay))) {
-      context =
-          new SimpleTriggerContext(Clock.fixed(next.toInstant().plusSeconds(1), noOffsetZone));
-      next = new CronTrigger(cronExpression, zone).nextExecutionTime(context);
-    }
-    return next == null ? null : next.toInstant();
-  }
-
-  private Instant nextDelayExecutionTime(@Nonnull Instant since) {
-    if (delay == null || delay <= 0) return null;
-    // always want to run delay after last start, right away when never started
-    return lastExecuted == null
-        ? since
-        : lastExecuted.toInstant().plusSeconds(delay).truncatedTo(ChronoUnit.SECONDS);
-  }
-
-  private Instant nextOnceExecutionTime(@Nonnull Instant since) {
-    return since;
+    JobTrigger trigger = new JobTrigger(getSchedulingType(), lastExecuted, cronExpression, delay);
+    return trigger.nextExecutionTime(zone, now, maxCronDelay);
   }
 
   @CheckForNull
@@ -448,11 +406,5 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return nextExecutionTime == null || config.getSchedulingType() != SchedulingType.CRON
         ? null
         : nextExecutionTime.plus(maxCronDelay);
-  }
-
-  private static boolean isUndefinedCronExpression(String cronExpression) {
-    return cronExpression == null
-        || cronExpression.isEmpty()
-        || cronExpression.equals("* * * * * ?");
   }
 }

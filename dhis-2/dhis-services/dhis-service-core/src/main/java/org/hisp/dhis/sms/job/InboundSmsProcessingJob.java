@@ -33,7 +33,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
@@ -62,9 +62,9 @@ public class InboundSmsProcessingJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     SmsInboundProcessingJobParameters params =
-        (SmsInboundProcessingJobParameters) config.getJobParameters();
+        (SmsInboundProcessingJobParameters) config.parameters();
     progress.startingProcess("Process incoming SMS with UID {}", params.getSms());
 
     IncomingSms sms = incomingSmsService.get(params.getSms());

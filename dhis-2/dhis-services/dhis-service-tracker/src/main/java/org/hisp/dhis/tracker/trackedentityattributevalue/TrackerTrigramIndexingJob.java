@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
@@ -70,9 +70,9 @@ public class TrackerTrigramIndexingJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     TrackerTrigramIndexJobParameters parameters =
-        (TrackerTrigramIndexJobParameters) jobConfiguration.getJobParameters();
+        (TrackerTrigramIndexJobParameters) jobConfiguration.parameters();
 
     log.info(
         "Starting Trigram Indexing Job. Attributes Provided to Index: {}",
