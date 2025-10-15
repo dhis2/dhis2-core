@@ -35,7 +35,7 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
@@ -58,9 +58,8 @@ public class AnalyticsTableJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    AnalyticsJobParameters parameters =
-        (AnalyticsJobParameters) jobConfiguration.getJobParameters();
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
+    AnalyticsJobParameters parameters = (AnalyticsJobParameters) jobConfiguration.parameters();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -69,7 +68,6 @@ public class AnalyticsTableJob implements Job {
             .skipOutliers(parameters.isSkipOutliers() || !sqlBuilder.supportsPercentileCont())
             .skipTableTypes(parameters.getSkipTableTypes())
             .skipPrograms(parameters.getSkipPrograms())
-            .jobId(jobConfiguration)
             .startTime(new Date())
             .build();
 

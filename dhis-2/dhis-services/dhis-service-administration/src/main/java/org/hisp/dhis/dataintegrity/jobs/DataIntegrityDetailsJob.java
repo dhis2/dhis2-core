@@ -33,7 +33,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
@@ -54,9 +54,9 @@ public class DataIntegrityDetailsJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     DataIntegrityDetailsJobParameters parameters =
-        (DataIntegrityDetailsJobParameters) config.getJobParameters();
+        (DataIntegrityDetailsJobParameters) config.parameters();
     Set<String> checks = parameters == null ? Set.of() : parameters.getChecks();
 
     dataIntegrityService.runDetailsChecks(checks, progress);

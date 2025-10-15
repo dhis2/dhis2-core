@@ -125,7 +125,7 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
     housekeepingJob.execute(null, JobProgress.noop());
     createSelectQuery(1);
     assertEquals(
-        10,
+        9,
         sessionFactory
             .getStatistics()
             .getCacheRegionStatistics(OptionSet.class.getName())

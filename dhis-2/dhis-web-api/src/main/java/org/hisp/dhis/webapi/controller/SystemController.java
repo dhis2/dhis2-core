@@ -60,6 +60,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobKey;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
@@ -236,7 +237,7 @@ public class SystemController {
     if (!notifications.getFirst().isCompleted()) {
       JobConfiguration job = jobConfigurationService.getJobConfigurationByUid(jobId.getValue());
       if (job == null || job.getJobStatus() != JobStatus.RUNNING) {
-        notifier.clear(getJobSafe(job, jobType, jobId.getValue()));
+        notifier.clear(new JobKey(jobId, jobType));
         Notification notification = notifications.getFirst();
         notification.setCompleted(true);
         return ResponseEntity.ok().cacheControl(noStore()).body(List.of(notification));
@@ -341,15 +342,6 @@ public class SystemController {
     }
 
     return codeList;
-  }
-
-  private JobConfiguration getJobSafe(JobConfiguration job, JobType jobType, String uid) {
-    if (job == null) {
-      job = new JobConfiguration();
-      job.setJobType(jobType);
-      job.setUid(uid);
-    }
-    return job;
   }
 
   private static final List<String> FLAGS =
