@@ -31,7 +31,7 @@ package org.hisp.dhis.reservedvalue;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -50,7 +50,7 @@ public class RemoveUsedOrExpiredReservedValuesJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     progress.startingProcess("Delete expired reserved values");
     progress.startingStage("Deleting expired reserved values");
     progress.endingProcess(
