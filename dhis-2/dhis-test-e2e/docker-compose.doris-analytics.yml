@@ -16,3 +16,4 @@ services:
       - default
     environment:
       DHIS2_E2E_TEST_ARGS: "--activate-profiles analytics -Danalytics.api.query.params=skipTrackedEntities=true&skipOutliers=true"
+      dhis2.analytics.datasource: doris
