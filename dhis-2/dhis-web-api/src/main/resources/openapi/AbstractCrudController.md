@@ -93,9 +93,3 @@ Asynchronous import, returns immediately with a _Location_ header pointing to th
 
 ### `*.parameter.MetadataImportParams.inclusionStrategy`
 `NON_NULL` includes properties which are not null, `ALWAYS` include all properties, `NON_EMPTY` includes non-empty properties (will not include strings of 0 length, collections of size 0, etc.)
-
-### `*.parameter.MetadataImportParams.userOverrideMode`
-Allows you to override the user property of every object you are importing, the options are `NONE` (do nothing), `CURRENT` (use import user), `SELECTED` (select a specific user using overrideUser=X)
-
-### `*.parameter.MetadataImportParams.overrideUser`
-If userOverrideMode is `SELECTED`, use this parameter to select the user you want override with.
