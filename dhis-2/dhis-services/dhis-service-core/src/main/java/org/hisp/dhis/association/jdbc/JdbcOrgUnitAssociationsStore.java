@@ -71,7 +71,7 @@ public class JdbcOrgUnitAssociationsStore {
                 resultSet.getString(1),
                 Stream.of((String[]) resultSet.getArray(2).getArray())
                     .filter(Objects::nonNull)
-                    .toList());
+                    .collect(Collectors.toList()));
           }
           return setValuedMap;
         });
