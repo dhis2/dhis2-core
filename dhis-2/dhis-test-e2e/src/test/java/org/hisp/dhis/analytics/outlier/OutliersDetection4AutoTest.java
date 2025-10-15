@@ -37,6 +37,7 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -47,7 +48,7 @@ import org.junit.jupiter.api.condition.EnabledIf;
 
 /** Groups e2e tests for "/analytics/outlierDetection" endpoint. */
 @EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
-public class OutliersDetection4AutoTest extends OutliersApiTest {
+public class OutliersDetection4AutoTest extends AnalyticsApiTest {
   private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 
   @Test

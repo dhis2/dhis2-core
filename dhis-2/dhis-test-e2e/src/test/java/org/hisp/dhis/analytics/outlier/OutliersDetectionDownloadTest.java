@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.outlier;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -39,7 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 @EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
-public class OutliersDetectionDownloadTest extends OutliersApiTest {
+public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
 
   private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 

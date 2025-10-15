@@ -99,4 +99,9 @@ public abstract class AnalyticsApiTest {
   public boolean isPostgres() {
     return getDataSource().equalsIgnoreCase("postgres");
   }
+
+  static boolean hasOutliersSupport() {
+    return System.getProperty("dhis2.analytics.datasource", "postgres")
+        .equalsIgnoreCase("postgres");
+  }
 }
