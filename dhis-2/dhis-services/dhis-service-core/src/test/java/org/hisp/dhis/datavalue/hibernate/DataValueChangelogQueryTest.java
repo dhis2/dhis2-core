@@ -62,6 +62,17 @@ class DataValueChangelogQueryTest {
   }
 
   @Test
+  void testCountByTypes() {
+    assertCountSQL(
+        """
+      SELECT count(*)
+      FROM datavalueaudit dva
+      WHERE 1=1
+        AND dva.audittype = ANY(:types)""",
+        new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE)));
+  }
+
+  @Test
   void testFilterByDataElements() {
     assertSQL(
         """
@@ -160,5 +171,10 @@ class DataValueChangelogQueryTest {
 
   private void assertSQL(@Language("sql") String expected, DataValueChangelogQueryParams actual) {
     assertEquals(expected, createEntriesQuery(actual, null).toSQL());
+  }
+
+  private void assertCountSQL(
+      @Language("sql") String expected, DataValueChangelogQueryParams actual) {
+    assertEquals(expected, createEntriesQuery(actual, null).toSQL(true));
   }
 }
