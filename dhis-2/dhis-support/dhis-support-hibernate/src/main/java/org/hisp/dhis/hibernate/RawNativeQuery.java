@@ -115,6 +115,10 @@ public final class RawNativeQuery {
     return setParameter(name, arr, StringArrayType.INSTANCE);
   }
 
+  public RawNativeQuery setInOrAnyParameter(String name, Collection<UID> value) {
+    return setInOrAnyParameter(name, value, UID::getValue);
+  }
+
   public RawNativeQuery setInOrAnyParameter(String name, Stream<UID> value) {
     return setInOrAnyParameter(name, value, UID::getValue);
   }
@@ -255,6 +259,14 @@ public final class RawNativeQuery {
     return res;
   }
 
+  public <T> Stream<T> stream(Class<T> rowType) {
+    String minSql = toSQL(false);
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    NativeQuery<T> query = session.createNativeQuery(minSql, rowType);
+    applyQueryParameters(false, query);
+    return query.stream();
+  }
+
   /**
    * Count does allow to use the same provided SQL used for fetch as it erases the SELECT list of
    * the main query and replaces it with {@code count(*)}.
@@ -274,6 +286,11 @@ public final class RawNativeQuery {
     String minSql = toSQL(count);
     @SuppressWarnings("SqlSourceToSinkFlow")
     NativeQuery<?> query = session.createNativeQuery(minSql);
+    applyQueryParameters(count, query);
+    return query;
+  }
+
+  private void applyQueryParameters(boolean count, NativeQuery<?> query) {
     params.forEach(
         (name, param) -> {
           if (!erasedParams.contains(name)) {
@@ -284,7 +301,6 @@ public final class RawNativeQuery {
       if (offset != null) query.setFirstResult(offset);
       if (limit != null) query.setMaxResults(limit);
     }
-    return query;
   }
 
   public String toSQL() {

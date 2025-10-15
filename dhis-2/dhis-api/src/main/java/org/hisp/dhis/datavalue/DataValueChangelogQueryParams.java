@@ -33,10 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.period.Period;
 
 /**
@@ -47,18 +45,14 @@ import org.hisp.dhis.period.Period;
 @Data
 @Accessors(chain = true)
 public class DataValueChangelogQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
 
+  private List<UID> dataSets = new ArrayList<>();
+  private List<UID> dataElements = new ArrayList<>();
   private List<Period> periods = new ArrayList<>();
-
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-  private CategoryOptionCombo categoryOptionCombo;
-
-  private CategoryOptionCombo attributeOptionCombo;
-
+  private List<UID> orgUnits = new ArrayList<>();
+  private UID categoryOptionCombo;
+  private UID attributeOptionCombo;
   private List<DataValueChangelogType> types = new ArrayList<>();
-
   private Pager pager;
 
   public boolean hasPaging() {
