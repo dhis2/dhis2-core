@@ -31,8 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -40,37 +39,39 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
+public interface DataValueChangelogService {
 
   /**
    * Deletes all data value audits for the given organisation unit.
    *
    * @param organisationUnit the organisation unit.
    */
-  void deleteDataValueAudits(OrganisationUnit organisationUnit);
+  void deleteByOrgUnit(OrganisationUnit organisationUnit);
 
   /**
    * Deletes all data value audits for the given data element.
    *
    * @param dataElement the data element.
    */
-  void deleteDataValueAudits(DataElement dataElement);
+  void deleteByDataElement(DataElement dataElement);
 
   /**
-   * Deletes all data value audits for the given category option combo. Both properties:
-   * categoryOptionCombo & attributeOptionCombo are checked for a match.
+   * Returns all entries for the given DataValue.
    *
-   * @param categoryOptionCombo the categoryOptionCombo.
+   * @param dataValue the DataValue to get entries for.
+   * @return a list of entries which match the given DataValue, or an empty collection if there are
+   *     no matches.
    */
-  void deleteDataValueAudits(@Nonnull CategoryOptionCombo categoryOptionCombo);
+  @UsageTestOnly
+  List<DataValueChangelogEntry> getChangelogEntries(DataExportValue dataValue);
 
   /**
-   * Returns data value audits for the given query.
+   * Returns data value audits for the given parameters.
    *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
+   * @param params the {@link DataValueChangelogQueryParams}.
+   * @return a list of {@link DataValueChangelog}.
    */
-  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+  List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params);
 
   /**
    * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
@@ -79,28 +80,13 @@ public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
    * @param params the key to the value
    * @return the audit events for the value stored most recent to oldest
    */
-  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params);
+  List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params);
 
   /**
-   * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
-   * AOC are unspecified in the parameters the default is used.
+   * Returns the count of data value audits for the given parameters.
    *
-   * @param key the key to the value
-   * @return the audit events for the value stored most recent to oldest
+   * @param params the {@link DataValueChangelogQueryParams}.
+   * @return a count of {@link DataValueChangelog}.
    */
-  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataEntryKey key);
-
-  /**
-   * Counts data value audits for the given query.
-   *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
-   */
-  int countDataValueAudits(DataValueAuditQueryParams params);
-
-  /** Enables the log by creating a trigger. Can be called even if audit is already enabled. */
-  void enableAudit();
-
-  /** Disables the log by removing the trigger. Can be called even if audit is already disabled. */
-  void disableAudit();
+  int countEntries(DataValueChangelogQueryParams params);
 }
