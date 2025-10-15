@@ -33,7 +33,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -42,7 +42,7 @@ import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobScheduler;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
-import org.hisp.dhis.startup.DataValueAuditToggle;
+import org.hisp.dhis.startup.DataValueChangelogToggle;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
@@ -90,9 +90,9 @@ public class StartupConfig {
   }
 
   @Bean
-  public DataValueAuditToggle dataValueAuditToggle(
-      DataValueAuditStore auditStore, DhisConfigurationProvider config) {
-    DataValueAuditToggle toggle = new DataValueAuditToggle(auditStore, config);
+  public DataValueChangelogToggle dataValueAuditToggle(
+      DataValueChangelogStore auditStore, DhisConfigurationProvider config) {
+    DataValueChangelogToggle toggle = new DataValueChangelogToggle(auditStore, config);
     toggle.setName("DataValueAuditToggle");
     toggle.setRunlevel(13);
     toggle.setSkipInTests(true);

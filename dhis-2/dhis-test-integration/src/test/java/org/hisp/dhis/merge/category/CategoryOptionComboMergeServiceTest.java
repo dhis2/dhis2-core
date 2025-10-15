@@ -71,9 +71,9 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -144,7 +144,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
-  @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private TrackerEventStore trackerEventStore;
@@ -1308,13 +1308,13 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams source1DvaQueryParams = getQueryParams(cocDuplicate);
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
+    DataValueChangelogQueryParams source1DvaQueryParams = getQueryParams(cocDuplicate);
+    DataValueChangelogQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
 
-    List<DataValueAudit> source1Audits =
-        dataValueAuditStore.getDataValueAudits(source1DvaQueryParams);
+    List<DataValueChangelog> source1Audits =
+        dataValueChangelogStore.getEntries(source1DvaQueryParams);
 
-    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, source1Audits.size(), "Expect 0 entries with source COC refs");
@@ -2267,8 +2267,8 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     return da;
   }
 
-  private DataValueAuditQueryParams getQueryParams(CategoryOptionCombo coc) {
-    return new DataValueAuditQueryParams().setCategoryOptionCombo(coc);
+  private DataValueChangelogQueryParams getQueryParams(CategoryOptionCombo coc) {
+    return new DataValueChangelogQueryParams().setCategoryOptionCombo(coc);
   }
 
   private DataValue addDataValue(DataValue value) {

@@ -58,10 +58,10 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueAuditType;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
+import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -106,7 +106,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuditController {
   private final IdentifiableObjectManager manager;
 
-  private final DataValueAuditService dataValueAuditService;
+  private final DataValueChangelogService dataValueChangelogService;
 
   private final DataApprovalAuditService dataApprovalAuditService;
 
@@ -157,7 +157,7 @@ public class AuditController {
   }
 
   @GetMapping("dataValue")
-  public RootNode getAggregateDataValueAudit(
+  public RootNode getAggregateDataValueChangelog(
       @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<String> ds,
       @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
           List<String> de,
@@ -168,7 +168,7 @@ public class AuditController {
           String co,
       @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
           String cc,
-      @RequestParam(required = false) List<DataValueAuditType> auditType,
+      @RequestParam(name = "auditType", required = false) List<DataValueChangelogType> type,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
@@ -188,36 +188,36 @@ public class AuditController {
     List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
     CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
     CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
-    List<DataValueAuditType> auditTypes = emptyIfNull(auditType);
+    List<DataValueChangelogType> types = emptyIfNull(type);
 
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
             .setDataElements(dataElements)
             .setPeriods(periods)
             .setOrgUnits(organisationUnits)
             .setCategoryOptionCombo(categoryOptionCombo)
             .setAttributeOptionCombo(attributeOptionCombo)
-            .setAuditTypes(auditTypes);
+            .setTypes(types);
 
-    List<DataValueAudit> dataValueAudits;
+    List<DataValueChangelog> entries;
     Pager pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      dataValueAudits = dataValueAuditService.getDataValueAudits(params);
+      entries = dataValueChangelogService.getChangelogEntries(params);
     } else {
-      int total = dataValueAuditService.countDataValueAudits(params);
+      int total = dataValueChangelogService.countEntries(params);
 
       pager = new Pager(page, total, pageSize);
 
-      dataValueAudits =
-          dataValueAuditService.getDataValueAudits(
-              new DataValueAuditQueryParams()
+      entries =
+          dataValueChangelogService.getChangelogEntries(
+              new DataValueChangelogQueryParams()
                   .setDataElements(dataElements)
                   .setPeriods(periods)
                   .setOrgUnits(organisationUnits)
                   .setCategoryOptionCombo(categoryOptionCombo)
                   .setAttributeOptionCombo(attributeOptionCombo)
-                  .setAuditTypes(auditTypes)
+                  .setTypes(types)
                   .setPager(pager));
     }
 
@@ -231,7 +231,7 @@ public class AuditController {
         rootNode.addChild(new CollectionNode("dataValueAudits", true));
     trackedEntityAttributeValueAudits.addChildren(
         fieldFilterService
-            .toCollectionNode(DataValueAudit.class, new FieldFilterParams(dataValueAudits, fields))
+            .toCollectionNode(DataValueChangelog.class, new FieldFilterParams(entries, fields))
             .getChildren());
 
     return rootNode;

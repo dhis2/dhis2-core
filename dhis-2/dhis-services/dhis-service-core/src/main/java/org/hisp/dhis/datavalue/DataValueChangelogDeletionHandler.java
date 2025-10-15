@@ -29,39 +29,38 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.springframework.stereotype.Component;
 
-/**
- * Encapsulation of a web API request for data value audit records.
- *
- * @author Lars Helge Overland
- */
-@Data
-@Accessors(chain = true)
-public class DataValueAuditQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
+@Component
+public class DataValueChangelogDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataValueChangelog.class);
 
-  private List<Period> periods = new ArrayList<>();
+  @Override
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql = "select 1 from datavalueaudit where dataelementid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
+  }
 
-  private CategoryOptionCombo categoryOptionCombo;
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    String sql = "select 1 from datavalueaudit where organisationunitid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
+  }
 
-  private CategoryOptionCombo attributeOptionCombo;
-
-  private List<DataValueAuditType> auditTypes = new ArrayList<>();
-
-  private Pager pager;
-
-  public boolean hasPaging() {
-    return pager != null;
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "select 1 from datavalueaudit where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
   }
 }

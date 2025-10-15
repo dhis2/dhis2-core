@@ -44,11 +44,11 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditEntry;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueAuditType;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogEntry;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
+import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.RawNativeQuery;
@@ -64,30 +64,30 @@ import org.springframework.stereotype.Repository;
  * @author Halvdan Hoem Grelland
  */
 @Repository
-public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValueAudit>
-    implements DataValueAuditStore {
+public class HibernateDataValueChangelogStore extends HibernateGenericStore<DataValueChangelog>
+    implements DataValueChangelogStore {
 
-  public HibernateDataValueAuditStore(
+  public HibernateDataValueChangelogStore(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, DataValueAudit.class, false);
+    super(entityManager, jdbcTemplate, publisher, DataValueChangelog.class, false);
   }
 
   @Override
-  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
+  public void deleteByOrgUnit(OrganisationUnit organisationUnit) {
     String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
 
     entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override
-  public void deleteDataValueAudits(DataElement dataElement) {
+  public void deleteByDataElement(DataElement dataElement) {
     String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
   @Override
-  public void deleteDataValueAudits(@Nonnull CategoryOptionCombo categoryOptionCombo) {
+  public void deleteByOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo) {
     String hql =
         "delete from DataValueAudit d where d.categoryOptionCombo = :categoryOptionCombo or d.attributeOptionCombo = :categoryOptionCombo";
     entityManager
@@ -97,7 +97,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   }
 
   @Override
-  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
+  public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
     String sql =
         """
       SELECT *
@@ -111,7 +111,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))
       ORDER BY dva.created DESC""";
 
-    NativeQuery<DataValueAudit> query = setParameters(nativeSynchronizedTypedQuery(sql), params);
+    NativeQuery<DataValueChangelog> query =
+        setParameters(nativeSynchronizedTypedQuery(sql), params);
     Pager pager = params.getPager();
     if (pager != null) {
       query.setFirstResult(pager.getOffset()).setMaxResults(pager.getPageSize());
@@ -120,7 +121,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   }
 
   @Override
-  public int countDataValueAudits(DataValueAuditQueryParams params) {
+  public int countEntries(DataValueChangelogQueryParams params) {
     String sql =
         """
       SELECT count(*)
@@ -137,11 +138,12 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     return setParameters(query, params).getSingleResult() instanceof Number n ? n.intValue() : 0;
   }
 
-  private <E> NativeQuery<E> setParameters(NativeQuery<E> query, DataValueAuditQueryParams params) {
+  private <E> NativeQuery<E> setParameters(
+      NativeQuery<E> query, DataValueChangelogQueryParams params) {
     String[] types =
-        params.getAuditTypes() == null
+        params.getTypes() == null
             ? new String[0]
-            : params.getAuditTypes().stream().map(Enum::name).toArray(String[]::new);
+            : params.getTypes().stream().map(Enum::name).toArray(String[]::new);
     String[] periods =
         params.getPeriods() == null
             ? new String[0]
@@ -166,9 +168,9 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   }
 
   @Override
-  public List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params) {
+  public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueQueryParams params) {
     String aoc = getCategoryOptionComboIdByComboAndOptions(params.getCc(), params.getCp());
-    return getAuditsByKey(
+    return getEntries(
         new DataEntryKey(
             UID.of(params.getDe()),
             UID.of(params.getOu()),
@@ -178,7 +180,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   }
 
   @Override
-  public List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataEntryKey key) {
+  public List<DataValueChangelogEntry> getEntries(@Nonnull DataEntryKey key) {
     String sql =
         """
         SELECT
@@ -204,7 +206,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())
         .stream()
-        .map(HibernateDataValueAuditStore::toEntry)
+        .map(HibernateDataValueChangelogStore::toEntry)
         .toList();
   }
 
@@ -239,8 +241,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     return aocId instanceof String s ? s : null;
   }
 
-  private static DataValueAuditEntry toEntry(Object[] row) {
-    return new DataValueAuditEntry(
+  private static DataValueChangelogEntry toEntry(Object[] row) {
+    return new DataValueChangelogEntry(
         (String) row[0],
         (String) row[1],
         (String) row[2],
@@ -249,7 +251,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         (String) row[5],
         (String) row[6],
         (Date) row[7],
-        DataValueAuditType.valueOf((String) row[8]));
+        DataValueChangelogType.valueOf((String) row[8]));
   }
 
   @Override

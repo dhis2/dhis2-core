@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,15 @@
  */
 package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+public enum DataValueChangelogType {
+  /** When a data value is created for the first time (no row existed in the table) */
+  CREATE,
 
-/**
- * DTO which represents a data value audit record.
- *
- * @author Lars Helge Overland
- */
-public record DataValueAuditEntry(
-    @JsonProperty @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
-    @JsonProperty @OpenApi.Property(Period.class) String period,
-    @JsonProperty @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
-    @JsonProperty @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-        String categoryOptionCombo,
-    @JsonProperty @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-        String attributeOptionCombo,
-    @JsonProperty String value,
-    @JsonProperty String modifiedBy,
-    @JsonProperty Date created,
-    @JsonProperty DataValueAuditType auditType) {}
+  /** When a data value is marked as {@code deleted=true} (without already being marked deleted) */
+  DELETE,
+
+  /** When a data value changes its {@code value} property has changed, but it is not a deletion */
+  UPDATE,
+
+  // Note that updating just followup or comment will not create an audit entry ATM
+}
