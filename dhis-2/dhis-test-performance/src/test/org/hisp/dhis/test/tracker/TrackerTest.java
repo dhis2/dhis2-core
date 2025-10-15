@@ -40,9 +40,12 @@ import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
+import io.gatling.javaapi.http.HttpRequestActionBuilder;
+import java.util.List;
 
 public class TrackerTest extends Simulation {
 
@@ -55,156 +58,109 @@ public class TrackerTest extends Simulation {
         http.baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .maxConnectionsPerHost(100)
-            .header("Content-Type", "application/json")
             .userAgentHeader("Gatling/Performance Test")
             .warmUp(
                 "http://localhost:8080/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
-            .disableCaching(); // to repeat the same request without HTTP cache influence (304)
+            .disableCaching() // to repeat the same request without HTTP cache influence (304)
+            .check(status().is(200)); // global check for all requests
 
     // only one user at a time
+    ScenarioWithRequests eventScenario = eventProgramScenario(repeat, eventProgram);
+    ScenarioWithRequests trackerScenario = trackerProgramScenario(repeat, trackerProgram);
+
+    List<Assertion> allAssertions = new java.util.ArrayList<>();
+    allAssertions.add(forAll().successfulRequests().percent().gte(100d));
+    allAssertions.addAll(eventScenario.requests().stream().map(Request::assertion).toList());
+    allAssertions.addAll(trackerScenario.requests().stream().map(Request::assertion).toList());
+
     setUp(
-            eventProgramScenario(repeat, eventProgram)
+            eventScenario
+                .scenario()
                 .injectClosed(constantConcurrentUsers(1).during(1))
                 .andThen(
-                    trackerProgramScenario(repeat, trackerProgram)
-                        .injectClosed(constantConcurrentUsers(1).during(1))))
+                    trackerScenario.scenario().injectClosed(constantConcurrentUsers(1).during(1))))
         .protocols(httpProtocolBuilder)
-        .assertions(
-            forAll().successfulRequests().percent().gte(100d),
-            details("Get a list of single events", "Go to first page of program " + eventProgram)
-                .responseTime()
-                .percentile(90)
-                .lte(100),
-            details("Get a list of single events", "Go to second page of program " + eventProgram)
-                .responseTime()
-                .percentile(90)
-                .lte(100),
-            details(
-                    "Get a list of single events",
-                    "Go back to first page of program " + eventProgram)
-                .responseTime()
-                .percentile(90)
-                .lte(100),
-            details("Get a list of single events", "Get one single event", "Get first event")
-                .responseTime()
-                .percentile(90)
-                .lte(25),
-            details(
-                    "Get a list of single events",
-                    "Get one single event",
-                    "Get relationships for first event")
-                .responseTime()
-                .percentile(90)
-                .lte(10),
-            details("Get a list of TEs", "Not found TE by name")
-                .responseTime()
-                .percentile(90)
-                .lte(200),
-            details("Get a list of TEs", "Not found TE by national id")
-                .responseTime()
-                .percentile(90)
-                .lte(10),
-            details("Get a list of TEs", "Search TE by attributes")
-                .responseTime()
-                .percentile(90)
-                .lte(200),
-            details("Get a list of TEs", "Search TE by national id")
-                .responseTime()
-                .percentile(90)
-                .lte(10),
-            details("Get a list of TEs", "Search events by program stage")
-                .responseTime()
-                .percentile(90)
-                .lte(100),
-            details("Get a list of TEs", "Get tracked entities for events")
-                .responseTime()
-                .percentile(90)
-                .lte(200),
-            details("Get a list of TEs", "Get first page of TEs of program" + trackerProgram)
-                .responseTime()
-                .percentile(90)
-                .lte(200),
-            details("Get a list of TEs", "Go to single enrollment", "Get first tracked entity")
-                .responseTime()
-                .percentile(90)
-                .lte(50),
-            details("Get a list of TEs", "Go to single enrollment", "Get first enrollment")
-                .responseTime()
-                .percentile(90)
-                .lte(15),
-            details(
-                    "Get a list of TEs",
-                    "Go to single enrollment",
-                    "Get relationships for first tracked entity")
-                .responseTime()
-                .percentile(90)
-                .lte(10),
-            details(
-                    "Get a list of TEs",
-                    "Go to single enrollment",
-                    "Get one event",
-                    "Get relationships for first event")
-                .responseTime()
-                .percentile(90)
-                .lte(10),
-            details(
-                    "Get a list of TEs",
-                    "Go to single enrollment",
-                    "Get one event",
-                    "Get first event from enrollment")
-                .responseTime()
-                .percentile(90)
-                .lte(25));
+        .assertions(allAssertions);
   }
 
-  private ScenarioBuilder eventProgramScenario(String repeat, String eventProgram) {
+  private ScenarioWithRequests eventProgramScenario(String repeat, String eventProgram) {
     String singleEventUrl = "/api/tracker/events/#{eventUid}";
     String relationshipUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
 
-    // get a 100 requests per run irrespective of the response times so comparisons are likely
-    // to be more accurate
     String getEventsUrl =
         "/api/tracker/events?program="
             + eventProgram
-            + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&order=occurredAt:desc";
+            + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,"
+            + "&orgUnit=DiszpKrYNg8"
+            + "&orgUnitMode=SELECTED"
+            + "&order=occurredAt:desc";
 
-    return scenario("Single Events")
-        .exec(
-            http("Login")
-                .post("/api/auth/login")
-                .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
-                .check(status().is(200)))
-        .repeat(Integer.parseInt(repeat))
-        .on(
-            group("Get a list of single events")
-                .on(
-                    exec(http("Go to first page of program " + eventProgram)
-                            .get(getEventsUrl)
-                            .check(status().is(200)))
-                        .exec(
-                            http("Go to second page of program " + eventProgram)
-                                .get(getEventsUrl + "&page=2")
-                                .check(status().is(200)))
-                        .exec(
-                            http("Go back to first page of program " + eventProgram)
-                                .get(getEventsUrl)
-                                .check(status().is(200))
-                                .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                        .group("Get one single event")
-                        .on(
-                            exec(http("Get first event")
-                                    .get(singleEventUrl)
-                                    .check(status().is(200)))
-                                .exec(
-                                    http("Get relationships for first event")
-                                        .get(relationshipUrl)
-                                        .check(status().is(200))))));
+    Request goToFirstPage =
+        new Request(
+            getEventsUrl,
+            100,
+            "Go to first page of program " + eventProgram,
+            "Get a list of single events");
+    Request goToSecondPage =
+        new Request(
+            getEventsUrl + "&page=2",
+            100,
+            "Go to second page of program " + eventProgram,
+            "Get a list of single events");
+    Request searchSingleEvents =
+        new Request(
+            getEventsUrl + "&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
+            100,
+            "Search single events in date interval in program " + eventProgram,
+            "Get a list of single events");
+    Request getFirstEvent =
+        new Request(
+            singleEventUrl,
+            25,
+            "Get first event",
+            "Get a list of single events",
+            "Get one single event");
+    Request getRelationshipsForFirstEvent =
+        new Request(
+            relationshipUrl,
+            10,
+            "Get relationships for first event",
+            "Get a list of single events",
+            "Get one single event");
+
+    ScenarioBuilder scenarioBuilder =
+        scenario("Single Events")
+            .exec(login())
+            .repeat(Integer.parseInt(repeat))
+            .on(
+                group("Get a list of single events")
+                    .on(
+                        exec(goToFirstPage.action())
+                            .exec(goToSecondPage.action())
+                            .exec(
+                                searchSingleEvents
+                                    .action()
+                                    .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                            .group("Get one single event")
+                            .on(
+                                exec(getFirstEvent.action())
+                                    .exec(getRelationshipsForFirstEvent.action()))));
+
+    return new ScenarioWithRequests(
+        scenarioBuilder,
+        List.of(
+            goToFirstPage,
+            goToSecondPage,
+            searchSingleEvents,
+            getFirstEvent,
+            getRelationshipsForFirstEvent));
   }
 
-  private ScenarioBuilder trackerProgramScenario(String repeat, String trackerProgram) {
+  private ScenarioWithRequests trackerProgramScenario(String repeat, String trackerProgram) {
     String getTEsUrl =
-        "/api/tracker/trackedEntities?order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+        "/api/tracker/trackedEntities?"
+            + "order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
             + trackerProgram
             + "&fields=:all,!relationships,programOwner[orgUnit,program]";
 
@@ -257,80 +213,146 @@ public class TrackerTest extends Simulation {
     String eventUrl =
         "/api/tracker/events/#{eventUid}?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]";
 
-    return scenario("Tracker Program")
-        .exec(
-            http("Login")
-                .post("/api/auth/login")
-                .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
-                .check(status().is(200)))
-        .repeat(Integer.parseInt(repeat))
-        .on(
-            group("Get a list of TEs")
-                .on(
-                    exec(http("Not found TE by name").get(notFoundTEByName).check(status().is(200)))
-                        .exec(
-                            http("Not found TE by national id")
-                                .get(notFoundByNationalId)
-                                .check(status().is(200)))
-                        .exec(
-                            http("Search TE by attributes")
-                                .get(searchTEByAttributes)
-                                .check(status().is(200)))
-                        .exec(
-                            http("Search TE by national id")
-                                .get(searchForTEByNationalId)
-                                .check(status().is(200)))
-                        .exec(
-                            http("Search events by program stage")
-                                .get(searchEventByProgramStage)
-                                .check(status().is(200))
-                                .check(
-                                    jsonPath("$.events[*].trackedEntity")
-                                        .findAll()
-                                        .transform(
-                                            list ->
-                                                String.join(",", list.stream().distinct().toList()))
-                                        .saveAs("trackedEntityUids")))
-                        .exec(
-                            http("Get tracked entities for events")
-                                .get(getTEsFromEvents)
-                                .check(status().is(200)))
-                        .exec(
-                            http("Get first page of TEs of program" + trackerProgram)
-                                .get(getTEsUrl)
-                                .check(status().is(200))
-                                .check(
-                                    jsonPath("$.trackedEntities[0].trackedEntity")
-                                        .saveAs("trackedEntityUid")))
-                        .exec(
-                            group("Go to single enrollment")
-                                .on(
-                                    exec(http("Get first tracked entity")
-                                            .get(singleTrackedEntityUrl)
-                                            .check(status().is(200))
-                                            .check(
-                                                jsonPath("$.enrollments[0].enrollment")
-                                                    .saveAs("enrollmentUid"))
-                                            .check(
-                                                jsonPath("$.enrollments[0].events[0].event")
-                                                    .saveAs("eventUid")))
-                                        .exec(
-                                            http("Get first enrollment")
-                                                .get(singleEnrollmentUrl)
-                                                .check(status().is(200)))
-                                        .exec(
-                                            http("Get relationships for first tracked entity")
-                                                .get(relationshipForTrackedEntityUrl)
-                                                .check(status().is(200)))
-                                        .exec(
-                                            group("Get one event")
-                                                .on(
-                                                    exec(http("Get first event from enrollment")
-                                                            .get(eventUrl)
-                                                            .check(status().is(200)))
-                                                        .exec(
-                                                            http("Get relationships for first event")
-                                                                .get(relationshipForEventUrl)
-                                                                .check(status().is(200)))))))));
+    Request notFoundTeByName =
+        new Request(notFoundTEByName, 200, "Not found TE by name", "Get a list of TEs");
+    Request notFoundTeByNationalId =
+        new Request(notFoundByNationalId, 10, "Not found TE by national id", "Get a list of TEs");
+    Request searchTeByAttributes =
+        new Request(searchTEByAttributes, 200, "Search TE by attributes", "Get a list of TEs");
+    Request searchTeByNationalId =
+        new Request(searchForTEByNationalId, 10, "Search TE by national id", "Get a list of TEs");
+    Request searchEventsByProgramStage =
+        new Request(
+            searchEventByProgramStage, 100, "Search events by program stage", "Get a list of TEs");
+    Request getTrackedEntitiesForEvents =
+        new Request(getTEsFromEvents, 200, "Get tracked entities for events", "Get a list of TEs");
+    Request getFirstPageOfTEs =
+        new Request(
+            getTEsUrl,
+            200,
+            "Get first page of TEs of program " + trackerProgram,
+            "Get a list of TEs");
+    Request getFirstTrackedEntity =
+        new Request(
+            singleTrackedEntityUrl,
+            50,
+            "Get first tracked entity",
+            "Get a list of TEs",
+            "Go to single enrollment");
+    Request getFirstEnrollment =
+        new Request(
+            singleEnrollmentUrl,
+            15,
+            "Get first enrollment",
+            "Get a list of TEs",
+            "Go to single enrollment");
+    Request getRelationshipsForTrackedEntity =
+        new Request(
+            relationshipForTrackedEntityUrl,
+            10,
+            "Get relationships for first tracked entity",
+            "Get a list of TEs",
+            "Go to single enrollment");
+    Request getFirstEventFromEnrollment =
+        new Request(
+            eventUrl,
+            25,
+            "Get first event from enrollment",
+            "Get a list of TEs",
+            "Go to single enrollment",
+            "Get one event");
+    Request getRelationshipsForEvent =
+        new Request(
+            relationshipForEventUrl,
+            10,
+            "Get relationships for first event",
+            "Get a list of TEs",
+            "Go to single enrollment",
+            "Get one event");
+
+    ScenarioBuilder scenarioBuilder =
+        scenario("Tracker Program")
+            .exec(login())
+            .repeat(Integer.parseInt(repeat))
+            .on(
+                group("Get a list of TEs")
+                    .on(
+                        exec(notFoundTeByName.action())
+                            .exec(notFoundTeByNationalId.action())
+                            .exec(searchTeByAttributes.action())
+                            .exec(searchTeByNationalId.action())
+                            .exec(
+                                searchEventsByProgramStage
+                                    .action()
+                                    .check(
+                                        jsonPath("$.events[*].trackedEntity")
+                                            .findAll()
+                                            .transform(
+                                                list ->
+                                                    String.join(
+                                                        ",", list.stream().distinct().toList()))
+                                            .saveAs("trackedEntityUids")))
+                            .exec(getTrackedEntitiesForEvents.action())
+                            .exec(
+                                getFirstPageOfTEs
+                                    .action()
+                                    .check(
+                                        jsonPath("$.trackedEntities[0].trackedEntity")
+                                            .saveAs("trackedEntityUid")))
+                            .group("Go to single enrollment")
+                            .on(
+                                exec(getFirstTrackedEntity
+                                        .action()
+                                        .check(
+                                            jsonPath("$.enrollments[0].enrollment")
+                                                .saveAs("enrollmentUid"))
+                                        .check(
+                                            jsonPath("$.enrollments[0].events[0].event")
+                                                .saveAs("eventUid")))
+                                    .exec(getFirstEnrollment.action())
+                                    .exec(getRelationshipsForTrackedEntity.action())
+                                    .group("Get one event")
+                                    .on(
+                                        exec(getFirstEventFromEnrollment.action())
+                                            .exec(getRelationshipsForEvent.action())))));
+
+    return new ScenarioWithRequests(
+        scenarioBuilder,
+        List.of(
+            notFoundTeByName,
+            notFoundTeByNationalId,
+            searchTeByAttributes,
+            searchTeByNationalId,
+            searchEventsByProgramStage,
+            getTrackedEntitiesForEvents,
+            getFirstPageOfTEs,
+            getFirstTrackedEntity,
+            getFirstEnrollment,
+            getRelationshipsForTrackedEntity,
+            getFirstEventFromEnrollment,
+            getRelationshipsForEvent));
   }
+
+  private HttpRequestActionBuilder login() {
+    return http("Login")
+        .post("/api/auth/login")
+        .header("Content-Type", "application/json")
+        .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
+        .check(status().is(200));
+  }
+
+  private record Request(String url, int ninetyPercentile, String name, String... groups) {
+    HttpRequestActionBuilder action() {
+      return http(name).get(url);
+    }
+
+    Assertion assertion() {
+      String[] allParts = new String[groups.length + 1];
+      System.arraycopy(groups, 0, allParts, 0, groups.length);
+      allParts[groups.length] = name;
+      return details(allParts).responseTime().percentile(90).lte(ninetyPercentile);
+    }
+  }
+
+  private record ScenarioWithRequests(ScenarioBuilder scenario, List<Request> requests) {}
 }
