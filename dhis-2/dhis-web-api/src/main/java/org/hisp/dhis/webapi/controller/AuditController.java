@@ -346,12 +346,6 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<DataElement> getDataElementsByDataSet(List<String> uids) {
-    List<DataSet> dataSets = manager.loadByUid(DataSet.class, uids);
-
-    return dataSets.stream().map(DataSet::getDataElements).flatMap(Set::stream).toList();
-  }
-
   private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
     if (isoPeriods == null) {
       return new ArrayList<>();
