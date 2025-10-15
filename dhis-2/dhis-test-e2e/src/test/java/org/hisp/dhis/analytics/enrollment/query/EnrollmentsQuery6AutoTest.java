@@ -371,6 +371,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
             .add("rowContext=true")
             .add("pageSize=100")
             .add("outputType=ENROLLMENT")
+            .add("asc=lastupdated")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq");
 
@@ -441,11 +442,11 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-01-20 10:42:54.423");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-01-20 10:41:01.537");
 
     // Validate selected values for row index 4
     validateRowValueByName(response, actualHeaders, 4, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 4, "lastupdated", "2018-01-20 20:01:44.47");
+    validateRowValueByName(response, actualHeaders, 4, "lastupdated", "2018-05-08 20:54:31.858");
   }
 
   @Test

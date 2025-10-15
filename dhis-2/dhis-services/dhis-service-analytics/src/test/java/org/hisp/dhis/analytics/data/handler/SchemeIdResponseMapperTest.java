@@ -863,6 +863,39 @@ class SchemeIdResponseMapperTest {
     assertEquals("uid", grid.getRow(0).get(0));
   }
 
+  @Test
+  void testApplyOptionSetMappingWhenDataIdSchemeIsName() {
+    // Given
+    List<DataElementOperand> dataElementOperands = stubDataElementOperands();
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    PeriodDimension period = stubPeriod();
+
+    Data schemeData =
+        Data.builder()
+            .organizationUnits(List.of(organisationUnit))
+            .dataElementOperands(List.of(dataElementOperands.get(0), dataElementOperands.get(1)))
+            .dimensionalItemObjects(Set.of(period, organisationUnit))
+            .build();
+
+    Settings schemeSettings = Settings.builder().outputFormat(ANALYTICS).dataIdScheme(NAME).build();
+
+    SchemeInfo schemeInfo = new SchemeInfo(schemeSettings, schemeData);
+
+    // When
+    Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap(schemeInfo);
+
+    // Then
+    String orgUnitUid = organisationUnit.getUid();
+    String periodIsoDate = period.getIsoDate();
+    DataElement dataElementA = dataElementOperands.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperands.get(1).getDataElement();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(organisationUnit.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(period.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getName())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getName())));
+  }
+
   private Settings stubSchemeSettings(IdScheme idScheme) {
     return Settings.builder().outputIdScheme(idScheme).build();
   }

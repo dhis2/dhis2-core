@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.data.handler;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
@@ -76,13 +77,14 @@ public class SchemeIdResponseMapper {
   public Map<String, String> getSchemeIdResponseMap(SchemeInfo schemeInfo) {
     Data schemeData = schemeInfo.data();
     Settings schemeSettings = schemeInfo.settings();
+    IdScheme idScheme =
+        firstNonNull(schemeSettings.getOutputIdScheme(), schemeSettings.getDataIdScheme());
 
     Map<String, String> map =
-        getDimensionItemIdSchemeMap(
-            schemeData.getDimensionalItemObjects(), schemeSettings.getOutputIdScheme());
+        getDimensionItemIdSchemeMap(schemeData.getDimensionalItemObjects(), idScheme);
 
     // Apply general output ID scheme.
-    if (schemeSettings.isGeneralOutputIdSchemeSet()) {
+    if (schemeSettings.isGeneralOutputIdSchemeSet() || schemeSettings.isDataIdSchemeSet()) {
       applyIdSchemeMapping(schemeInfo, map);
     }
 
@@ -175,29 +177,30 @@ public class SchemeIdResponseMapper {
   private void applyIdSchemeMapping(SchemeInfo schemeInfo, Map<String, String> map) {
     Data schemeData = schemeInfo.data();
     Settings schemeSettings = schemeInfo.settings();
+    IdScheme idScheme =
+        firstNonNull(schemeSettings.getOutputIdScheme(), schemeSettings.getDataIdScheme());
 
     map.putAll(
         getDataElementOperandIdSchemeMap(
-            asTypedList(schemeData.getDataElementOperands()), schemeSettings.getOutputIdScheme()));
+            asTypedList(schemeData.getDataElementOperands()), idScheme));
 
     if (schemeData.getProgram() != null) {
       map.put(
           schemeData.getProgram().getUid(),
-          schemeData.getProgram().getDisplayPropertyValue(schemeSettings.getOutputIdScheme()));
+          schemeData.getProgram().getDisplayPropertyValue(idScheme));
     }
 
     if (schemeData.getProgramStage() != null) {
       map.put(
           schemeData.getProgramStage().getUid(),
-          schemeData.getProgramStage().getDisplayPropertyValue(schemeSettings.getOutputIdScheme()));
+          schemeData.getProgramStage().getDisplayPropertyValue(idScheme));
     }
 
     if (isNotEmpty(schemeData.getOptions())) {
       Set<Option> options = schemeData.getOptions();
 
       for (Option option : options) {
-        map.put(
-            option.getCode(), option.getDisplayPropertyValue(schemeSettings.getOutputIdScheme()));
+        map.put(option.getCode(), option.getDisplayPropertyValue(idScheme));
       }
     }
 
