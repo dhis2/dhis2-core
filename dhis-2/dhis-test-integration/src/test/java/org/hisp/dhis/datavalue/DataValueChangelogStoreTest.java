@@ -37,6 +37,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -126,8 +127,8 @@ class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
     assertEquals(2, dvaCoc3Before.size(), "There should be 2 audits referencing Cat Opt Combo 3");
 
     // when
-    dataValueChangelogStore.deleteByOptionCombo(coc1);
-    dataValueChangelogStore.deleteByOptionCombo(coc2);
+    dataValueChangelogStore.deleteByOptionCombo(UID.of(coc1));
+    dataValueChangelogStore.deleteByOptionCombo(UID.of(coc2));
 
     // then
     List<DataValueChangelog> dvaCoc1After =

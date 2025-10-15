@@ -38,11 +38,9 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.type.LongType;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogEntry;
@@ -52,7 +50,6 @@ import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.RawNativeQuery;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
@@ -73,26 +70,35 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   }
 
   @Override
-  public void deleteByOrgUnit(OrganisationUnit organisationUnit) {
-    String hql = "delete from DataValueChangelog d where d.organisationUnit = :unit";
+  public void deleteByOrgUnit(@Nonnull UID orgUnit) {
+    String sql =
+        """
+      DELETE FROM datavalueaudit dva
+      WHERE dva.organisationunitid = (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = :ou)""";
 
-    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createNativeQuery(sql).setParameter("ou", orgUnit.getValue()).executeUpdate();
   }
 
   @Override
-  public void deleteByDataElement(DataElement dataElement) {
-    String hql = "delete from DataValueChangelog d where d.dataElement = :dataElement";
+  public void deleteByDataElement(@Nonnull UID dataElement) {
+    String sql =
+        """
+      DELETE FROM datavalueaudit dva
+      WHERE dva.dataelementid = (SELECT de.dataelementid FROM dataelement de WHERE de.uid = :de)""";
 
-    entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+    entityManager.createNativeQuery(sql).setParameter("de", dataElement.getValue()).executeUpdate();
   }
 
   @Override
-  public void deleteByOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo) {
-    String hql =
-        "delete from DataValueChangelog d where d.categoryOptionCombo = :categoryOptionCombo or d.attributeOptionCombo = :categoryOptionCombo";
+  public void deleteByOptionCombo(@Nonnull UID categoryOptionCombo) {
+    String sql =
+        """
+        DELETE FROM datavalueaudit dva
+        WHERE dva.categoryoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc)
+           OR dva.attributeoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc);""";
     entityManager
-        .createQuery(hql)
-        .setParameter("categoryOptionCombo", categoryOptionCombo)
+        .createNativeQuery(sql)
+        .setParameter("coc", categoryOptionCombo.getValue())
         .executeUpdate();
   }
 

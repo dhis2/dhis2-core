@@ -32,8 +32,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,13 +48,13 @@ public class DefaultDataValueChangelogService implements DataValueChangelogServi
 
   @Override
   @Transactional
-  public void deleteByOrgUnit(OrganisationUnit organisationUnit) {
-    dataValueChangelogStore.deleteByOrgUnit(organisationUnit);
+  public void deleteByOrgUnit(@Nonnull UID orgUnit) {
+    dataValueChangelogStore.deleteByOrgUnit(orgUnit);
   }
 
   @Override
   @Transactional
-  public void deleteByDataElement(DataElement dataElement) {
+  public void deleteByDataElement(@Nonnull UID dataElement) {
     dataValueChangelogStore.deleteByDataElement(dataElement);
   }
 
