@@ -93,7 +93,7 @@ public class StartupConfig {
   public DataValueChangelogToggle dataValueAuditToggle(
       DataValueChangelogStore auditStore, DhisConfigurationProvider config) {
     DataValueChangelogToggle toggle = new DataValueChangelogToggle(auditStore, config);
-    toggle.setName("DataValueAuditToggle");
+    toggle.setName("DataValueChangelogToggle");
     toggle.setRunlevel(13);
     toggle.setSkipInTests(true);
     return toggle;

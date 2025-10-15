@@ -74,14 +74,14 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public void deleteByOrgUnit(OrganisationUnit organisationUnit) {
-    String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
+    String hql = "delete from DataValueChangelog d where d.organisationUnit = :unit";
 
     entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override
   public void deleteByDataElement(DataElement dataElement) {
-    String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
+    String hql = "delete from DataValueChangelog d where d.dataElement = :dataElement";
 
     entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
@@ -89,7 +89,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   @Override
   public void deleteByOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo) {
     String hql =
-        "delete from DataValueAudit d where d.categoryOptionCombo = :categoryOptionCombo or d.attributeOptionCombo = :categoryOptionCombo";
+        "delete from DataValueChangelog d where d.categoryOptionCombo = :categoryOptionCombo or d.attributeOptionCombo = :categoryOptionCombo";
     entityManager
         .createQuery(hql)
         .setParameter("categoryOptionCombo", categoryOptionCombo)

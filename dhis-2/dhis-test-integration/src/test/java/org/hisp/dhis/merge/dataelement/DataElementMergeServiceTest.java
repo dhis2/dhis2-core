@@ -2793,11 +2793,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // ------------------------
-  // -- DataValueAudit --
+  // -- DataValueChangelog --
   // ------------------------
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
+      "DataValueChangelogs with references to source DataElements are not changed or deleted when sources not deleted")
   void dataValueAuditMergeTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2839,7 +2839,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are deleted when sources are deleted")
+      "DataValueChangelogs with references to source DataElements are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));

@@ -1283,12 +1283,12 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // ------------------------
-  // -- DataValueAudit --
+  // -- DataValueChangelog --
   // ------------------------
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to source COCs are deleted when sources are deleted")
+      "DataValueChangelogs with references to source COCs are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
     dataDumpService.upsertValues(

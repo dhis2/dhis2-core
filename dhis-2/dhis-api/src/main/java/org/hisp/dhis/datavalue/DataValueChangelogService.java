@@ -56,11 +56,11 @@ public interface DataValueChangelogService {
   void deleteByDataElement(DataElement dataElement);
 
   /**
-   * Returns all DataValueAudits for the given DataValue.
+   * Returns all entries for the given DataValue.
    *
-   * @param dataValue the DataValue to get DataValueAudits for.
-   * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
-   *     there are no matches.
+   * @param dataValue the DataValue to get entries for.
+   * @return a list of entries which match the given DataValue, or an empty collection if there are
+   *     no matches.
    */
   @UsageTestOnly
   List<DataValueChangelogEntry> getChangelogEntries(DataExportValue dataValue);
