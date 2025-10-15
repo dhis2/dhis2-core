@@ -52,8 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 /** Created by Halvdan Hoem Grelland */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
-class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
-  @Autowired private DataValueAuditService dataValueAuditService;
+class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private DataValueChangelogService dataValueChangelogService;
 
   @Autowired private DataDumpService dataDumpService;
 
@@ -137,66 +137,66 @@ class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testAddGetDataValueAuditFromDataValue() {
-    assertEquals(1, dataValueAuditService.getDataValueAudits(dataValueA.toEntry()).size());
+    assertEquals(1, dataValueChangelogService.getChangelogEntries(dataValueA.toEntry()).size());
   }
 
   @Test
   void testAddGetDataValueAuditSingleRecord() {
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
             .setDataElements(List.of(dataElementA))
             .setPeriods(List.of(periodA))
             .setOrgUnits(List.of(orgUnitA))
             .setCategoryOptionCombo(optionCombo)
             .setAttributeOptionCombo(optionCombo);
 
-    assertEquals(1, dataValueAuditService.getDataValueAudits(params).size());
+    assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
   }
 
   @Test
   void testGetDataValueAudit() {
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
             .setDataElements(List.of(dataElementA))
             .setPeriods(List.of(periodA))
             .setOrgUnits(List.of(orgUnitA))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(DataValueAuditType.CREATE));
-    assertEquals(1, dataValueAuditService.getDataValueAudits(params).size());
+            .setTypes(List.of(DataValueChangelogType.CREATE));
+    assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
 
     params =
-        new DataValueAuditQueryParams()
+        new DataValueChangelogQueryParams()
             .setDataElements(List.of(dataElementA, dataElementB))
             .setPeriods(List.of(periodA, periodB))
             .setOrgUnits(List.of(orgUnitA, orgUnitB))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(DataValueAuditType.CREATE));
-    assertEquals(2, dataValueAuditService.getDataValueAudits(params).size());
+            .setTypes(List.of(DataValueChangelogType.CREATE));
+    assertEquals(2, dataValueChangelogService.getChangelogEntries(params).size());
 
     dataValueC.setValue("5");
     addDataValues(dataValueC);
-    params = new DataValueAuditQueryParams().setAuditTypes(List.of(DataValueAuditType.UPDATE));
-    assertEquals(1, dataValueAuditService.getDataValueAudits(params).size());
+    params = new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE));
+    assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
 
     dataValueD.setDeleted(true);
     addDataValues(dataValueD);
     params =
-        new DataValueAuditQueryParams()
-            .setAuditTypes(List.of(DataValueAuditType.UPDATE, DataValueAuditType.DELETE));
-    assertEquals(2, dataValueAuditService.getDataValueAudits(params).size());
+        new DataValueChangelogQueryParams()
+            .setTypes(List.of(DataValueChangelogType.UPDATE, DataValueChangelogType.DELETE));
+    assertEquals(2, dataValueChangelogService.getChangelogEntries(params).size());
   }
 
   @Test
   void testGetDataValueAuditNoResult() {
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
             .setDataElements(List.of(dataElementA))
             .setPeriods(List.of(periodD))
             .setOrgUnits(List.of(orgUnitA))
             .setCategoryOptionCombo(optionCombo)
-            .setAuditTypes(List.of(DataValueAuditType.DELETE));
+            .setTypes(List.of(DataValueChangelogType.DELETE));
 
-    assertEquals(0, dataValueAuditService.getDataValueAudits(params).size());
+    assertEquals(0, dataValueChangelogService.getChangelogEntries(params).size());
   }
 
   private void addDataValues(DataValue... values) {

@@ -45,8 +45,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAuditEntry;
-import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueChangelogEntry;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -82,7 +82,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private FileResourceService fileResourceService;
 
-  @Autowired private DataValueAuditService dataValueAuditService;
+  @Autowired private DataValueChangelogService dataValueChangelogService;
 
   @Autowired private DataExportService dataExportService;
 
@@ -155,8 +155,8 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
     addDataValues(dataValueB);
     fileResource.setAssigned(true);
 
-    DataValueAuditEntry audit =
-        dataValueAuditService.getDataValueAudits(dataValueB.toEntry()).get(0);
+    DataValueChangelogEntry audit =
+        dataValueChangelogService.getChangelogEntries(dataValueB.toEntry()).get(0);
     // FIXME this needs to be done differently - update also should be removed
     // audit.setCreated(getDate(2000, 1, 1));
     // dataValueAuditStore.update(audit);
