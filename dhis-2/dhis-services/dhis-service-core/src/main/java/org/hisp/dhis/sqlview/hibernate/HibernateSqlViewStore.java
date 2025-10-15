@@ -123,7 +123,7 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   @Override
   public void populateSqlViewGrid(
       Grid grid, String sql, Object[] args, TransactionMode transactionMode) {
-    System.out.println("using sql: " + sql + " \nwith args: " + Arrays.toString(args));
+    log.info("Using sql: `{}` with args `{}`", sql, Arrays.toString(args));
     SqlRowSet rs =
         switch (transactionMode) {
           case READ -> readOnlyJdbcTemplate.queryForRowSet(sql, args);

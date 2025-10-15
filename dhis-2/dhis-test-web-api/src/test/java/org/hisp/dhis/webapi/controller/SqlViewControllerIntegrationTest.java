@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -106,85 +107,128 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
     assertFieldsResponse(content, expectedNumResults, expectedFields, expectedValues);
   }
 
+  @ParameterizedTest
+  @MethodSource("sqlViewCriteriaQueries")
+  void queryCriteriaTest(String query, Set<String> expectedValues, int expectedNumResults) {
+    JsonMixed content = GET(query).content(HttpStatus.OK);
+    assertFilterResponse(content, expectedNumResults, expectedValues);
+  }
+
   public static Stream<Arguments> sqlViewFilterQueries() {
     return Stream.of(
-        Arguments.of(QUERY_PATH, Set.of("optionUidz1", "optionUidz2", "optionUid11"), 3),
+        Arguments.of(
+            QUERY_PATH, Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"), 4),
 
         // single filter
         Arguments.of(QUERY_PATH + "?filter=uid:eq:optionUidz2", Set.of("optionUidz2"), 1),
         Arguments.of(QUERY_PATH + "?filter=uid:ieq:optionuidz2", Set.of("optionUidz2"), 1),
         Arguments.of(
-            QUERY_PATH + "?filter=uid:!eq:optionUidz2", Set.of("optionUidz1", "optionUid11"), 2),
+            QUERY_PATH + "?filter=uid:!eq:optionUidz2",
+            Set.of("optionUidz1", "optionUidz3", "optionUid11"),
+            3),
         Arguments.of(
-            QUERY_PATH + "?filter=sort_order:gt:1", Set.of("optionUidz2", "optionUid11"), 2),
+            QUERY_PATH + "?filter=sort_order:gt:1",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
         Arguments.of(QUERY_PATH + "?filter=sort_order:lt:2", Set.of("optionUidz1"), 1),
         Arguments.of(
-            QUERY_PATH + "?filter=sort_order:gte:2", Set.of("optionUidz2", "optionUid11"), 2),
+            QUERY_PATH + "?filter=sort_order:gte:2",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
         Arguments.of(
-            QUERY_PATH + "?filter=sort_order:lte:2", Set.of("optionUidz2", "optionUidz1"), 2),
+            QUERY_PATH + "?filter=sort_order:lte:2",
+            Set.of("optionUidz2", "optionUidz3", "optionUidz1"),
+            3),
         Arguments.of(
             QUERY_PATH + "?filter=uid:like:optionUid",
-            Set.of("optionUidz1", "optionUidz2", "optionUid11"),
-            3),
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"),
+            4),
         Arguments.of(QUERY_PATH + "?filter=uid:!like:optionUidz", Set.of("optionUid11"), 1),
         Arguments.of(
-            QUERY_PATH + "?filter=uid:^like:optionUidz", Set.of("optionUidz1", "optionUidz2"), 2),
+            QUERY_PATH + "?filter=uid:^like:optionUidz",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3"),
+            3),
         Arguments.of(QUERY_PATH + "?filter=uid:!^like:optionUidz", Set.of("optionUid11"), 1),
         Arguments.of(QUERY_PATH + "?filter=uid:$like:optionUidz1", Set.of("optionUidz1"), 1),
         Arguments.of(
-            QUERY_PATH + "?filter=uid:!$like:optionUidz1", Set.of("optionUidz2", "optionUid11"), 2),
-        Arguments.of(
-            QUERY_PATH + "?filter=uid:ilike:optionuid",
-            Set.of("optionUidz1", "optionUidz2", "optionUid11"),
+            QUERY_PATH + "?filter=uid:!$like:optionUidz1",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
             3),
         Arguments.of(
-            QUERY_PATH + "?filter=uid:!ilike:optionuidz2", Set.of("optionUidz1", "optionUid11"), 2),
+            QUERY_PATH + "?filter=uid:ilike:optionuid",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"),
+            4),
         Arguments.of(
-            QUERY_PATH + "?filter=uid:^ilike:optionuidz", Set.of("optionUidz2", "optionUidz1"), 2),
+            QUERY_PATH + "?filter=uid:!ilike:optionuidz2",
+            Set.of("optionUidz1", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(
+            QUERY_PATH + "?filter=uid:^ilike:optionuidz",
+            Set.of("optionUidz2", "optionUidz3", "optionUidz1"),
+            3),
         Arguments.of(QUERY_PATH + "?filter=uid:!^ilike:optionuidz", Set.of("optionUid11"), 1),
         Arguments.of(QUERY_PATH + "?filter=uid:$ilike:optionuidz", Set.of(), 0),
         Arguments.of(
             QUERY_PATH + "?filter=uid:!$ilike:optionuidz",
-            Set.of("optionUidz1", "optionUidz2", "optionUid11"),
-            3),
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"),
+            4),
         Arguments.of(
             QUERY_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]",
             Set.of("optionUidz2", "optionUidz1"),
             2),
         Arguments.of(
-            QUERY_PATH + "?filter=uid:!in:[optionUidz2,optionUidz1]", Set.of("optionUid11"), 1),
+            QUERY_PATH + "?filter=uid:!in:[optionUidz2,optionUidz1]",
+            Set.of("optionUidz3", "optionUid11"),
+            2),
         Arguments.of(
-            QUERY_PATH + "?filter=description:null", Set.of("optionUidz2", "optionUid11"), 2),
+            QUERY_PATH + "?filter=description:null",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
         Arguments.of(QUERY_PATH + "?filter=description:!null", Set.of("optionUidz1"), 1),
 
         // multiple filters
         Arguments.of(
             QUERY_PATH + "?filter=uid:like:optionUidz&filter=name:like:option",
-            Set.of("optionUidz1", "optionUidz2"),
-            2),
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3"),
+            3),
         Arguments.of(
             QUERY_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]&filter=name:like:1",
             Set.of("optionUidz1"),
             1));
   }
 
+  /**
+   * Fields queries also contain a filter condition as views of type QUERY only apply the fields
+   * param when with a filter or criteria param
+   */
   public static Stream<Arguments> sqlViewFieldQueries() {
     return Stream.of(
         Arguments.of(
             QUERY_PATH + "?fields=*&filter=uid:ilike:uid",
             Set.of("uid", "name", "description", "sort_order"),
             Set.of("optionUidz1", "test option 1", "test description", "1"),
-            3),
+            4),
         Arguments.of(
             QUERY_PATH + "?fields=uid&filter=uid:ilike:uid",
             Set.of("uid"),
-            Set.of("optionUidz2", "test option 2", "null", "2"),
-            3),
+            Set.of("optionUidz2"),
+            4),
         Arguments.of(
-            QUERY_PATH + "?fields=name,description&filter=uid:ilike:uid",
+            QUERY_PATH + "?fields=name,description&filter=name:ilike:test",
             Set.of("name", "description"),
-            Set.of("test option 11", "null"),
-            3));
+            Set.of("test option 3", ""),
+            4));
+  }
+
+  public static Stream<Arguments> sqlViewCriteriaQueries() {
+    return Stream.of(
+        Arguments.of(QUERY_PATH + "?criteria=name:test option 1", Set.of("optionUidz1"), 1),
+        Arguments.of(
+            QUERY_PATH + "?criteria=sort_order:2", Set.of("optionUidz2", "optionUidz3"), 2),
+        Arguments.of(
+            QUERY_PATH + "?criteria=sort_order:2&criteria=uid:optionUidz2",
+            Set.of("optionUidz2"),
+            1));
   }
 
   private void assertFilterResponse(JsonMixed content, int expectedSize, Set<String> uids) {
@@ -208,10 +252,14 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
       assertTrue(expectedFields.contains(object.getString("column").string()));
     }
 
-    //    for (int i = 0; i < rows.size(); i++) {
-    //      JsonList<JsonString> list = rows.get(i).asList(JsonString.class);
-    //      assertTrue(list.stream().anyMatch(s -> expectedValues.contains(s.string())));
-    //    }
+    assertTrue(
+        rows.stream()
+            .anyMatch(
+                row ->
+                    expectedValues.containsAll(
+                        row.asList(JsonString.class).stream()
+                            .map(JsonString::string)
+                            .collect(Collectors.toSet()))));
   }
 
   private String sqlView() {
@@ -240,6 +288,12 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
                     "id": "optionUidz2",
                     "name": "test option 2",
                     "code": "test option 2",
+                    "sortOrder": 2
+                 },
+                 {
+                    "id": "optionUidz3",
+                    "name": "test option 3",
+                    "code": "test option 3",
                     "sortOrder": 2
                  },
                  {

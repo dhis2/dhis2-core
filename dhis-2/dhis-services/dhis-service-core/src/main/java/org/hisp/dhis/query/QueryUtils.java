@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -212,8 +213,7 @@ public final class QueryUtils {
       if (field.equals("*")) {
         str.append("*");
       } else {
-        // this encloses the column in double quotes so it's treated as an identifier
-        str.append("\"").append(field).append("\"");
+        str.append(SqlUtils.quote(field));
         if (i < fields.size() - 1) {
           str.append(",");
         }
@@ -293,51 +293,57 @@ public final class QueryUtils {
    * @param value value of the current SQL query condition.
    * @return a string contains an SQL expression with operator and value.
    */
-  public static QueryPlaceHolderWithArg parseFilterOperator(String operator, String value) {
+  public static OperatorWithPlaceHolderAndArg parseFilterOperator(String operator, String value) {
 
     if (StringUtils.isEmpty(operator)) {
       throw new QueryParserException("Filter Operator is null");
     }
 
     return switch (operator) {
-      case "eq" -> new QueryPlaceHolderWithArg(" = ? ", QueryUtils.validateValue(value));
-      case "ieq" -> new QueryPlaceHolderWithArg(" ilike ? ", value);
+      case "eq" -> new OperatorWithPlaceHolderAndArg(" = ? ", QueryUtils.validateValue(value));
+      case "ieq" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", value);
       case "!eq", "ne", "neq" ->
-          new QueryPlaceHolderWithArg(" != ? ", QueryUtils.validateValue(value));
-      case "gt" -> new QueryPlaceHolderWithArg(" > ? ", QueryUtils.validateValue(value));
-      case "lt" -> new QueryPlaceHolderWithArg(" < ? ", QueryUtils.validateValue(value));
-      case "gte", "ge" -> new QueryPlaceHolderWithArg(" >= ? ", QueryUtils.validateValue(value));
-      case "lte", "le" -> new QueryPlaceHolderWithArg(" <= ? ", QueryUtils.validateValue(value));
-      case "like" -> new QueryPlaceHolderWithArg(" like ? ", "%" + value + "%");
-      case "!like" -> new QueryPlaceHolderWithArg(" not like ? ", "%" + value + "%");
-      case "^like" -> new QueryPlaceHolderWithArg(" like ? ", value + "%");
-      case "!^like" -> new QueryPlaceHolderWithArg(" not like ? ", value + "%");
-      case "$like" -> new QueryPlaceHolderWithArg(" like ?", "%" + value);
-      case "!$like" -> new QueryPlaceHolderWithArg(" not like ?", "%" + value);
-      case "ilike" -> new QueryPlaceHolderWithArg(" ilike ? ", "%" + value + "%");
-      case "!ilike" -> new QueryPlaceHolderWithArg(" not ilike ? ", "%" + value + "%");
-      case "^ilike" -> new QueryPlaceHolderWithArg(" ilike ? ", value + "%");
-      case "!^ilike" -> new QueryPlaceHolderWithArg(" not ilike ? ", value + "%");
-      case "$ilike" -> new QueryPlaceHolderWithArg(" ilike ? ", "%" + value);
-      case "!$ilike" -> new QueryPlaceHolderWithArg(" not ilike ? ", "%" + value);
+          new OperatorWithPlaceHolderAndArg(" != ? ", QueryUtils.validateValue(value));
+      case "gt" -> new OperatorWithPlaceHolderAndArg(" > ? ", QueryUtils.validateValue(value));
+      case "lt" -> new OperatorWithPlaceHolderAndArg(" < ? ", QueryUtils.validateValue(value));
+      case "gte", "ge" ->
+          new OperatorWithPlaceHolderAndArg(" >= ? ", QueryUtils.validateValue(value));
+      case "lte", "le" ->
+          new OperatorWithPlaceHolderAndArg(" <= ? ", QueryUtils.validateValue(value));
+      case "like" -> new OperatorWithPlaceHolderAndArg(" like ? ", "%" + value + "%");
+      case "!like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", "%" + value + "%");
+      case "^like" -> new OperatorWithPlaceHolderAndArg(" like ? ", value + "%");
+      case "!^like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", value + "%");
+      case "$like" -> new OperatorWithPlaceHolderAndArg(" like ?", "%" + value);
+      case "!$like" -> new OperatorWithPlaceHolderAndArg(" not like ?", "%" + value);
+      case "ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", "%" + value + "%");
+      case "!ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", "%" + value + "%");
+      case "^ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", value + "%");
+      case "!^ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", value + "%");
+      case "$ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", "%" + value);
+      case "!$ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", "%" + value);
       case "in" -> {
         List<Object> objects = QueryUtils.convertToCollectionArgs(value);
-        yield new QueryPlaceHolderWithArg(
+        yield new OperatorWithPlaceHolderAndArg(
             " in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ", objects);
       }
       case "!in" -> {
         List<Object> objects = QueryUtils.convertToCollectionArgs(value);
-        yield new QueryPlaceHolderWithArg(
+        yield new OperatorWithPlaceHolderAndArg(
             " not in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ",
             objects);
       }
-      case "null" -> new QueryPlaceHolderWithArg("is null ", null);
-      case "!null" -> new QueryPlaceHolderWithArg("is not null ", null);
+      case "null" -> new OperatorWithPlaceHolderAndArg("is null ", null);
+      case "!null" -> new OperatorWithPlaceHolderAndArg("is not null ", null);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
   }
 
-  public record QueryPlaceHolderWithArg(String query, Object arg) {}
+  /**
+   * @param operatorWithPlaceholder SQL operator with a '?' placeholder (e.g. 'like ?', '> ?')
+   * @param arg the arg to be supplied to the placeholder
+   */
+  public record OperatorWithPlaceHolderAndArg(String operatorWithPlaceholder, Object arg) {}
 
   /**
    * Returns a single result from the given {@link TypedQuery}. Returns null if no objects could be

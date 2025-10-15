@@ -135,28 +135,28 @@ class QueryUtilsTest {
   @Test
   void testParseFilterOperator() {
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg("= ?", "5"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg("= ?", "5"),
         QueryUtils.parseFilterOperator("eq", "5"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg("= ?", "ABC"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg("= ?", "ABC"),
         QueryUtils.parseFilterOperator("eq", "ABC"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg(" ilike ?", "abc"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg(" ilike ?", "abc"),
         QueryUtils.parseFilterOperator("ieq", "abc"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg("like ?", "%abc%"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg("like ?", "%abc%"),
         QueryUtils.parseFilterOperator("like", "abc"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg(" like ?", "%abc"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg(" like ?", "%abc"),
         QueryUtils.parseFilterOperator("$like", "abc"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg("in ?", "(a,b,c)"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg("in ?", "(a,b,c)"),
         QueryUtils.parseFilterOperator("in", "[a,b,c]"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg("in ?", "(1,2,3)"),
+        new QueryUtils.OperatorWithPlaceHolderAndArg("in ?", "(1,2,3)"),
         QueryUtils.parseFilterOperator("in", "[1,2,3]"));
     assertEquals(
-        new QueryUtils.QueryPlaceHolderWithArg("is not null", null),
+        new QueryUtils.OperatorWithPlaceHolderAndArg("is not null", null),
         QueryUtils.parseFilterOperator("!null", null));
   }
 
