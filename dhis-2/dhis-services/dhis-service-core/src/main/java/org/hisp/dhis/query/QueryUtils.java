@@ -214,9 +214,9 @@ public final class QueryUtils {
         str.append("*");
       } else {
         str.append(SqlUtils.quote(field));
-        if (i < fields.size() - 1) {
-          str.append(",");
-        }
+      }
+      if (i < fields.size() - 1) {
+        str.append(",");
       }
     }
     return str.toString();
