@@ -275,6 +275,9 @@ jobs:
         echo "<details>" >> $GITHUB_STEP_SUMMARY
         echo "<summary>Complete baseline environment configuration</summary>" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "> **⚠️ Warning**: GitHub Actions removes quotes around arguments like \`MVN_ARGS\` and \`PROF_ARGS\`." >> $GITHUB_STEP_SUMMARY
+        echo "> You may need to manually re-add quotes when copying this configuration." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo "${{ inputs.baseline_env }}" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
@@ -282,6 +285,9 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "<details>" >> $GITHUB_STEP_SUMMARY
         echo "<summary>Complete candidate environment configuration</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "> **⚠️ Warning**: GitHub Actions removes quotes around arguments like \`MVN_ARGS\` and \`PROF_ARGS\`." >> $GITHUB_STEP_SUMMARY
+        echo "> You may need to manually re-add quotes when copying this configuration." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
         echo "${{ inputs.candidate_env }}" >> $GITHUB_STEP_SUMMARY
