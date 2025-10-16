@@ -31,10 +31,8 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Quang Nguyen
@@ -45,16 +43,16 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
   /**
    * Deletes all data value audits for the given organisation unit.
    *
-   * @param organisationUnit the organisation unit.
+   * @param orgUnit the organisation unit.
    */
-  void deleteByOrgUnit(OrganisationUnit organisationUnit);
+  void deleteByOrgUnit(@Nonnull UID orgUnit);
 
   /**
    * Deletes all data value audits for the given data element.
    *
    * @param dataElement the data element.
    */
-  void deleteByDataElement(DataElement dataElement);
+  void deleteByDataElement(@Nonnull UID dataElement);
 
   /**
    * Deletes all data value audits for the given category option combo. Both properties:
@@ -62,7 +60,7 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
    *
    * @param categoryOptionCombo the categoryOptionCombo.
    */
-  void deleteByOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo);
+  void deleteByOptionCombo(@Nonnull UID categoryOptionCombo);
 
   /**
    * Returns data value audits for the given query.

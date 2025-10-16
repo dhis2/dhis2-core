@@ -29,20 +29,14 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
-import io.hypersistence.utils.hibernate.type.array.LongArrayType;
-import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.type.LongType;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hibernate.Session;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogEntry;
@@ -52,7 +46,6 @@ import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.RawNativeQuery;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
@@ -73,98 +66,86 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   }
 
   @Override
-  public void deleteByOrgUnit(OrganisationUnit organisationUnit) {
-    String hql = "delete from DataValueChangelog d where d.organisationUnit = :unit";
+  public void deleteByOrgUnit(@Nonnull UID orgUnit) {
+    String sql =
+        """
+      DELETE FROM datavalueaudit dva
+      WHERE dva.organisationunitid = (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = :ou)""";
 
-    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createNativeQuery(sql).setParameter("ou", orgUnit.getValue()).executeUpdate();
   }
 
   @Override
-  public void deleteByDataElement(DataElement dataElement) {
-    String hql = "delete from DataValueChangelog d where d.dataElement = :dataElement";
+  public void deleteByDataElement(@Nonnull UID dataElement) {
+    String sql =
+        """
+      DELETE FROM datavalueaudit dva
+      WHERE dva.dataelementid = (SELECT de.dataelementid FROM dataelement de WHERE de.uid = :de)""";
 
-    entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+    entityManager.createNativeQuery(sql).setParameter("de", dataElement.getValue()).executeUpdate();
   }
 
   @Override
-  public void deleteByOptionCombo(@Nonnull CategoryOptionCombo categoryOptionCombo) {
-    String hql =
-        "delete from DataValueChangelog d where d.categoryOptionCombo = :categoryOptionCombo or d.attributeOptionCombo = :categoryOptionCombo";
+  public void deleteByOptionCombo(@Nonnull UID categoryOptionCombo) {
+    String sql =
+        """
+        DELETE FROM datavalueaudit dva
+        WHERE dva.categoryoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc)
+           OR dva.attributeoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc);""";
     entityManager
-        .createQuery(hql)
-        .setParameter("categoryOptionCombo", categoryOptionCombo)
+        .createNativeQuery(sql)
+        .setParameter("coc", categoryOptionCombo.getValue())
         .executeUpdate();
   }
 
   @Override
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
+    return createEntriesQuery(params, getSession()).stream(DataValueChangelog.class).toList();
+  }
+
+  @Override
+  public int countEntries(DataValueChangelogQueryParams params) {
+    return createEntriesQuery(params, getSession()).count();
+  }
+
+  static RawNativeQuery createEntriesQuery(DataValueChangelogQueryParams params, Session session) {
+    @Language("sql")
     String sql =
         """
       SELECT *
       FROM datavalueaudit dva
       JOIN period pe ON dva.periodid = pe.periodid
-      WHERE (cardinality(:types) = 0 OR dva.audittype = ANY(:types))
-        AND (cardinality(:de) = 0 OR dva.dataelementid = ANY(:de))
-        AND (cardinality(:ou) = 0 OR dva.organisationunitid = ANY(:ou))
-        AND (:coc IS NULL OR dva.categoryoptioncomboid = :coc)
-        AND (:aoc IS NULL OR dva.categoryoptioncomboid = :aoc)
-        AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))
+      JOIN dataelement de ON dva.dataelementid = de.dataelementid
+      JOIN organisationunit ou ON dva.organisationunitid = ou.organisationunitid
+      JOIN datasetelement dse ON dva.dataelementid = dse.dataelementid
+      JOIN dataset ds ON dse.datasetid = ds.datasetid
+      WHERE 1=1 -- below filters might be erased...
+        AND dva.audittype = ANY(:types)
+        AND dva.categoryoptioncomboid = (SELECT coc.categoryoptioncomboid FROM categoryoptioncombo coc WHERE coc.uid = :coc)
+        AND dva.attributeoptioncomboid = (SELECT aoc.categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
+        AND ds.uid = ANY(:ds)
+        AND de.uid = ANY(:de)
+        AND ou.uid = ANY(:ou)
+        AND pe.iso = ANY(:pe)
       ORDER BY dva.created DESC""";
 
-    NativeQuery<DataValueChangelog> query =
-        setParameters(nativeSynchronizedTypedQuery(sql), params);
     Pager pager = params.getPager();
-    if (pager != null) {
-      query.setFirstResult(pager.getOffset()).setMaxResults(pager.getPageSize());
-    }
-    return query.list();
-  }
-
-  @Override
-  public int countEntries(DataValueChangelogQueryParams params) {
-    String sql =
-        """
-      SELECT count(*)
-      FROM datavalueaudit dva
-      JOIN period pe ON dva.periodid = pe.periodid
-      WHERE (cardinality(:types) = 0 OR dva.audittype = ANY(:types))
-        AND (cardinality(:de) = 0 OR dva.dataelementid = ANY(:de))
-        AND (cardinality(:ou) = 0 OR dva.organisationunitid = ANY(:ou))
-        AND (cast(:coc as bigint) IS NULL OR dva.categoryoptioncomboid = :coc)
-        AND (cast(:aoc as bigint) IS NULL OR dva.categoryoptioncomboid = :aoc)
-        AND (cardinality(:pe) = 0 OR pe.iso = ANY(:pe))""";
-
-    NativeQuery<?> query = nativeSynchronizedQuery(sql);
-    return setParameters(query, params).getSingleResult() instanceof Number n ? n.intValue() : 0;
-  }
-
-  private <E> NativeQuery<E> setParameters(
-      NativeQuery<E> query, DataValueChangelogQueryParams params) {
-    String[] types =
-        params.getTypes() == null
-            ? new String[0]
-            : params.getTypes().stream().map(Enum::name).toArray(String[]::new);
-    String[] periods =
-        params.getPeriods() == null
-            ? new String[0]
-            : params.getPeriods().stream().map(Period::getIsoDate).toArray(String[]::new);
-    return query
-        .setParameter("types", types, StringArrayType.INSTANCE)
-        .setParameter("pe", periods, StringArrayType.INSTANCE)
-        .setParameter("de", getIds(params.getDataElements()), LongArrayType.INSTANCE)
-        .setParameter("ou", getIds(params.getOrgUnits()), LongArrayType.INSTANCE)
-        .setParameter("coc", getId(params.getCategoryOptionCombo()), LongType.INSTANCE)
-        .setParameter("aoc", getId(params.getAttributeOptionCombo()), LongType.INSTANCE);
-  }
-
-  private static Long[] getIds(List<? extends IdentifiableObject> objects) {
-    return objects == null
-        ? new Long[0]
-        : objects.stream().map(IdentifiableObject::getId).toArray(Long[]::new);
-  }
-
-  private static Long getId(IdentifiableObject object) {
-    return object == null ? null : object.getId();
+    return new RawNativeQuery(sql, session)
+        .setInOrAnyParameter("types", params.getTypes(), DataValueChangelogType::name)
+        .setInOrAnyParameter("pe", params.getPeriods(), Period::getIsoDate)
+        .setInOrAnyParameter("ds", params.getDataSets())
+        .setInOrAnyParameter("de", params.getDataElements())
+        .setInOrAnyParameter("ou", params.getOrgUnits())
+        .setParameter("coc", params.getCategoryOptionCombo())
+        .setParameter("aoc", params.getAttributeOptionCombo())
+        .setOffset(pager == null ? null : pager.getOffset())
+        .setLimit(pager == null ? null : pager.getPageSize())
+        .eraseNullParameterLines()
+        .eraseNullJoinLine("de", "de")
+        .eraseNullJoinLine("ou", "ou")
+        .eraseNullJoinLine("pe", "pe")
+        .eraseNullJoinLine("dse", "ds")
+        .eraseNullJoinLine("ds", "ds");
   }
 
   @Override
@@ -181,6 +162,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelogEntry> getEntries(@Nonnull DataEntryKey key) {
+    @Language("sql")
     String sql =
         """
         SELECT
@@ -198,20 +180,16 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
             AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
-    return createRawNativeQuery(sql)
-        .setParameter("de", key.dataElement())
-        .setParameter("ou", key.orgUnit())
-        .setParameter("iso", key.period())
-        .eraseNullParameterLines()
-        .setParameter("coc", key.categoryOptionCombo())
-        .setParameter("aoc", key.attributeOptionCombo())
-        .stream()
-        .map(HibernateDataValueChangelogStore::toEntry)
-        .toList();
-  }
-
-  private RawNativeQuery createRawNativeQuery(@Language("SQL") String sql) {
-    return new RawNativeQuery(sql, getSession());
+    return new RawNativeQuery(sql, getSession())
+            .setParameter("de", key.dataElement())
+            .setParameter("ou", key.orgUnit())
+            .setParameter("iso", key.period())
+            .eraseNullParameterLines()
+            .setParameter("coc", key.categoryOptionCombo())
+            .setParameter("aoc", key.attributeOptionCombo())
+            .stream()
+            .map(HibernateDataValueChangelogStore::toEntry)
+            .toList();
   }
 
   @CheckForNull

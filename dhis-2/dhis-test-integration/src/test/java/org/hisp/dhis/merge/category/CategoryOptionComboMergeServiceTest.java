@@ -2268,7 +2268,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private DataValueChangelogQueryParams getQueryParams(CategoryOptionCombo coc) {
-    return new DataValueChangelogQueryParams().setCategoryOptionCombo(coc);
+    return new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc));
   }
 
   private DataValue addDataValue(DataValue value) {

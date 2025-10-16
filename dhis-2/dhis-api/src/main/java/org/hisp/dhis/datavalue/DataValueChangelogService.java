@@ -31,9 +31,8 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Quang Nguyen
@@ -44,16 +43,16 @@ public interface DataValueChangelogService {
   /**
    * Deletes all data value audits for the given organisation unit.
    *
-   * @param organisationUnit the organisation unit.
+   * @param orgUnit the organisation unit.
    */
-  void deleteByOrgUnit(OrganisationUnit organisationUnit);
+  void deleteByOrgUnit(@Nonnull UID orgUnit);
 
   /**
    * Deletes all data value audits for the given data element.
    *
    * @param dataElement the data element.
    */
-  void deleteByDataElement(DataElement dataElement);
+  void deleteByDataElement(@Nonnull UID dataElement);
 
   /**
    * Returns all entries for the given DataValue.

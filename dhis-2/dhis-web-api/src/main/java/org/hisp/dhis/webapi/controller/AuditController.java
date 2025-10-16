@@ -158,16 +158,13 @@ public class AuditController {
 
   @GetMapping("dataValue")
   public RootNode getAggregateDataValueChangelog(
-      @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<String> ds,
-      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
-          List<String> de,
+      @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<UID> ds,
+      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false) List<UID> de,
       @OpenApi.Param(Period[].class) @RequestParam(required = false) List<String> pe,
       @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
-          List<String> ou,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
-          String co,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
-          String cc,
+          List<UID> ou,
+      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID co,
+      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID cc,
       @RequestParam(name = "auditType", required = false) List<DataValueChangelogType> type,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
@@ -180,23 +177,17 @@ public class AuditController {
       fields.addAll(FieldPreset.ALL.getFields());
     }
 
-    List<DataElement> dataElements = new ArrayList<>();
-    dataElements.addAll(manager.loadByUid(DataElement.class, de));
-    dataElements.addAll(getDataElementsByDataSet(ds));
-
     List<Period> periods = getPeriods(pe);
-    List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
-    CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
-    CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
     List<DataValueChangelogType> types = emptyIfNull(type);
 
     DataValueChangelogQueryParams params =
         new DataValueChangelogQueryParams()
-            .setDataElements(dataElements)
+            .setDataSets(ds)
+            .setDataElements(de)
             .setPeriods(periods)
-            .setOrgUnits(organisationUnits)
-            .setCategoryOptionCombo(categoryOptionCombo)
-            .setAttributeOptionCombo(attributeOptionCombo)
+            .setOrgUnits(ou)
+            .setCategoryOptionCombo(co)
+            .setAttributeOptionCombo(cc)
             .setTypes(types);
 
     List<DataValueChangelog> entries;
@@ -212,11 +203,12 @@ public class AuditController {
       entries =
           dataValueChangelogService.getChangelogEntries(
               new DataValueChangelogQueryParams()
-                  .setDataElements(dataElements)
+                  .setDataSets(ds)
+                  .setDataElements(de)
                   .setPeriods(periods)
-                  .setOrgUnits(organisationUnits)
-                  .setCategoryOptionCombo(categoryOptionCombo)
-                  .setAttributeOptionCombo(attributeOptionCombo)
+                  .setOrgUnits(ou)
+                  .setCategoryOptionCombo(co)
+                  .setAttributeOptionCombo(cc)
                   .setTypes(types)
                   .setPager(pager));
     }
@@ -353,12 +345,6 @@ public class AuditController {
   // -----------------------------------------------------------------------------------------------------------------
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
-
-  private List<DataElement> getDataElementsByDataSet(List<String> uids) {
-    List<DataSet> dataSets = manager.loadByUid(DataSet.class, uids);
-
-    return dataSets.stream().map(DataSet::getDataElements).flatMap(Set::stream).toList();
-  }
 
   private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
     if (isoPeriods == null) {
