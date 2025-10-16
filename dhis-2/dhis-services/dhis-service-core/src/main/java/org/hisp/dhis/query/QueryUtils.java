@@ -341,6 +341,12 @@ public final class QueryUtils {
   }
 
   /**
+   * @param placeholderQuery SQL query with '?' placeholders for args
+   * @param args the args to be supplied to the placeholders
+   */
+  public record PlaceholderQueryWithArgs(String placeholderQuery, List<Object> args) {}
+
+  /**
    * @param operatorWithPlaceholder SQL operator with a '?' placeholder (e.g. 'like ?', '> ?')
    * @param arg the arg to be supplied to the placeholder
    */

@@ -55,6 +55,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.query.QueryUtils.OperatorWithPlaceHolderAndArg;
+import org.hisp.dhis.query.QueryUtils.PlaceholderQueryWithArgs;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -214,8 +216,6 @@ public class DefaultSqlViewService implements SqlViewService {
     }
   }
 
-  public record PlaceholderQueryWithArgs(String placeholderQuery, List<Object> args) {}
-
   private PlaceholderQueryWithArgs parseFilters(List<String> filters, SqlHelper sqlHelper)
       throws QueryParserException {
     StringBuilder query = new StringBuilder();
@@ -227,7 +227,7 @@ public class DefaultSqlViewService implements SqlViewService {
 
       if (split.length == 3) {
         int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-        QueryUtils.OperatorWithPlaceHolderAndArg filterQuery =
+        OperatorWithPlaceHolderAndArg filterQuery =
             getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
         query.append(filterQuery.operatorWithPlaceholder());
 
@@ -248,10 +248,10 @@ public class DefaultSqlViewService implements SqlViewService {
     return new PlaceholderQueryWithArgs(query.toString(), queryArgs);
   }
 
-  private QueryUtils.OperatorWithPlaceHolderAndArg getFilterQuery(
+  private OperatorWithPlaceHolderAndArg getFilterQuery(
       SqlHelper sqlHelper, String columnName, String operator, String value) {
     String filter = "";
-    QueryUtils.OperatorWithPlaceHolderAndArg operatorWithPlaceHolderAndArg =
+    OperatorWithPlaceHolderAndArg operatorWithPlaceHolderAndArg =
         QueryUtils.parseFilterOperator(operator, value);
 
     filter +=
@@ -261,8 +261,7 @@ public class DefaultSqlViewService implements SqlViewService {
             + " "
             + operatorWithPlaceHolderAndArg.operatorWithPlaceholder();
 
-    return new QueryUtils.OperatorWithPlaceHolderAndArg(
-        filter, operatorWithPlaceHolderAndArg.arg());
+    return new OperatorWithPlaceHolderAndArg(filter, operatorWithPlaceHolderAndArg.arg());
   }
 
   private PlaceholderQueryWithArgs getSqlForQuery(
@@ -290,13 +289,13 @@ public class DefaultSqlViewService implements SqlViewService {
         PlaceholderQueryWithArgs placeholderQueryWithArgs =
             getCriteriaSqlClause(criteria, sqlHelper);
         outerSql += placeholderQueryWithArgs.placeholderQuery();
-        args.addAll(placeholderQueryWithArgs.args);
+        args.addAll(placeholderQueryWithArgs.args());
       }
 
       if (hasFilter) {
         PlaceholderQueryWithArgs placeholderQueryWithArgs = parseFilters(filters, sqlHelper);
         outerSql += placeholderQueryWithArgs.placeholderQuery();
-        args.addAll(placeholderQueryWithArgs.args);
+        args.addAll(placeholderQueryWithArgs.args());
         return new PlaceholderQueryWithArgs(outerSql, args);
       }
       return new PlaceholderQueryWithArgs(outerSql, args);
@@ -341,13 +340,13 @@ public class DefaultSqlViewService implements SqlViewService {
       if (hasCriteria) {
         PlaceholderQueryWithArgs sqlQueryWithArgs = getCriteriaSqlClause(criteria, sqlHelper);
         sql += sqlQueryWithArgs.placeholderQuery();
-        args.addAll(sqlQueryWithArgs.args);
+        args.addAll(sqlQueryWithArgs.args());
       }
 
       if (hasFilter) {
         PlaceholderQueryWithArgs sqlQueryWithArgs = parseFilters(filters, sqlHelper);
         sql += sqlQueryWithArgs.placeholderQuery();
-        args.addAll(sqlQueryWithArgs.args);
+        args.addAll(sqlQueryWithArgs.args());
       }
       return new PlaceholderQueryWithArgs(sql, args);
     }
