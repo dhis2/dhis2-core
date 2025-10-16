@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastatistics;
+package org.hisp.dhis.scheduling;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobEntry;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Yrjan A. F. Fraschetti
- * @author Julie Hill Roa
+ * Within the job scheduling for each {@link JobType} there can only be one running job. Therefore,
+ * the combination of {@link #type()} and {@link #id()} is often found as way to organise job
+ * related data and processes. To simply passing around these key components of a job this record
+ * was created.
+ *
+ * @author Jan Bernitt
+ * @param id
+ * @param type
  */
-@Component
-@RequiredArgsConstructor
-public class DataStatisticsJob implements Job {
-  private final DataStatisticsService dataStatisticsService;
+public record JobKey(@Nonnull UID id, @Nonnull JobType type) {
 
-  @Override
-  public JobType getJobType() {
-    return JobType.DATA_STATISTICS;
-  }
-
-  @Override
-  public void execute(JobEntry jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Create data statistics snapshot");
-    long id = dataStatisticsService.saveDataStatisticsSnapshot(progress);
-
-    if (id > 0) {
-      progress.completedProcess("Saved data statistics snapshot");
-    } else {
-      progress.failedProcess("no snapshot created");
-    }
+  public JobKey {
+    // fail fast when nullness restrictions are not met
+    requireNonNull(id);
+    requireNonNull(type);
   }
 }

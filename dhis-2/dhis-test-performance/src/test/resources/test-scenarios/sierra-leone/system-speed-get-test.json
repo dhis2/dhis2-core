@@ -15,7 +15,7 @@
       }
     },
     {
-      "query": "/api/categoryOptions?paging=false&fields=id,name,organisationUnits[id,name,code],categoryOptionGroups[id,name,groupSets[id]],categoryOptionCombos[id,name]",
+      "query": "/api/categoryOptions?paging=false&fields=id,name,organisationUnits[id,name,code],categoryOptionGroups[id,name,groupSets[id]],categoryOptionCombos[id,name]&relativePeriodDate=2023-11-01",
       "expectations": [
         {
           "release": "41.0",

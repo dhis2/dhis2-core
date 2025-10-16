@@ -53,7 +53,7 @@ import org.hisp.dhis.period.Period;
 @Setter
 @EqualsAndHashCode
 @ToString
-public class DataValueAudit {
+public class DataValueChangelog {
 
   @Getter @ToString.Exclude @EqualsAndHashCode.Exclude private long id;
 
@@ -73,7 +73,7 @@ public class DataValueAudit {
 
   private Date created;
 
-  private DataValueAuditType auditType;
+  private DataValueChangelogType type;
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -125,9 +125,9 @@ public class DataValueAudit {
     return created;
   }
 
-  @JsonProperty
+  @JsonProperty("auditType")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataValueAuditType getAuditType() {
-    return auditType;
+  public DataValueChangelogType getType() {
+    return type;
   }
 }
