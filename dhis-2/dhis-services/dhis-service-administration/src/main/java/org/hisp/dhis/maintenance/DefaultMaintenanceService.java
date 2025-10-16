@@ -34,6 +34,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -159,7 +160,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
     dataApprovalService.deleteDataApprovals(organisationUnit);
     dataApprovalAuditService.deleteDataApprovalAudits(organisationUnit);
     completeRegistrationService.deleteCompleteDataSetRegistrations(organisationUnit);
-    dataValueChangelogService.deleteByOrgUnit(organisationUnit);
+    dataValueChangelogService.deleteByOrgUnit(UID.of(organisationUnit));
     dataValueService.deleteDataValues(organisationUnit);
 
     log.info("Pruned data for organisation unit: " + organisationUnit);
@@ -176,7 +177,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
     singleEventChangeLogService.deleteEventChangeLog(dataElement);
     trackerEventChangeLogService.deleteEventChangeLog(dataElement);
-    dataValueChangelogService.deleteByDataElement(dataElement);
+    dataValueChangelogService.deleteByDataElement(UID.of(dataElement));
     dataValueService.deleteDataValues(dataElement);
 
     log.info("Pruned data for data element: " + dataElement);

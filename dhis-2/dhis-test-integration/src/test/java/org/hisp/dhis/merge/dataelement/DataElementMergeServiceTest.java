@@ -3067,7 +3067,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private DataValueChangelogQueryParams getQueryParams(
       List<DataElement> dataElements, List<Period> periods) {
-    return new DataValueChangelogQueryParams().setDataElements(dataElements).setPeriods(periods);
+    return new DataValueChangelogQueryParams()
+        .setDataElements(dataElements.stream().map(DataElement::getUid).map(UID::of).toList())
+        .setPeriods(periods);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

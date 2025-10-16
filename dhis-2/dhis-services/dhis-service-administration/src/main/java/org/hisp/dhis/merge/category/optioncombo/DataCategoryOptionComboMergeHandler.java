@@ -109,7 +109,7 @@ public class DataCategoryOptionComboMergeHandler {
    */
   public void handleDataValueAudits(@Nonnull List<CategoryOptionCombo> sources) {
     log.info("Deleting source data value audits as source CategoryOptionCombos are being deleted");
-    sources.forEach(dataValueChangelogStore::deleteByOptionCombo);
+    sources.forEach(coc -> dataValueChangelogStore.deleteByOptionCombo(UID.of(coc)));
   }
 
   public void handleDataApprovals(
