@@ -44,6 +44,7 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -54,14 +55,16 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author David Mackessy
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   private static final String QUERY_PATH = "/sqlViews/sqlViewUid1/data";
+  private static final String VIEW_PATH = "/sqlViews/sqlViewUid2/data";
+  private static boolean setupComplete = false;
 
   @BeforeEach
-  void importMetadataAndCreateSqlView() {
-    POST("/metadata?async=false", metadata()).content(HttpStatus.OK);
-    POST("/sqlViews/", sqlView()).content(HttpStatus.CREATED);
+  void beforeEach() {
+    setupMetadataAndSqlViews();
   }
 
   @Test
@@ -87,6 +90,20 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             .getObject("message")
             .toString()
             .contains("Query failed because of a syntax error"));
+  }
+
+  @Test
+  void filterCriteriaFieldsQueryTest() {
+    HttpResponse response =
+        GET(QUERY_PATH + "?fields=uid&filter=uid:ilike:uid&criteria=sort_order:2");
+    assertFilterResponse(response.content(HttpStatus.OK), 2, Set.of("optionUidz3", "optionUidz2"));
+  }
+
+  @Test
+  void filterCriteriaFieldsViewTest() {
+    HttpResponse response =
+        GET(VIEW_PATH + "?fields=uid&filter=uid:ilike:uid&criteria=sort_order:2");
+    assertFilterResponse(response.content(HttpStatus.OK), 2, Set.of("optionUidz3", "optionUidz2"));
   }
 
   @ParameterizedTest
@@ -116,6 +133,9 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
 
   public static Stream<Arguments> sqlViewFilterQueries() {
     return Stream.of(
+        // -------------
+        // QUERY TYPE
+        // -------------
         Arguments.of(
             QUERY_PATH, Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"), 4),
 
@@ -194,6 +214,89 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
         Arguments.of(
             QUERY_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]&filter=name:like:1",
             Set.of("optionUidz1"),
+            1),
+
+        // -------------
+        // VIEW TYPE
+        // -------------
+        Arguments.of(
+            VIEW_PATH, Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"), 4),
+
+        // single filter
+        Arguments.of(VIEW_PATH + "?filter=uid:eq:optionUidz2", Set.of("optionUidz2"), 1),
+        Arguments.of(VIEW_PATH + "?filter=uid:ieq:optionuidz2", Set.of("optionUidz2"), 1),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:!eq:optionUidz2",
+            Set.of("optionUidz1", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(
+            VIEW_PATH + "?filter=sort_order:gt:1",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(VIEW_PATH + "?filter=sort_order:lt:2", Set.of("optionUidz1"), 1),
+        Arguments.of(
+            VIEW_PATH + "?filter=sort_order:gte:2",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(
+            VIEW_PATH + "?filter=sort_order:lte:2",
+            Set.of("optionUidz2", "optionUidz3", "optionUidz1"),
+            3),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:like:optionUid",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"),
+            4),
+        Arguments.of(VIEW_PATH + "?filter=uid:!like:optionUidz", Set.of("optionUid11"), 1),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:^like:optionUidz",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3"),
+            3),
+        Arguments.of(VIEW_PATH + "?filter=uid:!^like:optionUidz", Set.of("optionUid11"), 1),
+        Arguments.of(VIEW_PATH + "?filter=uid:$like:optionUidz1", Set.of("optionUidz1"), 1),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:!$like:optionUidz1",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:ilike:optionuid",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"),
+            4),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:!ilike:optionuidz2",
+            Set.of("optionUidz1", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:^ilike:optionuidz",
+            Set.of("optionUidz2", "optionUidz3", "optionUidz1"),
+            3),
+        Arguments.of(VIEW_PATH + "?filter=uid:!^ilike:optionuidz", Set.of("optionUid11"), 1),
+        Arguments.of(VIEW_PATH + "?filter=uid:$ilike:optionuidz", Set.of(), 0),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:!$ilike:optionuidz",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3", "optionUid11"),
+            4),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]",
+            Set.of("optionUidz2", "optionUidz1"),
+            2),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:!in:[optionUidz2,optionUidz1]",
+            Set.of("optionUidz3", "optionUid11"),
+            2),
+        Arguments.of(
+            VIEW_PATH + "?filter=description:null",
+            Set.of("optionUidz2", "optionUidz3", "optionUid11"),
+            3),
+        Arguments.of(VIEW_PATH + "?filter=description:!null", Set.of("optionUidz1"), 1),
+
+        // multiple filters
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:like:optionUidz&filter=name:like:option",
+            Set.of("optionUidz1", "optionUidz2", "optionUidz3"),
+            3),
+        Arguments.of(
+            VIEW_PATH + "?filter=uid:in:[optionUidz2,optionUidz1]&filter=name:like:1",
+            Set.of("optionUidz1"),
             1));
   }
 
@@ -203,6 +306,9 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
    */
   public static Stream<Arguments> sqlViewFieldQueries() {
     return Stream.of(
+        // -------------
+        // QUERY TYPE
+        // -------------
         Arguments.of(
             QUERY_PATH + "?fields=*&filter=uid:ilike:uid",
             Set.of("uid", "name", "description", "sort_order"),
@@ -217,11 +323,44 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             QUERY_PATH + "?fields=name,description&filter=name:ilike:test",
             Set.of("name", "description"),
             Set.of("test option 3", ""),
+            4),
+
+        // -------------
+        // VIEW TYPE
+        // -------------
+        Arguments.of(
+            VIEW_PATH + "?fields=*&filter=uid:ilike:uid",
+            Set.of("uid", "name", "description", "sort_order"),
+            Set.of("optionUidz1", "test option 1", "test description", "1"),
+            4),
+        Arguments.of(
+            VIEW_PATH + "?fields=uid&filter=uid:ilike:uid",
+            Set.of("uid"),
+            Set.of("optionUidz2"),
+            4),
+        Arguments.of(
+            VIEW_PATH + "?fields=name,description&filter=name:ilike:test",
+            Set.of("name", "description"),
+            Set.of("test option 3", ""),
             4));
   }
 
   public static Stream<Arguments> sqlViewCriteriaQueries() {
     return Stream.of(
+        // -------------
+        // QUERY TYPE
+        // -------------
+        Arguments.of(QUERY_PATH + "?criteria=name:test option 1", Set.of("optionUidz1"), 1),
+        Arguments.of(
+            QUERY_PATH + "?criteria=sort_order:2", Set.of("optionUidz2", "optionUidz3"), 2),
+        Arguments.of(
+            QUERY_PATH + "?criteria=sort_order:2&criteria=uid:optionUidz2",
+            Set.of("optionUidz2"),
+            1),
+
+        // -------------
+        // VIEW TYPE
+        // -------------
         Arguments.of(QUERY_PATH + "?criteria=name:test option 1", Set.of("optionUidz1"), 1),
         Arguments.of(
             QUERY_PATH + "?criteria=sort_order:2", Set.of("optionUidz2", "optionUidz3"), 2),
@@ -231,13 +370,13 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             1));
   }
 
-  private void assertFilterResponse(JsonMixed content, int expectedSize, Set<String> uids) {
+  private void assertFilterResponse(JsonMixed content, int expectedSize, Set<String> expectedUids) {
     assertEquals(expectedSize, content.getObject("pager").getNumber("total").intValue());
 
     JsonArray rows = content.getObject("listGrid").getArray("rows");
     for (int i = 0; i < rows.size(); i++) {
-      JsonList<JsonString> list = rows.get(i).asList(JsonString.class);
-      assertTrue(list.stream().anyMatch(s -> uids.contains(s.string())));
+      JsonList<JsonString> rowData = rows.get(i).asList(JsonString.class);
+      assertTrue(rowData.stream().anyMatch(row -> expectedUids.contains(row.string())));
     }
   }
 
@@ -248,8 +387,8 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
     JsonArray headers = content.getObject("listGrid").getArray("headers");
     JsonArray rows = content.getObject("listGrid").getArray("rows");
     for (int i = 0; i < headers.size(); i++) {
-      JsonObject object = headers.get(i).asObject();
-      assertTrue(expectedFields.contains(object.getString("column").string()));
+      JsonObject header = headers.get(i).asObject();
+      assertTrue(expectedFields.contains(header.getString("column").string()));
     }
 
     assertTrue(
@@ -262,13 +401,34 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
                             .collect(Collectors.toSet()))));
   }
 
-  private String sqlView() {
+  void setupMetadataAndSqlViews() {
+    if (!setupComplete) {
+      POST("/metadata?async=false", metadata()).content(HttpStatus.OK);
+      POST("/sqlViews/", sqlQueryView()).content(HttpStatus.CREATED);
+      POST("/sqlViews/", sqlView()).content(HttpStatus.CREATED);
+      POST("/sqlViews/sqlViewUid2/execute").content(HttpStatus.CREATED);
+      setupComplete = true;
+    }
+  }
+
+  private String sqlQueryView() {
     return """
             {
                 "id": "sqlViewUid1",
                 "sqlQuery": "SELECT uid, name, description, sort_order FROM optionvalue",
                 "type": "QUERY",
                 "name": "test-sql-view1",
+                "cacheStrategy": "NO_CACHE"
+            }""";
+  }
+
+  private String sqlView() {
+    return """
+            {
+                "id": "sqlViewUid2",
+                "sqlQuery": "SELECT uid, name, description, sort_order FROM optionvalue",
+                "type": "VIEW",
+                "name": "test-sql-view2",
                 "cacheStrategy": "NO_CACHE"
             }""";
   }
