@@ -74,6 +74,7 @@ jobs:
             up --remove-orphans --exit-code-from test
 
       - name: Push surefire reports to repository
+        if: always()
         run: |
           cd dhis-2/dhis-test-e2e
           DHIS2_IMAGE="$CORE_IMAGE_NAME" \
@@ -84,6 +85,7 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml --profile reports run reports-processor
       
       - name: Add a comment to the pull request
+        if: always()
         run: |
           gh comment ${{ github.event.pull_request.number }} --body "Surefire reports for analytics API tests against Doris have been pushed to the repository. [View reports](https://dhis2.github.io/dhis2-test-reports/reports/?component=core&testType=e2e-analytics)"
 
