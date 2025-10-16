@@ -32,12 +32,19 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore.createEntriesQuery;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 import org.hibernate.Session;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
 import org.hisp.dhis.datavalue.DataValueChangelogType;
+import org.hisp.dhis.sql.QueryBuilder;
+import org.hisp.dhis.sql.SQL;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
@@ -49,9 +56,13 @@ import org.junit.jupiter.api.Test;
  */
 class DataValueChangelogQueryTest {
 
+  private final AtomicReference<String> sql = new AtomicReference<>();
+  private final Map<String, Object> params = new TreeMap<>();
+
   @Test
   void testFilterByTypes() {
     assertSQL(
+        Set.of("types"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -64,6 +75,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testCountByTypes() {
     assertCountSQL(
+        Set.of("types"),
         """
       SELECT count(*)
       FROM datavalueaudit dva
@@ -75,6 +87,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByDataElements() {
     assertSQL(
+        Set.of("de"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -88,6 +101,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByOrgUnits() {
     assertSQL(
+        Set.of("ou"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -101,6 +115,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByDataSets() {
     assertSQL(
+        Set.of("ds"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -115,6 +130,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByPeriods() {
     assertSQL(
+        Set.of("pe"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -128,6 +144,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByCategoryOptionCombo() {
     assertSQL(
+        Set.of("coc"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -140,6 +157,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByAttributeOptionCombo() {
     assertSQL(
+        Set.of("aoc"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -152,6 +170,7 @@ class DataValueChangelogQueryTest {
   @Test
   void testFilterByMixed() {
     assertSQL(
+        Set.of("types", "ds", "pe"),
         """
       SELECT *
       FROM datavalueaudit dva
@@ -169,12 +188,23 @@ class DataValueChangelogQueryTest {
             .setPeriods(List.of(getPeriodFromIsoString("2022"))));
   }
 
-  private void assertSQL(@Language("sql") String expected, DataValueChangelogQueryParams actual) {
-    assertEquals(expected, createEntriesQuery(actual, null).toSQL());
+  private void assertSQL(
+      Set<String> expectedParams,
+      @Language("sql") String expectedSql,
+      DataValueChangelogQueryParams actual) {
+    QueryBuilder query = createEntriesQuery(actual, SQL.of(sql::set, params::put));
+    assertNotNull(query.stream());
+    assertEquals(expectedSql, sql.get());
+    assertEquals(expectedParams, params.keySet());
   }
 
   private void assertCountSQL(
-      @Language("sql") String expected, DataValueChangelogQueryParams actual) {
-    assertEquals(expected, createEntriesQuery(actual, null).toSQL(true));
+      Set<String> expectedParams,
+      @Language("sql") String expectedSql,
+      DataValueChangelogQueryParams actual) {
+    QueryBuilder query = createEntriesQuery(actual, SQL.of(sql::set, params::put));
+    assertEquals(0, query.count());
+    assertEquals(expectedSql, sql.get());
+    assertEquals(expectedParams, params.keySet());
   }
 }

@@ -27,18 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
-class RawNativeQueryTest {
+class QueryBuilderTest {
+
+  private final AtomicReference<String> sql = new AtomicReference<>();
+  private final Map<String, Object> params = new TreeMap<>();
 
   @Language("SQL")
-  String sql =
+  String fullSql =
       """
     SELECT
       de.uid AS deid,
@@ -80,8 +87,8 @@ class RawNativeQueryTest {
     ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
     """;
 
-  private RawNativeQuery createNativeRawQuery(String sql) {
-    return new RawNativeQuery(sql, null);
+  private QueryBuilder createSelectQuery(String sql) {
+    return SQL.selectOf(sql, SQL.of(this.sql::set, params::put));
   }
 
   @Test
@@ -91,20 +98,20 @@ class RawNativeQueryTest {
     Date noDate = null;
     Integer noInt = null;
     Boolean noBool = null;
-    String minSql =
-        createNativeRawQuery(sql)
-            .setInOrAnyParameter("de", noLongs)
-            .setInOrAnyParameter("pe", noStrings)
-            .setInOrAnyParameter("pt", noStrings)
+    assertNotNull(
+        createSelectQuery(fullSql)
+            .setParameter("de", noLongs)
+            .setParameter("pe", noStrings)
+            .setParameter("pt", noStrings)
             .setParameter("start", noDate)
             .setParameter("end", noDate)
             .setParameter("includedDate", noDate)
-            .setInOrAnyParameter("path", noStrings)
-            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("path", noStrings)
+            .setParameter("ou", noLongs)
             .setParameter("level", noInt)
             .setParameter("minLevel", noInt)
-            .setInOrAnyParameter("coc", noLongs)
-            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("coc", noLongs)
+            .setParameter("aoc", noLongs)
             .setParameter("lastUpdated", noDate)
             .setParameter("deleted", noBool)
             .setDynamicClause("access", null)
@@ -117,8 +124,8 @@ class RawNativeQueryTest {
             .eraseNullJoinLine("pt", "pt")
             .setLimit(null)
             .setOffset(null)
-            .toSQL();
-    assertEquals(
+            .stream());
+    assertSQL(
         """
       SELECT
         de.uid AS deid,
@@ -139,8 +146,7 @@ class RawNativeQueryTest {
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE 1=1""",
-        minSql);
+      WHERE 1=1""");
   }
 
   @Test
@@ -150,20 +156,20 @@ class RawNativeQueryTest {
     Date noDate = null;
     Integer noInt = null;
     Boolean noBool = null;
-    String minSql =
-        createNativeRawQuery(sql)
-            .setInOrAnyParameter("de", noLongs)
-            .setInOrAnyParameter("pe", noStrings)
-            .setInOrAnyParameter("pt", "MONTHLY", "DAILY")
+    assertNotNull(
+        createSelectQuery(fullSql)
+            .setParameter("de", noLongs)
+            .setParameter("pe", noStrings)
+            .setParameter("pt", "MONTHLY", "DAILY")
             .setParameter("start", noDate)
             .setParameter("end", noDate)
             .setParameter("includedDate", noDate)
-            .setInOrAnyParameter("path", noStrings)
-            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("path", noStrings)
+            .setParameter("ou", noLongs)
             .setParameter("level", noInt)
             .setParameter("minLevel", 3)
-            .setInOrAnyParameter("coc", noLongs)
-            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("coc", noLongs)
+            .setParameter("aoc", noLongs)
             .setParameter("lastUpdated", noDate)
             .setParameter("deleted", noBool)
             .setDynamicClause("access", null)
@@ -176,8 +182,8 @@ class RawNativeQueryTest {
             .eraseNullJoinLine("pt", "pt")
             .setLimit(null)
             .setOffset(null)
-            .toSQL();
-    assertEquals(
+            .stream());
+    assertSQL(
         """
         SELECT
           de.uid AS deid,
@@ -202,8 +208,7 @@ class RawNativeQueryTest {
         WHERE 1=1
           AND pt.name = ANY(:pt)
           AND ou.hierarchylevel >= :minLevel
-        ORDER BY ou.path""",
-        minSql);
+        ORDER BY ou.path""");
   }
 
   @Test
@@ -212,20 +217,20 @@ class RawNativeQueryTest {
     String[] noStrings = null;
     Date noDate = null;
     Integer noInt = null;
-    String minSql =
-        createNativeRawQuery(sql)
-            .setInOrAnyParameter("de", noLongs)
-            .setInOrAnyParameter("pe", noStrings)
-            .setInOrAnyParameter("pt", noStrings)
+    assertNotNull(
+        createSelectQuery(fullSql)
+            .setParameter("de", noLongs)
+            .setParameter("pe", noStrings)
+            .setParameter("pt", noStrings)
             .setParameter("start", noDate)
             .setParameter("end", noDate)
             .setParameter("includedDate", noDate)
-            .setInOrAnyParameter("path", noStrings)
-            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("path", noStrings)
+            .setParameter("ou", noLongs)
             .setParameter("level", noInt)
             .setParameter("minLevel", noInt)
-            .setInOrAnyParameter("coc", noLongs)
-            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("coc", noLongs)
+            .setParameter("aoc", noLongs)
             .setParameter("lastUpdated", noDate)
             .setParameter("deleted", false)
             .setDynamicClause("access", null)
@@ -238,8 +243,8 @@ class RawNativeQueryTest {
             .eraseNullJoinLine("pt", "pt")
             .setLimit(null)
             .setOffset(null)
-            .toSQL();
-    assertEquals(
+            .stream());
+    assertSQL(
         """
          SELECT
            de.uid AS deid,
@@ -261,8 +266,7 @@ class RawNativeQueryTest {
          JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
          JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
          WHERE 1=1
-           AND dv.deleted = :deleted""",
-        minSql);
+           AND dv.deleted = :deleted""");
   }
 
   @Test
@@ -272,20 +276,20 @@ class RawNativeQueryTest {
     Date noDate = null;
     Integer noInt = null;
     Boolean noBool = null;
-    String minSql =
-        createNativeRawQuery(sql)
-            .setInOrAnyParameter("de", noLongs)
-            .setInOrAnyParameter("pe", noStrings)
-            .setInOrAnyParameter("pt", noStrings)
+    assertNotNull(
+        createSelectQuery(fullSql)
+            .setParameter("de", noLongs)
+            .setParameter("pe", noStrings)
+            .setParameter("pt", noStrings)
             .setParameter("start", noDate)
             .setParameter("end", noDate)
             .setParameter("includedDate", noDate)
-            .setInOrAnyParameter("path", noStrings)
-            .setInOrAnyParameter("ou", noLongs)
+            .setParameter("path", noStrings)
+            .setParameter("ou", noLongs)
             .setParameter("level", noInt)
             .setParameter("minLevel", noInt)
-            .setInOrAnyParameter("coc", noLongs)
-            .setInOrAnyParameter("aoc", noLongs)
+            .setParameter("coc", noLongs)
+            .setParameter("aoc", noLongs)
             .setParameter("lastUpdated", noDate)
             .setParameter("deleted", noBool)
             .setDynamicClause("access", "x.sharing = 'good'")
@@ -298,8 +302,8 @@ class RawNativeQueryTest {
             .eraseNullJoinLine("pt", "pt")
             .setLimit(null)
             .setOffset(null)
-            .toSQL();
-    assertEquals(
+            .stream());
+    assertSQL(
         """
       SELECT
         de.uid AS deid,
@@ -321,7 +325,10 @@ class RawNativeQueryTest {
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
       WHERE 1=1
-        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND x.sharing = 'good')""",
-        minSql);
+        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND x.sharing = 'good')""");
+  }
+
+  private void assertSQL(@Language("sql") String expected) {
+    assertEquals(expected, sql.get());
   }
 }

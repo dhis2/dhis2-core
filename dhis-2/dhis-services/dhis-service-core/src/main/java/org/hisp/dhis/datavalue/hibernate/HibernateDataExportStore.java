@@ -55,10 +55,11 @@ import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.hibernate.RawNativeQuery;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.sql.QueryBuilder;
+import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -95,7 +96,7 @@ public class HibernateDataExportStore implements DataExportStore {
           case COC -> "categoryoptioncombo";
         };
     String sql = replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", to)));
-    return createNativeRawQuery(sql).setUnnestParameter("ids", ids).listAsStringsMap();
+    return createSelectQuery(sql).setParameter("ids", ids).listAsStringsMap();
   }
 
   @Override
@@ -129,7 +130,7 @@ public class HibernateDataExportStore implements DataExportStore {
         AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
         AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
       LIMIT 1""";
-    return createNativeRawQuery(sql)
+    return createSelectQuery(sql)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
         .setParameter("pe", key.period())
@@ -208,19 +209,19 @@ public class HibernateDataExportStore implements DataExportStore {
                 || !params.getAttributeOptionCombos().isEmpty()
             ? null // explicit AOCs mean they are already sharing checked
             : generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
-    return createNativeRawQuery(sql)
-        .setInOrAnyParameter("de", getIds(params.getAllDataElements()))
-        .setInOrAnyParameter("pe", params.getPeriods(), Period::getIsoDate)
-        .setInOrAnyParameter("pt", params.getPeriodTypes(), PeriodType::getName)
+    return createSelectQuery(sql)
+        .setParameter("de", getIds(params.getAllDataElements()))
+        .setParameter("pe", params.getPeriods(), Period::getIsoDate)
+        .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
         .setParameter("start", params.getStartDate())
         .setParameter("end", params.getEndDate())
         .setParameter("includedDate", params.getIncludedDate())
-        .setInOrAnyParameter("path", path)
-        .setInOrAnyParameter("ou", descendants ? null : getIds(units))
+        .setParameter("path", path)
+        .setParameter("ou", descendants ? null : getIds(units))
         .setParameter("level", descendants ? null : params.getOrgUnitLevel())
         .setParameter("minLevel", descendants ? params.getOrgUnitLevel() : null)
-        .setInOrAnyParameter("coc", getIds(params.getCategoryOptionCombos()))
-        .setInOrAnyParameter("aoc", getIds(params.getAttributeOptionCombos()))
+        .setParameter("coc", getIds(params.getCategoryOptionCombos()))
+        .setParameter("aoc", getIds(params.getAttributeOptionCombos()))
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
         .setDynamicClause("access", accessSql)
@@ -255,8 +256,8 @@ public class HibernateDataExportStore implements DataExportStore {
     };
   }
 
-  private RawNativeQuery createNativeRawQuery(@Language("SQL") String sql) {
-    return new RawNativeQuery(sql, getSession());
+  private QueryBuilder createSelectQuery(@Language("sql") String sql) {
+    return SQL.selectOf(sql, SQL.of(getSession()));
   }
 
   private Session getSession() {
