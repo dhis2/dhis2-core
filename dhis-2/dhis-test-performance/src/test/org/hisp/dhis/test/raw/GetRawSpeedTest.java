@@ -66,7 +66,7 @@ public class GetRawSpeedTest extends Simulation {
 
   public GetRawSpeedTest() throws IOException {
     List<Scenario> scenarios = loadScenarios();
-    List<PopulationBuilder> populationBuilders = new ArrayList<>();
+    PopulationBuilder populationBuilder = null;
     List<Assertion> assertions = new ArrayList<>();
 
     Dhis2Client dhis2Client =
@@ -87,7 +87,11 @@ public class GetRawSpeedTest extends Simulation {
         int ninetyPercentile = defaultIfNull(expectation.getNinetyPercentile(), Integer.MAX_VALUE);
 
         // Build assertions.
-        populationBuilders.add(populationBuilder(query));
+        if (populationBuilder == null) {
+          populationBuilder = populationBuilder(query);
+        } else {
+          populationBuilder.andThen(populationBuilder(query));
+        }
         assertions.add(details(query).responseTime().min().gte(min));
         assertions.add(details(query).responseTime().max().lte(max));
         assertions.add(details(query).responseTime().mean().lte(mean));
@@ -100,11 +104,9 @@ public class GetRawSpeedTest extends Simulation {
       }
     }
 
-    boolean hasScenariosToTest = !populationBuilders.isEmpty();
-
-    if (hasScenariosToTest) {
+    if (populationBuilder != null) {
       // Test and assert.
-      setUp(populationBuilders).assertions(assertions);
+      setUp(populationBuilder).assertions(assertions);
     } else {
       // Skip unsupported queries avoiding a crash.
       setUp(fakePopulationBuilder());

@@ -1,7 +1,7 @@
 {
   "scenarios": [
     {
-      "query": "/api/tracker/enrollments.json",
+      "query": "/api/tracker/enrollments.json?program=ur1Edk5Oe2n",
       "expectations": [
         {
           "release": "38.6",
