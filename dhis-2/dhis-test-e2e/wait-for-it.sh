@@ -135,7 +135,6 @@ wait_for_wrapper()
 }
 
 
-# echo arguments
 echo "Arguments: $@"
 
 # process arguments
