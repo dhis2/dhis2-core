@@ -12,6 +12,7 @@
 # ==============
 #
 # Basic example with required env vars:
+#
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env="DHIS2_IMAGE=dhis2/core-dev:latest
@@ -20,29 +21,28 @@
 # SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest"
 #
 # Analytics test with ANALYTICS_GENERATE:
+#
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
-#   --field baseline_env="DHIS2_IMAGE=dhis2/core:2.42.1
+#   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.1
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
-# MVN_ARGS=-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42 -Dbaseline=42
-# ANALYTICS_GENERATE=true" \
-#   --field candidate_env="DHIS2_IMAGE=dhis2/core-dev:latest
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42 -Dbaseline=42"
+# ANALYTICS_GENERATE=true' \
+#   --field candidate_env='DHIS2_IMAGE=dhis2/core-dev:latest
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
-# MVN_ARGS=-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=42
-# ANALYTICS_GENERATE=true"
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=42"
+# ANALYTICS_GENERATE=true'
 #
 # REPRODUCING FROM PREVIOUS RUNS
 # ===============================
 #
-# Download artifacts from a previous run and use the generated run-simulation.env files:
+# Download artifacts from a previous run and use the generated run-simulation.env files.
+# You can pass the files directly using @ syntax:
 #
-# Simple (use entire file):
-#   BASELINE_ENV=$(cat baseline-dir/run-simulation.env)
-#   CANDIDATE_ENV=$(cat candidate-dir/run-simulation.env)
-#   gh workflow run run-performance-tests.yml \
-#     --field perf_tests_git_ref="master" \
-#     --field baseline_env="$BASELINE_ENV" \
-#     --field candidate_env="$CANDIDATE_ENV"
+# gh workflow run run-performance-tests.yml \
+#   --field perf_tests_git_ref="master" \
+#   --field baseline_env=@baseline-dir/run-simulation.env \
+#   --field candidate_env=@candidate-dir/run-simulation.env
 #
 name: Performance tests
 run-name: Performance test ${{ inputs.perf_tests_git_ref }}
@@ -342,22 +342,13 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Method 1: Using generated run-simulation.env files (recommended for exact reproduction)**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download the artifacts and extract the env files. You can use them directly or filter to show only user inputs:" >> $GITHUB_STEP_SUMMARY
+        echo "Download the artifacts and use the @ syntax to pass files directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo "# Simple: use the entire env file (comments and generated vars are harmless)" >> $GITHUB_STEP_SUMMARY
-        echo "BASELINE_ENV=\$(cat baseline-dir/run-simulation.env)" >> $GITHUB_STEP_SUMMARY
-        echo "CANDIDATE_ENV=\$(cat candidate-dir/run-simulation.env)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "# Or filter to show only user-provided inputs (cleaner but optional)" >> $GITHUB_STEP_SUMMARY
-        echo "BASELINE_ENV=\$(grep -v \"^#\" baseline-dir/run-simulation.env | \\" >> $GITHUB_STEP_SUMMARY
-        echo "  grep -v \"^GIT_\" | grep -v \"^DHIS2_BUILD_\" | grep -v \"^DHIS2_VERSION\" | \\" >> $GITHUB_STEP_SUMMARY
-        echo "  grep -v \"^DHIS2_IMAGE_DIGEST\" | grep -v \"^COMMAND\" | grep -v \"^REPORT_SUFFIX\")" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
         echo "gh workflow run run-performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --field baseline_env=\"\$BASELINE_ENV\" \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --field candidate_env=\"\$CANDIDATE_ENV\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field baseline_env=@baseline-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field candidate_env=@candidate-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
         echo "  --ref $PERF_GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
