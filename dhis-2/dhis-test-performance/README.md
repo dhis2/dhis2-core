@@ -54,6 +54,8 @@ These tests are self-contained within the `raw` package and do not affect other 
 ### Running Raw Tests
 
 ```sh
+DB_TYPE=sierra-leone \
+DB_VERSION=2.41 \
 DHIS2_IMAGE=dhis2/core-dev:latest \
 SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \
 MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41" \
@@ -70,11 +72,6 @@ ANALYTICS_GENERATE=true \
 
 * `test-scenarios/sierra-leone/*.json` - Sierra Leone database tests
 * `test-scenarios/hmis/*.json` - HMIS database tests
-
-> [!WARNING]
-> Currently only the sierra-leone databases are available for testing. The HMIS database scenarios
-> exist but require a corresponding database dump that is not yet available for you locally or in
-> CI. We are working on making additional databases available.
 
 ### Configuration
 

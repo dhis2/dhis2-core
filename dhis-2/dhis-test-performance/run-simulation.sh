@@ -17,11 +17,11 @@ show_usage() {
   echo "  SIMULATION_CLASS      Fully qualified Gatling Simulation class name"
   echo ""
   echo "OPTIONS:"
-  echo "  DHIS2_DB_DUMP_URL     Database dump URL"
-  echo "                        Available database dumps: https://databases.dhis2.org"
-  echo "                        Default: https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"
-  echo "  DHIS2_DB_IMAGE_SUFFIX Docker image suffix for DB (default: sierra-leone-dev)"
-  echo "                        WARNING: Must match the version in DHIS2_DB_DUMP_URL"
+  echo "  DB_TYPE               Database type (default: sierra-leone)"
+  echo "                        Valid values: sierra-leone, hmis"
+  echo "  DB_VERSION            Database version (default: dev)"
+  echo "                        Must be alphanumeric, dots, hyphens, underscores only"
+  echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
@@ -81,8 +81,8 @@ fi
 ################################################################################
 
 MVN_ARGS=${MVN_ARGS:-""}
-DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"}
-DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
+DB_TYPE=${DB_TYPE:-"sierra-leone"}
+DB_VERSION=${DB_VERSION:-"dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
 WARMUP=${WARMUP:-0}
@@ -90,6 +90,27 @@ REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
 ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
+
+# Validate DB_TYPE (only allow sierra-leone or hmis)
+case "$DB_TYPE" in
+  sierra-leone|hmis)
+    # Valid
+    ;;
+  *)
+    echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis', got: $DB_TYPE" >&2
+    echo "Run '$0' without arguments to see usage" >&2
+    exit 1
+    ;;
+esac
+
+# Validate DB_VERSION (no slashes, no special characters that could be malicious)
+# Allow only alphanumeric, dots, hyphens, and underscores
+if ! echo "$DB_VERSION" | grep -qE '^[a-zA-Z0-9._-]+$'; then
+  echo "Error: DB_VERSION contains invalid characters: $DB_VERSION" >&2
+  echo "DB_VERSION must contain only alphanumeric characters, dots, hyphens, and underscores" >&2
+  echo "Run '$0' without arguments to see usage" >&2
+  exit 1
+fi
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -496,7 +517,7 @@ generate_metadata() {
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
   # Build reproducible command using RepoDigest
-  # DB image is reproducible via DHIS2_DB_DUMP_URL and DHIS2_DB_IMAGE_SUFFIX args
+  # DB image is reproducible via DB_TYPE and DB_VERSION args
   local dhis2_image_immutable="$DHIS2_IMAGE"
   if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
     dhis2_image_immutable="$dhis2_image_digest"
@@ -522,16 +543,16 @@ generate_metadata() {
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
-    echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
-    echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
+    echo "DB_TYPE=$DB_TYPE"
+    echo "DB_VERSION=$DB_VERSION"
     echo "MVN_ARGS=\"$MVN_ARGS\""
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
-    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
+    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
   } > "$simulation_run_file"
 
   echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
