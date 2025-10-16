@@ -16,9 +16,13 @@
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env="DHIS2_IMAGE=dhis2/core-dev:latest
-# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest" \
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+# DB_TYPE=sierra-leone
+# DB_VERSION=dev" \
 #   --field candidate_env="DHIS2_IMAGE=dhis2/core-dev:latest
-# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest"
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+# DB_TYPE=sierra-leone
+# DB_VERSION=dev"
 #
 # Analytics test with ANALYTICS_GENERATE:
 #
@@ -26,10 +30,14 @@
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.1
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# DB_TYPE=sierra-leone
+# DB_VERSION=2.42
 # MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42 -Dbaseline=42"
 # ANALYTICS_GENERATE=true' \
 #   --field candidate_env='DHIS2_IMAGE=dhis2/core-dev:latest
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# DB_TYPE=sierra-leone
+# DB_VERSION=2.42
 # MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=42"
 # ANALYTICS_GENERATE=true'
 #
@@ -62,6 +70,8 @@ on:
           Example:
           DHIS2_IMAGE=dhis2/core:2.42.1
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+          DB_TYPE=sierra-leone
+          DB_VERSION=2.42
           WARMUP=1
         required: true
         type: string
@@ -73,6 +83,8 @@ on:
           Example:
           DHIS2_IMAGE=dhis2/core-dev:latest
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+          DB_TYPE=sierra-leone
+          DB_VERSION=dev
           WARMUP=1
         required: true
         type: string
@@ -214,8 +226,8 @@ jobs:
         MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
         PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
         CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$CANDIDATE_ENV" | cut -d= -f2-)
-        DB_DUMP_URL=$(grep "^DHIS2_DB_DUMP_URL=" "$CANDIDATE_ENV" | cut -d= -f2-)
-        DB_IMAGE_SUFFIX=$(grep "^DHIS2_DB_IMAGE_SUFFIX=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        DB_TYPE=$(grep "^DB_TYPE=" "$CANDIDATE_ENV" | cut -d= -f2-)
+        DB_VERSION=$(grep "^DB_VERSION=" "$CANDIDATE_ENV" | cut -d= -f2-)
 
         # Parse baseline env (only for baseline-specific values)
         if [ -f "$BASELINE_ENV" ]; then
@@ -235,8 +247,8 @@ jobs:
         # Parse baseline-specific values
         BASELINE_MVN_ARGS=$(grep "^MVN_ARGS=" "$BASELINE_ENV" | cut -d= -f2-)
         BASELINE_WARMUP=$(grep "^WARMUP=" "$BASELINE_ENV" | cut -d= -f2-)
-        BASELINE_DB_DUMP_URL=$(grep "^DHIS2_DB_DUMP_URL=" "$BASELINE_ENV" | cut -d= -f2-)
-        BASELINE_DB_IMAGE_SUFFIX=$(grep "^DHIS2_DB_IMAGE_SUFFIX=" "$BASELINE_ENV" | cut -d= -f2-)
+        BASELINE_DB_TYPE=$(grep "^DB_TYPE=" "$BASELINE_ENV" | cut -d= -f2-)
+        BASELINE_DB_VERSION=$(grep "^DB_VERSION=" "$BASELINE_ENV" | cut -d= -f2-)
 
         echo "**Common settings:**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -252,7 +264,7 @@ jobs:
           echo "| **Maven arguments** | \`${BASELINE_MVN_ARGS:-none}\` | \`${MVN_ARGS_VALUE:-none}\` |" >> $GITHUB_STEP_SUMMARY
         fi
         echo "| **Warmup iterations** | $BASELINE_WARMUP | $WARMUP_COUNT |" >> $GITHUB_STEP_SUMMARY
-        echo "| **Database** | \`$BASELINE_DB_DUMP_URL\` (\`$BASELINE_DB_IMAGE_SUFFIX\`) | \`$DB_DUMP_URL\` (\`$DB_IMAGE_SUFFIX\`) |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Database** | \`$BASELINE_DB_TYPE\` / \`$BASELINE_DB_VERSION\` | \`$DB_TYPE\` / \`$DB_VERSION\` |" >> $GITHUB_STEP_SUMMARY
         if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
           echo "| **SQL logging** | enabled | enabled |" >> $GITHUB_STEP_SUMMARY
         fi
