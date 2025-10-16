@@ -20,6 +20,7 @@ jobs:
       DOCKER_CHANNEL: "dhis2/core-pr"
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
       SIERRA_LEONE_DB_VERSION: "2.39.6"
+      GITHUB_TOKEN: ${{ secrets.DHIS2_BOT_GITHUB_TOKEN }}
 
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris') || (github.event_name == 'workflow_dispatch')
@@ -71,6 +72,20 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml \
             -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml \
             up --remove-orphans --exit-code-from test
+
+      - name: Push surefire reports to repository
+        run: |
+          cd dhis-2/dhis-test-e2e
+          DHIS2_IMAGE="$CORE_IMAGE_NAME" \
+          DHIS2_E2E_TEST_DUMP_PATH="$SIERRA_LEONE_DB_PATH" \
+          DORIS_VERSION=3.0.7 \
+          TEST_TYPE=e2e-analytics \
+          TEST_DB=doris \
+          docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml --profile reports run reports-processor
+      
+      - name: Add a comment to the pull request
+        run: |
+          gh comment ${{ github.event.pull_request.number }} --body "Surefire reports for analytics API tests against Doris have been pushed to the repository. [View reports](https://dhis2.github.io/dhis2-test-reports/reports/?component=core&testType=e2e-analytics)"
 
       - name: Upload logs
         if: failure()
