@@ -37,13 +37,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
@@ -57,17 +62,21 @@ import org.springframework.util.StringUtils;
 /**
  * DHIS2 implementation of Spring Authorization Server's RegisteredClientRepository that uses
  * HibernateOAuth2ClientStore for persistence.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 public class Dhis2OAuth2ClientServiceImpl
     implements Dhis2OAuth2ClientService, RegisteredClientRepository {
 
   private final Dhis2OAuth2ClientStore clientStore;
+  private final UserService userService;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public Dhis2OAuth2ClientServiceImpl(Dhis2OAuth2ClientStore clientStore) {
+  public Dhis2OAuth2ClientServiceImpl(Dhis2OAuth2ClientStore clientStore, UserService userService) {
     Assert.notNull(clientStore, "clientStore cannot be null");
     this.clientStore = clientStore;
+    this.userService = userService;
 
     // Configure Jackson mapper with the required modules
     ClassLoader classLoader = Dhis2OAuth2ClientServiceImpl.class.getClassLoader();
@@ -82,7 +91,17 @@ public class Dhis2OAuth2ClientServiceImpl
   public void save(RegisteredClient registeredClient) {
     Objects.requireNonNull(registeredClient, "registeredClient cannot be null");
     Dhis2OAuth2Client client = toEntity(registeredClient);
-    this.clientStore.save(client);
+
+    // Check if we are doing a DCR request, then we are authenticated with the IAT token.
+    if (CurrentUserUtil.getAuthentication().getPrincipal() instanceof Jwt jwt) {
+      String username = jwt.getClaimAsString("sub");
+      User user = userService.getUserByUsername(username);
+      UserDetails userDetails = UserDetails.fromUserDontLoadOrgUnits(user);
+      // Save with created by as 'sub'/username from IAT token
+      this.clientStore.save(client, userDetails, true);
+    } else {
+      this.clientStore.save(client);
+    }
   }
 
   @Transactional
@@ -95,6 +114,7 @@ public class Dhis2OAuth2ClientServiceImpl
 
   @Transactional(readOnly = true)
   @Override
+  @CheckForNull
   public RegisteredClient findByUID(String uid) {
     Assert.hasText(uid, "uid cannot be empty");
     Dhis2OAuth2Client client = this.clientStore.getByUidNoAcl(uid);
@@ -103,6 +123,7 @@ public class Dhis2OAuth2ClientServiceImpl
 
   @Transactional(readOnly = true)
   @Override
+  @CheckForNull
   public RegisteredClient findById(String id) {
     Assert.hasText(id, "id cannot be empty");
     Dhis2OAuth2Client client = this.clientStore.getByClientId(id);
@@ -111,20 +132,24 @@ public class Dhis2OAuth2ClientServiceImpl
 
   @Transactional(readOnly = true)
   @Override
+  @CheckForNull
   public RegisteredClient findByClientId(String clientId) {
     Assert.hasText(clientId, "clientId cannot be empty");
     Dhis2OAuth2Client client = this.clientStore.getByClientId(clientId);
     return client != null ? toObject(client) : null;
   }
 
-  /**
-   * Converts a DHIS2 OAuth2Client entity to Spring's RegisteredClient domain object.
-   *
-   * @param client The DHIS2 OAuth2Client entity
-   * @return The Spring RegisteredClient
-   */
+  @Transactional(readOnly = true)
+  @Override
+  @CheckForNull
+  public Dhis2OAuth2Client getAsDhis2OAuth2ClientByClientId(String clientId) {
+    Assert.hasText(clientId, "clientId cannot be empty");
+    return this.clientStore.getByClientId(clientId);
+  }
+
   @Override
   @NonTransactional
+  @Nonnull
   public RegisteredClient toObject(Dhis2OAuth2Client client) {
     Set<String> clientAuthenticationMethods =
         StringUtils.commaDelimitedListToSet(client.getClientAuthenticationMethods());
@@ -170,14 +195,9 @@ public class Dhis2OAuth2ClientServiceImpl
     return builder.build();
   }
 
-  /**
-   * Converts Spring's RegisteredClient domain object to a DHIS2 OAuth2Client entity.
-   *
-   * @param registeredClient The Spring RegisteredClient
-   * @return The DHIS2 OAuth2Client entity
-   */
   @Override
   @NonTransactional
+  @Nonnull
   public Dhis2OAuth2Client toEntity(RegisteredClient registeredClient) {
     List<String> clientAuthenticationMethods =
         new ArrayList<>(registeredClient.getClientAuthenticationMethods().size());
@@ -203,7 +223,8 @@ public class Dhis2OAuth2ClientServiceImpl
     if (existingClient != null) {
       entity.setUid(existingClient.getUid());
       entity.setCreated(existingClient.getCreated());
-    } else if (registeredClient.getId() != null) {
+    } else if (registeredClient.getId() != null
+        && CodeGenerator.isValidUid(registeredClient.getId())) {
       entity.setUid(registeredClient.getId());
     } else {
       entity.setUid(CodeGenerator.generateUid());
@@ -249,13 +270,8 @@ public class Dhis2OAuth2ClientServiceImpl
     }
   }
 
-  /**
-   * Converts a Map to a JSON string.
-   *
-   * @param data The Map to convert
-   * @return The JSON string
-   */
   @Override
+  @Nonnull
   public String writeMap(Map<String, Object> data) {
     try {
       return this.objectMapper.writeValueAsString(data);

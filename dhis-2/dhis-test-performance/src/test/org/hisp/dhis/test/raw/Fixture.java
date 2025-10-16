@@ -27,17 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.test.raw;
 
-public enum DataValueAuditType {
-  /** When a data value is created for the first time (no row existed in the table) */
-  CREATE,
+import java.util.Map;
 
-  /** When a data value is marked as {@code deleted=true} (without already being marked deleted) */
-  DELETE,
+class Fixture {
+  private Map<String, Object> resource;
+  private String onCreatePath;
+  private String onConflictPath;
 
-  /** When a data value changes its {@code value} property has changed, but it is not a deletion */
-  UPDATE,
+  public Map<String, Object> getResource() {
+    return resource;
+  }
 
-  // Note that updating just followup or comment will not create an audit entry ATM
+  public void setResource(Map<String, Object> resource) {
+    this.resource = resource;
+  }
+
+  public String getOnCreatePath() {
+    return onCreatePath;
+  }
+
+  public void setOnCreatePath(String onCreatePath) {
+    this.onCreatePath = onCreatePath;
+  }
+
+  public String getOnConflictPath() {
+    return onConflictPath;
+  }
+
+  public void setOnConflictPath(String onConflictPath) {
+    this.onConflictPath = onConflictPath;
+  }
 }

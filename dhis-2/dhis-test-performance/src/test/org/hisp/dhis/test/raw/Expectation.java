@@ -27,30 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
+package org.hisp.dhis.test.raw;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import static org.hisp.dhis.test.raw.Helper.asIntVersion;
 
-/**
- * Enables or disables the DV audit log (AKA changelog) based on the current configuration of the
- * server.
- */
-@RequiredArgsConstructor
-public class DataValueAuditToggle extends TransactionContextStartupRoutine {
+class Expectation {
+  private Integer min;
+  private Integer max;
+  private Integer mean;
+  private Integer ninetyPercentile;
+  private String release;
 
-  private final DataValueAuditStore auditStore;
-  private final DhisConfigurationProvider config;
+  public Integer getMin() {
+    return min;
+  }
+
+  public void setMin(Integer min) {
+    this.min = min;
+  }
+
+  public Integer getMax() {
+    return max;
+  }
+
+  public void setMax(Integer max) {
+    this.max = max;
+  }
+
+  public Integer getMean() {
+    return mean;
+  }
+
+  public void setMean(Integer mean) {
+    this.mean = mean;
+  }
+
+  public String getRelease() {
+    return release;
+  }
+
+  public void setRelease(String release) {
+    this.release = release;
+  }
+
+  public Integer getNinetyPercentile() {
+    return ninetyPercentile;
+  }
+
+  public void setNinetyPercentile(Integer ninetyPercentile) {
+    this.ninetyPercentile = ninetyPercentile;
+  }
+
+  public int releaseAsInt() {
+    return asIntVersion(release);
+  }
 
   @Override
-  public void executeInTransaction() {
-    if (config.isEnabled(ConfigurationKey.CHANGELOG_AGGREGATE)) {
-      auditStore.enableAudit();
-    } else {
-      auditStore.disableAudit();
-    }
+  public String toString() {
+    return "Expectation{"
+        + "min="
+        + min
+        + ", max="
+        + max
+        + ", mean="
+        + mean
+        + ", release='"
+        + release
+        + '\''
+        + '}';
   }
 }

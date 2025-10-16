@@ -31,10 +31,10 @@ package org.hisp.dhis.scheduling;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * Special methods for handling the scheduler main loop execution.
@@ -50,7 +50,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return the UID of the most recently started job configuration or null if none exists
    */
   @CheckForNull
-  String getLastRunningId(@Nonnull JobType type);
+  UID getLastRunningId(@Nonnull JobType type);
 
   /**
    * The UID of the job for the given type that most recently finished with any outcome
@@ -59,7 +59,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return the UID of the most recently finished job configuration or null if none exists
    */
   @CheckForNull
-  String getLastCompletedId(@Nonnull JobType type);
+  UID getLastCompletedId(@Nonnull JobType type);
 
   /**
    * While a job is running the JSON data is the live data frequently updated during the run. When a
@@ -69,20 +69,20 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return the most recent progress JSON data
    */
   @CheckForNull
-  String getProgress(@Nonnull String jobId);
+  String getProgress(@Nonnull UID jobId);
 
   @CheckForNull
-  String getErrors(@Nonnull String jobId);
+  String getErrors(@Nonnull UID jobId);
 
   /**
    * @return UIDs of all existing job configurations.
    */
-  Set<String> getAllIds();
+  Set<UID> getAllIds();
 
   /**
    * @return UIDs of all jobs that are flagged to be cancelled.
    */
-  Set<String> getAllCancelledIds();
+  Set<UID> getAllCancelledIds();
 
   /**
    * Lists all jobs of a specific type.
@@ -98,7 +98,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param timeoutSeconds the duration for which the job has not been updated (alive).
    * @return all jobs that appear to be stale (hanging) considering the given timeout
    */
-  List<JobConfiguration> getStaleConfigurations(int timeoutSeconds);
+  List<JobEntry> getStaleConfigurations(int timeoutSeconds);
 
   /**
    * This list contains any trigger for a {@link JobConfiguration} that wants to run and matches the
@@ -115,14 +115,14 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return all job configurations that could potentially be started based on their cron expression
    *     or delay time
    */
-  Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting);
+  List<JobEntry> getDueJobConfigurations(boolean includeWaiting);
 
   /**
    * @param params query parameters (criteria) to find
    * @return all job configurations that match the query parameters
    */
   @Nonnull
-  Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params);
+  List<String> findJobRunErrors(@Nonnull JobRunErrorsParams params);
 
   /**
    * @return A list of all job types that are currently in {@link JobStatus#RUNNING} state.
@@ -141,6 +141,9 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    */
   Set<String> getAllQueueNames();
 
+  @CheckForNull
+  JobEntry getJobById(UID id);
+
   /**
    * @param queue of the queue to list
    * @return All jobs in a queue ordered by their position
@@ -153,7 +156,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @return the job next in line if exists or null otherwise
    */
   @CheckForNull
-  JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition);
+  JobEntry getNextInQueue(@Nonnull String queue, int fromPosition);
 
   /**
    * Changes the {@link SchedulingType} so the job runs {@link SchedulingType#ONCE_ASAP}.
@@ -164,7 +167,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job to switch to {@link SchedulingType#ONCE_ASAP}
    * @return true, if the update was successful, otherwise false
    */
-  boolean tryExecuteNow(@Nonnull String jobId);
+  boolean tryExecuteNow(@Nonnull UID jobId);
 
   /**
    * Changes the {@link JobStatus} from {@link JobStatus#RUNNING} to a failed execution status. The
@@ -175,7 +178,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job to revert now
    * @return true, if update was successful, otherwise false
    */
-  boolean tryRevertNow(@Nonnull String jobId);
+  boolean tryRevertNow(@Nonnull UID jobId);
 
   /**
    * A successful update means the DB state flipped from {@link JobStatus#SCHEDULED} to {@link
@@ -187,7 +190,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job to switch to {@link JobStatus#RUNNING} state
    * @return true, if update was successful, otherwise false
    */
-  boolean tryStart(@Nonnull String jobId);
+  boolean tryStart(@Nonnull UID jobId);
 
   /**
    * If the job is already in {@link JobStatus#RUNNING} it is marked as cancelled. The effect takes
@@ -200,7 +203,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job to mark as cancelled
    * @return true, if the update changed the state of the cancel flag to true, otherwise false
    */
-  boolean tryCancel(@Nonnull String jobId);
+  boolean tryCancel(@Nonnull UID jobId);
 
   /**
    * A successful update means the DB state flipped from {@link JobStatus#RUNNING} to {@link
@@ -212,7 +215,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    *     JobConfiguration#getLastExecutedStatus()}
    * @return true, if the update was successful, otherwise false
    */
-  boolean tryFinish(@Nonnull String jobId, JobStatus status);
+  boolean tryFinish(@Nonnull UID jobId, JobStatus status);
 
   /**
    * If this has no effect there either were no further items in the queue or the items were not in
@@ -225,7 +228,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   boolean trySkip(@Nonnull String queue);
 
   void updateProgress(
-      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes);
+      @Nonnull UID jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes);
 
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that

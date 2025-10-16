@@ -78,7 +78,7 @@ import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -127,7 +127,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DataExportService dataExportService;
   @Autowired private DataExportStore dataExportStore;
 
-  @Autowired private DataValueAuditService dataValueAuditService;
+  @Autowired private DataValueChangelogService dataValueChangelogService;
 
   @Autowired private DataEntryPipeline dataEntryPipeline;
 
@@ -613,7 +613,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         "mismatch in dataValues values");
 
     for (DataExportValue dv : dataValues)
-      assertEquals(1, dataValueAuditService.getDataValueAudits(dv).size());
+      assertEquals(1, dataValueChangelogService.getChangelogEntries(dv).size());
   }
 
   @Test
@@ -631,7 +631,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         "mismatch in dataValues values");
 
     for (DataExportValue dv : dataValues)
-      assertEquals(1, dataValueAuditService.getDataValueAudits(dv).size());
+      assertEquals(1, dataValueChangelogService.getChangelogEntries(dv).size());
   }
 
   @Test
@@ -647,7 +647,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     for (DataExportValue dv : dataValues)
       assertEquals(
-          1, dataValueAuditService.getDataValueAudits(dv).size(), "should be a CREATE audit");
+          1, dataValueChangelogService.getChangelogEntries(dv).size(), "should be a CREATE audit");
   }
 
   @Test
@@ -1145,7 +1145,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     for (DataExportValue dv : dataValues)
       assertEquals(
           2,
-          dataValueAuditService.getDataValueAudits(dv).size(),
+          dataValueChangelogService.getChangelogEntries(dv).size(),
           "expected data value update(s) to be audited");
   }
 

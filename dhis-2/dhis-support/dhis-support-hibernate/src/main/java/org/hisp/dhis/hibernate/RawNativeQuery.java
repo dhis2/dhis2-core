@@ -115,6 +115,10 @@ public final class RawNativeQuery {
     return setParameter(name, arr, StringArrayType.INSTANCE);
   }
 
+  public RawNativeQuery setInOrAnyParameter(String name, Collection<UID> value) {
+    return setInOrAnyParameter(name, value, UID::getValue);
+  }
+
   public RawNativeQuery setInOrAnyParameter(String name, Stream<UID> value) {
     return setInOrAnyParameter(name, value, UID::getValue);
   }
@@ -255,6 +259,14 @@ public final class RawNativeQuery {
     return res;
   }
 
+  public <T> Stream<T> stream(Class<T> rowType) {
+    String minSql = toSQL(false);
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    NativeQuery<T> query = session.createNativeQuery(minSql, rowType);
+    applyQueryParameters(false, query);
+    return query.stream();
+  }
+
   /**
    * Count does allow to use the same provided SQL used for fetch as it erases the SELECT list of
    * the main query and replaces it with {@code count(*)}.
@@ -274,6 +286,11 @@ public final class RawNativeQuery {
     String minSql = toSQL(count);
     @SuppressWarnings("SqlSourceToSinkFlow")
     NativeQuery<?> query = session.createNativeQuery(minSql);
+    applyQueryParameters(count, query);
+    return query;
+  }
+
+  private void applyQueryParameters(boolean count, NativeQuery<?> query) {
     params.forEach(
         (name, param) -> {
           if (!erasedParams.contains(name)) {
@@ -284,7 +301,6 @@ public final class RawNativeQuery {
       if (offset != null) query.setFirstResult(offset);
       if (limit != null) query.setMaxResults(limit);
     }
-    return query;
   }
 
   public String toSQL() {
@@ -294,7 +310,8 @@ public final class RawNativeQuery {
   public String toSQL(boolean count) {
     String minSql =
         replaceDynamicClauses(
-            eraseComments(eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql))))));
+            eraseComments(
+                eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql))), count)));
     if (count) return replaceSelect(minSql);
     return minSql;
   }
@@ -304,7 +321,8 @@ public final class RawNativeQuery {
     return sql.lines().filter(not(this::containsErasedParameter)).collect(joining("\n"));
   }
 
-  private String eraseOrders(String sql) {
+  private String eraseOrders(String sql, boolean count) {
+    if (count) return sql.lines().filter(not(this::isOrderBy)).collect(joining("\n"));
     if (erasedOrders.isEmpty()) return sql;
     return sql.lines().map(this::replaceOrders).collect(joining("\n"));
   }
@@ -408,14 +426,19 @@ public final class RawNativeQuery {
    *     the entire line will be erased.
    */
   private String replaceOrders(String line) {
+    if (!isOrderBy(line)) return line;
     int idx = line.indexOf("ORDER BY ");
-    if (idx < 0) return line;
-    // make sure it is not a nested order
-    if (!line.trim().startsWith("ORDER BY")) return line;
     String[] allOrders = line.substring(idx + 9).split("\\s*,\\s*");
     List<String> keptOrders = Stream.of(allOrders).filter(not(this::containsErasedOrder)).toList();
     if (keptOrders.isEmpty()) return ""; // erase entire ORDER BY line
     return line.substring(0, idx + 9) + String.join(" , ", keptOrders);
+  }
+
+  private boolean isOrderBy(String line) {
+    int idx = line.indexOf("ORDER BY ");
+    if (idx < 0) return false;
+    // make sure it is not a nested order
+    return line.trim().startsWith("ORDER BY ");
   }
 
   /**
@@ -434,19 +457,19 @@ public final class RawNativeQuery {
     while (fi < n && !lines.get(fi).contains("FROM ")) fi++;
     if (fi >= n) return sql; // give up
     String preLines = si == 0 ? "" : String.join("\n", lines.subList(0, si));
-    String postLines = fi + 1 == n ? "" : String.join("\n", lines.subList(fi + 1, n));
+    String postLines = String.join("\n", lines.subList(fi, n));
     if (si == fi) {
       // SELECT ... FROM in one line
       String line = lines.get(si);
       return preLines
-          + "SELECT count(*) "
-          + line.substring(line.indexOf("FROM"))
+          + "SELECT count(*)"
+          + line.substring(line.indexOf(" FROM"))
           + "\n"
           + postLines;
     }
     // SELECT
     // ...
     // FROM
-    return preLines + "SELECT count(*) \n" + postLines;
+    return preLines + "SELECT count(*)\n" + postLines;
   }
 }

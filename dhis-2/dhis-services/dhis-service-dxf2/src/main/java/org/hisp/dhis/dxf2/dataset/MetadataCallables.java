@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.callable.CategoryOptionComboCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
@@ -50,7 +49,7 @@ class MetadataCallables {
 
   private final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
 
-  private final IdentifiableObjectCallable<Period> periodCallable;
+  private final PeriodCallable periodCallable;
 
   MetadataCallables(
       ImportConfig config,
@@ -64,7 +63,7 @@ class MetadataCallables {
             idObjManager, OrganisationUnit.class, config.getOuScheme(), null);
     optionComboCallable =
         new CategoryOptionComboCallable(categoryService, config.getAocScheme(), null);
-    periodCallable = new PeriodCallable(periodService, null, null);
+    periodCallable = new PeriodCallable(periodService);
   }
 
   IdentifiableObjectCallable<DataSet> getDataSetCallable() {
@@ -79,7 +78,7 @@ class MetadataCallables {
     return optionComboCallable;
   }
 
-  IdentifiableObjectCallable<Period> getPeriodCallable() {
+  PeriodCallable getPeriodCallable() {
     return periodCallable;
   }
 }

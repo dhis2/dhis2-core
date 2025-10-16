@@ -1,0 +1,524 @@
+{
+  "scenarios": [
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=Xh88p1nyefp&enrollmentDate=Xh88p1nyefp.LAST_5_YEARS&includeMetadataDetails=true&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 85,
+          "max": 380,
+          "mean": 150
+        },
+        {
+          "release": "42.0",
+          "min": 100,
+          "max": 300,
+          "mean": 200
+        },
+        {
+          "release": "42.0-doris",
+          "min": 130,
+          "max": 300,
+          "mean": 275
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=Xh88p1nyefp&enrollmentDate=Xh88p1nyefp.LAST_5_YEARS&includeMetadataDetails=true&paging=false&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 145,
+          "max": 395,
+          "mean": 345
+        },
+        {
+          "release": "42.0",
+          "min": 2100,
+          "max": 3200,
+          "mean": 3000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 5000,
+          "max": 5850,
+          "mean": 5700
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=Xh88p1nyefp&enrollmentDate=Xh88p1nyefp.LAST_5_YEARS&includeMetadataDetails=true&dimension=Xh88p1nyefp.ou:x4QB3b50NtR&ouMode=SELECTED&paging=false&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 115,
+          "max": 525,
+          "mean": 185
+        },
+        {
+          "release": "42.0",
+          "min": 500,
+          "max": 865,
+          "mean": 730
+        },
+        {
+          "release": "42.0-doris",
+          "min": 800,
+          "max": 1300,
+          "mean": 1150
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=Xh88p1nyefp&dimension=ouname&dimension=sB1IHYu2xQT:eq:James&includeMetadataDetails=false&headers=ouname,sB1IHYu2xQT,lastupdated&pageSize=200&asc=lastupdated&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 80,
+          "max": 350,
+          "mean": 145
+        },
+        {
+          "release": "42.0",
+          "min": 130,
+          "max": 285,
+          "mean": 205
+        },
+        {
+          "release": "42.0-doris",
+          "min": 155,
+          "max": 325,
+          "mean": 260
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ouname&dimension=sB1IHYu2xQT:eq:James&includeMetadataDetails=false&headers=ouname,sB1IHYu2xQT,lastupdated&pageSize=500&asc=lastupdated&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 385,
+          "mean": 325
+        },
+        {
+          "release": "42.0",
+          "min": 180,
+          "max": 505,
+          "mean": 325
+        },
+        {
+          "release": "42.0-doris",
+          "min": 290,
+          "max": 565,
+          "mean": 415
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=Xh88p1nyefp&dimension=Xh88p1nyefp.K5ac7u3V5bB.ou:FV43JisquSm&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 115,
+          "max": 465,
+          "mean": 200
+        },
+        {
+          "release": "42.0",
+          "min": 600,
+          "max": 1150,
+          "mean": 945
+        },
+        {
+          "release": "42.0-doris",
+          "min": 230,
+          "max": 445,
+          "mean": 350
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ouname&dimension=sB1IHYu2xQT:ilike:a&includeMetadataDetails=false&headers=ouname,sB1IHYu2xQT,lastupdated&pageSize=2000&desc=sB1IHYu2xQT&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 240,
+          "max": 485,
+          "mean": 415
+        },
+        {
+          "release": "42.0",
+          "min": 650,
+          "max": 1200,
+          "mean": 985
+        },
+        {
+          "release": "42.0-doris",
+          "min": 900,
+          "max": 1800,
+          "mean": 1500
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=EZkN8vYZwjR&lastUpdated=LAST_5_YEARS&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 70,
+          "max": 355,
+          "mean": 135
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 265,
+          "mean": 155
+        },
+        {
+          "release": "42.0-doris",
+          "min": 95,
+          "max": 215,
+          "mean": 165
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=EZkN8vYZwjR&desc=EZkN8vYZwjR.so8YZ9J3MeO.uZ9c4fKXuNS,EZkN8vYZwjR.so8YZ9J3MeO.Q20pEixZxCs&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 65,
+          "max": 375,
+          "mean": 150
+        },
+        {
+          "release": "42.0",
+          "min": 60,
+          "max": 280,
+          "mean": 165
+        },
+        {
+          "release": "42.0-doris",
+          "min": 100,
+          "max": 225,
+          "mean": 185
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=EZkN8vYZwjR&asc=oindugucx72,Xhdn49gUd52&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 75,
+          "max": 355,
+          "mean": 125
+        },
+        {
+          "release": "42.0",
+          "min": 75,
+          "max": 275,
+          "mean": 160
+        },
+        {
+          "release": "42.0-doris",
+          "min": 90,
+          "max": 210,
+          "mean": 165
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?program=Xh88p1nyefp&desc=Xh88p1nyefp.K5ac7u3V5bB.ouname&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 105,
+          "max": 455,
+          "mean": 190
+        },
+        {
+          "release": "42.0",
+          "min": 2850,
+          "max": 4000,
+          "mean": 3700
+        },
+        {
+          "release": "42.0-doris",
+          "min": 3550,
+          "max": 4250,
+          "mean": 4150
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?desc=ouname,lastupdated&relativePeriodDate=2023-12-14",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 185,
+          "max": 485,
+          "mean": 400
+        },
+        {
+          "release": "42.0",
+          "min": 215,
+          "max": 485,
+          "mean": 400
+        },
+        {
+          "release": "42.0-doris",
+          "min": 285,
+          "max": 570,
+          "mean": 395
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA&headers=ouname,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,created,lastupdated,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA&totalPages=false&rowContext=true&created=LAST_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=created&relativePeriodDate=2024-06-28",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 1900,
+          "max": 3000,
+          "mean": 2650
+        },
+        {
+          "release": "42.0",
+          "min": 205,
+          "max": 495,
+          "mean": 400
+        },
+        {
+          "release": "42.0-doris",
+          "min": 385,
+          "max": 650,
+          "mean": 520
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA&headers=ouname,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,created,lastupdated,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.ouname,YcxRnVWkbQ1.enrollmentdate&totalPages=false&rowContext=true&created=LAST_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=oindugucx72&relativePeriodDate=2024-06-27",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 2095,
+          "max": 3450,
+          "mean": 2800
+        },
+        {
+          "release": "42.0",
+          "min": 235,
+          "max": 545,
+          "mean": 400
+        },
+        {
+          "release": "42.0-doris",
+          "min": 420,
+          "max": 855,
+          "mean": 600
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr&headers=ouname,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,created,lastupdated,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.ouname,YcxRnVWkbQ1.enrollmentdate,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr&totalPages=false&rowContext=true&created=LAST_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr&relativePeriodDate=2024-06-27",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 2095,
+          "max": 3450,
+          "mean": 2750
+        },
+        {
+          "release": "42.0",
+          "min": 3650,
+          "max": 4850,
+          "mean": 4600
+        },
+        {
+          "release": "42.0-doris",
+          "min": 4600,
+          "max": 5500,
+          "mean": 5200
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,yIUuFclti50,Rv8WM2mTuS5,oindugucx72:IN:FEMALE;MALE,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3:EQ:NV,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr&headers=ouname,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,created,lastupdated,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.ouname,YcxRnVWkbQ1.enrollmentdate,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr&totalPages=false&rowContext=true&created=LAST_YEAR&lastUpdated=LAST_5_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr&relativePeriodDate=2024-06-27",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 2000,
+          "max": 2950,
+          "mean": 2650
+        },
+        {
+          "release": "42.0",
+          "min": 5100,
+          "max": 6850,
+          "mean": 6400
+        },
+        {
+          "release": "42.0-doris",
+          "min": 4700,
+          "max": 7700,
+          "mean": 6800
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,yIUuFclti50,Rv8WM2mTuS5,oindugucx72:IN:FEMALE;MALE,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3:EQ:NV,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr,Lt6P15ps7f6.RB3a5MXMe8g.b89yFC4FHtF,Xh88p1nyefp.ang4CLldbIu.EZAZ8aIV3kB,Xh88p1nyefp.K5ac7u3V5bB.zsM4K8kNPSo:!EQ:0&headers=ouname,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,created,lastupdated,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.ouname,YcxRnVWkbQ1.enrollmentdate,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr,Lt6P15ps7f6.RB3a5MXMe8g.b89yFC4FHtF,Lt6P15ps7f6.programstatus,Xh88p1nyefp.ang4CLldbIu.EZAZ8aIV3kB,Xh88p1nyefp.K5ac7u3V5bB.zsM4K8kNPSo&totalPages=false&rowContext=true&created=LAST_YEAR&lastUpdated=LAST_5_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=Xh88p1nyefp.K5ac7u3V5bB.zsM4K8kNPSo&relativePeriodDate=2024-06-27",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 20550,
+          "max": 25500,
+          "mean": 25500
+        },
+        {
+          "release": "42.0",
+          "min": 8650,
+          "max": 10150,
+          "mean": 8900
+        },
+        {
+          "release": "42.0-doris",
+          "min": 7900,
+          "max": 10250,
+          "mean": 9250
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,yIUuFclti50,Rv8WM2mTuS5,oindugucx72:IN:FEMALE;MALE,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3:EQ:NV,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr,Lt6P15ps7f6.RB3a5MXMe8g.b89yFC4FHtF,Xh88p1nyefp.ang4CLldbIu.EZAZ8aIV3kB,Xh88p1nyefp.K5ac7u3V5bB.zsM4K8kNPSo:!EQ:0&headers=ouname,yIUuFclti50,Rv8WM2mTuS5,oindugucx72,created,lastupdated,YcxRnVWkbQ1.GIb6Ge9PCc4.GqqiWo0ZOn3,YcxRnVWkbQ1.F9CrPrvrtb1.CHOnw1ApuIA,YcxRnVWkbQ1.ouname,YcxRnVWkbQ1.enrollmentdate,YcxRnVWkbQ1.GIb6Ge9PCc4.ig0CduscEdr,Lt6P15ps7f6.RB3a5MXMe8g.b89yFC4FHtF,Lt6P15ps7f6.programstatus,Xh88p1nyefp.ang4CLldbIu.EZAZ8aIV3kB,Xh88p1nyefp.K5ac7u3V5bB.zsM4K8kNPSo,Xh88p1nyefp.enrollmentdate&totalPages=false&rowContext=true&created=LAST_YEAR&lastUpdated=LAST_5_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=Xh88p1nyefp.enrollmentdate&relativePeriodDate=2024-06-28",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 20095,
+          "max": 25000,
+          "mean": 25000
+        },
+        {
+          "release": "42.0",
+          "min": 5150,
+          "max": 7150,
+          "mean": 6600
+        },
+        {
+          "release": "42.0-doris",
+          "min": 7450,
+          "max": 8250,
+          "mean": 8000
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/IjGPYyk56jz?dimension=ou:USER_ORGUNIT,B6TnnFMgmCk,oindugucx72,sPDKWSQ2vKQ,qDkgAbB5Jlk.KwrBvn1EJT3.HUzRTYRFcYn,qDkgAbB5Jlk.hYyB7FUS5eR.yO0ZIegEsDk,qDkgAbB5Jlk.wYTF0YCHMWr.y57kkdyw35d:GE:1,NUCtvtcCUIZ,LBwVBieQt45:gHfSdwPrC83;U53tdte60Ku&filter=qDkgAbB5Jlk.ou:IWp9dQGM0bS;W6sNfkJcXGC;YvLOmtTQD6b;XKGgynPS1WZ&filter=qDkgAbB5Jlk.hYyB7FUS5eR.JINgGHgqzSN:GT:1&headers=ouname,B6TnnFMgmCk,oindugucx72,sPDKWSQ2vKQ,qDkgAbB5Jlk.KwrBvn1EJT3.HUzRTYRFcYn,qDkgAbB5Jlk.hYyB7FUS5eR.yO0ZIegEsDk,qDkgAbB5Jlk.wYTF0YCHMWr.y57kkdyw35d,NUCtvtcCUIZ,LBwVBieQt45,createdbydisplayname,lastupdated,qDkgAbB5Jlk.programstatus&totalPages=false&rowContext=true&programStatus=qDkgAbB5Jlk.COMPLETED,qDkgAbB5Jlk.ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=qDkgAbB5Jlk.KwrBvn1EJT3.HUzRTYRFcYn&relativePeriodDate=2024-06-28",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 4600,
+          "max": 14050,
+          "mean": 10400
+        },
+        {
+          "release": "42.0",
+          "min": 5200,
+          "max": 7450,
+          "mean": 6900
+        },
+        {
+          "release": "42.0-doris",
+          "min": 7850,
+          "max": 8500,
+          "mean": 8350
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    },
+    {
+      "query": "/api/analytics/trackedEntities/query/MCPQUTHX1Ze?dimension=ou:USER_ORGUNIT,NUCtvtcCUIZ,LBwVBieQt45:gHfSdwPrC83;U53tdte60Ku,SSLpOM0r1U7.s53RFfXA75f.fyvXreKLZNn,SSLpOM0r1U7.s53RFfXA75f.B4eJCy6LFLZ,SSLpOM0r1U7.s53RFfXA75f[1].fmXCCPENnwR,SSLpOM0r1U7.s53RFfXA75f[2].fmXCCPENnwR,SSLpOM0r1U7.s53RFfXA75f[0].fmXCCPENnwR,SSLpOM0r1U7.s53RFfXA75f[1].K3TcJM1ySQA:IN:1;0;NV,SSLpOM0r1U7.s53RFfXA75f[2].K3TcJM1ySQA:IN:1;0;NV,SSLpOM0r1U7.s53RFfXA75f[0].K3TcJM1ySQA:IN:1;0;NV&headers=ouname,NUCtvtcCUIZ,LBwVBieQt45,createdbydisplayname,lastupdated,SSLpOM0r1U7.s53RFfXA75f.fyvXreKLZNn,SSLpOM0r1U7.s53RFfXA75f.B4eJCy6LFLZ,SSLpOM0r1U7.s53RFfXA75f[1].fmXCCPENnwR,SSLpOM0r1U7.s53RFfXA75f[2].fmXCCPENnwR,SSLpOM0r1U7.s53RFfXA75f[0].fmXCCPENnwR,SSLpOM0r1U7.s53RFfXA75f[1].K3TcJM1ySQA,SSLpOM0r1U7.s53RFfXA75f[2].K3TcJM1ySQA,SSLpOM0r1U7.s53RFfXA75f[0].K3TcJM1ySQA&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=SSLpOM0r1U7.s53RFfXA75f[0].K3TcJM1ySQA&relativePeriodDate=2024-06-27",
+      "expectations": [
+        {
+          "release": "41.0",
+          "min": 195,
+          "max": 450,
+          "mean": 400
+        },
+        {
+          "release": "42.0",
+          "min": 8900,
+          "max": 12250,
+          "mean": 11000
+        },
+        {
+          "release": "42.0-doris",
+          "min": 9000,
+          "max": 13000,
+          "mean": 11200
+        }
+      ],
+      "version": {
+        "min": "41.0"
+      }
+    }
+  ]
+}

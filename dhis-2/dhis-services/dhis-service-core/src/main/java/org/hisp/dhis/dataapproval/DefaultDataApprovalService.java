@@ -457,7 +457,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
             + ", "
             + period.getPeriodType().getName()
             + " "
-            + period.getName()
+            + period.getIsoDate()
             + " "
             + period
             + ", "
@@ -762,7 +762,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
   private String approvalKey(DataApproval da) {
     return da.getDataApprovalLevel().getUid()
         + da.getWorkflow().getUid()
-        + da.getPeriod().getCode()
+        + da.getPeriod().getIsoDate()
         + da.getOrganisationUnit().getUid()
         + da.getAttributeOptionCombo().getUid();
   }
@@ -780,7 +780,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
   private String daKey(DataApproval da, String orgUnitUid, String attributeOptionComboUid) {
     return da.getWorkflow().getUid()
-        + da.getPeriod().getCode()
+        + da.getPeriod().getIsoDate()
         + orgUnitUid
         + attributeOptionComboUid;
   }

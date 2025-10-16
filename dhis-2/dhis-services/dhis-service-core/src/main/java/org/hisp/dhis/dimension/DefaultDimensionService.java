@@ -114,6 +114,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -561,7 +562,7 @@ public class DefaultDimensionService implements DimensionService {
             }
           }
         } else if (PERIOD.equals(type)) {
-          List<Period> periods = new UniqueArrayList<>();
+          List<PeriodDimension> periods = new UniqueArrayList<>();
           Set<String> allPeriods = new LinkedHashSet<>();
 
           for (String period : uids) {
@@ -569,7 +570,7 @@ public class DefaultDimensionService implements DimensionService {
               Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
               if (isoPeriod != null) {
-                periods.add(isoPeriod);
+                periods.add(PeriodDimension.of(isoPeriod));
               }
             }
 
@@ -577,7 +578,7 @@ public class DefaultDimensionService implements DimensionService {
           }
 
           object.setRawPeriods(new ArrayList<>(allPeriods));
-          object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
+          object.setPeriods(periods);
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {
             if (ou == null) {

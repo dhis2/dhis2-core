@@ -71,7 +71,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -139,9 +139,9 @@ class QueryValidatorTest {
 
   private ReportingRate rrA;
 
-  private Period peA;
+  private PeriodDimension peA;
 
-  private Period peB;
+  private PeriodDimension peB;
 
   private OrganisationUnit ouA;
 
@@ -211,8 +211,8 @@ class QueryValidatorTest {
     DataSet dsA = createDataSet('A', pt);
 
     rrA = new ReportingRate(dsA);
-    peA = PeriodType.getPeriodFromIsoString("201501");
-    peB = PeriodType.getPeriodFromIsoString("201502");
+    peA = PeriodDimension.of("201501");
+    peB = PeriodDimension.of("201502");
 
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');

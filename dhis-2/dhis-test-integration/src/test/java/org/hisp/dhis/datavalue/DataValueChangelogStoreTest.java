@@ -37,6 +37,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -50,9 +51,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
+class DataValueChangelogStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private CategoryService categoryService;
@@ -109,38 +110,38 @@ class DataValueAuditStoreTest extends PostgresIntegrationTestBase {
   @DisplayName("Deleting audits by category option combo deletes the correct entries")
   void testAddGetDataValueAuditFromDataValue() {
     // state before delete
-    List<DataValueAudit> dvaCoc1Before =
-        dataValueAuditStore.getDataValueAudits(
-            new DataValueAuditQueryParams().setCategoryOptionCombo(coc1));
-    List<DataValueAudit> dvaCoc2Before =
-        dataValueAuditStore.getDataValueAudits(
-            new DataValueAuditQueryParams().setAttributeOptionCombo(coc2));
-    List<DataValueAudit> dvaCoc3Before =
-        dataValueAuditStore.getDataValueAudits(
-            new DataValueAuditQueryParams()
-                .setCategoryOptionCombo(coc3)
-                .setAttributeOptionCombo(coc3));
+    List<DataValueChangelog> dvaCoc1Before =
+        dataValueChangelogStore.getEntries(
+            new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc1)));
+    List<DataValueChangelog> dvaCoc2Before =
+        dataValueChangelogStore.getEntries(
+            new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of(coc2)));
+    List<DataValueChangelog> dvaCoc3Before =
+        dataValueChangelogStore.getEntries(
+            new DataValueChangelogQueryParams()
+                .setCategoryOptionCombo(UID.of(coc3))
+                .setAttributeOptionCombo(UID.of(coc3)));
 
     assertEquals(2, dvaCoc1Before.size(), "There should be 2 audits referencing Cat Opt Combo 1");
     assertEquals(2, dvaCoc2Before.size(), "There should be 2 audits referencing Cat Opt Combo 2");
     assertEquals(2, dvaCoc3Before.size(), "There should be 2 audits referencing Cat Opt Combo 3");
 
     // when
-    dataValueAuditStore.deleteDataValueAudits(coc1);
-    dataValueAuditStore.deleteDataValueAudits(coc2);
+    dataValueChangelogStore.deleteByOptionCombo(UID.of(coc1));
+    dataValueChangelogStore.deleteByOptionCombo(UID.of(coc2));
 
     // then
-    List<DataValueAudit> dvaCoc1After =
-        dataValueAuditStore.getDataValueAudits(
-            new DataValueAuditQueryParams().setCategoryOptionCombo(coc1));
-    List<DataValueAudit> dvaCoc2After =
-        dataValueAuditStore.getDataValueAudits(
-            new DataValueAuditQueryParams().setAttributeOptionCombo(coc2));
-    List<DataValueAudit> dvaCoc3After =
-        dataValueAuditStore.getDataValueAudits(
-            new DataValueAuditQueryParams()
-                .setCategoryOptionCombo(coc3)
-                .setAttributeOptionCombo(coc3));
+    List<DataValueChangelog> dvaCoc1After =
+        dataValueChangelogStore.getEntries(
+            new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc1)));
+    List<DataValueChangelog> dvaCoc2After =
+        dataValueChangelogStore.getEntries(
+            new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of(coc2)));
+    List<DataValueChangelog> dvaCoc3After =
+        dataValueChangelogStore.getEntries(
+            new DataValueChangelogQueryParams()
+                .setCategoryOptionCombo(UID.of(coc3))
+                .setAttributeOptionCombo(UID.of(coc3)));
 
     assertTrue(dvaCoc1After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 1");
     assertTrue(dvaCoc2After.isEmpty(), "There should be 0 audits referencing Cat Opt Combo 2");

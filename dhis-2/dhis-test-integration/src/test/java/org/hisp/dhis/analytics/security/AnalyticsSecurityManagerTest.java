@@ -145,7 +145,7 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   void testDataViewOrganisationUnits() {
     DataQueryParams params =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withPeriods(createPeriodDimensions("201801", "201802"))
             .withOrganisationUnits(Lists.newArrayList(ouF))
             .build();
     IllegalQueryException ex =
@@ -157,7 +157,7 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   void testDataViewMaxOrganisationUnitLevel() {
     DataQueryParams params =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withPeriods(createPeriodDimensions("201801", "201802"))
             .withOrganisationUnits(Lists.newArrayList(ouD))
             .build();
     IllegalQueryException ex =
@@ -169,7 +169,7 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   void testDecideAccessGranted() {
     DataQueryParams params =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withPeriods(createPeriodDimensions("201801", "201802"))
             .withOrganisationUnits(Lists.newArrayList(ouB, ouC))
             .build();
 
@@ -180,7 +180,7 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   void testDecideAccessDenied() {
     DataQueryParams params =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withPeriods(createPeriodDimensions("201801", "201802"))
             .withOrganisationUnits(Lists.newArrayList(ouA, ouB))
             .build();
     assertThrows(IllegalQueryException.class, () -> securityManager.decideAccess(params));
@@ -191,7 +191,7 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .withDataElements(Lists.newArrayList(deA))
-            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withPeriods(createPeriodDimensions("201801", "201802"))
             .build();
     params = securityManager.withUserConstraints(params);
     assertEquals(userOrgUnits, Sets.newHashSet(params.getFilterOrganisationUnits()));
@@ -204,7 +204,7 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .withDataElements(Lists.newArrayList(deA))
-            .withPeriods(Lists.newArrayList(createPeriod("201801"), createPeriod("201802")))
+            .withPeriods(createPeriodDimensions("201801", "201802"))
             .withOrganisationUnits(Lists.newArrayList(ouB))
             .addFilter(
                 new BaseDimensionalObject(

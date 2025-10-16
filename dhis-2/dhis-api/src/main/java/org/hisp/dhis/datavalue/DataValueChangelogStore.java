@@ -31,30 +31,28 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
+public interface DataValueChangelogStore extends GenericStore<DataValueChangelog> {
 
   /**
    * Deletes all data value audits for the given organisation unit.
    *
-   * @param organisationUnit the organisation unit.
+   * @param orgUnit the organisation unit.
    */
-  void deleteDataValueAudits(OrganisationUnit organisationUnit);
+  void deleteByOrgUnit(@Nonnull UID orgUnit);
 
   /**
    * Deletes all data value audits for the given data element.
    *
    * @param dataElement the data element.
    */
-  void deleteDataValueAudits(DataElement dataElement);
+  void deleteByDataElement(@Nonnull UID dataElement);
 
   /**
    * Deletes all data value audits for the given category option combo. Both properties:
@@ -62,15 +60,15 @@ public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
    *
    * @param categoryOptionCombo the categoryOptionCombo.
    */
-  void deleteDataValueAudits(@Nonnull CategoryOptionCombo categoryOptionCombo);
+  void deleteByOptionCombo(@Nonnull UID categoryOptionCombo);
 
   /**
    * Returns data value audits for the given query.
    *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
+   * @param params the {@link DataValueChangelogQueryParams}.
+   * @return a list of {@link DataValueChangelog}.
    */
-  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+  List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params);
 
   /**
    * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
@@ -79,7 +77,7 @@ public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
    * @param params the key to the value
    * @return the audit events for the value stored most recent to oldest
    */
-  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataValueQueryParams params);
+  List<DataValueChangelogEntry> getEntries(@Nonnull DataValueQueryParams params);
 
   /**
    * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
@@ -88,15 +86,15 @@ public interface DataValueAuditStore extends GenericStore<DataValueAudit> {
    * @param key the key to the value
    * @return the audit events for the value stored most recent to oldest
    */
-  List<DataValueAuditEntry> getAuditsByKey(@Nonnull DataEntryKey key);
+  List<DataValueChangelogEntry> getEntries(@Nonnull DataEntryKey key);
 
   /**
    * Counts data value audits for the given query.
    *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
+   * @param params the {@link DataValueChangelogQueryParams}.
+   * @return a list of {@link DataValueChangelog}.
    */
-  int countDataValueAudits(DataValueAuditQueryParams params);
+  int countEntries(DataValueChangelogQueryParams params);
 
   /** Enables the log by creating a trigger. Can be called even if audit is already enabled. */
   void enableAudit();
