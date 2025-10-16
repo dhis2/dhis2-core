@@ -81,13 +81,17 @@ jobs:
           DHIS2_E2E_TEST_DUMP_PATH="$SIERRA_LEONE_DB_PATH" \
           DORIS_VERSION=3.0.7 \
           TEST_TYPE=e2e-analytics \
-          TEST_DB=doris \
+          DB_TYPE=doris \
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml --profile reports run reports-processor
       
       - name: Add a comment to the pull request
         if: always()
-        run: |
-          gh comment ${{ github.event.pull_request.number }} --body "Surefire reports for analytics API tests against Doris have been pushed to the repository. [View reports](https://dhis2.github.io/dhis2-test-reports/reports/?component=core&testType=e2e-analytics)"
+        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Surefire reports for analytics API tests against Doris have been pushed to the repository. [View reports](https://dhis2.github.io/dhis2-test-reports/reports/?component=core&testType=e2e-analytics)
+
 
       - name: Upload logs
         if: failure()
