@@ -231,7 +231,7 @@ public class DefaultSqlViewService implements SqlViewService {
             getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
         query.append(filterQuery.operatorWithPlaceholder());
 
-        // this arg could be a collection and need to flatten to obj each
+        // this arg could be a collection, so need to add each (not the collection)
         if (filterQuery.arg() instanceof Collection<?> collection) {
           queryArgs.addAll(collection);
         } else {

@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -181,7 +182,14 @@ public final class QueryUtils {
     return "'" + value + "'";
   }
 
-  public static Object validateValue(String value) {
+  /**
+   * Parses the provided string value to return either null, a number or a string value
+   *
+   * @param value string value to parse
+   * @return null,number or string
+   */
+  @CheckForNull
+  public static Object parseStringValue(String value) {
     if (value == null || StringUtils.isEmpty(value)) {
       return null;
     }
@@ -257,10 +265,10 @@ public final class QueryUtils {
   }
 
   /**
-   * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
+   * Converts a String with JSON format [x,y,z] into a list of Objects
    *
    * @param value a string contains a collection with JSON format [x,y,z].
-   * @return a string contains a collection with SQL query format (x,y,z).
+   * @return as a list of objects e.g. List.of(x,y,z)
    */
   public static List<Object> convertToCollectionArgs(String value) {
     if (StringUtils.isEmpty(value)) {
@@ -276,7 +284,7 @@ public final class QueryUtils {
     List<Object> args = new ArrayList<>();
 
     for (String s : items) {
-      Object item = QueryUtils.validateValue(s);
+      Object item = parseStringValue(s);
       if (item != null) {
         args.add(item);
       }
@@ -301,16 +309,14 @@ public final class QueryUtils {
     }
 
     return switch (operator) {
-      case "eq" -> new OperatorWithPlaceHolderAndArg(" = ? ", QueryUtils.validateValue(value));
+      case "eq" -> new OperatorWithPlaceHolderAndArg(" = ? ", parseStringValue(value));
       case "ieq" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", value);
       case "!eq", "ne", "neq" ->
-          new OperatorWithPlaceHolderAndArg(" != ? ", QueryUtils.validateValue(value));
-      case "gt" -> new OperatorWithPlaceHolderAndArg(" > ? ", QueryUtils.validateValue(value));
-      case "lt" -> new OperatorWithPlaceHolderAndArg(" < ? ", QueryUtils.validateValue(value));
-      case "gte", "ge" ->
-          new OperatorWithPlaceHolderAndArg(" >= ? ", QueryUtils.validateValue(value));
-      case "lte", "le" ->
-          new OperatorWithPlaceHolderAndArg(" <= ? ", QueryUtils.validateValue(value));
+          new OperatorWithPlaceHolderAndArg(" != ? ", parseStringValue(value));
+      case "gt" -> new OperatorWithPlaceHolderAndArg(" > ? ", parseStringValue(value));
+      case "lt" -> new OperatorWithPlaceHolderAndArg(" < ? ", parseStringValue(value));
+      case "gte", "ge" -> new OperatorWithPlaceHolderAndArg(" >= ? ", parseStringValue(value));
+      case "lte", "le" -> new OperatorWithPlaceHolderAndArg(" <= ? ", parseStringValue(value));
       case "like" -> new OperatorWithPlaceHolderAndArg(" like ? ", "%" + value + "%");
       case "!like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", "%" + value + "%");
       case "^like" -> new OperatorWithPlaceHolderAndArg(" like ? ", value + "%");
@@ -324,12 +330,12 @@ public final class QueryUtils {
       case "$ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", "%" + value);
       case "!$ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", "%" + value);
       case "in" -> {
-        List<Object> objects = QueryUtils.convertToCollectionArgs(value);
+        List<Object> objects = convertToCollectionArgs(value);
         yield new OperatorWithPlaceHolderAndArg(
             " in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ", objects);
       }
       case "!in" -> {
-        List<Object> objects = QueryUtils.convertToCollectionArgs(value);
+        List<Object> objects = convertToCollectionArgs(value);
         yield new OperatorWithPlaceHolderAndArg(
             " not in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ",
             objects);
