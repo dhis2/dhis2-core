@@ -236,6 +236,10 @@ class JdbcEventStore {
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
+  public long countEvents(EventQueryParams queryParams) {
+      return getEventCount(queryParams);
+  }
+
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, queryParams);

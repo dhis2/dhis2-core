@@ -63,10 +63,12 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class SyncUtils {
   static final String HEADER_AUTHORIZATION = "Authorization";
-
+  static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
   private static final String PING_PATH = "/api/system/ping";
 
-  private SyncUtils() {}
+  private SyncUtils() {
+      throw new IllegalStateException("Utility class");
+  }
 
   /**
    * Sends a synchronization request to the {@code syncUrl} and analyzes the returned summary

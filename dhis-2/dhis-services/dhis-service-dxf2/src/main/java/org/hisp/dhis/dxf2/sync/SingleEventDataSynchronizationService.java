@@ -31,6 +31,8 @@ package org.hisp.dhis.dxf2.sync;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
+import static org.hisp.dhis.dxf2.sync.SyncUtils.sendSyncRequest;
 
 import java.util.Date;
 import java.util.List;
@@ -41,8 +43,6 @@ import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.dxf2.events.Event;
-import org.hisp.dhis.dxf2.events.Events;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -52,7 +52,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -81,7 +80,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
   private final UserService userService;
-  private final SyncUtils syncUtils;
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
@@ -131,7 +129,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   private boolean isRemoteServerAvailable(SystemSettings systemSettings) {
-    return syncUtils.testServerAvailability(systemSettings, restTemplate).isAvailable();
+    return testServerAvailability(systemSettings, restTemplate).isAvailable();
   }
 
   private EventSynchronizationContext initializeSynchronizationContext(
@@ -150,8 +148,8 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     ensureAuthentication(systemSettings);
 
     Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
-    int objectsToSynchronize =
-        eventService.findEvents(EventOperationParams.builder().skipChangedBefore(skipChangedBefore).build()).size();
+    long objectsToSynchronize =
+        eventService.countEvents(EventOperationParams.builder().skipChangedBefore(skipChangedBefore).build());
 
     if (objectsToSynchronize == 0) {
       return new EventSynchronizationContext(skipChangedBefore, pageSize);
@@ -211,7 +209,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   protected void synchronizePage(
       int page, EventSynchronizationContext context, SystemSettings systemSettings) {
     Events events =
-        eventService.getAnonymousEventsForSync(
+        eventService.findEvents(
             context.getPageSize(),
             context.getSkipChangedBefore(),
             context.getPsdesWithSkipSyncTrue());
@@ -251,7 +249,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
           renderService.toJson(request.getBody(), events);
         };
 
-    return syncUtils.sendSyncRequest(
+    return sendSyncRequest(
         systemSettings, restTemplate, requestCallback, instance, SyncEndpoint.EVENTS);
   }
 

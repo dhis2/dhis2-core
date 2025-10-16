@@ -81,6 +81,20 @@ public interface EventService {
   @Nonnull
   Event getEvent(UID uid) throws NotFoundException;
 
+    /**
+     * Returns the count of events that match the specified criteria.
+     * <p>
+     * This method exposes the underlying event store's counting capability, providing
+     * a count of all events that meet the given conditions. The count is returned
+     * as a {@code long} to prevent integer overflow, which is a risk when dealing
+     * with large volumes of events over time.
+     * </p>
+     *
+     * @param operationParams the criteria used to filter events
+     * @return the number of events matching the criteria as a {@code long}
+     */
+  long countEvents(@Nonnull EventOperationParams operationParams) throws ForbiddenException, BadRequestException;
+
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
    * authenticated user. Metadata identifiers will use the {@code idScheme} defined by {@link
