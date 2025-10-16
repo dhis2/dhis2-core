@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.sqlview;
 
+import static org.hisp.dhis.query.QueryUtils.parseStringValue;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
@@ -367,7 +368,7 @@ public class DefaultSqlViewService implements SqlViewService {
             .append(" ")
             .append(SqlUtils.quote(criterion.getKey()))
             .append(" = ? ");
-        args.add(QueryUtils.validateValue(criterion.getValue()));
+        args.add(parseStringValue(criterion.getValue()));
       }
     }
 
