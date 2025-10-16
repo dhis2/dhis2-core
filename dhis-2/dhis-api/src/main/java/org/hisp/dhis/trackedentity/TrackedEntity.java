@@ -201,16 +201,25 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), deleted);
-  }
-  
-  public boolean objectEquals(TrackedEntity obj) {
-    return this == obj
-           || getRealClass(this) == getRealClass(obj)
-              && super.equals(obj)
-              && this.isDeleted() == obj.isDeleted();
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    return Objects.hash(result, deleted);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getRealClass(this) != getRealClass(obj)) return false;
+
+    TrackedEntity other = (TrackedEntity) obj;
+    return Objects.equals(getUid(), other.getUid())
+           && Objects.equals(getCode(), other.getCode())
+           && Objects.equals(getName(), other.getName())
+           && isDeleted() == other.isDeleted();
+  }
+  
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
