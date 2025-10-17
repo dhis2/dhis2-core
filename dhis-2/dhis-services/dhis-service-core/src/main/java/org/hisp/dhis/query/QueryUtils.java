@@ -35,15 +35,12 @@ import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -183,54 +180,6 @@ public final class QueryUtils {
   }
 
   /**
-   * Parses the provided string value to return either null, a number or a string value
-   *
-   * @param value string value to parse
-   * @return null,number or string
-   */
-  @CheckForNull
-  public static Object parseStringValue(String value) {
-    if (value == null || StringUtils.isEmpty(value)) {
-      return null;
-    }
-    if (NumberUtils.isCreatable(value)) {
-      try {
-        return NumberUtils.createNumber(value);
-      } catch (NumberFormatException e) {
-        throw new QueryParserException("Could not parse number from value: %s".formatted(value));
-      }
-    }
-    return value;
-  }
-
-  /**
-   * Convert a List of select fields into a string as in SQL select query.
-   *
-   * <p>If input is null, return "*" means the query will select all fields.
-   *
-   * @param fields list of fields in a select query.
-   * @return a string which is concatenated of list fields, separate by comma.
-   */
-  public static String parseSelectFields(List<String> fields) {
-    if (fields == null || fields.isEmpty()) {
-      return " * ";
-    }
-    StringBuilder str = new StringBuilder(StringUtils.EMPTY);
-    for (int i = 0; i < fields.size(); i++) {
-      String field = fields.get(i);
-      if (field.equals("*")) {
-        str.append("*");
-      } else {
-        str.append(SqlUtils.quote(field));
-      }
-      if (i < fields.size() - 1) {
-        str.append(",");
-      }
-    }
-    return str.toString();
-  }
-
-  /**
    * Converts a String with JSON format [x,y,z] into an SQL query collection format (x,y,z).
    *
    * @param value a string contains a collection with JSON format [x,y,z].
@@ -263,100 +212,6 @@ public final class QueryUtils {
 
     return str.toString();
   }
-
-  /**
-   * Converts a String with JSON format [x,y,z] into a list of Objects
-   *
-   * @param value a string contains a collection with JSON format [x,y,z].
-   * @return as a list of objects e.g. List.of(x,y,z)
-   */
-  public static List<Object> convertToCollectionArgs(String value) {
-    if (StringUtils.isEmpty(value)) {
-      throw new QueryParserException("Value is null");
-    }
-
-    if (!value.startsWith("[") || !value.endsWith("]")) {
-      throw new QueryParserException("Invalid query value");
-    }
-
-    String[] split = value.substring(1, value.length() - 1).split(",");
-    List<String> items = Lists.newArrayList(split);
-    List<Object> args = new ArrayList<>();
-
-    for (String s : items) {
-      Object item = parseStringValue(s);
-      if (item != null) {
-        args.add(item);
-      }
-    }
-    return args;
-  }
-
-  /**
-   * Converts a filter operator and value into a parameterized filter with the value.
-   *
-   * <p>Example: {@code parseFilterOperator('eq', 5)} will return a record with values: ['= ?', 5]
-   *
-   * @param operator the filter operator.
-   * @param value value of the current SQL query condition.
-   * @return {@link OperatorWithPlaceHolderAndArg} record containing the operator with a
-   *     placeholder, and the arg to be used in the placeholder.
-   */
-  public static OperatorWithPlaceHolderAndArg parseFilterOperator(String operator, String value) {
-
-    if (StringUtils.isEmpty(operator)) {
-      throw new QueryParserException("Filter Operator is null");
-    }
-
-    return switch (operator) {
-      case "eq" -> new OperatorWithPlaceHolderAndArg(" = ? ", parseStringValue(value));
-      case "ieq" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", value);
-      case "!eq", "ne", "neq" ->
-          new OperatorWithPlaceHolderAndArg(" != ? ", parseStringValue(value));
-      case "gt" -> new OperatorWithPlaceHolderAndArg(" > ? ", parseStringValue(value));
-      case "lt" -> new OperatorWithPlaceHolderAndArg(" < ? ", parseStringValue(value));
-      case "gte", "ge" -> new OperatorWithPlaceHolderAndArg(" >= ? ", parseStringValue(value));
-      case "lte", "le" -> new OperatorWithPlaceHolderAndArg(" <= ? ", parseStringValue(value));
-      case "like" -> new OperatorWithPlaceHolderAndArg(" like ? ", "%" + value + "%");
-      case "!like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", "%" + value + "%");
-      case "^like" -> new OperatorWithPlaceHolderAndArg(" like ? ", value + "%");
-      case "!^like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", value + "%");
-      case "$like" -> new OperatorWithPlaceHolderAndArg(" like ? ", "%" + value);
-      case "!$like" -> new OperatorWithPlaceHolderAndArg(" not like ? ", "%" + value);
-      case "ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", "%" + value + "%");
-      case "!ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", "%" + value + "%");
-      case "^ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", value + "%");
-      case "!^ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", value + "%");
-      case "$ilike" -> new OperatorWithPlaceHolderAndArg(" ilike ? ", "%" + value);
-      case "!$ilike" -> new OperatorWithPlaceHolderAndArg(" not ilike ? ", "%" + value);
-      case "in" -> {
-        List<Object> objects = convertToCollectionArgs(value);
-        yield new OperatorWithPlaceHolderAndArg(
-            " in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ", objects);
-      }
-      case "!in" -> {
-        List<Object> objects = convertToCollectionArgs(value);
-        yield new OperatorWithPlaceHolderAndArg(
-            " not in (" + String.join(",", Collections.nCopies(objects.size(), "?")) + ") ",
-            objects);
-      }
-      case "null" -> new OperatorWithPlaceHolderAndArg("is null ", null);
-      case "!null" -> new OperatorWithPlaceHolderAndArg("is not null ", null);
-      default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
-    };
-  }
-
-  /**
-   * @param placeholderQuery SQL query with '?' placeholders for args
-   * @param args the args to be supplied to the placeholders
-   */
-  public record PlaceholderQueryWithArgs(String placeholderQuery, List<Object> args) {}
-
-  /**
-   * @param operatorWithPlaceholder SQL operator with a '?' placeholder (e.g. 'like ?', '> ?')
-   * @param arg the arg to be supplied to the placeholder
-   */
-  public record OperatorWithPlaceHolderAndArg(String operatorWithPlaceholder, Object arg) {}
 
   /**
    * Returns a single result from the given {@link TypedQuery}. Returns null if no objects could be

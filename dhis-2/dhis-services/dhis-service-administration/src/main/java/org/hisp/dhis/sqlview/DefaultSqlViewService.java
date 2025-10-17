@@ -29,12 +29,14 @@
  */
 package org.hisp.dhis.sqlview;
 
-import static org.hisp.dhis.query.QueryUtils.parseStringValue;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseFilterOperator;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseSelectFields;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseStringValue;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
@@ -55,10 +57,10 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.query.QueryUtils.OperatorWithPlaceHolderAndArg;
-import org.hisp.dhis.query.QueryUtils.PlaceholderQueryWithArgs;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore;
+import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.OperatorWithPlaceHolderAndArg;
+import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.PlaceholderQueryWithArgs;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -198,7 +200,7 @@ public class DefaultSqlViewService implements SqlViewService {
 
     log.info(String.format("Retrieving data for SQL view: '%s'", sqlView.getUid()));
 
-    PlaceholderQueryWithArgs placeholderQueryWithArgs =
+    HibernateSqlViewStore.PlaceholderQueryWithArgs placeholderQueryWithArgs =
         sqlView.isQuery()
             ? getSqlForQuery(sqlView, criteria, variables, filters, fields)
             : getSqlForView(sqlView, criteria, filters, fields);
@@ -253,7 +255,7 @@ public class DefaultSqlViewService implements SqlViewService {
       SqlHelper sqlHelper, String columnName, String operator, String value) {
     String filter = "";
     OperatorWithPlaceHolderAndArg operatorWithPlaceHolderAndArg =
-        QueryUtils.parseFilterOperator(operator, value);
+        parseFilterOperator(operator, value);
 
     filter +=
         sqlHelper.whereAnd()
@@ -281,8 +283,7 @@ public class DefaultSqlViewService implements SqlViewService {
     if (hasCriteria || hasFilter) {
       sql = SqlViewUtils.removeQuerySeparator(sql);
 
-      String outerSql =
-          "select " + QueryUtils.parseSelectFields(fields) + " from " + "(" + sql + ") as qry ";
+      String outerSql = "select " + parseSelectFields(fields) + " from " + "(" + sql + ") as qry ";
 
       SqlHelper sqlHelper = new SqlHelper();
 
@@ -325,7 +326,7 @@ public class DefaultSqlViewService implements SqlViewService {
       SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields) {
     String sql =
         "select "
-            + QueryUtils.parseSelectFields(fields)
+            + parseSelectFields(fields)
             + " from "
             + SqlUtils.quote(sqlView.getViewName())
             + " ";
