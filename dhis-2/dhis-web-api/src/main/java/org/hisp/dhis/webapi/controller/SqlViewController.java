@@ -37,6 +37,8 @@ import static org.hisp.dhis.sqlview.SqlView.getCriteria;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -208,7 +210,13 @@ public class SqlViewController extends AbstractCrudController<SqlView, GetObject
 
   private Grid querySQLView(Set<String> criteria, Set<String> vars, SqlView sqlView) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> paramFields = contextService.getParameterValues("fields");
+    // handle comma-separated fields
+    List<String> fields =
+        paramFields.stream()
+            .map(s -> Arrays.asList(s.split(",")))
+            .flatMap(Collection::stream)
+            .toList();
 
     return dhisConfig.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)
         ? sqlViewService.getSqlViewGridWritesAllowed(
