@@ -18,7 +18,7 @@ dhis2.report.organisationUnitHierarchy = [
     "id": "$!encoder.htmlEncode( ${ou.uid} )",
     "name": "$!encoder.htmlEncode( ${ou.name} )",
     "code": "$!encoder.htmlEncode( ${ou.code} )"
-}#if( $velocityCount < $size ),#end
+}#if( $foreach.count < $size ),#end
 #end
 #end
 ];
@@ -31,7 +31,7 @@ dhis2.report.organisationUnitChildren = [
     "id": "$!encoder.htmlEncode( ${ou.uid} )",
     "name": "$!encoder.htmlEncode( ${ou.name} )",
     "code": "$!encoder.htmlEncode( ${ou.code} )"
-}#if( $velocityCount < $size ),#end
+}#if( $foreach.count < $size ),#end
 #end
 #end
 ];
