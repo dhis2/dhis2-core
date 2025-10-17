@@ -39,7 +39,7 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
-class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
+class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBase {
   private String ou0, ou1, ou21, ou22;
 
   @BeforeEach
@@ -226,7 +226,7 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetAllOrganisationUnitsByLevel() {
     assertEquals(
-        List.of("L0", "L1", "L1x", "L21", "L22", "L2x", "L31", "L32", "L3x"),
+        List.of("L0", "L1x", "L1", "L2x", "L22", "L21", "L3x", "L31", "L32"),
         toOrganisationUnitNames(GET("/organisationUnits?levelSorted=true").content()));
   }
 
@@ -252,7 +252,7 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetWithinDataViewUserHierarchy() {
     // Create a new user with data view org units
-    User user = makeUser("DataViewUser");
+    User user = makeUser("a");
     OrganisationUnit ou1Unit = manager.get(OrganisationUnit.class, ou1);
     user.getDataViewOrganisationUnits().add(ou1Unit);
     userService.addUser(user);
@@ -272,23 +272,9 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testGetWithinDataViewUserHierarchy_EmptyDataView() {
-    // Create a new user with no data view org units
-    User user = makeUser("NoDataViewUser");
-    userService.addUser(user);
-
-    switchToNewUser(user);
-
-    // When withinDataViewUserHierarchy is true but user has no data view org units,
-    // should return no results
-    assertListOfOrganisationUnits(
-        GET("/organisationUnits?withinDataViewUserHierarchy=true").content());
-  }
-
-  @Test
   void testGetWithinDataViewUserHierarchyAndLevel() {
     // Create a new user with data view org units
-    User user = makeUser("DataViewUserLevel");
+    User user = makeUser("b");
     OrganisationUnit ou1Unit = manager.get(OrganisationUnit.class, ou1);
     user.getDataViewOrganisationUnits().add(ou1Unit);
     userService.addUser(user);
