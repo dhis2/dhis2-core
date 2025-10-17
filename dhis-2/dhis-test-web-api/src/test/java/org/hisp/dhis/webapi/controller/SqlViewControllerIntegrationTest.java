@@ -41,10 +41,9 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -55,12 +54,10 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author David Mackessy
  */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SqlViewControllerIntegrationTest extends DhisControllerConvenienceTest {
+class SqlViewControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   private static final String QUERY_PATH = "/sqlViews/sqlViewUid1/data";
   private static final String VIEW_PATH = "/sqlViews/sqlViewUid2/data";
-  private static boolean setupComplete = false;
 
   @BeforeEach
   void beforeEach() {
@@ -405,13 +402,10 @@ class SqlViewControllerIntegrationTest extends DhisControllerConvenienceTest {
   }
 
   void setupMetadataAndSqlViews() {
-    if (!setupComplete) {
-      POST("/metadata?async=false", metadata()).content(OK);
-      POST("/sqlViews/", sqlQueryView()).content(CREATED);
-      POST("/sqlViews/", sqlView()).content(CREATED);
-      POST("/sqlViews/sqlViewUid2/execute").content(CREATED);
-      setupComplete = true;
-    }
+    POST("/metadata?async=false", metadata()).content(OK);
+    POST("/sqlViews/", sqlQueryView()).content(CREATED);
+    POST("/sqlViews/", sqlView()).content(CREATED);
+    POST("/sqlViews/sqlViewUid2/execute").content(CREATED);
   }
 
   private String sqlQueryView() {
