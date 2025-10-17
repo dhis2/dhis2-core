@@ -249,6 +249,60 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(user.getUid(), userInRole.getString("id").string());
   }
 
+  @Test
+  void testGetWithinDataViewUserHierarchy() {
+    // Create a new user with data view org units
+    User user = makeUser("DataViewUser");
+    OrganisationUnit ou1Unit = manager.get(OrganisationUnit.class, ou1);
+    user.getDataViewOrganisationUnits().add(ou1Unit);
+    userService.addUser(user);
+
+    switchToNewUser(user);
+
+    // When withinDataViewUserHierarchy is true, should only get org units
+    // at or below the data view org units (ou1)
+    // Expected: L1, L21, L22, L31, L32 (ou1 and its descendants)
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinDataViewUserHierarchy=true").content(),
+        "L1",
+        "L21",
+        "L22",
+        "L31",
+        "L32");
+  }
+
+  @Test
+  void testGetWithinDataViewUserHierarchy_EmptyDataView() {
+    // Create a new user with no data view org units
+    User user = makeUser("NoDataViewUser");
+    userService.addUser(user);
+
+    switchToNewUser(user);
+
+    // When withinDataViewUserHierarchy is true but user has no data view org units,
+    // should return no results
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinDataViewUserHierarchy=true").content());
+  }
+
+  @Test
+  void testGetWithinDataViewUserHierarchyAndLevel() {
+    // Create a new user with data view org units
+    User user = makeUser("DataViewUserLevel");
+    OrganisationUnit ou1Unit = manager.get(OrganisationUnit.class, ou1);
+    user.getDataViewOrganisationUnits().add(ou1Unit);
+    userService.addUser(user);
+
+    switchToNewUser(user);
+
+    // Combine withinDataViewUserHierarchy with level filter
+    // Should only get level 3 org units within the data view hierarchy
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?withinDataViewUserHierarchy=true&level=3").content(),
+        "L21",
+        "L22");
+  }
+
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {
     assertContainsOnly(List.of(names), toOrganisationUnitNames(response));
     assertEquals(names.length, response.getObject("pager").getNumber("total").intValue());
