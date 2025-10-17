@@ -298,9 +298,7 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
     // Combine withinDataViewUserHierarchy with level filter
     // Should only get level 3 org units within the data view hierarchy
     assertListOfOrganisationUnits(
-        GET("/organisationUnits?withinDataViewUserHierarchy=true&level=3").content(),
-        "L21",
-        "L22");
+        GET("/organisationUnits?withinDataViewUserHierarchy=true&level=3").content(), "L21", "L22");
   }
 
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {
