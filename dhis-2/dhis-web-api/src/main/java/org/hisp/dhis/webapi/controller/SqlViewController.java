@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Grid;
@@ -214,7 +215,7 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
         paramFields.stream()
             .map(s -> Arrays.asList(s.split(",")))
             .flatMap(Collection::stream)
-            .toList();
+            .collect(Collectors.toList());
 
     return dhisConfig.isEnabled(ConfigurationKey.SYSTEM_SQL_VIEW_WRITE_ENABLED)
         ? sqlViewService.getSqlViewGridWritesAllowed(
