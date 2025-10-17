@@ -27,19 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.CONFLICT;
+import static org.hisp.dhis.web.HttpStatus.CREATED;
+import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -54,7 +57,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author David Mackessy
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
+class SqlViewControllerIntegrationTest extends DhisControllerConvenienceTest {
 
   private static final String QUERY_PATH = "/sqlViews/sqlViewUid1/data";
   private static final String VIEW_PATH = "/sqlViews/sqlViewUid2/data";
@@ -71,8 +74,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
         GET(
             QUERY_PATH
                 + "?filter=name:ilike:\"test' AND CAST((SELECT password FROM userinfo WHERE username='admin') AS INTEGER) = 1 AND name ILIKE '\"");
-    assertEquals(
-        0, response.content(HttpStatus.OK).getObject("pager").getNumber("total").intValue());
+    assertEquals(0, response.content(OK).getObject("pager").getNumber("total").intValue());
   }
 
   @Test
@@ -84,7 +86,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
                 + "&filter=name:ilike:test");
     assertTrue(
         response
-            .content(HttpStatus.CONFLICT)
+            .content(CONFLICT)
             .getObject("message")
             .toString()
             .contains("Query failed because of a syntax error"));
@@ -94,14 +96,14 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
   void filterCriteriaFieldsQueryTest() {
     HttpResponse response =
         GET(QUERY_PATH + "?fields=uid&filter=uid:ilike:uid&criteria=sort_order:2");
-    assertFilterResponse(response.content(HttpStatus.OK), 2, Set.of("optionUidz3", "optionUidz2"));
+    assertFilterResponse(response.content(OK), 2, Set.of("optionUidz3", "optionUidz2"));
   }
 
   @Test
   void filterCriteriaFieldsViewTest() {
     HttpResponse response =
         GET(VIEW_PATH + "?fields=uid&filter=uid:ilike:uid&criteria=sort_order:2");
-    assertFilterResponse(response.content(HttpStatus.OK), 2, Set.of("optionUidz3", "optionUidz2"));
+    assertFilterResponse(response.content(OK), 2, Set.of("optionUidz3", "optionUidz2"));
   }
 
   @ParameterizedTest
@@ -125,7 +127,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
   @ParameterizedTest
   @MethodSource("sqlViewCriteriaQueries")
   void queryCriteriaTest(String query, Set<String> expectedValues, int expectedNumResults) {
-    JsonMixed content = GET(query).content(HttpStatus.OK);
+    JsonMixed content = GET(query).content(OK);
     assertFilterResponse(content, expectedNumResults, expectedValues);
   }
 
@@ -390,7 +392,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
     }
 
     assertTrue(
-        rows.stream()
+        rows.asList(JsonString.class).stream()
             .anyMatch(
                 row ->
                     expectedValues.containsAll(
@@ -401,10 +403,10 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
 
   void setupMetadataAndSqlViews() {
     if (!setupComplete) {
-      POST("/metadata?async=false", metadata()).content(HttpStatus.OK);
-      POST("/sqlViews/", sqlQueryView()).content(HttpStatus.CREATED);
-      POST("/sqlViews/", sqlView()).content(HttpStatus.CREATED);
-      POST("/sqlViews/sqlViewUid2/execute").content(HttpStatus.CREATED);
+      POST("/metadata?async=false", metadata()).content(OK);
+      POST("/sqlViews/", sqlQueryView()).content(CREATED);
+      POST("/sqlViews/", sqlView()).content(CREATED);
+      POST("/sqlViews/sqlViewUid2/execute").content(CREATED);
       setupComplete = true;
     }
   }
