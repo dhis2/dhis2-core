@@ -27,19 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.CONFLICT;
+import static org.hisp.dhis.web.HttpStatus.CREATED;
+import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -54,7 +56,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author David Mackessy
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
+class SqlViewControllerIntegrationTest extends DhisControllerConvenienceTest {
 
   private static final String QUERY_PATH = "/sqlViews/sqlViewUid1/data";
   private static final String VIEW_PATH = "/sqlViews/sqlViewUid2/data";
@@ -71,8 +73,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
         GET(
             QUERY_PATH
                 + "?filter=name:ilike:\"test' AND CAST((SELECT password FROM userinfo WHERE username='admin') AS INTEGER) = 1 AND name ILIKE '\"");
-    assertEquals(
-        0, response.content(HttpStatus.OK).getObject("pager").getNumber("total").intValue());
+    assertEquals(0, response.content(OK).getObject("pager").getNumber("total").intValue());
   }
 
   @Test
@@ -84,7 +85,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
                 + "&filter=name:ilike:test");
     assertTrue(
         response
-            .content(HttpStatus.CONFLICT)
+            .content(CONFLICT)
             .getObject("message")
             .toString()
             .contains("Query failed because of a syntax error"));
@@ -94,20 +95,20 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
   void filterCriteriaFieldsQueryTest() {
     HttpResponse response =
         GET(QUERY_PATH + "?fields=uid&filter=uid:ilike:uid&criteria=sort_order:2");
-    assertFilterResponse(response.content(HttpStatus.OK), 2, Set.of("optionUidz3", "optionUidz2"));
+    assertFilterResponse(response.content(OK), 2, Set.of("optionUidz3", "optionUidz2"));
   }
 
   @Test
   void filterCriteriaFieldsViewTest() {
     HttpResponse response =
         GET(VIEW_PATH + "?fields=uid&filter=uid:ilike:uid&criteria=sort_order:2");
-    assertFilterResponse(response.content(HttpStatus.OK), 2, Set.of("optionUidz3", "optionUidz2"));
+    assertFilterResponse(response.content(OK), 2, Set.of("optionUidz3", "optionUidz2"));
   }
 
   @ParameterizedTest
   @MethodSource("sqlViewFilterQueries")
   void queryFilterTest(String query, Set<String> expectedUids, int expectedNumResults) {
-    JsonMixed content = GET(query).content(HttpStatus.OK);
+    JsonResponse content = GET(query).content(OK);
     assertFilterResponse(content, expectedNumResults, expectedUids);
   }
 
@@ -118,14 +119,14 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
       Set<String> expectedFields,
       Set<String> expectedValues,
       int expectedNumResults) {
-    JsonMixed content = GET(query).content(HttpStatus.OK);
+    JsonResponse content = GET(query).content(OK);
     assertFieldsResponse(content, expectedNumResults, expectedFields, expectedValues);
   }
 
   @ParameterizedTest
   @MethodSource("sqlViewCriteriaQueries")
   void queryCriteriaTest(String query, Set<String> expectedValues, int expectedNumResults) {
-    JsonMixed content = GET(query).content(HttpStatus.OK);
+    JsonResponse content = GET(query).content(OK);
     assertFilterResponse(content, expectedNumResults, expectedValues);
   }
 
@@ -368,7 +369,8 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             1));
   }
 
-  private void assertFilterResponse(JsonMixed content, int expectedSize, Set<String> expectedUids) {
+  private void assertFilterResponse(
+      JsonResponse content, int expectedSize, Set<String> expectedUids) {
     assertEquals(expectedSize, content.getObject("pager").getNumber("total").intValue());
 
     JsonArray rows = content.getObject("listGrid").getArray("rows");
@@ -379,7 +381,10 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
   }
 
   private void assertFieldsResponse(
-      JsonMixed content, int expectedSize, Set<String> expectedFields, Set<String> expectedValues) {
+      JsonResponse content,
+      int expectedSize,
+      Set<String> expectedFields,
+      Set<String> expectedValues) {
     assertEquals(expectedSize, content.getObject("pager").getNumber("total").intValue());
 
     JsonArray headers = content.getObject("listGrid").getArray("headers");
@@ -390,7 +395,7 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
     }
 
     assertTrue(
-        rows.stream()
+        rows.asList(JsonString.class).stream()
             .anyMatch(
                 row ->
                     expectedValues.containsAll(
@@ -401,67 +406,63 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
 
   void setupMetadataAndSqlViews() {
     if (!setupComplete) {
-      POST("/metadata?async=false", metadata()).content(HttpStatus.OK);
-      POST("/sqlViews/", sqlQueryView()).content(HttpStatus.CREATED);
-      POST("/sqlViews/", sqlView()).content(HttpStatus.CREATED);
-      POST("/sqlViews/sqlViewUid2/execute").content(HttpStatus.CREATED);
+      POST("/metadata?async=false", metadata()).content(OK);
+      POST("/sqlViews/", sqlQueryView()).content(CREATED);
+      POST("/sqlViews/", sqlView()).content(CREATED);
+      POST("/sqlViews/sqlViewUid2/execute").content(CREATED);
       setupComplete = true;
     }
   }
 
   private String sqlQueryView() {
-    return """
-            {
-                "id": "sqlViewUid1",
-                "sqlQuery": "SELECT uid, name, description, sort_order FROM optionvalue",
-                "type": "QUERY",
-                "name": "test-sql-view1",
-                "cacheStrategy": "NO_CACHE"
-            }""";
+    return "{\n"
+        + "    \"id\": \"sqlViewUid1\",\n"
+        + "    \"sqlQuery\": \"SELECT uid, name, description, sort_order FROM optionvalue\",\n"
+        + "    \"type\": \"QUERY\",\n"
+        + "    \"name\": \"test-sql-view1\",\n"
+        + "    \"cacheStrategy\": \"NO_CACHE\"\n"
+        + "}";
   }
 
   private String sqlView() {
-    return """
-            {
-                "id": "sqlViewUid2",
-                "sqlQuery": "SELECT uid, name, description, sort_order FROM optionvalue",
-                "type": "VIEW",
-                "name": "test-sql-view2",
-                "cacheStrategy": "NO_CACHE"
-            }""";
+    return "{\n"
+        + "    \"id\": \"sqlViewUid2\",\n"
+        + "    \"sqlQuery\": \"SELECT uid, name, description, sort_order FROM optionvalue\",\n"
+        + "    \"type\": \"VIEW\",\n"
+        + "    \"name\": \"test-sql-view2\",\n"
+        + "    \"cacheStrategy\": \"NO_CACHE\"\n"
+        + "}";
   }
 
   private String metadata() {
-    return """
-        {
-            "options": [
-                {
-                    "id": "optionUidz1",
-                    "name": "test option 1",
-                    "code": "test option 1",
-                    "sortOrder": 1,
-                    "description": "test description"
-                 },
-                 {
-                    "id": "optionUidz2",
-                    "name": "test option 2",
-                    "code": "test option 2",
-                    "sortOrder": 2
-                 },
-                 {
-                    "id": "optionUidz3",
-                    "name": "test option 3",
-                    "code": "test option 3",
-                    "sortOrder": 2
-                 },
-                 {
-                    "id": "optionUid11",
-                    "name": "test option 11",
-                    "code": "test option 11",
-                    "sortOrder": 11
-                 }
-            ]
-        }
-        """;
+    return "{\n"
+        + "    \"options\": [\n"
+        + "        {\n"
+        + "            \"id\": \"optionUidz1\",\n"
+        + "            \"name\": \"test option 1\",\n"
+        + "            \"code\": \"test option 1\",\n"
+        + "            \"sortOrder\": 1,\n"
+        + "            \"description\": \"test description\"\n"
+        + "        },\n"
+        + "        {\n"
+        + "            \"id\": \"optionUidz2\",\n"
+        + "            \"name\": \"test option 2\",\n"
+        + "            \"code\": \"test option 2\",\n"
+        + "            \"sortOrder\": 2\n"
+        + "        },\n"
+        + "        {\n"
+        + "            \"id\": \"optionUidz3\",\n"
+        + "            \"name\": \"test option 3\",\n"
+        + "            \"code\": \"test option 3\",\n"
+        + "            \"sortOrder\": 2\n"
+        + "        },\n"
+        + "        {\n"
+        + "            \"id\": \"optionUid11\",\n"
+        + "            \"name\": \"test option 11\",\n"
+        + "            \"code\": \"test option 11\",\n"
+        + "            \"sortOrder\": 11\n"
+        + "        }\n"
+        + "    ]\n"
+        + "}";
   }
 }
