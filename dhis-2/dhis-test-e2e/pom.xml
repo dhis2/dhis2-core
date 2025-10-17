@@ -36,7 +36,7 @@
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.5.1</httpclient5.version>
     <commons-io.version>2.20.0</commons-io.version>
-    <spring.version>6.2.11</spring.version>
+    <spring.version>6.2.12</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
