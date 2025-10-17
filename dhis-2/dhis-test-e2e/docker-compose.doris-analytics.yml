@@ -15,4 +15,4 @@ services:
       - doris_network
       - default
     environment:
-      DHIS2_E2E_TEST_ARGS: "--activate-profiles analytics -Danalytics.api.query.params=skipTrackedEntities=true&skipOutliers=true -Ddhis2.analytics.datasource=doris"
+      DHIS2_E2E_TEST_ARGS: "--activate-profiles analytics -Danalytics.api.query.params=skipTrackedEntities=false&skipOutliers=true -Ddhis2.analytics.datasource=doris"
