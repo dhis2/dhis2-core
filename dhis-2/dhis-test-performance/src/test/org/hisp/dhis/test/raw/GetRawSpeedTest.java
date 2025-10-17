@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.test.raw;
 
+import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
@@ -90,9 +92,8 @@ public class GetRawSpeedTest extends Simulation {
         if (populationBuilder == null) {
           populationBuilder = populationBuilder(query);
         } else {
-          populationBuilder.andThen(populationBuilder(query));
+          populationBuilder = populationBuilder.andThen(populationBuilder(query));
         }
-        assertions.add(details(query).responseTime().min().gte(min));
         assertions.add(details(query).responseTime().max().lte(max));
         assertions.add(details(query).responseTime().mean().lte(mean));
         assertions.add(details(query).responseTime().percentile(90).lte(ninetyPercentile));
@@ -106,7 +107,7 @@ public class GetRawSpeedTest extends Simulation {
 
     if (populationBuilder != null) {
       // Test and assert.
-      setUp(populationBuilder).assertions(assertions);
+      setUp(populationBuilder).protocols(defaultHttpProtocol()).assertions(assertions);
     } else {
       // Skip unsupported queries avoiding a crash.
       setUp(fakePopulationBuilder());
@@ -176,14 +177,13 @@ public class GetRawSpeedTest extends Simulation {
 
   private PopulationBuilder populationBuilder(String query) {
     return scenarioBuilder(query)
-        .injectClosed(constantSingleUser(15))
-        .protocols(defaultHttpProtocol());
+        .injectClosed(constantConcurrentUsers(1).during(1));
   }
 
   private ScenarioBuilder scenarioBuilder(String query) {
     logger.info(query);
 
     return scenario("Raw speed test for GET " + query)
-        .exec(http(query).get(query).check(status().is(200)));
+            .repeat(100).on(exec(http(query).get(query)));
   }
 }

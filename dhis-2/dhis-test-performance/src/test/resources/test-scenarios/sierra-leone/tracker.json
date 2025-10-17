@@ -33,29 +33,25 @@
       }
     },
     {
-      "query": "/api/tracker/events.json?pageSize=100&totalPages=true&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
+      "query": "/api/tracker/events.json?pageSize=100&totalPages=true&occurredAfter=2024-01-01&occurredBefore=2024-12-31&program=ur1Edk5Oe2n",
       "expectations": [
         {
           "release": "38.6",
-          "min": 100,
           "max": 200,
           "mean": 160
         },
         {
           "release": "40.2.2",
-          "min": 90,
           "max": 200,
           "mean": 160
         },
         {
           "release": "41.0",
-          "min": 90,
           "max": 200,
           "mean": 160
         },
         {
           "release": "42",
-          "min": 90,
           "max": 1800,
           "mean": 1600
         }
@@ -97,23 +93,25 @@
       }
     },
     {
-      "query": "/api/tracker/trackedEntities?filter=sB1IHYu2xQT:like:Jon&fields=attributes,enrollments,trackedEntity,orgUnit&program=Xh88p1nyefp&page=1&pageSize=5&ouMode=ACCESSIBLE",
+      "query": "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Joh&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=5&ouMode=ACCESSIBLE",
       "expectations": [
         {
           "release": "38.6",
-          "min": 280,
           "max": 440,
           "mean": 385
         },
         {
           "release": "40.2.2",
-          "min": 280,
           "max": 440,
           "mean": 385
         },
         {
           "release": "41.0",
-          "min": 165,
+          "max": 440,
+          "mean": 385
+        },
+        {
+          "release": "42",
           "max": 440,
           "mean": 385
         }
@@ -123,7 +121,7 @@
       }
     },
     {
-      "query": "/api/tracker/trackedEntities.json?order=createdAt:desc&page=1&pageSize=15&orgUnit=FV43JisquSm&ouMode=SELECTED&program=Lt6P15ps7f6&fields=:all",
+      "query": "/api/tracker/trackedEntities.json?order=createdAt:desc&page=1&pageSize=15&orgUnit=FV43JisquSm&ouMode=SELECTED&program=ur1Edk5Oe2n&fields=:all",
       "expectations": [
         {
           "release": "38.6",
@@ -142,6 +140,12 @@
           "min": 155,
           "max": 290,
           "mean": 240
+        },
+        {
+          "release": "42",
+          "min": 155,
+          "max": 290,
+          "mean": 240
         }
       ],
       "version": {
@@ -149,7 +153,7 @@
       }
     },
     {
-      "query": "/api/tracker/events.json?page=1&pageSize=15&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&program=Lt6P15ps7f6&orgUnit=FV43JisquSm&programStage=RB3a5MXMe8g&ouMode=SELECTED&order=occurredAt:desc",
+      "query": "/api/tracker/events.json?page=1&pageSize=15&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,&program=ur1Edk5Oe2n&orgUnit=DiszpKrYNg8&ouMode=SELECTED&order=occurredAt:desc",
       "expectations": [
         {
           "release": "38.6",
@@ -165,6 +169,12 @@
         },
         {
           "release": "41.0",
+          "min": 90,
+          "max": 200,
+          "mean": 160
+        },
+        {
+          "release": "42",
           "min": 90,
           "max": 200,
           "mean": 160

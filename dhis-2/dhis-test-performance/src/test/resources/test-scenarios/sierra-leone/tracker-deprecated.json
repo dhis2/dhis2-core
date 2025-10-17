@@ -1,7 +1,7 @@
 {
   "scenarios": [
     {
-      "query": "/api/trackedEntityInstances.json?filter=sB1IHYu2xQT:like:Jon&fields=attributes,enrollments,trackedEntity,orgUnit&program=Xh88p1nyefp&page=1&pageSize=5&ouMode=ACCESSIBLE",
+      "query": "/api/trackedEntityInstances.json??filter=w75KJ2mc4zz:like:Joh&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=5&ouMode=ACCESSIBLE",
       "expectations": [
         {
           "release": "38.6",
@@ -17,6 +17,12 @@
         },
         {
           "release": "41.0",
+          "min": 85,
+          "max": 205,
+          "mean": 155
+        },
+        {
+          "release": "42",
           "min": 85,
           "max": 205,
           "mean": 155
