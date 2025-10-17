@@ -49,9 +49,10 @@ public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
    *
    * @param grid the {@link Grid} to populate with the results of the sql query.
    * @param sql the sql query to execute.
+   * @param args the args for the query.
    * @param transactionMode the {@link TransactionMode} to use for the query.
    */
-  void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode);
+  void populateSqlViewGrid(Grid grid, String sql, Object[] args, TransactionMode transactionMode);
 
   boolean refreshMaterializedView(SqlView sqlView);
 }
