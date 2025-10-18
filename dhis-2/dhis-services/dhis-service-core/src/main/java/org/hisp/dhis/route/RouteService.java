@@ -77,6 +77,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -226,11 +227,17 @@ public class RouteService {
 
     RestTemplate restTemplate = newRestTemplate(route);
 
-    final ResponseEntity<byte[]> response;
-    if (request instanceof MultipartHttpServletRequest) {
-      response = postMultipartBody(upstreamUrl, headers, request, restTemplate);
-    } else {
-      response = exchange(upstreamUrl, headers, httpMethod, request, restTemplate);
+    ResponseEntity<byte[]> response;
+    try {
+      if (request instanceof MultipartHttpServletRequest) {
+        response = postMultipartBody(upstreamUrl, headers, request, restTemplate);
+      } else {
+        response = exchange(upstreamUrl, headers, httpMethod, request, restTemplate);
+      }
+    } catch (RestClientResponseException e) {
+      response =
+          new ResponseEntity<>(
+              e.getResponseBodyAsByteArray(), e.getResponseHeaders(), e.getRawStatusCode());
     }
 
     audit(userDetails, route, httpMethod, upstreamUrlWithoutQueryParams, response);

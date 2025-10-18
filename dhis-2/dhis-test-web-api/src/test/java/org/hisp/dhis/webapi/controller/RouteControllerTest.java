@@ -70,6 +70,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -141,6 +142,27 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
     upstreamMockServerClient =
         new MockServerClient("localhost", upstreamMockServerContainer.getFirstMappedPort());
     upstreamMockServerClient.reset();
+  }
+
+  @Test
+  void testRunRouteWhenErrorResponse() throws JsonProcessingException {
+    upstreamMockServerClient
+        .when(request().withPath("/"))
+        .respond(
+            org.mockserver.model.HttpResponse.response("{\"message\": \"error\"}")
+                .withStatusCode(500));
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    HttpResponse runHttpResponse =
+        GET(
+            "/routes/{id}/run",
+            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+    assertStatus(HttpStatus.INTERNAL_SERVER_ERROR, runHttpResponse);
+    assertEquals("error", runHttpResponse.error().asObject().getString("message").string());
   }
 
   @Test
