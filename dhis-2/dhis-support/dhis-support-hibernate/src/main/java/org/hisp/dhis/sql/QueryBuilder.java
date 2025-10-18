@@ -27,14 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate;
+package org.hisp.dhis.sql;
 
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
-import io.hypersistence.utils.hibernate.type.array.LongArrayType;
-import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,20 +45,12 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.type.BooleanType;
-import org.hibernate.type.DateType;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.StringType;
-import org.hibernate.type.Type;
 import org.hisp.dhis.common.UID;
-import org.intellij.lang.annotations.Language;
 
 /**
- * A simpler (to use), safer wrapper around {@link org.hibernate.query.NativeQuery} specifically
- * targeting accessing data as raw column data which hibernate provides as rows of {@link Object[]}.
+ * A simpler (to use), safer wrapper around low level native APIs to do SELECT queries.
  *
  * <p>The API is specifically designed to work nicely when SQL should support a predefined set of
  * filters and orders. The SQL provided should then simply apply them all, those not used based on
@@ -79,16 +69,13 @@ import org.intellij.lang.annotations.Language;
  * @since 2.43
  * @author Jan Bernitt
  */
-@RequiredArgsConstructor
-public final class RawNativeQuery {
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+public final class QueryBuilder {
 
-  private record NamedParameter(@CheckForNull Object value, @Nonnull Type type) {}
-
-  @Language("SQL")
   private final String sql;
 
-  private final Session session;
-  private final Map<String, NamedParameter> params = new HashMap<>();
+  private final SQL.QueryAPI api;
+  private final Map<String, SQL.Param> params = new HashMap<>();
   private final Map<String, String> clauses = new HashMap<>();
   private final Map<String, Set<String>> erasedJoins = new HashMap<>();
   private final Set<String> erasedOrders = new HashSet<>();
@@ -98,13 +85,11 @@ public final class RawNativeQuery {
   private Integer limit;
   private Integer offset;
 
-  public <T> RawNativeQuery setInOrAnyParameter(
-      String name, Collection<T> value, Function<T, String> f) {
-    return setInOrAnyParameter(name, value == null ? Stream.empty() : value.stream(), f);
+  public <T> QueryBuilder setParameter(String name, Collection<T> value, Function<T, String> f) {
+    return setParameter(name, value == null ? Stream.empty() : value.stream(), f);
   }
 
-  public <T> RawNativeQuery setInOrAnyParameter(
-      String name, Stream<T> value, Function<T, String> f) {
+  public <T> QueryBuilder setParameter(String name, Stream<T> value, Function<T, String> f) {
     String[] arr =
         value
             .filter(Objects::nonNull) // from was null
@@ -112,52 +97,48 @@ public final class RawNativeQuery {
             .filter(Objects::nonNull) // to was null
             .distinct()
             .toArray(String[]::new);
-    return setParameter(name, arr, StringArrayType.INSTANCE);
+    return setParameter(name, arr, SQL.Param.Type.STRING_ARRAY);
   }
 
-  public RawNativeQuery setInOrAnyParameter(String name, Collection<UID> value) {
-    return setInOrAnyParameter(name, value, UID::getValue);
+  public QueryBuilder setParameter(String name, Collection<UID> value) {
+    return setParameter(name, value, UID::getValue);
   }
 
-  public RawNativeQuery setInOrAnyParameter(String name, Stream<UID> value) {
-    return setInOrAnyParameter(name, value, UID::getValue);
+  public QueryBuilder setParameter(String name, Stream<UID> value) {
+    return setParameter(name, value, UID::getValue);
   }
 
-  public RawNativeQuery setInOrAnyParameter(String name, String... value) {
-    return setParameter(name, value, StringArrayType.INSTANCE);
+  public QueryBuilder setParameter(String name, String... value) {
+    return setParameter(name, value, SQL.Param.Type.STRING_ARRAY);
   }
 
-  public RawNativeQuery setInOrAnyParameter(String name, Long... value) {
-    return setParameter(name, value, LongArrayType.INSTANCE);
+  public QueryBuilder setParameter(String name, Long... value) {
+    return setParameter(name, value, SQL.Param.Type.LONG_ARRAY);
   }
 
-  public RawNativeQuery setUnnestParameter(String name, String... value) {
-    return setParameter(name, value, StringArrayType.INSTANCE);
+  public QueryBuilder setParameter(String name, UID value) {
+    return setParameter(name, value == null ? null : value.getValue(), SQL.Param.Type.STRING);
   }
 
-  public RawNativeQuery setParameter(String name, UID value) {
-    return setParameter(name, value == null ? null : value.getValue(), StringType.INSTANCE);
+  public QueryBuilder setParameter(String name, String value) {
+    return setParameter(name, value, SQL.Param.Type.STRING);
   }
 
-  public RawNativeQuery setParameter(String name, String value) {
-    return setParameter(name, value, StringType.INSTANCE);
+  public QueryBuilder setParameter(String name, Date value) {
+    return setParameter(name, value, SQL.Param.Type.DATE);
   }
 
-  public RawNativeQuery setParameter(String name, Date value) {
-    return setParameter(name, value, DateType.INSTANCE);
+  public QueryBuilder setParameter(String name, Integer value) {
+    return setParameter(name, value, SQL.Param.Type.INTEGER);
   }
 
-  public RawNativeQuery setParameter(String name, Integer value) {
-    return setParameter(name, value, IntegerType.INSTANCE);
+  public QueryBuilder setParameter(String name, Boolean value) {
+    return setParameter(name, value, SQL.Param.Type.BOOLEAN);
   }
 
-  public RawNativeQuery setParameter(String name, Boolean value) {
-    return setParameter(name, value, BooleanType.INSTANCE);
-  }
-
-  private RawNativeQuery setParameter(
-      @Nonnull String name, @CheckForNull Object value, @Nonnull Type type) {
-    params.put(name, new NamedParameter(value, type));
+  private QueryBuilder setParameter(
+      @Nonnull String name, @CheckForNull Object value, @Nonnull SQL.Param.Type type) {
+    params.put(name, new SQL.Param(type, name, value));
     if (value == null || value instanceof Object[] arr && arr.length == 0) nullParams.add(name);
     return this;
   }
@@ -171,7 +152,7 @@ public final class RawNativeQuery {
    * <p>The SQL provided could potentially enable SQL injection attacks, so callers have to be
    * careful to only provide SQL that is considered safe in that regard.
    */
-  public RawNativeQuery setDynamicClause(@Nonnull String name, @CheckForNull String sql) {
+  public QueryBuilder setDynamicClause(@Nonnull String name, @CheckForNull String sql) {
     if (sql == null || sql.isEmpty()) {
       erasedClause.add(name);
     } else {
@@ -188,17 +169,17 @@ public final class RawNativeQuery {
    *     <p>This means the priority (sequence) and direction of orders is always given by the ORDER
    *     BY clause of the provided SQL.
    */
-  public RawNativeQuery eraseOrder(String qname, boolean erase) {
+  public QueryBuilder eraseOrder(String qname, boolean erase) {
     if (erase) erasedOrders.add(qname);
     return this;
   }
 
-  public RawNativeQuery setLimit(Integer limit) {
+  public QueryBuilder setLimit(Integer limit) {
     this.limit = limit;
     return this;
   }
 
-  public RawNativeQuery setOffset(Integer offset) {
+  public QueryBuilder setOffset(Integer offset) {
     this.offset = offset;
     return this;
   }
@@ -223,7 +204,7 @@ public final class RawNativeQuery {
    *     the caller should have short-circuited the entire query if the empty array parameter should
    *     mean an impossible condition like {@code x IN ()}
    */
-  public RawNativeQuery eraseNullParameterLines() {
+  public QueryBuilder eraseNullParameterLines() {
     erasedParams.addAll(nullParams);
     return this;
   }
@@ -239,7 +220,7 @@ public final class RawNativeQuery {
    * @param nullParams names of the parameters that require the join
    * @return this for chaining
    */
-  public RawNativeQuery eraseNullJoinLine(String alias, String... nullParams) {
+  public QueryBuilder eraseNullJoinLine(String alias, String... nullParams) {
     erasedJoins.put(alias, Set.of(nullParams));
     return this;
   }
@@ -253,18 +234,18 @@ public final class RawNativeQuery {
    * @return a stream of result rows
    */
   public Stream<Object[]> stream() {
-    NativeQuery<?> query = toNativeQuery(false);
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> res = (Stream<Object[]>) query.stream();
-    return res;
+    return stream(Object[].class);
   }
 
   public <T> Stream<T> stream(Class<T> rowType) {
     String minSql = toSQL(false);
-    @SuppressWarnings("SqlSourceToSinkFlow")
-    NativeQuery<T> query = session.createNativeQuery(minSql, rowType);
-    applyQueryParameters(false, query);
-    return query.stream();
+    SQL.Query query = api.createQuery(minSql);
+    params.values().stream()
+        .filter(p -> !erasedParams.contains(p.name()))
+        .forEach(query::setParameter);
+    if (offset != null) query.setOffset(offset);
+    if (limit != null) query.setLimit(limit);
+    return query.stream(rowType);
   }
 
   /**
@@ -275,39 +256,18 @@ public final class RawNativeQuery {
    * affecting the count.
    */
   public int count() {
-    return toNativeQuery(true).getSingleResult() instanceof Number n ? n.intValue() : 0;
+    SQL.Query query = api.createQuery(toSQL(true));
+    params.values().stream()
+        .filter(p -> !erasedParams.contains(p.name()))
+        .forEach(query::setParameter);
+    return query.count();
   }
 
   public Map<String, String> listAsStringsMap() {
     return stream().collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
-  private NativeQuery<?> toNativeQuery(boolean count) {
-    String minSql = toSQL(count);
-    @SuppressWarnings("SqlSourceToSinkFlow")
-    NativeQuery<?> query = session.createNativeQuery(minSql);
-    applyQueryParameters(count, query);
-    return query;
-  }
-
-  private void applyQueryParameters(boolean count, NativeQuery<?> query) {
-    params.forEach(
-        (name, param) -> {
-          if (!erasedParams.contains(name)) {
-            query.setParameter(name, param.value, param.type);
-          }
-        });
-    if (!count) {
-      if (offset != null) query.setFirstResult(offset);
-      if (limit != null) query.setMaxResults(limit);
-    }
-  }
-
-  public String toSQL() {
-    return toSQL(false);
-  }
-
-  public String toSQL(boolean count) {
+  private String toSQL(boolean count) {
     String minSql =
         replaceDynamicClauses(
             eraseComments(
