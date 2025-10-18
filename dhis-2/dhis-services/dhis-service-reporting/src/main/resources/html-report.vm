@@ -42,7 +42,7 @@ dhis2.report.periods = [
 #if( $periods )
 #set( $size = $periods.size() )
 #foreach( $period in $periods )
-"$period"#if( $velocityCount < $size ),#end
+"$period"#if( $foreach.count < $size ),#end
 #end
 #end
 ];

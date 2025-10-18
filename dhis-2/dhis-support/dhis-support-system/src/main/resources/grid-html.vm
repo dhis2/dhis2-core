@@ -13,7 +13,7 @@
 #foreach( $row in $grid.getVisibleRows() )
 <tr>
 #foreach( $col in $row )
-#set( $index = ( $velocityCount - 1 ) )
+#set( $index = $foreach.index )
 #if( $grid.getVisibleHeaders().get( $index ).meta )
 <td style="text-align:left">$!encoder.htmlEncode( $col )</td>
 #else
