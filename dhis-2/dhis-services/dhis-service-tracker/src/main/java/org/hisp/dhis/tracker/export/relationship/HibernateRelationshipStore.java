@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
@@ -317,7 +316,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     return criteriaQuery;
   }
 
-  private <T extends SoftDeletableObject> Predicate[] whereConditionPredicates(
+  private <T extends IdentifiableObject> Predicate[] whereConditionPredicates(
       T entity,
       CriteriaBuilder builder,
       CriteriaQuery<?> relationshipItemCriteriaQuery,

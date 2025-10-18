@@ -32,6 +32,9 @@ package org.hisp.dhis.common.hibernate;
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi.Identifiable;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,7 +43,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Enrico Colasante
  */
-public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
+public class SoftDeleteHibernateObjectStore<T extends SoftDeletableEntity>
     extends HibernateIdentifiableObjectStore<T> {
   public SoftDeleteHibernateObjectStore(
       EntityManager entityManager,
@@ -53,7 +56,7 @@ public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
   }
 
   @Override
-  public void delete(@Nonnull SoftDeletableObject object) {
+  public void delete(@Nonnull SoftDeletableEntity object) {
     object.setDeleted(true);
     object.setLastUpdated(new Date());
     getSession().update(object);

@@ -41,6 +41,7 @@ import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -54,7 +55,7 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @NoArgsConstructor
-public class SingleEvent extends SoftDeletableObject {
+public class SingleEvent extends SoftDeletableObject implements SoftDeletableEntity {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
