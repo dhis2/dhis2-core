@@ -1,4 +1,4 @@
-name: Run analytics api tests [POSTGRES]
+name: Run analytics api tests [DORIS]
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
@@ -21,7 +21,7 @@ jobs:
       SIERRA_LEONE_DB_VERSION: "2.39.6"
 
     runs-on: ubuntu-latest
-    if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests')"
+    if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris')"
     steps:
       - uses: actions/checkout@v5
 
@@ -65,7 +65,8 @@ jobs:
           cd dhis-2/dhis-test-e2e
           DHIS2_IMAGE="$CORE_IMAGE_NAME" \
           DHIS2_E2E_TEST_DUMP_PATH="$SIERRA_LEONE_DB_PATH" \
-          docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml \
+          DORIS_VERSION=3.0.7 \
+          docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics-doris.yml \
             up --remove-orphans --exit-code-from test
 
       - name: Upload logs
