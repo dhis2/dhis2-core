@@ -226,6 +226,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(coc1);
 
     program = createProgram('q');
+    program.setEnableChangeLog(true);
     identifiableObjectManager.save(program);
 
     User user = userService.getUserByUsername("admin");
@@ -3052,12 +3053,12 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
     trackerEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private void addEventChangeLog(SingleEvent event, DataElement dataElement, String currentValue) {
     singleEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {

@@ -33,7 +33,6 @@ import java.util.Date;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
@@ -45,9 +44,9 @@ public class SingleEventChangeLogService
 
   protected SingleEventChangeLogService(
       SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent> hibernateEventChangeLogStore,
-      DhisConfigurationProvider config) {
-    super(singleEventService, hibernateEventChangeLogStore, config);
+      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
+          hibernateEventChangeLogStore) {
+    super(singleEventService, hibernateEventChangeLogStore);
   }
 
   @Override

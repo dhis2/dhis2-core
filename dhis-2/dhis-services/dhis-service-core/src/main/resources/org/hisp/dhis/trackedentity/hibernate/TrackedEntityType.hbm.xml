@@ -31,6 +31,8 @@
     
     <property name="allowAuditLog" />
 
+    <property name="enableChangeLog" />
+
     <property name="translations" type="jblTranslations"/>
 
     <property name="featureType" column="featuretype">

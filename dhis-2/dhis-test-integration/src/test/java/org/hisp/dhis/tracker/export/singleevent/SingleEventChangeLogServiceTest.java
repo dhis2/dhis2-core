@@ -303,7 +303,13 @@ class SingleEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
     singleEventChangeLogService.addEventChangeLog(
-        event, dataElement, "previous", "current", UPDATE, deletedUser.getUsername());
+        event,
+        dataElement,
+        event.getProgramStage().getProgram(),
+        "previous",
+        "current",
+        UPDATE,
+        deletedUser.getUsername());
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(

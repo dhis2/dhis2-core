@@ -67,8 +67,14 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
   /** Property indicating maximum number of TE to return after search */
   private int maxTeiCountToReturn = 0;
 
-  /** Property indicating whether to allow (read) audit log or not */
+  /**
+   * Property indicating whether to allow audit logs (read, search and delete audits and breaking
+   * the glass)
+   */
   private boolean allowAuditLog;
+
+  /** Property indicating whether change logging is enabled. */
+  private boolean enableChangeLog;
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -140,6 +146,16 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
 
   public void setAllowAuditLog(boolean allowAuditLog) {
     this.allowAuditLog = allowAuditLog;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isEnableChangeLog() {
+    return enableChangeLog;
+  }
+
+  public void setEnableChangeLog(boolean enableChangeLog) {
+    this.enableChangeLog = enableChangeLog;
   }
 
   // -------------------------------------------------------------------------

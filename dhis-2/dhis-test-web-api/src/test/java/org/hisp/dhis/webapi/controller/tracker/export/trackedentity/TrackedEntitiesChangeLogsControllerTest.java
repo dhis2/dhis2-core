@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -41,12 +40,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -61,15 +61,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private TestSetup testSetup;
-  @Autowired private DhisConfigurationProvider config;
+  @Autowired private IdentifiableObjectManager manager;
 
   private final String trackedEntityAttribute = "integerAttr";
   private TrackedEntity trackedEntity;
 
   @BeforeEach
   void setUp() throws IOException {
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
-
     testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
@@ -110,7 +108,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
   }
 
   @Test
-  void shouldGetEventChangeLogsWhenFilteringByAttribute() {
+  void shouldGetTrackedEntityChangeLogsWhenFilteringByAttribute() {
     String trackedEntityAttribute = "toUpdate000";
     updateAttribute(trackedEntityAttribute, "10");
 
@@ -256,7 +254,10 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
   @Test
   void shouldNotLogChangesWhenChangeLogConfigDisabled() {
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
+    TrackedEntityType trackedEntityType = manager.get(TrackedEntityType.class, "ja8NY4PW7Xm");
+    trackedEntityType.setEnableChangeLog(false);
+    manager.update(trackedEntityType);
+
     String trackedEntityAttribute = "dIVt4l5vIOa";
     updateAttribute(trackedEntityAttribute, "10");
     updateAttribute(trackedEntityAttribute, "5");
