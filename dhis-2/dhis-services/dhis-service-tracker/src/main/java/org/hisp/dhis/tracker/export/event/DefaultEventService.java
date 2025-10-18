@@ -62,6 +62,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,8 +88,9 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
+    private final EventOperationParamsMapper eventOperationParamsMapper;
 
-  @Override
+    @Override
   public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
       throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(event, dataElement);
@@ -177,7 +179,13 @@ class DefaultEventService implements EventService {
     return getEvent(event, TrackerIdSchemeParams.builder().build(), EventFields.none());
   }
 
-  @Nonnull
+  @Override
+    public long countEvents(@Nonnull EventOperationParams operationParams) throws ForbiddenException, BadRequestException {
+      EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+        return eventStore.countEvents(queryParams);
+    }
+
+    @Nonnull
   @Override
   public Event getEvent(
       @Nonnull UID eventUid,
