@@ -1232,12 +1232,11 @@ public final class AnalyticsUtils {
     } catch (DataIntegrityViolationException ex) {
       // This condition is needed because the ClickHouse JDBC driver
       // throws DataIntegrityViolationException when a table does not exist
-      if (ex.getCause() instanceof SQLException sqlexception) {
-        if (relationDoesNotExist(sqlexception)) {
-          log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
-          // rethrow as BadSqlGrammarException for consistent handling
-          throw new BadSqlGrammarException("", "", sqlexception);
-        }
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (relationDoesNotExist(sqlexception))) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        // rethrow as BadSqlGrammarException for consistent handling
+        throw new BadSqlGrammarException("", "", sqlexception);
       }
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
