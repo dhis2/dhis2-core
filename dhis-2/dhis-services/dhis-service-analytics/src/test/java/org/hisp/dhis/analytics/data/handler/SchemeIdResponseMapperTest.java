@@ -885,7 +885,7 @@ class SchemeIdResponseMapperTest {
     // Given
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    PeriodDimension period = stubPeriod();
+    Period period = stubPeriod();
 
     Data schemeData =
         Data.builder()
@@ -922,7 +922,7 @@ class SchemeIdResponseMapperTest {
 
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    PeriodDimension period = stubPeriod();
+    Period period = stubPeriod();
 
     Data schemeData =
         Data.builder()
