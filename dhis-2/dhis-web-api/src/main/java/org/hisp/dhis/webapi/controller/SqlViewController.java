@@ -34,8 +34,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import com.google.common.collect.Lists;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
@@ -199,7 +202,13 @@ public class SqlViewController extends AbstractCrudController<SqlView> {
     SqlView sqlView = validateView(uid);
 
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> paramFields = contextService.getParameterValues("fields");
+    // handle comma-separated fields
+    List<String> fields =
+        paramFields.stream()
+            .map(s -> Arrays.asList(s.split(",")))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
 
     Grid grid =
         sqlViewService.getSqlViewGrid(

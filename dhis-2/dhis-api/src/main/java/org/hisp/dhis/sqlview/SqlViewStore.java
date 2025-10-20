@@ -42,7 +42,14 @@ public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
 
   void dropViewTable(SqlView sqlView);
 
-  void populateSqlViewGrid(Grid grid, String sql);
+  /**
+   * Populates the given grid with the results of the given SQL query.
+   *
+   * @param grid the {@link Grid} to populate with the results of the sql query.
+   * @param sql the sql query to execute.
+   * @param args the args to bind to the query placeholders.
+   */
+  void populateSqlViewGrid(Grid grid, String sql, Object[] args);
 
   /**
    * Tests the given SQL for validity.
