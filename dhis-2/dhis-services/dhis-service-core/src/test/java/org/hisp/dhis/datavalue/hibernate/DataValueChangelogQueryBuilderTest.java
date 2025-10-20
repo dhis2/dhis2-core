@@ -52,6 +52,9 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testFilterByTypes() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setTypes(List.of(DataValueChangelogType.CREATE, DataValueChangelogType.UPDATE));
     assertSQL(
         """
       SELECT *
@@ -59,14 +62,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.audittype = ANY(:types)
       ORDER BY dva.created DESC""",
         Set.of("types"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setTypes(List.of(DataValueChangelogType.CREATE, DataValueChangelogType.UPDATE)),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByTypes_Single() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE));
     assertSQL(
         """
       SELECT *
@@ -74,40 +76,41 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.audittype = :types
       ORDER BY dva.created DESC""",
         Set.of("types"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE)),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testCountByTypes() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setTypes(List.of(DataValueChangelogType.UPDATE, DataValueChangelogType.CREATE));
     assertCountSQL(
         """
       SELECT count(*)
       FROM datavalueaudit dva
       WHERE dva.audittype = ANY(:types)""",
         Set.of("types"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setTypes(List.of(DataValueChangelogType.UPDATE, DataValueChangelogType.CREATE)),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testCountByTypes_Single() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE));
     assertCountSQL(
         """
       SELECT count(*)
       FROM datavalueaudit dva
       WHERE dva.audittype = :types""",
         Set.of("types"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setTypes(List.of(DataValueChangelogType.UPDATE)),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByDataElements() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setDataElements(List.of(UID.of("de123456789"), UID.of("de987654321")));
     assertSQL(
         """
       SELECT *
@@ -116,14 +119,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE de.uid = ANY(:de)
       ORDER BY dva.created DESC""",
         Set.of("de"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setDataElements(List.of(UID.of("de123456789"), UID.of("de987654321"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByDataElements_Single() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setDataElements(List.of(UID.of("de123456789")));
     assertSQL(
         """
       SELECT *
@@ -132,13 +134,14 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE de.uid = :de
       ORDER BY dva.created DESC""",
         Set.of("de"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setDataElements(List.of(UID.of("de123456789"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByOrgUnits() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setOrgUnits(List.of(UID.of("ou123456789"), UID.of("ou987654321")));
     assertSQL(
         """
       SELECT *
@@ -147,14 +150,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ou.uid = ANY(:ou)
       ORDER BY dva.created DESC""",
         Set.of("ou"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setOrgUnits(List.of(UID.of("ou123456789"), UID.of("ou987654321"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByOrgUnits_Single() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setOrgUnits(List.of(UID.of("ou123456789")));
     assertSQL(
         """
       SELECT *
@@ -163,13 +165,14 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ou.uid = :ou
       ORDER BY dva.created DESC""",
         Set.of("ou"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setOrgUnits(List.of(UID.of("ou123456789"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByDataSets() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321")));
     assertSQL(
         """
       SELECT *
@@ -179,14 +182,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ds.uid = ANY(:ds)
       ORDER BY dva.created DESC""",
         Set.of("ds"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByDataSets_Single() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setDataSets(List.of(UID.of("ds123456789")));
     assertSQL(
         """
       SELECT *
@@ -196,13 +198,14 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE ds.uid = :ds
       ORDER BY dva.created DESC""",
         Set.of("ds"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setDataSets(List.of(UID.of("ds123456789"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByPeriods() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setPeriods(List.of(getPeriodFromIsoString("2021"), getPeriodFromIsoString("2022")));
     assertSQL(
         """
       SELECT *
@@ -211,15 +214,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE pe.iso = ANY(:pe)
       ORDER BY dva.created DESC""",
         Set.of("pe"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setPeriods(
-                    List.of(getPeriodFromIsoString("2021"), getPeriodFromIsoString("2022"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByPeriods_Single() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setPeriods(List.of(getPeriodFromIsoString("2021")));
     assertSQL(
         """
       SELECT *
@@ -228,13 +229,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE pe.iso = :pe
       ORDER BY dva.created DESC""",
         Set.of("pe"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setPeriods(List.of(getPeriodFromIsoString("2021"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByCategoryOptionCombo() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of("coc23456789"));
     assertSQL(
         """
       SELECT *
@@ -242,13 +243,13 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.categoryoptioncomboid = (SELECT coc.categoryoptioncomboid FROM categoryoptioncombo coc WHERE coc.uid = :coc)
       ORDER BY dva.created DESC""",
         Set.of("coc"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of("coc23456789")),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByAttributeOptionCombo() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of("aoc23456789"));
     assertSQL(
         """
       SELECT *
@@ -256,13 +257,16 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
       WHERE dva.attributeoptioncomboid = (SELECT aoc.categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
       ORDER BY dva.created DESC""",
         Set.of("aoc"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams().setAttributeOptionCombo(UID.of("aoc23456789")),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 
   @Test
   void testFilterByMixed() {
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setTypes(List.of(DataValueChangelogType.UPDATE))
+            .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321")))
+            .setPeriods(List.of(getPeriodFromIsoString("2022")));
     assertSQL(
         """
       SELECT *
@@ -275,11 +279,6 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
         AND pe.iso = :pe
       ORDER BY dva.created DESC""",
         Set.of("types", "ds", "pe"),
-        createEntriesQuery(
-            new DataValueChangelogQueryParams()
-                .setTypes(List.of(DataValueChangelogType.UPDATE))
-                .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321")))
-                .setPeriods(List.of(getPeriodFromIsoString("2022"))),
-            createQueryAPI()));
+        createEntriesQuery(params, createQueryAPI()));
   }
 }

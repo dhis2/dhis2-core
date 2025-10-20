@@ -31,8 +31,12 @@ package org.hisp.dhis.icon;
 
 import static org.hisp.dhis.icon.JdbcIconStore.createQuery;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.common.OrderCriteria;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
 import org.junit.jupiter.api.Test;
@@ -47,6 +51,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testGetIcons_FilterKeys() {
+    IconQueryParams params = new IconQueryParams().setKeys(List.of("foo", "bar"));
     assertSQL(
         """
       SELECT
@@ -61,11 +66,12 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.iconkey IN (:keys )""",
         Map.of("keys", List.of("foo", "bar")),
-        createQuery(new IconQueryParams().setKeys(List.of("foo", "bar")), createQueryAPI()));
+        createQuery(params, createQueryAPI()));
   }
 
   @Test
   void testGetIcons_FilterKeys_1KeyToEquals() {
+    IconQueryParams params = new IconQueryParams().setKeys(List.of("foo"));
     assertSQL(
         """
       SELECT
@@ -80,11 +86,12 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.iconkey = :keys""",
         Map.of("keys", "foo"),
-        createQuery(new IconQueryParams().setKeys(List.of("foo")), createQueryAPI()));
+        createQuery(params, createQueryAPI()));
   }
 
   @Test
   void testGetIcons_FilterSearch() {
+    IconQueryParams params = new IconQueryParams().setSearch("foo");
     assertSQL(
         """
       SELECT
@@ -99,6 +106,223 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)""",
         Map.of("search", "%foo%"),
-        createQuery(new IconQueryParams().setSearch("foo"), createQueryAPI()));
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterKeywords() {
+    IconQueryParams params = new IconQueryParams().setKeywords(List.of("foo"));
+    assertSQL(
+        """
+      SELECT
+        c.iconkey,
+        c.description,
+        c.keywords,
+        c.created,
+        c.lastupdated,
+        c.fileresourceid,
+        c.createdby,
+        c.custom
+      FROM icon c
+      WHERE c.keywords @> cast(:keywords as jsonb)""",
+        Map.of("keywords", "[\"foo\"]"),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterCreatedStartDate() {
+    Date now = new Date();
+    IconQueryParams params = new IconQueryParams().setCreatedStartDate(now);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.created >= :createdStartDate""",
+        Map.of("createdStartDate", now),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterCreatedEndDate() {
+    Date now = new Date();
+    IconQueryParams params = new IconQueryParams().setCreatedEndDate(now);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.created <= :createdEndDate""",
+        Map.of("createdEndDate", now),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterLastUpdatedStartDate() {
+    Date now = new Date();
+    IconQueryParams params = new IconQueryParams().setLastUpdatedStartDate(now);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.lastupdated >= :lastUpdatedStartDate""",
+        Map.of("lastUpdatedStartDate", now),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterLastUpdatedEndDate() {
+    Date now = new Date();
+    IconQueryParams params = new IconQueryParams().setLastUpdatedEndDate(now);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.lastupdated <= :lastUpdatedEndDate""",
+        Map.of("lastUpdatedEndDate", now),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterType_ALL() {
+    IconQueryParams params = new IconQueryParams().setType(IconTypeFilter.ALL);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE 1=1""",
+        Map.of(),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterType_Custom() {
+    IconQueryParams params = new IconQueryParams().setType(IconTypeFilter.CUSTOM);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.custom = :custom""",
+        Map.of("custom", true),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_FilterType_Default() {
+    IconQueryParams params = new IconQueryParams().setType(IconTypeFilter.DEFAULT);
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.custom = :custom""",
+        Map.of("custom", false),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_OrderBy_NoFilters() {
+    IconQueryParams params =
+        new IconQueryParams().setOrder(List.of(OrderCriteria.of("key", SortDirection.DESC)));
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE 1=1
+        ORDER BY c.iconkey DESC""",
+        Map.of(),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testGetIcons_Mixed() {
+    IconQueryParams params =
+        new IconQueryParams()
+            .setKeys(List.of("ab", "ba"))
+            .setType(IconTypeFilter.CUSTOM)
+            .setSearch("term")
+            .setOrder(
+                List.of(
+                    OrderCriteria.of("key", SortDirection.DESC),
+                    OrderCriteria.of("created", SortDirection.ASC)));
+    assertSQL(
+        """
+        SELECT
+          c.iconkey,
+          c.description,
+          c.keywords,
+          c.created,
+          c.lastupdated,
+          c.fileresourceid,
+          c.createdby,
+          c.custom
+        FROM icon c
+        WHERE c.custom = :custom
+          AND c.iconkey IN (:keys )
+          AND (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)
+        ORDER BY c.iconkey DESC, c.created""",
+        Set.of("custom", "keys", "search"),
+        createQuery(params, createQueryAPI()));
   }
 }

@@ -50,8 +50,8 @@ import org.intellij.lang.annotations.Language;
  */
 public abstract class AbstractQueryBuilderTest {
 
-  protected final AtomicReference<String> sql = new AtomicReference<>();
-  protected final Map<String, SQL.Param> params = new TreeMap<>();
+  private final AtomicReference<String> sql = new AtomicReference<>();
+  private final Map<String, SQL.Param> params = new TreeMap<>();
 
   @Nonnull
   protected final SQL.QueryAPI createQueryAPI() {

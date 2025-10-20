@@ -156,7 +156,7 @@ public class JdbcIconStore implements IconStore {
         .toList();
   }
 
-  static final QueryBuilder createQuery(IconQueryParams params, SQL.QueryAPI api) {
+  static QueryBuilder createQuery(IconQueryParams params, SQL.QueryAPI api) {
     String sql =
         """
               SELECT
