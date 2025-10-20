@@ -83,4 +83,25 @@ public abstract class AnalyticsApiTest {
   protected void login() {
     new LoginActions().loginAsAdmin();
   }
+
+  private String getDataSource() {
+    return System.getProperty("dhis2.analytics.datasource", "postgres");
+  }
+
+  public boolean isClickHouse() {
+    return getDataSource().equalsIgnoreCase("clickhouse");
+  }
+
+  public boolean isDoris() {
+    return getDataSource().equalsIgnoreCase("doris");
+  }
+
+  public boolean isPostgres() {
+    return getDataSource().equalsIgnoreCase("postgres");
+  }
+
+  static boolean hasOutliersSupport() {
+    return System.getProperty("dhis2.analytics.datasource", "postgres")
+        .equalsIgnoreCase("postgres");
+  }
 }

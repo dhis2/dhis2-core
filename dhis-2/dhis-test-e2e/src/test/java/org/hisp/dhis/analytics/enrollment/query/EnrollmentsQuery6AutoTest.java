@@ -38,7 +38,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
@@ -60,7 +59,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
       delete = true)
   public void queryProgramIndicatorCreationDate(List<Resource> resource) throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
     String piUid = resource.get(0).uid();
 
     // Given
@@ -160,7 +159,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
       delete = true)
   public void queryProgramIndicatorEventStatusFilter(List<Resource> resource) throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
     String piUid = resource.get(0).uid();
 
     QueryParamsBuilder params =
@@ -258,7 +257,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
       delete = true)
   public void queryCountIfValue(List<Resource> resource) throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
     String piUid = resource.get(0).uid();
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -358,7 +357,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
     // sql: where (((created >= '2017-01-01' and created < '2017-07-01')))
 
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -371,6 +370,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
             .add("rowContext=true")
             .add("pageSize=100")
             .add("outputType=ENROLLMENT")
+            .add("asc=lastupdated")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq");
 
@@ -441,11 +441,11 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: first/last row, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-01-20 10:42:54.423");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-01-20 10:41:01.537");
 
     // Validate selected values for row index 4
     validateRowValueByName(response, actualHeaders, 4, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 4, "lastupdated", "2018-01-20 20:01:44.47");
+    validateRowValueByName(response, actualHeaders, 4, "lastupdated", "2018-05-08 20:54:31.858");
   }
 
   @Test
@@ -454,7 +454,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
     // sql: where (((completeddate >= '2022-09-01' and completeddate < '2023-09-01')))
 
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =

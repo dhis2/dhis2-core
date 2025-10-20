@@ -42,7 +42,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -111,7 +110,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   public void dataElementOrgUnitTypeFilterDimensionAndOrgUnitAsFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -182,7 +181,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   public void orgUnitFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -290,7 +289,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   public void dataElementOrgUnitTypeFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -356,7 +355,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: eventDate")
   public void financialYear2022WithEventDate() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -476,7 +475,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: enrollmentDate")
   public void financialYear2022WithEnrollmentDate() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -617,7 +616,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: incidentDate")
   public void financialYear2022WithIncidentDateDate() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -745,8 +744,8 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: completedDate")
   public void financialYear2022WithCompletedDate() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
