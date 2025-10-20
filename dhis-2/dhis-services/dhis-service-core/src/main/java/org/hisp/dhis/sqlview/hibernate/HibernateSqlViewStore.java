@@ -119,11 +119,12 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   }
 
   @Override
-  public void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode) {
+  public void populateSqlViewGrid(
+      Grid grid, String sql, Object[] args, TransactionMode transactionMode) {
     SqlRowSet rs =
         switch (transactionMode) {
-          case READ -> readOnlyJdbcTemplate.queryForRowSet(sql);
-          case WRITE -> jdbcTemplate.queryForRowSet(sql);
+          case READ -> readOnlyJdbcTemplate.queryForRowSet(sql, args);
+          case WRITE -> jdbcTemplate.queryForRowSet(sql, args);
         };
 
     int maxLimit = systemSettingManager.getIntSetting(SettingKey.SQL_VIEW_MAX_LIMIT);
