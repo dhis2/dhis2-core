@@ -165,7 +165,7 @@ public class JdbcIconStore implements IconStore {
                 AND c.created <= :createdEndDate
                 AND c.custom = :custom
                 AND c.keywords @> cast(:keywords as jsonb)
-                AND c.iconkey IN (:keys )
+                AND c.iconkey = ANY (:keys )
                 AND (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)
               """;
 
@@ -212,7 +212,8 @@ public class JdbcIconStore implements IconStore {
     icon.setCreated(row.getDate(3));
     icon.setLastUpdated(row.getDate(4));
     icon.setFileResource(fileResourceStore.get(row.getLong(5)));
-    icon.setCreatedBy(userService.getUser(row.getLong(6)));
+    Long user = row.getLong(6);
+    icon.setCreatedBy(user == null ? null : userService.getUser(user));
     icon.setCustom(row.getBoolean(7));
     return icon;
   }

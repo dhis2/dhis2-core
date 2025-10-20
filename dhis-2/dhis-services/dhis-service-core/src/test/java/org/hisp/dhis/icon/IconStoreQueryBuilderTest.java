@@ -64,7 +64,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         c.createdby,
         c.custom
       FROM icon c
-      WHERE c.iconkey IN (:keys )""",
+      WHERE c.iconkey = ANY (:keys )""",
         Map.of("keys", List.of("foo", "bar")),
         createQuery(params, createQueryAPI()));
   }
@@ -86,6 +86,18 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.iconkey = :keys""",
         Map.of("keys", "foo"),
+        createQuery(params, createQueryAPI()));
+  }
+
+  @Test
+  void testCountIcons_FilterKeys() {
+    IconQueryParams params = new IconQueryParams().setKeys(List.of("foo", "bar"));
+    assertCountSQL(
+        """
+      SELECT count(*)
+      FROM icon c
+      WHERE c.iconkey = ANY (:keys )""",
+        Map.of("keys", List.of("foo", "bar")),
         createQuery(params, createQueryAPI()));
   }
 
@@ -319,7 +331,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
           c.custom
         FROM icon c
         WHERE c.custom = :custom
-          AND c.iconkey IN (:keys )
+          AND c.iconkey = ANY (:keys )
           AND (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)
         ORDER BY c.iconkey DESC, c.created""",
         Set.of("custom", "keys", "search"),

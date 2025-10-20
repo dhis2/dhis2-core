@@ -497,11 +497,11 @@ public final class QueryBuilder {
     // look for line starts SELECT (no indent to avoid accidentally modifying sub-selects as well)
     int n = lines.size();
     int si = 0;
-    while (si < n && !lines.get(si).startsWith("SELECT ")) si++;
+    while (si < n && !lines.get(si).startsWith("SELECT")) si++;
     if (si >= n) return sql; // give up
     // found the SELECT, look for FROM
     int fi = si;
-    while (fi < n && !lines.get(fi).contains("FROM ")) fi++;
+    while (fi < n && !lines.get(fi).contains("FROM")) fi++;
     if (fi >= n) return sql; // give up
     String preLines = si == 0 ? "" : String.join("\n", lines.subList(0, si));
     String postLines = String.join("\n", lines.subList(fi, n));
