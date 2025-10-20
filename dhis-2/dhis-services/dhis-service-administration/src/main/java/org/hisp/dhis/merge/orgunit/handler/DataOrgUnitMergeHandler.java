@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueChangelogService;
@@ -72,7 +73,7 @@ public class DataOrgUnitMergeHandler {
   private final MinMaxDataElementService minMaxDataElementService;
 
   public void mergeDataValueAudits(OrgUnitMergeRequest request) {
-    request.getSources().forEach(ou -> dataValueChangelogService.deleteByOrgUnit(ou));
+    request.getSources().forEach(ou -> dataValueChangelogService.deleteByOrgUnit(UID.of(ou)));
   }
 
   @Transactional

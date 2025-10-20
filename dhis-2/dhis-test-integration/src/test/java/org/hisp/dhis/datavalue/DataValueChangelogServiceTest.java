@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -144,11 +145,11 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   void testAddGetDataValueAuditSingleRecord() {
     DataValueChangelogQueryParams params =
         new DataValueChangelogQueryParams()
-            .setDataElements(List.of(dataElementA))
+            .setDataElements(List.of(UID.of(dataElementA)))
             .setPeriods(List.of(periodA))
-            .setOrgUnits(List.of(orgUnitA))
-            .setCategoryOptionCombo(optionCombo)
-            .setAttributeOptionCombo(optionCombo);
+            .setOrgUnits(List.of(UID.of(orgUnitA)))
+            .setCategoryOptionCombo(UID.of(optionCombo))
+            .setAttributeOptionCombo(UID.of(optionCombo));
 
     assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
   }
@@ -157,19 +158,19 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   void testGetDataValueAudit() {
     DataValueChangelogQueryParams params =
         new DataValueChangelogQueryParams()
-            .setDataElements(List.of(dataElementA))
+            .setDataElements(List.of(UID.of(dataElementA)))
             .setPeriods(List.of(periodA))
-            .setOrgUnits(List.of(orgUnitA))
-            .setCategoryOptionCombo(optionCombo)
+            .setOrgUnits(List.of(UID.of(orgUnitA)))
+            .setCategoryOptionCombo(UID.of(optionCombo))
             .setTypes(List.of(DataValueChangelogType.CREATE));
     assertEquals(1, dataValueChangelogService.getChangelogEntries(params).size());
 
     params =
         new DataValueChangelogQueryParams()
-            .setDataElements(List.of(dataElementA, dataElementB))
+            .setDataElements(List.of(UID.of(dataElementA), UID.of(dataElementB)))
             .setPeriods(List.of(periodA, periodB))
-            .setOrgUnits(List.of(orgUnitA, orgUnitB))
-            .setCategoryOptionCombo(optionCombo)
+            .setOrgUnits(List.of(UID.of(orgUnitA), UID.of(orgUnitB)))
+            .setCategoryOptionCombo(UID.of(optionCombo))
             .setTypes(List.of(DataValueChangelogType.CREATE));
     assertEquals(2, dataValueChangelogService.getChangelogEntries(params).size());
 
@@ -190,10 +191,10 @@ class DataValueChangelogServiceTest extends PostgresIntegrationTestBase {
   void testGetDataValueAuditNoResult() {
     DataValueChangelogQueryParams params =
         new DataValueChangelogQueryParams()
-            .setDataElements(List.of(dataElementA))
+            .setDataElements(List.of(UID.of(dataElementA)))
             .setPeriods(List.of(periodD))
-            .setOrgUnits(List.of(orgUnitA))
-            .setCategoryOptionCombo(optionCombo)
+            .setOrgUnits(List.of(UID.of(orgUnitA)))
+            .setCategoryOptionCombo(UID.of(optionCombo))
             .setTypes(List.of(DataValueChangelogType.DELETE));
 
     assertEquals(0, dataValueChangelogService.getChangelogEntries(params).size());

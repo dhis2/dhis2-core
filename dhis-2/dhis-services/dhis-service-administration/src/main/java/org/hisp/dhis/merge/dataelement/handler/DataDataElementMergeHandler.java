@@ -37,6 +37,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueChangelog;
@@ -94,7 +95,7 @@ public class DataDataElementMergeHandler {
       @Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest) {
     if (mergeRequest.isDeleteSources()) {
       log.info("Deleting source data value audit records as source DataElements are being deleted");
-      sources.forEach(dataValueChangelogStore::deleteByDataElement);
+      sources.forEach(de -> dataValueChangelogStore.deleteByDataElement(UID.of(de)));
     } else {
       log.info(
           "Leaving source data value audit records as is, source DataElements are not being deleted");

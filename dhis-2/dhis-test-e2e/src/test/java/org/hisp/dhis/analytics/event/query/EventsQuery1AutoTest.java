@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
@@ -57,7 +56,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
   @Test
   public void queryCases5To15YearsThisYearcase() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -272,7 +271,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "2",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         1,
@@ -301,7 +300,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "45",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         2,
@@ -330,7 +329,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "30",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         3,
@@ -359,7 +358,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "0",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         4,
@@ -388,7 +387,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "47",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         5,
@@ -417,7 +416,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "77",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         6,
@@ -446,7 +445,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "70",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         7,
@@ -475,7 +474,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "73",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         8,
@@ -504,7 +503,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "16",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         9,
@@ -533,7 +532,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "78",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         10,
@@ -562,7 +561,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "26",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         11,
@@ -591,7 +590,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "32",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         12,
@@ -620,7 +619,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "38",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         13,
@@ -649,7 +648,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "68",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         14,
@@ -678,7 +677,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "15",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         15,
@@ -707,7 +706,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "7",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         16,
@@ -736,7 +735,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "60",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         17,
@@ -765,7 +764,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "82",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         18,
@@ -794,7 +793,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "72",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         19,
@@ -823,7 +822,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "35",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         20,
@@ -852,7 +851,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "78",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         21,
@@ -881,7 +880,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "16",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         22,
@@ -910,7 +909,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "3",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         23,
@@ -939,7 +938,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "4",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         24,
@@ -968,7 +967,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "66",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         25,
@@ -997,7 +996,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "58",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         26,
@@ -1026,7 +1025,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "67",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         27,
@@ -1055,7 +1054,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "50",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         28,
@@ -1084,7 +1083,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "51",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         29,
@@ -1113,7 +1112,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "2",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         30,
@@ -1142,7 +1141,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "7",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         31,
@@ -1171,7 +1170,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "49",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         32,
@@ -1200,7 +1199,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "70",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         33,
@@ -1229,7 +1228,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "45",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         34,
@@ -1258,7 +1257,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "82",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         35,
@@ -1287,7 +1286,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "28",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         36,
@@ -1316,7 +1315,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "77",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         37,
@@ -1345,7 +1344,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "17",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         38,
@@ -1374,7 +1373,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "83",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         39,
@@ -1403,7 +1402,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "15",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         40,
@@ -1432,7 +1431,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "29",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         41,
@@ -1461,7 +1460,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "62",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         42,
@@ -1490,7 +1489,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "23",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         43,
@@ -1519,7 +1518,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "34",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         44,
@@ -1548,7 +1547,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "78",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         45,
@@ -1577,7 +1576,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "31",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         46,
@@ -1606,7 +1605,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "9",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         47,
@@ -1635,7 +1634,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "3",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         48,
@@ -1664,7 +1663,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "64",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         49,
@@ -1693,7 +1692,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "81",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         50,
@@ -1722,7 +1721,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "62",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         51,
@@ -1751,7 +1750,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "1",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         52,
@@ -1780,7 +1779,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "76",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         53,
@@ -1809,7 +1808,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "82",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         54,
@@ -1838,7 +1837,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "17",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         55,
@@ -1867,7 +1866,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "48",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         56,
@@ -1896,7 +1895,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "10",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         57,
@@ -1925,7 +1924,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "43",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         58,
@@ -1954,7 +1953,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "84",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         59,
@@ -1983,7 +1982,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "17",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         60,
@@ -2012,7 +2011,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "17",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         61,
@@ -2041,7 +2040,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "58",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         62,
@@ -2070,7 +2069,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "33",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         63,
@@ -2099,7 +2098,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "81",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         64,
@@ -2128,7 +2127,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "85",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         65,
@@ -2157,7 +2156,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "55",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         66,
@@ -2186,7 +2185,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "45",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         67,
@@ -2215,7 +2214,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "42",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         68,
@@ -2244,7 +2243,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "19",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         69,
@@ -2273,7 +2272,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "15",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         70,
@@ -2302,7 +2301,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "45",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         71,
@@ -2331,7 +2330,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "10",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         72,
@@ -2360,7 +2359,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "38",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         73,
@@ -2389,7 +2388,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "57",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         74,
@@ -2418,7 +2417,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "48",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         75,
@@ -2447,7 +2446,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "84",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         76,
@@ -2476,7 +2475,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "51",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         77,
@@ -2505,7 +2504,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "79",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         78,
@@ -2534,7 +2533,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "76",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         79,
@@ -2563,7 +2562,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "9",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         80,
@@ -2592,7 +2591,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "10",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         81,
@@ -2621,7 +2620,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "68",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         82,
@@ -2650,7 +2649,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "61",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         83,
@@ -2679,7 +2678,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "88",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         84,
@@ -2708,7 +2707,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "31",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         85,
@@ -2737,7 +2736,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "17",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         86,
@@ -2766,7 +2765,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "72",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         87,
@@ -2795,7 +2794,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "60",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         88,
@@ -2824,7 +2823,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "78",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         89,
@@ -2853,7 +2852,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "14",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         90,
@@ -2882,7 +2881,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "72",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         91,
@@ -2911,7 +2910,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "66",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         92,
@@ -2940,7 +2939,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "26",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         93,
@@ -2969,7 +2968,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "27",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         94,
@@ -2998,7 +2997,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "15",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         95,
@@ -3027,7 +3026,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "11",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         96,
@@ -3056,7 +3055,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "75",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         97,
@@ -3085,7 +3084,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "66",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         98,
@@ -3114,7 +3113,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "30",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         99,
@@ -3143,13 +3142,13 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2018-12-15 00:00:00.0",
                 "17",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
   }
 
   @Test
   public void queryCasesLastQuartercase() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -3375,7 +3374,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2",
                 "W242",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         1,
@@ -3405,7 +3404,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "I839",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         2,
@@ -3435,7 +3434,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "30",
                 "P37",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         3,
@@ -3465,7 +3464,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "0",
                 "D048",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         4,
@@ -3495,7 +3494,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "47",
                 "C173",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         5,
@@ -3525,7 +3524,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "77",
                 "H527",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         6,
@@ -3555,7 +3554,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "70",
                 "R740",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         7,
@@ -3585,7 +3584,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "73",
                 "N228",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         8,
@@ -3615,7 +3614,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "16",
                 "G547",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         9,
@@ -3645,7 +3644,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "N298",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         10,
@@ -3675,7 +3674,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "26",
                 "V859",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         11,
@@ -3705,7 +3704,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "32",
                 "K440",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         12,
@@ -3735,7 +3734,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "38",
                 "V724",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         13,
@@ -3765,7 +3764,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "68",
                 "W799",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         14,
@@ -3795,7 +3794,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "T874",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         15,
@@ -3825,7 +3824,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "7",
                 "N368",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         16,
@@ -3855,7 +3854,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "60",
                 "G839",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         17,
@@ -3885,7 +3884,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "82",
                 "K571",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         18,
@@ -3915,7 +3914,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "72",
                 "A851",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         19,
@@ -3945,7 +3944,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "35",
                 "S970",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         20,
@@ -3975,7 +3974,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "N981",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         21,
@@ -4005,7 +4004,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "16",
                 "T051",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         22,
@@ -4035,7 +4034,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "3",
                 "L704",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         23,
@@ -4065,7 +4064,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "4",
                 "K28",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         24,
@@ -4095,7 +4094,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "66",
                 "M433",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         25,
@@ -4125,7 +4124,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "58",
                 "V889",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         26,
@@ -4155,7 +4154,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "67",
                 "V671",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         27,
@@ -4185,7 +4184,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "50",
                 "N06",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         28,
@@ -4215,7 +4214,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "51",
                 "Q959",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         29,
@@ -4245,7 +4244,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2",
                 "D157",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         30,
@@ -4275,7 +4274,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "7",
                 "H43",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         31,
@@ -4305,7 +4304,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "49",
                 "T851",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         32,
@@ -4335,7 +4334,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "70",
                 "F701",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         33,
@@ -4365,7 +4364,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "V781",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         34,
@@ -4395,7 +4394,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "82",
                 "D473",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         35,
@@ -4425,7 +4424,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "28",
                 "F649",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         36,
@@ -4455,7 +4454,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "77",
                 "D474",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         37,
@@ -4485,7 +4484,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "G971",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         38,
@@ -4515,7 +4514,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "83",
                 "O320",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         39,
@@ -4545,7 +4544,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "M632",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         40,
@@ -4575,7 +4574,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "29",
                 "T292",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         41,
@@ -4605,7 +4604,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "62",
                 "J68",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         42,
@@ -4635,7 +4634,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "23",
                 "M119",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         43,
@@ -4665,7 +4664,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "34",
                 "A812",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         44,
@@ -4695,7 +4694,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "C211",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         45,
@@ -4725,7 +4724,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "31",
                 "T651",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         46,
@@ -4755,7 +4754,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "9",
                 "D000",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         47,
@@ -4785,7 +4784,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "3",
                 "Q556",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         48,
@@ -4815,7 +4814,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "64",
                 "B403",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         49,
@@ -4845,7 +4844,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "81",
                 "I809",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         50,
@@ -4875,7 +4874,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "62",
                 "V463",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         51,
@@ -4905,7 +4904,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "1",
                 "O047",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         52,
@@ -4935,7 +4934,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "76",
                 "R042",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         53,
@@ -4965,7 +4964,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "82",
                 "W886",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         54,
@@ -4995,7 +4994,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "R865",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         55,
@@ -5025,7 +5024,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "48",
                 "F132",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         56,
@@ -5055,7 +5054,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "10",
                 "R79",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         57,
@@ -5085,7 +5084,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "43",
                 "S69",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         58,
@@ -5115,7 +5114,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "84",
                 "E104",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         59,
@@ -5145,7 +5144,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "J038",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         60,
@@ -5175,7 +5174,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "C411",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         61,
@@ -5205,7 +5204,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "58",
                 "E768",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         62,
@@ -5235,7 +5234,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "33",
                 "S617",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         63,
@@ -5265,7 +5264,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "81",
                 "D470",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         64,
@@ -5295,7 +5294,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "85",
                 "V346",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         65,
@@ -5325,7 +5324,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "55",
                 "B083",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         66,
@@ -5355,7 +5354,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "R300",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         67,
@@ -5385,7 +5384,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "42",
                 "G319",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         68,
@@ -5415,7 +5414,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "19",
                 "D354",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         69,
@@ -5445,7 +5444,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "T73",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         70,
@@ -5475,7 +5474,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "W497",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         71,
@@ -5505,7 +5504,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "10",
                 "I421",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         72,
@@ -5535,7 +5534,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "38",
                 "W464",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         73,
@@ -5565,7 +5564,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "57",
                 "P002",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         74,
@@ -5595,7 +5594,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "48",
                 "Q823",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         75,
@@ -5625,7 +5624,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "84",
                 "F608",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         76,
@@ -5655,7 +5654,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "51",
                 "F142",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         77,
@@ -5685,7 +5684,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "79",
                 "V823",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         78,
@@ -5715,7 +5714,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "76",
                 "M320",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         79,
@@ -5745,7 +5744,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "9",
                 "S299",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         80,
@@ -5775,7 +5774,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "10",
                 "N077",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         81,
@@ -5805,7 +5804,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "68",
                 "V606",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         82,
@@ -5835,7 +5834,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "61",
                 "M638",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         83,
@@ -5865,7 +5864,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "88",
                 "C749",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         84,
@@ -5895,7 +5894,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "31",
                 "I653",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         85,
@@ -5925,7 +5924,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "K117",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         86,
@@ -5955,7 +5954,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "72",
                 "D761",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         87,
@@ -5985,7 +5984,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "60",
                 "A186",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         88,
@@ -6015,7 +6014,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "M418",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         89,
@@ -6045,7 +6044,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "14",
                 "S409",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         90,
@@ -6075,7 +6074,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "72",
                 "S318",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         91,
@@ -6105,7 +6104,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "66",
                 "C826",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         92,
@@ -6135,7 +6134,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "26",
                 "S353",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         93,
@@ -6165,7 +6164,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "27",
                 "S984",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         94,
@@ -6195,7 +6194,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "R411",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         95,
@@ -6225,7 +6224,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "11",
                 "C211",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         96,
@@ -6255,7 +6254,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "75",
                 "V322",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         97,
@@ -6285,7 +6284,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "66",
                 "I228",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         98,
@@ -6315,7 +6314,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "30",
                 "O26",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         99,
@@ -6345,13 +6344,13 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "Q651",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
   }
 
   @Test
   public void queryCasesUnder5YearsFemaleThisYearcase() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -6577,7 +6576,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2",
                 "W242",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         1,
@@ -6607,7 +6606,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "I839",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         2,
@@ -6637,7 +6636,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "30",
                 "P37",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         3,
@@ -6667,7 +6666,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "0",
                 "D048",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         4,
@@ -6697,7 +6696,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "47",
                 "C173",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         5,
@@ -6727,7 +6726,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "77",
                 "H527",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         6,
@@ -6757,7 +6756,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "70",
                 "R740",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         7,
@@ -6787,7 +6786,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "73",
                 "N228",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         8,
@@ -6817,7 +6816,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "16",
                 "G547",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         9,
@@ -6847,7 +6846,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "N298",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         10,
@@ -6877,7 +6876,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "26",
                 "V859",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         11,
@@ -6907,7 +6906,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "32",
                 "K440",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         12,
@@ -6937,7 +6936,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "38",
                 "V724",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         13,
@@ -6967,7 +6966,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "68",
                 "W799",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         14,
@@ -6997,7 +6996,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "T874",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         15,
@@ -7027,7 +7026,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "7",
                 "N368",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         16,
@@ -7057,7 +7056,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "60",
                 "G839",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         17,
@@ -7087,7 +7086,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "82",
                 "K571",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         18,
@@ -7117,7 +7116,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "72",
                 "A851",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         19,
@@ -7147,7 +7146,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "35",
                 "S970",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         20,
@@ -7177,7 +7176,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "N981",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         21,
@@ -7207,7 +7206,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "16",
                 "T051",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         22,
@@ -7237,7 +7236,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "3",
                 "L704",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         23,
@@ -7267,7 +7266,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "4",
                 "K28",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         24,
@@ -7297,7 +7296,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "66",
                 "M433",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         25,
@@ -7327,7 +7326,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "58",
                 "V889",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         26,
@@ -7357,7 +7356,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "67",
                 "V671",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         27,
@@ -7387,7 +7386,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "50",
                 "N06",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         28,
@@ -7417,7 +7416,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "51",
                 "Q959",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         29,
@@ -7447,7 +7446,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "2",
                 "D157",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         30,
@@ -7477,7 +7476,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "7",
                 "H43",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         31,
@@ -7507,7 +7506,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "49",
                 "T851",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         32,
@@ -7537,7 +7536,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "70",
                 "F701",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         33,
@@ -7567,7 +7566,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "V781",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         34,
@@ -7597,7 +7596,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "82",
                 "D473",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         35,
@@ -7627,7 +7626,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "28",
                 "F649",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         36,
@@ -7657,7 +7656,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "77",
                 "D474",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         37,
@@ -7687,7 +7686,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "G971",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         38,
@@ -7717,7 +7716,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "83",
                 "O320",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         39,
@@ -7747,7 +7746,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "M632",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         40,
@@ -7777,7 +7776,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "29",
                 "T292",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         41,
@@ -7807,7 +7806,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "62",
                 "J68",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         42,
@@ -7837,7 +7836,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "23",
                 "M119",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         43,
@@ -7867,7 +7866,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "34",
                 "A812",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         44,
@@ -7897,7 +7896,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "C211",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         45,
@@ -7927,7 +7926,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "31",
                 "T651",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         46,
@@ -7957,7 +7956,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "9",
                 "D000",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         47,
@@ -7987,7 +7986,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "3",
                 "Q556",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         48,
@@ -8017,7 +8016,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "64",
                 "B403",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         49,
@@ -8047,7 +8046,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "81",
                 "I809",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         50,
@@ -8077,7 +8076,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "62",
                 "V463",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         51,
@@ -8107,7 +8106,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "1",
                 "O047",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         52,
@@ -8137,7 +8136,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "76",
                 "R042",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         53,
@@ -8167,7 +8166,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "82",
                 "W886",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         54,
@@ -8197,7 +8196,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "R865",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         55,
@@ -8227,7 +8226,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "48",
                 "F132",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         56,
@@ -8257,7 +8256,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "10",
                 "R79",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         57,
@@ -8287,7 +8286,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "43",
                 "S69",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         58,
@@ -8317,7 +8316,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "84",
                 "E104",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         59,
@@ -8347,7 +8346,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "J038",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         60,
@@ -8377,7 +8376,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "C411",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         61,
@@ -8407,7 +8406,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "58",
                 "E768",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         62,
@@ -8437,7 +8436,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "33",
                 "S617",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         63,
@@ -8467,7 +8466,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "81",
                 "D470",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         64,
@@ -8497,7 +8496,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "85",
                 "V346",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         65,
@@ -8527,7 +8526,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "55",
                 "B083",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         66,
@@ -8557,7 +8556,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "R300",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         67,
@@ -8587,7 +8586,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "42",
                 "G319",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         68,
@@ -8617,7 +8616,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "19",
                 "D354",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         69,
@@ -8647,7 +8646,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "T73",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         70,
@@ -8677,7 +8676,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "45",
                 "W497",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         71,
@@ -8707,7 +8706,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "10",
                 "I421",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         72,
@@ -8737,7 +8736,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "38",
                 "W464",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         73,
@@ -8767,7 +8766,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "57",
                 "P002",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         74,
@@ -8797,7 +8796,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "48",
                 "Q823",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         75,
@@ -8827,7 +8826,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "84",
                 "F608",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         76,
@@ -8857,7 +8856,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "51",
                 "F142",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         77,
@@ -8887,7 +8886,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "79",
                 "V823",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         78,
@@ -8917,7 +8916,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "76",
                 "M320",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         79,
@@ -8947,7 +8946,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "9",
                 "S299",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         80,
@@ -8977,7 +8976,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "10",
                 "N077",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         81,
@@ -9007,7 +9006,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "68",
                 "V606",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         82,
@@ -9037,7 +9036,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "61",
                 "M638",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         83,
@@ -9067,7 +9066,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "88",
                 "C749",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         84,
@@ -9097,7 +9096,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "31",
                 "I653",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         85,
@@ -9127,7 +9126,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "K117",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         86,
@@ -9157,7 +9156,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "72",
                 "D761",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         87,
@@ -9187,7 +9186,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "60",
                 "A186",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         88,
@@ -9217,7 +9216,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "78",
                 "M418",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         89,
@@ -9247,7 +9246,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "14",
                 "S409",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         90,
@@ -9277,7 +9276,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "72",
                 "S318",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         91,
@@ -9307,7 +9306,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "66",
                 "C826",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         92,
@@ -9337,7 +9336,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "26",
                 "S353",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         93,
@@ -9367,7 +9366,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "27",
                 "S984",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         94,
@@ -9397,7 +9396,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "15",
                 "R411",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         95,
@@ -9427,7 +9426,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "11",
                 "C211",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         96,
@@ -9457,7 +9456,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "75",
                 "V322",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         97,
@@ -9487,7 +9486,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "66",
                 "I228",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         98,
@@ -9517,7 +9516,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "30",
                 "O26",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         99,
@@ -9547,13 +9546,13 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "17",
                 "Q651",
                 "2018-12-29 00:00:00.0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
   }
 
   @Test
   public void queryVisitOverviewThisYearBo() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -9581,6 +9580,8 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"KoLTJ0tccYg\":{\"code\":\"P231\",\"name\":\"P231 Congenital pneumonia due to Chlamydia\"},\"ueMuis4kPFJ\":{\"code\":\"N840\",\"name\":\"N840 Polyp of corpus uteri\"},\"Zj7UnCAulEk.Kswd1r4qWLh\":{\"name\":\"Average height of boys at 10 years old\"},\"cqSQWmeWSn4\":{\"code\":\"B159\",\"name\":\"B159 Hepatitis A without hepatic coma\"},\"Ecm7t3hYZya\":{\"code\":\"A162\",\"name\":\"A162 Tuberculosis of lung, without mention of bacteriological or histological confirmation\"},\"GWuQsWJDGvN\":{\"name\":\"140 - 160\"},\"ktXeMgi6xID\":{\"code\":\"F11\",\"name\":\"F11 Mental and behavioural disorders due to use of opioids\"},\"XjJWSDnWT4L\":{\"code\":\"G373\",\"name\":\"G373 Acute transverse myelitis in demyelinating disease of central nervous system\"},\"qrur9Dvnyt5\":{\"name\":\"Age in years\"},\"pZzk1L4Blf1\":{\"name\":\"0 - 10\"},\"gj2fKKyp8OH\":{\"code\":\"MODDIED\",\"name\":\"Died\"},\"D4kAeEXOgMR\":{\"code\":\"P379\",\"name\":\"P379 Congenital infectious and parasitic disease, unspecified\"},\"Zj7UnCAulEk.msodh3rEMJa\":{\"name\":\"Discharge Date\"},\"NxQrJ3icPkE\":{\"name\":\"0 - 20\"},\"xVezsaEXU3k\":{\"name\":\"70 - 80\"},\"b7MCpzqJaR2\":{\"name\":\"70 - 80\"},\"I8SyKFw0TsL\":{\"code\":\"A044\",\"name\":\"A044 Other intestinal Escherichia coli infections\"},\"YLaWgBNZnYi\":{\"code\":\"E83\",\"name\":\"E83 Disorders of mineral metabolism\"},\"GKmHQeYHvPn\":{\"code\":\"D475\",\"name\":\"D475 Chronic eosinophilic leukaemia [hypereosinophilic syndrome]\"},\"XCMi7Wvnplm\":{\"name\":\"BMI female\"},\"Zj7UnCAulEk.x7PaHGvgWY2\":{\"name\":\"BMI\"},\"Zj7UnCAulEk.SWfdB5lX0fk\":{\"name\":\"Pregnant\"},\"ZtdDIdkRoKL\":{\"code\":\"D810\",\"name\":\"D810 Severe combined immunodeficiency [SCID] with reticular dysgenesis\"},\"Thkx2BnO5Kq\":{\"name\":\"BMI male\"},\"E0aAAams946\":{\"code\":\"H278\",\"name\":\"H278 Other specified disorders of lens\"},\"RXvJUzJtK3F\":{\"code\":\"N019\",\"name\":\"N019 Rapidly progressive nephritic syndrome, unspecified\"},\"f3prvzpfniC\":{\"name\":\"100+\"},\"IvAJc9Df99P\":{\"code\":\"V534\",\"name\":\"V534 Occupant of pick-up truck or van injured in collision with car, pick-up truck or van, while boarding or alighting\"},\"sxFVvKLpE0y\":{\"name\":\"0 - 100\"},\"B1X4JyH4Mdw\":{\"name\":\"180 - 200\"},\"CpP5yzbgfHo\":{\"name\":\"40 - 50\"},\"Fhbf4aKpZmZ\":{\"code\":\"MODABSC\",\"name\":\"Absconded\"},\"Twg86fWibYI\":{\"code\":\"D313\",\"name\":\"D313 Choroid\"},\"scvmgP9F9rn\":{\"name\":\"90 - 100\"},\"voHwtqj8iQF\":{\"code\":\"J708\",\"name\":\"J708 Respiratory conditions due to other specified external agents\"},\"gWxh7DiRmG7\":{\"name\":\"Average height of girls at 5 years old\"},\"Uohkk6Cj7bz\":{\"code\":\"H488\",\"name\":\"H488 Other disorders of optic nerve and visual pathways in diseases classified elsewhere\"},\"puI3YpLJ3fC\":{\"name\":\"80 - 90\"},\"ZUUGJnvX40X\":{\"name\":\"30 - 40\"},\"kT9BxnbmhuE\":{\"code\":\"I41\",\"name\":\"I41 Myocarditis in diseases classified elsewhere\"},\"XKEvGfAkh3R\":{\"name\":\"90 - 100\"},\"tGLky948vTz\":{\"code\":\"X219\",\"name\":\"X219 Contact with venomous spiders, unspecified place\"},\"oTLqMU9pUke\":{\"code\":\"K134\",\"name\":\"K134 Granuloma and granuloma-like lesions of oral mucosa\"},\"aQfGBCWhuNb\":{\"code\":\"K118\",\"name\":\"K118 Other diseases of salivary glands\"},\"BHlWGFLIU20\":{\"name\":\"120 - 140\"},\"HMGIqHQwHlO\":{\"code\":\"S543\",\"name\":\"S543 Injury of cutaneous sensory nerve at forearm level\"},\"Zj7UnCAulEk.Thkx2BnO5Kq\":{\"name\":\"BMI male\"},\"OyVUzWsX8UF\":{\"name\":\"10 - 20\"},\"WQg56aQuHjO\":{\"code\":\"G412\",\"name\":\"G412 Complex partial status epilepticus\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"oL8130I4aos\":{\"code\":\"V686\",\"name\":\"V686 Occupant of heavy transport vehicle injured in noncollision transport accident, passenger, traffic accident\"},\"xTbPxM5eFYE\":{\"code\":\"F060\",\"name\":\"F060 Organic hallucinosis\"},\"RbqlUt7XhFT\":{\"code\":\"M920\",\"name\":\"M920 Juvenile osteochondrosis of humerus\"},\"b9UzeWaSs2u\":{\"name\":\"20 - 40\"},\"QcKIICg2ZRA\":{\"code\":\"V944\",\"name\":\"V944 Other and unspecified water transport accidents, sailboat\"},\"ADpsc41lvxx\":{\"code\":\"W101\",\"name\":\"W101 Fall on and from stairs and steps, residential institution\"},\"Tq4NYCn9eNH\":{\"name\":\"60 - 70\"},\"Zj7UnCAulEk.fWIAEtYVEGk\":{\"name\":\"Mode of Discharge\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"aaAT3MyPYve\":{\"code\":\"S244\",\"name\":\"S244 Injury of thoracic sympathetic nerves\"},\"i7nKc9Tvq76\":{\"code\":\"E440\",\"name\":\"E440 Moderate protein-energy malnutrition\"},\"QmNRClDUIkw\":{\"code\":\"P542\",\"name\":\"P542 Neonatal rectal haemorrhage\"},\"sGna2pquXOO\":{\"name\":\"Average age of female discharges\"},\"AD5jueZTZSK\":{\"name\":\"40 - 50\"},\"ZUGAXE1odCA\":{\"code\":\"S531\",\"name\":\"S531 Dislocation of elbow, unspecified\"},\"IQ3zYig3dhM\":{\"code\":\"O723\",\"name\":\"O723 Postpartum coagulation defects\"},\"IN9goyFDeTS\":{\"code\":\"K043\",\"name\":\"K043 Abnormal hard tissue formation in pulp\"},\"Zj7UnCAulEk.oZg33kd9taw\":{\"name\":\"Gender\"},\"mgfqmwCrwYW\":{\"code\":\"C709\",\"name\":\"C709 Meninges, unspecified\"},\"OWDfhYk13JN\":{\"code\":\"H654\",\"name\":\"H654 Other chronic nonsuppurative otitis media\"},\"Zj7UnCAulEk.HS8QXAJtuKV\":{\"name\":\"Inpatient bed days average\"},\"fWIAEtYVEGk\":{\"name\":\"Mode of Discharge\"},\"xKDwJ5r4Cb8\":{\"code\":\"E619\",\"name\":\"E619 Deficiency of nutrient element, unspecified\"},\"YK6mczQ8lQc\":{\"code\":\"W216\",\"name\":\"W216 Striking against or struck by sports equipment, industrial and construction area\"},\"sgQHOe8eCC2\":{\"code\":\"T346\",\"name\":\"T346 Frostbite with tissue necrosis of hip and thigh\"},\"NlPmjhgebYM\":{\"code\":\"M05\",\"name\":\"M05 Seropositive rheumatoid arthritis\"},\"D7npR0hYcyK\":{\"code\":\"Q517\",\"name\":\"Q517 Congenital fistulae between uterus and digestive and urinary tracts\"},\"dFPtWqOUkDC\":{\"code\":\"K149\",\"name\":\"K149 Disease of tongue, unspecified\"},\"SWfdB5lX0fk\":{\"name\":\"Pregnant\"},\"cbPqyIAFw9u\":{\"name\":\"50 - 60\"},\"m9D1Rtx2mph\":{\"code\":\"J310\",\"name\":\"J310 Chronic rhinitis\"},\"Zj7UnCAulEk.qrur9Dvnyt5\":{\"name\":\"Age in years\"},\"CFn0VnwVNrE\":{\"code\":\"R58\",\"name\":\"R58 Haemorrhage, NEC\"},\"oZg33kd9taw\":{\"name\":\"Gender\"},\"ynU5YxDRokI\":{\"code\":\"H351\",\"name\":\"H351 Retinopathy of prematurity\"},\"nVRf0tgfGyH\":{\"code\":\"A772\",\"name\":\"A772 Spotted fever due to Rickettsia sibirica\"},\"aFLIgK9AYjX\":{\"code\":\"N001\",\"name\":\"N001 Acute nephritic syndrome, focal and segmental glomerular lesions\"},\"HS8QXAJtuKV\":{\"name\":\"Inpatient bed days average\"},\"cVeDk3uigui\":{\"code\":\"H334\",\"name\":\"H334 Traction detachment of retina\"},\"yeod5tOXpkP\":{\"code\":\"MODDISCH\",\"name\":\"Discharged\"},\"kwUpzu0cGsX\":{\"code\":\"C118\",\"name\":\"C118 Overlapping lesion of nasopharynx\"},\"vRmTWvkm1fR\":{\"code\":\"S231\",\"name\":\"S231 Dislocation of thoracic vertebra\"},\"lnccUWrmqL0\":{\"name\":\"80 - 90\"},\"FqtRlpkLu9N\":{\"code\":\"C311\",\"name\":\"C311 Ethmoidal sinus\"},\"d7MyjQNruNp\":{\"code\":\"S441\",\"name\":\"S441 Injury of median nerve at upper arm level\"},\"bOMYZBPP37y\":{\"code\":\"G939\",\"name\":\"G939 Disorder of brain, unspecified\"},\"Zj7UnCAulEk.sGna2pquXOO\":{\"name\":\"Average age of female discharges\"},\"bCepUF7lpnQ\":{\"code\":\"S272\",\"name\":\"S272 Traumatic haemopneumothorax\"},\"rxIDUyXn6CM\":{\"code\":\"Q278\",\"name\":\"Q278 Other specified congenital malformations of peripheral vascular system\"},\"fEmun7YhxgJ\":{\"code\":\"S59\",\"name\":\"S59 Other and unspecified injuries of forearm\"},\"y9Yhn3OUVNS\":{\"code\":\"L27\",\"name\":\"L27 Dermatitis due to substances taken internally\"},\"Zj7UnCAulEk.hlPt8H4bUOQ\":{\"name\":\"BMI female under 5 y\"},\"EjuPm1zxcXb\":{\"code\":\"O861\",\"name\":\"O861 Other infection of genital tract following delivery\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"},\"q8iOmB6ErRM\":{\"code\":\"T857\",\"name\":\"T857 Infection and inflammatory reaction due to other internal prosthetic devices, implants and grafts\"},\"CivTksSoCt0\":{\"name\":\"100 - 120\"},\"LpgaRyuAyiz\":{\"code\":\"N211\",\"name\":\"N211 Calculus in urethra\"},\"PZap1BpxZa3\":{\"code\":\"M181\",\"name\":\"M181 Other primary arthrosis of first carpometacarpal joint\"},\"rxpRCBmLpos\":{\"code\":\"S310\",\"name\":\"S310 Open wound of lower back and pelvis\"},\"tUdBD1JDxpn\":{\"name\":\"Average age of deaths\"},\"noePALOKDcw\":{\"code\":\"B27\",\"name\":\"B27 Infectious mononucleosis\"},\"YzxqLdMxysI\":{\"code\":\"B00\",\"name\":\"B00 Herpesviral [herpes simplex] infections\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"LdhoqRsej1M\":{\"code\":\"I771\",\"name\":\"I771 Stricture of artery\"},\"WwW8Ex3zLPw\":{\"code\":\"L731\",\"name\":\"L731 Pseudofolliculitis barbae\"},\"Zj7UnCAulEk.gWxh7DiRmG7\":{\"name\":\"Average height of girls at 5 years old\"},\"V7QbxXo1i2y\":{\"code\":\"V506\",\"name\":\"V506 Occupant of pick-up truck or van injured in collision with pedestrian or animal, passenger, traffic accident\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"fxRdwnvco8b\":{\"code\":\"T340\",\"name\":\"T340 Frostbite with tissue necrosis of head\"},\"kwJqSX6Se5W\":{\"code\":\"H520\",\"name\":\"H520 Hypermetropia\"},\"lSjvAi2xfo9\":{\"code\":\"S298\",\"name\":\"S298 Other specified injuries of thorax\"},\"bMwA1NlUpoB\":{\"code\":\"I728\",\"name\":\"I728 Aneurysm of other specified arteries\"},\"qKCG5XMsUMT\":{\"code\":\"G620\",\"name\":\"G620 Drug-induced polyneuropathy\"},\"qpXtTo5FZrS\":{\"code\":\"E882\",\"name\":\"E882 Lipomatosis, NEC\"},\"q16GoCCefkH\":{\"code\":\"S727\",\"name\":\"S727 Multiple fractures of femur\"},\"uJqStJw3bkv\":{\"code\":\"M121\",\"name\":\"M121 Kaschin-Beck disease\"},\"GieVkTxp4HH\":{\"name\":\"Height in cm\"},\"V4594sD3VwG\":{\"code\":\"G969\",\"name\":\"G969 Disorder of central nervous system, unspecified\"},\"KgZPl5zh1SK\":{\"code\":\"H02\",\"name\":\"H02 Other disorders of eyelid\"},\"ZhyVHhZBBgt\":{\"code\":\"R13\",\"name\":\"R13 Dysphagia\"},\"Zj7UnCAulEk.GieVkTxp4HH\":{\"name\":\"Height in cm\"},\"Bt5eKcH35nn\":{\"code\":\"N360\",\"name\":\"N360 Urethral fistula\"},\"NX5J6uBDlmI\":{\"code\":\"Q189\",\"name\":\"Q189 Congenital malformation of face and neck, unspecified\"},\"eySqrYxteI7\":{\"name\":\"200+\"},\"hlPt8H4bUOQ\":{\"name\":\"BMI female under 5 y\"},\"UQALwUwL6fL\":{\"code\":\"T909\",\"name\":\"T909 Sequelae of unspecified injury of head\"},\"Lp6kmVZKDOR\":{\"code\":\"Q07\",\"name\":\"Q07 Other congenital malformations of nervous system\"},\"GDFw7T4aFGz\":{\"name\":\"60 - 70\"},\"g0fHnmd571x\":{\"code\":\"K316\",\"name\":\"K316 Fistula of stomach and duodenum\"},\"Kswd1r4qWLh\":{\"name\":\"Average height of boys at 10 years old\"},\"Iuu0Uef47b8\":{\"code\":\"G736\",\"name\":\"G736 Myopathy in metabolic diseases\"},\"BaXeBXWkRX8\":{\"code\":\"I069\",\"name\":\"I069 Rheumatic aortic valve disease, unspecified\"},\"lGeVevNTkeR\":{\"code\":\"O888\",\"name\":\"O888 Other obstetric embolism\"},\"x7PaHGvgWY2\":{\"name\":\"BMI\"},\"xgW4ChmB9fa\":{\"code\":\"K73\",\"name\":\"K73 Chronic hepatitis, NEC\"},\"Zj7UnCAulEk.tUdBD1JDxpn\":{\"name\":\"Average age of deaths\"},\"WDBxqpARnBC\":{\"code\":\"T638\",\"name\":\"T638 Toxic effect of contact with other venomous animals\"},\"Zj7UnCAulEk.XCMi7Wvnplm\":{\"name\":\"BMI female\"},\"GByTYvZgBDa\":{\"code\":\"T360\",\"name\":\"T360 Penicillins\"},\"pvsEAHZ463a\":{\"code\":\"I604\",\"name\":\"I604 Subarachnoid haemorrhage from basilar artery\"},\"msodh3rEMJa\":{\"name\":\"Discharge Date\"},\"xd5EAdTEUFz\":{\"code\":\"Q95\",\"name\":\"Q95 Balanced rearrangements and structural markers, NEC\"},\"Us0yQzR4rev\":{\"code\":\"J988\",\"name\":\"J988 Other specified respiratory disorders\"},\"TzdTH75rasU\":{\"code\":\"R937\",\"name\":\"R937 Abnormal findings on diagnostic imaging of other parts of musculoskeletal system\"},\"Zj7UnCAulEk.eMyVanycQSC\":{\"name\":\"Admission Date\"},\"Zj7UnCAulEk.vV9UWAZohSf\":{\"name\":\"Weight in kg\"},\"ou\":{\"name\":\"Organisation unit\"},\"Zj7UnCAulEk.Y7hKDSuqEtH\":{\"name\":\"BMI male under 5 y\"},\"vV9UWAZohSf\":{\"name\":\"Weight in kg\"},\"GsrKHN5meqG\":{\"code\":\"V80\",\"name\":\"V80 Animal-rider or occupant of animal-drawn vehicle injured in transport accident\"},\"K6uUAvq500H\":{\"name\":\"Diagnosis (ICD-10)\"},\"Sjp6IB3gthI\":{\"name\":\"50 - 60\"},\"UeIuuDfIFhX\":{\"code\":\"V730\",\"name\":\"V730 Bus occupant injured in collision with car, pick-up truck or van, driver, nontraffic accident\"},\"Y7hKDSuqEtH\":{\"name\":\"BMI male under 5 y\"},\"TvM2MQgD7Jd\":{\"name\":\"20 - 30\"},\"eMyVanycQSC\":{\"name\":\"Admission Date\"},\"BA7UBrIatAO\":{\"code\":\"P038\",\"name\":\"P038 Fetus and newborn affected by other specified complications of labour and delivery\"},\"wgbW2ZQnlIc\":{\"name\":\"160 - 180\"},\"S4ao7KhmbVR\":{\"code\":\"O872\",\"name\":\"O872 Haemorrhoids in the puerperium\"},\"WqrAYqTbxl2\":{\"code\":\"V968\",\"name\":\"V968 Other nonpowered-aircraft accidents injuring occupant\"},\"Zj7UnCAulEk.K6uUAvq500H\":{\"name\":\"Diagnosis (ICD-10)\"},\"fShHdgT7XGb\":{\"code\":\"MODTRANS\",\"name\":\"Transferred\"}},\"dimensions\":{\"Zj7UnCAulEk.gWxh7DiRmG7\":[],\"Zj7UnCAulEk.Kswd1r4qWLh\":[],\"Zj7UnCAulEk.oZg33kd9taw\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"Zj7UnCAulEk.eMyVanycQSC\":[],\"Zj7UnCAulEk.sGna2pquXOO\":[],\"Zj7UnCAulEk.vV9UWAZohSf\":[\"NxQrJ3icPkE\",\"b9UzeWaSs2u\",\"AD5jueZTZSK\",\"Sjp6IB3gthI\",\"GDFw7T4aFGz\",\"xVezsaEXU3k\",\"lnccUWrmqL0\",\"XKEvGfAkh3R\",\"f3prvzpfniC\"],\"ou\":[\"O6uvpzGd5pu\"],\"Zj7UnCAulEk.Thkx2BnO5Kq\":[],\"Zj7UnCAulEk.Y7hKDSuqEtH\":[],\"Zj7UnCAulEk.HS8QXAJtuKV\":[],\"Zj7UnCAulEk.hlPt8H4bUOQ\":[],\"Zj7UnCAulEk.msodh3rEMJa\":[],\"Zj7UnCAulEk.fWIAEtYVEGk\":[\"yeod5tOXpkP\",\"gj2fKKyp8OH\",\"fShHdgT7XGb\",\"Fhbf4aKpZmZ\"],\"pe\":[],\"Zj7UnCAulEk.qrur9Dvnyt5\":[\"pZzk1L4Blf1\",\"OyVUzWsX8UF\",\"TvM2MQgD7Jd\",\"ZUUGJnvX40X\",\"CpP5yzbgfHo\",\"cbPqyIAFw9u\",\"Tq4NYCn9eNH\",\"b7MCpzqJaR2\",\"puI3YpLJ3fC\",\"scvmgP9F9rn\"],\"Zj7UnCAulEk.tUdBD1JDxpn\":[],\"Zj7UnCAulEk.x7PaHGvgWY2\":[],\"Zj7UnCAulEk.XCMi7Wvnplm\":[],\"Zj7UnCAulEk.SWfdB5lX0fk\":[],\"Zj7UnCAulEk.K6uUAvq500H\":[\"I8SyKFw0TsL\",\"Ecm7t3hYZya\",\"nVRf0tgfGyH\",\"YzxqLdMxysI\",\"cqSQWmeWSn4\",\"noePALOKDcw\",\"kwUpzu0cGsX\",\"FqtRlpkLu9N\",\"mgfqmwCrwYW\",\"Twg86fWibYI\",\"GKmHQeYHvPn\",\"ZtdDIdkRoKL\",\"i7nKc9Tvq76\",\"xKDwJ5r4Cb8\",\"YLaWgBNZnYi\",\"qpXtTo5FZrS\",\"xTbPxM5eFYE\",\"ktXeMgi6xID\",\"XjJWSDnWT4L\",\"WQg56aQuHjO\",\"qKCG5XMsUMT\",\"Iuu0Uef47b8\",\"bOMYZBPP37y\",\"V4594sD3VwG\",\"KgZPl5zh1SK\",\"E0aAAams946\",\"cVeDk3uigui\",\"ynU5YxDRokI\",\"Uohkk6Cj7bz\",\"kwJqSX6Se5W\",\"OWDfhYk13JN\",\"BaXeBXWkRX8\",\"kT9BxnbmhuE\",\"pvsEAHZ463a\",\"bMwA1NlUpoB\",\"LdhoqRsej1M\",\"m9D1Rtx2mph\",\"voHwtqj8iQF\",\"Us0yQzR4rev\",\"IN9goyFDeTS\",\"aQfGBCWhuNb\",\"oTLqMU9pUke\",\"dFPtWqOUkDC\",\"g0fHnmd571x\",\"xgW4ChmB9fa\",\"y9Yhn3OUVNS\",\"WwW8Ex3zLPw\",\"NlPmjhgebYM\",\"uJqStJw3bkv\",\"PZap1BpxZa3\",\"RbqlUt7XhFT\",\"aFLIgK9AYjX\",\"RXvJUzJtK3F\",\"LpgaRyuAyiz\",\"Bt5eKcH35nn\",\"ueMuis4kPFJ\",\"IQ3zYig3dhM\",\"EjuPm1zxcXb\",\"S4ao7KhmbVR\",\"lGeVevNTkeR\",\"BA7UBrIatAO\",\"KoLTJ0tccYg\",\"D4kAeEXOgMR\",\"QmNRClDUIkw\",\"Lp6kmVZKDOR\",\"NX5J6uBDlmI\",\"rxIDUyXn6CM\",\"D7npR0hYcyK\",\"xd5EAdTEUFz\",\"ZhyVHhZBBgt\",\"CFn0VnwVNrE\",\"TzdTH75rasU\",\"vRmTWvkm1fR\",\"aaAT3MyPYve\",\"bCepUF7lpnQ\",\"lSjvAi2xfo9\",\"rxpRCBmLpos\",\"d7MyjQNruNp\",\"ZUGAXE1odCA\",\"HMGIqHQwHlO\",\"fEmun7YhxgJ\",\"q16GoCCefkH\",\"fxRdwnvco8b\",\"sgQHOe8eCC2\",\"GByTYvZgBDa\",\"WDBxqpARnBC\",\"q8iOmB6ErRM\",\"UQALwUwL6fL\",\"V7QbxXo1i2y\",\"IvAJc9Df99P\",\"oL8130I4aos\",\"UeIuuDfIFhX\",\"GsrKHN5meqG\",\"QcKIICg2ZRA\",\"WqrAYqTbxl2\",\"ADpsc41lvxx\",\"YK6mczQ8lQc\",\"tGLky948vTz\"],\"Zj7UnCAulEk.GieVkTxp4HH\":[\"sxFVvKLpE0y\",\"CivTksSoCt0\",\"BHlWGFLIU20\",\"GWuQsWJDGvN\",\"wgbW2ZQnlIc\",\"B1X4JyH4Mdw\",\"eySqrYxteI7\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
+
+    dumpHeaders(actualHeaders);
 
     // Assert headers.
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
@@ -9912,7 +9913,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "J310",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
 
     validateRow(
         response,
@@ -9956,7 +9957,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "R13",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         2,
@@ -9999,7 +10000,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "G412",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         3,
@@ -10042,7 +10043,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "Q189",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         4,
@@ -10085,7 +10086,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "P542",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
 
     validateRow(
         response,
@@ -10129,7 +10130,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "G969",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         6,
@@ -10172,7 +10173,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "O723",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         7,
@@ -10215,7 +10216,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "M181",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         8,
@@ -10258,7 +10259,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "T638",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         9,
@@ -10301,7 +10302,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "X219",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         10,
@@ -10344,7 +10345,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "F060",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         11,
@@ -10387,7 +10388,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "C709",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         12,
@@ -10430,7 +10431,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "S543",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         13,
@@ -10473,7 +10474,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "T857",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         14,
@@ -10516,7 +10517,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "H278",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         15,
@@ -10559,7 +10560,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "H02",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         16,
@@ -10602,7 +10603,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "K118",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         17,
@@ -10645,7 +10646,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "A162",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         18,
@@ -10688,7 +10689,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "J708",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         19,
@@ -10731,7 +10732,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "N001",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         20,
@@ -10774,7 +10775,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "D313",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         21,
@@ -10817,7 +10818,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "K316",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         22,
@@ -10860,7 +10861,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "V944",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         23,
@@ -10903,7 +10904,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "G620",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         24,
@@ -10946,7 +10947,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "V506",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         25,
@@ -10989,7 +10990,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "V534",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         26,
@@ -11032,7 +11033,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "Q07",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         27,
@@ -11075,7 +11076,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "E882",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         28,
@@ -11118,7 +11119,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "E83",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         29,
@@ -11161,7 +11162,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "M121",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         30,
@@ -11204,7 +11205,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "V730",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
 
     validateRow(
         response,
@@ -11248,7 +11249,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "H334",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         32,
@@ -11291,7 +11292,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "L731",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         33,
@@ -11334,7 +11335,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "P231",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         34,
@@ -11377,7 +11378,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "B00",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         35,
@@ -11420,7 +11421,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "K043",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         36,
@@ -11463,7 +11464,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "A772",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         37,
@@ -11506,7 +11507,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "I728",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         38,
@@ -11549,7 +11550,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "W101",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         39,
@@ -11592,7 +11593,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "G736",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         40,
@@ -11635,7 +11636,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "S531",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         41,
@@ -11678,7 +11679,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "O872",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         42,
@@ -11721,7 +11722,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "V968",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         43,
@@ -11764,7 +11765,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "C311",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         44,
@@ -11807,7 +11808,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "S244",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         45,
@@ -11850,7 +11851,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "D810",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         46,
@@ -11893,7 +11894,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "V686",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         47,
@@ -11936,7 +11937,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "S310",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         48,
@@ -11979,7 +11980,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "H520",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         49,
@@ -12022,7 +12023,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "B27",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         50,
@@ -12065,7 +12066,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "I771",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         51,
@@ -12108,7 +12109,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "O888",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         52,
@@ -12151,7 +12152,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "I604",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         53,
@@ -12194,7 +12195,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "T360",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         54,
@@ -12237,7 +12238,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "E440",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         55,
@@ -12280,7 +12281,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "T346",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         56,
@@ -12323,7 +12324,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "S231",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         57,
@@ -12366,7 +12367,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "H488",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         58,
@@ -12409,7 +12410,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "S272",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         59,
@@ -12452,7 +12453,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "G939",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         60,
@@ -12495,7 +12496,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "R58",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
 
     validateRow(
         response,
@@ -12539,7 +12540,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "S727",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         62,
@@ -12582,7 +12583,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "T909",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         63,
@@ -12625,7 +12626,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "O861",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         64,
@@ -12668,7 +12669,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "N211",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         65,
@@ -12711,7 +12712,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "F11",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         66,
@@ -12754,7 +12755,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "I41",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         67,
@@ -12797,7 +12798,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "K134",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         68,
@@ -12840,7 +12841,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "K73",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         69,
@@ -12883,7 +12884,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "Q517",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         70,
@@ -12926,7 +12927,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "J988",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         71,
@@ -12969,7 +12970,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "R937",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         72,
@@ -13012,7 +13013,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "D475",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         73,
@@ -13055,7 +13056,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "C118",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         74,
@@ -13098,7 +13099,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "B159",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         75,
@@ -13141,7 +13142,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "N019",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         76,
@@ -13184,7 +13185,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "K149",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         77,
@@ -13227,7 +13228,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "S441",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         78,
@@ -13270,7 +13271,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "G373",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         79,
@@ -13313,7 +13314,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "N360",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         80,
@@ -13356,7 +13357,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "A044",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         81,
@@ -13399,7 +13400,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "P379",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         82,
@@ -13442,7 +13443,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "S59",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         83,
@@ -13485,7 +13486,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "W216",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         84,
@@ -13528,7 +13529,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "Q278",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         85,
@@ -13571,7 +13572,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "H654",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         86,
@@ -13614,7 +13615,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "M05",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         87,
@@ -13657,7 +13658,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "S298",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         88,
@@ -13700,7 +13701,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "V80",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         89,
@@ -13743,7 +13744,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "L27",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         90,
@@ -13786,7 +13787,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "R13",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         91,
@@ -13829,7 +13830,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "I069",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         92,
@@ -13872,7 +13873,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "M920",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         93,
@@ -13915,7 +13916,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "Q95",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         94,
@@ -13958,7 +13959,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "H351",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         95,
@@ -14001,7 +14002,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "M181",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         96,
@@ -14044,7 +14045,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "N840",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         97,
@@ -14087,7 +14088,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "T340",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         98,
@@ -14130,7 +14131,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "E619",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         99,
@@ -14173,6 +14174,14 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "P038",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
+  }
+
+  private void dumpHeaders(List<Map<String, Object>> actualHeaders) {
+    // Utility method to help debug test failures
+    for (int i = 0; i < actualHeaders.size(); i++) {
+      Map<String, Object> header = actualHeaders.get(i);
+      System.out.println(i + ": " + header.get("name") + " (" + header.get("type") + ")");
+    }
   }
 }
