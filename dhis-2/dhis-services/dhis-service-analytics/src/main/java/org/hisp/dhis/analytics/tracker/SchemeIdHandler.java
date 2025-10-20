@@ -53,6 +53,7 @@ public class SchemeIdHandler {
   public void applyScheme(Grid grid, EventQueryParams params) {
     if (params.hasDataIdScheme()) {
       schemeIdResponseMapper.applyOptionAndLegendSetMapping(NAME, grid);
+      schemeIdResponseMapper.applyBooleanMapping(params.getDataIdScheme(), grid);
     }
 
     if (!params.isSkipMeta()) {

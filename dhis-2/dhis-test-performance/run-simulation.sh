@@ -524,8 +524,8 @@ generate_metadata() {
     fi
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
-    echo "MVN_ARGS=$MVN_ARGS"
-    echo "PROF_ARGS=$PROF_ARGS"
+    echo "MVN_ARGS=\"$MVN_ARGS\""
+    echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"

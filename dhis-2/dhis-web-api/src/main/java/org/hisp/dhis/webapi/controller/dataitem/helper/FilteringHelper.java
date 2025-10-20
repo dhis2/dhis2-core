@@ -185,7 +185,7 @@ public class FilteringHelper {
     Class<? extends IdentifiableObject> entity = null;
 
     if (filterHasPrefix(filter, DIMENSION_TYPE_EQUAL.getCombination())) {
-      String[] dimensionFilterPair = filter.split(":");
+      String[] dimensionFilterPair = filter.split(":", 3);
       boolean hasDimensionType = dimensionFilterPair.length == 3;
 
       if (hasDimensionType) {
@@ -245,7 +245,7 @@ public class FilteringHelper {
     if (CollectionUtils.isNotEmpty(filters)) {
       for (String filter : filters) {
         if (filterHasPrefix(filter, filterCombination.getCombination())) {
-          String[] array = filter.split(":");
+          String[] array = filter.split(":", 3);
           boolean hasValue = array.length == 3;
 
           if (hasValue) {
@@ -513,7 +513,7 @@ public class FilteringHelper {
     String valueType = null;
 
     if (filterHasPrefix(filter, VALUE_TYPE_EQUAL.getCombination())) {
-      String[] array = filter.split(":");
+      String[] array = filter.split(":", 3);
       boolean hasValueType = array.length == 3;
 
       if (hasValueType) {
