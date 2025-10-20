@@ -41,12 +41,15 @@ import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
@@ -61,6 +64,8 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
@@ -71,8 +76,11 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -80,7 +88,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class SchemeIdResponseMapperTest {
-  private final SchemeIdResponseMapper schemeIdResponseMapper = new SchemeIdResponseMapper();
+  @Mock private I18nManager i18nManager;
+
+  @Mock private I18n i18n;
+
+  private SchemeIdResponseMapper schemeIdResponseMapper;
+
+  @BeforeEach
+  void setUp() {
+    schemeIdResponseMapper = new SchemeIdResponseMapper(i18nManager);
+  }
 
   @Test
   void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName() {
@@ -861,6 +878,102 @@ class SchemeIdResponseMapperTest {
 
     // Then
     assertEquals("uid", grid.getRow(0).get(0));
+  }
+
+  @Test
+  void testApplyOptionSetMappingWhenDataIdSchemeIsName() {
+    // Given
+    List<DataElementOperand> dataElementOperands = stubDataElementOperands();
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    PeriodDimension period = stubPeriod();
+
+    Data schemeData =
+        Data.builder()
+            .organizationUnits(List.of(organisationUnit))
+            .dataElementOperands(List.of(dataElementOperands.get(0), dataElementOperands.get(1)))
+            .dimensionalItemObjects(Set.of(period, organisationUnit))
+            .build();
+
+    Settings schemeSettings = Settings.builder().outputFormat(ANALYTICS).dataIdScheme(NAME).build();
+
+    SchemeInfo schemeInfo = new SchemeInfo(schemeSettings, schemeData);
+
+    // When
+    Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap(schemeInfo);
+
+    // Then
+    String orgUnitUid = organisationUnit.getUid();
+    String periodIsoDate = period.getIsoDate();
+    DataElement dataElementA = dataElementOperands.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperands.get(1).getDataElement();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(organisationUnit.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(period.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getName())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getName())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenProgramAttributeIsBooleanAndDataIdSchemeIsName() {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    attribute.setValueType(BOOLEAN);
+    attribute.setName("AtName");
+    attribute.setCode("AtCode");
+
+    List<DataElementOperand> dataElementOperands = stubDataElementOperands();
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    PeriodDimension period = stubPeriod();
+
+    Data schemeData =
+        Data.builder()
+            .organizationUnits(List.of(organisationUnit))
+            .dataElementOperands(List.of(dataElementOperands.get(0), dataElementOperands.get(1)))
+            .dimensionalItemObjects(Set.of(period, organisationUnit, attribute))
+            .build();
+
+    Settings schemeSettings = Settings.builder().outputFormat(ANALYTICS).dataIdScheme(NAME).build();
+
+    SchemeInfo schemeInfo = new SchemeInfo(schemeSettings, schemeData);
+    Map<String, String> responseMap = schemeIdResponseMapper.getSchemeIdResponseMap(schemeInfo);
+
+    assertEquals(responseMap.get(attribute.getUid()), attribute.getName());
+  }
+
+  @Test
+  void testApplyBooleanMappingWhenDataIdSchemeIsName() {
+    // Given
+    Option yes = new Option("Yes", "1");
+    Option no = new Option("No", "0");
+
+    OptionSet optionSet = new OptionSet();
+    optionSet.addOption(yes);
+    optionSet.addOption(no);
+
+    GridHeader gridHeader =
+        new GridHeader("header", "column", BOOLEAN, false, false, optionSet, null);
+
+    Grid grid = new ListGrid();
+    grid.addHeader(gridHeader);
+    grid.addMetaData("dim1", "dim2");
+    grid.addRow();
+    grid.addValue("0");
+    grid.addValue("0");
+    grid.addRow();
+    grid.addValue("1");
+    grid.addValue("1");
+
+    // When
+    when(i18nManager.getI18n()).thenReturn(i18n);
+    when(i18n.getString("yes", "Yes")).thenReturn("Yes");
+    when(i18n.getString("no", "No")).thenReturn("No");
+    schemeIdResponseMapper.applyBooleanMapping(NAME, grid);
+
+    // Then
+    assertEquals("No", grid.getRow(0).get(0));
+    assertEquals("Yes", grid.getRow(1).get(0));
+
+    assertEquals("0", grid.getRow(0).get(1));
+    assertEquals("1", grid.getRow(1).get(1));
   }
 
   private Settings stubSchemeSettings(IdScheme idScheme) {
