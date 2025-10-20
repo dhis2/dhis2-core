@@ -62,7 +62,6 @@ import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
@@ -151,6 +150,10 @@ public class HibernateDataExportStore implements DataExportStore {
 
   @Override
   public Stream<DataExportValue> getDataValues(DataExportStoreParams params) {
+    return createExportQuery(params, NativeSQL.of(getSession())).stream().map(DataExportValue::of);
+  }
+
+  static QueryBuilder createExportQuery(DataExportStoreParams params, SQL.QueryAPI api) {
     String sql =
         """
       SELECT
@@ -203,14 +206,14 @@ public class HibernateDataExportStore implements DataExportStore {
       lastUpdated = DateUtils.nowMinusDuration(params.getLastUpdatedDuration());
     if (params.hasLastUpdated()) lastUpdated = params.getLastUpdated();
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     String accessSql =
-        currentUser.isSuper()
-                || params.isOrderForSync()
+        params.isOrderForSync()
                 || !params.getAttributeOptionCombos().isEmpty()
+                || CurrentUserUtil.getCurrentUserDetails().isSuper()
             ? null // explicit AOCs mean they are already sharing checked
-            : generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
-    return createSelectQuery(sql)
+            : generateSQlQueryForSharingCheck(
+                "co.sharing", CurrentUserUtil.getCurrentUserDetails(), LIKE_READ_DATA);
+    return SQL.selectOf(sql, api)
         .setParameter("de", getIds(params.getAllDataElements()))
         .setParameter("pe", params.getPeriods(), Period::getIsoDate)
         .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
@@ -235,9 +238,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .eraseNullParameterJoinLine("pt", "pt")
         .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
-        .setOffset(params.getOffset())
-        .stream()
-        .map(DataExportValue::of);
+        .setOffset(params.getOffset());
   }
 
   private static Long[] getIds(Collection<? extends IdentifiableObject> objects) {

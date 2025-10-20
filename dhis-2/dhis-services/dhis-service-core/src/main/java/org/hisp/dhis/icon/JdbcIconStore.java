@@ -35,19 +35,18 @@ import static java.util.function.Function.identity;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
@@ -63,14 +62,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.icon.IconStore")
 @RequiredArgsConstructor
 public class JdbcIconStore implements IconStore {
-
-  private static final String KEY_COLUMN = "iconkey";
-  private static final String DEFAULT_ORDER = KEY_COLUMN + " asc";
-
-  private static final ImmutableMap<String, String> COLUMN_MAPPER =
-      ImmutableMap.<String, String>builder().build();
-
-  private static final ObjectMapper keywordsMapper = new ObjectMapper();
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -96,8 +87,7 @@ public class JdbcIconStore implements IconStore {
     params.addValue("key", icon.getKey());
     params.addValue("description", icon.getDescription());
     params.addValue("custom", icon.isCustom());
-    params.addValue(
-        "keywords", convertKeywordsSetToJsonString(icon.getKeywords().stream().toList()));
+    params.addValue("keywords", Json.array(Json::of, icon.getKeywords()).toJson());
     params.addValue("fileresourceid", icon.getFileResource().getId());
     params.addValue("createdby", icon.getCreatedBy() != null ? icon.getCreatedBy().getId() : null);
 
@@ -121,8 +111,7 @@ public class JdbcIconStore implements IconStore {
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("description", icon.getDescription());
-    params.addValue(
-        "keywords", convertKeywordsSetToJsonString(icon.getKeywords().stream().toList()));
+    params.addValue("keywords", Json.array(Json::of, icon.getKeywords()).toJson());
     params.addValue("key", icon.getKey());
 
     namedParameterJdbcTemplate.update(sql, params);
@@ -162,7 +151,7 @@ public class JdbcIconStore implements IconStore {
               SELECT
                 c.iconkey,
                 c.description,
-                c.keywords,
+                c.keywords #>> '{}',
                 c.created,
                 c.lastupdated,
                 c.fileresourceid,
@@ -187,13 +176,14 @@ public class JdbcIconStore implements IconStore {
     List<OrderCriteria> orders = params.getOrder();
     if (orders == null || orders.isEmpty())
       orders = List.of(OrderCriteria.of("iconkey", SortDirection.ASC));
+    List<String> keywords = params.getKeywords();
     return SQL.selectOf(sql, api)
         .setParameter("lastUpdatedStartDate", params.getLastUpdatedStartDate())
         .setParameter("lastUpdatedEndDate", params.getLastUpdatedEndDate())
         .setParameter("createdStartDate", params.getCreatedStartDate())
         .setParameter("createdEndDate", params.getCreatedEndDate())
         .setParameter("custom", type != IconTypeFilter.ALL ? type == IconTypeFilter.CUSTOM : null)
-        .setParameter("keywords", convertKeywordsSetToJsonString(params.getKeywords()))
+        .setParameter("keywords", keywords == null ? null : Json.array(Json::of, keywords).toJson())
         .setParameter("keys", params.getKeys(), identity())
         .setParameter("search", searchPattern)
         .eraseNullParameterLines()
@@ -211,31 +201,19 @@ public class JdbcIconStore implements IconStore {
     Icon icon = new Icon();
     icon.setKey(row.getString(0));
     icon.setDescription(row.getString(1));
-    icon.setKeywords(convertKeywordsJsonIntoSet(row.getString(2)));
+    String keywordsJson = row.getString(2);
+    if (keywordsJson != null) {
+      Set<String> keywords =
+          JsonMixed.of(keywordsJson).asList(JsonString.class).stream()
+              .map(JsonString::string)
+              .collect(Collectors.toSet());
+      icon.setKeywords(keywords);
+    }
     icon.setCreated(row.getDate(3));
     icon.setLastUpdated(row.getDate(4));
     icon.setFileResource(fileResourceStore.get(row.getLong(5)));
     icon.setCreatedBy(userService.getUser(row.getLong(6)));
     icon.setCustom(row.getBoolean(7));
     return icon;
-  }
-
-  private static Set<String> convertKeywordsJsonIntoSet(String jsonString) {
-    try {
-      return keywordsMapper.readValue(jsonString, new TypeReference<Set<String>>() {});
-    } catch (IOException e) {
-      log.error("Parsing keywords json failed, string value: '{}'", jsonString, e);
-      throw new IllegalArgumentException(e);
-    }
-  }
-
-  private static String convertKeywordsSetToJsonString(List<String> keywords) {
-    if (keywords == null || keywords.isEmpty()) return null;
-    try {
-      return keywordsMapper.writeValueAsString(new HashSet<>(keywords));
-    } catch (IOException e) {
-      log.error("Parsing keywords into json string failed", e);
-      throw new IllegalArgumentException(e);
-    }
   }
 }

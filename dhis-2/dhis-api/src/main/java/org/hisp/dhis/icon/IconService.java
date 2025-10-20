@@ -127,7 +127,7 @@ public interface IconService {
    *
    * @param request the icon to be updated
    */
-  void updateIcon(@Nonnull String key, @Nonnull UpdateIconRequest request)
+  void updateIcon(@CheckForNull String key, @Nonnull UpdateIconRequest request)
       throws BadRequestException, NotFoundException;
 
   /**
@@ -137,7 +137,7 @@ public interface IconService {
    * @throws BadRequestException when icon key is not specified
    * @throws NotFoundException when no icon with the provided key exists
    */
-  void deleteIcon(@Nonnull String key) throws BadRequestException, NotFoundException;
+  void deleteIcon(@CheckForNull String key) throws BadRequestException, NotFoundException;
 
   /**
    * @return number of icons deleted because they were not custom but refer to a non-existing {@link

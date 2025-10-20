@@ -234,8 +234,9 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateIcon(@Nonnull String key, @Nonnull UpdateIconRequest request)
+  public void updateIcon(@CheckForNull String key, @Nonnull UpdateIconRequest request)
       throws BadRequestException, NotFoundException {
+    if (key == null) throw new NotFoundException(Icon.class, key);
     Icon icon = getModifiableIcon(key, "Not allowed to update default icon");
 
     icon.setDescription(request.getDescription());
@@ -247,7 +248,8 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void deleteIcon(@Nonnull String key) throws BadRequestException, NotFoundException {
+  public void deleteIcon(@CheckForNull String key) throws BadRequestException, NotFoundException {
+    if (key == null) throw new NotFoundException(Icon.class, key);
     Icon icon = getModifiableIcon(key, "Not allowed to delete default icon");
 
     FileResource image = icon.getFileResource();
