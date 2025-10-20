@@ -34,6 +34,9 @@ RUN set -eux && \
     gosu postgres initdb -D /var/lib/postgresql/data && \
     echo "listen_addresses = ''" >> /var/lib/postgresql/data/postgresql.conf && \
     echo "unix_socket_directories = '/var/run/postgresql'" >> /var/lib/postgresql/data/postgresql.conf && \
+    echo "fsync = off" >> /var/lib/postgresql/data/postgresql.conf && \
+    echo "synchronous_commit = off" >> /var/lib/postgresql/data/postgresql.conf && \
+    echo "full_page_writes = off" >> /var/lib/postgresql/data/postgresql.conf && \
     gosu postgres pg_ctl -D /var/lib/postgresql/data -o "-c unix_socket_directories=/var/run/postgresql" -w start && \
     gosu postgres psql --username=postgres --dbname=postgres -v ON_ERROR_STOP=1 -c "CREATE USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" && \
     gosu postgres psql --username=postgres --dbname=postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};" && \
@@ -42,7 +45,10 @@ RUN set -eux && \
     echo "Database dump restored successfully" && \
     gosu postgres pg_ctl -D /var/lib/postgresql/data -m fast -w stop && \
     sed -i '/listen_addresses =/d' /var/lib/postgresql/data/postgresql.conf && \
-    sed -i '/unix_socket_directories =/d' /var/lib/postgresql/data/postgresql.conf
+    sed -i '/unix_socket_directories =/d' /var/lib/postgresql/data/postgresql.conf && \
+    sed -i '/fsync =/d' /var/lib/postgresql/data/postgresql.conf && \
+    sed -i '/synchronous_commit =/d' /var/lib/postgresql/data/postgresql.conf && \
+    sed -i '/full_page_writes =/d' /var/lib/postgresql/data/postgresql.conf
 
 # Final stage with pre-populated database
 FROM ${POSTGRES_BASE_IMAGE}
