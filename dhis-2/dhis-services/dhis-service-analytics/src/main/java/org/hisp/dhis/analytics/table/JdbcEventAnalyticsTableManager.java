@@ -582,17 +582,25 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String format =
         """
         (select ou.${column} from ${organisationunit} ou \
-        where ou.uid = ${columnExpression}) as ${alias}""";
+        where ou.uid = ${columnExpression})""";
     String columnExpression =
         sqlBuilder.jsonExtract("eventdatavalues", dataElement.getUid(), "value");
     String alias = quote(dataElement.getUid());
+    String wrapped = wrapWithCentroid(column, format) + " as " + alias;
 
     return replaceQualify(
-        format,
+        wrapped,
         Map.of(
             "column", column,
             "columnExpression", columnExpression,
             "alias", alias));
+  }
+
+  private String wrapWithCentroid(String column, String baseFormat) {
+    return column.equals("geometry")
+            && this.settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics()
+        ? "ST_Centroid(" + baseFormat + ")"
+        : baseFormat;
   }
 
   /**
@@ -784,6 +792,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private String getNumericClause(String value) {
     return " and " + sqlBuilder.regexpMatch(value, "'" + NUMERIC_LENIENT_REGEXP + "'");
+  }
+
+  private String getDataClause(String uid, ValueType valueType) {
+    if (valueType.isNumeric() || valueType.isDate()) {
+      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
+
+      return replace(
+          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
+          Map.of("uid", uid, "regex", regex));
+    }
+
+    return "";
   }
 
   /**
