@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Dockerfile to build the DB dump into the Docker image essentially caching the DB dump using
-# Dockers image/layer caching. The dump will be restored on each container creation.
+# Dockerfile to build the DB dump into the Docker image with the database pre-initialized
+# to speed up container startup time.
 ARG POSTGRES_BASE_IMAGE=ghcr.io/baosystems/postgis:14-3.5
 ARG DB_TYPE
 ARG DB_VERSION
@@ -23,4 +23,28 @@ ENV POSTGRES_USER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
 
-COPY --from=downloader /tmp/dump.sql.gz /docker-entrypoint-initdb.d/
+# Copy the dump file
+COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+
+# Initialize the database during build
+RUN set -eux; \
+# Create data directory if it doesn't exist
+mkdir -p /var/lib/postgresql/data; \
+chown postgres:postgres /var/lib/postgresql/data; \
+# Initialize the database cluster
+gosu postgres initdb -D /var/lib/postgresql/data; \
+# Start PostgreSQL in background
+gosu postgres pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/logfile start; \
+# Wait for PostgreSQL to be ready
+until gosu postgres pg_isready -h localhost -p 5432; do sleep 1; done; \
+# Create the dhis user and database
+PGUSER=postgres gosu postgres psql -c "CREATE USER dhis WITH PASSWORD 'dhis';" postgres; \
+PGUSER=postgres gosu postgres psql -c "CREATE DATABASE dhis OWNER dhis;" postgres; \
+PGUSER=postgres gosu postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE dhis TO dhis;" postgres; \
+# Restore the database dump
+echo "Restoring database dump..."; \
+PGUSER=postgres gunzip -c /tmp/dump.sql.gz | gosu postgres psql -d dhis; \
+# Stop PostgreSQL
+gosu postgres pg_ctl -D /var/lib/postgresql/data stop; \
+# Clean up the dump file
+rm /tmp/dump.sql.gz
