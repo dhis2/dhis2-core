@@ -108,6 +108,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 
 /**
@@ -812,8 +813,7 @@ class AnalyticsUtilsTest extends TestBase {
         };
 
     assertThrows(
-        UncategorizedSQLException.class,
-        () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+        BadSqlGrammarException.class, () -> AnalyticsUtils.withExceptionHandling(supplier, false));
   }
 
   @Test
