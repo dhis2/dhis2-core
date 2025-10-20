@@ -31,6 +31,7 @@ package org.hisp.dhis.icon;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.function.Function.identity;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
@@ -38,20 +39,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.StringJoiner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OrderCriteria;
-import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.sql.NativeSQL;
+import org.hisp.dhis.sql.QueryBuilder;
+import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.UserService;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -68,11 +68,7 @@ public class JdbcIconStore implements IconStore {
   private static final String DEFAULT_ORDER = KEY_COLUMN + " asc";
 
   private static final ImmutableMap<String, String> COLUMN_MAPPER =
-      ImmutableMap.<String, String>builder()
-          .put("key", KEY_COLUMN)
-          .put("lastUpdated", "lastupdated")
-          .put("created", "created")
-          .build();
+      ImmutableMap.<String, String>builder().build();
 
   private static final ObjectMapper keywordsMapper = new ObjectMapper();
 
@@ -86,39 +82,6 @@ public class JdbcIconStore implements IconStore {
   public List<String> getAllKeys() {
     String sql = "select iconkey from icon";
     return namedParameterJdbcTemplate.query(sql, Map.of(), (rs, rowNum) -> rs.getString(1));
-  }
-
-  @Override
-  public long count(IconQueryParams params) {
-    String sql =
-        """
-     select count(*) from icon c
-                      """;
-
-    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-
-    sql = buildIconQuery(params, sql, parameterSource);
-
-    return Optional.ofNullable(
-            namedParameterJdbcTemplate.queryForObject(sql, parameterSource, Long.class))
-        .orElse(0L);
-  }
-
-  @Override
-  public Icon getIconByKey(String key) {
-    final String sql =
-        """
-                select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
-                c.fileresourceid as fileresourceid, c.createdby as createdby, c.custom as custom from icon c
-                where iconkey = :key
-                """;
-
-    MapSqlParameterSource params = new MapSqlParameterSource();
-    params.addValue("key", key);
-
-    List<Icon> icons = namedParameterJdbcTemplate.query(sql, params, getIconRowMapper());
-
-    return icons.isEmpty() ? null : icons.get(0);
   }
 
   @Override
@@ -166,28 +129,6 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public List<Icon> getIcons(IconQueryParams params) {
-    String sql =
-        """
-              select c.iconkey as iconkey, c.description as icondescription, c.keywords as keywords, c.created as created, c.lastupdated as lastupdated,
-              c.fileresourceid as fileresourceid, c.createdby as createdby, c.custom as custom from icon c
-              """;
-
-    MapSqlParameterSource parameterSource = new MapSqlParameterSource();
-
-    sql = buildIconQuery(params, sql, parameterSource);
-    sql += orderByQuery(params.getOrder());
-
-    if (params.isPaging()) {
-      sql = getPaginatedQuery(params.getPage(), params.getPageSize(), sql, parameterSource);
-    }
-
-    return namedParameterJdbcTemplate
-        .queryForStream(sql, parameterSource, getIconRowMapper())
-        .toList();
-  }
-
-  @Override
   public int deleteOrphanDefaultIcons() {
     String sql =
         """
@@ -198,81 +139,88 @@ public class JdbcIconStore implements IconStore {
     return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource());
   }
 
-  private String buildIconQuery(
-      IconQueryParams params, String sql, MapSqlParameterSource parameterSource) {
-    SqlHelper hlp = new SqlHelper(true);
-
-    if (params.hasLastUpdatedStartDate()) {
-      sql += hlp.whereAnd() + " c.lastupdated >= :lastUpdatedStartDate ";
-
-      parameterSource.addValue(
-          ":lastUpdatedStartDate", params.getLastUpdatedStartDate(), Types.TIMESTAMP);
-    }
-
-    if (params.hasLastUpdatedEndDate()) {
-      sql += hlp.whereAnd() + " c.lastupdated <= :lastUpdatedEndDate ";
-
-      parameterSource.addValue(
-          "lastUpdatedEndDate", params.getLastUpdatedEndDate(), Types.TIMESTAMP);
-    }
-
-    if (params.hasCreatedStartDate()) {
-      sql += hlp.whereAnd() + " c.created >= :createdStartDate";
-
-      parameterSource.addValue("createdStartDate", params.getCreatedStartDate(), Types.TIMESTAMP);
-    }
-
-    if (params.hasCreatedEndDate()) {
-      sql += hlp.whereAnd() + " c.created <= :createdEndDate ";
-
-      parameterSource.addValue("createdEndDate", params.getCreatedEndDate(), Types.TIMESTAMP);
-    }
-
-    if (params.getType() != IconTypeFilter.ALL) {
-      sql += hlp.whereAnd() + " c.custom = :custom ";
-
-      parameterSource.addValue("custom", params.getType() == IconTypeFilter.CUSTOM, Types.BOOLEAN);
-    }
-
-    if (params.hasKeywords()) {
-
-      sql += hlp.whereAnd() + " keywords @> cast(:keywords as jsonb) ";
-
-      parameterSource.addValue("keywords", convertKeywordsSetToJsonString(params.getKeywords()));
-    }
-
-    if (params.hasKeys()) {
-      sql += hlp.whereAnd() + " c.iconkey IN (:keys )";
-
-      parameterSource.addValue("keys", params.getKeys());
-    }
-
-    if (params.hasSearch()) {
-      String searchValue = params.getSearch();
-
-      sql += hlp.whereAnd() + "(c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)";
-      parameterSource.addValue("search", wrap(addIlikeReplacingCharacters(searchValue), '%'));
-    }
-
-    return sql;
+  @Override
+  public long count(IconQueryParams params) {
+    return createQuery(params, NativeSQL.of(namedParameterJdbcTemplate)).count();
   }
 
-  private String getPaginatedQuery(
-      int page, int pageSize, String sql, MapSqlParameterSource mapSqlParameterSource) {
-
-    sql = sql + " LIMIT :limit OFFSET :offset ";
-
-    page = max(1, page);
-    pageSize = max(1, min(500, pageSize));
-    int offset = (page - 1) * pageSize;
-
-    mapSqlParameterSource.addValue("limit", pageSize);
-    mapSqlParameterSource.addValue("offset", offset);
-
-    return sql;
+  @Override
+  public Icon getIconByKey(String key) {
+    List<Icon> icons = getIcons(new IconQueryParams().setKeys(List.of(key)));
+    return icons.isEmpty() ? null : icons.get(0);
   }
 
-  private Set<String> convertKeywordsJsonIntoSet(String jsonString) {
+  @Override
+  public List<Icon> getIcons(IconQueryParams params) {
+    return createQuery(params, NativeSQL.of(namedParameterJdbcTemplate)).stream(this::toIcon)
+        .toList();
+  }
+
+  static final QueryBuilder createQuery(IconQueryParams params, SQL.QueryAPI api) {
+    String sql =
+        """
+              SELECT
+                c.iconkey,
+                c.description,
+                c.keywords,
+                c.created,
+                c.lastupdated,
+                c.fileresourceid,
+                c.createdby,
+                c.custom
+              FROM icon c
+              WHERE 1=1 -- below filters might be erased...
+                AND c.lastupdated >= :lastUpdatedStartDate
+                AND c.lastupdated <= :lastUpdatedEndDate
+                AND c.created >= :createdStartDate
+                AND c.created <= :createdEndDate
+                AND c.custom = :custom
+                AND c.keywords @> cast(:keywords as jsonb)
+                AND c.iconkey IN (:keys )
+                AND (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)
+              """;
+
+    IconTypeFilter type = params.getType();
+    String search = params.getSearch();
+    String searchPattern =
+        search != null && !search.isEmpty() ? wrap(addIlikeReplacingCharacters(search), '%') : null;
+    List<OrderCriteria> orders = params.getOrder();
+    if (orders == null || orders.isEmpty())
+      orders = List.of(OrderCriteria.of("iconkey", SortDirection.ASC));
+    return SQL.selectOf(sql, api)
+        .setParameter("lastUpdatedStartDate", params.getLastUpdatedStartDate())
+        .setParameter("lastUpdatedEndDate", params.getLastUpdatedEndDate())
+        .setParameter("createdStartDate", params.getCreatedStartDate())
+        .setParameter("createdEndDate", params.getCreatedEndDate())
+        .setParameter("custom", type != IconTypeFilter.ALL ? type == IconTypeFilter.CUSTOM : null)
+        .setParameter("keywords", convertKeywordsSetToJsonString(params.getKeywords()))
+        .setParameter("keys", params.getKeys(), identity())
+        .setParameter("search", searchPattern)
+        .eraseNullParameterLines()
+        .useEqualsOverInForParameters("keys")
+        .setLimit(params.isPaging() ? max(1, min(500, params.getPageSize())) : null)
+        .setOffset(params.isPaging() ? (params.getPage() - 1) * params.getPageSize() : null)
+        .setOrders(
+            orders,
+            OrderCriteria::getField,
+            o -> o.getDirection().isAscending(),
+            Map.of("key", "c.iconkey", "lastUpdated", "c.lastupdated", "created", "c.created"));
+  }
+
+  private Icon toIcon(SQL.Row row) {
+    Icon icon = new Icon();
+    icon.setKey(row.getString(0));
+    icon.setDescription(row.getString(1));
+    icon.setKeywords(convertKeywordsJsonIntoSet(row.getString(2)));
+    icon.setCreated(row.getDate(3));
+    icon.setLastUpdated(row.getDate(4));
+    icon.setFileResource(fileResourceStore.get(row.getLong(5)));
+    icon.setCreatedBy(userService.getUser(row.getLong(6)));
+    icon.setCustom(row.getBoolean(7));
+    return icon;
+  }
+
+  private static Set<String> convertKeywordsJsonIntoSet(String jsonString) {
     try {
       return keywordsMapper.readValue(jsonString, new TypeReference<Set<String>>() {});
     } catch (IOException e) {
@@ -281,46 +229,13 @@ public class JdbcIconStore implements IconStore {
     }
   }
 
-  private String convertKeywordsSetToJsonString(List<String> keywords) {
+  private static String convertKeywordsSetToJsonString(List<String> keywords) {
+    if (keywords == null || keywords.isEmpty()) return null;
     try {
       return keywordsMapper.writeValueAsString(new HashSet<>(keywords));
     } catch (IOException e) {
       log.error("Parsing keywords into json string failed", e);
       throw new IllegalArgumentException(e);
     }
-  }
-
-  private RowMapper<Icon> getIconRowMapper() {
-    return (rs, rowNum) -> {
-      Icon icon = new Icon();
-      icon.setKey(rs.getString("iconkey"));
-      icon.setDescription(rs.getString("icondescription"));
-      icon.setCustom(rs.getBoolean("custom"));
-      icon.setKeywords(convertKeywordsJsonIntoSet(rs.getString("keywords")));
-      icon.setCreated(rs.getDate("created"));
-      icon.setLastUpdated(rs.getDate("lastupdated"));
-      icon.setCreatedBy(userService.getUser(rs.getLong("createdby")));
-      icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
-      return icon;
-    };
-  }
-
-  private String orderByQuery(List<OrderCriteria> orders) {
-    if (orders == null || orders.isEmpty()) {
-      return " order by " + DEFAULT_ORDER;
-    }
-
-    StringJoiner orderJoiner = new StringJoiner(", ");
-    for (OrderCriteria order : orders) {
-      orderJoiner.add(
-          getColumnNameForOrdering(order.getField())
-              + " "
-              + (order.getDirection().isAscending() ? "asc" : "desc"));
-    }
-    return " order by " + orderJoiner;
-  }
-
-  private String getColumnNameForOrdering(String column) {
-    return COLUMN_MAPPER.getOrDefault(column, KEY_COLUMN);
   }
 }

@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -72,16 +74,29 @@ import org.hisp.dhis.common.UID;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class QueryBuilder {
 
+  /**
+   * The pattern used to transform...
+   *
+   * <pre>
+   *   WHERE AND => WHERE
+   *   WHERE 1=1 AND => WHERE
+   * </pre>
+   */
+  private static final Pattern WHERE_AND =
+      Pattern.compile("([\n\t ]+)WHERE[\n\t ]+(?:1=1)?[\n\t ]+AND[\n\t ]+");
+
   private final String sql;
 
   private final SQL.QueryAPI api;
   private final Map<String, SQL.Param> params = new HashMap<>();
+  private final Map<String, Boolean> orders = new HashMap<>();
   private final Map<String, String> clauses = new HashMap<>();
   private final Map<String, Set<String>> erasedJoins = new HashMap<>();
   private final Set<String> erasedOrders = new HashSet<>();
   private final Set<String> erasedClause = new HashSet<>();
   private final Set<String> nullParams = new HashSet<>();
   private final Set<String> erasedParams = new HashSet<>();
+  private final Set<String> eqParams = new HashSet<>();
   private Integer limit;
   private Integer offset;
 
@@ -140,6 +155,19 @@ public final class QueryBuilder {
       @Nonnull String name, @CheckForNull Object value, @Nonnull SQL.Param.Type type) {
     params.put(name, new SQL.Param(type, name, value));
     if (value == null || value instanceof Object[] arr && arr.length == 0) nullParams.add(name);
+    return this;
+  }
+
+  public <T> QueryBuilder setOrders(
+      @CheckForNull List<T> orders,
+      @Nonnull Function<T, String> property,
+      @Nonnull Predicate<T> ascending,
+      @Nonnull Map<String, String> propToColumn) {
+    if (orders == null || orders.isEmpty() || propToColumn.isEmpty()) return this;
+    for (T order : orders) {
+      String column = propToColumn.get(property.apply(order));
+      if (column != null) this.orders.put(column, ascending.test(order));
+    }
     return this;
   }
 
@@ -220,8 +248,20 @@ public final class QueryBuilder {
    * @param nullParams names of the parameters that require the join
    * @return this for chaining
    */
-  public QueryBuilder eraseNullJoinLine(String alias, String... nullParams) {
+  public QueryBuilder eraseNullParameterJoinLine(String alias, String... nullParams) {
     erasedJoins.put(alias, Set.of(nullParams));
+    return this;
+  }
+
+  /**
+   * For each of the given named parameters a SQL {@code IN(:name)} or {@code ANY(:name)} is
+   * replaced with {@code = :name} if the current value for {@code name} is a single value.
+   *
+   * @param params names of the parameters that allow IN/ANY to {@code =} replacement
+   * @return this for chaining
+   */
+  public QueryBuilder useEqualsOverInForParameters(String... params) {
+    eqParams.addAll(List.of(params));
     return this;
   }
 
@@ -238,6 +278,15 @@ public final class QueryBuilder {
   }
 
   public <T> Stream<T> stream(Class<T> rowType) {
+    return fetchQuery().stream(rowType);
+  }
+
+  public <T> Stream<T> stream(Function<SQL.Row, T> map) {
+    return fetchQuery().stream(map);
+  }
+
+  @Nonnull
+  private SQL.Query fetchQuery() {
     String minSql = toSQL(false);
     SQL.Query query = api.createQuery(minSql);
     params.values().stream()
@@ -245,7 +294,7 @@ public final class QueryBuilder {
         .forEach(query::setParameter);
     if (offset != null) query.setOffset(offset);
     if (limit != null) query.setLimit(limit);
-    return query.stream(rowType);
+    return query;
   }
 
   /**
@@ -267,13 +316,17 @@ public final class QueryBuilder {
     return stream().collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
-  private String toSQL(boolean count) {
-    String minSql =
-        replaceDynamicClauses(
-            eraseComments(
-                eraseOrders(eraseNullJoins(eraseNullClauses(eraseNullParams(sql))), count)));
-    if (count) return replaceSelect(minSql);
-    return minSql;
+  private String toSQL(boolean forCount) {
+    String sql = eraseNullParams(this.sql);
+    sql = eraseNullClauses(sql);
+    sql = eraseNullJoins(sql);
+    sql = eraseOrders(sql, forCount);
+    sql = eraseComments(sql);
+    sql = replaceDynamicClauses(sql);
+    sql = simplifyWhere(sql);
+    sql = simplifyIn(sql);
+    sql = addOrderBy(sql);
+    return forCount ? replaceSelect(sql) : sql;
   }
 
   private String eraseNullParams(String sql) {
@@ -281,10 +334,14 @@ public final class QueryBuilder {
     return sql.lines().filter(not(this::containsErasedParameter)).collect(joining("\n"));
   }
 
-  private String eraseOrders(String sql, boolean count) {
-    if (count) return sql.lines().filter(not(this::isOrderBy)).collect(joining("\n"));
+  private String eraseOrders(String sql, boolean forCount) {
+    if (forCount || !orders.isEmpty()) return eraseAllOrders(sql);
     if (erasedOrders.isEmpty()) return sql;
     return sql.lines().map(this::replaceOrders).collect(joining("\n"));
+  }
+
+  private String eraseAllOrders(String sql) {
+    return sql.lines().filter(not(this::isOrderBy)).collect(joining("\n"));
   }
 
   private String eraseNullJoins(String sql) {
@@ -298,13 +355,34 @@ public final class QueryBuilder {
   }
 
   private String eraseComments(String sql) {
-    List<String> lines =
-        sql.lines().map(this::replaceComments).filter(not(String::isBlank)).toList();
-    // also erase dangling WHERE
-    String lastLine = lines.get(lines.size() - 1);
-    if (lastLine.contains("WHERE") && lastLine.trim().equals("WHERE"))
-      lines = lines.subList(0, lines.size() - 1);
-    return String.join("\n", lines);
+    return sql.lines()
+        .map(this::replaceComments)
+        .filter(not(String::isBlank))
+        .collect(joining("\n"));
+  }
+
+  private String simplifyWhere(String sql) {
+    return WHERE_AND.matcher(sql).replaceAll("$1WHERE ");
+  }
+
+  private String simplifyIn(String sql) {
+    if (eqParams.isEmpty()) return sql;
+    for (String name : eqParams) {
+      SQL.Param param = params.get(name);
+      if (param != null && param.value() instanceof Object[] arr && arr.length == 1) {
+        String newSql =
+            sql.replaceAll(
+                    "([\n\t ]+)IN[\n\t ]*\\([\n\t ]*:" + name + "[\n\t ]*\\)", "$1= :" + name + " ")
+                .replaceAll(
+                    "([\n\t ]+)ANY[\n\t ]*\\([\n\t ]*:" + name + "[\n\t ]*\\)", "$1:" + name + " ");
+        if (!newSql.equals(sql)) {
+          sql = newSql;
+          params.put(name, new SQL.Param(param.type().elementType(), name, arr[0]));
+        }
+      }
+    }
+    // remove trailing whitespace
+    return sql.replaceAll("(?m)[ \\t]+$", "");
   }
 
   private boolean containsErasedParameter(String line) {
@@ -370,6 +448,15 @@ public final class QueryBuilder {
       i--;
     }
     return line;
+  }
+
+  private String addOrderBy(String sql) {
+    if (orders.isEmpty()) return sql;
+    return sql
+        + "\nORDER BY "
+        + orders.entrySet().stream()
+            .map(e -> e.getKey() + (e.getValue() ? "" : " DESC"))
+            .collect(joining(", "));
   }
 
   private static boolean isCommentChar(char c) {

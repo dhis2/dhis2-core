@@ -44,8 +44,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 class JdbcNativeSQL {
 
-  private record JdbcQuery(
-      NamedParameterJdbcTemplate template, String sql, Map<String, SqlParameterValue> params)
+  record JdbcQuery(
+      NamedParameterJdbcTemplate impl, String sql, Map<String, SqlParameterValue> params)
       implements SQL.Query {
 
     @Override
@@ -98,12 +98,12 @@ class JdbcNativeSQL {
       String extSql = sql;
       if (params.containsKey("_limit")) extSql += "\nLIMIT :_limit";
       if (params.containsKey("_offset")) extSql += "\nOFFSET :_offset";
-      return template.queryForStream(extSql, params, mapper);
+      return impl.queryForStream(extSql, params, mapper);
     }
 
     @Override
     public int count() {
-      return template.queryForObject(sql, params, Integer.class);
+      return impl.queryForObject(sql, params, Integer.class);
     }
   }
 

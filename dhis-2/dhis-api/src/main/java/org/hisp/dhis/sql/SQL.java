@@ -31,7 +31,6 @@ package org.hisp.dhis.sql;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -42,7 +41,6 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -70,6 +68,18 @@ public final class SQL {
       STRING_ARRAY(String[].class);
 
       final Class<?> valueType;
+
+      public boolean isArray() {
+        return this == LONG_ARRAY || this == STRING_ARRAY;
+      }
+
+      public Type elementType() {
+        return switch (this) {
+          case STRING_ARRAY -> STRING;
+          case LONG_ARRAY -> LONG;
+          default -> this;
+        };
+      }
     }
 
     public Param {
@@ -82,20 +92,15 @@ public final class SQL {
   }
 
   @Nonnull
-  public static QueryAPI of(Session session) {
-    return minSql -> new HibernateNativeSQL.HibernateQuery(session, minSql, new ArrayList<>());
-  }
-
-  @Nonnull
-  public static QueryAPI of(Consumer<String> sqlSpy, BiConsumer<String, Object> paramsSpy) {
-    return minSql -> {
-      sqlSpy.accept(minSql);
+  public static QueryAPI of(Consumer<String> sqlSpy, BiConsumer<String, SQL.Param> paramsSpy) {
+    return sql -> {
+      sqlSpy.accept(sql);
       return new SpyQuery(paramsSpy);
     };
   }
 
-  public static QueryBuilder selectOf(@Language("sql") String sql, @Nonnull QueryAPI source) {
-    return new QueryBuilder(sql, source);
+  public static QueryBuilder selectOf(@Language("sql") String sql, @Nonnull QueryAPI api) {
+    return new QueryBuilder(sql, api);
   }
 
   /** Facade for specific implementations of SELECT query APIs, such as hibernate or JDBC. */
@@ -162,11 +167,11 @@ public final class SQL {
   }
 
   /** A {@link Query} to simply record set params to verify them in tests. */
-  private record SpyQuery(BiConsumer<String, Object> paramsSpy) implements Query {
+  private record SpyQuery(BiConsumer<String, SQL.Param> paramsSpy) implements Query {
 
     @Override
     public void setParameter(@Nonnull Param param) {
-      paramsSpy.accept(param.name, param.value);
+      paramsSpy.accept(param.name, param);
     }
 
     @Override

@@ -47,7 +47,7 @@ import org.hibernate.type.Type;
 
 class HibernateNativeSQL {
 
-  record HibernateQuery(Session session, String sql, List<Consumer<NativeQuery<?>>> setters)
+  record HibernateQuery(Session impl, String sql, List<Consumer<NativeQuery<?>>> setters)
       implements SQL.Query {
 
     @Override
@@ -79,9 +79,7 @@ class HibernateNativeSQL {
     @SuppressWarnings("unchecked")
     public <T> Stream<T> stream(@Nonnull Class<T> of) {
       NativeQuery<T> query =
-          of == Object[].class
-              ? session.createNativeQuery(sql)
-              : session.createNativeQuery(sql, of);
+          of == Object[].class ? impl.createNativeQuery(sql) : impl.createNativeQuery(sql, of);
       setters.forEach(s -> s.accept(query));
       return query.stream();
     }
@@ -108,7 +106,7 @@ class HibernateNativeSQL {
 
     @Override
     public int count() {
-      NativeQuery<?> query = session.createNativeQuery(sql);
+      NativeQuery<?> query = impl.createNativeQuery(sql);
       setters.forEach(s -> s.accept(query));
       return query.getSingleResult() instanceof Number n ? n.intValue() : 0;
     }

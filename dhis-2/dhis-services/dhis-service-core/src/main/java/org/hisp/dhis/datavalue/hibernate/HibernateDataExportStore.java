@@ -58,6 +58,7 @@ import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -231,7 +232,8 @@ public class HibernateDataExportStore implements DataExportStore {
         .eraseOrder("dv.created", !params.isOrderForSync())
         .eraseOrder("deid", !params.isOrderForSync())
         .eraseNullParameterLines()
-        .eraseNullJoinLine("pt", "pt")
+        .eraseNullParameterJoinLine("pt", "pt")
+        .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
         .setOffset(params.getOffset())
         .stream()
@@ -257,7 +259,7 @@ public class HibernateDataExportStore implements DataExportStore {
   }
 
   private QueryBuilder createSelectQuery(@Language("sql") String sql) {
-    return SQL.selectOf(sql, SQL.of(getSession()));
+    return SQL.selectOf(sql, NativeSQL.of(getSession()));
   }
 
   private Session getSession() {

@@ -45,6 +45,7 @@ import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.intellij.lang.annotations.Language;
@@ -100,17 +101,16 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, SQL.of(getSession())).stream(DataValueChangelog.class)
+    return createEntriesQuery(params, NativeSQL.of(getSession())).stream(DataValueChangelog.class)
         .toList();
   }
 
   @Override
   public int countEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, SQL.of(getSession())).count();
+    return createEntriesQuery(params, NativeSQL.of(getSession())).count();
   }
 
-  static QueryBuilder createEntriesQuery(
-      DataValueChangelogQueryParams params, SQL.QueryAPI factory) {
+  static QueryBuilder createEntriesQuery(DataValueChangelogQueryParams params, SQL.QueryAPI api) {
     String sql =
         """
       SELECT *
@@ -131,7 +131,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       ORDER BY dva.created DESC""";
 
     Pager pager = params.getPager();
-    return SQL.selectOf(sql, factory)
+    return SQL.selectOf(sql, api)
         .setParameter("types", params.getTypes(), DataValueChangelogType::name)
         .setParameter("pe", params.getPeriods(), Period::getIsoDate)
         .setParameter("ds", params.getDataSets())
@@ -142,11 +142,12 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setOffset(pager == null ? null : pager.getOffset())
         .setLimit(pager == null ? null : pager.getPageSize())
         .eraseNullParameterLines()
-        .eraseNullJoinLine("de", "de")
-        .eraseNullJoinLine("ou", "ou")
-        .eraseNullJoinLine("pe", "pe")
-        .eraseNullJoinLine("dse", "ds")
-        .eraseNullJoinLine("ds", "ds");
+        .useEqualsOverInForParameters("types", "ds", "de", "ou", "pe")
+        .eraseNullParameterJoinLine("de", "de")
+        .eraseNullParameterJoinLine("ou", "ou")
+        .eraseNullParameterJoinLine("pe", "pe")
+        .eraseNullParameterJoinLine("dse", "ds")
+        .eraseNullParameterJoinLine("ds", "ds");
   }
 
   @Override
@@ -182,7 +183,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
     return SQL
-        .selectOf(sql, SQL.of(getSession()))
+        .selectOf(sql, NativeSQL.of(getSession()))
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
         .setParameter("iso", key.period())
