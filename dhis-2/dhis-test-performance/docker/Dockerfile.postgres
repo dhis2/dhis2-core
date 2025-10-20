@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Dockerfile to build the DB dump into the Docker image with the database pre-initialized
-# to speed up container startup time.
+# Dockerfile to build and restore the DB dump at build time (not runtime)
+# This significantly speeds up container startup for performance tests.
 ARG POSTGRES_BASE_IMAGE=ghcr.io/baosystems/postgis:14-3.5
 ARG DB_TYPE
 ARG DB_VERSION
@@ -14,6 +14,37 @@ RUN S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYP
     echo "Downloading from: $S3_PATH" && \
     aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
 
+FROM ${POSTGRES_BASE_IMAGE} AS builder
+
+ENV POSTGRES_USER=dhis \
+    POSTGRES_DB=dhis \
+    POSTGRES_PASSWORD=dhis \
+    PGUSER=dhis \
+    PGDATABASE=dhis \
+    PGPASSWORD=dhis
+
+COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+
+# Initialize the database and restore the dump at build time
+# This runs postgres temporarily during the build to populate the database
+RUN set -eux && \
+    mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql && \
+    chmod 700 /var/lib/postgresql/data && \
+    gosu postgres initdb -D /var/lib/postgresql/data && \
+    echo "listen_addresses = ''" >> /var/lib/postgresql/data/postgresql.conf && \
+    echo "unix_socket_directories = '/var/run/postgresql'" >> /var/lib/postgresql/data/postgresql.conf && \
+    gosu postgres pg_ctl -D /var/lib/postgresql/data -o "-c unix_socket_directories=/var/run/postgresql" -w start && \
+    gosu postgres psql --username=postgres --dbname=postgres -v ON_ERROR_STOP=1 -c "CREATE USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" && \
+    gosu postgres psql --username=postgres --dbname=postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};" && \
+    echo "Restoring database dump..." && \
+    gosu postgres bash -c "gunzip -c /tmp/dump.sql.gz | psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -v ON_ERROR_STOP=1" && \
+    echo "Database dump restored successfully" && \
+    gosu postgres pg_ctl -D /var/lib/postgresql/data -m fast -w stop && \
+    sed -i '/listen_addresses =/d' /var/lib/postgresql/data/postgresql.conf && \
+    sed -i '/unix_socket_directories =/d' /var/lib/postgresql/data/postgresql.conf
+
+# Final stage with pre-populated database
 FROM ${POSTGRES_BASE_IMAGE}
 
 ENV POSTGRES_USER=dhis \
@@ -23,28 +54,5 @@ ENV POSTGRES_USER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
 
-# Copy the dump file
-COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+COPY --from=builder --chown=postgres:postgres /var/lib/postgresql/data /var/lib/postgresql/data
 
-# Initialize the database during build
-RUN set -eux; \
-# Create data directory if it doesn't exist
-mkdir -p /var/lib/postgresql/data; \
-chown postgres:postgres /var/lib/postgresql/data; \
-# Initialize the database cluster
-gosu postgres initdb -D /var/lib/postgresql/data; \
-# Start PostgreSQL in background
-gosu postgres pg_ctl -D /var/lib/postgresql/data -l /var/lib/postgresql/logfile start; \
-# Wait for PostgreSQL to be ready
-until gosu postgres pg_isready -h localhost -p 5432; do sleep 1; done; \
-# Create the dhis user and database
-PGUSER=postgres gosu postgres psql -c "CREATE USER dhis WITH PASSWORD 'dhis';" postgres; \
-PGUSER=postgres gosu postgres psql -c "CREATE DATABASE dhis OWNER dhis;" postgres; \
-PGUSER=postgres gosu postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE dhis TO dhis;" postgres; \
-# Restore the database dump
-echo "Restoring database dump..."; \
-PGUSER=postgres gunzip -c /tmp/dump.sql.gz | gosu postgres psql -d dhis; \
-# Stop PostgreSQL
-gosu postgres pg_ctl -D /var/lib/postgresql/data stop; \
-# Clean up the dump file
-rm /tmp/dump.sql.gz
