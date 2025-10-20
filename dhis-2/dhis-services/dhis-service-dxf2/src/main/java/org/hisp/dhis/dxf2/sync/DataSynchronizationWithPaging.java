@@ -46,7 +46,7 @@ public interface DataSynchronizationWithPaging {
     private final int pageSize;
 
     public PagedDataSynchronisationContext(
-        Date skipChangedBefore, int objectsToSynchronize, SystemInstance instance, int pageSize) {
+        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
       super(skipChangedBefore, objectsToSynchronize, instance);
       this.pageSize = pageSize;
       this.pages =

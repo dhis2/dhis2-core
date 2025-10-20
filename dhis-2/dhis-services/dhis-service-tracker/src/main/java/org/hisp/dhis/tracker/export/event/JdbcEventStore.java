@@ -99,6 +99,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -235,6 +237,11 @@ class JdbcEventStore {
     List<Event> events = fetchEvents(queryParams, pageParams);
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
+
+    public List<Event> getEvents(EventQueryParams queryParams, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+
+        return fetchEvents(queryParams, null);
+    }
 
   public long countEvents(EventQueryParams queryParams) {
       return getEventCount(queryParams);

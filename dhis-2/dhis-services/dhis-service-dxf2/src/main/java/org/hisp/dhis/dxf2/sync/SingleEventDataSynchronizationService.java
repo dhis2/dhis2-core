@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -82,7 +83,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   private final UserService userService;
 
   @Getter
-  private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
+  private static final class  EventSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> psdesWithSkipSyncTrue;
 
     public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
@@ -91,7 +92,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
     public EventSynchronizationContext(
         Date skipChangedBefore,
-        int objectsToSynchronize,
+        long objectsToSynchronize,
         SystemInstance instance,
         int pageSize,
         Map<String, Set<String>> psdesWithSkipSyncTrue) {
@@ -207,12 +208,12 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   protected void synchronizePage(
-      int page, EventSynchronizationContext context, SystemSettings systemSettings) {
-    Events events =
-        eventService.findEvents(
-            context.getPageSize(),
-            context.getSkipChangedBefore(),
-            context.getPsdesWithSkipSyncTrue());
+      int page, EventSynchronizationContext context, SystemSettings systemSettings) throws ForbiddenException, BadRequestException {
+    List<Event> events =
+        eventService.findEvents(EventOperationParams
+                .builder()
+                .skipChangedBefore(context.getSkipChangedBefore())
+                .build(),context.psdesWithSkipSyncTrue);
 
     filterDataValuesWithSkipSyncFlag(events);
 
@@ -225,19 +226,18 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     }
   }
 
-  private void filterDataValuesWithSkipSyncFlag(Events events) {
+  private void filterDataValuesWithSkipSyncFlag(List<Event> events) {
     events
-        .getEvents()
         .forEach(
             event ->
-                event.setDataValues(
-                    event.getDataValues().stream()
-                        .filter(dataValue -> !dataValue.isSkipSynchronization())
+                event.setEventDataValues(
+                    event.getEventDataValues().stream()
+                        .filter(dataValue -> !dataValue())
                         .collect(Collectors.toSet())));
   }
 
   private boolean sendSynchronizationRequest(
-      Events events, SystemInstance instance, SystemSettings systemSettings) {
+      List<Event> events, SystemInstance instance, SystemSettings systemSettings) {
     RequestCallback requestCallback =
         request -> {
           request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -253,9 +253,9 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
         systemSettings, restTemplate, requestCallback, instance, SyncEndpoint.EVENTS);
   }
 
-  private void updateEventsSyncTimestamp(Events events, Date syncTime) {
+  private void updateEventsSyncTimestamp(List<Event> events, Date syncTime) {
     List<String> eventUids =
-        events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
+        events.stream().map(Event::getUid).collect(Collectors.toList());
 
     log.info("Updating lastSynchronized flag for events: {}", eventUids);
     eventService.updateEventsSyncTimestamp(eventUids, syncTime);

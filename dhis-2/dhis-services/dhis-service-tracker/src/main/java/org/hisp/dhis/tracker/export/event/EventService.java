@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -111,6 +112,10 @@ public interface EventService {
   @Nonnull
   List<Event> findEvents(@Nonnull EventOperationParams params)
       throws BadRequestException, ForbiddenException;
+
+    @Nonnull
+    List<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue)
+            throws BadRequestException, ForbiddenException;
 
   /**
    * Get a page of events matching given params under the privileges of the currently authenticated

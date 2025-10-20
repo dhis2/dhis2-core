@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -260,6 +261,13 @@ class DefaultEventService implements EventService {
     }
     return events;
   }
+
+  @Nonnull
+  @Override
+    public List<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue) throws BadRequestException, ForbiddenException {
+      EventQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
+      return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue);
+    }
 
   @Nonnull
   @Override
