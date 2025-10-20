@@ -202,6 +202,7 @@ public class DefaultIconService implements IconService {
 
   @Nonnull
   @Override
+  @Transactional
   public Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
       throws BadRequestException, NotFoundException {
     validateIconKey(request.getKey());
