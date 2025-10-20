@@ -175,10 +175,14 @@ public final class SQL {
     }
 
     @Override
-    public void setLimit(int n) {}
+    public void setLimit(int n) {
+      // has no effect
+    }
 
     @Override
-    public void setOffset(int n) {}
+    public void setOffset(int n) {
+      // has no effect
+    }
 
     @Override
     public <T> Stream<T> stream(Function<Row, T> map) {

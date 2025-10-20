@@ -57,7 +57,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       SELECT
         c.iconkey,
         c.description,
-        c.keywords,
+        c.keywords #>> '{}',
         c.created,
         c.lastupdated,
         c.fileresourceid,
@@ -77,7 +77,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       SELECT
         c.iconkey,
         c.description,
-        c.keywords,
+        c.keywords #>> '{}',
         c.created,
         c.lastupdated,
         c.fileresourceid,
@@ -97,7 +97,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       SELECT
         c.iconkey,
         c.description,
-        c.keywords,
+        c.keywords #>> '{}',
         c.created,
         c.lastupdated,
         c.fileresourceid,
@@ -117,7 +117,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       SELECT
         c.iconkey,
         c.description,
-        c.keywords,
+        c.keywords #>> '{}',
         c.created,
         c.lastupdated,
         c.fileresourceid,
@@ -138,7 +138,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -159,7 +159,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -180,7 +180,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -201,7 +201,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -221,7 +221,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -241,7 +241,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -261,7 +261,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -282,7 +282,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
@@ -311,7 +311,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         SELECT
           c.iconkey,
           c.description,
-          c.keywords,
+          c.keywords #>> '{}',
           c.created,
           c.lastupdated,
           c.fileresourceid,
