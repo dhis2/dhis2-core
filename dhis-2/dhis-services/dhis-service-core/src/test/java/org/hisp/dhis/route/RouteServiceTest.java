@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.apache.http.client.HttpClient;
@@ -47,11 +48,14 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 class RouteServiceTest {
 
   @Test
-  @Timeout(value = 30)
+  @Timeout(value = 150)
   void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
     GenericContainer<?> routeTargetMockServerContainer =
         new GenericContainer<>("mockserver/mockserver")
-            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+            .waitingFor(
+                new HttpWaitStrategy()
+                    .forStatusCode(404)
+                    .withStartupTimeout(Duration.ofSeconds(120)))
             .withExposedPorts(1080);
     routeTargetMockServerContainer.start();
 
