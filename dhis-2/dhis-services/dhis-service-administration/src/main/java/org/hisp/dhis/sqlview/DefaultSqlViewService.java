@@ -58,7 +58,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore;
 import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.OperatorWithPlaceHolderAndArg;
 import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.PlaceholderQueryWithArgs;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -200,7 +199,7 @@ public class DefaultSqlViewService implements SqlViewService {
 
     log.info(String.format("Retrieving data for SQL view: '%s'", sqlView.getUid()));
 
-    HibernateSqlViewStore.PlaceholderQueryWithArgs placeholderQueryWithArgs =
+    PlaceholderQueryWithArgs placeholderQueryWithArgs =
         sqlView.isQuery()
             ? getSqlForQuery(sqlView, criteria, variables, filters, fields)
             : getSqlForView(sqlView, criteria, filters, fields);
