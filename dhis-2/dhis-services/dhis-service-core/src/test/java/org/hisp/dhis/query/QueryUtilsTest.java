@@ -31,6 +31,8 @@ package org.hisp.dhis.query;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseFilterOperator;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseSelectFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.OperatorWithPlaceHolderAndArg;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -122,12 +125,12 @@ class QueryUtilsTest {
     List<String> fields = new ArrayList<>();
     fields.add("ABC");
     fields.add("DEF");
-    assertEquals("\"ABC\",\"DEF\"", QueryUtils.parseSelectFields(fields));
+    assertEquals("\"ABC\",\"DEF\"", parseSelectFields(fields));
   }
 
   @Test
   void testParseSelectFieldsNull() {
-    assertEquals(" * ", QueryUtils.parseSelectFields(null));
+    assertEquals(" * ", parseSelectFields(null));
   }
 
   @Test
@@ -140,7 +143,7 @@ class QueryUtilsTest {
   @MethodSource("filters")
   void testParseFilterOperator(
       String filter, String value, String expectedOperator, Object expectedArg) {
-    QueryUtils.OperatorWithPlaceHolderAndArg output = QueryUtils.parseFilterOperator(filter, value);
+    OperatorWithPlaceHolderAndArg output = parseFilterOperator(filter, value);
     assertEquals(expectedOperator, output.operatorWithPlaceholder());
     assertEquals(expectedArg, output.arg());
   }
