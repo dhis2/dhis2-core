@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.sql;
 
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OrderCriteria;
-import org.hisp.dhis.common.Pager;
+import org.hibernate.Session;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
- * @author Zubair Asghar
+ * Utility to create a {@link org.hisp.dhis.sql.SQL.QueryAPI} facade for different implementations.
+ *
+ * @author Jan Bernitt
  */
-@Data
-@Accessors(chain = true)
-@NoArgsConstructor
-public class IconQueryParams {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class NativeSQL {
 
-  private List<String> keys;
-  private List<String> keywords;
-  private List<OrderCriteria> order;
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private IconTypeFilter type = IconTypeFilter.ALL;
-  private String search;
-  private boolean paging = true;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page = 1;
+  @Nonnull
+  public static SQL.QueryAPI of(Session impl) {
+    return sql -> new HibernateNativeQueryAPI.HibernateQuery(impl, sql, new ArrayList<>());
+  }
+
+  @Nonnull
+  public static SQL.QueryAPI of(NamedParameterJdbcTemplate impl) {
+    return sql -> new JdbcTemplateQueryAPI.JdbcQuery(impl, sql, new LinkedHashMap<>());
+  }
 }
