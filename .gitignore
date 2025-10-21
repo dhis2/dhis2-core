@@ -46,3 +46,5 @@ docker-compose.override.yml
 .env
 # ignore JMH benchmark results
 jmh-result*.csv
+# ignore performance test results downloaded from CI
+gatling-report-*/
