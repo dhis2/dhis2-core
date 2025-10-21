@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -63,9 +63,9 @@ import org.mockito.quality.Strictness;
 class DefaultQueryPlannerTest {
 
   @Mock private SchemaService schemaService;
-  
+
   private DefaultQueryPlanner queryPlanner;
-  
+
   @BeforeEach
   void setUp() {
     queryPlanner = new DefaultQueryPlanner(schemaService);
@@ -95,7 +95,9 @@ class DefaultQueryPlannerTest {
     // Then: The filter should be in the database query, not the memory query
     assertEquals(1, plan.dbQuery().getFilters().size(), "displayName filter should be in DB query");
     assertEquals(
-        0, plan.memoryQuery().getFilters().size(), "displayName filter should NOT be in memory query");
+        0,
+        plan.memoryQuery().getFilters().size(),
+        "displayName filter should NOT be in memory query");
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 
@@ -107,7 +109,8 @@ class DefaultQueryPlannerTest {
 
     // Mock schema to indicate displayDescription is persisted and translatable
     Schema schema = mockSchema();
-    Property displayDescriptionProperty = mockTranslatableProperty("displayDescription", "DESCRIPTION");
+    Property displayDescriptionProperty =
+        mockTranslatableProperty("displayDescription", "DESCRIPTION");
     when(schema.getProperty("displayDescription")).thenReturn(displayDescriptionProperty);
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
@@ -238,8 +241,7 @@ class DefaultQueryPlannerTest {
 
     // Then: Filter should be in memory query, not DB query
     assertEquals(0, plan.dbQuery().getFilters().size(), "DB query should have no filters");
-    assertEquals(
-        1, plan.memoryQuery().getFilters().size(), "Memory query should have 1 filter");
+    assertEquals(1, plan.memoryQuery().getFilters().size(), "Memory query should have 1 filter");
     assertFalse(plan.memoryQuery().isEmpty(), "Memory query should NOT be empty");
   }
 

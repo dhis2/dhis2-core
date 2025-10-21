@@ -58,14 +58,12 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.UserSettings;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
@@ -196,9 +194,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         .toList();
   }
 
-  private <T extends IdentifiableObject>
-      jakarta.persistence.criteria.Order getOrderPredicate(
-          CriteriaBuilder builder, Root<T> root, Schema schema, @Nonnull Order order) {
+  private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getOrderPredicate(
+      CriteriaBuilder builder, Root<T> root, Schema schema, @Nonnull Order order) {
 
     Property property = schema.getProperty(order.getProperty());
     if (property == null)
@@ -220,8 +217,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   /**
    * Creates an order predicate for translatable properties (displayName, displayDescription,
-   * displayShortName, etc.). These properties are derived from the translations JSONB column based on the
-   * current user's locale.
+   * displayShortName, etc.). These properties are derived from the translations JSONB column based
+   * on the current user's locale.
    *
    * @param builder the criteria builder
    * @param root the root entity
@@ -230,8 +227,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * @param <T> the entity type
    * @return an order predicate that sorts by the translated value
    */
-  private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getTranslatableOrderPredicate(
-      CriteriaBuilder builder, Root<T> root, Property property, Order order) {
+  private <T extends IdentifiableObject>
+      jakarta.persistence.criteria.Order getTranslatableOrderPredicate(
+          CriteriaBuilder builder, Root<T> root, Property property, Order order) {
 
     String translationKey = property.getTranslationKey();
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
@@ -246,13 +244,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             builder.literal(locale.toString()));
 
     // Apply ordering with case-insensitivity if requested
-    Expression<String> orderExpression = order.isIgnoreCase()
-        ? builder.lower(translatedValue)
-        : translatedValue;
+    Expression<String> orderExpression =
+        order.isIgnoreCase() ? builder.lower(translatedValue) : translatedValue;
 
-    return order.isAscending()
-        ? builder.asc(orderExpression)
-        : builder.desc(orderExpression);
+    return order.isAscending() ? builder.asc(orderExpression) : builder.desc(orderExpression);
   }
 
   private void initStoreMap() {
@@ -352,8 +347,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * displayShortName). These properties are derived from the translations JSONB column based on the
    * current user's locale.
    *
-   * <p>Uses the custom PostgreSQL function jsonb_search_translated_token which searches through
-   * the translations JSONB array for matching locale, property key, and value.
+   * <p>Uses the custom PostgreSQL function jsonb_search_translated_token which searches through the
+   * translations JSONB array for matching locale, property key, and value.
    *
    * @param builder the criteria builder
    * @param root the root entity
@@ -409,10 +404,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return input.replaceAll("([.\\*+?^${}()\\[\\]|\\\\])", "\\\\$1");
   }
 
-  /**
-   * Checks if the given property path corresponds to a translatable display property.
-   */
+  /** Checks if the given property path corresponds to a translatable display property. */
   private boolean isTranslationFilter(PropertyPath path) {
-    return path.getPath() != null && path.getPath().startsWith("display") && path.getProperty().isTranslatable() && path.getProperty().getTranslationKey() != null;
+    return path.getPath() != null
+        && path.getPath().startsWith("display")
+        && path.getProperty().isTranslatable()
+        && path.getProperty().getTranslationKey() != null;
   }
 }

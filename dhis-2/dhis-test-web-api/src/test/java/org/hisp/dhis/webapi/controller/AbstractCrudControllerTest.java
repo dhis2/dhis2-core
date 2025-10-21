@@ -2449,7 +2449,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Should filter data sets by displayDescription and return results from database query")
+  @DisplayName(
+      "Should filter data sets by displayDescription and return results from database query")
   void testFilterByDisplayDescription() {
     // Create data sets with descriptions and translations
     String ds1Id =
@@ -2530,7 +2531,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     String ds1Id =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
 
     String ds2Id =
         assertStatus(
@@ -2540,9 +2543,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     String ds3Id =
         assertStatus(
             HttpStatus.CREATED,
-            POST(
-                "/dataSets/",
-                "{'name':'Mango Data', 'shortName': 'MD', 'periodType':'Monthly'}"));
+            POST("/dataSets/", "{'name':'Mango Data', 'shortName': 'MD', 'periodType':'Monthly'}"));
 
     // Test ordering by displayName ascending
     JsonList<JsonIdentifiableObject> results =
@@ -2560,11 +2561,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     int mangoIndex = indexMap.get(ds3Id);
     int zebraIndex = indexMap.get(ds1Id);
 
-    
-    assertTrue(
-        appleIndex < mangoIndex, "Apple should come before Mango in alphabetical order");
-    assertTrue(
-        mangoIndex < zebraIndex, "Mango should come before Zebra in alphabetical order");
+    assertTrue(appleIndex < mangoIndex, "Apple should come before Mango in alphabetical order");
+    assertTrue(mangoIndex < zebraIndex, "Mango should come before Zebra in alphabetical order");
 
     // Test ordering by displayName descending
     results =
@@ -2573,12 +2571,12 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             .getList("dataSets", JsonIdentifiableObject.class);
 
     assertTrue(results.size() >= 3, "Should have at least 3 datasets");
-    
+
     indexMap = new HashMap<>();
     for (int i = 0; i < results.size(); i++) {
       indexMap.put(results.get(i).getId(), i);
     }
-    
+
     appleIndex = indexMap.get(ds2Id);
     zebraIndex = indexMap.get(ds1Id);
 
@@ -2634,9 +2632,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
     // Test requesting displayName, displayDescription, and displayShortName fields
     JsonList<JsonIdentifiableObject> results =
-        GET(
-                "/dataSets?fields=id,name,displayName,description,displayDescription,shortName,displayShortName&filter=id:eq:"
-                    + dsId)
+        GET("/dataSets?fields=id,name,displayName,description,displayDescription,shortName,displayShortName&filter=id:eq:"
+                + dsId)
             .content()
             .getList("dataSets", JsonIdentifiableObject.class);
 
@@ -2654,13 +2651,10 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         dataset.getDisplayDescription(),
         "displayDescription should match the description");
     assertEquals(
-        "A test dataset for field filtering",
-        dataset.getDescription(),
-        "description should match");
+        "A test dataset for field filtering", dataset.getDescription(), "description should match");
 
     // Verify displayShortName
-    assertEquals(
-        "TD", dataset.getDisplayShortName(), "displayShortName should be 'TD'");
+    assertEquals("TD", dataset.getDisplayShortName(), "displayShortName should be 'TD'");
     assertEquals("TD", dataset.getShortName(), "shortName should be 'TD'");
   }
 
@@ -2692,15 +2686,12 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     // Test combining displayName filter with periodType filter
     // Should return only datasets with "Health" in displayName AND periodType = Monthly
     JsonList<JsonIdentifiableObject> results =
-        GET(
-                "/dataSets?fields=id,displayName,periodType&filter=displayName:like:Health&filter=periodType:eq:Monthly")
+        GET("/dataSets?fields=id,displayName,periodType&filter=displayName:like:Health&filter=periodType:eq:Monthly")
             .content()
             .getList("dataSets", JsonIdentifiableObject.class);
 
     assertEquals(
-        1,
-        results.size(),
-        "Should find 1 dataset with 'Health' in name and Monthly period type");
+        1, results.size(), "Should find 1 dataset with 'Health' in name and Monthly period type");
     assertEquals(ds1Id, results.get(0).getId());
     assertEquals("Health Monthly Report", results.get(0).getDisplayName());
   }

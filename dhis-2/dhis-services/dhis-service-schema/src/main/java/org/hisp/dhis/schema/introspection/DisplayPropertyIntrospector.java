@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -65,7 +65,8 @@ public class DisplayPropertyIntrospector implements PropertyIntrospector {
     for (String displayPropertyName : DISPLAY_PROPERTIES) {
       Property displayProperty = properties.get(displayPropertyName);
       if (displayProperty != null) {
-        // Mark as translatable and set translation key so JpaCriteriaQueryEngine knows which key to use
+        // Mark as translatable and set translation key so JpaCriteriaQueryEngine knows which key to
+        // use
         displayProperty.setTranslatable(true);
         displayProperty.setTranslationKey(DISPLAY_TO_TRANSLATION_KEY.get(displayPropertyName));
       }

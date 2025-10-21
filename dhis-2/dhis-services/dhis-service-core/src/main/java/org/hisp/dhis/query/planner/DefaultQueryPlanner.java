@@ -104,7 +104,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
         query.getOrders().stream()
             .map(Order::getProperty)
             .map(schema::getProperty)
-            .allMatch(p -> p != null && (p.isPersisted() || isDisplayProperty(p.getName())) && p.isSimple());
+            .allMatch(
+                p ->
+                    p != null
+                        && (p.isPersisted() || isDisplayProperty(p.getName()))
+                        && p.isSimple());
     if (dbOrdering) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
@@ -123,16 +127,13 @@ public class DefaultQueryPlanner implements QueryPlanner {
         && !Attribute.ObjectType.isValidType(path.getPath());
   }
 
-  /**
-   * Overrides the persisted flag for certain properties based on the filter.
-   */
+  /** Overrides the persisted flag for certain properties based on the filter. */
   private PropertyPath overridePersistedFlag(PropertyPath path, Filter filter) {
     if (isTranslationFilter(filter)) {
       return new PropertyPath(path.getProperty(), true, path.getAlias());
     }
     return path;
   }
-
 
   private boolean isTranslationFilter(Filter filter) {
     String path = filter.getPath();

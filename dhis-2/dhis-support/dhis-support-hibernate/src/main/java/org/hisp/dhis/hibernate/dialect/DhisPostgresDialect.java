@@ -76,7 +76,8 @@ public class DhisPostgresDialect extends PostgisPG95Dialect {
         new StandardSQLFunction(JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN));
     registerFunction(
         JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
-        new StandardSQLFunction(JsonbFunctions.SEARCH_TRANSLATION_TOKEN, StandardBasicTypes.BOOLEAN));
+        new StandardSQLFunction(
+            JsonbFunctions.SEARCH_TRANSLATION_TOKEN, StandardBasicTypes.BOOLEAN));
     registerFunction(
         JsonbFunctions.GET_TRANSLATED_VALUE,
         new StandardSQLFunction(JsonbFunctions.GET_TRANSLATED_VALUE, StandardBasicTypes.STRING));
