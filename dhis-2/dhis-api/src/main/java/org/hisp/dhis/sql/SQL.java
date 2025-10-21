@@ -44,7 +44,8 @@ import lombok.RequiredArgsConstructor;
 import org.intellij.lang.annotations.Language;
 
 /**
- * A minimal API layer to SELECT queries only that can operate on both hibernate and JDBC.
+ * A minimal API layer to build and execute queries which can operate on different implementation
+ * APIs such as hibernate native or JDBC.
  *
  * <p>The goal is to decouple native SQL usage from a specific framework as well as provide a more
  * robust and convenient API.

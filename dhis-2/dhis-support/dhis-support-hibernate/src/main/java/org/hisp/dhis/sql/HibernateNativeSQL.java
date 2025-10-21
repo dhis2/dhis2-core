@@ -45,6 +45,11 @@ import org.hibernate.type.LongType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 
+/**
+ * Implementation of the {@link org.hisp.dhis.sql.SQL.QueryAPI} as a {@link NativeQuery}.
+ *
+ * @author Jan Bernitt
+ */
 class HibernateNativeSQL {
 
   record HibernateQuery(Session impl, String sql, List<Consumer<NativeQuery<?>>> setters)

@@ -42,6 +42,12 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+/**
+ * Implementation of the {@link org.hisp.dhis.sql.SQL.QueryAPI} as a {@link
+ * org.springframework.jdbc.core.JdbcTemplate}.
+ *
+ * @author Jan Bernitt
+ */
 class JdbcNativeSQL {
 
   record JdbcQuery(
