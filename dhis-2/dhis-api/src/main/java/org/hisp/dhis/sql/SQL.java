@@ -209,7 +209,7 @@ public final class SQL {
      * {@code Object[]} while also providing convenience methods to avoid the need to cast in the
      * mapper function.
      *
-     * @param of type of objects to return
+     * @param map mapping function to convert each Row to the desired object type
      * @return the result stream
      */
     <T> Stream<T> stream(Function<Row, T> map);
