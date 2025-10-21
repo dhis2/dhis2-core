@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -45,6 +45,8 @@ import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class TrackerTest extends Simulation {
@@ -68,7 +70,7 @@ public class TrackerTest extends Simulation {
     ScenarioWithRequests eventScenario = eventProgramScenario(repeat, eventProgram);
     ScenarioWithRequests trackerScenario = trackerProgramScenario(repeat, trackerProgram);
 
-    List<Assertion> allAssertions = new java.util.ArrayList<>();
+    List<Assertion> allAssertions = new ArrayList<>();
     allAssertions.add(forAll().successfulRequests().percent().gte(100d));
     allAssertions.addAll(eventScenario.requests().stream().map(Request::assertion).toList());
     allAssertions.addAll(trackerScenario.requests().stream().map(Request::assertion).toList());
