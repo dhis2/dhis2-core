@@ -43,8 +43,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -79,9 +81,8 @@ class TrackerTrigramIndexingJobTest {
 
   @Test
   void testRunJobWithoutAnyAttributesInJobParametersAndWithoutAnyObsolete() {
-    JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
-    jobConfiguration.setJobParameters(jp);
+    JobEntry jobConfiguration = new JobEntry(UID.generate(), JobType.TRACKER_IMPORT_JOB, jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
@@ -94,9 +95,8 @@ class TrackerTrigramIndexingJobTest {
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(Arrays.asList(12l, 13l));
 
-    JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
-    jobConfiguration.setJobParameters(jp);
+    JobEntry jobConfiguration = new JobEntry(UID.generate(), JobType.TRACKER_IMPORT_JOB, jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
@@ -109,10 +109,9 @@ class TrackerTrigramIndexingJobTest {
     when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(Collections.singleton(new TrackedEntityAttribute()));
 
-    JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
     jp.setAttributes(Collections.singleton("aaaa"));
-    jobConfiguration.setJobParameters(jp);
+    JobEntry jobConfiguration = new JobEntry(UID.generate(), JobType.TRACKER_IMPORT_JOB, jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 
@@ -135,10 +134,10 @@ class TrackerTrigramIndexingJobTest {
     when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(indexableAttributes);
     doNothing().when(trackedEntityAttributeTableManager).createTrigramIndex(any());
-    JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
     jp.setAttributes(Stream.of("tea2", "tea3").collect(Collectors.toSet()));
-    jobConfiguration.setJobParameters(jp);
+
+    JobEntry jobConfiguration = new JobEntry(UID.generate(), JobType.TRACKER_IMPORT_JOB, jp);
 
     job.execute(jobConfiguration, JobProgress.noop());
 

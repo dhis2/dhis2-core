@@ -90,7 +90,7 @@ public class AnalyticsDatabaseInit {
       case CLICKHOUSE -> initClickHouse();
     }
 
-    log.info("Initialized analytics database: '{}'", database);
+    log.info("Analytics database initialized: '{}'", database);
   }
 
   /** Work for initializing a PostgreSQL analytics database. */

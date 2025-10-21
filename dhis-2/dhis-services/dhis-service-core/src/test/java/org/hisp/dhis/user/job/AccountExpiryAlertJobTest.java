@@ -39,10 +39,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Date;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
@@ -68,6 +70,8 @@ class AccountExpiryAlertJobTest {
   private final AccountExpiryAlertJob job =
       new AccountExpiryAlertJob(userService, messageSender, settingsProvider);
 
+  private final JobEntry jobEntry = new JobEntry(UID.generate(), JobType.ACCOUNT_EXPIRY_ALERT);
+
   @BeforeEach
   void setUp() {
     // mock normal run conditions
@@ -79,7 +83,7 @@ class AccountExpiryAlertJobTest {
   @Test
   void testDisabledJobDoesNotExecute() {
     when(settings.getAccountExpiryAlert()).thenReturn(false);
-    job.execute(new JobConfiguration(), JobProgress.noop());
+    job.execute(jobEntry, JobProgress.noop());
     verify(userService, never()).getExpiringUserAccounts(anyInt());
   }
 
@@ -91,7 +95,7 @@ class AccountExpiryAlertJobTest {
             singletonList(
                 new UserAccountExpiryInfo(
                     "username", "email@example.com", Date.valueOf("2021-08-23"))));
-    job.execute(new JobConfiguration(), JobProgress.noop());
+    job.execute(jobEntry, JobProgress.noop());
     ArgumentCaptor<String> subject = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> recipient = ArgumentCaptor.forClass(String.class);
@@ -106,7 +110,7 @@ class AccountExpiryAlertJobTest {
   @Test
   void testValidate_Error() {
     when(messageSender.isConfigured()).thenReturn(false);
-    job.execute(new JobConfiguration(), JobProgress.noop());
+    job.execute(jobEntry, JobProgress.noop());
     verify(messageSender, never()).sendMessage(anyString(), anyString(), anyString());
   }
 }
