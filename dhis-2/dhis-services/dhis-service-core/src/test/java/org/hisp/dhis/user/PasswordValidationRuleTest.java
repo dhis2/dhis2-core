@@ -38,6 +38,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -269,5 +270,17 @@ class PasswordValidationRuleTest {
     Assertions.assertNotNull(userArgumentCaptor.getValue());
     Assertions.assertEquals(23, userArgumentCaptor.getValue().getPreviousPasswords().size());
     assertFalse(userArgumentCaptor.getValue().getPreviousPasswords().contains(STRONG_PASSWORD));
+  }
+
+  @Test
+  @DisplayName("PasswordHistoryValidationRule with new user and credentials expires")
+  void testPasswordHistoryValidationRuleWithNewUserAndCredentialsExpires() {
+    // The user does not exist yet, so getUserByUsername returns null
+    CredentialsInfo credentialsInfo = new CredentialsInfo(USERNAME, STRONG_PASSWORD, EMAIL, true);
+
+    // This should not throw NullPointerException
+    PasswordValidationResult result = historyValidationRule.validate(credentialsInfo);
+
+    assertThat(result.isValid(), is(true));
   }
 }
