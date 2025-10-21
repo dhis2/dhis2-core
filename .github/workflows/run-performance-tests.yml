@@ -28,18 +28,24 @@
 #
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
-#   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.1
+#   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
-# DB_TYPE=sierra-leone
+# DB_TYPE=hmis
 # DB_VERSION=2.42
-# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42 -Dbaseline=42"
-# ANALYTICS_GENERATE=true' \
-#   --field candidate_env='DHIS2_IMAGE=dhis2/core-dev:latest
+# DHIS2_USERNAME=qadmin
+# DHIS2_PASSWORD=!Qadmin123S
+# MVN_ARGS="-Dscenario=test-scenarios/hmis/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=42.0"
+# ANALYTICS_GENERATE=true
+# ANALYTICS_TIMEOUT=7200' \
+#   --field candidate_env='DHIS2_IMAGE=dhis2/core:2.42.1
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
-# DB_TYPE=sierra-leone
+# DB_TYPE=hmis
 # DB_VERSION=2.42
-# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=42"
-# ANALYTICS_GENERATE=true'
+# DHIS2_USERNAME=qadmin
+# DHIS2_PASSWORD=!Qadmin123S
+# MVN_ARGS="-Dscenario=test-scenarios/hmis/analytics-ev-query-speed-get-test.json -Dversion=42.1 -Dbaseline=42.0"
+# ANALYTICS_GENERATE=true
+# ANALYTICS_TIMEOUT=7200'
 #
 # REPRODUCING FROM PREVIOUS RUNS
 # ===============================

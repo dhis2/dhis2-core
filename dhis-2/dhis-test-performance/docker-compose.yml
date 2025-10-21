@@ -49,7 +49,7 @@ services:
     image: localhost/dhis2-postgres:14-3.5-${DB_TYPE:-sierra-leone}-${DB_VERSION:-dev}
     cpus: 4
     mem_limit: 16gb
-    shm_size: 256mb
+    shm_size: 6gb
     volumes:
       - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
