@@ -57,8 +57,19 @@ public interface JsonIdentifiableObject extends JsonObject {
     return getString("displayName").string();
   }
 
+  default String getShortName() {
+    return getString("shortName").string();
+  }
+  default String getDisplayShortName() {
+    return getString("displayShortName").string();
+  }
+
   default String getDescription() {
     return getString("description").string();
+  }
+
+  default String getDisplayDescription() {
+    return getString("displayDescription").string();
   }
 
   default String getHref() {

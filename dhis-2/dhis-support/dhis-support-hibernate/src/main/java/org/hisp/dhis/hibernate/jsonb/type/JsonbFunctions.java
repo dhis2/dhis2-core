@@ -82,5 +82,20 @@ public class JsonbFunctions {
    */
   public static final String REGEXP_SEARCH = "regexp_search";
 
+  /**
+   * Search a token in translations JSONB column
+   * @param $1 translations JSONB column
+   * @param $2 token to search
+   * @return true if the token is found in any of the translated values
+   */
   public static final String SEARCH_TRANSLATION_TOKEN = "jsonb_search_translated_token";
+
+  /**
+   * Extract a translated value from translations JSONB column
+   * @param $1 translations JSONB column
+   * @param $2 property key (e.g., 'NAME', 'DESCRIPTION', 'SHORT_NAME')
+   * @param $3 locale string (e.g., 'en', 'fr', 'es')
+   * @return the translated value as text, or NULL if not found
+   */
+  public static final String GET_TRANSLATED_VALUE = "jsonb_get_translated_value";
 }

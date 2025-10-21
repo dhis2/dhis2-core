@@ -37,12 +37,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -55,12 +57,17 @@ import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.UserSettings;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -74,6 +81,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
   private final QueryCacheManager queryCacheManager;
   private final EntityManager entityManager;
+  private final UserSettingsService userSettingsService;
   private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new HashMap<>();
 
   @Override
@@ -188,13 +196,19 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         .toList();
   }
 
-  private static <T extends IdentifiableObject>
+  private <T extends IdentifiableObject>
       jakarta.persistence.criteria.Order getOrderPredicate(
           CriteriaBuilder builder, Root<T> root, Schema schema, @Nonnull Order order) {
 
     Property property = schema.getProperty(order.getProperty());
     if (property == null)
       throw new IllegalArgumentException("No such property: " + order.getProperty());
+
+    // Check if this is a translatable property (display* properties)
+    if (property.isTranslatable() && property.getTranslationKey() != null) {
+      return getTranslatableOrderPredicate(builder, root, property, order);
+    }
+
     String name = property.getFieldName();
     if (order.isIgnoreCase() && isPropertyTypeText(property)) {
       return order.isAscending()
@@ -202,6 +216,43 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
           : builder.desc(builder.lower(root.get(name)));
     }
     return order.isAscending() ? builder.asc(root.get(name)) : builder.desc(root.get(name));
+  }
+
+  /**
+   * Creates an order predicate for translatable properties (displayName, displayDescription,
+   * displayShortName, etc.). These properties are derived from the translations JSONB column based on the
+   * current user's locale.
+   *
+   * @param builder the criteria builder
+   * @param root the root entity
+   * @param property the property to order by
+   * @param order the order specification
+   * @param <T> the entity type
+   * @return an order predicate that sorts by the translated value
+   */
+  private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getTranslatableOrderPredicate(
+      CriteriaBuilder builder, Root<T> root, Property property, Order order) {
+
+    String translationKey = property.getTranslationKey();
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+
+    // Use the custom jsonb_get_translated_value function to extract the translated value
+    Expression<String> translatedValue =
+        builder.function(
+            JsonbFunctions.GET_TRANSLATED_VALUE,
+            String.class,
+            root.get("translations"),
+            builder.literal(translationKey),
+            builder.literal(locale.toString()));
+
+    // Apply ordering with case-insensitivity if requested
+    Expression<String> orderExpression = order.isIgnoreCase()
+        ? builder.lower(translatedValue)
+        : translatedValue;
+
+    return order.isAscending()
+        ? builder.asc(orderExpression)
+        : builder.desc(orderExpression);
   }
 
   private void initStoreMap() {
@@ -251,6 +302,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
       PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+      if (path != null && isTranslationFilter(path)) {
+        return buildTranslatableFilter(builder, root, filter, path);
+      }
       return filter.getOperator().getPredicate(builder, root, path);
     }
     // handle special cases:
@@ -291,5 +345,74 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         stringPredicateIgnoreCase(
             builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
     return or;
+  }
+
+  /**
+   * Builds a predicate for filtering on translatable properties (displayName, displayDescription,
+   * displayShortName). These properties are derived from the translations JSONB column based on the
+   * current user's locale.
+   *
+   * <p>Uses the custom PostgreSQL function jsonb_search_translated_token which searches through
+   * the translations JSONB array for matching locale, property key, and value.
+   *
+   * @param builder the criteria builder
+   * @param root the root entity
+   * @param filter the filter to apply
+   * @param path the property path
+   * @param <Y> the entity type
+   * @return a predicate that queries the translations JSONB column
+   */
+  private <Y> Predicate buildTranslatableFilter(
+      CriteriaBuilder builder, Root<Y> root, Filter filter, PropertyPath path) {
+
+    Property property = path.getProperty();
+    String translationKey = property.getTranslationKey();
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    String localeStr = locale != null ? locale.toString() : "en";
+
+    // Get the filter value from the operator
+    Object filterValue = filter.getOperator().getArgs().get(0);
+    String searchValue = String.valueOf(filterValue);
+
+    // Build regex pattern for case-insensitive search
+    // The (?i) flag makes the regex case-insensitive
+    // We escape special regex characters in the search value
+    String regexPattern = "(?i).*" + escapeRegex(searchValue) + ".*";
+
+    // Use the custom jsonb_search_translated_token function
+    // Function signature: jsonb_search_translated_token(jsonb, text, text, text)
+    // Parameters:
+    //   $1: translations JSONB column
+    //   $2: array of property keys to search (e.g., '{NAME}')
+    //   $3: locale string
+    //   $4: regex pattern to match against value
+    Expression<Boolean> searchFunction =
+        builder.function(
+            JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
+            Boolean.class,
+            root.get("translations"),
+            builder.literal("{" + translationKey + "}"),
+            builder.literal(localeStr),
+            builder.literal(regexPattern));
+
+    return builder.isTrue(searchFunction);
+  }
+
+  /**
+   * Escapes special regex characters in a string to be used in a regex pattern.
+   *
+   * @param input the input string
+   * @return the escaped string
+   */
+  private String escapeRegex(String input) {
+    // Escape special regex characters: . * + ? ^ $ { } ( ) | [ ] \
+    return input.replaceAll("([.\\*+?^${}()\\[\\]|\\\\])", "\\\\$1");
+  }
+
+  /**
+   * Checks if the given property path corresponds to a translatable display property.
+   */
+  private boolean isTranslationFilter(PropertyPath path) {
+    return path.getPath() != null && path.getPath().startsWith("display") && path.getProperty().isTranslatable() && path.getProperty().getTranslationKey() != null;
   }
 }
