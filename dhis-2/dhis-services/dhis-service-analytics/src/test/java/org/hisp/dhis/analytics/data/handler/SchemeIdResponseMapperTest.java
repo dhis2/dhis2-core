@@ -51,10 +51,12 @@ import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +76,8 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
@@ -88,6 +92,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -95,11 +100,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class SchemeIdResponseMapperTest {
+  @Mock private I18nManager i18nManager;
+
+  @Mock private I18n i18n;
+
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
+  SchemeIdResponseMapperTest() {}
+
   @BeforeEach
-  public void setUp() {
-    schemeIdResponseMapper = new SchemeIdResponseMapper();
+  void setUp() {
+    schemeIdResponseMapper = new SchemeIdResponseMapper(i18nManager);
   }
 
   @Test
@@ -787,6 +798,43 @@ class SchemeIdResponseMapperTest {
 
     // Then
     assertEquals("uid", grid.getRow(0).get(0));
+  }
+
+  @Test
+  void testApplyBooleanMappingWhenDataIdSchemeIsName() {
+    // Given
+    Option yes = new Option("Yes", "1");
+    Option no = new Option("No", "0");
+
+    OptionSet optionSet = new OptionSet();
+    optionSet.addOption(yes);
+    optionSet.addOption(no);
+
+    GridHeader gridHeader =
+        new GridHeader("header", "column", BOOLEAN, false, false, optionSet, null);
+
+    Grid grid = new ListGrid();
+    grid.addHeader(gridHeader);
+    grid.addMetaData("dim1", "dim2");
+    grid.addRow();
+    grid.addValue("0");
+    grid.addValue("0");
+    grid.addRow();
+    grid.addValue("1");
+    grid.addValue("1");
+
+    // When
+    when(i18nManager.getI18n()).thenReturn(i18n);
+    when(i18n.getString("yes", "Yes")).thenReturn("Yes");
+    when(i18n.getString("no", "No")).thenReturn("No");
+    schemeIdResponseMapper.applyBooleanMapping(NAME, grid);
+
+    // Then
+    assertEquals("No", grid.getRow(0).get(0));
+    assertEquals("Yes", grid.getRow(1).get(0));
+
+    assertEquals("0", grid.getRow(0).get(1));
+    assertEquals("1", grid.getRow(1).get(1));
   }
 
   private CommonParams stubCommonParams(Program program, IdScheme idScheme) {

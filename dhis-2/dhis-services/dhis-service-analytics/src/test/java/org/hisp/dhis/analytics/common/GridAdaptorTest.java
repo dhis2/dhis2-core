@@ -65,6 +65,7 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -72,6 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -91,11 +93,13 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
+  @Mock private I18nManager i18nManager;
+
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
     metadataDetailsHandler = new MetadataParamsHandler();
-    schemeIdResponseMapper = new SchemeIdResponseMapper();
+    schemeIdResponseMapper = new SchemeIdResponseMapper(i18nManager);
     gridAdaptor =
         new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
   }
