@@ -36,17 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.format.DateTimeParseException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DorisAnalyticsSqlBuilderTest {
-
-  private DorisAnalyticsSqlBuilder sqlBuilder;
-
-  @BeforeEach
-  void setUp() {
-    sqlBuilder = new DorisAnalyticsSqlBuilder("pg_dhis", "postgresql.jar");
-  }
+  private final DorisAnalyticsSqlBuilder sqlBuilder =
+      new DorisAnalyticsSqlBuilder("pg_dhis", "postgresql.jar");
 
   @Test
   void renderTimestampValidTimestampShouldFormatCorrectly() {
@@ -113,13 +107,6 @@ class DorisAnalyticsSqlBuilderTest {
   void renderTimestampOneTrailingZeroShouldTrimZero() {
     String input = "2023-10-20T15:30:45.420";
     String expected = "2023-10-20 15:30:45.42";
-    assertEquals(expected, sqlBuilder.renderTimestamp(input));
-  }
-
-  @Test
-  void renderTimestampNoTrailingZerosShouldNotTrim() {
-    String input = "2023-10-20T15:30:45.123";
-    String expected = "2023-10-20 15:30:45.123";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
   }
 }

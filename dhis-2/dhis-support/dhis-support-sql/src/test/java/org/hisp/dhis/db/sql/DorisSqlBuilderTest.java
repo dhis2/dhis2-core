@@ -42,7 +42,10 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
-public class DorisSqlBuilderTest {
+/**
+ * @author Lars Helge Overland
+ */
+class DorisSqlBuilderTest {
   private final DorisSqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
 
   private Table getTableA() {
