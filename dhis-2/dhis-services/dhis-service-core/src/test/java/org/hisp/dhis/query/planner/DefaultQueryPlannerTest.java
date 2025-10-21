@@ -71,7 +71,7 @@ class DefaultQueryPlannerTest {
   @DisplayName("Should route relationship filter (parent.id) to database query")
   void testParentIdFilterResultsInDatabaseQuery() {
     // Given: A query with filter on parent.id
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     Filter filter = new Filter("parent.id", new EqualOperator<>("ybg3MO3hcf4"));
     query.add(filter);
 
@@ -106,7 +106,7 @@ class DefaultQueryPlannerTest {
   @DisplayName("Should route multiple relationship filters to database query")
   void testMultipleRelationshipFiltersResultInDatabaseQuery() {
     // Given: A query with filters on parent.id and parent.name
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     Filter parentIdFilter = new Filter("parent.id", new EqualOperator<>("ybg3MO3hcf4"));
     Filter parentNameFilter = new Filter("parent.name", new EqualOperator<>("Health Facility"));
     query.add(parentIdFilter);
@@ -149,7 +149,7 @@ class DefaultQueryPlannerTest {
   @DisplayName("Should route nested relationship filter (parent.parent.id) to database query")
   void testNestedRelationshipFilterResultsInDatabaseQuery() {
     // Given: A query with filter on parent.parent.id (grandparent)
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     Filter filter = new Filter("parent.parent.id", new EqualOperator<>("abc123"));
     query.add(filter);
 
@@ -185,7 +185,7 @@ class DefaultQueryPlannerTest {
   @DisplayName("Should route simple property filter to database query")
   void testSimplePropertyFilterResultsInDatabaseQuery() {
     // Given: A query with filter on name (no relationship)
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     Filter filter = new Filter("name", new EqualOperator<>("Health Center"));
     query.add(filter);
 
@@ -216,7 +216,7 @@ class DefaultQueryPlannerTest {
   @DisplayName("Should route non-persisted property filter to memory query")
   void testNonPersistedPropertyFilterResultsInMemoryQuery() {
     // Given: A query with filter on a non-persisted property
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     Filter filter = new Filter("displayName", new EqualOperator<>("Health Center"));
     query.add(filter);
 
@@ -247,7 +247,7 @@ class DefaultQueryPlannerTest {
   @DisplayName("Should split filters between database and memory queries based on persistence")
   void testMixedFiltersAreSplitCorrectly() {
     // Given: A query with both persisted and non-persisted filters
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     Filter persistedFilter = new Filter("parent.id", new EqualOperator<>("ybg3MO3hcf4"));
     Filter nonPersistedFilter = new Filter("displayName", new EqualOperator<>("Health Center"));
     query.add(persistedFilter);
