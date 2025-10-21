@@ -54,8 +54,8 @@ public abstract class AbstractQueryBuilderTest {
   private final Map<String, SQL.Param> params = new TreeMap<>();
 
   @Nonnull
-  protected final SQL.QueryAPI createQueryAPI() {
-    return SQL.of(this.sql::set, params::put);
+  protected final SQL.QueryAPI createSpyQuery() {
+    return SQL.spy(this.sql::set, params::put);
   }
 
   protected final void assertSQL(@Language("sql") String expected, QueryBuilder actual) {

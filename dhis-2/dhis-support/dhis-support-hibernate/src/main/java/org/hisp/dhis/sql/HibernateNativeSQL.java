@@ -51,7 +51,7 @@ class HibernateNativeSQL {
       implements SQL.Query {
 
     @Override
-    public void setParameter(@Nonnull SQL.Param param) {
+    public SQL.Query setParameter(@Nonnull SQL.Param param) {
       Type type =
           switch (param.type()) {
             case DATE -> DateType.INSTANCE;
@@ -63,16 +63,19 @@ class HibernateNativeSQL {
             case STRING_ARRAY -> StringArrayType.INSTANCE;
           };
       setters.add(q -> q.setParameter(param.name(), param.value(), type));
+      return this;
     }
 
     @Override
-    public void setLimit(int n) {
+    public SQL.Query setLimit(int n) {
       setters.add(q -> q.setMaxResults(n));
+      return this;
     }
 
     @Override
-    public void setOffset(int n) {
+    public SQL.Query setOffset(int n) {
       setters.add(q -> q.setFirstResult(n));
+      return this;
     }
 
     @Override

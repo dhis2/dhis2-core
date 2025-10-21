@@ -177,7 +177,7 @@ public class JdbcIconStore implements IconStore {
     if (orders == null || orders.isEmpty())
       orders = List.of(OrderCriteria.of("iconkey", SortDirection.ASC));
     List<String> keywords = params.getKeywords();
-    return SQL.selectOf(sql, api)
+    return SQL.of(sql, api)
         .setParameter("lastUpdatedStartDate", params.getLastUpdatedStartDate())
         .setParameter("lastUpdatedEndDate", params.getLastUpdatedEndDate())
         .setParameter("createdStartDate", params.getCreatedStartDate())

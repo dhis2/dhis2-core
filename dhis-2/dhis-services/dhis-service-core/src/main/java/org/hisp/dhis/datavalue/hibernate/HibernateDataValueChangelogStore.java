@@ -131,7 +131,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       ORDER BY dva.created DESC""";
 
     Pager pager = params.getPager();
-    return SQL.selectOf(sql, api)
+    return SQL.of(sql, api)
         .setParameter("types", params.getTypes(), DataValueChangelogType::name)
         .setParameter("pe", params.getPeriods(), Period::getIsoDate)
         .setParameter("ds", params.getDataSets())
@@ -183,7 +183,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
     return SQL
-        .selectOf(sql, NativeSQL.of(getSession()))
+        .of(sql, NativeSQL.of(getSession()))
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
         .setParameter("iso", key.period())

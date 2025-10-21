@@ -77,6 +77,6 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           AND dv.deleted = :deleted
         ORDER BY pe.startdate , dv.created , deid""",
         Set.of("pe", "deleted"),
-        createExportQuery(params, createQueryAPI()));
+        createExportQuery(params, createSpyQuery()));
   }
 }

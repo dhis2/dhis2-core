@@ -311,6 +311,6 @@ class QueryBuilderTest extends AbstractQueryBuilderTest {
   }
 
   private QueryBuilder createQuery(String sql) {
-    return SQL.selectOf(sql, createQueryAPI());
+    return SQL.of(sql, createSpyQuery());
   }
 }

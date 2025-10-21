@@ -49,7 +49,7 @@ class JdbcNativeSQL {
       implements SQL.Query {
 
     @Override
-    public void setParameter(@Nonnull SQL.Param param) {
+    public SQL.Query setParameter(@Nonnull SQL.Param param) {
       int type =
           switch (param.type()) {
             case BOOLEAN -> Types.BOOLEAN;
@@ -67,16 +67,19 @@ class JdbcNativeSQL {
           };
       SqlParameterValue value = new SqlParameterValue(type, elemType, param.value());
       params.put(param.name(), value);
+      return this;
     }
 
     @Override
-    public void setLimit(int n) {
+    public SQL.Query setLimit(int n) {
       params.put("_limit", new SqlParameterValue(Types.INTEGER, n));
+      return this;
     }
 
     @Override
-    public void setOffset(int n) {
+    public SQL.Query setOffset(int n) {
       params.put("_offset", new SqlParameterValue(Types.INTEGER, n));
+      return this;
     }
 
     @Override

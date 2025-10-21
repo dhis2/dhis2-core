@@ -213,7 +213,7 @@ public class HibernateDataExportStore implements DataExportStore {
             ? null // explicit AOCs mean they are already sharing checked
             : generateSQlQueryForSharingCheck(
                 "co.sharing", CurrentUserUtil.getCurrentUserDetails(), LIKE_READ_DATA);
-    return SQL.selectOf(sql, api)
+    return SQL.of(sql, api)
         .setParameter("de", getIds(params.getAllDataElements()))
         .setParameter("pe", params.getPeriods(), Period::getIsoDate)
         .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
@@ -260,7 +260,7 @@ public class HibernateDataExportStore implements DataExportStore {
   }
 
   private QueryBuilder createSelectQuery(@Language("sql") String sql) {
-    return SQL.selectOf(sql, NativeSQL.of(getSession()));
+    return SQL.of(sql, NativeSQL.of(getSession()));
   }
 
   private Session getSession() {

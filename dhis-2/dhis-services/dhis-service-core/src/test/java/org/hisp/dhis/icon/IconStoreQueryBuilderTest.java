@@ -66,7 +66,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.iconkey = ANY (:keys )""",
         Map.of("keys", List.of("foo", "bar")),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -86,7 +86,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.iconkey = :keys""",
         Map.of("keys", "foo"),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -98,7 +98,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.iconkey = ANY (:keys )""",
         Map.of("keys", List.of("foo", "bar")),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -118,7 +118,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)""",
         Map.of("search", "%foo%"),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -138,7 +138,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
       FROM icon c
       WHERE c.keywords @> cast(:keywords as jsonb)""",
         Map.of("keywords", "[\"foo\"]"),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -159,7 +159,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE c.created >= :createdStartDate""",
         Map.of("createdStartDate", now),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -180,7 +180,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE c.created <= :createdEndDate""",
         Map.of("createdEndDate", now),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -201,7 +201,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE c.lastupdated >= :lastUpdatedStartDate""",
         Map.of("lastUpdatedStartDate", now),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -222,7 +222,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE c.lastupdated <= :lastUpdatedEndDate""",
         Map.of("lastUpdatedEndDate", now),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -242,7 +242,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE 1=1""",
         Map.of(),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -262,7 +262,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE c.custom = :custom""",
         Map.of("custom", true),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -282,7 +282,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         FROM icon c
         WHERE c.custom = :custom""",
         Map.of("custom", false),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -304,7 +304,7 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
         WHERE 1=1
         ORDER BY c.iconkey DESC""",
         Map.of(),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 
   @Test
@@ -335,6 +335,6 @@ class IconStoreQueryBuilderTest extends AbstractQueryBuilderTest {
           AND (c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)
         ORDER BY c.iconkey DESC, c.created""",
         Set.of("custom", "keys", "search"),
-        createQuery(params, createQueryAPI()));
+        createQuery(params, createSpyQuery()));
   }
 }
