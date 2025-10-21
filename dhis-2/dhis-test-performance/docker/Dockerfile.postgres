@@ -16,6 +16,10 @@ RUN S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYP
 
 FROM ${POSTGRES_BASE_IMAGE} AS builder
 
+# Ensure build cache is invalidated when DB_TYPE or DB_VERSION changes so dump is restored
+ARG DB_TYPE
+ARG DB_VERSION
+
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
     POSTGRES_PASSWORD=dhis \

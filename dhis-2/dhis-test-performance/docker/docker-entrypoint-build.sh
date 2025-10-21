@@ -83,6 +83,7 @@ docker_process_sql() {
 		query_runner+=( --dbname "$POSTGRES_DB" )
 	fi
 
+	# shellcheck disable=SC1007,SC2097,SC2098
 	PGHOST= PGHOSTADDR= "${query_runner[@]}" "$@"
 }
 
@@ -90,11 +91,13 @@ docker_process_sql() {
 docker_setup_db() {
 	local dbAlreadyExists
 	dbAlreadyExists="$(
+		# shellcheck disable=SC1007,SC2097,SC2098
 		POSTGRES_DB= docker_process_sql --dbname postgres --set db="$POSTGRES_DB" --tuples-only <<-'EOSQL'
 			SELECT 1 FROM pg_database WHERE datname = :'db' ;
 		EOSQL
 	)"
 	if [ -z "$dbAlreadyExists" ]; then
+		# shellcheck disable=SC1007,SC2097,SC2098
 		POSTGRES_DB= docker_process_sql --dbname postgres --set db="$POSTGRES_DB" <<-'EOSQL'
 			CREATE DATABASE :"db" ;
 		EOSQL
@@ -117,9 +120,11 @@ build_init() {
 	pg_setup_hba_conf
 
 	# Temporarily modify postgresql.conf for faster build (no fsync/sync writes)
-	echo "fsync = off" >> "$PGDATA/postgresql.conf"
-	echo "synchronous_commit = off" >> "$PGDATA/postgresql.conf"
-	echo "full_page_writes = off" >> "$PGDATA/postgresql.conf"
+	{
+		echo "fsync = off"
+		echo "synchronous_commit = off"
+		echo "full_page_writes = off"
+	} >> "$PGDATA/postgresql.conf"
 
 	docker_temp_server_start
 
