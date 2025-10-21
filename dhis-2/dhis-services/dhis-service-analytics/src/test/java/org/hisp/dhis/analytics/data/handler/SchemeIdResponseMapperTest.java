@@ -106,7 +106,6 @@ class SchemeIdResponseMapperTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
-
   @BeforeEach
   void setUp() {
     schemeIdResponseMapper = new SchemeIdResponseMapper(i18nManager);
