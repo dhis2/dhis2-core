@@ -120,10 +120,20 @@ build_init() {
 	pg_setup_hba_conf
 
 	# Temporarily modify postgresql.conf for faster build (no fsync/sync writes)
+	# Tuning optimized for dump restore:
+	# * max_wal_size = 4GB: Sized for largest DB (hmis ~1.3GB compressed -> ~6-13GB uncompressed)
+	#   Rule of thumb: 10-25% of uncompressed DB size. Reduces checkpoint frequency from
+	#   every ~10s to ~30-60s, reducing I/O contention. Expected 20-30% speedup for large DBs.
+	# * checkpoint_timeout = 30min: Prevents time-based checkpoints during restore
+	# * maintenance_work_mem = 1GB: Increased from runtime 256MB to speed up index creation
+	#   and sorting operations during restore
 	{
 		echo "fsync = off"
 		echo "synchronous_commit = off"
 		echo "full_page_writes = off"
+		echo "max_wal_size = 4GB"
+		echo "checkpoint_timeout = 30min"
+		echo "maintenance_work_mem = 1GB"
 	} >> "$PGDATA/postgresql.conf"
 
 	docker_temp_server_start
@@ -147,6 +157,9 @@ build_init() {
 	sed -i '/fsync =/d' "$PGDATA/postgresql.conf"
 	sed -i '/synchronous_commit =/d' "$PGDATA/postgresql.conf"
 	sed -i '/full_page_writes =/d' "$PGDATA/postgresql.conf"
+	sed -i '/max_wal_size =/d' "$PGDATA/postgresql.conf"
+	sed -i '/checkpoint_timeout =/d' "$PGDATA/postgresql.conf"
+	sed -i '/maintenance_work_mem =/d' "$PGDATA/postgresql.conf"
 
 	echo "PostgreSQL build init process complete."
 }
