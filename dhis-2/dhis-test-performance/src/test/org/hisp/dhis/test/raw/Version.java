@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.test.raw;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import static org.hisp.dhis.test.raw.Helper.asIntVersion;
 
-/**
- * Encapsulation of a web API request for data value audit records.
- *
- * @author Lars Helge Overland
- */
-@Data
-@Accessors(chain = true)
-public class DataValueAuditQueryParams {
-  private List<DataElement> dataElements = new ArrayList<>();
+class Version {
+  private String min;
+  private String max;
 
-  private List<Period> periods = new ArrayList<>();
+  public String getMin() {
+    return min;
+  }
 
-  private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  public void setMin(String min) {
+    this.min = min;
+  }
 
-  private CategoryOptionCombo categoryOptionCombo;
+  public String getMax() {
+    return max;
+  }
 
-  private CategoryOptionCombo attributeOptionCombo;
+  public void setMax(String max) {
+    this.max = max;
+  }
 
-  private List<DataValueAuditType> auditTypes = new ArrayList<>();
+  public int minAsInt() {
+    return asIntVersion(min);
+  }
 
-  private Pager pager;
-
-  public boolean hasPaging() {
-    return pager != null;
+  public int maxAsInt() {
+    return asIntVersion(max);
   }
 }

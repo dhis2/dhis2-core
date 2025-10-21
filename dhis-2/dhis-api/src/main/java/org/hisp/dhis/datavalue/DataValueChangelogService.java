@@ -31,48 +31,46 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditService {
-  String ID = DataValueAuditService.class.getName();
+public interface DataValueChangelogService {
 
   /**
    * Deletes all data value audits for the given organisation unit.
    *
-   * @param organisationUnit the organisation unit.
+   * @param orgUnit the organisation unit.
    */
-  void deleteDataValueAudits(OrganisationUnit organisationUnit);
+  void deleteByOrgUnit(@Nonnull UID orgUnit);
 
   /**
    * Deletes all data value audits for the given data element.
    *
    * @param dataElement the data element.
    */
-  void deleteDataValueAudits(DataElement dataElement);
+  void deleteByDataElement(@Nonnull UID dataElement);
 
   /**
-   * Returns all DataValueAudits for the given DataValue.
+   * Returns all entries for the given DataValue.
    *
-   * @param dataValue the DataValue to get DataValueAudits for.
-   * @return a list of DataValueAudits which match the given DataValue, or an empty collection if
-   *     there are no matches.
+   * @param dataValue the DataValue to get entries for.
+   * @return a list of entries which match the given DataValue, or an empty collection if there are
+   *     no matches.
    */
   @UsageTestOnly
-  List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue);
+  List<DataValueChangelogEntry> getChangelogEntries(DataExportValue dataValue);
 
   /**
    * Returns data value audits for the given parameters.
    *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a list of {@link DataValueAudit}.
+   * @param params the {@link DataValueChangelogQueryParams}.
+   * @return a list of {@link DataValueChangelog}.
    */
-  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
+  List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params);
 
   /**
    * Gets all audit entries for a single value (all dimensions are fully specified). If COC and/or
@@ -81,13 +79,13 @@ public interface DataValueAuditService {
    * @param params the key to the value
    * @return the audit events for the value stored most recent to oldest
    */
-  List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params);
+  List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params);
 
   /**
    * Returns the count of data value audits for the given parameters.
    *
-   * @param params the {@link DataValueAuditQueryParams}.
-   * @return a count of {@link DataValueAudit}.
+   * @param params the {@link DataValueChangelogQueryParams}.
+   * @return a count of {@link DataValueChangelog}.
    */
-  int countDataValueAudits(DataValueAuditQueryParams params);
+  int countEntries(DataValueChangelogQueryParams params);
 }

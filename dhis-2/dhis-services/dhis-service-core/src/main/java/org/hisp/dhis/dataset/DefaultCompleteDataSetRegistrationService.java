@@ -91,7 +91,6 @@ public class DefaultCompleteDataSetRegistrationService
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
       throws ConflictException {
-    registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     checkCompulsoryDeOperands(registration);
 
     Date date = new Date();
@@ -224,7 +223,7 @@ public class DefaultCompleteDataSetRegistrationService
       DataExportStoreParams params = new DataExportStoreParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
       params.setPeriods(Set.of(period));
-      params.setAttributeOptionCombos(Set.of(attributeOptionCombo));
+      params.setAttributeOptionCombos(List.of(attributeOptionCombo));
       params.setOrganisationUnits(Set.of(organisationUnit));
 
       Map<Long, Map<Long, Set<Long>>> dataPresent = new HashMap<>();

@@ -33,6 +33,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -40,11 +41,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,10 +78,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -284,15 +289,7 @@ public class RouteService {
     route.getHeaders().forEach(headers::add);
     addForwardedUserHeader(userDetails, headers);
 
-    Map<String, List<String>> queryParameters = new HashMap<>();
-    request
-        .getParameterMap()
-        .forEach(
-            (key, value) ->
-                queryParameters
-                    .computeIfAbsent(key, k -> new LinkedList<>())
-                    .addAll(Arrays.asList(value)));
-
+    MultiValueMap<String, String> queryParameters = getQueryParams(request);
     applyAuthScheme(route, headers, queryParameters);
     UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
     String upstreamUrlWithoutQueryParams = uriComponentsBuilder.build().toUriString();
@@ -421,18 +418,7 @@ public class RouteService {
       HttpServletRequest request)
       throws BadGatewayException {
 
-    final Flux<DataBuffer> requestBodyFlux;
-    try {
-      requestBodyFlux =
-          DataBufferUtils.read(
-                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
-              .doOnNext(DataBufferUtils.releaseConsumer());
-    } catch (IOException e) {
-      log.error(e.getMessage(), e);
-      throw new BadGatewayException("An error occurred while reading the upstream response");
-    }
-
-    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+    WebClient.RequestBodySpec requestBodySpec =
         webClient
             .method(httpMethod)
             .uri(targetUri)
@@ -443,8 +429,14 @@ public class RouteService {
                     httpClientRequest.responseTimeout(
                         Duration.ofSeconds(route.getResponseTimeoutSeconds()));
                   }
-                })
-            .body(requestBodyFlux, DataBuffer.class);
+                });
+
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec;
+    if (request instanceof MultipartHttpServletRequest) {
+      requestHeadersSpec = buildMultipartUpstreamRequestHeaderSpec(request, requestBodySpec);
+    } else {
+      requestHeadersSpec = buildUpstreamRequestHeaderSpec(request, requestBodySpec);
+    }
 
     for (Map.Entry<String, List<String>> header : headers.entrySet()) {
       requestHeadersSpec =
@@ -452,6 +444,66 @@ public class RouteService {
     }
 
     return requestHeadersSpec;
+  }
+
+  protected WebClient.RequestHeadersSpec<?> buildUpstreamRequestHeaderSpec(
+      HttpServletRequest request, WebClient.RequestBodySpec requestBodySpec)
+      throws BadGatewayException {
+    try {
+      Flux<DataBuffer> requestBodyFlux =
+          DataBufferUtils.read(
+                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+              .doOnNext(DataBufferUtils.releaseConsumer());
+      return requestBodySpec.body(requestBodyFlux, DataBuffer.class);
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while processing the request");
+    }
+  }
+
+  protected WebClient.RequestHeadersSpec<?> buildMultipartUpstreamRequestHeaderSpec(
+      HttpServletRequest request, WebClient.RequestBodySpec requestBodySpec)
+      throws BadGatewayException {
+    try {
+      MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
+      for (Part part : request.getParts()) {
+        multipartBodyBuilder.asyncPart(
+            part.getName(),
+            DataBufferUtils.read(
+                new InputStreamResource(part.getInputStream()), dataBufferFactory, 8192),
+            DataBuffer.class);
+      }
+
+      for (Map.Entry<String, MultipartFile> file :
+          ((MultipartHttpServletRequest) request).getFileMap().entrySet()) {
+        MultipartBodyBuilder.PartBuilder partBuilder =
+            multipartBodyBuilder.asyncPart(
+                file.getKey(),
+                DataBufferUtils.read(file.getValue().getResource(), dataBufferFactory, 8192),
+                DataBuffer.class);
+        if (file.getValue().getContentType() != null) {
+          partBuilder.contentType(MediaType.valueOf(file.getValue().getContentType()));
+        }
+        if (file.getValue().getOriginalFilename() != null) {
+          partBuilder.filename(file.getValue().getOriginalFilename());
+        }
+      }
+
+      return requestBodySpec.body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()));
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while processing the request");
+    }
+  }
+
+  protected MultiValueMap<String, String> getQueryParams(HttpServletRequest request) {
+    if (request.getQueryString() != null) {
+      return UriComponentsBuilder.fromUriString("?" + request.getQueryString())
+          .build()
+          .getQueryParams();
+    } else {
+      return new LinkedMultiValueMap<>();
+    }
   }
 
   protected ResponseBodyEmitter emitResponseBody(

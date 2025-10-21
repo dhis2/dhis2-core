@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.test.raw;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.MapConfiguration;
+import org.apache.commons.configuration.SystemConfiguration;
 
 /**
- * DTO which represents a data value audit record.
+ * Provides access to configuration properties via system variables with fallback defaults.
  *
- * @author Lars Helge Overland
+ * <p>This replaces the old config.properties file approach with system property-based
+ * configuration, compatible with the new test harness.
  */
-public record DataValueAuditEntry(
-    @JsonProperty @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
-    @JsonProperty @OpenApi.Property(Period.class) String period,
-    @JsonProperty @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
-    @JsonProperty @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-        String categoryOptionCombo,
-    @JsonProperty @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-        String attributeOptionCombo,
-    @JsonProperty String value,
-    @JsonProperty String modifiedBy,
-    @JsonProperty Date created,
-    @JsonProperty DataValueAuditType auditType) {}
+class ConfigLoader {
+  static final CompositeConfiguration CONFIG = new CompositeConfiguration();
+
+  static {
+    // System properties take precedence
+    CONFIG.addConfiguration(new SystemConfiguration());
+
+    // Defaults (equivalent to old config.properties defaults)
+    Map<String, Object> defaults = new HashMap<>();
+    defaults.put("instance", "http://localhost:8080");
+    defaults.put("version", "42");
+    defaults.put("baseline", "42");
+    defaults.put("scenario", "test-scenarios/hmis/analytics-speed-get-test.json");
+    defaults.put("username", "admin");
+    defaults.put("password", "district");
+    defaults.put("concurrentUsers", "1");
+    CONFIG.addConfiguration(new MapConfiguration(defaults));
+  }
+}

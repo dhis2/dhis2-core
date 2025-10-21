@@ -62,7 +62,7 @@ public interface JobSchedulerService {
    * @throws ConflictException when the status change cannot be performed, for example because the
    *     job is already running or is disabled
    */
-  void executeNow(@Nonnull String jobId) throws ConflictException, NotFoundException;
+  void executeNow(@Nonnull UID jobId) throws ConflictException, NotFoundException;
 
   /**
    * Reverts the {@link JobStatus} of the job from {@link JobStatus#RUNNING} to the appropriate
@@ -87,7 +87,7 @@ public interface JobSchedulerService {
    * @param jobId of the job to issue a cluster wide cancel request
    * @return if cancellation state was accepted
    */
-  boolean requestCancel(@Nonnull String jobId);
+  boolean requestCancel(@Nonnull UID jobId);
 
   boolean requestCancel(@Nonnull JobType type);
 
@@ -109,10 +109,10 @@ public interface JobSchedulerService {
   Set<JobType> getCompletedTypes();
 
   @CheckForNull
-  Progress getProgress(@Nonnull String jobId);
+  Progress getProgress(@Nonnull UID jobId);
 
   @Nonnull
-  List<JobProgress.Error> getErrors(@Nonnull String jobId);
+  List<JobProgress.Error> getErrors(@Nonnull UID jobId);
 
   @CheckForNull
   Progress getRunningProgress(@Nonnull JobType type);

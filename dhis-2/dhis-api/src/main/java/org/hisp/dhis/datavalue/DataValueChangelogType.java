@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.datavalue;
 
-import java.util.Map;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+public enum DataValueChangelogType {
+  /** When a data value is created for the first time (no row existed in the table) */
+  CREATE,
 
-/**
- * @author Stian Sandvold
- */
-@Component
-public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(DataInputPeriod.class);
+  /** When a data value is marked as {@code deleted=true} (without already being marked deleted) */
+  DELETE,
 
-  @Override
-  protected void register() {
-    whenVetoing(Period.class, this::allowDeletePeriod);
-  }
+  /** When a data value changes its {@code value} property has changed, but it is not a deletion */
+  UPDATE,
 
-  private DeletionVeto allowDeletePeriod(Period period) {
-    String sql = "select 1 from datainputperiod where periodid= :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
-  }
+  // Note that updating just followup or comment will not create an audit entry ATM
 }

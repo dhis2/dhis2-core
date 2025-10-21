@@ -69,6 +69,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -112,6 +113,7 @@ class DirectType {
     Integer maxLength;
     List<String> enums;
     String description;
+    Map<String, SimpleType> members;
   }
 
   private static final Map<Class<?>, DirectType> TYPES = new IdentityHashMap<>();
@@ -229,7 +231,20 @@ class DirectType {
     oneOf(Serializable.class, schema -> schema.type("number"));
     oneOf(Serializable.class, schema -> schema.type("boolean"));
 
-    oneOf(Period.class, schema -> schema.type("string").format("period"));
+    oneOf(
+        Period.class,
+        schema ->
+            schema
+                .type("object")
+                .members(
+                    Map.of("id", SimpleType.builder().type("string").format("period").build())));
+    oneOf(
+        PeriodDimension.class,
+        schema ->
+            schema
+                .type("object")
+                .members(
+                    Map.of("id", SimpleType.builder().type("string").format("period").build())));
     oneOf(
         PeriodType.class,
         schema ->

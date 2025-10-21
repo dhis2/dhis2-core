@@ -110,7 +110,9 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder =
-        SingleEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+        SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"))
+            .orgUnit(orgUnit)
+            .orgUnitMode(SELECTED);
   }
 
   @Test

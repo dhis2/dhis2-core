@@ -38,21 +38,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
+import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.hibernate.jsonb.type.JsonJobParametersType;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
@@ -67,31 +69,37 @@ public class HibernateJobConfigurationStore
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, JobConfiguration.class, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, JobConfiguration.class, aclService, false);
   }
 
   @Override
-  public String getLastRunningId(@Nonnull JobType type) {
+  public UID getLastRunningId(@Nonnull JobType type) {
     String sql =
         """
       select uid from jobconfiguration
       where jobstatus = 'RUNNING' and jobtype = :type
       order by lastexecuted desc limit 1""";
-    return getSingleResultOrNull(nativeSynchronizedQuery(sql).setParameter("type", type.name()));
+    return runReadInStatelessSession(
+        q ->
+            UID.ofNullable(
+                getSingleResultOrNull(q.createNativeQuery(sql).setParameter("type", type.name()))));
   }
 
   @Override
-  public String getLastCompletedId(@Nonnull JobType type) {
+  public UID getLastCompletedId(@Nonnull JobType type) {
     String sql =
         """
       select uid from jobconfiguration
       where jobstatus != 'RUNNING' and jobtype = :type
       order by lastfinished desc limit 1""";
-    return getSingleResultOrNull(nativeSynchronizedQuery(sql).setParameter("type", type.name()));
+    return runReadInStatelessSession(
+        q ->
+            UID.ofNullable(
+                getSingleResultOrNull(q.createNativeQuery(sql).setParameter("type", type.name()))));
   }
 
   @Override
-  public String getProgress(@Nonnull String jobId) {
+  public String getProgress(@Nonnull UID jobId) {
     String sql =
         """
       select
@@ -102,11 +110,12 @@ public class HibernateJobConfigurationStore
       from jobconfiguration
       where uid = :id
       """;
-    return getSingleResultOrNull(nativeSynchronizedQuery(sql).setParameter("id", jobId));
+    return runReadInStatelessSession(
+        q -> getSingleResultOrNull(q.createNativeQuery(sql).setParameter("id", jobId.getValue())));
   }
 
   @Override
-  public String getErrors(@Nonnull String jobId) {
+  public String getErrors(@Nonnull UID jobId) {
     String sql =
         """
           select
@@ -116,25 +125,26 @@ public class HibernateJobConfigurationStore
           from jobconfiguration
           where uid = :id
           """;
-    return getSingleResultOrNull(nativeSynchronizedQuery(sql).setParameter("id", jobId));
+    return runReadInStatelessSession(
+        q -> getSingleResultOrNull(q.createNativeQuery(sql).setParameter("id", jobId.getValue())));
   }
 
   @Override
-  public Set<String> getAllIds() {
+  public Set<UID> getAllIds() {
     String sql = "select uid from jobconfiguration";
-    return getResultSet(nativeSynchronizedQuery(sql), Object::toString);
+    return runReadInStatelessSession(q -> setOf(q.createNativeQuery(sql), UID::ofNullable));
   }
 
   @Override
-  public Set<String> getAllCancelledIds() {
+  public Set<UID> getAllCancelledIds() {
     String sql = "select uid from jobconfiguration where cancel = true";
-    return getResultSet(nativeSynchronizedQuery(sql), Object::toString);
+    return runReadInStatelessSession(q -> setOf(q.createNativeQuery(sql), UID::ofNullable));
   }
 
   @Override
   public Set<JobType> getRunningTypes() {
     String sql = "select distinct jobtype from jobconfiguration where jobstatus = 'RUNNING'";
-    return getResultSet(nativeSynchronizedQuery(sql), JobType::valueOf);
+    return runReadInStatelessSession(q -> setOf(q.createNativeQuery(sql), JobType::valueOf));
   }
 
   @Override
@@ -146,13 +156,41 @@ public class HibernateJobConfigurationStore
       and lastfinished > lastexecuted
       and progress is not null
       """;
-    return getResultSet(nativeSynchronizedQuery(sql), JobType::valueOf);
+    return runReadInStatelessSession(q -> setOf(q.createNativeQuery(sql), JobType::valueOf));
   }
 
   @Override
   public Set<String> getAllQueueNames() {
     String sql = "select distinct queuename from jobconfiguration where queuename is not null";
-    return getResultSet(nativeSynchronizedQuery(sql), Object::toString);
+    return setOf(nativeSynchronizedQuery(sql), Object::toString);
+  }
+
+  @Override
+  public JobEntry getJobById(UID id) {
+    String sql =
+        """
+      select
+        j.uid,
+        j.jobtype,
+        j.schedulingtype,
+        j.name,
+        j.jobstatus,
+        j.executedby,
+        j.cronexpression,
+        j.delay,
+        j.lastexecuted,
+        j.lastfinished,
+        j.lastalive,
+        j.queuename,
+        j.queueposition,
+        j.jsonbjobparameters #>> '{}'
+      from jobconfiguration j
+      where uid = :id
+      """;
+    return runReadInStatelessSession(
+        q ->
+            toEntry(
+                getSingleResultOrNull(q.createNativeQuery(sql).setParameter("id", id.getValue()))));
   }
 
   @Override
@@ -163,14 +201,34 @@ public class HibernateJobConfigurationStore
 
   @Override
   @CheckForNull
-  public JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition) {
-    String sql = "select * from jobconfiguration where queuename = :queue and queueposition = :pos";
-    List<JobConfiguration> res =
-        nativeSynchronizedTypedQuery(sql)
-            .setParameter("queue", queue)
-            .setParameter("pos", fromPosition + 1)
-            .list();
-    return res.isEmpty() ? null : res.get(0);
+  public JobEntry getNextInQueue(@Nonnull String queue, int fromPosition) {
+    String sql =
+        """
+      select
+        j.uid,
+        j.jobtype,
+        j.schedulingtype,
+        j.name,
+        j.jobstatus,
+        j.executedby,
+        j.cronexpression,
+        j.delay,
+        j.lastexecuted,
+        j.lastfinished,
+        j.lastalive,
+        j.queuename,
+        j.queueposition,
+        j.jsonbjobparameters #>> '{}'
+      from jobconfiguration j
+      where queuename = :queue and queueposition = :pos
+      """;
+    return runReadInStatelessSession(
+        q ->
+            toEntry(
+                getSingleResultOrNull(
+                    q.createNativeQuery(sql)
+                        .setParameter("queue", queue)
+                        .setParameter("pos", fromPosition + 1))));
   }
 
   @Override
@@ -180,10 +238,25 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  public List<JobConfiguration> getStaleConfigurations(int timeoutSeconds) {
+  public List<JobEntry> getStaleConfigurations(int timeoutSeconds) {
     String sql =
         """
-        select * from jobconfiguration
+        select
+          j.uid,
+          j.jobtype,
+          j.schedulingtype,
+          j.name,
+          j.jobstatus,
+          j.executedby,
+          j.cronexpression,
+          j.delay,
+          j.lastexecuted,
+          j.lastfinished,
+          j.lastalive,
+          j.queuename,
+          j.queueposition,
+          j.jsonbjobparameters #>> '{}'
+        from jobconfiguration j
         where jobstatus = 'RUNNING'
         and (
           now() > lastalive + :timeout * interval '1 second'
@@ -192,14 +265,30 @@ public class HibernateJobConfigurationStore
             and now() > lastexecuted + delay * interval '2 second'
           ))
         """;
-    return nativeSynchronizedTypedQuery(sql).setParameter("timeout", timeoutSeconds).list();
+    return runReadInStatelessSession(
+        q -> entryList(q.createNativeQuery(sql).setParameter("timeout", timeoutSeconds)));
   }
 
   @Override
-  public Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting) {
+  public List<JobEntry> getDueJobConfigurations(boolean includeWaiting) {
     String sql =
         """
-        select * from jobconfiguration j1
+        select
+          j1.uid,
+          j1.jobtype,
+          j1.schedulingtype,
+          j1.name,
+          j1.jobstatus,
+          j1.executedby,
+          j1.cronexpression,
+          j1.delay,
+          j1.lastexecuted,
+          j1.lastfinished,
+          j1.lastalive,
+          j1.queuename,
+          j1.queueposition,
+          j1.jsonbjobparameters #>> '{}'
+        from jobconfiguration j1
         where enabled = true
         and jobstatus = 'SCHEDULED'
         and (queueposition is null or queueposition = 0 or schedulingtype = 'ONCE_ASAP')
@@ -211,12 +300,13 @@ public class HibernateJobConfigurationStore
         ))
         order by jobtype, created
         """;
-    return nativeSynchronizedTypedQuery(sql).setParameter("waiting", includeWaiting).stream();
+    return runReadInStatelessSession(
+        q -> entryList(q.createNativeQuery(sql).setParameter("waiting", includeWaiting)));
   }
 
   @Nonnull
   @Override
-  public Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
+  public List<String> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
     String sql =
         """
     select jsonb_build_object(
@@ -253,23 +343,26 @@ public class HibernateJobConfigurationStore
     Date end = params.getTo();
     UID user = params.getUser();
     UID job = params.getJob();
-    return getResultStream(
-        nativeSynchronizedQuery(sql)
-            .setParameter("skipUid", job == null)
-            .setParameter("uid", job == null ? "" : job.getValue())
-            .setParameter("skipUser", user == null)
-            .setParameter("user", user == null ? "" : user.getValue())
-            .setParameter("skipStart", start == null)
-            .setParameter("start", start == null ? new Date() : start)
-            .setParameter("skipEnd", end == null)
-            .setParameter("end", end == null ? new Date() : end)
-            .setParameter("skipObjects", errors.isEmpty())
-            .setParameter("objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
-            .setParameter("skipCodes", codes.isEmpty())
-            .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
-            .setParameter("skipTypes", types.isEmpty())
-            .setParameter("types", types.toArray(String[]::new), StringArrayType.INSTANCE),
-        Object::toString);
+    return runReadInStatelessSession(
+        q ->
+            jsonList(
+                q.createNativeQuery(sql)
+                    .setParameter("skipUid", job == null)
+                    .setParameter("uid", job == null ? "" : job.getValue())
+                    .setParameter("skipUser", user == null)
+                    .setParameter("user", user == null ? "" : user.getValue())
+                    .setParameter("skipStart", start == null)
+                    .setParameter("start", start == null ? new Date() : start)
+                    .setParameter("skipEnd", end == null)
+                    .setParameter("end", end == null ? new Date() : end)
+                    .setParameter("skipObjects", errors.isEmpty())
+                    .setParameter(
+                        "objects", errors.toArray(String[]::new), StringArrayType.INSTANCE)
+                    .setParameter("skipCodes", codes.isEmpty())
+                    .setParameter("codes", codes.toArray(String[]::new), StringArrayType.INSTANCE)
+                    .setParameter("skipTypes", types.isEmpty())
+                    .setParameter("types", types.toArray(String[]::new), StringArrayType.INSTANCE),
+                Object::toString));
   }
 
   /**
@@ -278,8 +371,7 @@ public class HibernateJobConfigurationStore
    * visible at the end of this method.
    */
   @Override
-  @Transactional
-  public boolean tryExecuteNow(@Nonnull String jobId) {
+  public boolean tryExecuteNow(@Nonnull UID jobId) {
     String sql =
         """
         update jobconfiguration
@@ -292,11 +384,13 @@ public class HibernateJobConfigurationStore
         and jobstatus != 'RUNNING'
         and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         """;
-    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+    return runWriteInStatelessSession(
+            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+        > 0;
   }
 
   @Override
-  public boolean tryStart(@Nonnull String jobId) {
+  public boolean tryStart(@Nonnull UID jobId) {
     // only flip from SCHEDULED to RUNNING if no other job of same type is RUNNING
     String sql =
         """
@@ -318,11 +412,13 @@ public class HibernateJobConfigurationStore
           and j2.jobstatus = 'RUNNING'
         )
         """;
-    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+    return runWriteInStatelessSession(
+            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+        > 0;
   }
 
   @Override
-  public boolean tryCancel(@Nonnull String jobId) {
+  public boolean tryCancel(@Nonnull UID jobId) {
     String sql =
         """
         update jobconfiguration
@@ -347,11 +443,13 @@ public class HibernateJobConfigurationStore
           jobstatus = 'SCHEDULED' and schedulingtype = 'ONCE_ASAP'
           )
         """;
-    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+    return runWriteInStatelessSession(
+            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+        > 0;
   }
 
   @Override
-  public boolean tryFinish(@Nonnull String jobId, JobStatus status) {
+  public boolean tryFinish(@Nonnull UID jobId, JobStatus status) {
     String sql =
         """
         update jobconfiguration
@@ -375,10 +473,12 @@ public class HibernateJobConfigurationStore
         where uid = :id
         and jobstatus = 'RUNNING'
         """;
-    return nativeSynchronizedQuery(sql)
-            .setParameter("id", jobId)
-            .setParameter("status", status.name())
-            .executeUpdate()
+    return runWriteInStatelessSession(
+            q ->
+                q.createNativeQuery(sql)
+                    .setParameter("id", jobId.getValue())
+                    .setParameter("status", status.name())
+                    .executeUpdate())
         > 0;
   }
 
@@ -402,12 +502,14 @@ public class HibernateJobConfigurationStore
           lastexecuted is null
           or lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1))
         """;
-    return nativeSynchronizedQuery(sql).setParameter("queue", queue).executeUpdate() > 0;
+    return runWriteInStatelessSession(
+            q -> q.createNativeQuery(sql).setParameter("queue", queue).executeUpdate())
+        > 0;
   }
 
   @Override
   public void updateProgress(
-      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes) {
+      @Nonnull UID jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes) {
     String sql =
         """
         update jobconfiguration
@@ -417,11 +519,13 @@ public class HibernateJobConfigurationStore
           progress = cast(:json as jsonb)
         where uid = :id
         """;
-    nativeSynchronizedQuery(sql)
-        .setParameter("id", jobId)
-        .setParameter("json", progressJson)
-        .setParameter("errors", errorCodes)
-        .executeUpdate();
+    runWriteInStatelessSession(
+        q ->
+            q.createNativeQuery(sql)
+                .setParameter("id", jobId.getValue())
+                .setParameter("json", progressJson)
+                .setParameter("errors", errorCodes)
+                .executeUpdate());
   }
 
   @Override
@@ -435,7 +539,7 @@ public class HibernateJobConfigurationStore
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
-    return nativeSynchronizedQuery(sql).executeUpdate();
+    return runWriteInStatelessSession(q -> q.createNativeQuery(sql).executeUpdate());
   }
 
   @Override
@@ -451,14 +555,16 @@ public class HibernateJobConfigurationStore
         and now() > lastfinished + :ttl * interval '1 minute'
         """;
     int deletedCount =
-        nativeSynchronizedQuery(sql)
-            .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
-            .setParameter("ttl", max(1, ttlMinutes))
-            .executeUpdate();
+        runWriteInStatelessSession(
+            q ->
+                q.createNativeQuery(sql)
+                    .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
+                    .setParameter("ttl", max(1, ttlMinutes))
+                    .executeUpdate());
     if (deletedCount == 0) return 0;
     // jobs have the same UID as their respective FR
     // so if no job exists with the same UID the FR is not assigned
-    sql =
+    String sql2 =
         """
         update fileresource fr
         set isassigned = false
@@ -466,9 +572,11 @@ public class HibernateJobConfigurationStore
         and isassigned = true
         and uid not in (select uid from jobconfiguration where schedulingtype = 'ONCE_ASAP')
         """;
-    nativeSynchronizedQuery(sql)
-        .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
-        .executeUpdate();
+    runWriteInStatelessSession(
+        q ->
+            q.createNativeQuery(sql2)
+                .setLockOptions(new LockOptions(LockMode.PESSIMISTIC_WRITE).setTimeOut(2000))
+                .executeUpdate());
     return deletedCount;
   }
 
@@ -496,13 +604,15 @@ public class HibernateJobConfigurationStore
         where jobstatus = 'RUNNING'
         and now() > lastalive + :timeout * interval '1 minute'
         """;
-    return nativeSynchronizedQuery(sql)
-        .setParameter("timeout", max(1, timeoutMinutes))
-        .executeUpdate();
+    return runWriteInStatelessSession(
+        q ->
+            q.createNativeQuery(sql)
+                .setParameter("timeout", max(1, timeoutMinutes))
+                .executeUpdate());
   }
 
   @Override
-  public boolean tryRevertNow(@Nonnull String jobId) {
+  public boolean tryRevertNow(@Nonnull UID jobId) {
     String sql =
         """
         update jobconfiguration
@@ -526,22 +636,112 @@ public class HibernateJobConfigurationStore
         and uid = :id
         and now() > jobconfiguration.lastalive + interval '1 minute'
       """;
-    return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
-  }
-
-  private static String getSingleResultOrNull(NativeQuery<?> query) {
-    return (String) query.getResultStream().findFirst().orElse(null);
+    return runWriteInStatelessSession(
+            q -> q.createNativeQuery(sql).setParameter("id", jobId.getValue()).executeUpdate())
+        > 0;
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> Set<T> getResultSet(Query<?> query, Function<String, T> mapper) {
+  private static <T> T getSingleResultOrNull(NativeQuery<?> query) {
+    return (T) query.getResultStream().findFirst().orElse(null);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> Set<T> setOf(NativeQuery<?> query, Function<String, T> mapper) {
     Stream<String> stream = (Stream<String>) query.stream();
     return stream.map(mapper).collect(toSet());
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> Stream<T> getResultStream(Query<?> query, Function<String, T> mapper) {
+  private static <T> List<T> jsonList(NativeQuery<?> query, Function<String, T> mapper) {
     Stream<String> stream = (Stream<String>) query.stream();
-    return stream.map(mapper);
+    return stream.map(mapper).toList();
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<JobEntry> entryList(NativeQuery<?> query) {
+    Stream<Object[]> stream = (Stream<Object[]>) query.stream();
+    return stream.map(HibernateJobConfigurationStore::toEntry).toList();
+  }
+
+  private int runWriteInStatelessSession(ToIntFunction<StatelessSession> query) {
+    StatelessSession session = null;
+    Transaction transaction = null;
+    try {
+      session = getSession().getSessionFactory().openStatelessSession();
+      transaction = session.beginTransaction();
+      int modifiedRowCount = query.applyAsInt(session);
+      transaction.commit();
+      return modifiedRowCount;
+    } catch (RuntimeException ex) {
+      log.warn("Job write failed:", ex);
+      if (transaction != null && transaction.isActive()) {
+        try {
+          transaction.rollback();
+        } catch (Exception rollbackEx) {
+          log.trace("Rollback failed (possibly due to prior exception)", rollbackEx);
+        }
+      }
+      return 0;
+    } finally {
+      if (session != null && session.isOpen()) {
+        try {
+          session.close();
+        } catch (Exception closeEx) {
+          log.trace("Session close failed", closeEx);
+        }
+      }
+    }
+  }
+
+  private <R> R runReadInStatelessSession(Function<StatelessSession, R> query) {
+    StatelessSession session = null;
+    Transaction transaction = null;
+    try {
+      session = getSession().getSessionFactory().openStatelessSession();
+      transaction = session.beginTransaction();
+      R res = query.apply(session);
+      transaction.commit();
+      return res;
+    } catch (RuntimeException ex) {
+      log.warn("Job read failed:", ex);
+      if (transaction != null && transaction.isActive()) {
+        try {
+          transaction.rollback();
+        } catch (Exception rollbackEx) {
+          log.trace("Rollback failed (possibly due to prior exception)", rollbackEx);
+        }
+      }
+      throw ex;
+    } finally {
+      if (session != null && session.isOpen()) {
+        try {
+          session.close();
+        } catch (Exception closeEx) {
+          log.trace("Session close failed", closeEx);
+        }
+      }
+    }
+  }
+
+  private static JobEntry toEntry(Object row) {
+    if (row == null) return null;
+    if (!(row instanceof Object[] columns))
+      throw new IllegalArgumentException("Job row must be an Object[]");
+    return new JobEntry(
+        UID.of((String) columns[0]),
+        JobType.valueOf((String) columns[1]),
+        SchedulingType.valueOf((String) columns[2]),
+        (String) columns[3],
+        JobStatus.valueOf((String) columns[4]),
+        UID.ofNullable((String) columns[5]),
+        (String) columns[6],
+        (Integer) columns[7],
+        (Date) columns[8],
+        (Date) columns[9],
+        (Date) columns[10],
+        (String) columns[11],
+        (Integer) columns[12],
+        JsonJobParametersType.fromJson((String) columns[13]));
   }
 }

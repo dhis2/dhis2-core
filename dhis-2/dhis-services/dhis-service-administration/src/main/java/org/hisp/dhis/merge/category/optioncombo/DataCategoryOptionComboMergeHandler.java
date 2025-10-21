@@ -54,8 +54,8 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
@@ -77,7 +77,7 @@ import org.springframework.stereotype.Component;
 public class DataCategoryOptionComboMergeHandler {
 
   private final DataValueStore dataValueStore;
-  private final DataValueAuditStore dataValueAuditStore;
+  private final DataValueChangelogStore dataValueChangelogStore;
   private final DataApprovalAuditStore dataApprovalAuditStore;
   private final DataApprovalStore dataApprovalStore;
   private final TrackerEventStore trackerEventStore;
@@ -104,12 +104,12 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   /**
-   * All {@link DataValueAudit}s will deleted, as source {@link CategoryOptionCombo}s are always
+   * All {@link DataValueChangelog}s will deleted, as source {@link CategoryOptionCombo}s are always
    * deleted.
    */
   public void handleDataValueAudits(@Nonnull List<CategoryOptionCombo> sources) {
     log.info("Deleting source data value audits as source CategoryOptionCombos are being deleted");
-    sources.forEach(dataValueAuditStore::deleteDataValueAudits);
+    sources.forEach(coc -> dataValueChangelogStore.deleteByOptionCombo(UID.of(coc)));
   }
 
   public void handleDataApprovals(

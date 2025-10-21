@@ -29,57 +29,38 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Quang Nguyen
- * @author Halvdan Hoem Grelland
- */
-@RequiredArgsConstructor
-@Service
-public class DefaultDataValueAuditService implements DataValueAuditService {
-
-  private final DataValueAuditStore dataValueAuditStore;
+@Component
+public class DataValueChangelogDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataValueChangelog.class);
 
   @Override
-  @Transactional
-  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
-    dataValueAuditStore.deleteDataValueAudits(organisationUnit);
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
   }
 
-  @Override
-  @Transactional
-  public void deleteDataValueAudits(DataElement dataElement) {
-    dataValueAuditStore.deleteDataValueAudits(dataElement);
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql = "select 1 from datavalueaudit where dataelementid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue) {
-    return dataValueAuditStore.getAuditsByKey(dataValue.toKey());
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    String sql = "select 1 from datavalueaudit where organisationunitid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params) {
-    return dataValueAuditStore.getAuditsByKey(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.getDataValueAudits(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.countDataValueAudits(params);
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "select 1 from datavalueaudit where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
   }
 }

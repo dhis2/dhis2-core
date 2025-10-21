@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.datavalue.DataValueAudit" table="datavalueaudit">
+  <class name="org.hisp.dhis.datavalue.DataValueChangelog" table="datavalueaudit">
 
     <id name="id" column="datavalueauditid">
       <generator class="sequence">
@@ -33,9 +33,9 @@
 
     <property name="modifiedBy" column="modifiedby" length="100" />
 
-    <property name="auditType" column="audittype" length="100" not-null="true">
+    <property name="type" column="audittype" length="100" not-null="true">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.datavalue.DataValueAuditType</param>
+        <param name="enumClass">org.hisp.dhis.datavalue.DataValueChangelogType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
