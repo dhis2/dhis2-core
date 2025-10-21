@@ -761,7 +761,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
-    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -1836,12 +1835,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       final int SCALE_IN = 12;
       final int S_OUT = 10;
 
-      // Suppose 'aggregateInnerExpr' is the inner expression, e.g. "TIMESTAMPDIFF(YEAR, start_col,
-      // end_col)"
       String lhs =
-          String.format("ROUND(%s, %d)", sqlBuilder.aggrDecimal(aggregateClause, PRECISION, SCALE_IN), S_OUT);
+          String.format(
+              "ROUND(%s, %d)", sqlBuilder.aggrDecimal(aggregateClause, PRECISION, SCALE_IN), S_OUT);
 
-      // 'criterion' is the string "14.5454545455"
       String rhs = sqlBuilder.decimalLiteral(criterion, PRECISION, S_OUT);
 
       String sqlFilter = String.format(" %s %s %s ", lhs, getOperatorByMeasureFilter(filter), rhs);
