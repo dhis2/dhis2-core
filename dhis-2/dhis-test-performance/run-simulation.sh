@@ -26,7 +26,7 @@ show_usage() {
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
-  echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
+  echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
   echo "                        Set to any non-empty value to enable (default: disabled)"
@@ -85,7 +85,7 @@ DB_TYPE=${DB_TYPE:-"sierra-leone"}
 DB_VERSION=${DB_VERSION:-"dev"}
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 PROF_ARGS=${PROF_ARGS:=""}
-WARMUP=${WARMUP:-0}
+WARMUP=${WARMUP:-1}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
