@@ -33,7 +33,6 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-import static org.hisp.dhis.resourcetable.util.ColumnNameUtils.toValidColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
@@ -51,7 +50,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
 /**
  * @author Lars Helge Overland
@@ -83,14 +81,10 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
             new Column("organisationunitname", DataType.VARCHAR_255, Nullable.NOT_NULL),
             new Column("startdate", DataType.DATE));
 
-    UniqueNameContext nameContext = new UniqueNameContext();
-
     for (OrganisationUnitGroupSet groupSet : groupSets) {
       columns.addAll(
           List.of(
-              new Column(
-                  nameContext.uniqueName(toValidColumnName(groupSet.getShortName())),
-                  DataType.VARCHAR_255),
+              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
               new Column(groupSet.getUid(), DataType.CHARACTER_11)));
     }
 
@@ -154,7 +148,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
                 """,
                 Map.of(
                     "groupSetId", valueOf(groupSet.getId()),
-                    "groupSetName", quote(toValidColumnName(groupSet.getName())),
+                    "groupSetName", quote(groupSet.getName()),
                     "groupSetUid", quote(groupSet.getUid())));
       } else {
         sql += "coalesce(";

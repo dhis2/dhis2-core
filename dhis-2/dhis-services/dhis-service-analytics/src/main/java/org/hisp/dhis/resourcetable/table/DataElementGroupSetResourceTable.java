@@ -32,7 +32,6 @@ package org.hisp.dhis.resourcetable.table;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-import static org.hisp.dhis.resourcetable.util.ColumnNameUtils.toValidColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
@@ -49,7 +48,6 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
 /**
  * @author Lars Helge Overland
@@ -78,13 +76,10 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
             new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL));
 
-    UniqueNameContext nameContext = new UniqueNameContext();
     for (DataElementGroupSet groupSet : groupSets) {
       columns.addAll(
           List.of(
-              new Column(
-                  nameContext.uniqueName(toValidColumnName(groupSet.getShortName())),
-                  DataType.VARCHAR_255),
+              new Column(groupSet.getShortName(), DataType.VARCHAR_255),
               new Column(groupSet.getUid(), DataType.CHARACTER_11)));
     }
 
@@ -130,7 +125,7 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
               """,
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
-                  "groupSetName", quote(toValidColumnName(groupSet.getName())),
+                  "groupSetName", quote(groupSet.getName()),
                   "groupSetUid", quote(groupSet.getUid())));
     }
 
