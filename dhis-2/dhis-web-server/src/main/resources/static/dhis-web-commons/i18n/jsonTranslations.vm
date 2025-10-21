@@ -4,7 +4,7 @@
   {
     "key": "$!{key}",
 	"value": "$!encoder.jsonEncode( ${translations.get( $!{key} )} )"
-  }#if( $velocityCount < $size ),#end
+  }#if( $foreach.count < $size ),#end
   #end
   ]
 }
