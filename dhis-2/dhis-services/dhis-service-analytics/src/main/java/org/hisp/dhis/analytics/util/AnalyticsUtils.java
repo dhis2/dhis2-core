@@ -1230,6 +1230,14 @@ public final class AnalyticsUtils {
       log.error("Internal runtime exception", ex);
       throw ex;
     } catch (DataIntegrityViolationException ex) {
+      // This condition is needed because the ClickHouse JDBC driver
+      // throws DataIntegrityViolationException when a table does not exist
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (relationDoesNotExist(sqlexception))) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        // rethrow as BadSqlGrammarException for consistent handling
+        throw new BadSqlGrammarException("", "", sqlexception);
+      }
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
@@ -1244,6 +1252,12 @@ public final class AnalyticsUtils {
     if (ex.getCause() instanceof SQLException sqlexception) {
       if (relationDoesNotExist(sqlexception)) {
         log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        // This if condition is needed because the Apache Doris JDBC driver
+        // throws UncategorizedSQLException when a table does not exist
+        if (ex instanceof UncategorizedSQLException) {
+          // rethrow as BadSqlGrammarException for consistent handling
+          throw new BadSqlGrammarException("", "", sqlexception);
+        }
         throw ex;
       }
       if (!isMultipleQueries) {
