@@ -98,7 +98,7 @@ on:
 jobs:
   performance-tests:
     runs-on: perf
-    timeout-minutes: 90
+    timeout-minutes: 240
     defaults:
       run:
         working-directory: dhis-2/dhis-test-performance
