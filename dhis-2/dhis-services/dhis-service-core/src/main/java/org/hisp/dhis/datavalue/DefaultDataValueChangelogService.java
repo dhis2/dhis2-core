@@ -32,8 +32,7 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,43 +42,43 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultDataValueAuditService implements DataValueAuditService {
+public class DefaultDataValueChangelogService implements DataValueChangelogService {
 
-  private final DataValueAuditStore dataValueAuditStore;
-
-  @Override
-  @Transactional
-  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
-    dataValueAuditStore.deleteDataValueAudits(organisationUnit);
-  }
+  private final DataValueChangelogStore dataValueChangelogStore;
 
   @Override
   @Transactional
-  public void deleteDataValueAudits(DataElement dataElement) {
-    dataValueAuditStore.deleteDataValueAudits(dataElement);
+  public void deleteByOrgUnit(@Nonnull UID orgUnit) {
+    dataValueChangelogStore.deleteByOrgUnit(orgUnit);
+  }
+
+  @Override
+  @Transactional
+  public void deleteByDataElement(@Nonnull UID dataElement) {
+    dataValueChangelogStore.deleteByDataElement(dataElement);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(DataExportValue dataValue) {
-    return dataValueAuditStore.getAuditsByKey(dataValue.toKey());
+  public List<DataValueChangelogEntry> getChangelogEntries(DataExportValue dataValue) {
+    return dataValueChangelogStore.getEntries(dataValue.toKey());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueAuditEntry> getDataValueAudits(@Nonnull DataValueQueryParams params) {
-    return dataValueAuditStore.getAuditsByKey(params);
+  public List<DataValueChangelogEntry> getChangelogEntries(@Nonnull DataValueQueryParams params) {
+    return dataValueChangelogStore.getEntries(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.getDataValueAudits(params);
+  public List<DataValueChangelog> getChangelogEntries(DataValueChangelogQueryParams params) {
+    return dataValueChangelogStore.getEntries(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public int countDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.countDataValueAudits(params);
+  public int countEntries(DataValueChangelogQueryParams params) {
+    return dataValueChangelogStore.countEntries(params);
   }
 }

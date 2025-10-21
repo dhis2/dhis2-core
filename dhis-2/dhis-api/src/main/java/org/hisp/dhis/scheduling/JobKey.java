@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
+package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.TransactionMode;
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Dang Duy Hieu
+ * Within the job scheduling for each {@link JobType} there can only be one running job. Therefore,
+ * the combination of {@link #type()} and {@link #id()} is often found as way to organise job
+ * related data and processes. To simply passing around these key components of a job this record
+ * was created.
+ *
+ * @author Jan Bernitt
+ * @param id
+ * @param type
  */
-public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
-  String ID = SqlViewStore.class.getName();
+public record JobKey(@Nonnull UID id, @Nonnull JobType type) {
 
-  String createViewTable(SqlView sqlView);
-
-  void dropViewTable(SqlView sqlView);
-
-  /**
-   * This method will use the appropriate jdbcTemplate depending how DHIS2 has been setup.<br>
-   *
-   * <p>If DHIS2 has been set up using Postgres read replica, then the readOnlyJdbcTemplate will be
-   * used for the reads, otherwise the normal jdbcTemplate will be used for all reads/writes.
-   *
-   * @param grid the {@link Grid} to populate with the results of the sql query.
-   * @param sql the sql query to execute.
-   * @param args the args for the query.
-   * @param transactionMode the {@link TransactionMode} to use for the query.
-   */
-  void populateSqlViewGrid(Grid grid, String sql, Object[] args, TransactionMode transactionMode);
-
-  boolean refreshMaterializedView(SqlView sqlView);
+  public JobKey {
+    // fail fast when nullness restrictions are not met
+    requireNonNull(id);
+    requireNonNull(type);
+  }
 }

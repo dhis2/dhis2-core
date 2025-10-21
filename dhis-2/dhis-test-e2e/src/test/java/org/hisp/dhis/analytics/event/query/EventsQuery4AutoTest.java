@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -382,7 +381,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
   @Test
   public void eventsWithDataElementTypeCoordinates() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -552,7 +551,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
 
     validateRow(
         response,
@@ -577,7 +576,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         2,
@@ -601,7 +600,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         3,
@@ -625,13 +624,13 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "",
                 "ACTIVE",
                 "DiszpKrYNg8"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
   }
 
   @Test
   public void metadataForDataElementOfTypeOrgUnitFilterEq() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -777,7 +776,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
   @Test
   public void metadataForDataElementOfTypeOrgUnitFilterIn() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =

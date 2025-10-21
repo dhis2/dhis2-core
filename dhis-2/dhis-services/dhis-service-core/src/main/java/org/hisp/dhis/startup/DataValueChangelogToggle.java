@@ -30,7 +30,7 @@
 package org.hisp.dhis.startup;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
@@ -40,17 +40,17 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  * server.
  */
 @RequiredArgsConstructor
-public class DataValueAuditToggle extends TransactionContextStartupRoutine {
+public class DataValueChangelogToggle extends TransactionContextStartupRoutine {
 
-  private final DataValueAuditStore auditStore;
+  private final DataValueChangelogStore changelogStore;
   private final DhisConfigurationProvider config;
 
   @Override
   public void executeInTransaction() {
     if (config.isEnabled(ConfigurationKey.CHANGELOG_AGGREGATE)) {
-      auditStore.enableAudit();
+      changelogStore.enableAudit();
     } else {
-      auditStore.disableAudit();
+      changelogStore.disableAudit();
     }
   }
 }

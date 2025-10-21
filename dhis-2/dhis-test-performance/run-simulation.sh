@@ -25,7 +25,7 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
-  echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300)"
+  echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
@@ -131,11 +131,11 @@ cleanup() {
 
   echo ""
   echo "Cleaning up containers..."
+  local compose_files=("-f" "docker-compose.yml")
   if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes 2>/dev/null || true
-  else
-    docker compose down --volumes 2>/dev/null || true
+    compose_files+=("-f" "docker-compose.profile.yml")
   fi
+  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
 
   echo ""
   echo "========================================"
@@ -174,6 +174,39 @@ pull_mutable_image() {
   fi
 }
 
+dump_container_logs() {
+  echo ""
+  echo "========================================"
+  echo "PHASE: Container Logs (Debug Info)"
+  echo "========================================"
+  echo ""
+  echo "Collecting diagnostic information to help debug startup failure..."
+  echo ""
+
+  # Determine which compose files to use
+  local compose_files=("-f" "docker-compose.yml")
+  if [ -n "$PROF_ARGS" ]; then
+    compose_files+=("-f" "docker-compose.profile.yml")
+  fi
+
+  echo "================================================================"
+  echo "Container Status:"
+  echo "================================================================"
+  docker compose "${compose_files[@]}" ps || true
+
+  echo ""
+  echo "================================================================"
+  echo "DHIS2 Web Container Logs (last 500 lines):"
+  echo "================================================================"
+  docker compose "${compose_files[@]}" logs --tail=500 web 2>&1 || echo "Failed to retrieve web logs"
+
+  echo ""
+  echo "================================================================"
+  echo "Database Container Logs (last 50 lines):"
+  echo "================================================================"
+  docker compose "${compose_files[@]}" logs --tail=50 db 2>&1 || echo "Failed to retrieve db logs"
+}
+
 start_containers() {
   echo "Testing with image: $DHIS2_IMAGE"
   echo "Waiting for containers to be ready..."
@@ -181,18 +214,17 @@ start_containers() {
   local start_time
   start_time=$(date +%s)
 
+  # Determine which compose files to use
+  local compose_files=("-f" "docker-compose.yml")
   if [ -n "$PROF_ARGS" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.profile.yml down --volumes
-    if ! docker compose -f docker-compose.yml -f docker-compose.profile.yml up --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
-      echo "Error: Failed to start containers"
-      exit 1
-    fi
-  else
-    docker compose down --volumes
-    if ! docker compose up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
-      echo "Error: Failed to start containers"
-      exit 1
-    fi
+    compose_files+=("-f" "docker-compose.profile.yml")
+  fi
+
+  docker compose "${compose_files[@]}" down --volumes
+  if ! docker compose "${compose_files[@]}" up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+    echo "Error: Failed to start containers"
+    dump_container_logs
+    exit 1
   fi
 
   echo "All containers ready! (took $(($(date +%s) - start_time))s)"
@@ -492,8 +524,8 @@ generate_metadata() {
     fi
     echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
     echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
-    echo "MVN_ARGS=$MVN_ARGS"
-    echo "PROF_ARGS=$PROF_ARGS"
+    echo "MVN_ARGS=\"$MVN_ARGS\""
+    echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
