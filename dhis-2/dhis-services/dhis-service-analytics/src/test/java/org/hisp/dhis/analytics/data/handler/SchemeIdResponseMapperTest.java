@@ -106,7 +106,6 @@ class SchemeIdResponseMapperTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  SchemeIdResponseMapperTest() {}
 
   @BeforeEach
   void setUp() {
