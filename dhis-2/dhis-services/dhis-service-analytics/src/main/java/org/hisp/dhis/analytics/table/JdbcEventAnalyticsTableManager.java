@@ -596,13 +596,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             "alias", alias));
   }
 
-  private String wrapWithCentroid(String column, String baseFormat) {
-    return column.equals("geometry")
-            && this.settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics()
-        ? "ST_Centroid(" + baseFormat + ")"
-        : baseFormat;
-  }
-
   /**
    * Returns columns for attributes of the given program.
    *
@@ -792,18 +785,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private String getNumericClause(String value) {
     return " and " + sqlBuilder.regexpMatch(value, "'" + NUMERIC_LENIENT_REGEXP + "'");
-  }
-
-  private String getDataClause(String uid, ValueType valueType) {
-    if (valueType.isNumeric() || valueType.isDate()) {
-      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
-
-      return replace(
-          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
-          Map.of("uid", uid, "regex", regex));
-    }
-
-    return "";
   }
 
   /**
