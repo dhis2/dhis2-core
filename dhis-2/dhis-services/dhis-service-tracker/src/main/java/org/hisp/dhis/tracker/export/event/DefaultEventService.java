@@ -63,7 +63,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,9 +88,9 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
-    private final EventOperationParamsMapper eventOperationParamsMapper;
+  private final EventOperationParamsMapper eventOperationParamsMapper;
 
-    @Override
+  @Override
   public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
       throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(event, dataElement);
@@ -181,12 +180,13 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-    public long countEvents(@Nonnull EventOperationParams operationParams) throws ForbiddenException, BadRequestException {
-      EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-        return eventStore.countEvents(queryParams);
-    }
+  public long countEvents(@Nonnull EventOperationParams operationParams)
+      throws ForbiddenException, BadRequestException {
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    return eventStore.countEvents(queryParams);
+  }
 
-    @Nonnull
+  @Nonnull
   @Override
   public Event getEvent(
       @Nonnull UID eventUid,
@@ -264,10 +264,12 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
-    public List<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue) throws BadRequestException, ForbiddenException {
-      EventQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
-      return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue);
-    }
+  public List<Event> findEvents(
+      @Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue)
+      throws BadRequestException, ForbiddenException {
+    EventQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
+    return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue);
+  }
 
   @Nonnull
   @Override

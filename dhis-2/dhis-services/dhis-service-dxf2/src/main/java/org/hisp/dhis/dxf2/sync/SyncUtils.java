@@ -67,7 +67,7 @@ public class SyncUtils {
   private static final String PING_PATH = "/api/system/ping";
 
   private SyncUtils() {
-      throw new IllegalStateException("Utility class");
+    throw new IllegalStateException("Utility class");
   }
 
   /**

@@ -30,9 +30,9 @@
 package org.hisp.dhis.dxf2.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.sendSyncRequest;
+import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Date;
 import java.util.List;
@@ -55,6 +55,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -81,9 +82,10 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
   private final UserService userService;
+  private final TrackerImportService trackerImportService;
 
   @Getter
-  private static final class  EventSynchronizationContext extends PagedDataSynchronisationContext {
+  private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> psdesWithSkipSyncTrue;
 
     public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
@@ -150,7 +152,8 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
     Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
     long objectsToSynchronize =
-        eventService.countEvents(EventOperationParams.builder().skipChangedBefore(skipChangedBefore).build());
+        eventService.countEvents(
+            EventOperationParams.builder().skipChangedBefore(skipChangedBefore).build());
 
     if (objectsToSynchronize == 0) {
       return new EventSynchronizationContext(skipChangedBefore, pageSize);
@@ -169,7 +172,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
   /** Ensures a valid {@link User} is available during event synchronization. */
   private void ensureAuthentication(SystemSettings systemSettings) {
-      CurrentUserUtil.getCurrentUserDetails();
+    CurrentUserUtil.getCurrentUserDetails();
   }
 
   private void initializeSyncUser(SystemSettings systemSettings) {
@@ -202,20 +205,28 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     progress.runStage(
         IntStream.range(1, context.getPages() + 1).boxed(),
         page -> format("Synchronizing page %d with size %d", page, context.getPageSize()),
-        page -> synchronizePage(page, context, systemSettings));
+        page -> {
+          try {
+            synchronizePage(page, context, systemSettings);
+          } catch (ForbiddenException | BadRequestException e) {
+            throw new RuntimeException(e);
+          }
+        });
 
     return !progress.isSkipCurrentStage();
   }
 
   protected void synchronizePage(
-      int page, EventSynchronizationContext context, SystemSettings systemSettings) throws ForbiddenException, BadRequestException {
+      int page, EventSynchronizationContext context, SystemSettings systemSettings)
+      throws ForbiddenException, BadRequestException {
     List<Event> events =
-        eventService.findEvents(EventOperationParams
-                .builder()
+        eventService.findEvents(
+            EventOperationParams.builder()
                 .skipChangedBefore(context.getSkipChangedBefore())
-                .build(),context.psdesWithSkipSyncTrue);
+                .build(),
+            context.psdesWithSkipSyncTrue);
 
-    filterDataValuesWithSkipSyncFlag(events);
+    // filterDataValuesWithSkipSyncFlag(events);
 
     log.debug("Events to be synchronized: {}", events);
 
@@ -226,7 +237,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     }
   }
 
-  private void filterDataValuesWithSkipSyncFlag(List<Event> events) {
+  /*  private void filterDataValuesWithSkipSyncFlag(List<Event> events) {
     events
         .forEach(
             event ->
@@ -234,7 +245,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
                     event.getEventDataValues().stream()
                         .filter(dataValue -> !dataValue())
                         .collect(Collectors.toSet())));
-  }
+  }*/
 
   private boolean sendSynchronizationRequest(
       List<Event> events, SystemInstance instance, SystemSettings systemSettings) {
@@ -254,11 +265,10 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   private void updateEventsSyncTimestamp(List<Event> events, Date syncTime) {
-    List<String> eventUids =
-        events.stream().map(Event::getUid).collect(Collectors.toList());
+    List<String> eventUids = events.stream().map(Event::getUid).collect(Collectors.toList());
 
     log.info("Updating lastSynchronized flag for events: {}", eventUids);
-    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
+    // eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
   private SynchronizationResult success(JobProgress progress, String message) {
