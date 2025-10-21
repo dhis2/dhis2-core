@@ -37,15 +37,21 @@ import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+/**
+ * Utility to create a {@link org.hisp.dhis.sql.SQL.QueryAPI} facade for different implementations.
+ *
+ * @author Jan Bernitt
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class NativeSQL {
 
   @Nonnull
   public static SQL.QueryAPI of(Session impl) {
-    return sql -> new HibernateNativeSQL.HibernateQuery(impl, sql, new ArrayList<>());
+    return sql -> new HibernateNativeQueryAPI.HibernateQuery(impl, sql, new ArrayList<>());
   }
 
+  @Nonnull
   public static SQL.QueryAPI of(NamedParameterJdbcTemplate impl) {
-    return sql -> new JdbcNativeSQL.JdbcQuery(impl, sql, new LinkedHashMap<>());
+    return sql -> new JdbcTemplateQueryAPI.JdbcQuery(impl, sql, new LinkedHashMap<>());
   }
 }

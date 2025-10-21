@@ -48,7 +48,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  *
  * @author Jan Bernitt
  */
-class JdbcNativeSQL {
+class JdbcTemplateQueryAPI {
 
   record JdbcQuery(
       NamedParameterJdbcTemplate impl, String sql, Map<String, SqlParameterValue> params)

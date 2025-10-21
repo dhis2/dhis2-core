@@ -50,7 +50,7 @@ import org.hibernate.type.Type;
  *
  * @author Jan Bernitt
  */
-class HibernateNativeSQL {
+class HibernateNativeQueryAPI {
 
   record HibernateQuery(Session impl, String sql, List<Consumer<NativeQuery<?>>> setters)
       implements SQL.Query {
