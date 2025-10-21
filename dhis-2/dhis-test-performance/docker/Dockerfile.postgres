@@ -21,34 +21,16 @@ ENV POSTGRES_USER=dhis \
     POSTGRES_PASSWORD=dhis \
     PGUSER=dhis \
     PGDATABASE=dhis \
-    PGPASSWORD=dhis
+    PGPASSWORD=dhis \
+    PGDATA=/var/lib/postgresql/data
 
 COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+COPY docker-entrypoint-build.sh /usr/local/bin/
 
 # Initialize the database and restore the dump at build time
-# This runs postgres temporarily during the build to populate the database
-RUN set -eux && \
-    mkdir -p /var/lib/postgresql/data && \
-    chown -R postgres:postgres /var/lib/postgresql && \
-    chmod 700 /var/lib/postgresql/data && \
-    gosu postgres initdb -D /var/lib/postgresql/data && \
-    echo "listen_addresses = ''" >> /var/lib/postgresql/data/postgresql.conf && \
-    echo "unix_socket_directories = '/var/run/postgresql'" >> /var/lib/postgresql/data/postgresql.conf && \
-    echo "fsync = off" >> /var/lib/postgresql/data/postgresql.conf && \
-    echo "synchronous_commit = off" >> /var/lib/postgresql/data/postgresql.conf && \
-    echo "full_page_writes = off" >> /var/lib/postgresql/data/postgresql.conf && \
-    gosu postgres pg_ctl -D /var/lib/postgresql/data -o "-c unix_socket_directories=/var/run/postgresql" -w start && \
-    gosu postgres psql --username=postgres --dbname=postgres -v ON_ERROR_STOP=1 -c "CREATE USER ${POSTGRES_USER} WITH SUPERUSER PASSWORD '${POSTGRES_PASSWORD}';" && \
-    gosu postgres psql --username=postgres --dbname=postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${POSTGRES_DB} OWNER ${POSTGRES_USER};" && \
-    echo "Restoring database dump..." && \
-    gosu postgres bash -c "gunzip -c /tmp/dump.sql.gz | psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -v ON_ERROR_STOP=1" && \
-    echo "Database dump restored successfully" && \
-    gosu postgres pg_ctl -D /var/lib/postgresql/data -m fast -w stop && \
-    sed -i '/listen_addresses =/d' /var/lib/postgresql/data/postgresql.conf && \
-    sed -i '/unix_socket_directories =/d' /var/lib/postgresql/data/postgresql.conf && \
-    sed -i '/fsync =/d' /var/lib/postgresql/data/postgresql.conf && \
-    sed -i '/synchronous_commit =/d' /var/lib/postgresql/data/postgresql.conf && \
-    sed -i '/full_page_writes =/d' /var/lib/postgresql/data/postgresql.conf
+# Uses a modified version of the official PostgreSQL docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
+    gosu postgres /usr/local/bin/docker-entrypoint-build.sh
 
 # Final stage with pre-populated database
 FROM ${POSTGRES_BASE_IMAGE}
