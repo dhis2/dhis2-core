@@ -49,14 +49,14 @@ class DorisAnalyticsSqlBuilderTest {
   }
 
   @Test
-  void renderTimestamp_validTimestamp_shouldFormatCorrectly() {
+  void renderTimestampValidTimestampShouldFormatCorrectly() {
     String input = "2023-10-20T15:30:45";
     String expected = "2023-10-20 15:30:45.0";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
   }
 
   @Test
-  void renderTimestamp_timestampWithZeroMillis_shouldTrimTrailingZeros() {
+  void renderTimestampTimestampWithZeroMillisShouldTrimTrailingZeros() {
     String input = "2023-10-20T15:30:45";
     String result = sqlBuilder.renderTimestamp(input);
     assertFalse(result.endsWith("000"));
@@ -64,7 +64,7 @@ class DorisAnalyticsSqlBuilderTest {
   }
 
   @Test
-  void renderTimestamp_timestampWithNonZeroMillis_shouldKeepMillis() {
+  void renderTimestampTimestampWithNonZeroMillisShouldKeepMillis() {
     String input = "2023-10-20T15:30:45.123";
     String expected = "2023-10-20 15:30:45.123";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
@@ -72,52 +72,52 @@ class DorisAnalyticsSqlBuilderTest {
 
   /** Tests that null input returns null output */
   @Test
-  void renderTimestamp_nullInput_shouldReturnNull() {
+  void renderTimestampNullInputShouldReturnNull() {
     assertNull(sqlBuilder.renderTimestamp(null));
   }
 
   /** Tests that empty string input returns null output */
   @Test
-  void renderTimestamp_emptyString_shouldReturnNull() {
+  void renderTimestampEmptyStringShouldReturnNull() {
     assertNull(sqlBuilder.renderTimestamp(""));
   }
 
   /** Tests that blank string input returns null output */
   @Test
-  void renderTimestamp_blankString_shouldReturnNull() {
+  void renderTimestampBlankStringShouldReturnNull() {
     assertNull(sqlBuilder.renderTimestamp("   "));
   }
 
   /** Tests that invalid timestamp format throws appropriate exception */
   @Test
-  void renderTimestamp_invalidFormat_shouldThrowException() {
+  void renderTimestampInvalidFormatShouldThrowException() {
     String invalidInput = "2023-13-45 25:65:99"; // Invalid date/time values
     assertThrows(DateTimeParseException.class, () -> sqlBuilder.renderTimestamp(invalidInput));
   }
 
   @Test
-  void renderTimestamp_allZeroMillis_shouldTrimToSingleZero() {
+  void renderTimestampAllZeroMillisShouldTrimToSingleZero() {
     String input = "2023-10-20T15:30:45.000";
     String expected = "2023-10-20 15:30:45.0";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
   }
 
   @Test
-  void renderTimestamp_twoTrailingZeros_shouldTrimBothZeros() {
+  void renderTimestampTwoTrailingZerosShouldTrimBothZeros() {
     String input = "2023-10-20T15:30:45.400";
     String expected = "2023-10-20 15:30:45.4";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
   }
 
   @Test
-  void renderTimestamp_oneTrailingZero_shouldTrimZero() {
+  void renderTimestampOneTrailingZeroShouldTrimZero() {
     String input = "2023-10-20T15:30:45.420";
     String expected = "2023-10-20 15:30:45.42";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
   }
 
   @Test
-  void renderTimestamp_noTrailingZeros_shouldNotTrim() {
+  void renderTimestampNoTrailingZerosShouldNotTrim() {
     String input = "2023-10-20T15:30:45.123";
     String expected = "2023-10-20 15:30:45.123";
     assertEquals(expected, sqlBuilder.renderTimestamp(input));
