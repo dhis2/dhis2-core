@@ -277,7 +277,6 @@ class JdbcEventStore {
    * @param psdesWithSkipSyncTrue mapping of program stage UIDs to sets of data element UIDs that
    *     should be skipped during synchronization. The structure is: Map<ProgramStageUID,
    *     Set<DataElementUID>>
-   *
    * @return the same event instance with filtered data values, or the original event if no program
    *     stage is set or no skip sync configuration exists for the program stage For a program stage
    *     "ps123" with skip sync configured for data elements "de456" and "de789" An event with data
