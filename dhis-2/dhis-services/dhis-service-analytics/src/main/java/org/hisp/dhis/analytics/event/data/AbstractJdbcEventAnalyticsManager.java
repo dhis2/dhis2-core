@@ -761,6 +761,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
+    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -1829,15 +1830,21 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     StringBuilder builder = new StringBuilder();
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
-      Double criterion = params.getMeasureCriteria().get(filter);
+      String criterion = params.getMeasureCriteria().get(filter).toString();
 
-      String sqlFilter =
-          String.format(
-              " round(%s, 10) %s %s ",
-              sqlBuilder.cast(aggregateClause, org.hisp.dhis.analytics.DataType.NUMERIC),
-              getOperatorByMeasureFilter(filter),
-              criterion);
+      final int PRECISION = 38;
+      final int SCALE_IN = 12;
+      final int S_OUT = 10;
 
+      // Suppose 'aggregateInnerExpr' is the inner expression, e.g. "TIMESTAMPDIFF(YEAR, start_col,
+      // end_col)"
+      String lhs =
+          String.format("ROUND(%s, %d)", sqlBuilder.aggrDecimal(aggregateClause, PRECISION, SCALE_IN), S_OUT);
+
+      // 'criterion' is the string "14.5454545455"
+      String rhs = sqlBuilder.decimalLiteral(criterion, PRECISION, S_OUT);
+
+      String sqlFilter = String.format(" %s %s %s ", lhs, getOperatorByMeasureFilter(filter), rhs);
       builder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
 

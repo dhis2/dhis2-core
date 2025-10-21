@@ -450,6 +450,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return this.databaseName;
   }
 
+  @Override
+  public String castDecimal(String expr, int precision, int scale) {
+    return String.format("cast(%s AS decimal(%d,%d))", expr, precision, scale);
+  }
+
+  @Override
+  public String decimalLiteral(String literal, int precision, int scale) {
+    return String.format("cast('%s' AS decimal(%d,%d))", escape(literal), precision, scale);
+  }
+
   /**
    * Converts the given {@link Map} {@link Entry} to a key value pair string.
    *

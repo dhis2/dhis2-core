@@ -204,6 +204,24 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return EMPTY;
   }
 
+  @Override
+  public String aggrDecimal(String aggregateExpr, int precision, int scale) {
+    ParsedAgg a = parseAggregateCall(aggregateExpr);
+
+    // COUNT variants should not be decimalized
+    if ("count".equalsIgnoreCase(a.name())) {
+      return aggregateExpr; // unchanged
+    }
+
+    String inner = a.inner().trim();
+    String maybeDistinct = a.distinct() ? "DISTINCT " : "";
+
+    // Decimalize inner argument for numeric aggregates
+    String decimalizedInner = castDecimal(inner, precision, scale);
+
+    return String.format("%s(%s%s)", a.name(), maybeDistinct, decimalizedInner);
+  }
+
   // Mapping
 
   /**
@@ -328,5 +346,72 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    */
   protected static boolean isSingleQuoted(String input) {
     return RegexUtils.matches(IS_SINGLE_QUOTED, input);
+  }
+
+  protected record ParsedAgg(String name, boolean distinct, String inner) {}
+
+  /**
+   * Parses an SQL aggregate function call of the form:
+   *
+   * <pre>
+   *   FUNC(expression)
+   *   FUNC(DISTINCT expression)
+   * </pre>
+   *
+   * where {@code FUNC} is an aggregate function such as {@code AVG}, {@code SUM}, {@code MIN},
+   * {@code MAX}, {@code COUNT}, {@code STDDEV}, or {@code VARIANCE}.
+   *
+   * <p>The parser extracts three logical components:
+   *
+   * <ul>
+   *   <li><b>name</b> — the function name (upper-cased, e.g. {@code "AVG"})
+   *   <li><b>distinct</b> — whether the call contains the {@code DISTINCT} keyword
+   *       (case-insensitive)
+   *   <li><b>inner</b> — the expression inside the parentheses after removing {@code DISTINCT},
+   *       e.g. {@code "x + y"}
+   * </ul>
+   *
+   * <p>This method assumes the input is a well-formed aggregate expression emitted by the SQL
+   * builder, but provides a lenient fallback: if the input does not contain parentheses (i.e. is
+   * not a function call), it treats the entire string as the inner expression and defaults the
+   * function name to {@code AVG}. This allows callers such as {@link #aggrDecimal(String, int,
+   * int)} to work even when provided with a raw expression instead of an aggregate.
+   *
+   * <p><b>Examples:</b>
+   *
+   * <pre>
+   * parseAggregateCall("AVG(value)")
+   *   → name="AVG", distinct=false, inner="value"
+   *
+   * parseAggregateCall("sum(DISTINCT price)")
+   *   → name="SUM", distinct=true, inner="price"
+   *
+   * parseAggregateCall("value")   // not an aggregate
+   *   → name="AVG", distinct=false, inner="value"
+   * </pre>
+   *
+   * @param expr a SQL aggregate function call or a raw expression
+   * @return a {@code ParsedAgg} object containing the function name, distinct flag, and inner
+   *     expression
+   */
+  protected ParsedAgg parseAggregateCall(String expr) {
+    String s = expr.trim();
+    int open = s.indexOf('(');
+    int close = s.lastIndexOf(')');
+    if (open < 0 || close < open) {
+      // The expression isn't an aggregate function like AVG(x) or SUM(x)
+      // Fall back to treating it as a plain expression, using AVG as the default aggregate
+      return new ParsedAgg("avg", false, s);
+    }
+
+    String name = s.substring(0, open).trim().toUpperCase();
+    String inner = s.substring(open + 1, close).trim();
+
+    boolean distinct = false;
+    if (inner.regionMatches(true, 0, "distinct", 0, "distinct".length())) {
+      distinct = true;
+      inner = inner.substring("DISTINCT".length()).trim();
+    }
+    return new ParsedAgg(name, distinct, inner);
   }
 }
