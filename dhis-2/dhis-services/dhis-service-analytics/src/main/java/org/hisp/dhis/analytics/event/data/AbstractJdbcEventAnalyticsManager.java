@@ -190,8 +190,7 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
-   * Represents an aggregate clause with its SQL expression and metadata about the aggregation type,
-   * allowing for intelligent decimalization without parsing.
+   * Represents an aggregate clause with its SQL expression and metadata about the aggregation type.
    *
    * @param sql the SQL aggregate expression (e.g., "avg(column)")
    * @param aggregationType the type of aggregation being performed

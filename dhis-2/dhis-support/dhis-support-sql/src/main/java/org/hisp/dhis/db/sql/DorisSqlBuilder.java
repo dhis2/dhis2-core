@@ -505,13 +505,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String castDecimal(String expr, int precision, int scale) {
-      return String.format("cast(%s as decimal(%d,%d))", expr, precision, scale);
+    return String.format("cast(%s as decimal(%d,%d))", expr, precision, scale);
   }
 
   @Override
   public String decimalLiteral(String literal, int precision, int scale) {
-      // Force a DECIMAL literal (avoid DOUBLE literal parsing path).
-      return String.format("cast('%s' AS decimal(%d,%d))", escape(literal), precision, scale);
+    // Force a DECIMAL literal (avoid DOUBLE literal parsing path).
+    return String.format("cast('%s' as decimal(%d,%d))", escape(literal), precision, scale);
   }
 
   // Catalog
