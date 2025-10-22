@@ -580,28 +580,4 @@ public interface SqlBuilder {
    * @return an SQL fragment that casts {@code literal} to {@code DECIMAL(precision, scale)}
    */
   String decimalLiteral(String literal, int precision, int scale);
-
-  /**
-   * Rewrites an aggregate function call so that its inner expression is evaluated in exact decimal
-   * space.
-   *
-   * <p>This method ensures that aggregates such as {@code AVG}, {@code SUM}, {@code MIN}, {@code
-   * MAX}, {@code VARIANCE}, and {@code STDDEV} operate on {@code DECIMAL(p,s)} inputs rather than
-   * floating-point numbers.
-   *
-   * <p>It parses the given aggregate expression, injects a {@link #castDecimal(String, int, int)}
-   * around the inner argument, and returns a new SQL fragment with the same function name and
-   * {@code DISTINCT} qualifier preserved.
-   *
-   * <p>Fallbacks to {@code AVG(...)} call if no aggregate function is specified. {@code COUNT(*)}
-   * and {@code COUNT(x)} are returned unchanged, since counting is not affected by numeric
-   * precision.
-   *
-   * @param aggregateExpr a SQL aggregate call (e.g. {@code "AVG(x)"} or {@code "SUM(DISTINCT y)"});
-   *     may also be a raw expression in which case a default {@code AVG(...)} wrapper is applied
-   * @param precision the total number of digits for the decimal cast
-   * @param scale the number of fractional digits (digits to the right of the decimal point)
-   * @return an SQL fragment representing the decimalized aggregate call
-   */
-  String aggrDecimal(String aggregateExpr, int precision, int scale);
 }
