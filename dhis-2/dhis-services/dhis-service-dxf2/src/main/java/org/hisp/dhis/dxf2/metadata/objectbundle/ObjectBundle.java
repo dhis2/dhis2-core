@@ -43,7 +43,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
-import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.feedback.ObjectIndexProvider;
 import org.hisp.dhis.feedback.TypedIndexedObjectContainer;
@@ -68,20 +67,8 @@ public class ObjectBundle implements ObjectIndexProvider
     private final User user;
 
     /**
-     * How should the user property be handled, by default it is left as is. You
-     * can override this to use current user, or a selected user instead (not
-     * yet supported).
-     */
-    private final UserOverrideMode userOverrideMode;
-
-    /**
-     * User to use for override, can be current or a selected user.
-     */
-    private User overrideUser;
-
-    /**
-     * Should import be imported or just validated.
-     */
+    * Should import be imported or just validated.
+    */
     private final ObjectBundleMode objectBundleMode;
 
     /**
@@ -184,8 +171,7 @@ public class ObjectBundle implements ObjectIndexProvider
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap )
     {
         this.user = params.getUser();
-        this.userOverrideMode = params.getUserOverrideMode();
-        this.overrideUser = params.getOverrideUser();
+
         this.objectBundleMode = params.getObjectBundleMode();
         this.preheatIdentifier = params.getPreheatIdentifier();
         this.importMode = params.getImportStrategy();
@@ -209,20 +195,7 @@ public class ObjectBundle implements ObjectIndexProvider
         return user;
     }
 
-    public UserOverrideMode getUserOverrideMode()
-    {
-        return userOverrideMode;
-    }
 
-    public User getOverrideUser()
-    {
-        return overrideUser;
-    }
-
-    public void setOverrideUser( User overrideUser )
-    {
-        this.overrideUser = overrideUser;
-    }
 
     public String getUsername()
     {

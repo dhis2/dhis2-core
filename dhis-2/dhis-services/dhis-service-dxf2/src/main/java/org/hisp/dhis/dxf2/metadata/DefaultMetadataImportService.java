@@ -106,11 +106,6 @@ public class DefaultMetadataImportService implements MetadataImportService
             params.setUser( currentUserService.getCurrentUser() );
         }
 
-        if ( params.getUserOverrideMode() == UserOverrideMode.CURRENT )
-        {
-            params.setOverrideUser( currentUserService.getCurrentUser() );
-        }
-
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
@@ -196,8 +191,6 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipTranslation( getBooleanWithDefault( parameters, "skipTranslation", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
-        params.setUserOverrideMode(
-            getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode(
             getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
         params.setPreheatMode(
@@ -219,27 +212,6 @@ public class DefaultMetadataImportService implements MetadataImportService
                 params.getUser().getUid(), true );
             notifier.clear( jobId );
             params.setId( jobId );
-        }
-
-        if ( params.getUserOverrideMode() == UserOverrideMode.SELECTED )
-        {
-            User overrideUser = null;
-
-            if ( parameters.containsKey( "overrideUser" ) )
-            {
-                List<String> overrideUsers = parameters.get( "overrideUser" );
-                overrideUser = manager.get( User.class, overrideUsers.get( 0 ) );
-            }
-
-            if ( overrideUser == null )
-            {
-                throw new MetadataImportException(
-                    "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
-            }
-            else
-            {
-                params.setOverrideUser( overrideUser );
-            }
         }
 
         return params;
