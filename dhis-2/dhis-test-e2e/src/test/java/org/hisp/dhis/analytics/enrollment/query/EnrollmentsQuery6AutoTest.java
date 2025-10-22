@@ -87,7 +87,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         48,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -187,7 +187,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         62,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -286,7 +286,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -385,7 +385,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         5,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -481,7 +481,7 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         5,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name

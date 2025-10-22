@@ -159,7 +159,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         12,
-        11,
+        8,
         8); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -320,7 +320,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         996,
-        47,
+        44,
         44); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
