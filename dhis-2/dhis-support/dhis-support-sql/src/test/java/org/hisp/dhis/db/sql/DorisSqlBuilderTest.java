@@ -194,4 +194,86 @@ class DorisSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
+
+  @Test
+  void testRenameTable() {
+    Table table = getTableA();
+
+    String expected = "alter table `immunization` rename `vaccination`;";
+
+    assertEquals(expected, sqlBuilder.renameTable(table, "vaccination"));
+  }
+
+  @Test
+  void testDropTableIfExists() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testDropTableIfExistsString() {
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
+  }
+
+  @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
+  @Test
+  void testSwapTable() {
+    String expected =
+        """
+        drop table if exists `vaccination`; \
+        alter table `immunization` rename `vaccination`;""";
+
+    assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testTableExists() {
+    String expected =
+        """
+        select t.table_name \
+        from information_schema.tables t \
+        where t.table_schema = 'public' \
+        and t.table_name = 'immunization';""";
+
+    assertEquals(expected, sqlBuilder.tableExists("immunization"));
+  }
+
+  @Test
+  void testCountRows() {
+    String expected =
+        """
+        select count(*) as row_count from `immunization`;""";
+
+    assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  @Test
+  void testInsertIntoSelectFrom() {
+    String expected =
+        """
+        insert into `vaccination` (`id`,`facility_type`,`bcg_doses`) \
+        select `id`,`facility_type`,`bcg_doses` from `immunization`;""";
+
+    assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`"));
+  }
 }
