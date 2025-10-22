@@ -259,6 +259,7 @@ public abstract class AbstractAnalyticsService {
 
     if (params.hasDataIdScheme()) {
       schemeIdResponseMapper.applyOptionAndLegendSetMapping(grid, NAME);
+      schemeIdResponseMapper.applyBooleanMapping(params.getDataIdScheme(), grid);
     }
 
     schemeIdResponseMapper.applyCustomIdScheme(params, grid);

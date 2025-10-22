@@ -32,12 +32,16 @@ import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
+import static org.hisp.dhis.common.IdScheme.NAME;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -45,6 +49,8 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -58,7 +64,10 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
+@RequiredArgsConstructor
 public class SchemeIdResponseMapper {
+  @Nonnull private final I18nManager i18nManager;
+
   /**
    * This method will map the respective element UID's with their respective ID scheme set. The
    * 'outputIdScheme' is considered the most general ID scheme parameter. If set, it will map the
@@ -202,10 +211,34 @@ public class SchemeIdResponseMapper {
     }
   }
 
+  /**
+   * Substitutes the metadata in the given grid for boolean value types.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @param grid the {@link Grid}.
+   */
+  public void applyBooleanMapping(IdScheme idScheme, Grid grid) {
+    if (idScheme != null && idScheme == NAME) {
+      for (int i = 0; i < grid.getHeaders().size(); i++) {
+        GridHeader header = grid.getHeaders().get(i);
+
+        if (header.hasValueType(BOOLEAN)) {
+          Map<String, String> booleanPropertyMap = getBooleanPropertyMap();
+          grid.substituteMetaData(i, i, booleanPropertyMap);
+        }
+      }
+    }
+  }
+
   private static Map<String, String> getOptionCodePropertyMap(OptionSet set, IdScheme idScheme) {
     return set.getOptions().stream()
         .filter(Objects::nonNull)
         .collect(Collectors.toMap(Option::getCode, o -> o.getDisplayPropertyValue(idScheme)));
+  }
+
+  private Map<String, String> getBooleanPropertyMap() {
+    I18n i18n = i18nManager.getI18n();
+    return Map.of("0", i18n.getString("no", "No"), "1", i18n.getString("yes", "Yes"));
   }
 
   /**
