@@ -53,15 +53,7 @@ These tests are self-contained within the `raw` package and do not affect other 
 
 ### Running Raw Tests
 
-```sh
-DB_TYPE=sierra-leone \
-DB_VERSION=2.41 \
-DHIS2_IMAGE=dhis2/core-dev:latest \
-SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \
-MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41" \
-ANALYTICS_GENERATE=true \
-./run-simulation.sh
-```
+Run `./run-simulation.sh` for full usage including raw test examples.
 
 > [!NOTE]
 > Analytics endpoints require `ANALYTICS_GENERATE=true` to pre-generate analytics tables before
