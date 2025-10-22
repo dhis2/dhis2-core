@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +107,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
 
     MetadataImportParams params =
         importService
-            .getParamsFromMap(contextService.getParameterValuesMap())
+            .getParamsFromMap(Map.of())
             .setImportReportMode(ImportReportMode.FULL)
             .setUser(UID.of(CurrentUserUtil.getCurrentUserDetails()))
             .setImportStrategy(ImportStrategy.CREATE);

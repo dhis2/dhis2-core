@@ -226,14 +226,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           preheatService.connectReferences(
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-          if (bundle.getOverrideUser() != null) {
-            object.setCreatedBy(bundle.getOverrideUser());
-
-            if (object instanceof User) {
-              (object).setCreatedBy(bundle.getOverrideUser());
-            }
-          }
-
           session.save(object);
 
           bundle.getPreheat().replace(bundle.getPreheatIdentifier(), object);
@@ -310,14 +302,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
                   .setMergeMode(MergeMode.REPLACE)
                   .setSkipSharing(bundle.isSkipSharing())
                   .setSkipTranslation(bundle.isSkipTranslation()));
-
-          if (bundle.getOverrideUser() != null) {
-            persistedObject.setCreatedBy(bundle.getOverrideUser());
-
-            if (object instanceof User) {
-              (object).setCreatedBy(bundle.getOverrideUser());
-            }
-          }
 
           session.update(persistedObject);
 

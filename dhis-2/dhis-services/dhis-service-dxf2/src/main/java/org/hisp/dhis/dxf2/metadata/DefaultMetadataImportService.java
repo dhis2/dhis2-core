@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -157,9 +156,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setSkipSharing(getBooleanWithDefault(parameters, "skipSharing", false));
     params.setSkipTranslation(getBooleanWithDefault(parameters, "skipTranslation", false));
     params.setSkipValidation(getBooleanWithDefault(parameters, "skipValidation", false));
-    params.setUserOverrideMode(
-        getEnumWithDefault(
-            UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE));
     params.setImportMode(
         getEnumWithDefault(
             ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT));
@@ -181,21 +177,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setFirstRowIsHeader(getBooleanWithDefault(parameters, "firstRowIsHeader", true));
     params.setAsync(getBooleanWithDefault(parameters, "async", false));
 
-    if (params.getUserOverrideMode() == UserOverrideMode.SELECTED) {
-      UID overrideUser = null;
-
-      if (parameters.containsKey("overrideUser")) {
-        List<String> overrideUsers = parameters.get("overrideUser");
-        overrideUser = UID.of(overrideUsers.get(0));
-      }
-
-      if (overrideUser == null) {
-        throw new MetadataImportException(
-            "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user.");
-      }
-      params.setOverrideUser(overrideUser);
-    }
-
     return params;
   }
 
@@ -208,7 +189,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
     // TODO: MAS: Refactor to use userDetails
 
     ObjectBundleParams params = new ObjectBundleParams();
-    params.setUserOverrideMode(importParams.getUserOverrideMode());
     params.setSkipSharing(importParams.isSkipSharing());
     params.setSkipTranslation(importParams.isSkipTranslation());
     params.setSkipValidation(importParams.isSkipValidation());
@@ -224,13 +204,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
         importParams.getUser() == null
             ? currentUser
             : userService.getUser(importParams.getUser().getValue()));
-    params.setOverrideUser(
-        importParams.getOverrideUser() == null
-            ? null
-            : userService.getUser(importParams.getOverrideUser().getValue()));
-    if (params.getUserOverrideMode() == UserOverrideMode.CURRENT) {
-      params.setOverrideUser(currentUser);
-    }
     return params;
   }
 

@@ -38,7 +38,6 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
-import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -58,13 +57,10 @@ public class ObjectBundleParams {
 
   @ToString.Exclude private User user;
 
-  @ToString.Exclude private User overrideUser;
-
   @ToString.Exclude
   private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
       new HashMap<>();
 
-  private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
   private ObjectBundleMode objectBundleMode = ObjectBundleMode.COMMIT;
   private PreheatIdentifier preheatIdentifier = PreheatIdentifier.UID;
   private PreheatMode preheatMode = PreheatMode.REFERENCE;
