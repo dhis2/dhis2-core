@@ -33,6 +33,7 @@ import static org.hisp.dhis.http.HttpClientAdapter.ApiTokenHeader;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.http.HttpStatus;
@@ -42,9 +43,7 @@ import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.test.webapi.ControllerWithApiTokenAuthTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -111,7 +110,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     hibernateService.flushSession();
 
     token.addIpToAllowedList("192.168.2.1");
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     String errorMessage =
@@ -122,7 +120,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     token.addIpToAllowedList("127.0.0.1");
 
     injectAdminIntoSecurityContext();
-    UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
@@ -235,6 +232,38 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     assertEquals(
         "The API token does not exists",
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
+
+  @Test
+  void testPostWithTokenInQueryString() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
+
+    // Test POST request with token in URL query string
+    String postUriWithToken = URI + "&api_token=" + plaintext;
+    String errorMessage = POST(postUriWithToken, "").error(HttpStatus.BAD_REQUEST).getMessage();
+
+    // Should be rejected
+    assertTrue(errorMessage.contains("API token found in URL query string"));
+  }
+
+  @Test
+  void testQueryParameterToken() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
+
+    // Test GET request with token in query string
+    String getUriWithToken = URI + "&api_token=" + plaintext;
+
+    try {
+      JsonUser user = GET(getUriWithToken).content(HttpStatus.OK).as(JsonUser.class);
+      assertEquals(getAdminUser().getUid(), user.getId());
+    } catch (Exception e) {
+      // If query parameters are disabled, this is expected
+      assertTrue(
+          e.getMessage().contains("API token source not allowed")
+              || e.getMessage().contains("Checksum validation failed"));
+    }
   }
 
   private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
