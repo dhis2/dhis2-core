@@ -31,7 +31,6 @@ package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -276,34 +275,6 @@ class DorisSqlBuilderTest {
         select `id`,`facility_type`,`bcg_doses` from `immunization`;""";
 
     assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`"));
-  }
-
-  // Normalization
-
-  @Test
-  void testToValidColumnName() {
-    assertNull(sqlBuilder.toValidColumnName(null));
-    assertEquals("", sqlBuilder.toValidColumnName(""));
-
-    assertEquals("FacilityType", sqlBuilder.toValidColumnName("FacilityType"));
-    assertEquals("Facility type", sqlBuilder.toValidColumnName("Facility type"));
-    assertEquals("Facility_Type", sqlBuilder.toValidColumnName("Facility_Type"));
-    assertEquals("Facility-Type", sqlBuilder.toValidColumnName("Facility-Type"));
-
-    assertEquals("Age in years", sqlBuilder.toValidColumnName("Age in years"));
-    assertEquals("Age&in*years", sqlBuilder.toValidColumnName("Age&in*years"));
-    assertEquals("Age#in@years", sqlBuilder.toValidColumnName("Age#in@years"));
-    assertEquals("Age^in$years", sqlBuilder.toValidColumnName("Age^in$years"));
-
-    assertEquals("Facility_Type", sqlBuilder.toValidColumnName("Facility!Type"));
-    assertEquals("Facility_Type", sqlBuilder.toValidColumnName("Facility!!!Type"));
-    assertEquals("Facility_Type_", sqlBuilder.toValidColumnName("Facility(Type)"));
-    assertEquals("Facility_Type_", sqlBuilder.toValidColumnName("(Facility)(Type)"));
-
-    assertEquals("Age_in_years", sqlBuilder.toValidColumnName("Age=in=years"));
-    assertEquals("Age _in_ _years_", sqlBuilder.toValidColumnName("Age [in] [years]"));
-    assertEquals("Age_ _in_ _years_", sqlBuilder.toValidColumnName("[[[Age]]] [in] [years]"));
-    assertEquals("Age_ _in_ _years_", sqlBuilder.toValidColumnName("[[[Age]]] [[in]] [[years]]"));
   }
 
   // Catalog

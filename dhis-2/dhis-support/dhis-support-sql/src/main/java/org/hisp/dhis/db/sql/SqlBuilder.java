@@ -551,14 +551,4 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
-
-  // Normalization
-
-  /**
-   * Converts the input to a valid column name in a context where the column name is quoted.
-   *
-   * @param input the input.
-   * @return a valid column name.
-   */
-  String toQuotedColumnName(String input);
 }

@@ -33,10 +33,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
@@ -54,8 +52,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
  */
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
-  private static final Pattern PAT_COL_NAME_CHARS =
-      Pattern.compile("[.a-zA-Z0-9_+\\-/?@#$%^&\\*\"\\s,:]");
 
   private final String catalog;
 
@@ -508,15 +504,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   // Normalization
-
-  public String toValidColumnName(String input) {
-    if (StringUtils.isEmpty(input)) {
-      return input;
-    }
-
-    String string = sanitize(PAT_COL_NAME_CHARS, input, '_');
-    return StringUtils.substring(string, 0, 256);
-  }
 
   // Catalog
 
