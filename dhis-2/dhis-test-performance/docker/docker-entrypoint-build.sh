@@ -121,12 +121,9 @@ build_init() {
 
 	# Temporarily modify postgresql.conf for faster build (no fsync/sync writes)
 	# Tuning optimized for dump restore:
-	# * max_wal_size = 4GB: Sized for largest DB (hmis ~1.3GB compressed -> ~6-13GB uncompressed)
-	#   Rule of thumb: 10-25% of uncompressed DB size. Reduces checkpoint frequency from
-	#   every ~10s to ~30-60s, reducing I/O contention. Expected 20-30% speedup for large DBs.
+	# * max_wal_size = 4GB: Sized for largest DB (hmis ~1.3GB compressed)
 	# * checkpoint_timeout = 30min: Prevents time-based checkpoints during restore
-	# * maintenance_work_mem = 1GB: Increased from runtime 256MB to speed up index creation
-	#   and sorting operations during restore
+  # * maintenance_work_mem = 1GB: to speed up index creation and sorting operations during restore
 	{
 		echo "fsync = off"
 		echo "synchronous_commit = off"
