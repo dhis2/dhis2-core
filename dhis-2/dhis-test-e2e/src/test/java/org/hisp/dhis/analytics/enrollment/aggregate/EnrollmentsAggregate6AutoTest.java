@@ -135,7 +135,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        5,
+        2,
         2); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -203,7 +203,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         37,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -311,7 +311,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         0,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -381,7 +381,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2497,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -501,7 +501,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2497,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -642,7 +642,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2497,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -771,7 +771,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         5,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
