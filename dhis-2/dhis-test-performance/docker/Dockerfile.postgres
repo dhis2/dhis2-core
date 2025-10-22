@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:1
 # Dockerfile to build and restore the DB dump at build time (not runtime)
 # This significantly speeds up container startup for performance tests.
-ARG POSTGRES_BASE_IMAGE=ghcr.io/baosystems/postgis:14-3.5
 ARG DB_TYPE
 ARG DB_VERSION
 
@@ -14,7 +13,7 @@ RUN S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYP
     echo "Downloading from: $S3_PATH" && \
     aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
 
-FROM ${POSTGRES_BASE_IMAGE} AS builder
+FROM ghcr.io/baosystems/postgis:14-3.5 AS builder
 
 # Ensure build cache is invalidated when DB_TYPE or DB_VERSION changes so dump is restored
 ARG DB_TYPE
@@ -36,7 +35,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
     gosu postgres /usr/local/bin/docker-entrypoint-build.sh
 
 # Final stage with pre-populated database
-FROM ${POSTGRES_BASE_IMAGE}
+FROM ghcr.io/baosystems/postgis:14-3.5
 
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
