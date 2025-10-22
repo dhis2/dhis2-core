@@ -656,6 +656,10 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean userNonExpired(User user) {
+    if (user == null) {
+      return true;
+    }
+
     int credentialsExpires = systemSettingManager.credentialsExpires();
 
     if (credentialsExpires == 0) {
