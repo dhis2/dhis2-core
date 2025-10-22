@@ -204,13 +204,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return EMPTY;
   }
 
-  // Normalization
-
-  public String toQuotedColumnName(String input) {
-    // Return input unchanged, as most databases support special characters in quoted column names
-    return input;
-  }
-
   // Mapping
 
   /**

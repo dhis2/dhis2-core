@@ -503,8 +503,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return notSupported();
   }
 
-  // Normalization
-
   // Catalog
 
   /**
