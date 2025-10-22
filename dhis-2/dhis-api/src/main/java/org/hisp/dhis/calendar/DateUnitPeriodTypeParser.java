@@ -356,7 +356,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
     } else if (DateUnitType.FINANCIAL_NOVEMBER == dateUnitType) {
       int year = Integer.parseInt(matcher.group(1));
 
-      DateTimeUnit start = new DateTimeUnit(year - 1, 11, 1, calendar.isIso8601());
+      DateTimeUnit start = new DateTimeUnit(year, 11, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
       end = calendar.minusDays(end, 1);
