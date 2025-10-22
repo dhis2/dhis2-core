@@ -276,4 +276,19 @@ class DorisSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.insertIntoSelectFrom(getTableB(), "`immunization`"));
   }
+
+  // Catalog
+
+  @Test
+  void testCreateCatalog() {
+    String expected =
+        """
+        create catalog `pg_dhis` \
+        properties (\
+        "type" = "jdbc", "user" = "dhis", "password" = "district", \
+        "jdbc_url" = "127.0.0.1", "driver_url" = "postgresql.jar", \
+        "driver_class" = "org.postgresql.Driver");""";
+
+    assertEquals(expected, sqlBuilder.createCatalog("127.0.0.1", "dhis", "district"));
+  }
 }
