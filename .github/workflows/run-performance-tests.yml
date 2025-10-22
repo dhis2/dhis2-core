@@ -15,16 +15,27 @@
 #
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
-#   --field baseline_env="DHIS2_IMAGE=dhis2/core-dev:latest
-# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
-# DB_TYPE=sierra-leone
-# DB_VERSION=dev" \
+#   --field baseline_env="DHIS2_IMAGE=dhis2/core:2.42.0
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest" \
 #   --field candidate_env="DHIS2_IMAGE=dhis2/core-dev:latest
-# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
-# DB_TYPE=sierra-leone
-# DB_VERSION=dev"
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest"
 #
-# Analytics test with ANALYTICS_GENERATE:
+# Analytics test with ANALYTICS_GENERATE for sierra-leone:
+#
+# gh workflow run run-performance-tests.yml \
+#   --field perf_tests_git_ref="master" \
+#   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
+# SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# DB_VERSION=2.42.0
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=41.0"
+# ANALYTICS_GENERATE=true' \
+#   --field candidate_env='DHIS2_IMAGE=dhis2/core:2.42.1
+# SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# DB_VERSION=2.42.0
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.1 -Dbaseline=41.0"
+# ANALYTICS_GENERATE=true'
+#
+# Analytics test with ANALYTICS_GENERATE for hmis:
 #
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
@@ -50,8 +61,8 @@
 # REPRODUCING FROM PREVIOUS RUNS
 # ===============================
 #
-# Download artifacts from a previous run and use the generated run-simulation.env files.
-# You can pass the files directly using @ syntax:
+# Download artifacts from a previous run and use the generated run-simulation.env files. You can
+# pass the files directly using @ syntax:
 #
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
@@ -78,7 +89,7 @@ on:
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
           DB_TYPE=sierra-leone
           DB_VERSION=2.42
-          WARMUP=1
+          WARMUP=2
         required: true
         type: string
       candidate_env:
@@ -89,9 +100,7 @@ on:
           Example:
           DHIS2_IMAGE=dhis2/core-dev:latest
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
-          DB_TYPE=sierra-leone
-          DB_VERSION=dev
-          WARMUP=1
+          WARMUP=2
         required: true
         type: string
 
