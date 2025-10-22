@@ -31,13 +31,14 @@ package org.hisp.dhis.fileresource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.joda.time.DateTime;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource> {
-  List<FileResource> getExpiredDataValueFileResources(DateTime expires);
+  List<FileResource> getExpiredDataValueFileResources(DateTime expires, DateTime gracePeriod);
 
   List<FileResource> getAllUnProcessedImages();
 
@@ -116,4 +117,7 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
    * @return matching FileResources
    */
   List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
+
+  List<FileResource> getUnassignedPastGracePeriod(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime minus);
 }

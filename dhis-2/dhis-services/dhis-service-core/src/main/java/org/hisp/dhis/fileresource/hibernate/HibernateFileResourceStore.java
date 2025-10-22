@@ -70,20 +70,24 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<FileResource> getExpiredDataValueFileResources(DateTime expires) {
+  public List<FileResource> getExpiredDataValueFileResources(
+      DateTime retentionPeriod, DateTime gracePeriod) {
+    System.out.println("gracePeriod: " + gracePeriod);
+    System.out.println("retentionPeriod: " + retentionPeriod);
+    @Language("SQL")
     String sql =
         """
         select fr.*
         from fileresource fr
-        inner join (select dv.value
-        from datavalue dv
-        where dv.created < :date
-        and dv.dataelementid in
-        (select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dv
-        on dv.value = fr.uid
-        where fr.isassigned = true;
+        where fr.isassigned = false
+        and fr.domain = 'DATA_VALUE'
+        and fr.lastupdated < :gracePeriod
+        and fr.lastupdated < :retentionPeriod
         """;
-    return nativeSynchronizedTypedQuery(sql).setParameter("date", expires.toDate()).getResultList();
+    return nativeSynchronizedTypedQuery(sql)
+        .setParameter("gracePeriod", gracePeriod.toDate())
+        .setParameter("retentionPeriod", retentionPeriod.toDate())
+        .getResultList();
   }
 
   @Override
@@ -208,5 +212,25 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
         """;
 
     return nativeSynchronizedTypedQuery(sql).list();
+  }
+
+  @Override
+  public List<FileResource> getUnassignedPastGracePeriod(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime gracePeriod) {
+    @Language("SQL")
+    String sql =
+        """
+        select fr.*
+        from fileresource fr
+        where fr.isassigned = false
+        and fr.domain in :domainsToDeleteWhenUnassigned
+        and fr.lastupdated < :gracePeriod
+        """;
+    return nativeSynchronizedTypedQuery(sql)
+        .setParameter("gracePeriod", gracePeriod.toDate())
+        .setParameter(
+            "domainsToDeleteWhenUnassigned",
+            domainsToDeleteWhenUnassigned.stream().map(Enum::name).toList())
+        .getResultList();
   }
 }

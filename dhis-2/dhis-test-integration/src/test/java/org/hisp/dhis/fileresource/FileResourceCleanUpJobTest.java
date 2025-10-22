@@ -33,8 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -63,7 +61,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -95,9 +92,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private ExternalFileResourceService externalFileResourceService;
-
-  @Mock private FileResourceContentStore fileResourceContentStore;
-
+  
   private DataValue dataValueA;
 
   private DataValue dataValueB;
@@ -108,8 +103,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void init() {
-    cleanUpJob =
-        new FileResourceCleanUpJob(fileResourceService, settingsService, fileResourceContentStore);
+    cleanUpJob = new FileResourceCleanUpJob(fileResourceService, settingsService);
 
     period = createPeriod(PeriodType.getPeriodTypeByName("Monthly"), new Date(), new Date());
     periodService.addPeriod(period);
@@ -117,8 +111,6 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Test
   void testNoRetention() {
-    when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
-
     settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes();
@@ -136,8 +128,6 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Disabled(
       "DHIS2-19679 audits are read-only - 'created' can no longer be faked this way (or any other easy way)")
   void testRetention() throws ConflictException {
-    when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
-
     settingsService.put(
         "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.THREE_MONTHS);
 
@@ -171,8 +161,6 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrphan() {
-    when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
-
     settingsService.put("keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE);
 
     content = "filecontentA".getBytes(StandardCharsets.UTF_8);

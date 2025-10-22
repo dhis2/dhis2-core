@@ -40,6 +40,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -62,7 +63,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Hours;
+import org.joda.time.Minutes;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.fileresource.FileResourceService")
 public class DefaultFileResourceService implements FileResourceService {
-  private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
+  private static final Duration UNASSIGNED_GRACE_PERIOD = Minutes.minutes(2).toStandardDuration();
 
   public static final Predicate<FileResource> IS_ORPHAN_PREDICATE = (fr -> !fr.isAssigned());
 
@@ -126,12 +127,10 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<FileResource> getOrphanedFileResources() {
-    return fileResourceStore
-        .getAllLeCreated(new DateTime().minus(IS_ORPHAN_TIME_DELTA).toDate())
-        .stream()
-        .filter(IS_ORPHAN_PREDICATE)
-        .collect(Collectors.toList());
+  public List<FileResource> getExpiredFileResources(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned) {
+    return fileResourceStore.getUnassignedPastGracePeriod(
+        domainsToDeleteWhenUnassigned, new DateTime().minus(UNASSIGNED_GRACE_PERIOD));
   }
 
   @Override
@@ -413,8 +412,9 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional(readOnly = true)
   public List<FileResource> getExpiredDataValueFileResources(
       FileResourceRetentionStrategy retentionStrategy) {
-    DateTime expires = DateTime.now().minus(retentionStrategy.getRetentionTime());
-    return fileResourceStore.getExpiredDataValueFileResources(expires);
+    DateTime retentionPeriod = DateTime.now().minus(retentionStrategy.getRetentionTime());
+    return fileResourceStore.getExpiredDataValueFileResources(
+        retentionPeriod, new DateTime().minus(UNASSIGNED_GRACE_PERIOD));
   }
 
   @Override
