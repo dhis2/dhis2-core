@@ -152,7 +152,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken> {
     // Continue POST import as usual
     MetadataImportParams params =
         importService
-            .getParamsFromMap(contextService.getParameterValuesMap())
+            .getParamsFromMap(Map.of())
             .setImportReportMode(ImportReportMode.FULL)
             .setUser(user)
             .setImportStrategy(ImportStrategy.CREATE)
