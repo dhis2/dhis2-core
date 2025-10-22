@@ -250,6 +250,10 @@ public class GridHeader implements Serializable {
     return legendSet != null;
   }
 
+  public boolean hasValueType(ValueType valueType) {
+    return getValueType() == valueType;
+  }
+
   public boolean hasOptionSet() {
     return optionSet != null;
   }
