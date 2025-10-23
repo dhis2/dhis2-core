@@ -64,13 +64,6 @@ public interface DocumentService {
   Document getDocument(String uid);
 
   /**
-   * Used when removing a file reference from a Document.
-   *
-   * @param document
-   */
-  void deleteFileFromDocument(Document document);
-
-  /**
    * Deletes a Document.
    *
    * @param document the Document to delete.

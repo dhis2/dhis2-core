@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -83,7 +84,10 @@ public class FileResourceCleanUpJob implements Job {
       List<FileResource> dvExpired =
           fileResourceService.getExpiredDataValueFileResources(retentionStrategy);
       deleteFrs(
-          progress, "Deleting expired DataValue file resources", dvExpired, deletedFileResources);
+          progress,
+          "Deleting unassigned DataValue file resources",
+          dvExpired,
+          deletedFileResources);
     }
 
     // Job Data FRs
@@ -100,7 +104,7 @@ public class FileResourceCleanUpJob implements Job {
         fileResourceService.getExpiredFileResources(domainsToDeleteWhenUnassigned);
     deleteFrs(
         progress,
-        "Deleting expired file resources for domains %s"
+        "Deleting unassigned file resources for domains %s"
             .formatted(
                 domainsToDeleteWhenUnassigned.stream()
                     .map(Enum::name)
@@ -109,7 +113,7 @@ public class FileResourceCleanUpJob implements Job {
         deletedFileResources);
 
     log.info(
-        "Deleted {} expired FileResources {}",
+        "Deleted {} unassigned FileResources {}",
         deletedFileResources.size(),
         deletedFileResources.isEmpty() ? "" : deletedFileResources);
 
@@ -138,7 +142,19 @@ public class FileResourceCleanUpJob implements Job {
     return fr.getUid() + ":" + fr.getName();
   }
 
-  private record ExpiredFileResource(String uid, String name, String domain) {}
+  private record ExpiredFileResource(String uid, String name, String domain) {
+    @Nonnull
+    @Override
+    public String toString() {
+      return """
+          {
+            uid=%s,
+            name=%s,
+            domain=%s
+          }"""
+          .formatted(uid, name, domain);
+    }
+  }
 
   /**
    * Attempts to delete a fileresource. Fixes the isAssigned status if it turns out to be referenced

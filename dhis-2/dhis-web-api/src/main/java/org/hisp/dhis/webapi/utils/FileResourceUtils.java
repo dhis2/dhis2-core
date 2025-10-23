@@ -240,8 +240,6 @@ public class FileResourceUtils {
     FileResource fileResource =
         new FileResource(filename, contentType, contentLength, contentMd5, domain);
     fileResource.setUid(uid);
-    // mark as assigned to start with
-    fileResource.setAssigned(true);
 
     File tmpFile = toTempFile(file);
 
