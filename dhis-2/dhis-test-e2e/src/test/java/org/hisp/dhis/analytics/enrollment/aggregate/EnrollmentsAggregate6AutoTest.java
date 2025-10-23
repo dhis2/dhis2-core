@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -819,15 +820,10 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "GxdhnY5wmHq", "2327");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "value", "1");
-    validateRowValueByName(response, actualHeaders, 4, "GxdhnY5wmHq", "4817");
-    validateRowValueByName(response, actualHeaders, 4, "ou", "ImspTQPwCqd");
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "2327"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "4817"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3387.5"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3338.5"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "3766.5"));
   }
 }
