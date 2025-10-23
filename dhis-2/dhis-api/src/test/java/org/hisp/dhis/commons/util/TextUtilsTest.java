@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.hisp.dhis.util.MapBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -342,6 +343,25 @@ class TextUtilsTest {
   @Test
   void testGetVariableNamesWithNullInput() {
     assertEquals(Set.of(), TextUtils.getVariableNames(null));
+  }
+
+  @Test
+  void testSanitize() {
+    Pattern pattern = Pattern.compile("[a-zA-Z\\s_]");
+
+    assertEquals(
+        "The algorithm decided to eat a vegetable",
+        TextUtils.sanitize(pattern, "The algorithm decided to eat a vegetable", '_'));
+
+    assertEquals(
+        "The algor_thm deci_ed to e_t a veg_tab_e",
+        TextUtils.sanitize(pattern, "The algor!thm deci&ed to e/t a veg#tab?e", '_'));
+    assertEquals(
+        "The algor_thm decided to _eat_ a _vegetable_",
+        TextUtils.sanitize(pattern, "#The algor!!##thm decided to **eat** a *vegetable*", '_'));
+    assertEquals(
+        "The_ algorithm _decided_ to _eat_ a vegetable",
+        TextUtils.sanitize(pattern, "(The) algorithm (decided) to (eat) a vegetable", '_'));
   }
 
   @ParameterizedTest

@@ -724,4 +724,38 @@ public class TextUtils {
     String base = removeAnyTrailingSlash(baseUrl);
     return base + ("/" + path).replaceAll("/+", "/");
   }
+
+  /**
+   * Sanitizes the given input by replacing characters which are not matching any of the valid
+   * characters as specified by the given pattern with the given replacement character. Consecutive
+   * replacement characters are merged into a single character. Any leading replacement characters
+   * are removed.
+   *
+   * @param pattern the pattern of valid characters.
+   * @param input the input string.
+   * @param replacement the replacement characters for invalid characters.
+   * @return a sanitized string.
+   */
+  public static String sanitize(Pattern pattern, String input, char replacement) {
+    StringBuilder sb = new StringBuilder(input.length());
+
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+      if (pattern.matcher(String.valueOf(c)).matches()) {
+        sb.append(c);
+      } else {
+        sb.append(replacement);
+      }
+    }
+
+    String str = sb.toString();
+
+    // Merge consecutive replacement characters
+    str = str.replaceAll((replacement + "+"), String.valueOf(replacement));
+
+    // Remove any leading replacement characters
+    str = str.replaceAll(("^" + replacement + "+"), "");
+
+    return str;
+  }
 }
