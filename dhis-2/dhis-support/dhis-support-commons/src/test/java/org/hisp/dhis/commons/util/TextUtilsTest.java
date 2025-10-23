@@ -328,6 +328,10 @@ class TextUtilsTest {
     assertEquals(
         "The_ algorithm _decided_ to _eat_ a vegetable",
         TextUtils.sanitize(pattern, "(The) algorithm (decided) to (eat) a vegetable", '_'));
+
+    assertNull(TextUtils.sanitize(pattern, null, '_'));
+
+    assertEquals("", TextUtils.sanitize(pattern, "", '_'));
   }
 
   @ParameterizedTest
