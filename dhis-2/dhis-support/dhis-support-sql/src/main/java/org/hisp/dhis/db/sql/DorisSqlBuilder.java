@@ -341,6 +341,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("variance(%s)", expression);
   }
 
+  // Statements
+
   @Override
   public String createTable(Table table) {
     Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
@@ -501,6 +503,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return notSupported();
   }
 
+  // Catalog
+
   /**
    * Returns a create catalog statement.
    *
@@ -513,14 +517,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return replace(
         """
         create catalog ${catalog} \
-        properties (
+        properties (\
         "type" = "jdbc", \
         "user" = "${username}", \
         "password" = "${password}", \
         "jdbc_url" = "${connection_url}", \
         "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
-        );""",
+        "driver_class" = "org.postgresql.Driver");""",
         Map.of(
             "catalog", quote(catalog),
             "username", username,

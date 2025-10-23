@@ -34,7 +34,6 @@ import java.util.Date;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataEntryKey;
@@ -45,8 +44,10 @@ import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.hibernate.RawNativeQuery;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.sql.NativeSQL;
+import org.hisp.dhis.sql.QueryBuilder;
+import org.hisp.dhis.sql.SQL;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -100,16 +101,16 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
 
   @Override
   public List<DataValueChangelog> getEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, getSession()).stream(DataValueChangelog.class).toList();
+    return createEntriesQuery(params, NativeSQL.of(getSession())).stream(DataValueChangelog.class)
+        .toList();
   }
 
   @Override
   public int countEntries(DataValueChangelogQueryParams params) {
-    return createEntriesQuery(params, getSession()).count();
+    return createEntriesQuery(params, NativeSQL.of(getSession())).count();
   }
 
-  static RawNativeQuery createEntriesQuery(DataValueChangelogQueryParams params, Session session) {
-    @Language("sql")
+  static QueryBuilder createEntriesQuery(DataValueChangelogQueryParams params, SQL.QueryAPI api) {
     String sql =
         """
       SELECT *
@@ -130,22 +131,23 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       ORDER BY dva.created DESC""";
 
     Pager pager = params.getPager();
-    return new RawNativeQuery(sql, session)
-        .setInOrAnyParameter("types", params.getTypes(), DataValueChangelogType::name)
-        .setInOrAnyParameter("pe", params.getPeriods(), Period::getIsoDate)
-        .setInOrAnyParameter("ds", params.getDataSets())
-        .setInOrAnyParameter("de", params.getDataElements())
-        .setInOrAnyParameter("ou", params.getOrgUnits())
+    return SQL.of(sql, api)
+        .setParameter("types", params.getTypes(), DataValueChangelogType::name)
+        .setParameter("pe", params.getPeriods(), Period::getIsoDate)
+        .setParameter("ds", params.getDataSets())
+        .setParameter("de", params.getDataElements())
+        .setParameter("ou", params.getOrgUnits())
         .setParameter("coc", params.getCategoryOptionCombo())
         .setParameter("aoc", params.getAttributeOptionCombo())
         .setOffset(pager == null ? null : pager.getOffset())
         .setLimit(pager == null ? null : pager.getPageSize())
         .eraseNullParameterLines()
-        .eraseNullJoinLine("de", "de")
-        .eraseNullJoinLine("ou", "ou")
-        .eraseNullJoinLine("pe", "pe")
-        .eraseNullJoinLine("dse", "ds")
-        .eraseNullJoinLine("ds", "ds");
+        .useEqualsOverInForParameters("types", "ds", "de", "ou", "pe")
+        .eraseNullParameterJoinLine("de", "de")
+        .eraseNullParameterJoinLine("ou", "ou")
+        .eraseNullParameterJoinLine("pe", "pe")
+        .eraseNullParameterJoinLine("dse", "ds")
+        .eraseNullParameterJoinLine("ds", "ds");
   }
 
   @Override
@@ -180,16 +182,17 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
             AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
         ORDER BY dva.created DESC""";
-    return new RawNativeQuery(sql, getSession())
-            .setParameter("de", key.dataElement())
-            .setParameter("ou", key.orgUnit())
-            .setParameter("iso", key.period())
-            .eraseNullParameterLines()
-            .setParameter("coc", key.categoryOptionCombo())
-            .setParameter("aoc", key.attributeOptionCombo())
-            .stream()
-            .map(HibernateDataValueChangelogStore::toEntry)
-            .toList();
+    return SQL
+        .of(sql, NativeSQL.of(getSession()))
+        .setParameter("de", key.dataElement())
+        .setParameter("ou", key.orgUnit())
+        .setParameter("iso", key.period())
+        .eraseNullParameterLines()
+        .setParameter("coc", key.categoryOptionCombo())
+        .setParameter("aoc", key.attributeOptionCombo())
+        .stream()
+        .map(HibernateDataValueChangelogStore::toEntry)
+        .toList();
   }
 
   @CheckForNull
