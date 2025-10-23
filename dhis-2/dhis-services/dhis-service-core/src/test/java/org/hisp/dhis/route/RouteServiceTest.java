@@ -29,54 +29,36 @@ package org.hisp.dhis.route;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockserver.model.HttpRequest.request;
 
-import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
+import java.util.concurrent.CountDownLatch;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-import org.mockserver.client.MockServerClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 class RouteServiceTest {
 
   @Test
-  @Timeout(value = 150)
-  void testHttpClientConnectionManagerDefaultMaxPerRoute() throws IOException {
-    GenericContainer<?> routeTargetMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver")
-            .waitingFor(
-                new HttpWaitStrategy()
-                    .forStatusCode(404)
-                    .withStartupTimeout(Duration.ofSeconds(120)))
-            .withExposedPorts(1080);
-    routeTargetMockServerContainer.start();
+  void testHttpClientConnectionManagerDefaultMaxPerRoute() {
+    CountDownLatch countDownLatch = new CountDownLatch(2);
+    RouteService routeService =
+        new RouteService(null, null, null) {
+          @Override
+          protected HttpClientConnectionManager newConnectionManager() {
+            HttpClientConnectionManager httpClientConnectionManager = super.newConnectionManager();
+            assertEquals(
+                RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE,
+                ((PoolingHttpClientConnectionManager) httpClientConnectionManager)
+                    .getDefaultMaxPerRoute());
+            countDownLatch.countDown();
 
-    MockServerClient routeTargetMockServerClient =
-        new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
-    routeTargetMockServerClient
-        .when(request().withPath("/"))
-        .respond(org.mockserver.model.HttpResponse.response("{}"));
-
-    RouteService routeService = new RouteService(null, null, null);
+            return httpClientConnectionManager;
+          }
+        };
     routeService.postConstruct();
-
-    HttpClient httpClient = routeService.getHttpClient();
-    HttpUriRequest httpUriRequest =
-        RequestBuilder.get(
-                "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort())
-            .build();
-
-    for (int i = 0; i < RouteService.DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE; i++) {
-      httpClient.execute(httpUriRequest);
-    }
+    assertEquals(1, countDownLatch.getCount());
   }
 
   @Test
