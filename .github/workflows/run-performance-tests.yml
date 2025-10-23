@@ -20,22 +20,20 @@
 #   --field candidate_env="DHIS2_IMAGE=dhis2/core-dev:latest
 # SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest"
 #
-# Analytics test with ANALYTICS_GENERATE for sierra-leone:
+# Analytics test for sierra-leone (analytics tables are automatically generated):
 #
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
 # DB_VERSION=2.42.0
-# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=41.0"
-# ANALYTICS_GENERATE=true' \
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=41.0"' \
 #   --field candidate_env='DHIS2_IMAGE=dhis2/core:2.42.1
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
 # DB_VERSION=2.42.0
-# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.1 -Dbaseline=41.0"
-# ANALYTICS_GENERATE=true'
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.1 -Dbaseline=41.0"'
 #
-# Analytics test with ANALYTICS_GENERATE for hmis:
+# Analytics test for hmis (analytics tables are automatically generated):
 #
 # gh workflow run run-performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
@@ -46,7 +44,6 @@
 # DHIS2_USERNAME=qadmin
 # DHIS2_PASSWORD=!Qadmin123S
 # MVN_ARGS="-Dscenario=test-scenarios/hmis/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=42.0"
-# ANALYTICS_GENERATE=true
 # ANALYTICS_TIMEOUT=7200' \
 #   --field candidate_env='DHIS2_IMAGE=dhis2/core:2.42.1
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
@@ -55,7 +52,6 @@
 # DHIS2_USERNAME=qadmin
 # DHIS2_PASSWORD=!Qadmin123S
 # MVN_ARGS="-Dscenario=test-scenarios/hmis/analytics-ev-query-speed-get-test.json -Dversion=42.1 -Dbaseline=42.0"
-# ANALYTICS_GENERATE=true
 # ANALYTICS_TIMEOUT=7200'
 #
 # REPRODUCING FROM PREVIOUS RUNS
@@ -83,7 +79,7 @@ on:
         description: |
           Baseline configuration in .env file format (multiline).
           Required: DHIS2_IMAGE, SIMULATION_CLASS
-          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_TIMEOUT, etc.)
           Example:
           DHIS2_IMAGE=dhis2/core:2.42.1
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
@@ -96,7 +92,7 @@ on:
         description: |
           Candidate configuration in .env file format (multiline).
           Required: DHIS2_IMAGE, SIMULATION_CLASS (must match baseline)
-          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_TIMEOUT, etc.)
           Example:
           DHIS2_IMAGE=dhis2/core-dev:latest
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest

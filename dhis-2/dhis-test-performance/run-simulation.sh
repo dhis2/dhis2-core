@@ -24,9 +24,8 @@ show_usage() {
   echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
   echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
-  echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
-  echo "                        Required for analytics endpoints that query pre-computed tables"
-  echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
+  echo "  ANALYTICS_TIMEOUT     Max wait time for analytics table generation during DB image"
+  echo "                        build in seconds (default: 900 = 15min)"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
@@ -53,10 +52,9 @@ show_usage() {
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
   echo ""
-  echo "  # With analytics table generation (required for analytics endpoints)"
+  echo "  # Analytics endpoints (analytics tables are automatically generated and cached)"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \\"
   echo "  DHIS2_IMAGE=dhis2/core:2.42.1 \\"
-  echo "  ANALYTICS_GENERATE=true \\"
   echo "  ANALYTICS_TIMEOUT=7200 \\"
   echo "  DB_TYPE=hmis \\"
   echo "  DB_VERSION=2.42 \\"
@@ -91,8 +89,7 @@ DB_TYPE=${DB_TYPE:-"sierra-leone"}
 DB_VERSION=${DB_VERSION:-"dev"}
 DHIS2_USERNAME=${DHIS2_USERNAME:-"admin"}
 DHIS2_PASSWORD=${DHIS2_PASSWORD:-"district"}
-ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
-ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
+ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min, used during DB image build
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 WARMUP=${WARMUP:-1}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
@@ -224,6 +221,9 @@ build_analytics_db_image() {
   echo "This will be reused for future runs."
   echo ""
 
+  # TIMING: Start DB image build
+  local build_start_time=$(date +%s)
+
   echo "Starting temporary containers to generate analytics..."
   start_containers
 
@@ -326,7 +326,8 @@ build_analytics_db_image() {
   echo ""
   echo "Committing DB container state to image..."
 
-  # Commit the DB container with analytics tables, adding a label to mark it
+  # Export/import the DB container with analytics tables to capture volume data
+  # Note: docker commit excludes volumes, so we use export/import instead
   local db_container_id
   db_container_id=$(docker compose "${compose_files[@]}" ps --quiet db)
 
@@ -335,10 +336,35 @@ build_analytics_db_image() {
     exit 1
   fi
 
-  # Commit with label to mark this as analytics-enabled
-  docker commit --change 'LABEL DHIS2_DB_ANALYTICS_TABLES=true' "$db_container_id" "$db_image"
+  # Export container filesystem (includes volume data) and import as new image
+  # Preserve all metadata from the original image (extracted using:
+  #   docker image inspect "$db_image" --format '{{json .Config}}'
+  docker export "$db_container_id" | docker import \
+    --change "ENV PGPASSWORD=dhis" \
+    --change "ENV POSTGRES_USER=dhis" \
+    --change "ENV POSTGRES_DB=dhis" \
+    --change "ENV POSTGRES_PASSWORD=dhis" \
+    --change "ENV PGUSER=dhis" \
+    --change "ENV PGDATABASE=dhis" \
+    --change "ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/14/bin" \
+    --change "ENV GOSU_VERSION=1.17" \
+    --change "ENV LANG=en_US.utf8" \
+    --change "ENV PG_MAJOR=14" \
+    --change "ENV PG_VERSION=14.18-1.pgdg110+1" \
+    --change "ENV PGDATA=/var/lib/postgresql/data" \
+    --change "ENV POSTGIS_MAJOR=3" \
+    --change "ENV POSTGIS_VERSION=3.5.2+dfsg-1.pgdg110+1" \
+    --change "ENTRYPOINT [\"docker-entrypoint.sh\"]" \
+    --change "CMD [\"postgres\",\"-c\",\"config_file=/etc/postgresql/postgresql.conf\"]" \
+    --change "EXPOSE 5432" \
+    --change "LABEL DHIS2_DB_ANALYTICS_TABLES=true" \
+    - "$db_image" > /dev/null
 
+  # TIMING: End DB image build
+  local build_end_time=$(date +%s)
+  local build_duration=$((build_end_time - build_start_time))
   echo "Analytics-enabled DB image built: $db_image"
+  echo "TIMING: DB image build (including analytics generation) took ${build_duration}s"
   echo ""
 
   # Clean up temporary containers
@@ -619,7 +645,6 @@ generate_metadata() {
     echo "DB_VERSION=$DB_VERSION"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
     echo "DHIS2_PASSWORD=$DHIS2_PASSWORD"
-    echo "ANALYTICS_GENERATE=$ANALYTICS_GENERATE"
     echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
@@ -636,8 +661,8 @@ generate_metadata() {
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_GENERATE:+ ANALYTICS_GENERATE=$ANALYTICS_GENERATE}${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
-    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_GENERATE:+ ANALYTICS_GENERATE=$ANALYTICS_GENERATE}${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
+    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
   } > "$simulation_run_file"
 
   echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
