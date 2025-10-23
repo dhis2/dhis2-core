@@ -30,11 +30,12 @@
 package org.hisp.dhis.resourcetable.util;
 
 import java.util.regex.Pattern;
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 
-@UtilityClass
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ColumnNameUtils {
   private static final Pattern PAT_COL_NAME_CHARS =
       Pattern.compile("[.a-zA-Z0-9_+\\-/?@#$%^&\\*\"\\s,:]");
@@ -49,7 +50,7 @@ public final class ColumnNameUtils {
    *
    * @param input the column name.
    */
-  public String toValidColumnName(String input) {
+  public static String toValidColumnName(String input) {
     if (StringUtils.isEmpty(input)) {
       return input;
     }
