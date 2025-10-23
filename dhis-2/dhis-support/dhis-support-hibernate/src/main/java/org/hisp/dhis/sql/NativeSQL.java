@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.sql;
 
-import java.sql.SQLException;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hibernate.Session;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+/**
+ * Utility to create a {@link org.hisp.dhis.sql.SQL.QueryAPI} facade for different implementations.
+ *
+ * @author Jan Bernitt
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SqlExceptionUtils {
+public class NativeSQL {
 
-  private static final String PG_TABLE_NOT_EXISTING = "42P01";
+  @Nonnull
+  public static SQL.QueryAPI of(Session impl) {
+    return sql -> new HibernateNativeQueryAPI.HibernateQuery(impl, sql, new ArrayList<>());
+  }
 
-  public static final String ERR_MSG_TABLE_NOT_EXISTING =
-      "Query failed, likely because the requested analytics table does not exist: ";
-
-  public static final String ERR_MSG_SQL_SYNTAX_ERROR =
-      "An error occurred during the execution of an analytics query: ";
-
-  public static final String ERR_MSG_SILENT_FALLBACK =
-      "An exception occurred, silent fallback due to multiple analytics query: ";
-
-  /**
-   * Utility method to detect if the {@link SQLException} refers to a missing relation in the
-   * database.
-   *
-   * @param ex a {@link SQLException} to analyze
-   * @return true if the error is a missing relation error, false otherwise
-   */
-  public static boolean relationDoesNotExist(SQLException ex) {
-    if (ex != null) {
-      return Optional.of(ex) // postgres
-              .map(SQLException::getSQLState)
-              .filter(PG_TABLE_NOT_EXISTING::equals)
-              .isPresent()
-          || Optional.of(ex) // doris
-              .map(SQLException::getMessage)
-              .filter(m -> m.contains("Table") && m.contains("does not exist in database"))
-              .isPresent()
-          || Optional.of(ex) // clickhouse
-              .map(SQLException::getMessage)
-              .filter(m -> m.contains("Unknown table expression identifier"))
-              .isPresent();
-    }
-
-    return false;
+  @Nonnull
+  public static SQL.QueryAPI of(NamedParameterJdbcTemplate impl) {
+    return sql -> new JdbcTemplateQueryAPI.JdbcQuery(impl, sql, new LinkedHashMap<>());
   }
 }

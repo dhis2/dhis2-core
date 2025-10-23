@@ -33,6 +33,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import io.restassured.http.ContentType;
+import org.hisp.dhis.helpers.EnvUtils;
 import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
@@ -85,7 +86,7 @@ public abstract class AnalyticsApiTest {
   }
 
   private String getDataSource() {
-    return System.getProperty("dhis2.analytics.datasource", "postgres");
+    return EnvUtils.getDataSource();
   }
 
   public boolean isClickHouse() {

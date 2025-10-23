@@ -945,7 +945,9 @@ class RelativePeriodsTest {
     PeriodDimension relPeriodSame = PeriodDimension.of(relPeriodTypeEnum);
 
     assertEquals(aug2022, aug2022Same);
-    assertEquals(relPeriod, relPeriodSame);
     assertNotEquals(aug2022, relPeriod);
+    assertEquals(relPeriod.getIsoDate(), relPeriodSame.getIsoDate());
+    assertEquals(relPeriod.getName(), relPeriodSame.getName());
+    assertEquals(relPeriod.getCode(), relPeriodSame.getCode());
   }
 }

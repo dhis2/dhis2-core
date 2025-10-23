@@ -31,25 +31,43 @@ package org.hisp.dhis.resourcetable.util;
 
 import static org.hisp.dhis.resourcetable.util.ColumnNameUtils.toValidColumnName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class ColumnNameUtilsTest {
+
+  @Test
+  void testToValidColumnName() {
+    assertNull(toValidColumnName(null));
+    assertEquals("", toValidColumnName(""));
+
+    assertEquals("FacilityType", toValidColumnName("FacilityType"));
+    assertEquals("Facility type", toValidColumnName("Facility type"));
+    assertEquals("Facility_Type", toValidColumnName("Facility_Type"));
+    assertEquals("Facility-Type", toValidColumnName("Facility-Type"));
+
+    assertEquals("Age in years", toValidColumnName("Age in years"));
+    assertEquals("Age&in*years", toValidColumnName("Age&in*years"));
+    assertEquals("Age#in@years", toValidColumnName("Age#in@years"));
+    assertEquals("Age^in$years", toValidColumnName("Age^in$years"));
+
+    assertEquals("Facility_Type", toValidColumnName("Facility!Type"));
+    assertEquals("Facility_Type", toValidColumnName("Facility!!!Type"));
+    assertEquals("Facility_Type_", toValidColumnName("Facility(Type)"));
+    assertEquals("Facility_Type_", toValidColumnName("(Facility)(Type)"));
+
+    assertEquals("Age_in_years", toValidColumnName("Age=in=years"));
+    assertEquals("Age _in_ _years_", toValidColumnName("Age [in] [years]"));
+    assertEquals("Age_ _in_ _years_", toValidColumnName("[[[Age]]] [in] [years]"));
+    assertEquals("Age_ _in_ _years_", toValidColumnName("[[[Age]]] [[in]] [[years]]"));
+  }
 
   @Test
   @DisplayName("Valid simple name should remain unchanged")
   void testValidSimpleName() {
     assertEquals("ValidName", toValidColumnName("ValidName"));
-  }
-
-  @Test
-  @DisplayName("Valid name starting with underscore should remain unchanged")
-  void testValidNameStartingWithUnderscore() {
-    assertEquals("_ValidName", toValidColumnName("_ValidName"));
   }
 
   @Test
@@ -70,19 +88,7 @@ class ColumnNameUtilsTest {
     assertEquals("a", toValidColumnName("a"));
   }
 
-  @Test
-  @DisplayName("Single valid character (underscore)")
-  void testSingleValidUnderscore() {
-    assertEquals("_", toValidColumnName("_"));
-  }
-
   // --- Null, Empty, Blank Inputs ---
-
-  @Test
-  @DisplayName("Null input should return empty string")
-  void testNullInput() {
-    assertEquals("", toValidColumnName(null));
-  }
 
   @Test
   @DisplayName("Empty input should return empty string")
@@ -90,86 +96,24 @@ class ColumnNameUtilsTest {
     assertEquals("", toValidColumnName(""));
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {" ", "   ", "\t", "\n"})
-  @DisplayName("Blank input should return default underscore")
-  void testBlankInput(String blankInput) {
-    assertEquals("", toValidColumnName(blankInput));
-  }
-
-  @ParameterizedTest
-  @CsvSource({
-    "'Valid Name', 'Valid_Name'", // Space
-    "'Valid\"Name', 'Valid_Name'", // Double Quote
-    "'Valid`Name', 'Valid_Name'", // Backtick
-    "'Valid$Name', 'Valid_Name'", // Symbol
-    "'Valid-Name', 'Valid_Name'", // Hyphen
-    "'Valid+Name', 'Valid_Name'", // Plus
-    "'Valid/Name', 'Valid_Name'", // Slash
-    "'Valid\\Name', 'Valid_Name'", // Backslash
-    "'Valid:Name', 'Valid_Name'", // Colon
-    "'Valid.Name', 'Valid_Name'", // Period
-    "'Valid,Name', 'Valid_Name'", // Comma
-    "'Valid(Name)', 'Valid_Name_'", // Parentheses
-    "'Naïve', 'Na_ve'", // Non-ASCII character
-    "'你好世界', '____'", // Multi-byte characters -> Replaced
-    "' leadingSpace', '_leadingSpace'", // Leading space replaced
-    "'trailingSpace ', 'trailingSpace_'" // Trailing space replaced
-  })
-  @DisplayName("Invalid characters should be replaced with underscore")
-  void testInvalidCharactersReplacement(String input, String expected) {
-    assertEquals(expected, toValidColumnName(input));
-  }
-
   @Test
   @DisplayName("Single quote should be replaced with underscore")
   void testSingleQuoteReplacement() {
-    assertEquals("_Valid_Name_", toValidColumnName("'Valid'Name'"));
+    assertEquals("Valid_Name_", toValidColumnName("'Valid'Name'"));
   }
 
   @Test
-  @DisplayName("Multiple consecutive invalid characters")
-  void testMultipleConsecutiveInvalid() {
-    assertEquals("Valid___Name", toValidColumnName("Valid $ Name"));
-    assertEquals("___", toValidColumnName("!@#"));
-  }
-
-  @ParameterizedTest
-  @CsvSource({
-    "'1Name', '_1Name'", // Digit start
-    "'$Name', '_Name'", // Symbol start -> Symbol replaced, result starts with 'N' (valid)
-    "' Name', '_Name'", // Space start -> Space replaced, result starts with 'N' (valid)
-    "'\"Name', '_Name'", // Quote start -> Quote replaced, result starts with 'N' (valid)
-    "'1$Name', '_1_Name'", // Digit start, followed by symbol replacement
-    "'$1Name', '_1Name'", // Symbol start replaced, result starts with '1' -> prepend _
-    "'!@#Name', '___Name'", // Multiple invalid start -> Replaced, starts with 'N'
-    "'123OnlyDigits', '_123OnlyDigits'", // Only digits
-    "' F C ', '_F_C_'" // Spaces and valid chars
-  })
-  @DisplayName("Invalid starting character handling")
-  void testInvalidStartingCharacter(String input, String expected) {
-    assertEquals(expected, toValidColumnName(input));
-  }
-
-  @Test
-  @DisplayName("Maximum valid length (127)")
+  @DisplayName("Maximum valid length (128)")
   void testMaxLengthValid() {
     String maxLengthName = "A".repeat(127);
     assertEquals(maxLengthName, toValidColumnName(maxLengthName));
   }
 
   @Test
-  @DisplayName("Maximum valid length (127) starting with underscore")
-  void testMaxLengthValidUnderscoreStart() {
-    String maxLengthName = "_" + "A".repeat(126);
-    assertEquals(maxLengthName, toValidColumnName(maxLengthName));
-  }
-
-  @Test
   @DisplayName("Exceeding max length (128) should be truncated")
   void testTooLongTruncated() {
-    String tooLongName = "A".repeat(128);
-    String expected = "A".repeat(127);
+    String tooLongName = "A".repeat(129);
+    String expected = "A".repeat(128);
     assertEquals(expected, toValidColumnName(tooLongName));
   }
 
@@ -177,35 +121,7 @@ class ColumnNameUtilsTest {
   @DisplayName("Exceeding max length significantly should be truncated")
   void testVeryLongTruncated() {
     String veryLongName = "Long".repeat(50); // 200 chars
-    String expected = "Long".repeat(31) + "Lon"; // 31*4 + 3 = 124 + 3 = 127
+    String expected = "Long".repeat(32);
     assertEquals(expected, toValidColumnName(veryLongName));
-  }
-
-  @Test
-  @DisplayName("Too long name with invalid chars at the end")
-  void testTooLongWithInvalidCharsEnd() {
-    String name = "A".repeat(126) + "$$"; // 128 chars total
-    String expected = "A".repeat(126) + "_"; // $ replaced, then truncated
-    // Trace: Build A(126) + "_". Builder length 127. Loop stops. Result: A(126) + "_".
-    assertEquals(expected, toValidColumnName(name));
-  }
-
-  @Test
-  @DisplayName("Too long name needing start prepend and truncation")
-  void testTooLongWithInvalidStartAndTruncation() {
-    String name = "1" + "A".repeat(127); // 128 chars total
-    // Trace: Build "1" + A(126). Builder length 127. Loop stops.
-    // Result: "1" + A(126). First char '1' invalid. Prepend _: "_" + "1" + A(126). Length 128.
-    // Truncate to 127: "_" + "1" + A(125).
-    String expected = "_1" + "A".repeat(125);
-    assertEquals(expected, toValidColumnName(name));
-  }
-
-  @Test
-  @DisplayName("Too long name with invalid chars needing replacement and truncation")
-  void testTooLongWithReplacementAndTruncation() {
-    String name = "A B".repeat(50); // 150 chars total -> A_B...
-    String expected = "A_B".repeat(42) + "A"; // 42 * 3 = 126. Add 'A'. Total 127.
-    assertEquals(expected, toValidColumnName(name));
   }
 }

@@ -45,6 +45,9 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 class PostgreSqlBuilderTest {
   private final PostgreSqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
