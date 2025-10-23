@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ColumnNameUtils {
+public class ColumnNameUtils {
   private static final Pattern PAT_COL_NAME_CHARS =
       Pattern.compile("[.a-zA-Z0-9_+\\-/?@#$%^&\\*\"\\s,:]");
   private static final int MAX_COL_NAME_LENGTH = 128;
