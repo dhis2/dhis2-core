@@ -126,6 +126,28 @@ class DorisSqlBuilderTest {
     assertFalse(sqlBuilder.supportsVacuum());
   }
 
+  // Utilities
+
+  @Test
+  void testQuote() {
+    assertEquals(
+        """
+        `Treated "malaria" at facility`""",
+        sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals("`quarterly`", sqlBuilder.quote("quarterly"));
+    assertEquals("`Fully immunized`", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAlias() {
+    assertEquals(
+        """
+        ax.`Treated "malaria" at facility`""",
+        sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
+    assertEquals("analytics.`quarterly`", sqlBuilder.quote("analytics", "quarterly"));
+    assertEquals("dv.`Fully immunized`", sqlBuilder.quote("dv", "Fully immunized"));
+  }
+
   // Statements
 
   @Test
