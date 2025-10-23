@@ -52,6 +52,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -138,15 +139,19 @@ public class RouteService {
 
   @PostConstruct
   public void postConstruct() {
+    httpClient =
+        HttpClientBuilder.create()
+            .setConnectionManager(newConnectionManager())
+            .disableCookieManagement()
+            .build();
+  }
+
+  protected HttpClientConnectionManager newConnectionManager() {
     PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
     connectionManager.setMaxTotal(MAX_TOTAL_HTTP_CONNECTIONS);
     connectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE);
 
-    httpClient =
-        HttpClientBuilder.create()
-            .setConnectionManager(connectionManager)
-            .disableCookieManagement()
-            .build();
+    return connectionManager;
   }
 
   /**
