@@ -324,41 +324,34 @@ build_analytics_db_image() {
   docker compose "${compose_files[@]}" exec db psql --username=dhis --quiet --command='vacuum analyze;' > /dev/null
 
   echo ""
+  echo "Stopping containers to ensure clean state for commit..."
+  # Stop all containers cleanly to ensure:
+  # * PostgreSQL shuts down properly (flushing WAL, removing lock files)
+  # * Database is in a consistent, shutdown state for docker commit
+  # Note: Cannot use pg_ctl stop because postgres is PID 1 - stopping it exits the container
+  # docker compose stop performs a graceful shutdown (SIGTERM then SIGKILL after timeout)
+  docker compose "${compose_files[@]}" stop
+
+  echo ""
   echo "Committing DB container state to image..."
 
-  # Export/import the DB container with analytics tables to capture volume data
-  # Note: docker commit excludes volumes, so we use export/import instead
+  # Commit the stopped DB container to create an image with analytics tables baked in
+  # Note: We use PGDATA=/var/lib/postgresql/pgdata (not /data) to avoid VOLUME in base image
+  # This allows docker commit to capture the database data including analytics tables
+  # Use --all flag to find stopped container
   local db_container_id
-  db_container_id=$(docker compose "${compose_files[@]}" ps --quiet db)
+  db_container_id=$(docker compose "${compose_files[@]}" ps --all --quiet db)
 
   if [ -z "$db_container_id" ]; then
     echo "Error: Could not find DB container ID"
     exit 1
   fi
 
-  # Export container filesystem (includes volume data) and import as new image
-  # Preserve all metadata from the original image (extracted using:
-  #   docker image inspect "$db_image" --format '{{json .Config}}'
-  docker export "$db_container_id" | docker import \
-    --change "ENV PGPASSWORD=dhis" \
-    --change "ENV POSTGRES_USER=dhis" \
-    --change "ENV POSTGRES_DB=dhis" \
-    --change "ENV POSTGRES_PASSWORD=dhis" \
-    --change "ENV PGUSER=dhis" \
-    --change "ENV PGDATABASE=dhis" \
-    --change "ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/14/bin" \
-    --change "ENV GOSU_VERSION=1.17" \
-    --change "ENV LANG=en_US.utf8" \
-    --change "ENV PG_MAJOR=14" \
-    --change "ENV PG_VERSION=14.18-1.pgdg110+1" \
-    --change "ENV PGDATA=/var/lib/postgresql/data" \
-    --change "ENV POSTGIS_MAJOR=3" \
-    --change "ENV POSTGIS_VERSION=3.5.2+dfsg-1.pgdg110+1" \
-    --change "ENTRYPOINT [\"docker-entrypoint.sh\"]" \
-    --change "CMD [\"postgres\",\"-c\",\"config_file=/etc/postgresql/postgresql.conf\"]" \
-    --change "EXPOSE 5432" \
-    --change "LABEL DHIS2_DB_ANALYTICS_TABLES=true" \
-    - "$db_image" > /dev/null
+  # Commit with --pause=false since PostgreSQL is already stopped
+  # Add label to mark this as having analytics tables baked in
+  docker commit --pause=false \
+    --change='LABEL DHIS2_DB_ANALYTICS_TABLES=true' \
+    "$db_container_id" "$db_image"
 
   # TIMING: End DB image build
   local build_end_time=$(date +%s)

@@ -19,9 +19,13 @@ FROM ghcr.io/baosystems/postgis:14-3.5 AS builder
 ARG DB_TYPE
 ARG DB_VERSION
 
+# Override PGDATA to use non-volume path
+# Base image defines /var/lib/postgresql/data as VOLUME which is excluded from docker commit
+# Using /var/lib/postgresql/pgdata instead allows docker commit to capture the data
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
     POSTGRES_PASSWORD=dhis \
+    PGDATA=/var/lib/postgresql/pgdata \
     PGUSER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
@@ -37,12 +41,14 @@ RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
 # Final stage with pre-populated database
 FROM ghcr.io/baosystems/postgis:14-3.5
 
+# Override PGDATA to use non-volume path (must match builder stage)
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
     POSTGRES_PASSWORD=dhis \
+    PGDATA=/var/lib/postgresql/pgdata \
     PGUSER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
 
-COPY --from=builder --chown=postgres:postgres /var/lib/postgresql/data /var/lib/postgresql/data
+COPY --from=builder --chown=postgres:postgres /var/lib/postgresql/pgdata /var/lib/postgresql/pgdata
 
