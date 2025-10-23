@@ -425,6 +425,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return notSupported();
   }
 
+  // Named collection
+
   /**
    * @param name the collection name.
    * @param keyValues the map of key value pairs.
