@@ -737,6 +737,10 @@ public class TextUtils {
    * @return a sanitized string.
    */
   public static String sanitize(Pattern pattern, String input, char replacement) {
+    if (StringUtils.isEmpty(input)) {
+      return input;
+    }
+
     StringBuilder sb = new StringBuilder(input.length());
 
     for (int i = 0; i < input.length(); i++) {
