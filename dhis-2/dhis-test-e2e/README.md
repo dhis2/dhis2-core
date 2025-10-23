@@ -77,17 +77,6 @@ image.
 
 If you want to run the analytics tests against an Apache Doris backend, you can do this easily with docker:
 
-```
-# first link the required Doris files from the root of the repository
-source ./setup_doris_links
-
-# then run the compose files
-docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml up --exit-code-from test
-
-# the alternative (without Doris backend) is
-# docker compose -f docker-compose.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml up --exit-code-from test
-
-```
 
 ### Configuration
 

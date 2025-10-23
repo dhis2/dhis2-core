@@ -120,3 +120,5 @@ jobs:
           SLACK_CHANNEL: "team-backend"
           SLACK_MESSAGE: "Latest analytics e2e test run against Doris on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
           SLACK_COLOR: "#ff0000"
+          
+          

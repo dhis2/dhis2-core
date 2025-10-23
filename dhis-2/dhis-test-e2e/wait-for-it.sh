@@ -10,7 +10,6 @@ extract_credentials() {
     # Example: "-Duser.default.username=admin -Duser.default.password=district"
     local args="${DHIS2_E2E_TEST_USER_ARGS:-}"
     
-    # Extract username using regex
     if [[ $args =~ -Duser\.default\.username=([^[:space:]]+) ]]; then
         DHIS2_USERNAME="${BASH_REMATCH[1]}"
     else
