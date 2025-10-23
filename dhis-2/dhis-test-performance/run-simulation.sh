@@ -204,6 +204,148 @@ pull_mutable_image() {
   fi
 }
 
+build_analytics_db_image() {
+  local db_image="localhost/dhis2-postgres:14-3.5-${DB_TYPE}-${DB_VERSION}"
+  local analytics_marker
+
+  # Check if the current image already has analytics tables (the label is added by us if they exist)
+  analytics_marker=$(docker image inspect "$db_image" --format '{{index .Config.Labels "DHIS2_DB_ANALYTICS_TABLES"}}' 2>/dev/null || echo "")
+
+  if [ "$analytics_marker" = "true" ]; then
+    echo "Using analytics-enabled DB image: $db_image"
+    return 0
+  fi
+
+  echo ""
+  echo "========================================"
+  echo "PHASE: Build Analytics DB Image"
+  echo "========================================"
+  echo "Building analytics-enabled DB image (one-time process for ${DB_TYPE}/${DB_VERSION})..."
+  echo "This will be reused for future runs."
+  echo ""
+
+  echo "Starting temporary containers to generate analytics..."
+  start_containers
+
+  echo ""
+  echo "Generating analytics tables..."
+  local start_time
+  start_time=$(date +%s)
+
+  local response
+  response=$(curl --silent --user "$DHIS2_USERNAME:$DHIS2_PASSWORD" --request POST http://localhost:8080/api/resourceTables/analytics)
+
+  local job_config_id
+  job_config_id=$(echo "$response" | jq --raw-output '.response.id // empty')
+
+  if [ -z "$job_config_id" ]; then
+    echo "Error: Failed to trigger analytics generation"
+    echo "Response: $response"
+    dump_container_logs
+    exit 1
+  fi
+
+  echo "Analytics job triggered (config ID: $job_config_id)"
+  echo "Waiting for job to start and monitoring progress..."
+
+  while true; do
+    local elapsed=$(($(date +%s) - start_time))
+
+    if [ "$elapsed" -gt "$ANALYTICS_TIMEOUT" ]; then
+      echo "Error: Analytics generation timed out after ${ANALYTICS_TIMEOUT}s"
+      echo "Consider increasing ANALYTICS_TIMEOUT if needed"
+      dump_container_logs
+      exit 1
+    fi
+
+    # Get all analytics tasks - the running task might have a different ID than the job config
+    local all_tasks
+    all_tasks=$(curl --silent --user "$DHIS2_USERNAME:$DHIS2_PASSWORD" "http://localhost:8080/api/system/tasks/ANALYTICS_TABLE")
+
+    # Get the first (most recent) task ID
+    local task_id
+    task_id=$(echo "$all_tasks" | jq --raw-output 'keys[0] // empty')
+
+    if [ -z "$task_id" ]; then
+      echo "Status (${elapsed}s): Job scheduled but not started yet"
+      sleep 5
+      continue
+    fi
+
+    # Get the task details for the running task
+    local task_response
+    task_response=$(echo "$all_tasks" | jq --raw-output ".\"$task_id\"")
+
+    local has_completed
+    has_completed=$(echo "$task_response" | jq '[.[] | select(.completed == true)] | length')
+
+    local has_error
+    has_error=$(echo "$task_response" | jq '[.[] | select(.level == "ERROR")] | length')
+
+    if [ "$has_error" -gt 0 ]; then
+      echo "Error: Analytics generation failed"
+      echo "$task_response" | jq '[.[] | select(.level == "ERROR")] | .[0].message' --raw-output
+      dump_container_logs
+      exit 1
+    fi
+
+    if [ "$has_completed" -gt 0 ]; then
+      local duration_msg
+      duration_msg=$(echo "$task_response" | jq --raw-output '[.[] | select(.completed == true and (.message | contains("Analytics tables updated")))] | .[0].message // empty')
+      if [ -n "$duration_msg" ]; then
+        echo "$duration_msg"
+      else
+        echo "Analytics tables generated successfully! (took ${elapsed}s)"
+      fi
+      break
+    fi
+
+    local latest_msg
+    local msg_count
+    msg_count=$(echo "$task_response" | jq 'length')
+    if [ "$msg_count" -gt 0 ]; then
+      latest_msg=$(echo "$task_response" | jq --raw-output '.[0].message')
+      echo "Status (${elapsed}s): $latest_msg"
+    else
+      echo "Status (${elapsed}s): Job running (no status messages available yet)"
+    fi
+
+    sleep 5
+  done
+
+  # Determine which compose files to use
+  local compose_files=("-f" "docker-compose.yml")
+  if [ -n "$PROF_ARGS" ]; then
+    compose_files+=("-f" "docker-compose.profile.yml")
+  fi
+
+  echo ""
+  echo "Preparing database statistics..."
+  docker compose "${compose_files[@]}" exec db psql --username=dhis --quiet --command='vacuum analyze;' > /dev/null
+
+  echo ""
+  echo "Committing DB container state to image..."
+
+  # Commit the DB container with analytics tables, adding a label to mark it
+  local db_container_id
+  db_container_id=$(docker compose "${compose_files[@]}" ps --quiet db)
+
+  if [ -z "$db_container_id" ]; then
+    echo "Error: Could not find DB container ID"
+    exit 1
+  fi
+
+  # Commit with label to mark this as analytics-enabled
+  docker commit --change 'LABEL DHIS2_DB_ANALYTICS_TABLES=true' "$db_container_id" "$db_image"
+
+  echo "Analytics-enabled DB image built: $db_image"
+  echo ""
+
+  # Clean up temporary containers
+  echo "Cleaning up temporary containers..."
+  docker compose "${compose_files[@]}" down --volumes
+}
+
 dump_container_logs() {
   echo ""
   echo "========================================"
@@ -419,98 +561,6 @@ post_process_gatling_logs() {
   echo "Post-processing Gatling logs complete. CSV files saved in subdirectories."
 }
 
-prepare_database() {
-  echo ""
-  echo "Preparing database..."
-  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' > /dev/null
-
-  if [ "$ANALYTICS_GENERATE" = "true" ]; then
-    echo ""
-    echo "Generating analytics tables (this may take several minutes)..."
-
-    local start_time
-    start_time=$(date +%s)
-
-    local response
-    response=$(curl --silent --user "$DHIS2_USERNAME:$DHIS2_PASSWORD" --request POST http://localhost:8080/api/resourceTables/analytics)
-
-    local job_config_id
-    job_config_id=$(echo "$response" | jq --raw-output '.response.id // empty')
-
-    if [ -z "$job_config_id" ]; then
-      echo "Error: Failed to trigger analytics generation"
-      echo "Response: $response"
-      exit 1
-    fi
-
-    echo "Analytics job triggered (config ID: $job_config_id)"
-    echo "Waiting for job to start and monitoring progress..."
-
-    while true; do
-      local elapsed=$(($(date +%s) - start_time))
-
-      if [ "$elapsed" -gt "$ANALYTICS_TIMEOUT" ]; then
-        echo "Error: Analytics generation timed out after ${ANALYTICS_TIMEOUT}s"
-        echo "Consider increasing ANALYTICS_TIMEOUT if needed"
-        exit 1
-      fi
-
-      # Get all analytics tasks - the running task might have a different ID than the job config
-      local all_tasks
-      all_tasks=$(curl --silent --user "$DHIS2_USERNAME:$DHIS2_PASSWORD" "http://localhost:8080/api/system/tasks/ANALYTICS_TABLE")
-
-      # Get the first (most recent) task ID
-      local task_id
-      task_id=$(echo "$all_tasks" | jq --raw-output 'keys[0] // empty')
-
-      if [ -z "$task_id" ]; then
-        echo "Status (${elapsed}s): Job scheduled but not started yet"
-        sleep 5
-        continue
-      fi
-
-      # Get the task details for the running task
-      local task_response
-      task_response=$(echo "$all_tasks" | jq --raw-output ".\"$task_id\"")
-
-      local has_completed
-      has_completed=$(echo "$task_response" | jq '[.[] | select(.completed == true)] | length')
-
-      local has_error
-      has_error=$(echo "$task_response" | jq '[.[] | select(.level == "ERROR")] | length')
-
-      if [ "$has_error" -gt 0 ]; then
-        echo "Error: Analytics generation failed"
-        echo "$task_response" | jq '[.[] | select(.level == "ERROR")] | .[0].message' --raw-output
-        exit 1
-      fi
-
-      if [ "$has_completed" -gt 0 ]; then
-        local duration_msg
-        duration_msg=$(echo "$task_response" | jq --raw-output '[.[] | select(.completed == true and (.message | contains("Analytics tables updated")))] | .[0].message // empty')
-        if [ -n "$duration_msg" ]; then
-          echo "$duration_msg"
-        else
-          echo "Analytics tables generated successfully! (took ${elapsed}s)"
-        fi
-        break
-      fi
-
-      local latest_msg
-      local msg_count
-      msg_count=$(echo "$task_response" | jq 'length')
-      if [ "$msg_count" -gt 0 ]; then
-        latest_msg=$(echo "$task_response" | jq --raw-output '.[0].message')
-        echo "Status (${elapsed}s): $latest_msg"
-      else
-        echo "Status (${elapsed}s): Job running (no status messages available yet)"
-      fi
-
-      sleep 5
-    done
-  fi
-}
-
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     # shellcheck disable=SC2086
@@ -688,12 +738,13 @@ run_simulation() {
 ################################################################################
 pull_mutable_image
 
+build_analytics_db_image
+
 echo ""
 echo "========================================"
 echo "PHASE: Container Startup"
 echo "========================================"
 start_containers
-prepare_database
 
 if [ "$WARMUP" -gt 0 ]; then
   for i in $(seq 1 "$WARMUP"); do
