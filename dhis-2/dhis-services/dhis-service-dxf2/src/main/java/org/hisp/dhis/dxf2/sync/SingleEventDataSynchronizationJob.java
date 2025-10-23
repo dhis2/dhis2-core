@@ -32,6 +32,7 @@ package org.hisp.dhis.dxf2.sync;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
@@ -49,6 +50,13 @@ public class SingleEventDataSynchronizationJob implements Job {
   @Override
   public JobType getJobType() {
     return JobType.SINGLE_EVENT_DATA_SYNC_JOB;
+  }
+
+  @Override
+  public void execute(JobEntry config, JobProgress progress) {
+    SingleEventDataSynchronizationJobParameters params =
+        (SingleEventDataSynchronizationJobParameters) config.parameters();
+    eventSync.synchronizeData(params.getPageSize(), progress);
   }
 
   @Override

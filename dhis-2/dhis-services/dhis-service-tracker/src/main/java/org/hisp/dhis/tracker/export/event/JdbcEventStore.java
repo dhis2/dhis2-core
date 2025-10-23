@@ -43,6 +43,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -244,6 +245,24 @@ class JdbcEventStore {
 
   public long countEvents(EventQueryParams queryParams) {
     return getEventCount(queryParams);
+  }
+
+  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
+    if (eventUids == null || eventUids.isEmpty() || lastSynchronized == null) {
+      return;
+    }
+
+    String sql =
+        """
+        UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+        """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", eventUids);
+
+    jdbcTemplate.update(sql, parameters);
   }
 
   private List<Event> applySkipSyncFiltering(

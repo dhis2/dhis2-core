@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -133,4 +134,12 @@ public interface EventService {
    * #findEvents(EventOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Updates a last sync timestamp on specified Events
+   *
+   * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
+   * @param lastSynchronized The date of last successful sync
+   */
+  void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized);
 }

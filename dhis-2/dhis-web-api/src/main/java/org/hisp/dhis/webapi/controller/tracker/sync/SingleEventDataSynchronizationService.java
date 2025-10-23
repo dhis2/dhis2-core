@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.sendSyncRequest;
@@ -44,6 +44,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
+import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
+import org.hisp.dhis.dxf2.sync.SyncEndpoint;
+import org.hisp.dhis.dxf2.sync.SyncUtils;
+import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Event;
@@ -60,6 +65,8 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -75,6 +82,8 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class SingleEventDataSynchronizationService implements DataSynchronizationWithPaging {
   private static final String PROCESS_NAME = "Event programs data synchronization";
+
+  private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
   private final EventService eventService;
   private final SystemSettingsService systemSettingsService;
@@ -172,7 +181,11 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
   /** Ensures a valid {@link User} is available during event synchronization. */
   private void ensureAuthentication(SystemSettings systemSettings) {
-    CurrentUserUtil.getCurrentUserDetails();
+    if (CurrentUserUtil.getCurrentUserDetails() != null) {
+      return;
+    }
+
+    initializeSyncUser(systemSettings);
   }
 
   private void initializeSyncUser(SystemSettings systemSettings) {
@@ -226,8 +239,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
                 .build(),
             context.psdesWithSkipSyncTrue);
 
-    // filterDataValuesWithSkipSyncFlag(events);
-
     log.debug("Events to be synchronized: {}", events);
 
     if (sendSynchronizationRequest(events, context.getInstance(), systemSettings)) {
@@ -236,16 +247,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
       throw new MetadataSyncServiceException(format("Page %d synchronization failed", page));
     }
   }
-
-  /*  private void filterDataValuesWithSkipSyncFlag(List<Event> events) {
-    events
-        .forEach(
-            event ->
-                event.setEventDataValues(
-                    event.getEventDataValues().stream()
-                        .filter(dataValue -> !dataValue())
-                        .collect(Collectors.toSet())));
-  }*/
 
   private boolean sendSynchronizationRequest(
       List<Event> events, SystemInstance instance, SystemSettings systemSettings) {
@@ -257,7 +258,10 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
               .add(
                   SyncUtils.HEADER_AUTHORIZATION,
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-          renderService.toJson(request.getBody(), events);
+
+          renderService.toJson(
+              request.getBody(),
+              events.stream().map(EVENTS_MAPPER::map).collect(Collectors.toSet()));
         };
 
     return sendSyncRequest(
@@ -266,9 +270,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
   private void updateEventsSyncTimestamp(List<Event> events, Date syncTime) {
     List<String> eventUids = events.stream().map(Event::getUid).collect(Collectors.toList());
-
-    log.info("Updating lastSynchronized flag for events: {}", eventUids);
-    // eventService.updateEventsSyncTimestamp(eventUids, syncTime);
+    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
   private SynchronizationResult success(JobProgress progress, String message) {
