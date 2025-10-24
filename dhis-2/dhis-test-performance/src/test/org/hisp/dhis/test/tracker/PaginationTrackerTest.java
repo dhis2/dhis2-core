@@ -93,7 +93,6 @@ public class PaginationTrackerTest extends Simulation {
             + program
             + "&occurredAfter=2024-01-01"
             + "&occurredBefore=2024-12-31"
-            + "&totalPages=true"
             + "&fields=:all,dataValues[value,dataElement,providedElsewhere,storedBy]"
             + "&order=event"
             + "&pageSize=50"
@@ -102,11 +101,26 @@ public class PaginationTrackerTest extends Simulation {
 
     Request goToFirstPage =
         new Request(
-            getEventsUrl, 100, "Go to first page of program " + program, "Get a list of events");
+            getEventsUrl,
+            100,
+            "Go to first page of program " + program + " with totalPages",
+            "Get a list of events");
     Request goToPage45 =
         new Request(
-            getEventsUrl + "&page=45",
+            getEventsUrl + "&page=45&totalPages=true",
             100,
+            "Go to page 45 of program " + program,
+            "Get a list of events");
+    Request goToFirstPageAndGetAllPages =
+        new Request(
+            getEventsUrl,
+            450,
+            "Go to first page of program " + program + " with totalPages",
+            "Get a list of events");
+    Request goToPage45AndGetAllPages =
+        new Request(
+            getEventsUrl + "&page=45&totalPages=true",
+            850,
             "Go to page 45 of program " + program,
             "Get a list of events");
 
@@ -121,12 +135,14 @@ public class PaginationTrackerTest extends Simulation {
                 group("Get a list of events")
                     .on(
                         exec(goToFirstPage.action())
+                            .exec(goToFirstPageAndGetAllPages.action())
+                            .exec(goToPage45.action())
                             .exec(
-                                goToPage45
+                                goToPage45AndGetAllPages
                                     .action()
-                                    .check(jsonPath("$.events[0].event").saveAs("eventUid"))))
-                    .group("Get one event")
-                    .on(exec(getFirstEvent.action())));
+                                    .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                            .group("Get one event")
+                            .on(exec(getFirstEvent.action()))));
 
     return new ScenarioWithRequests(
         scenarioBuilder, List.of(goToFirstPage, goToPage45, getFirstEvent));
