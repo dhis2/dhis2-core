@@ -1,9 +1,10 @@
 # syntax=docker/dockerfile:1
-# Dockerfile to build and restore the DB dump at build time (not runtime)
-# This significantly speeds up container startup for performance tests.
+# Multi-stage build: downloads and restores DHIS2 database dump at build time to eliminate runtime
+# restore overhead in performance tests.
 ARG DB_TYPE
 ARG DB_VERSION
 
+# Stage 1: Download database dump from S3
 FROM amazon/aws-cli:latest AS downloader
 ARG DB_TYPE
 ARG DB_VERSION
@@ -13,15 +14,16 @@ RUN S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYP
     echo "Downloading from: $S3_PATH" && \
     aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
 
-FROM ghcr.io/baosystems/postgis:14-3.5 AS builder
+# Stage 2: Restore database dump into PostgreSQL
+FROM ghcr.io/baosystems/postgis:14-3.5 AS restorer
 
 # Ensure build cache is invalidated when DB_TYPE or DB_VERSION changes so dump is restored
 ARG DB_TYPE
 ARG DB_VERSION
 
-# Override PGDATA to use non-volume path
-# Base image defines /var/lib/postgresql/data as VOLUME which is excluded from docker commit
-# Using /var/lib/postgresql/pgdata instead allows docker commit to capture the data
+# Override PGDATA to avoid VOLUME path. Base image defines /var/lib/postgresql/data as VOLUME, which
+# prevents docker commit from capturing data. run-simulation.sh uses docker commit to persist
+# analytics tables, so we use /var/lib/postgresql/pgdata instead.
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
     POSTGRES_PASSWORD=dhis \
@@ -33,15 +35,16 @@ ENV POSTGRES_USER=dhis \
 COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
 
 COPY docker-entrypoint-build.sh /usr/local/bin/
-# Initialize the database and restore the dump at build time
-# Uses a modified version of the official PostgreSQL docker-entrypoint.sh
+# Uses a modified version of the official PostgreSQL docker-entrypoint.sh to initialize the database
+# and restore the dump at build time instead of runtime
 RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
     gosu postgres /usr/local/bin/docker-entrypoint-build.sh
 
-# Final stage with pre-populated database
-FROM ghcr.io/baosystems/postgis:14-3.5
+# Stage 3: Final image with pre-populated database
+FROM ghcr.io/baosystems/postgis:14-3.5 AS final
 
-# Override PGDATA to use non-volume path (must match builder stage)
+# Override PGDATA to avoid VOLUME path (must match restorer stage). Enables docker commit in
+# run-simulation.sh to persist analytics tables
 ENV POSTGRES_USER=dhis \
     POSTGRES_DB=dhis \
     POSTGRES_PASSWORD=dhis \
@@ -50,5 +53,5 @@ ENV POSTGRES_USER=dhis \
     PGDATABASE=dhis \
     PGPASSWORD=dhis
 
-COPY --from=builder --chown=postgres:postgres /var/lib/postgresql/pgdata /var/lib/postgresql/pgdata
+COPY --from=restorer --chown=postgres:postgres /var/lib/postgresql/pgdata /var/lib/postgresql/pgdata
 
