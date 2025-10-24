@@ -720,6 +720,26 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
   }
 
+  private static final String upsertSQLTemplate() {
+    return
+        """
+        INSERT INTO datavalue
+        (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+        DO UPDATE SET
+        value = EXCLUDED.value,
+        comment = CASE
+        WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
+        ELSE EXCLUDED.comment
+        END,
+        deleted = EXCLUDED.deleted,
+        followup = EXCLUDED.followup,
+        lastupdated = now(),
+        storedby = current_setting('dhis2.user')
+        """;
+  }
+
   @Override
   @UsageTestOnly
   public int upsertValuesForJdbcTest(List<DataEntryValue> values) {
@@ -729,21 +749,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     if (internalValues.isEmpty()) return 0;
 
     @Language("sql")
-    String sql =
-        """
-        INSERT INTO datavalue
-      (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted, storedby, lastupdated, created)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
-      DO UPDATE SET
-        value = EXCLUDED.value,
-        comment = EXCLUDED.comment,
-        followup = EXCLUDED.followup,
-        deleted = EXCLUDED.deleted,
-        storedby = EXCLUDED.storedby,
-        lastupdated = EXCLUDED.lastupdated,
-        created = EXCLUDED.created
-        """;
+    String sql = upsertSQLTemplate();
     int imported = 0;
     for (DataEntryRow row : internalValues) {
       Date now = new Date();
@@ -766,6 +772,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return imported;
   }
 
+
+
   @Override
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
@@ -787,24 +795,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             final int size = internalValues.size();
             final Session session = entityManager.unwrap(Session.class);
 
-            @Language("sql")
-            String sql1 =
-                """
-          INSERT INTO datavalue
-          (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
-          DO UPDATE SET
-            value = EXCLUDED.value,
-            comment = CASE
-              WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
-              ELSE EXCLUDED.comment
-            END,
-            deleted = EXCLUDED.deleted,
-            followup = EXCLUDED.followup,
-            lastupdated = now(),
-            storedby = current_setting('dhis2.user')
-            """;
+            String sql1 = upsertSQLTemplate;
 
             session.doWork(
                 conn -> {
