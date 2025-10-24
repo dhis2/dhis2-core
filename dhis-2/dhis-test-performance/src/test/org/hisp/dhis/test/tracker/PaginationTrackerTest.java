@@ -101,19 +101,16 @@ public class PaginationTrackerTest extends Simulation {
 
     Request goToFirstPage =
         new Request(
-            getEventsUrl,
-            100,
-            "Go to first page of program " + program + " with totalPages",
-            "Get a list of events");
+            getEventsUrl, 100, "Go to first page of program " + program, "Get a list of events");
     Request goToPage45 =
         new Request(
-            getEventsUrl + "&page=45&totalPages=true",
+            getEventsUrl + "&page=45",
             100,
             "Go to page 45 of program " + program,
             "Get a list of events");
     Request goToFirstPageAndGetAllPages =
         new Request(
-            getEventsUrl,
+            getEventsUrl + "&totalPages=true",
             450,
             "Go to first page of program " + program + " with totalPages",
             "Get a list of events");
@@ -121,7 +118,7 @@ public class PaginationTrackerTest extends Simulation {
         new Request(
             getEventsUrl + "&page=45&totalPages=true",
             850,
-            "Go to page 45 of program " + program,
+            "Go to page 45 of program " + program + " with totalPages",
             "Get a list of events");
 
     Request getFirstEvent =
