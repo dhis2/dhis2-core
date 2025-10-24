@@ -40,7 +40,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -1135,6 +1134,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return res;
   }
 
+  private static boolean isRetryableSqlState(String state) {
+    return "40P01".equals(state) || "40001".equals(state); // deadlock / serialization
+  }
+
   /**
    * Executes a given task with retry logic in case of specific SQL exceptions. This method retries
    * the task up to 3 times if a deadlock or serialization failure occurs. It uses an exponential
@@ -1148,24 +1151,44 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
    */
   private <T> T withTxnRetries(Callable<T> work) {
     int tries = 0;
-    long backoff = 50;
+    long backoffMs = 50;
+
     while (true) {
       try {
         return work.call();
-      } catch (SQLException e) {
-        var s = e.getSQLState();
-        // Retry only on deadlock (40P01) or serialization failure (40001)
-        if (!"40P01".equals(s) && !"40001".equals(s)) throw new RuntimeException(e);
-        if (++tries > 3) throw new RuntimeException(e);
-        try {
-          Thread.sleep(backoff + ThreadLocalRandom.current().nextInt(40));
-        } catch (InterruptedException ie) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
+      } catch (Exception ex) {
+        Throwable cause =
+            ex instanceof java.util.concurrent.ExecutionException ? ex.getCause() : ex;
+
+        if (cause instanceof java.sql.SQLException sqlEx) {
+          String state = sqlEx.getSQLState();
+
+          if (isRetryableSqlState(state)) {
+            if (++tries <= 3) {
+              try {
+                Thread.sleep(backoffMs + ThreadLocalRandom.current().nextInt(40));
+              } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+              }
+              backoffMs *= 2;
+              continue;
+            }
+            // Retries exhausted
+            if ("40P01".equals(state)) {
+              throw new DeadlockLoserDataAccessException(
+                  "Deadlock after " + tries + " attempts (SQLState=40P01)", sqlEx);
+            }
+            throw new ConcurrencyFailureException(
+                "Serialization failure after " + tries + " attempts (SQLState=" + state + ")",
+                sqlEx);
+          }
+          // Non-retryable SQLException
+          throw new ConcurrencyFailureException("Non-retryable SQLState=" + state, sqlEx);
         }
-        backoff *= 2;
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+
+        // Non-SQL exception -> rethrow
+        if (ex instanceof RuntimeException re) throw re;
+        throw new RuntimeException(ex);
       }
     }
   }
