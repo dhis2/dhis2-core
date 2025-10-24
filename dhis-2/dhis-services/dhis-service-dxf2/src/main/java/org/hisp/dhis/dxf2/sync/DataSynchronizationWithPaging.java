@@ -49,7 +49,7 @@ public interface DataSynchronizationWithPaging {
         Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
       super(skipChangedBefore, objectsToSynchronize, instance);
       this.pageSize = pageSize;
-      this.pages =
+      this.pages =(int)
           (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
     }
   }
