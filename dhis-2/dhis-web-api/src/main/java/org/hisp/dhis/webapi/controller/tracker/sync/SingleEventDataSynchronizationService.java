@@ -127,13 +127,13 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     EventSynchronizationContext context =
         initializeSynchronizationContext(pageSize, progress, systemSettings);
     if (context.hasNoObjectsToSynchronize()) {
-      return skipProcess(progress, PROCESS_NAME + " skipped. No new or updated events found.");
+      return endProcess(progress, PROCESS_NAME + " skipped. No new or updated events found.");
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, systemSettings);
 
     return success
-        ? success(progress, PROCESS_NAME + " completed successfully.")
+        ? endProcess(progress, PROCESS_NAME + " completed successfully.")
         : failProcess(
             progress, PROCESS_NAME + " failed. Not all pages were synchronized successfully.");
   }
@@ -267,16 +267,11 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   private void updateEventsSyncTimestamp(List<Event> events, Date syncTime) {
-    List<String> eventUids = events.stream().map(Event::getUid).collect(Collectors.toList());
+    List<String> eventUids = events.stream().map(Event::getUid).toList();
     eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
-  private SynchronizationResult success(JobProgress progress, String message) {
-    progress.completedProcess(message);
-    return SynchronizationResult.success(message);
-  }
-
-  private SynchronizationResult skipProcess(JobProgress progress, String message) {
+  private SynchronizationResult endProcess(JobProgress progress, String message) {
     progress.completedProcess(message);
     return SynchronizationResult.success(message);
   }

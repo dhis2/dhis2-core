@@ -273,7 +273,7 @@ class JdbcEventStore {
 
     return events.stream()
         .map(event -> filterEventDataValues(event, psdesWithSkipSyncTrue))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
