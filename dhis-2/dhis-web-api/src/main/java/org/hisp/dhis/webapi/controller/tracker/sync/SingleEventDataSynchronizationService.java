@@ -60,7 +60,6 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -91,7 +90,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
   private final UserService userService;
-  private final TrackerImportService trackerImportService;
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {

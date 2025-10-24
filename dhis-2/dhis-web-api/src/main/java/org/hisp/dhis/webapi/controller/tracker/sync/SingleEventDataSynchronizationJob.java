@@ -27,11 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
@@ -56,13 +55,6 @@ public class SingleEventDataSynchronizationJob implements Job {
   public void execute(JobEntry config, JobProgress progress) {
     SingleEventDataSynchronizationJobParameters params =
         (SingleEventDataSynchronizationJobParameters) config.parameters();
-    eventSync.synchronizeData(params.getPageSize(), progress);
-  }
-
-  @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    SingleEventDataSynchronizationJobParameters params =
-        (SingleEventDataSynchronizationJobParameters) config.getJobParameters();
     eventSync.synchronizeData(params.getPageSize(), progress);
   }
 }
