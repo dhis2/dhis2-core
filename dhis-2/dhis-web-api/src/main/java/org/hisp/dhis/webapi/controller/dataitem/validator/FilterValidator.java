@@ -68,7 +68,7 @@ public class FilterValidator {
     if (isNotEmpty(filters)) {
       for (final String filter : filters) {
         {
-          final String[] filterAttributeValuePair = filter.split(":");
+          final String[] filterAttributeValuePair = filter.split(":", 3);
           final boolean filterHasCorrectForm = filterAttributeValuePair.length == 3;
 
           if (filterHasCorrectForm) {
