@@ -720,9 +720,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
   }
 
-  private static final String upsertSQLTemplate() {
-    return
-        """
+  private static final String upsertSQLTemplate =
+      // language=SQL
+      """
         INSERT INTO datavalue
         (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -738,7 +738,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         lastupdated = now(),
         storedby = current_setting('dhis2.user')
         """;
-  }
 
   @Override
   @UsageTestOnly
@@ -748,8 +747,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
-    @Language("sql")
-    String sql = upsertSQLTemplate();
+    String sql = upsertSQLTemplate;
     int imported = 0;
     for (DataEntryRow row : internalValues) {
       Date now = new Date();
@@ -772,15 +770,13 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return imported;
   }
 
-
-
   @Override
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
     List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
-    // (A) Deterministic order by conflict key
+    // Deterministic order by conflict key
     internalValues.sort(
         Comparator.comparingLong(DataEntryRow::de)
             .thenComparingLong(DataEntryRow::pe)
@@ -1146,7 +1142,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
    * @throws RuntimeException If the task fails after 3 retries or encounters an unexpected
    *     exception.
    */
-  private <T> T withTxnRetries(Callable<T> work) throws SQLTransactionRollbackException {
+  <T> T withTxnRetries(Callable<T> work) throws SQLTransactionRollbackException {
     int tries = 0;
     long backoffMs = 50;
 
@@ -1161,6 +1157,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           String state = sqlEx.getSQLState();
 
           if (isRetryableSqlState(state)) {
+            System.err.printf(
+                "Transaction failed with SQLState {}: {}. Attempt {}/3",
+                state,
+                sqlEx.getMessage(),
+                tries + 1);
             if (++tries <= 3) {
               try {
                 Thread.sleep(backoffMs + ThreadLocalRandom.current().nextInt(40));
