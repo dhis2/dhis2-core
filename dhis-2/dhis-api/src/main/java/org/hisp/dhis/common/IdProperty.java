@@ -56,6 +56,17 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
       throw new IllegalArgumentException("When property is not ATTR the attributeId must be null");
   }
 
+  public static IdProperty of(@CheckForNull IdentifiableProperty property) {
+    if (property == null) return UID;
+    return switch (property) {
+      case ID, UID -> UID;
+      case CODE -> CODE;
+      case NAME -> NAME;
+      case ATTRIBUTE -> throw new IllegalArgumentException("Attribute must be used with the attribute ID");
+      case UUID -> throw new UnsupportedOperationException("UUID is not supported for this operation");
+    };
+  }
+
   public static IdProperty of(@CheckForNull IdScheme scheme) {
     if (scheme == null) return UID;
     IdentifiableProperty property = scheme.getIdentifiableProperty();

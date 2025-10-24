@@ -50,7 +50,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -189,8 +189,8 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
 
     // Test
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid()))
@@ -223,8 +223,8 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     idObjectManager.update(coB);
     // Test
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid()))
@@ -253,8 +253,8 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     User user1 = userService.getUser(user.getUid());
     injectSecurityContextUser(user1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid()))
@@ -281,8 +281,8 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     User user1 = userService.getUser(user.getUid());
     injectSecurityContextUser(user1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid()))

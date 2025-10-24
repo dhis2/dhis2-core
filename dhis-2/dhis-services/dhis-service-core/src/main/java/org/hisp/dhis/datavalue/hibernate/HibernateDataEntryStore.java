@@ -116,30 +116,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, String> getIdMapping(
-      @Nonnull DecodeType type, @Nonnull IdProperty from, @Nonnull Stream<String> identifiers) {
-    String[] ids = identifiers.filter(Objects::nonNull).distinct().toArray(String[]::new);
-    if (ids.length == 0) return Map.of();
-    @Language("sql")
-    String sqlTemplate =
-        """
-      SELECT ${property}, t.uid
-      FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON ${property} = input.id
-      """;
-    String tableName =
-        switch (type) {
-          case DS -> "dataset";
-          case DE -> "dataelement";
-          case OU -> "organisationunit";
-          case COC -> "categoryoptioncombo";
-        };
-    String sql =
-        replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", from)));
-    return listAsStringsMap(sql, q -> q.setParameter("ids", ids));
-  }
-
-  @Override
   public List<String> getDataSetAocCategories(
       @Nonnull UID dataSet, @Nonnull IdProperty categories) {
     @Language("SQL")
@@ -1097,14 +1073,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
     Stream<Object[]> rows = query.stream();
     return rows.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
-  }
-
-  @Nonnull
-  private Map<String, String> listAsStringsMap(
-      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
-    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
-    Stream<Object[]> rows = query.stream();
-    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Nonnull

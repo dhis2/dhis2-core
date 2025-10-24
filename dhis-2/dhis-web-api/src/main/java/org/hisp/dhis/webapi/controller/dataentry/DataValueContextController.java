@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
@@ -79,7 +79,7 @@ public class DataValueContextController {
 
     List<DataExportValue> dataValues =
         dataExportPipeline.exportAsList(
-            DataExportParams.builder()
+            DataExportInputParams.builder()
                 .dataElement(Set.of(params.getDe()))
                 .period(periods)
                 .orgUnit(Set.of(params.getOu()))

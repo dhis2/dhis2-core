@@ -46,24 +46,8 @@ import org.hisp.dhis.common.UsageTestOnly;
  */
 public interface DataExportStore {
 
-  enum EncodeType {
-    DE,
-    OU,
-    COC
-  }
-
-  /**
-   * Fetches a mapping from the given UIDs for the given {@link EncodeType} to their identifier of
-   * the given {@link IdScheme}
-   *
-   * @param type what object (table)
-   * @param to unknown identifier and requested (result map value)
-   * @param ids known identifiers (result map key)
-   * @return a mapping from the known to the unknown identifier
-   */
-  @Nonnull
-  Map<String, String> getIdMapping(
-      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
+  @CheckForNull
+  UID getAttributeOptionCombo(@CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
 
   @CheckForNull
   DataExportValue getDataValue(@Nonnull DataEntryKey key);
@@ -74,7 +58,7 @@ public interface DataExportStore {
    * @param params the data export parameters.
    * @return a list of data values.
    */
-  Stream<DataExportValue> getDataValues(DataExportStoreParams params);
+  Stream<DataExportValue> getDataValues(DataExportParams params);
 
   /**
    * Returns all DataValues.

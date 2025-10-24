@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +58,7 @@ public class DataExportPipeline {
   private final DataExportService service;
 
   @Transactional(readOnly = true)
-  public <T> List<T> exportAsList(DataExportParams params, Function<DataExportValue, T> f)
+  public <T> List<T> exportAsList(DataExportInputParams params, Function<DataExportValue, T> f)
       throws ConflictException {
     // it might appear silly to just have this bit of code in here
     // limiting what can be done with the Stream, but we have to process the stream
@@ -65,7 +67,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportToConsumer(DataExportParams params, Consumer<DataExportValue> f)
+  public void exportToConsumer(DataExportInputParams params, Consumer<DataExportValue> f)
       throws ConflictException {
     // it might appear silly to just have this bit of code in here
     // limiting what can be done with the Stream, but we have to process the stream
@@ -74,28 +76,33 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {
+  public void exportAsJson(DataExportInputParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toJson(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJsonSync(DataExportParams params, OutputStream out) throws ConflictException {
+  public void exportAsJsonSync(DataExportInputParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toJson(service.exportGroup(params, true), out);
   }
 
   @Transactional(readOnly = true)
-  public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {
+  public void exportAsCsv(DataExportInputParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toCsv(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)
-  public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {
+  public void exportAsXml(DataExportInputParams params, OutputStream out) throws ConflictException {
     DataExportOutput.toXml(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)
-  public void exportAsXmlGroups(DataExportParams params, OutputStream out)
+  public void exportAsXmlGroups(DataExportInputParams params, OutputStream out)
       throws ConflictException {
+    //ADX special handling of decoding and encoding
+    Boolean outputCodeFallback = params.getInputUseCodeFallback();
+    if (outputCodeFallback == null) params.setInputUseCodeFallback(true);
+    IdSchemes encodeTo = params.getOutputIdSchemes();
+    encodeTo.setDefaultIdScheme(IdScheme.CODE);
     DataExportOutput.toXml(service.exportInGroups(params), out);
   }
 }

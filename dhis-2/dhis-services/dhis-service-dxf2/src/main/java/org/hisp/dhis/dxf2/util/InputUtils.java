@@ -83,20 +83,6 @@ public class InputUtils {
   }
 
   /**
-   * Validates and retrieves the attribute option combo. Does not attempt to fall back to the
-   * default option combo. Throws {@link IllegalQueryException} if the attribute option combo does
-   * not exist.
-   *
-   * @param cc the category combo identifier.
-   * @param options the set of category option identifiers.
-   * @return the attribute option combo identified from the given input.
-   * @throws IllegalQueryException if the attribute option combo does not exist.
-   */
-  public CategoryOptionCombo getAttributeOptionCombo(String cc, Set<String> options) {
-    return getAttributeOptionCombo(cc, options, true);
-  }
-
-  /**
    * Validates and retrieves the attribute option combo.
    *
    * @param cc the category combo identifier.

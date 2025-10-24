@@ -53,7 +53,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportStore;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -72,32 +72,6 @@ import org.springframework.stereotype.Repository;
 public class HibernateDataExportStore implements DataExportStore {
 
   private final EntityManager entityManager;
-
-  @Nonnull
-  @Override
-  public Map<String, String> getIdMapping(
-      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> identifiers) {
-    if (to == IdProperty.UID)
-      return identifiers.distinct().collect(toMap(UID::getValue, UID::getValue));
-    String[] ids =
-        identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
-    if (ids.length == 0) return Map.of();
-    @Language("sql")
-    String sqlTemplate =
-        """
-      SELECT t.uid, ${property}
-      FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON t.uid = input.id
-      """;
-    String tableName =
-        switch (type) {
-          case DE -> "dataelement";
-          case OU -> "organisationunit";
-          case COC -> "categoryoptioncombo";
-        };
-    String sql = replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", to)));
-    return createSelectQuery(sql).setParameter("ids", ids).listAsStringsMap();
-  }
 
   @Override
   @CheckForNull
@@ -145,17 +119,59 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   @UsageTestOnly
   public List<DataExportValue> getAllDataValues() {
-    return getDataValues(new DataExportStoreParams().setIncludeDeleted(false)).toList();
+    return getDataValues(new DataExportParams().setIncludeDeleted(false)).toList();
   }
 
   @Override
-  public Stream<DataExportValue> getDataValues(DataExportStoreParams params) {
+  public Stream<DataExportValue> getDataValues(DataExportParams params) {
     return createExportQuery(params, NativeSQL.of(getSession())).stream().map(DataExportValue::of);
   }
 
-  static QueryBuilder createExportQuery(DataExportStoreParams params, SQL.QueryAPI api) {
+  static QueryBuilder createExportQuery(DataExportParams params, SQL.QueryAPI api) {
     String sql =
         """
+      WITH
+      de_ids AS (
+        SELECT dataelementid
+        FROM (
+                (SELECT NULL AS dataelementid WHERE false)
+          UNION (SELECT de.dataelementid FROM dataelement de WHERE de.uid = ANY(:de))
+          UNION (SELECT dse.dataelementid FROM datasetelement dse \
+            JOIN dataset ds ON dse.datasetid = ds.datasetid WHERE ds.uid = ANY(:ds))
+          UNION (SELECT degm.dataelementid FROM dataelementgroupmembers degm \
+            JOIN dataelementgroup deg ON degm.dataelementgroupid = deg.dataelementgroupid WHERE deg.uid = ANY(:deg))
+        ) de_all
+        WHERE dataelementid IS NOT NULL
+      ),
+      pe_ids AS (
+        SELECT periodid
+        FROM period
+        WHERE 1=1
+          AND iso = ANY(:pe)
+          AND startDate >= :start
+          AND endDate <= :end
+          AND startdate <= :includedDate
+          AND enddate >= :includedDate
+          AND periodtypeid IN (SELECT periodtypeid FROM periodtype WHERE name = ANY(:pt))
+      ),
+      ou_ids AS (
+        SELECT organisationunitid
+        FROM (
+          (SELECT NULL AS organisationunitid WHERE false)
+          UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
+          UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
+                 JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
+                 WHERE oug.uid = ANY(:oug))
+        ) ou_all
+        WHERE organisationunitid IS NOT NULL
+      ),
+      ou_with_descendants_ids AS (
+        SELECT DISTINCT ou.organisationunitid
+        FROM organisationunit ou
+        LEFT JOIN organisationunit parent_ou ON (ou.path LIKE parent_ou.path || '%')
+        WHERE ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
+             OR parent_ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
+      )
       SELECT
         de.uid AS deid,
         pe.iso,
@@ -170,37 +186,27 @@ public class HibernateDataExportStore implements DataExportStore {
         dv.lastupdated,
         dv.deleted
       FROM datavalue dv
+      JOIN de_ids ON dv.dataelementid = de_ids.dataelementid
+      JOIN pe_ids ON dv.periodid = pe_ids.periodid
+      JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
+      JOIN ou_with_descendants_ids ON dv.sourceid = ou_with_descendants_ids.organisationunitid
       JOIN dataelement de ON dv.dataelementid = de.dataelementid
       JOIN period pe ON dv.periodid = pe.periodid
-      JOIN periodtype pt ON pe.periodtypeid = pt.periodtypeid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE 1=1 -- filters use null-erasure...
-        AND dv.dataelementid = ANY(:de)
-        AND pe.iso = ANY(:pe)
-        AND pe.startDate >= :start
-        AND pe.endDate <= :end
-        AND pe.startdate <= :includedDate AND pe.enddate >= :includedDate
-        AND pt.name = ANY(:pt)
-        AND dv.sourceid = ANY(:ou)
-        AND ou.hierarchylevel = :level
-        AND ou.hierarchylevel >= :minLevel
-        AND ou.path LIKE ANY(:path)
-        AND dv.categoryoptioncomboid = ANY(:coc)
-        AND dv.attributeoptioncomboid = ANY(:aoc)
+      WHERE 1=1
+        AND coc.uid = ANY(:coc)
+        AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
+        AND ou.hierarchylevel = :level
         -- access check below must be 1 line for erasure
-        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))
+        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
+          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
+          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))
       ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
       """;
-    Set<OrganisationUnit> units = params.getAllOrganisationUnits();
-    boolean descendants = params.isIncludeDescendantsForOrganisationUnits();
-    String[] path =
-        !descendants
-            ? new String[0]
-            : units.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
     Date lastUpdated = null;
     if (params.hasLastUpdatedDuration())
       lastUpdated = DateUtils.nowMinusDuration(params.getLastUpdatedDuration());
@@ -213,19 +219,21 @@ public class HibernateDataExportStore implements DataExportStore {
             ? null // explicit AOCs mean they are already sharing checked
             : generateSQlQueryForSharingCheck(
                 "co.sharing", CurrentUserUtil.getCurrentUserDetails(), LIKE_READ_DATA);
+    boolean descendants = params.isIncludeDescendants();
     return SQL.of(sql, api)
-        .setParameter("de", getIds(params.getAllDataElements()))
+        .setParameter("ds", params.getDataSets())
+        .setParameter("de", params.getDataElements())
+        .setParameter("deg", params.getDataElementGroups())
         .setParameter("pe", params.getPeriods(), Period::getIsoDate)
         .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
         .setParameter("start", params.getStartDate())
         .setParameter("end", params.getEndDate())
         .setParameter("includedDate", params.getIncludedDate())
-        .setParameter("path", path)
-        .setParameter("ou", descendants ? null : getIds(units))
-        .setParameter("level", descendants ? null : params.getOrgUnitLevel())
-        .setParameter("minLevel", descendants ? params.getOrgUnitLevel() : null)
-        .setParameter("coc", getIds(params.getCategoryOptionCombos()))
-        .setParameter("aoc", getIds(params.getAttributeOptionCombos()))
+        .setParameter("ou", params.getOrganisationUnits())
+        .setParameter("oug", params.getOrganisationUnitGroups())
+        .setParameter("level", params.getOrgUnitLevel())
+        .setParameter("coc", params.getCategoryOptionCombos())
+        .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
         .setDynamicClause("access", accessSql)
@@ -235,28 +243,18 @@ public class HibernateDataExportStore implements DataExportStore {
         .eraseOrder("dv.created", !params.isOrderForSync())
         .eraseOrder("deid", !params.isOrderForSync())
         .eraseNullParameterLines()
-        .eraseNullParameterJoinLine("pt", "pt")
+        .eraseJoinLine("ou_ids", descendants)
+        .eraseJoinLine("ou_with_descendants_ids", !descendants)
         .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
         .setOffset(params.getOffset());
   }
 
-  private static Long[] getIds(Collection<? extends IdentifiableObject> objects) {
-    return objects == null || objects.isEmpty()
-        ? null
-        : objects.stream().map(IdentifiableObject::getId).distinct().toArray(Long[]::new);
-  }
-
-  @Nonnull
-  private static String columnName(String alias, IdProperty id) {
-    return switch (id.name()) {
-      case UID -> alias + ".uid";
-      case NAME -> alias + ".name";
-      case CODE -> alias + ".code";
-      case ATTR ->
-          "jsonb_extract_path_text(%s.attributeValues, '%s', 'value')"
-              .formatted(alias, id.attributeId());
-    };
+  @CheckForNull
+  @Override
+  public UID getAttributeOptionCombo(@CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions) {
+    //TODO
+    return null;
   }
 
   private QueryBuilder createSelectQuery(@Language("sql") String sql) {

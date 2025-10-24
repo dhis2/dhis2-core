@@ -72,7 +72,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
@@ -462,7 +462,7 @@ public class DataValidationRunner {
 
     /** Gets data elements and data element operands from the datavalue table. */
     private void getDataValueMap(List<OrganisationUnit> orgUnits) {
-      DataExportStoreParams params = new DataExportStoreParams();
+      DeflatedDataValueParams params = new DeflatedDataValueParams();
       params.setDataElements(periodTypeX.getDataElements());
       params.setDataElementOperands(periodTypeX.getDataElementOperands());
       params.setIncludedDate(period.getStartDate());

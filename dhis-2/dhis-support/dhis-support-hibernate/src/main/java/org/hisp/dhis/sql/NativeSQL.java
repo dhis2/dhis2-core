@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
@@ -47,6 +48,11 @@ public class NativeSQL {
 
   @Nonnull
   public static SQL.QueryAPI of(Session impl) {
+    return sql -> new HibernateNativeQueryAPI.HibernateQuery(impl, sql, new ArrayList<>());
+  }
+
+  @Nonnull
+  public static SQL.QueryAPI of(StatelessSession impl) {
     return sql -> new HibernateNativeQueryAPI.HibernateQuery(impl, sql, new ArrayList<>());
   }
 

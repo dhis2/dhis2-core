@@ -49,38 +49,6 @@ import org.hisp.dhis.common.ValueType;
  */
 public interface DataEntryStore {
 
-  /*
-  Decode support
-   */
-
-  /** Tables for which ID property values may have to be resolved to UID */
-  enum DecodeType {
-    DS,
-    DE,
-    OU,
-    COC
-  }
-
-  /**
-   * Fetches a mapping between the provided IDs (that used the provided {@code idsProperty}) and the
-   * UID of the same object.
-   *
-   * <p>For example, when {@code idsProperty} is CODE, the result looks like:
-   *
-   * <pre>
-   * {code1} => {uid1}
-   * {code2} => {uid2}
-   * </pre>
-   *
-   * @param type the target object type or table
-   * @param from the known ID property (values given by ids)
-   * @param ids the IDs to map from property to UID
-   * @return a map from given ID to the corresponding UID (does not include entries for input IDs
-   *     that do not exist and thus do not have a corresponding UID)
-   */
-  Map<String, String> getIdMapping(
-      @Nonnull DecodeType type, @Nonnull IdProperty from, @Nonnull Stream<String> ids);
-
   /**
    * Fetches the IDs of the categories of the DS's CC (as used for AOCs).
    *

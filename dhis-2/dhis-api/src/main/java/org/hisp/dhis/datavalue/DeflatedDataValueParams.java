@@ -60,7 +60,7 @@ import org.hisp.dhis.period.PeriodType;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class DataExportStoreParams {
+public class DeflatedDataValueParams {
   private Set<DataElement> dataElements = new HashSet<>();
 
   private Set<DataElementOperand> dataElementOperands = new HashSet<>();
@@ -119,7 +119,7 @@ public class DataExportStoreParams {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public DataExportStoreParams() {}
+  public DeflatedDataValueParams() {}
 
   // -------------------------------------------------------------------------
   // Logic

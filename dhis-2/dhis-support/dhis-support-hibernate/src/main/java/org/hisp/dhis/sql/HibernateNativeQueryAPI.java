@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
+import org.hibernate.query.QueryProducer;
 import org.hibernate.type.BooleanType;
 import org.hibernate.type.DateType;
 import org.hibernate.type.IntegerType;
@@ -52,7 +53,7 @@ import org.hibernate.type.Type;
  */
 class HibernateNativeQueryAPI {
 
-  record HibernateQuery(Session impl, String sql, List<Consumer<NativeQuery<?>>> setters)
+  record HibernateQuery(QueryProducer impl, String sql, List<Consumer<NativeQuery<?>>> setters)
       implements SQL.Query {
 
     @Override

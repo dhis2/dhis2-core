@@ -57,7 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -103,7 +103,7 @@ public class DataValueSetController {
   @OpenApi.Response(DataValueSet.class)
   @GetMapping
   public void getDataValueSet(
-      DataExportParams params,
+      DataExportInputParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       @RequestParam(required = false) String format,
@@ -126,7 +126,7 @@ public class DataValueSetController {
   }
 
   private void getDataValueSetXml(
-      DataExportParams params,
+      DataExportInputParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       HttpServletResponse response)
@@ -142,7 +142,7 @@ public class DataValueSetController {
   }
 
   private void getDataValueSetXmlAdx(
-      DataExportParams params,
+      DataExportInputParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       HttpServletResponse response)
@@ -158,7 +158,7 @@ public class DataValueSetController {
   }
 
   private void getDataValueSetJson(
-      DataExportParams params,
+      DataExportInputParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       HttpServletResponse response)
@@ -174,7 +174,7 @@ public class DataValueSetController {
   }
 
   private void getDataValueSetCsv(
-      DataExportParams params,
+      DataExportInputParams params,
       @RequestParam(required = false) String attachment,
       @RequestParam(required = false) String compression,
       HttpServletResponse response)
@@ -191,7 +191,7 @@ public class DataValueSetController {
 
   interface ExportHandler {
 
-    void export(DataExportParams params, OutputStream out) throws ConflictException;
+    void export(DataExportInputParams params, OutputStream out) throws ConflictException;
   }
 
   private void getDataValueSet(
@@ -200,7 +200,7 @@ public class DataValueSetController {
       String format,
       HttpServletResponse response,
       String contentType,
-      DataExportParams params,
+      DataExportInputParams params,
       ExportHandler handler)
       throws ConflictException {
 
@@ -308,7 +308,7 @@ public class DataValueSetController {
    *     uncompressed outputStream
    */
   private OutputStream compress(
-      DataExportParams params,
+      DataExportInputParams params,
       HttpServletResponse response,
       String attachment,
       Compression compression,
@@ -362,10 +362,10 @@ public class DataValueSetController {
    * Otherwise, will return default file name "dataValues".
    *
    * @param attachment The attachment parameter.
-   * @param params {@link DataExportParams} contains startDate and endDate parameter.
+   * @param params {@link DataExportInputParams} contains startDate and endDate parameter.
    * @return the export file name.
    */
-  private String getAttachmentFileName(String attachment, DataExportParams params) {
+  private String getAttachmentFileName(String attachment, DataExportInputParams params) {
     String fileName = StringUtils.isEmpty(attachment) ? "dataValues" : attachment;
 
     if (params.getStartDate() == null || params.getEndDate() == null) {

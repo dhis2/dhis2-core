@@ -39,6 +39,10 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
+import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -59,13 +63,13 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
-import org.hisp.dhis.datavalue.DataEntryStore.DecodeType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
@@ -91,6 +95,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataEntryService implements DataEntryService, DataDumpService {
 
   private final DataEntryStore store;
+  private final IdCoder idCoder;
 
   @Override
   @Transactional(readOnly = true)
@@ -133,25 +138,25 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     String aocGroup = group.attributeOptionCombo();
     if (ids != null) {
       if (dataSet != null && ids.dataSets().isNotUID())
-        dsOf = store.getIdMapping(DecodeType.DS, ids.dataSets(), Stream.of(dataSet))::get;
+        dsOf = idCoder.mapDecodedIds(DS, ids.dataSets(), Stream.of(dataSet))::get;
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
         if (deGroup != null) deIds = Stream.concat(deIds, Stream.of(deGroup));
-        deOf = store.getIdMapping(DecodeType.DE, ids.dataElements(), deIds)::get;
+        deOf = idCoder.mapDecodedIds(DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
         if (ouGroup != null) ouIds = Stream.concat(ouIds, Stream.of(ouGroup));
-        ouOf = store.getIdMapping(DecodeType.OU, ids.orgUnits(), ouIds)::get;
+        ouOf = idCoder.mapDecodedIds(OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
-        cocOf = store.getIdMapping(DecodeType.COC, ids.categoryOptionCombos(), cocIds)::get;
+        cocOf = idCoder.mapDecodedIds(COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
         if (aocGroup != null) aocIds = Stream.concat(aocIds, Stream.of(aocGroup));
-        aocOf = store.getIdMapping(DecodeType.COC, ids.attributeOptionCombos(), aocIds)::get;
+        aocOf = idCoder.mapDecodedIds(COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
     int i = 0;

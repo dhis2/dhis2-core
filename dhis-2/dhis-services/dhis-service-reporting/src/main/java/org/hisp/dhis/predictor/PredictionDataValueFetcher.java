@@ -60,7 +60,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -245,7 +245,7 @@ public class PredictionDataValueFetcher implements Runnable {
   /** In a separate thread, fetches all the requested data values. */
   @Override
   public void run() {
-    DataExportStoreParams params = new DataExportStoreParams();
+    DeflatedDataValueParams params = new DeflatedDataValueParams();
     params.setDataElements(dataElements);
     params.setDataElementOperands(dataElementOperands);
     params.setPeriods(queryPeriods);

@@ -29,158 +29,106 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 
 /**
- * All query parameters to read data value sets.
- *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Builder(toBuilder = true)
+@Accessors(chain = true)
 @NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataExportParams {
-  private Set<String> dataElement;
 
-  private Set<String> dataSet;
+  /* what DEs to include */
+  private List<UID> dataSets;
+  private List<UID> dataElements;
+  private List<UID> dataElementGroups;
 
-  private Set<String> dataElementGroup;
+  /* what OUs to include */
+  private List<UID> organisationUnits;
+  private List<UID> organisationUnitGroups;
+  private Integer orgUnitLevel;
+  private boolean includeDescendants;
 
-  private Set<String> period;
-
+  /* what timeframe to include */
+  private List<Period> periods;
+  private Set<PeriodType> periodTypes;
   private Date startDate;
-
   private Date endDate;
+  private Date includedDate;
 
-  private Set<String> orgUnit;
+  private List<UID> categoryOptionCombos = new ArrayList<>();
+  private List<UID> attributeOptionCombos = new ArrayList<>();
 
-  private boolean children;
-
-  private Set<String> orgUnitGroup;
-
-  private Set<String> categoryOptionCombo;
-
-  private Set<String> attributeOptionCombo;
-
-  /**
-   * The <code>categoryCombo</code> and <code>categoryOptions</code> parameters must be specified
-   * together.
-   */
-  private String attributeCombo;
-
-  /**
-   * The <code>categoryCombo</code> and <code>categoryOptions</code> parameters must be specified
-   * together.
-   */
-  private Set<String> attributeOptions;
-
+  private boolean orderByOrgUnitPath;
+  private boolean orderByPeriod;
+  private boolean orderForSync;
   private boolean includeDeleted;
 
   private Date lastUpdated;
-
   private String lastUpdatedDuration;
 
+  /* Paging */
   private Integer limit;
   private Integer offset;
 
-  private boolean orderByPeriod;
+  private IdSchemes outputIdSchemes;
 
-  /*
-   * Input IdSchemes
-   */
-
-  private IdentifiableProperty inputIdScheme;
-
-  private IdentifiableProperty inputOrgUnitIdScheme;
-
-  private IdentifiableProperty inputDataElementIdScheme;
-
-  private IdentifiableProperty inputDataSetIdScheme;
-
-  private IdentifiableProperty inputDataElementGroupIdScheme;
-
-  /*
-   * Output IdSchemes (for backwards compatibility not named with prefix
-   * output)
-   */
-
-  private String idScheme;
-
-  private String dataElementIdScheme;
-
-  private String categoryOptionComboIdScheme;
-
-  private String categoryOptionIdScheme;
-
-  private String categoryIdScheme;
-
-  private String orgUnitIdScheme;
-
-  private String programIdScheme;
-
-  private String programStageIdScheme;
-
-  private String trackedEntityAttributeIdScheme;
-
-  private String dataSetIdScheme;
-
-  private String attributeOptionComboIdScheme;
-
-  @OpenApi.Ignore
-  public IdSchemes getInputIdSchemes() {
-    IdSchemes schemes = new IdSchemes();
-    setNonNull(schemes, inputIdScheme, IdSchemes::setIdScheme);
-    setNonNull(schemes, inputDataElementGroupIdScheme, IdSchemes::setDataElementGroupIdScheme);
-    setNonNull(schemes, inputOrgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
-    setNonNull(schemes, inputDataSetIdScheme, IdSchemes::setDataSetIdScheme);
-    setNonNull(schemes, inputDataElementIdScheme, IdSchemes::setDataElementIdScheme);
-    return schemes;
+  public boolean hasDataElements() {
+    return dataElements != null && !dataElements.isEmpty();
   }
 
-  @OpenApi.Ignore
-  public IdSchemes getOutputIdSchemes() {
-    IdSchemes schemes = new IdSchemes();
-    setNonNull(schemes, idScheme, IdSchemes::setIdScheme);
-    setNonNull(schemes, dataElementIdScheme, IdSchemes::setDataElementIdScheme);
-    setNonNull(schemes, categoryOptionComboIdScheme, IdSchemes::setCategoryOptionComboIdScheme);
-    setNonNull(schemes, categoryOptionIdScheme, IdSchemes::setCategoryOptionIdScheme);
-    setNonNull(schemes, categoryIdScheme, IdSchemes::setCategoryIdScheme);
-    setNonNull(schemes, orgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
-    setNonNull(schemes, programIdScheme, IdSchemes::setProgramIdScheme);
-    setNonNull(schemes, programStageIdScheme, IdSchemes::setProgramStageIdScheme);
-    setNonNull(
-        schemes, trackedEntityAttributeIdScheme, IdSchemes::setTrackedEntityAttributeIdScheme);
-    setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
-    setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
-    return schemes;
+  public boolean hasDataSets() {
+    return dataSets != null && !dataSets.isEmpty();
   }
 
-  private static void setNonNull(
-      IdSchemes schemes,
-      IdentifiableProperty property,
-      BiFunction<IdSchemes, String, IdSchemes> setter) {
-    if (property != null) {
-      setNonNull(schemes, property.name(), setter);
-    }
+  public boolean hasDataElementGroups() {
+    return dataElementGroups != null && !dataElementGroups.isEmpty();
   }
 
-  private static void setNonNull(
-      IdSchemes schemes, String property, BiFunction<IdSchemes, String, IdSchemes> setter) {
-    if (property != null) {
-      setter.apply(schemes, property);
-    }
+  public boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
   }
+
+  public boolean hasStartEndDate() {
+    return startDate != null && endDate != null;
+  }
+
+  public boolean hasOrganisationUnits() {
+    return organisationUnits != null && !organisationUnits.isEmpty();
+  }
+
+  public boolean hasOrganisationUnitGroups() {
+    return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
+  }
+
+  public boolean hasAttributeOptionCombos() {
+    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
+  }
+
+  public boolean hasLastUpdated() {
+    return lastUpdated != null;
+  }
+
+  public boolean hasLastUpdatedDuration() {
+    return lastUpdatedDuration != null;
+  }
+
+  public boolean hasLimit() {
+    return limit != null;
+  }
+
+
 }

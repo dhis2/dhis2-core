@@ -79,7 +79,7 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -338,8 +338,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
                       .getAttributeOptionCombo(dataSet.getCategoryCombo(), options, IdScheme.UID)
                       .getUid());
 
-      DataExportParams params =
-          DataExportParams.builder()
+      DataExportInputParams params =
+          DataExportInputParams.builder()
               .dataElement(
                   dataSets.get(0).getDataElements().stream()
                       .map(DataElement::getUid)

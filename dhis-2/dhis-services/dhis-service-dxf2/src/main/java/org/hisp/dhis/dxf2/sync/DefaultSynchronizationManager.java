@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -155,8 +155,8 @@ public class DefaultSynchronizationManager implements SynchronizationManager {
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
           try {
-            DataExportParams params =
-                DataExportParams.builder().lastUpdated(lastUpdatedAfter).build();
+            DataExportInputParams params =
+                DataExportInputParams.builder().lastUpdated(lastUpdatedAfter).build();
             dataExportPipeline.exportAsJsonSync(params, request.getBody());
           } catch (ConflictException ex) {
             throw new IllegalStateException(ex);

@@ -45,7 +45,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.feedback.ConflictException;
@@ -220,7 +220,7 @@ public class DefaultCompleteDataSetRegistrationService
     List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 
     if (!dataSet.getCompulsoryDataElementOperands().isEmpty()) {
-      DataExportStoreParams params = new DataExportStoreParams();
+      DeflatedDataValueParams params = new DeflatedDataValueParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
       params.setPeriods(Set.of(period));
       params.setAttributeOptionCombos(List.of(attributeOptionCombo));

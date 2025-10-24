@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.datavalue;
 
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.period.Period;
+
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
@@ -38,8 +41,12 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 public record DataExportGroup(
-    // Note that ATM we have no need for a group not already converted to output form
-    // but to stay consistent with the naming and code organisation this outer record exists
+    @CheckForNull UID dataSet,
+    @CheckForNull Period period,
+    @CheckForNull UID orgUnit,
+    @CheckForNull UID attributeOptionCombo,
+    @CheckForNull Map<UID, UID> attributeOptions,
+    @Nonnull Stream<DataExportValue> values
     ) {
 
   /**

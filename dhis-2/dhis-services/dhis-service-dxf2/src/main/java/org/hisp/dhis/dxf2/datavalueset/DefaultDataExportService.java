@@ -31,20 +31,19 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.COC;
-import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.DE;
-import static org.hisp.dhis.datavalue.DataExportStore.EncodeType.OU;
+import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DEG;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
+import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
+import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -57,32 +56,28 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportGroup;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStore;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -91,19 +86,17 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Note that a mock BatchHandler factory is being injected.
+ * Provides the core functions to export (access) aggregate data.
  *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultDataExportService implements DataExportService {
 
-  private final IdentifiableObjectManager identifiableObjectManager;
   private final DataExportStore store;
-  private final InputUtils inputUtils;
-  private final AclService aclService;
+  private final IdCoder idCoder;
 
   @CheckForNull
   @Override
@@ -120,9 +113,9 @@ public class DefaultDataExportService implements DataExportService {
    */
   @Override
   @Transactional(propagation = Propagation.MANDATORY)
-  public Stream<DataExportValue> exportValues(@Nonnull DataExportParams parameters)
+  public Stream<DataExportValue> exportValues(@Nonnull DataExportInputParams parameters)
       throws ConflictException {
-    DataExportStoreParams params = decodeParams(parameters);
+    DataExportParams params = decodeParams(parameters);
     validateFilters(params);
     validateAccess(params);
     return store.getDataValues(params);
@@ -130,9 +123,9 @@ public class DefaultDataExportService implements DataExportService {
 
   @Override
   @Transactional(readOnly = true)
-  public DataExportGroup.Output exportGroup(@Nonnull DataExportParams parameters, boolean sync)
+  public DataExportGroup.Output exportGroup(@Nonnull DataExportInputParams parameters, boolean sync)
       throws ConflictException {
-    DataExportStoreParams params = decodeParams(parameters);
+    DataExportParams params = decodeParams(parameters);
     if (sync) {
       params.setOrderForSync(true);
       params.setIncludeDeleted(true);
@@ -140,58 +133,53 @@ public class DefaultDataExportService implements DataExportService {
       validateFilters(params);
       validateAccess(params);
     }
-
-    return exportGroupInternal(params);
+    return exportGroupInternal(params, parameters.getOutputIdSchemes());
   }
 
   @Nonnull
-  private DataExportGroup.Output exportGroupInternal(DataExportStoreParams params) {
-    IdSchemes schemes = params.getOutputIdSchemes();
-    String groupDataSet = null;
-    String groupPeriod = null;
-    String groupOrgUnit = null;
-    String groupAoc = null;
-    DataSet ds = getUnique(params.getDataSets());
-    if (ds != null) groupDataSet = ds.getPropertyValue(schemes.getDataSetIdScheme());
+  private DataExportGroup.Output exportGroupInternal(DataExportParams params, IdSchemes encodeTo) {
+    UID ds = getUnique(params.getDataSets());
     Period pe = getUnique(params.getPeriods());
-    if (pe != null) groupPeriod = pe.getIsoDate();
-    OrganisationUnit ou = getUnique(params.getOrganisationUnits());
-    if (ou != null && !params.isIncludeDescendants() && !params.hasOrganisationUnitGroups())
-      groupOrgUnit = ou.getPropertyValue(schemes.getOrgUnitIdScheme());
-    CategoryOptionCombo aoc = getUnique(params.getAttributeOptionCombos());
-    if (aoc != null) groupAoc = aoc.getPropertyValue(schemes.getAttributeOptionComboIdScheme());
-    DataExportGroup.Output group =
-        new DataExportGroup.Output(
-            groupDataSet, groupPeriod, groupOrgUnit, groupAoc, null, Set.of(), Stream.empty());
-    return group.withValues(encodeValues(group, store.getDataValues(params), schemes));
+    UID ou = getUnique(params.getOrganisationUnits());
+    if (params.isIncludeDescendants() || params.hasOrganisationUnitGroups())
+      ou = null; // result may contain other units
+    UID aoc = getUnique(params.getAttributeOptionCombos());
+    return encodeGroup(new DataExportGroup(ds, pe, ou, aoc, null, store.getDataValues(params)), encodeTo);
   }
 
-  private <T> T getUnique(Collection<T> elements) {
+  private <T> T getUnique(List<T> elements) {
     if (elements == null || elements.size() != 1) return null;
-    return elements.iterator().next();
+    return elements.get(0);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportParams parameters)
+  public Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportInputParams parameters)
       throws ConflictException {
-    DataExportStoreParams params = decodeParamsAdx(parameters);
+    DataExportParams params = decodeParams(parameters);
     validateFilters(params);
     validateAccess(params);
 
-    return listGroupsOfValues(params).stream();
+    // for each DS
+    // export to values (DB level)
+    //  group per AOC + PE + OU
+    //  per group:
+    //    encode
+    //    + resolve all COC+AOC => (C => CO) [as new option opt-in]
+    //    + valueType to each DV [as new option opt-in]
+
+    return listGroupsOfValues(params, parameters.getOutputIdSchemes()).stream();
   }
 
   /**
    * @implNote For now we don't do full Stream processing where this returns a Stream (not List) as
    *     that makes this a fair bit more complicated. Might be a future PR
    */
-  private List<DataExportGroup.Output> listGroupsOfValues(DataExportStoreParams params)
+  private List<DataExportGroup.Output> listGroupsOfValues(DataExportParams params, IdSchemes encodeTo)
       throws ConflictException {
-    IdSchemes idSchemes = params.getOutputIdSchemes();
-    IdScheme ouScheme = idSchemes.getOrgUnitIdScheme();
-    IdScheme dsScheme = idSchemes.getDataSetIdScheme();
-    IdScheme deScheme = idSchemes.getDataElementIdScheme();
+    IdScheme ouScheme = encodeTo.getOrgUnitIdScheme();
+    IdScheme dsScheme = encodeTo.getDataSetIdScheme();
+    IdScheme deScheme = encodeTo.getDataElementIdScheme();
 
     Set<OrganisationUnit> units = params.getAllOrganisationUnits();
     Map<UID, OrganisationUnit> unitsById = new HashMap<>();
@@ -202,14 +190,14 @@ public class DefaultDataExportService implements DataExportService {
       String groupDataSet = dataSet.getPropertyValue(dsScheme);
       // COC => C => CO
       Map<UID, Map<String, String>> categoryOptionMap =
-          createCategoryOptionsMapping(dataSet, idSchemes);
+          createCategoryOptionsMapping(dataSet, encodeTo);
 
       for (CategoryOptionCombo aoc : getAttributeOptionCombos(dataSet, params)) {
         Map<String, String> groupAttributeOptions = categoryOptionMap.get(UID.of(aoc));
 
         Set<DataElement> dsDataElements = dataSet.getDataElements();
-        DataExportStoreParams groupParams =
-            new DataExportStoreParams()
+        DataExportParams groupParams =
+            new DataExportParams()
                 .setDataElements(dsDataElements)
                 .setOrganisationUnits(units)
                 .setIncludeDescendants(params.isIncludeDescendants())
@@ -232,6 +220,7 @@ public class DefaultDataExportService implements DataExportService {
             dsDataElements.stream()
                 .collect(toMap(IdentifiableObject::getUid, de -> de.getPropertyValue(deScheme)));
 
+        //TODO replace with adding ValueType to the Output record?
         Set<String> numericUsedDataElements = new HashSet<>();
         List<DataExportValue.Output> groupValues = new ArrayList<>();
         IdProperty ouAs = IdProperty.of(ouScheme);
@@ -243,7 +232,7 @@ public class DefaultDataExportService implements DataExportService {
               // ou can be null when children are included!
               // Note: This single ID lookup is not ideal and only a temporary fix
               // until use of the object model is replaced in the entire processing
-              return store.getIdMapping(OU, ouAs, Stream.of(uid)).get(uid.getValue());
+              return idCoder.mapEncodedIds(OU, ouAs, Stream.of(uid)).get(uid.getValue());
             };
         String groupPeriod = null;
         UID currentOrgUnit = null;
@@ -302,12 +291,12 @@ public class DefaultDataExportService implements DataExportService {
     return groups;
   }
 
-  private Stream<DataExportValue.Output> encodeValues(
-      DataExportGroup.Output group, Stream<DataExportValue> values, IdSchemes schemes) {
-    IdProperty deAs = IdProperty.of(schemes.getDataElementIdScheme());
-    IdProperty ouAs = IdProperty.of(schemes.getOrgUnitIdScheme());
-    IdProperty cocAs = IdProperty.of(schemes.getCategoryOptionComboIdScheme());
-    IdProperty aocAs = IdProperty.of(schemes.getAttributeOptionComboIdScheme());
+  private DataExportGroup.Output encodeGroup(
+      DataExportGroup group, IdSchemes to) {
+    IdProperty deAs = IdProperty.of(to.getDataElementIdScheme());
+    IdProperty ouAs = IdProperty.of(to.getOrgUnitIdScheme());
+    IdProperty cocAs = IdProperty.of(to.getCategoryOptionComboIdScheme());
+    IdProperty aocAs = IdProperty.of(to.getAttributeOptionComboIdScheme());
     UnaryOperator<String> deOf = UnaryOperator.identity();
     UnaryOperator<String> ouOf = UnaryOperator.identity();
     UnaryOperator<String> cocOf = UnaryOperator.identity();
@@ -318,20 +307,25 @@ public class DefaultDataExportService implements DataExportService {
     boolean ouMap = ouAs.isNotUID() && group.orgUnit() == null;
     boolean cocMap = cocAs.isNotUID();
     boolean aocMap = aocAs.isNotUID() && group.attributeOptionCombo() == null;
-    String groupPeriod = group.period();
+    Period pe = group.period();
+    String groupPeriod = pe == null ? null : pe.getIsoDate();
+    Stream<DataExportValue> values = group.values();
     if (deMap || ouMap || cocMap || aocMap) {
       List<DataExportValue> list = values.toList();
       if (deMap)
-        deOf = store.getIdMapping(DE, deAs, list.stream().map(DataExportValue::dataElement))::get;
+        deOf =
+            idCoder.mapEncodedIds(DE, deAs, list.stream().map(DataExportValue::dataElement))::get;
       if (ouMap)
-        ouOf = store.getIdMapping(OU, ouAs, list.stream().map(DataExportValue::orgUnit))::get;
+        ouOf = idCoder.mapEncodedIds(OU, ouAs, list.stream().map(DataExportValue::orgUnit))::get;
       if (cocMap)
         cocOf =
-            store.getIdMapping(COC, cocAs, list.stream().map(DataExportValue::categoryOptionCombo))
+            idCoder.mapEncodedIds(
+                    COC, cocAs, list.stream().map(DataExportValue::categoryOptionCombo))
                 ::get;
       if (aocMap)
         aocOf =
-            store.getIdMapping(COC, aocAs, list.stream().map(DataExportValue::attributeOptionCombo))
+            idCoder.mapEncodedIds(
+                    COC, aocAs, list.stream().map(DataExportValue::attributeOptionCombo))
                 ::get;
       // by only doing this in case of other IDs being used UIDs can be truly stream processed
       values = list.stream(); // renew the already consumed stream
@@ -340,7 +334,14 @@ public class DefaultDataExportService implements DataExportService {
     UnaryOperator<String> ouOfFinal = ouOf;
     UnaryOperator<String> cocOfFinal = cocOf;
     UnaryOperator<String> aocOfFinal = aocOf;
-    return values.map(
+    return new DataExportGroup.Output(
+      idCoder.getEncodedId(DS, IdProperty.of(to.getDataSetIdScheme()), group.dataSet()),
+    groupPeriod,
+    idCoder.getEncodedId(OU, ouAs, group.orgUnit()),
+    idCoder.getEncodedId(COC, aocAs, group.attributeOptionCombo()),
+    null,
+    null,
+    values.map(
         dv ->
             new DataExportValue.Output(
                 deOfFinal.apply(dv.dataElement().getValue()),
@@ -355,177 +356,74 @@ public class DefaultDataExportService implements DataExportService {
                 dv.storedBy(),
                 dv.created(),
                 dv.lastUpdated(),
-                dv.deleted()));
+                dv.deleted())));
   }
 
-  private DataExportStoreParams decodeParamsAdx(DataExportParams urlParams) {
-    IdSchemes outputIdSchemes = urlParams.getOutputIdSchemes();
-    outputIdSchemes.setDefaultIdScheme(IdScheme.CODE);
+  private DataExportParams decodeParams(DataExportInputParams params) {
+    boolean codeFallback = Boolean.TRUE.equals(params.getInputUseCodeFallback());
+    IdentifiableProperty anyIn = params.getInputIdScheme();
+    IdentifiableProperty dsIn = params.getInputDataSetIdScheme();
+    IdentifiableProperty deIn = params.getInputDataElementIdScheme();
+    IdentifiableProperty ouIn = params.getInputOrgUnitIdScheme();
+    IdentifiableProperty degIn = params.getInputDataElementGroupIdScheme();
+    if (anyIn == null && !codeFallback) anyIn = IdentifiableProperty.UID;
+    if (dsIn == null) dsIn = anyIn;
+    if (deIn == null) deIn = anyIn;
+    if (ouIn == null) ouIn = anyIn;
+    if (degIn == null) degIn = anyIn;
 
-    DataExportStoreParams params = new DataExportStoreParams();
-
-    if (!isEmpty(urlParams.getDataSet())) {
-      params.getDataSets().addAll(getByUidOrCode(DataSet.class, urlParams.getDataSet()));
-    }
-    if (!isEmpty(urlParams.getDataElement())) {
-      params
-          .getDataElements()
-          .addAll(getByUidOrCode(DataElement.class, urlParams.getDataElement()));
-    }
-    if (!isEmpty(urlParams.getPeriod())) {
-      params
-          .getPeriods()
-          .addAll(urlParams.getPeriod().stream().map(PeriodType::getPeriodFromIsoString).toList());
-    } else if (urlParams.getStartDate() != null && urlParams.getEndDate() != null) {
-      params.setStartDate(urlParams.getStartDate());
-      params.setEndDate(urlParams.getEndDate());
-    }
-
-    if (!isEmpty(urlParams.getOrgUnit())) {
-      params
-          .getOrganisationUnits()
-          .addAll(getByUidOrCode(OrganisationUnit.class, urlParams.getOrgUnit()));
+    List<UID> attributeOptionCombos =
+        decodeIds(COC, anyIn, params.getAttributeOptionCombo());
+    if (attributeOptionCombos == null && params.getAttributeOptions() != null) {
+      UID aoc =
+          store.getAttributeOptionCombo(
+              params.getAttributeCombo(), params.getAttributeOptions().stream());
+      if (aoc != null) attributeOptionCombos = List.of(aoc);
     }
 
-    if (!isEmpty(urlParams.getOrgUnitGroup())) {
-      params
-          .getOrganisationUnitGroups()
-          .addAll(getByUidOrCode(OrganisationUnitGroup.class, urlParams.getOrgUnitGroup()));
-    }
-
-    if (!isEmpty(urlParams.getAttributeOptionCombo())) {
-      params
-          .getAttributeOptionCombos()
-          .addAll(getByUidOrCode(CategoryOptionCombo.class, urlParams.getAttributeOptionCombo()));
-    }
-
-    params.setIncludeDescendants(urlParams.isChildren());
-    params.setIncludeDeleted(urlParams.isIncludeDeleted());
-    params.setLastUpdated(urlParams.getLastUpdated());
-    params.setLastUpdatedDuration(urlParams.getLastUpdatedDuration());
-    params.setLimit(urlParams.getLimit());
-    params.setOffset(urlParams.getOffset());
-    params.setOutputIdSchemes(outputIdSchemes);
-
-    return params;
+    return new DataExportParams()
+        .setDataSets(decodeIds(DS, dsIn, params.getDataSet()))
+        .setDataElementGroups(decodeIds(DEG, degIn, params.getDataElementGroup()))
+        .setDataElements(decodeIds(DE, deIn, params.getDataElement()))
+        .setOrganisationUnits(decodeIds(OU, ouIn, params.getOrgUnit()))
+        .setOrganisationUnitGroups(decodeIds(OUG, anyIn, params.getOrgUnitGroup()))
+        .setCategoryOptionCombos(decodeIds(COC, anyIn, params.getCategoryOptionCombo()))
+        .setAttributeOptionCombos(attributeOptionCombos)
+        .setPeriods(decodePeriods(params.getPeriod()))
+        .setStartDate(params.getStartDate())
+        .setEndDate(params.getEndDate())
+        .setIncludeDescendants(params.isChildren())
+        .setIncludeDeleted(params.isIncludeDeleted())
+        .setLastUpdated(params.getLastUpdated())
+        .setLastUpdatedDuration(params.getLastUpdatedDuration())
+        .setLimit(params.getLimit())
+        .setOffset(params.getOffset())
+        .setOrderByPeriod(params.isOrderByPeriod());
   }
 
-  private <T extends IdentifiableObject> List<T> getByUidOrCode(Class<T> clazz, Set<String> ids) {
-    return ids.stream().map(id -> getByUidOrCode(clazz, id)).filter(Objects::nonNull).toList();
+  private List<UID> decodeIds(IdCoder.ObjectType type, @CheckForNull IdentifiableProperty from, Collection<String> ids) {
+    if (ids == null || ids.isEmpty()) return null;
+    IdProperty p = IdProperty.of(from);
+    if (p == IdProperty.UID) {
+      if (from != null) return ids.stream().map(UID::of).toList();
+      // from being null means UID was just assumed by default
+      // and code should be attempted as fall-back
+      List<UID> res = ids.stream().filter(UID::isValid).map(UID::of).toList();
+      if (res.size() == ids.size()) return res;
+      return Stream.concat(
+              res.stream(),
+              idCoder.listDecodedIds(type, IdProperty.CODE, ids.stream()).map(UID::of))
+          .toList();
+    }
+    return idCoder.listDecodedIds(type, p, ids.stream()).map(UID::of).toList();
   }
 
-  private <T extends IdentifiableObject> T getByUidOrCode(Class<T> clazz, String id) {
-    if (isValidUid(id)) {
-      T object = identifiableObjectManager.get(clazz, id);
-      if (object != null) return object;
-    }
-    return identifiableObjectManager.getByCode(clazz, id);
+  private List<Period> decodePeriods(Collection<String> isoPeriods) {
+    if (isoPeriods == null || isoPeriods.isEmpty()) return null;
+    return isoPeriods.stream().map(PeriodType::getPeriodFromIsoString).toList();
   }
 
-  private DataExportStoreParams decodeParams(DataExportParams urlParams) {
-    DataExportStoreParams params = new DataExportStoreParams();
-    IdSchemes inputIdSchemes = urlParams.getInputIdSchemes();
-
-    if (!isEmpty(urlParams.getDataSet())) {
-      params
-          .getDataSets()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  DataSet.class,
-                  IdentifiableProperty.in(inputIdSchemes, IdSchemes::getDataSetIdScheme),
-                  urlParams.getDataSet()));
-    }
-
-    if (!isEmpty(urlParams.getDataElementGroup())) {
-      params
-          .getDataElementGroups()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  DataElementGroup.class,
-                  IdentifiableProperty.in(inputIdSchemes, IdSchemes::getDataElementGroupIdScheme),
-                  urlParams.getDataElementGroup()));
-    }
-
-    if (!isEmpty(urlParams.getDataElement())) {
-      params
-          .getDataElements()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  DataElement.class,
-                  IdentifiableProperty.in(inputIdSchemes, IdSchemes::getDataElementIdScheme),
-                  urlParams.getDataElement()));
-    }
-
-    if (!isEmpty(urlParams.getPeriod())) {
-      params
-          .getPeriods()
-          .addAll(urlParams.getPeriod().stream().map(PeriodType::getPeriodFromIsoString).toList());
-    }
-    if (urlParams.getStartDate() != null && urlParams.getEndDate() != null) {
-      params.setStartDate(urlParams.getStartDate()).setEndDate(urlParams.getEndDate());
-    }
-
-    if (!isEmpty(urlParams.getOrgUnit())) {
-      params
-          .getOrganisationUnits()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  OrganisationUnit.class,
-                  IdentifiableProperty.in(inputIdSchemes, IdSchemes::getOrgUnitIdScheme),
-                  urlParams.getOrgUnit()));
-    }
-
-    if (!isEmpty(urlParams.getOrgUnitGroup())) {
-      params
-          .getOrganisationUnitGroups()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  OrganisationUnitGroup.class,
-                  IdentifiableProperty.in(inputIdSchemes, IdSchemes::getOrgUnitGroupIdScheme),
-                  urlParams.getOrgUnitGroup()));
-    }
-
-    if (!isEmpty(urlParams.getCategoryOptionCombo())) {
-      params
-          .getCategoryOptionCombos()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  CategoryOptionCombo.class,
-                  IdentifiableProperty.in(
-                      inputIdSchemes, IdSchemes::getCategoryOptionComboIdScheme),
-                  urlParams.getCategoryOptionCombo()));
-    }
-
-    if (!isEmpty(urlParams.getAttributeOptionCombo())) {
-      params
-          .getAttributeOptionCombos()
-          .addAll(
-              identifiableObjectManager.getObjects(
-                  CategoryOptionCombo.class,
-                  IdentifiableProperty.in(
-                      inputIdSchemes, IdSchemes::getAttributeOptionComboIdScheme),
-                  urlParams.getAttributeOptionCombo()));
-    } else if (urlParams.getAttributeCombo() != null && !isEmpty(urlParams.getAttributeOptions())) {
-      params
-          .getAttributeOptionCombos()
-          .addAll(
-              Lists.newArrayList(
-                  inputUtils.getAttributeOptionCombo(
-                      urlParams.getAttributeCombo(), urlParams.getAttributeOptions())));
-    }
-
-    return params
-        .setIncludeDescendants(urlParams.isChildren())
-        .setIncludeDeleted(urlParams.isIncludeDeleted())
-        .setLastUpdated(urlParams.getLastUpdated())
-        .setLastUpdatedDuration(urlParams.getLastUpdatedDuration())
-        .setLimit(urlParams.getLimit())
-        .setOffset(urlParams.getOffset())
-        .setOrderByPeriod(urlParams.isOrderByPeriod())
-        .setOutputIdSchemes(urlParams.getOutputIdSchemes());
-  }
-
-  public void validateFilters(DataExportStoreParams params) throws ConflictException {
+  public void validateFilters(DataExportParams params) throws ConflictException {
     if (params == null) throw new ConflictException(ErrorCode.E2000);
 
     if (!params.hasDataElements() && !params.hasDataSets() && !params.hasDataElementGroups())
@@ -561,16 +459,10 @@ public class DefaultDataExportService implements DataExportService {
 
   private void validateAccess(DataEntryKey key) throws ConflictException {
     UID aoc = key.attributeOptionCombo();
-    List<CategoryOptionCombo> attributeCombos =
-        aoc == null
-            ? List.of()
-            : List.of(identifiableObjectManager.load(CategoryOptionCombo.class, aoc.getValue()));
-    List<OrganisationUnit> orgUnits =
-        List.of(identifiableObjectManager.load(OrganisationUnit.class, key.orgUnit().getValue()));
-    validateAccess(List.of(), attributeCombos, orgUnits);
+    validateAccess(List.of(), aoc == null ? List.of() : List.of(aoc), List.of(key.orgUnit()));
   }
 
-  private void validateAccess(DataExportStoreParams params) throws ConflictException {
+  private void validateAccess(DataExportParams params) throws ConflictException {
     validateAccess(
         params.getDataSets(), params.getAttributeOptionCombos(), params.getOrganisationUnits());
   }
@@ -581,37 +473,27 @@ public class DefaultDataExportService implements DataExportService {
    *     writes) - likely this is missing and should be added
    */
   private void validateAccess(
-      Collection<DataSet> dataSets,
-      Collection<CategoryOptionCombo> attributeCombos,
-      Collection<OrganisationUnit> orgUnits)
+      List<UID> dataSets,
+      List<UID> attributeCombos,
+      List<UID> orgUnits)
       throws ConflictException {
     // Verify data set read sharing
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser.isSuper()) return;
 
-    for (DataSet dataSet : dataSets) {
-      if (!aclService.canDataRead(currentUser, dataSet)) {
-        throw new ConflictException(ErrorCode.E2010, dataSet.getUid());
-      }
-    }
+    // TODO
+    // - user can data read all datasets
+    // => throw new ConflictException(ErrorCode.E2010, dataSet.getUid());
 
-    // Verify attribute option combination data read sharing
-    for (CategoryOptionCombo optionCombo : attributeCombos) {
-      if (!aclService.canDataRead(currentUser, optionCombo)) {
-        throw new ConflictException(ErrorCode.E2011, optionCombo.getUid());
-      }
-    }
+    // - user can data read all AOCs (used as filter? seems wrong - should be all AOCs returned)
+    // => throw new ConflictException(ErrorCode.E2011, optionCombo.getUid());
 
-    // Verify org unit being located within user data capture hierarchy
-    for (OrganisationUnit unit : orgUnits) {
-      if (!currentUser.isInUserHierarchy(unit.getPath())) {
-        throw new ConflictException(ErrorCode.E2012, unit.getUid());
-      }
-    }
+    // - all OUs targeted are in user capture hierarchy
+    // => throw new ConflictException(ErrorCode.E2012, unit.getUid());
   }
 
   private static Set<CategoryOptionCombo> getAttributeOptionCombos(
-      DataSet dataSet, DataExportStoreParams params) {
+      DataSet dataSet, DataExportParams params) {
     Set<CategoryOptionCombo> aocs = dataSet.getCategoryCombo().getOptionCombos();
 
     if (params.hasAttributeOptionCombos()) {

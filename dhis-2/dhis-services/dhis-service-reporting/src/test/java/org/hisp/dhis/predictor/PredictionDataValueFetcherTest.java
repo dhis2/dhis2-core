@@ -50,7 +50,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -339,11 +339,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testGetDataValues() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
+                  ((DeflatedDataValueParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(deflatedDataValueA);
               blockingQueue.put(deflatedDataValueAB);
               blockingQueue.put(deflatedDataValueB);
@@ -388,11 +388,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testGetDataValuesWithAllDisaggregations() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
+                  ((DeflatedDataValueParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(deflatedDataValueA);
               blockingQueue.put(deflatedDataValueAB);
               blockingQueue.put(deflatedDataValueB);
@@ -435,11 +435,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testNoDataValues() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
+                  ((DeflatedDataValueParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(END_OF_DDV_DATA);
               return new ArrayList<>();
             });

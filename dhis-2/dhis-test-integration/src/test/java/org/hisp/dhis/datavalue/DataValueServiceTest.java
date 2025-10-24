@@ -260,8 +260,8 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         dataValueH,
         dataValueI,
         dataValueJ);
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataElement(Set.of(deA.getUid()))
             .period(Set.of(peA.getIsoDate(), peB.getIsoDate(), peC.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid()))
@@ -269,7 +269,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     Stream<DataExportValue> values = dataExportService.exportValues(params);
     assertEquals(Set.of("1", "3", "9"), values.map(DataExportValue::value).collect(toSet()));
     params =
-        DataExportParams.builder()
+        DataExportInputParams.builder()
             .dataElement(Set.of(deB.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -306,7 +306,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid(), deB.getUid()))
                     .period(Set.of(peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -316,7 +316,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid(), deB.getUid()))
                     .period(Set.of(peA.getIsoDate()))
                     .orgUnit(Set.of(ouB.getUid()))
@@ -326,7 +326,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peA.getIsoDate(), peC.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -336,7 +336,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deB.getUid()))
                     .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -346,7 +346,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deB.getUid()))
                     .period(Set.of(peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid()))
@@ -356,7 +356,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peA.getIsoDate()))
                     .orgUnit(Set.of(ouB.getUid()))
@@ -366,7 +366,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .startDate(peA.getStartDate())
                     .endDate(peA.getEndDate())
@@ -387,7 +387,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peA.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -405,7 +405,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         0,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peX.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid()))
@@ -425,7 +425,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peA.getIsoDate(), peX.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -474,7 +474,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid(), deB.getUid()))
                     .period(Set.of(peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -484,7 +484,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid(), deB.getUid()))
                     .period(Set.of(peA.getIsoDate()))
                     .orgUnit(Set.of(ouB.getUid()))
@@ -494,7 +494,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         2,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peC.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -504,7 +504,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peA.getIsoDate(), peC.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -514,7 +514,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         4,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deB.getUid()))
                     .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
@@ -524,7 +524,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deB.getUid()))
                     .period(Set.of(peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid()))
@@ -534,7 +534,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deB.getUid()))
                     .period(Set.of(peB.getIsoDate()))
                     .orgUnit(Set.of(ouA.getUid()))
@@ -544,7 +544,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
         1,
         dataExportService
             .exportValues(
-                DataExportParams.builder()
+                DataExportInputParams.builder()
                     .dataElement(Set.of(deA.getUid()))
                     .period(Set.of(peA.getIsoDate()))
                     .orgUnit(Set.of(ouB.getUid()))
@@ -576,8 +576,8 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testValidateMissingDataElement() {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .period(Set.of(peB.getIsoDate()))
             .orgUnit(Set.of(ouA.getUid()))
             .build();
@@ -588,8 +588,8 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testValidateMissingPeriod() {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataElement(Set.of(deA.getUid(), deB.getUid()))
             .orgUnit(Set.of(ouB.getUid()))
             .build();
@@ -600,8 +600,8 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testValidatePeriodAndStartEndDate() {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataElement(Set.of(deA.getUid(), deB.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .startDate(getDate(2022, 1, 1))
@@ -615,8 +615,8 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testValidateMissingOrgUnit() {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportInputParams params =
+        DataExportInputParams.builder()
             .dataElement(Set.of(deA.getUid(), deB.getUid()))
             .period(Set.of(peB.getIsoDate()))
             .build();

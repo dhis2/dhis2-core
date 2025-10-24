@@ -33,14 +33,14 @@ import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createE
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 
 import java.util.Set;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SQL generation as performed by {@link
- * HibernateDataExportStore#createExportQuery(DataExportStoreParams, SQL.QueryAPI)}
+ * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI)}
  *
  * @author Jan Bernitt
  */
@@ -48,8 +48,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testFilter_Period() {
-    DataExportStoreParams params =
-        new DataExportStoreParams()
+    DataExportParams params =
+        new DataExportParams()
             .setOrderForSync(true) // bypass user context logic
             .setPeriods(Set.of(getPeriodFromIsoString("2020")));
     assertSQL(

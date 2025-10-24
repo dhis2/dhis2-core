@@ -47,7 +47,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
@@ -96,8 +96,8 @@ public class DataSetValueController {
     CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-    DataExportParams exportParams =
-        DataExportParams.builder()
+    DataExportInputParams exportParams =
+        DataExportInputParams.builder()
             .dataSet(Set.of(params.getDs()))
             .period(Set.of(params.getPe()))
             .orgUnit(Set.of(params.getOu()))

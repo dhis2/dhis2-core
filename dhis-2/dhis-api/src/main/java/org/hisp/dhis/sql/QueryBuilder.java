@@ -254,6 +254,18 @@ public final class QueryBuilder {
   }
 
   /**
+   * Erase a JOIN line based on a logic condition that is independent of named parameters.
+   *
+   * @param alias table name alias of the tabled joined
+   * @param condition when true, the join is erased
+   * @return this for chaining
+   */
+  public QueryBuilder eraseJoinLine(String alias, boolean condition) {
+    if (condition) erasedJoins.put(alias, Set.of());
+    return this;
+  }
+
+  /**
    * For each of the given named parameters a SQL {@code IN(:name)} or {@code ANY(:name)} is
    * replaced with {@code = :name} if the current value for {@code name} is a single value.
    *
@@ -404,7 +416,8 @@ public final class QueryBuilder {
     int iSpace = line.lastIndexOf(' ', iOn - 1);
     String alias = line.substring(iSpace, iOn).trim();
     if (!erasedJoins.containsKey(alias)) return false;
-    return erasedParams.containsAll(erasedJoins.get(alias));
+    Set<String> params = erasedJoins.get(alias);
+    return params.isEmpty() || erasedParams.containsAll(params);
   }
 
   private boolean containsErasedClause(String line) {

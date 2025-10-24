@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -179,8 +179,8 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
           try {
-            DataExportParams params =
-                DataExportParams.builder()
+            DataExportInputParams params =
+                DataExportInputParams.builder()
                     .lastUpdated(lastUpdatedAfter)
                     .limit(syncPageSize)
                     .offset((page - 1) * syncPageSize)
