@@ -330,7 +330,8 @@ build_analytics_db_image() {
   # * Database is in a consistent, shutdown state for docker commit
   # Note: Cannot use pg_ctl stop because postgres is PID 1 - stopping it exits the container
   # docker compose stop performs a graceful shutdown (SIGTERM then SIGKILL after timeout)
-  docker compose "${compose_files[@]}" stop
+  # Use 120s timeout to allow PostgreSQL checkpoint to complete (can take 60+ seconds with analytics)
+  docker compose "${compose_files[@]}" stop --timeout 120
 
   echo ""
   echo "Committing DB container state to image..."
