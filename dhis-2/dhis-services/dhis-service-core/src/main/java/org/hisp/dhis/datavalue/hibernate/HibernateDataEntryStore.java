@@ -40,6 +40,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.SQLException;
 import java.sql.SQLTransactionRollbackException;
 import java.util.ArrayList;
@@ -770,65 +771,205 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return imported;
   }
 
+  /**
+   * Large-batch path: stage rows into a TEMP table (WAL-free) and perform a single
+   * INSERT .. SELECT .. ORDER BY .. ON CONFLICT DO UPDATE merge.
+   *
+   * Deadlock safety: ORDER BY enforces a consistent lock acquisition order.
+   */
+  private int upsertViaTempStageMerge(List<DataEntryRow> rows) throws SQLException {
+    if (rows.isEmpty()) return 0;
+
+    final Session session = entityManager.unwrap(Session.class);
+    final String user = getCurrentUsername();
+    final int STAGE_BATCH = 50_000;
+
+    // DDL for the session-scoped staging table
+    final String ddl = """
+      CREATE TEMP TABLE datavalue_stage (
+        dataelementid           BIGINT,
+        periodid                BIGINT,
+        sourceid                BIGINT,
+        categoryoptioncomboid   BIGINT,
+        attributeoptioncomboid  BIGINT,
+        value                   TEXT,
+        comment                 TEXT,
+        followup                BOOLEAN,
+        deleted                 BOOLEAN
+      ) ON COMMIT DROP
+      """;
+
+    final String stageInsertSql = """
+      INSERT INTO datavalue_stage
+        (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid,
+         value, comment, followup, deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      """;
+
+    // Single ordered merge; ORDER BY standardizes row/lock order
+    final String mergeSql = """
+      INSERT INTO datavalue AS dv
+        (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid,
+         value, comment, followup, deleted, lastupdated, storedby)
+      SELECT
+        s.dataelementid, s.periodid, s.sourceid, s.categoryoptioncomboid, s.attributeoptioncomboid,
+        s.value, s.comment, s.followup, s.deleted, now(), current_setting('dhis2.user', true)
+      FROM datavalue_stage s
+      ORDER BY s.dataelementid, s.periodid, s.sourceid, s.categoryoptioncomboid, s.attributeoptioncomboid
+      ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+      DO UPDATE SET
+        value       = EXCLUDED.value,
+        comment     = CASE
+                        WHEN dv.deleted = false AND EXCLUDED.deleted = true THEN dv.comment
+                        ELSE EXCLUDED.comment
+                      END,
+        deleted     = EXCLUDED.deleted,
+        followup    = EXCLUDED.followup,
+        lastupdated = now(),
+        storedby    = EXCLUDED.storedby
+      """;
+
+    final AtomicInteger imported = new AtomicInteger();
+
+    session.doWork(conn -> {
+      boolean oldAuto = conn.getAutoCommit();
+      conn.setAutoCommit(false);
+      try {
+        try (PreparedStatement setUser =
+            conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
+          setUser.setString(1, user);
+          setUser.execute();
+        }
+
+        // Create TEMP staging table (session-local, WAL-free)
+        try (Statement st = conn.createStatement()) {
+          st.execute(ddl);
+        }
+
+          try (PreparedStatement ps = conn.prepareStatement(stageInsertSql)) {
+            int i = 0;
+            for (DataEntryRow v : rows) {
+              ps.setLong(1, v.de());
+              ps.setLong(2, v.pe());
+              ps.setLong(3, v.ou());
+              ps.setLong(4, v.coc());
+              ps.setLong(5, v.aoc());
+              ps.setString(6, v.value());
+              ps.setString(7, v.comment());
+              ps.setObject(8, v.followup()); // handles NULL
+              ps.setBoolean(9, v.deleted());
+              ps.addBatch();
+              if (++i % STAGE_BATCH == 0) ps.executeBatch();
+            }
+            ps.executeBatch();
+          }
+
+        // One big, ordered upsert
+        try (PreparedStatement merge = conn.prepareStatement(mergeSql)) {
+          imported.addAndGet(merge.executeUpdate());
+        }
+
+        conn.commit(); // drops temp table due to ON COMMIT DROP
+      } catch (SQLException e) {
+        try { conn.rollback(); } catch (SQLException ignore) {}
+        throw e;
+      } finally {
+        try { conn.setAutoCommit(oldAuto); } catch (SQLException ignore) {}
+      }
+    });
+
+    session.clear();
+    return imported.get();
+  }
+
+
+  private int upsertBatchedInOrder(List<DataEntryRow> rows) throws SQLException {
+    if (rows.isEmpty()) return 0;
+
+    final Session session = entityManager.unwrap(Session.class);
+    final String user = getCurrentUsername();
+    final String baseSql = upsertSQLTemplate;
+    final AtomicInteger imported = new AtomicInteger();
+
+    session.doWork(conn -> {
+      try (PreparedStatement set = conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
+        set.setString(1, user);
+        set.execute();
+      }
+
+      final boolean prevAuto = conn.getAutoCommit();
+      if (prevAuto) conn.setAutoCommit(false);
+      try {
+        final int size = rows.size();
+        int from = 0;
+        while (from < size) {
+          final int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
+          final int to = from + n;
+
+          final String sql = upsertNValuesSql(baseSql, n);
+          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int p = 0;
+            // Bind in the exact order of the sorted rows to preserve lock order
+            for (int i = from; i < to; i++) {
+              DataEntryRow v = rows.get(i);
+              ps.setLong(++p, v.de());
+              ps.setLong(++p, v.pe());
+              ps.setLong(++p, v.ou());
+              ps.setLong(++p, v.coc());
+              ps.setLong(++p, v.aoc());
+              ps.setString(++p, v.value());
+              ps.setString(++p, v.comment());
+              ps.setObject(++p, v.followup()); // null-safe
+              ps.setBoolean(++p, v.deleted());
+            }
+            imported.addAndGet(ps.executeUpdate());
+          }
+
+          from = to;
+        }
+        if (prevAuto) conn.commit();
+      } catch (SQLException e) {
+        if (prevAuto) try { conn.rollback(); } catch (SQLException ignore) {}
+        throw e;
+      } finally {
+        if (prevAuto) try { conn.setAutoCommit(true); } catch (SQLException ignore) {}
+      }
+    });
+    session.clear();
+    return imported.get();
+  }
+
   @Override
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
-    List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
-    if (internalValues.isEmpty()) return 0;
+    List<DataEntryRow> rows = upsertValuesResolveIds(values);
+    if (rows.isEmpty()) return 0;
 
-    // Deterministic order by conflict key
-    internalValues.sort(
-        Comparator.comparingLong(DataEntryRow::de)
+    final int STAGING_THRESHOLD = 100_000; // config
+
+    try
+    {
+    return withTxnRetries(() -> {
+      if (rows.size() <= STAGING_THRESHOLD) {
+        // Small batches: deterministic lock order to avoid deadlocks
+        rows.sort(Comparator.comparingLong(DataEntryRow::de)
             .thenComparingLong(DataEntryRow::pe)
             .thenComparingLong(DataEntryRow::ou)
             .thenComparingLong(DataEntryRow::coc)
             .thenComparingLong(DataEntryRow::aoc));
-
-    try {
-      return withTxnRetries(
-          () -> {
-            final AtomicInteger imported = new AtomicInteger();
-            final int size = internalValues.size();
-            final Session session = entityManager.unwrap(Session.class);
-
-            String sql1 = upsertSQLTemplate;
-
-            session.doWork(
-                conn -> {
-                  try (PreparedStatement stmt =
-                      conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
-                    stmt.setString(1, getCurrentUsername());
-                    stmt.execute();
-                  }
-                  int from = 0;
-                  while (from < size) {
-                    int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
-                    int to = from + n;
-                    try (PreparedStatement ps = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
-                      int p = 0;
-                      for (var v : internalValues.subList(from, to)) {
-                        ps.setLong(++p, v.de());
-                        ps.setLong(++p, v.pe());
-                        ps.setLong(++p, v.ou());
-                        ps.setLong(++p, v.coc());
-                        ps.setLong(++p, v.aoc());
-                        ps.setString(++p, v.value());
-                        ps.setString(++p, v.comment());
-                        ps.setObject(++p, v.followup());
-                        ps.setBoolean(++p, v.deleted());
-                      }
-                      imported.addAndGet(ps.executeUpdate());
-                    }
-                    from = to;
-                  }
-                });
-            session.clear();
-            return imported.get();
-          });
-    } catch (SQLTransactionRollbackException e) {
-      throw new RuntimeException("Transaction retry limit exceeded during data value upsert", e);
+        return upsertBatchedInOrder(rows);
+      } else {
+        // Large batches: avoid client-side sorting, use TEMP table staging + single merge
+        return upsertViaTempStageMerge(rows);
+      }
+    });
+    }
+    catch (SQLTransactionRollbackException e)
+    {
+      throw new RuntimeException("Failed to upsert data values", e);
     }
   }
+
 
   @Nonnull
   private List<DataEntryRow> upsertValuesResolveIds(List<DataEntryValue> values) {
