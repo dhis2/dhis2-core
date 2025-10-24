@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
-import static java.lang.Math.min;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -41,13 +40,17 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -765,68 +768,74 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   @Override
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
-
     List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
-    int size = internalValues.size();
-    Session session = entityManager.unwrap(Session.class);
+    // (A) Deterministic order by conflict key
+    internalValues.sort(
+        Comparator.comparingLong(DataEntryRow::de)
+            .thenComparingLong(DataEntryRow::pe)
+            .thenComparingLong(DataEntryRow::ou)
+            .thenComparingLong(DataEntryRow::coc)
+            .thenComparingLong(DataEntryRow::aoc));
 
-    @Language("sql")
-    String sql1 =
-        """
-      INSERT INTO datavalue
-      (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
-      DO UPDATE SET
-        value = EXCLUDED.value,
-        comment = CASE
-          WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
-          ELSE EXCLUDED.comment
-        END,
-        deleted = EXCLUDED.deleted,
-        followup = EXCLUDED.followup,
-        lastupdated = now(),
-        storedby = current_setting('dhis2.user')
-        """;
+    return withTxnRetries(
+        () -> {
+          final AtomicInteger imported = new AtomicInteger();
+          final int size = internalValues.size();
+          final Session session = entityManager.unwrap(Session.class);
 
-    String user = getCurrentUsername();
-    AtomicInteger imported = new AtomicInteger();
-    session.doWork(
-        conn -> {
-          try (PreparedStatement stmt =
-              conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
-            stmt.setString(1, user);
-            stmt.execute();
-          }
-          int from = 0;
-          while (from < size) {
-            int n = min(MAX_ROWS_PER_INSERT, size - from);
-            int to = from + n;
-            try (PreparedStatement stmt = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
-              int p = 0;
-              for (DataEntryRow value : internalValues.subList(from, to)) {
-                stmt.setLong(p + 1, value.de());
-                stmt.setLong(p + 2, value.pe());
-                stmt.setLong(p + 3, value.ou());
-                stmt.setLong(p + 4, value.coc());
-                stmt.setLong(p + 5, value.aoc());
-                stmt.setString(p + 6, value.value());
-                stmt.setString(p + 7, value.comment());
-                stmt.setObject(p + 8, value.followup());
-                stmt.setBoolean(p + 9, value.deleted());
-                p += 9;
-              }
-              imported.addAndGet(stmt.executeUpdate());
-            }
-            from += n;
-          }
+          @Language("sql")
+          String sql1 =
+              """
+        INSERT INTO datavalue
+        (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+        DO UPDATE SET
+          value = EXCLUDED.value,
+          comment = CASE
+            WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
+            ELSE EXCLUDED.comment
+          END,
+          deleted = EXCLUDED.deleted,
+          followup = EXCLUDED.followup,
+          lastupdated = now(),
+          storedby = current_setting('dhis2.user')
+          """;
+
+          session.doWork(
+              conn -> {
+                try (PreparedStatement stmt =
+                    conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
+                  stmt.setString(1, getCurrentUsername());
+                  stmt.execute();
+                }
+                int from = 0;
+                while (from < size) {
+                  int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
+                  int to = from + n;
+                  try (PreparedStatement ps = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
+                    int p = 0;
+                    for (var v : internalValues.subList(from, to)) {
+                      ps.setLong(++p, v.de());
+                      ps.setLong(++p, v.pe());
+                      ps.setLong(++p, v.ou());
+                      ps.setLong(++p, v.coc());
+                      ps.setLong(++p, v.aoc());
+                      ps.setString(++p, v.value());
+                      ps.setString(++p, v.comment());
+                      ps.setObject(++p, v.followup());
+                      ps.setBoolean(++p, v.deleted());
+                    }
+                    imported.addAndGet(ps.executeUpdate());
+                  }
+                  from = to;
+                }
+              });
+          session.clear();
+          return imported.get();
         });
-
-    session.clear();
-
-    return imported.get();
   }
 
   @Nonnull
@@ -1124,5 +1133,40 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           }
         });
     return res;
+  }
+
+  /**
+   * Executes a given task with retry logic in case of specific SQL exceptions. This method retries
+   * the task up to 3 times if a deadlock or serialization failure occurs. It uses an exponential
+   * backoff strategy with a random jitter to reduce contention.
+   *
+   * @param <T> The type of the result returned by the task.
+   * @param work A `Callable` representing the task to be executed.
+   * @return The result of the task if it completes successfully.
+   * @throws RuntimeException If the task fails after 3 retries or encounters an unexpected
+   *     exception.
+   */
+  private <T> T withTxnRetries(Callable<T> work) {
+    int tries = 0;
+    long backoff = 50;
+    while (true) {
+      try {
+        return work.call();
+      } catch (SQLException e) {
+        var s = e.getSQLState();
+        // Retry only on deadlock (40P01) or serialization failure (40001)
+        if (!"40P01".equals(s) && !"40001".equals(s)) throw new RuntimeException(e);
+        if (++tries > 3) throw new RuntimeException(e);
+        try {
+          Thread.sleep(backoff + ThreadLocalRandom.current().nextInt(40));
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          throw new RuntimeException(e);
+        }
+        backoff *= 2;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }
