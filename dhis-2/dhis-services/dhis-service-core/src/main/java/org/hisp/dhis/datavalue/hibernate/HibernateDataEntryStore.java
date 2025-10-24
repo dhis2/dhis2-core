@@ -40,6 +40,8 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLTransactionRollbackException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -778,63 +780,67 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             .thenComparingLong(DataEntryRow::coc)
             .thenComparingLong(DataEntryRow::aoc));
 
-    return withTxnRetries(
-        () -> {
-          final AtomicInteger imported = new AtomicInteger();
-          final int size = internalValues.size();
-          final Session session = entityManager.unwrap(Session.class);
+    try {
+      return withTxnRetries(
+          () -> {
+            final AtomicInteger imported = new AtomicInteger();
+            final int size = internalValues.size();
+            final Session session = entityManager.unwrap(Session.class);
 
-          @Language("sql")
-          String sql1 =
-              """
-        INSERT INTO datavalue
-        (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
-        DO UPDATE SET
-          value = EXCLUDED.value,
-          comment = CASE
-            WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
-            ELSE EXCLUDED.comment
-          END,
-          deleted = EXCLUDED.deleted,
-          followup = EXCLUDED.followup,
-          lastupdated = now(),
-          storedby = current_setting('dhis2.user')
-          """;
+            @Language("sql")
+            String sql1 =
+                """
+          INSERT INTO datavalue
+          (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid, value, comment, followup, deleted)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+          DO UPDATE SET
+            value = EXCLUDED.value,
+            comment = CASE
+              WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
+              ELSE EXCLUDED.comment
+            END,
+            deleted = EXCLUDED.deleted,
+            followup = EXCLUDED.followup,
+            lastupdated = now(),
+            storedby = current_setting('dhis2.user')
+            """;
 
-          session.doWork(
-              conn -> {
-                try (PreparedStatement stmt =
-                    conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
-                  stmt.setString(1, getCurrentUsername());
-                  stmt.execute();
-                }
-                int from = 0;
-                while (from < size) {
-                  int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
-                  int to = from + n;
-                  try (PreparedStatement ps = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
-                    int p = 0;
-                    for (var v : internalValues.subList(from, to)) {
-                      ps.setLong(++p, v.de());
-                      ps.setLong(++p, v.pe());
-                      ps.setLong(++p, v.ou());
-                      ps.setLong(++p, v.coc());
-                      ps.setLong(++p, v.aoc());
-                      ps.setString(++p, v.value());
-                      ps.setString(++p, v.comment());
-                      ps.setObject(++p, v.followup());
-                      ps.setBoolean(++p, v.deleted());
-                    }
-                    imported.addAndGet(ps.executeUpdate());
+            session.doWork(
+                conn -> {
+                  try (PreparedStatement stmt =
+                      conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
+                    stmt.setString(1, getCurrentUsername());
+                    stmt.execute();
                   }
-                  from = to;
-                }
-              });
-          session.clear();
-          return imported.get();
-        });
+                  int from = 0;
+                  while (from < size) {
+                    int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
+                    int to = from + n;
+                    try (PreparedStatement ps = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
+                      int p = 0;
+                      for (var v : internalValues.subList(from, to)) {
+                        ps.setLong(++p, v.de());
+                        ps.setLong(++p, v.pe());
+                        ps.setLong(++p, v.ou());
+                        ps.setLong(++p, v.coc());
+                        ps.setLong(++p, v.aoc());
+                        ps.setString(++p, v.value());
+                        ps.setString(++p, v.comment());
+                        ps.setObject(++p, v.followup());
+                        ps.setBoolean(++p, v.deleted());
+                      }
+                      imported.addAndGet(ps.executeUpdate());
+                    }
+                    from = to;
+                  }
+                });
+            session.clear();
+            return imported.get();
+          });
+    } catch (SQLTransactionRollbackException e) {
+      throw new RuntimeException("Transaction retry limit exceeded during data value upsert", e);
+    }
   }
 
   @Nonnull
@@ -1149,7 +1155,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
    * @throws RuntimeException If the task fails after 3 retries or encounters an unexpected
    *     exception.
    */
-  private <T> T withTxnRetries(Callable<T> work) {
+  private <T> T withTxnRetries(Callable<T> work) throws SQLTransactionRollbackException {
     int tries = 0;
     long backoffMs = 50;
 
@@ -1158,9 +1164,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         return work.call();
       } catch (Exception ex) {
         Throwable cause =
-            ex instanceof java.util.concurrent.ExecutionException ? ex.getCause() : ex;
+            (ex instanceof java.util.concurrent.ExecutionException) ? ex.getCause() : ex;
 
-        if (cause instanceof java.sql.SQLException sqlEx) {
+        if (cause instanceof SQLException sqlEx) {
           String state = sqlEx.getSQLState();
 
           if (isRetryableSqlState(state)) {
@@ -1174,19 +1180,18 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
               continue;
             }
             // Retries exhausted
-            if ("40P01".equals(state)) {
-              throw new DeadlockLoserDataAccessException(
-                  "Deadlock after " + tries + " attempts (SQLState=40P01)", sqlEx);
-            }
-            throw new ConcurrencyFailureException(
-                "Serialization failure after " + tries + " attempts (SQLState=" + state + ")",
+            throw new SQLTransactionRollbackException(
+                ("40P01".equals(state) ? "Deadlock" : "Serialization failure")
+                    + " after "
+                    + tries
+                    + " attempts",
                 sqlEx);
           }
-          // Non-retryable SQLException
-          throw new ConcurrencyFailureException("Non-retryable SQLState=" + state, sqlEx);
+          // Non-retryable -> rethrow
+          if (cause instanceof RuntimeException re) throw re;
+          throw new RuntimeException(sqlEx);
         }
-
-        // Non-SQL exception -> rethrow
+        // Not an SQLException
         if (ex instanceof RuntimeException re) throw re;
         throw new RuntimeException(ex);
       }
