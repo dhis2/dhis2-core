@@ -255,7 +255,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           if (value == null) value = dvOld.value();
           if (comment == null) comment = dvOld.comment();
           if (followUp == null) followUp = dvOld.followUp();
-          // the special logic on deleted is for backwards compatability
+          // the special logic on deleted is for backwards compatibility
           if (deleted == null && value == null) deleted = dvOld.deleted();
         }
       }

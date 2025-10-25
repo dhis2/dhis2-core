@@ -60,6 +60,8 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
@@ -91,6 +93,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     implements DataEntryStore {
+
+  private static final Logger log = LoggerFactory.getLogger(HibernateDataEntryStore.class);
 
   private final PeriodStore periodStore;
 
@@ -721,7 +725,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
   }
 
-  private static final String upsertSQLTemplate =
+  private static final String UPSERT_SQL_TEMPLATE =
       // language=SQL
       """
         INSERT INTO datavalue
@@ -748,13 +752,12 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
-    String sql = upsertSQLTemplate;
     int imported = 0;
+    Date now = new Date();
     for (DataEntryRow row : internalValues) {
-      Date now = new Date();
       imported +=
           jdbcTemplate.update(
-              sql,
+              UPSERT_SQL_TEMPLATE,
               row.de(),
               row.pe(),
               row.ou(),
@@ -773,11 +776,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   /**
    * Large-batch path: stage rows into a TEMP table (WAL-free) and perform a single
-   * INSERT .. SELECT .. ORDER BY .. ON CONFLICT DO UPDATE merge.
-   *
+   * INSERT ... SELECT ... ORDER BY ... ON CONFLICT DO UPDATE merge.
    * Deadlock safety: ORDER BY enforces a consistent lock acquisition order.
    */
-  private int upsertViaTempStageMerge(List<DataEntryRow> rows) throws SQLException {
+  private int upsertViaTempStageMerge( @Nonnull List<DataEntryRow> rows) {
     if (rows.isEmpty()) return 0;
 
     final Session session = entityManager.unwrap(Session.class);
@@ -841,7 +843,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           setUser.execute();
         }
 
-        // Create TEMP staging table (session-local, WAL-free)
+        // Create TEMP staging table
         try (Statement st = conn.createStatement()) {
           st.execute(ddl);
         }
@@ -883,13 +885,12 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
 
-  private int upsertBatchedInOrder(List<DataEntryRow> rows) throws SQLException {
+  private int upsertBatchedInOrder(@Nonnull List<DataEntryRow> rows) {
     if (rows.isEmpty()) return 0;
 
     final Session session = entityManager.unwrap(Session.class);
     final String user = getCurrentUsername();
-    final String baseSql = upsertSQLTemplate;
-    final AtomicInteger imported = new AtomicInteger();
+      final AtomicInteger imported = new AtomicInteger();
 
     session.doWork(conn -> {
       try (PreparedStatement set = conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
@@ -906,7 +907,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           final int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
           final int to = from + n;
 
-          final String sql = upsertNValuesSql(baseSql, n);
+          final String sql = upsertNValuesSql(n);
           try (PreparedStatement ps = conn.prepareStatement(sql)) {
             int p = 0;
             // Bind in the exact order of the sorted rows to preserve lock order
@@ -945,7 +946,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     List<DataEntryRow> rows = upsertValuesResolveIds(values);
     if (rows.isEmpty()) return 0;
 
-    final int STAGING_THRESHOLD = 100_000; // config
+    final int STAGING_THRESHOLD = 100_000;
 
     try
     {
@@ -1000,9 +1001,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Nonnull
-  private static String upsertNValuesSql(String sql1, int n) {
-    if (n == 1) return sql1;
-    return sql1.replace(
+  private static String upsertNValuesSql(int n) {
+    if (n == 1) return UPSERT_SQL_TEMPLATE;
+    return UPSERT_SQL_TEMPLATE.replace(
         "(?, ?, ?, ?, ?, ?, ?, ?, ?)",
         "(?, ?, ?, ?, ?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
   }
@@ -1298,7 +1299,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           String state = sqlEx.getSQLState();
 
           if (isRetryableSqlState(state)) {
-            System.err.printf(
+            log.debug(
                 "Transaction failed with SQLState {}: {}. Attempt {}/3",
                 state,
                 sqlEx.getMessage(),
@@ -1308,8 +1309,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
                 Thread.sleep(backoffMs + ThreadLocalRandom.current().nextInt(40));
               } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
+                throw new SQLTransactionRollbackException("Retry loop interrupted", "40001", 0);
               }
-              backoffMs *= 2;
+              backoffMs = Math.min(backoffMs * 2, 2000);
               continue;
             }
             // Retries exhausted
