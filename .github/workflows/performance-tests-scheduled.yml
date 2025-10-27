@@ -4,6 +4,11 @@ run-name: Performance tests scheduled
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - DHIS2-20288
+    paths:
+      - '.github/workflows/performance-tests-scheduled.yml'
   schedule:
     # Run at 1 AM UTC every day
     - cron: "0 1 * * *"
