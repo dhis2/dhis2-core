@@ -574,12 +574,6 @@ public enum ConfigurationKey {
    */
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
-  /**
-   * Enable/disable changelog/history log of tracker data values. <br>
-   * (default: on)
-   */
-  CHANGELOG_TRACKER("changelog.tracker", Constants.ON),
-
   /** Use in-memory queue before sending audits into the Artemis queue. (default: off). */
   AUDIT_USE_IN_MEMORY_QUEUE_ENABLED(
       "audit.in_memory-queue.enabled",
