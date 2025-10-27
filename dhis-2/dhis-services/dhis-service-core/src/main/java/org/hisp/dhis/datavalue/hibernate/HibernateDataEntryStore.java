@@ -899,12 +899,14 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             try {
               conn.rollback();
             } catch (SQLException ignore) {
+              // Handled by rollback
             }
             throw e;
           } finally {
             try {
               conn.setAutoCommit(oldAuto);
             } catch (SQLException ignore) {
+              // Ignoring resetting auto-commit
             }
           }
         });
@@ -1331,40 +1333,32 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         Throwable cause =
             (ex instanceof java.util.concurrent.ExecutionException) ? ex.getCause() : ex;
 
-        if (cause instanceof SQLException sqlEx) {
-          String state = sqlEx.getSQLState();
-
-          if (isRetryableSqlState(state)) {
-            log.debug(
-                "Transaction failed with SQLState {}: {}. Attempt {}/3",
-                state,
-                sqlEx.getMessage(),
-                tries + 1);
-            if (++tries <= 3) {
-              try {
-                Thread.sleep(backoffMs + ThreadLocalRandom.current().nextInt(40));
-              } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                throw new SQLTransactionRollbackException("Retry loop interrupted", "40001", 0);
-              }
-              backoffMs = Math.min(backoffMs * 2, 2000);
-              continue;
+        if (cause instanceof SQLException sqlEx && isRetryableSqlState(sqlEx.getSQLState())) {
+          log.debug(
+              "Transaction failed with SQLState {}: {}. Attempt {}/3",
+              sqlEx.getSQLState(),
+              sqlEx.getMessage(),
+              tries + 1);
+          if (++tries <= 3) {
+            try {
+              Thread.sleep(backoffMs + ThreadLocalRandom.current().nextInt(40));
+            } catch (InterruptedException ie) {
+              Thread.currentThread().interrupt();
+              throw new SQLTransactionRollbackException("Retry loop interrupted", "40001", 0);
             }
-            // Retries exhausted
-            throw new SQLTransactionRollbackException(
-                ("40P01".equals(state) ? "Deadlock" : "Serialization failure")
-                    + " after "
-                    + tries
-                    + " attempts",
-                sqlEx);
+            backoffMs = Math.min(backoffMs * 2, 2000);
+            continue;
           }
-          // Non-retryable -> rethrow
-          if (cause instanceof RuntimeException re) throw re;
-          throw new RuntimeException(sqlEx);
+          throw new SQLTransactionRollbackException(
+              (sqlEx.getSQLState().equals("40P01") ? "Deadlock" : "Serialization failure")
+                  + " after "
+                  + tries
+                  + " attempts",
+              sqlEx);
         }
-        // Not an SQLException
-        if (ex instanceof RuntimeException re) throw re;
-        throw new RuntimeException(ex);
+
+        if (cause instanceof RuntimeException re) throw re;
+        throw new RuntimeException(cause);
       }
     }
   }
