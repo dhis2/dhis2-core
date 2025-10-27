@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -59,7 +59,7 @@ public class PaginationTrackerTest extends Simulation {
         http.baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .maxConnectionsPerHost(100)
-                .basicAuth("admin", "district")
+            .basicAuth("admin", "district")
             .userAgentHeader("Gatling/Performance Test")
             .warmUp(
                 "http://localhost:8080/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
@@ -67,67 +67,51 @@ public class PaginationTrackerTest extends Simulation {
             .check(status().is(200)); // global check for all requests
 
     // only one user at a time
-    ScenarioWithRequests singleEventScenario = paginationScenario(repeat, eventProgram);
-    ScenarioWithRequests trackerEventScenario = paginationScenario(repeat, trackerProgram);
+    ScenarioWithRequests scenario = paginationScenario(repeat);
 
     List<Assertion> allAssertions = new ArrayList<>();
     allAssertions.add(forAll().successfulRequests().percent().gte(100d));
-    allAssertions.addAll(singleEventScenario.requests().stream().map(Request::assertion).toList());
-    allAssertions.addAll(trackerEventScenario.requests().stream().map(Request::assertion).toList());
+    allAssertions.addAll(scenario.requests().stream().map(Request::assertion).toList());
 
-    setUp(
-            singleEventScenario
-                .scenario()
-                .injectClosed(constantConcurrentUsers(1).during(1))
-                .andThen(
-                    trackerEventScenario
-                        .scenario()
-                        .injectClosed(constantConcurrentUsers(1).during(1))))
+    setUp(scenario.scenario().injectClosed(constantConcurrentUsers(1).during(1)))
         .protocols(httpProtocolBuilder)
         .assertions(allAssertions);
   }
 
-  private ScenarioWithRequests paginationScenario(String repeat, String program) {
+  private ScenarioWithRequests paginationScenario(String repeat) {
     String singleEventUrl = "/api/tracker/events/#{eventUid}";
     String getEventsUrl =
-        "/api/tracker/events?program="
-            + program
+        "/api/tracker/events?"
             + "&occurredAfter=2024-01-01"
             + "&occurredBefore=2024-12-31"
             + "&fields=:all,dataValues[value,dataElement,providedElsewhere,storedBy]"
             + "&order=event"
             + "&pageSize=50"
-            + "&orgUnit=O6uvpzGd5pu"
-            + "&orgUnitMode=DESCENDANTS";
+            + "&orgUnitMode=ACCESSIBLE";
 
     Request goToFirstPage =
-        new Request(
-            getEventsUrl, 100, "Go to first page of program " + program, "Get a list of events");
+        new Request(getEventsUrl, 100, "Go to first page", "Get a list of events");
     Request goToPage45 =
-        new Request(
-            getEventsUrl + "&page=45",
-            100,
-            "Go to page 45 of program " + program,
-            "Get a list of events");
+        new Request(getEventsUrl + "&page=45", 100, "Go to page 45 ", "Get a list of events");
     Request goToFirstPageAndGetAllPages =
         new Request(
             getEventsUrl + "&totalPages=true",
             450,
-            "Go to first page of program " + program + " with totalPages",
+            "Go to first page with totalPages",
             "Get a list of events");
     Request goToPage45AndGetAllPages =
         new Request(
             getEventsUrl + "&page=45&totalPages=true",
             850,
-            "Go to page 45 of program " + program + " with totalPages",
+            "Go to page 45 with totalPages",
             "Get a list of events");
 
     Request getFirstEvent =
         new Request(singleEventUrl, 25, "Get first event", "Get a list of events", "Get one event");
 
     ScenarioBuilder scenarioBuilder =
-        scenario("Pagination for Events in program " + program)
-//            .exec(login())
+        scenario("Pagination for Events")
+            //            .exec(login())
             .repeat(Integer.parseInt(repeat))
             .on(
                 group("Get a list of events")
