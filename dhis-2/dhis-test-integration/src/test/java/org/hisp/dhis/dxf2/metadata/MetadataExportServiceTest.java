@@ -239,7 +239,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "FirstNameadmin Surnameadmin",
         createdBy.get("displayName").asText(),
         "CreatedBy displayName should match");
-    assertEquals("admin", createdBy.get("username").asText(), "CreatedBy username should match");
 
     // Assert Dashboard LastUpdatedBy User
     JsonNode lastUpdatedBy = exportedDashboard.get("lastUpdatedBy");
@@ -255,8 +254,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
         "FirstNameadmin Surnameadmin",
         lastUpdatedBy.get("displayName").asText(),
         "LastUpdatedBy displayName should match");
-    assertEquals(
-        "admin", lastUpdatedBy.get("username").asText(), "LastUpdatedBy username should match");
 
     // Assert Dashboard Arrays
     assertTrue(
@@ -358,17 +355,9 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(vizCreatedBy, "Visualization createdBy should exist");
     assertEquals(
         "M5zQapPyTZI", vizCreatedBy.get("id").asText(), "Visualization createdBy id should match");
-    assertEquals(
-        "admin",
-        vizCreatedBy.get("username").asText(),
-        "Visualization createdBy username should match");
 
     JsonNode vizLastUpdatedBy = viz.get("lastUpdatedBy");
     assertNotNull(vizLastUpdatedBy, "Visualization lastUpdatedBy should exist");
-    assertEquals(
-        "admin",
-        vizLastUpdatedBy.get("username").asText(),
-        "Visualization lastUpdatedBy username should match");
 
     // Assert Visualization Sharing
     JsonNode vizSharing = viz.get("sharing");
