@@ -1511,6 +1511,7 @@
       "user": {
         "id": "tTgjgobT1oS"
       },
+      "enableChangeLog": true,
       "version": 2
     },
     {
@@ -1616,6 +1617,7 @@
       ],
       "programType": "WITHOUT_REGISTRATION",
       "shortName": "Program with multiple categories",
+      "enableChangeLog": true,
       "version": 1
     },
     {
@@ -1838,6 +1840,7 @@
       "user": {
         "id": "FIgVWzUCkpw"
       },
+      "enableChangeLog": true,
       "version": 2
     },
     {
@@ -1875,6 +1878,7 @@
       "user": {
         "id": "FIgVWzUCkpw"
       },
+      "enableChangeLog": true,
       "version": 2
     },
     {
@@ -2048,7 +2052,8 @@
       "user": {
         "id": "tTgjgobT1oS"
       },
-      "valueType": "INTEGER"
+      "valueType": "INTEGER",
+      "enableChangeLog": true
     },
     {
       "id": "multitxtAtr",
@@ -2175,6 +2180,7 @@
       ],
       "code": "ja8NY4PW7Xm code",
       "allowAuditLog": true,
+      "enableChangeLog": true,
       "created": "2020-05-31T08:59:52.758",
       "description": "person",
       "featureType": "NONE",
@@ -2262,6 +2268,7 @@
     {
       "id": "Fa7NY4PW6DL",
       "allowAuditLog": false,
+      "enableChangeLog": true,
       "created": "2020-05-31T08:59:52.758",
       "description": "person",
       "featureType": "NONE",
