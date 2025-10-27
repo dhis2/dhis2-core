@@ -59,7 +59,7 @@ public class PaginationTrackerTest extends Simulation {
         http.baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .maxConnectionsPerHost(100)
-            .basicAuth("admin", "district")
+            //            .basicAuth("admin", "district")
             .userAgentHeader("Gatling/Performance Test")
             .warmUp(
                 "http://localhost:8080/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
@@ -82,7 +82,7 @@ public class PaginationTrackerTest extends Simulation {
     String singleEventUrl = "/api/tracker/events/#{eventUid}";
     String getEventsUrl =
         "/api/tracker/events?"
-            + "&occurredAfter=2024-01-01"
+            + "occurredAfter=2024-01-01"
             + "&occurredBefore=2024-12-31"
             + "&fields=:all,dataValues[value,dataElement,providedElsewhere,storedBy]"
             + "&order=event"
@@ -111,7 +111,7 @@ public class PaginationTrackerTest extends Simulation {
 
     ScenarioBuilder scenarioBuilder =
         scenario("Pagination for Events")
-            //            .exec(login())
+            .exec(login())
             .repeat(Integer.parseInt(repeat))
             .on(
                 group("Get a list of events")
@@ -122,7 +122,7 @@ public class PaginationTrackerTest extends Simulation {
                             .exec(
                                 goToPage45AndGetAllPages
                                     .action()
-                                    .check(jsonPath("$.instances[0].event").saveAs("eventUid")))
+                                    .check(jsonPath("$.events[0].event").saveAs("eventUid")))
                             .group("Get one event")
                             .on(exec(getFirstEvent.action()))));
 
