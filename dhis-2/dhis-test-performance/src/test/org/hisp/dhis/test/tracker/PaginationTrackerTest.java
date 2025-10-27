@@ -85,7 +85,6 @@ public class PaginationTrackerTest extends Simulation {
             + "occurredAfter=2024-01-01"
             + "&occurredBefore=2024-12-31"
             + "&fields=:all,dataValues[value,dataElement,providedElsewhere,storedBy]"
-            + "&order=event"
             + "&pageSize=50"
             + "&orgUnitMode=ACCESSIBLE";
 
