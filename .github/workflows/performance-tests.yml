@@ -216,7 +216,7 @@ jobs:
         echo "Use GitHub CLI to download the performance test results:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download ${{ github.run_id }} --name gatling-report-${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
