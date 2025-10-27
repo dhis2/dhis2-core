@@ -202,7 +202,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       throw new IllegalArgumentException("No such property: " + order.getProperty());
 
     // Check if this is a translatable property (display* properties)
-    if (property.isTranslatable() && property.getTranslationKey() != null) {
+    if (property.getName().startsWith("display") && property.isTranslatable() && property.getTranslationKey() != null) {
       return getTranslatableOrderPredicate(builder, root, property, order);
     }
 
