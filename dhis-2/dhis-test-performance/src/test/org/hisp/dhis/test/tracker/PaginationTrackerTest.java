@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -59,6 +59,7 @@ public class PaginationTrackerTest extends Simulation {
         http.baseUrl("http://localhost:8080")
             .acceptHeader("application/json")
             .maxConnectionsPerHost(100)
+                .basicAuth("admin", "district")
             .userAgentHeader("Gatling/Performance Test")
             .warmUp(
                 "http://localhost:8080/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
@@ -126,7 +127,7 @@ public class PaginationTrackerTest extends Simulation {
 
     ScenarioBuilder scenarioBuilder =
         scenario("Pagination for Events in program " + program)
-            .exec(login())
+//            .exec(login())
             .repeat(Integer.parseInt(repeat))
             .on(
                 group("Get a list of events")
@@ -137,12 +138,12 @@ public class PaginationTrackerTest extends Simulation {
                             .exec(
                                 goToPage45AndGetAllPages
                                     .action()
-                                    .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                                    .check(jsonPath("$.instances[0].event").saveAs("eventUid")))
                             .group("Get one event")
                             .on(exec(getFirstEvent.action()))));
 
     return new ScenarioWithRequests(
-        scenarioBuilder, List.of(goToFirstPage, goToPage45, getFirstEvent));
+        scenarioBuilder, List.of(goToPage45AndGetAllPages, getFirstEvent));
   }
 
   private HttpRequestActionBuilder login() {
