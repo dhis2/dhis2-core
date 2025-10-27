@@ -6,5 +6,4 @@ SET enablechangelog = COALESCE(allowauditlog, FALSE)
 WHERE enablechangelog IS NULL;
 
 ALTER TABLE trackedentitytype
-    ALTER COLUMN enablechangelog SET NOT NULL,
-    ALTER COLUMN enablechangelog SET DEFAULT FALSE;
+    ALTER COLUMN enablechangelog SET NOT NULL;

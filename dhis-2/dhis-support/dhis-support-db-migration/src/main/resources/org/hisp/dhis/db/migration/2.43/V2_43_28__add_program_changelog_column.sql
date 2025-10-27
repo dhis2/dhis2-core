@@ -1,6 +1,9 @@
 ALTER TABLE program
-    ADD COLUMN IF NOT EXISTS enablechangelog BOOLEAN DEFAULT TRUE;
+    ADD COLUMN IF NOT EXISTS enablechangelog BOOLEAN;
+
+UPDATE program
+SET enablechangelog = TRUE
+WHERE enablechangelog IS NULL;
 
 ALTER TABLE program
-    ALTER COLUMN enablechangelog SET NOT NULL,
-    ALTER COLUMN enablechangelog SET DEFAULT FALSE;
+    ALTER COLUMN enablechangelog SET NOT NULL;
