@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Run Gatling simulations against a DHIS2 instance running in Docker
 set -euo pipefail
 
@@ -17,23 +17,25 @@ show_usage() {
   echo "  SIMULATION_CLASS      Fully qualified Gatling Simulation class name"
   echo ""
   echo "OPTIONS:"
-  echo "  DHIS2_DB_DUMP_URL     Database dump URL"
-  echo "                        Available database dumps: https://databases.dhis2.org"
-  echo "                        Default: https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"
-  echo "  DHIS2_DB_IMAGE_SUFFIX Docker image suffix for DB (default: sierra-leone-dev)"
-  echo "                        WARNING: Must match the version in DHIS2_DB_DUMP_URL"
-  echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
-  echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
-  echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
+  echo "  DB_TYPE               Database type (default: sierra-leone)"
+  echo "                        Valid values: sierra-leone, hmis"
+  echo "  DB_VERSION            Database version (default: dev)"
+  echo "                        Must be alphanumeric, dots, hyphens, underscores only"
+  echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
+  echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
+  echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
+  echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
+  echo "                        Required for analytics endpoints that query pre-computed tables"
+  echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
-  echo "  WARMUP                Number of warmup iterations before actual test (default: 0)"
+  echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
   echo "                        Set to any non-empty value to enable (default: disabled)"
   echo "                        Analysis requires pgbadger: https://github.com/darold/pgbadger"
-  echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
-  echo "                        Required for analytics endpoints that query pre-computed tables"
-  echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
+  echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
+  echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
+  echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -46,16 +48,21 @@ show_usage() {
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
   echo ""
   echo "  # With warmup and custom report suffix"
-  echo "  WARMUP=1 \\"
+  echo "  WARMUP=2 \\"
   echo "  REPORT_SUFFIX=\"baseline\" \\"
   echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest $0"
   echo ""
   echo "  # With analytics table generation (required for analytics endpoints)"
-  echo "  ANALYTICS_GENERATE=true \\"
-  echo "  DHIS2_IMAGE=dhis2/core-dev:latest \\"
   echo "  SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \\"
-  echo "  MVN_ARGS=\"-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41\" \\"
+  echo "  DHIS2_IMAGE=dhis2/core:2.42.1 \\"
+  echo "  ANALYTICS_GENERATE=true \\"
+  echo "  ANALYTICS_TIMEOUT=7200 \\"
+  echo "  DB_TYPE=hmis \\"
+  echo "  DB_VERSION=2.42 \\"
+  echo "  DHIS2_USERNAME=qadmin \\"
+  echo "  DHIS2_PASSWORD='!Qadmin123S' \\"
+  echo "  MVN_ARGS=\"-Dscenario=test-scenarios/hmis/analytics-ev-query-speed-get-test.json -Dversion=42.1 -Dbaseline=42.0\" \\"
   echo "  $0"
   echo ""
 }
@@ -80,16 +87,39 @@ fi
 # ENVIRONMENT SETUP
 ################################################################################
 
-MVN_ARGS=${MVN_ARGS:-""}
-DHIS2_DB_DUMP_URL=${DHIS2_DB_DUMP_URL:-"https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz"}
-DHIS2_DB_IMAGE_SUFFIX=${DHIS2_DB_IMAGE_SUFFIX:-"sierra-leone-dev"}
-HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
-PROF_ARGS=${PROF_ARGS:=""}
-WARMUP=${WARMUP:-0}
-REPORT_SUFFIX=${REPORT_SUFFIX:-""}
-CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
+DB_TYPE=${DB_TYPE:-"sierra-leone"}
+DB_VERSION=${DB_VERSION:-"dev"}
+DHIS2_USERNAME=${DHIS2_USERNAME:-"admin"}
+DHIS2_PASSWORD=${DHIS2_PASSWORD:-"district"}
 ANALYTICS_GENERATE=${ANALYTICS_GENERATE:-"false"}
 ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
+HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
+WARMUP=${WARMUP:-1}
+REPORT_SUFFIX=${REPORT_SUFFIX:-""}
+CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
+PROF_ARGS=${PROF_ARGS:=""}
+MVN_ARGS=${MVN_ARGS:-""}
+
+# Validate DB_TYPE (only allow sierra-leone or hmis)
+case "$DB_TYPE" in
+  sierra-leone|hmis)
+    # Valid
+    ;;
+  *)
+    echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis', got: $DB_TYPE" >&2
+    echo "Run '$0' without arguments to see usage" >&2
+    exit 1
+    ;;
+esac
+
+# Validate DB_VERSION (no slashes, no special characters that could be malicious)
+# Allow only alphanumeric, dots, hyphens, and underscores
+if ! echo "$DB_VERSION" | grep -qE '^[a-zA-Z0-9._-]+$'; then
+  echo "Error: DB_VERSION contains invalid characters: $DB_VERSION" >&2
+  echo "DB_VERSION must contain only alphanumeric characters, dots, hyphens, and underscores" >&2
+  echo "Run '$0' without arguments to see usage" >&2
+  exit 1
+fi
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -402,19 +432,19 @@ prepare_database() {
     start_time=$(date +%s)
 
     local response
-    response=$(curl --silent --user admin:district --request POST http://localhost:8080/api/resourceTables/analytics)
+    response=$(curl --silent --user "$DHIS2_USERNAME:$DHIS2_PASSWORD" --request POST http://localhost:8080/api/resourceTables/analytics)
 
-    local job_id
-    job_id=$(echo "$response" | jq --raw-output '.response.id // empty')
+    local job_config_id
+    job_config_id=$(echo "$response" | jq --raw-output '.response.id // empty')
 
-    if [ -z "$job_id" ]; then
+    if [ -z "$job_config_id" ]; then
       echo "Error: Failed to trigger analytics generation"
       echo "Response: $response"
       exit 1
     fi
 
-    echo "Analytics job started with ID: $job_id"
-    echo "Waiting for completion..."
+    echo "Analytics job triggered (config ID: $job_config_id)"
+    echo "Waiting for job to start and monitoring progress..."
 
     while true; do
       local elapsed=$(($(date +%s) - start_time))
@@ -425,8 +455,23 @@ prepare_database() {
         exit 1
       fi
 
+      # Get all analytics tasks - the running task might have a different ID than the job config
+      local all_tasks
+      all_tasks=$(curl --silent --user "$DHIS2_USERNAME:$DHIS2_PASSWORD" "http://localhost:8080/api/system/tasks/ANALYTICS_TABLE")
+
+      # Get the first (most recent) task ID
+      local task_id
+      task_id=$(echo "$all_tasks" | jq --raw-output 'keys[0] // empty')
+
+      if [ -z "$task_id" ]; then
+        echo "Status (${elapsed}s): Job scheduled but not started yet"
+        sleep 5
+        continue
+      fi
+
+      # Get the task details for the running task
       local task_response
-      task_response=$(curl --silent --user admin:district "http://localhost:8080/api/system/tasks/ANALYTICS_TABLE/$job_id")
+      task_response=$(echo "$all_tasks" | jq --raw-output ".\"$task_id\"")
 
       local has_completed
       has_completed=$(echo "$task_response" | jq '[.[] | select(.completed == true)] | length')
@@ -451,10 +496,14 @@ prepare_database() {
         break
       fi
 
-      if [ $((elapsed % 30)) -eq 0 ]; then
-        local latest_msg
-        latest_msg=$(echo "$task_response" | jq --raw-output '.[0].message // "Processing..."')
+      local latest_msg
+      local msg_count
+      msg_count=$(echo "$task_response" | jq 'length')
+      if [ "$msg_count" -gt 0 ]; then
+        latest_msg=$(echo "$task_response" | jq --raw-output '.[0].message')
         echo "Status (${elapsed}s): $latest_msg"
+      else
+        echo "Status (${elapsed}s): Job running (no status messages available yet)"
       fi
 
       sleep 5
@@ -496,7 +545,7 @@ generate_metadata() {
     jq --raw-output 'to_entries | map(select(.key | startswith("DHIS2_"))) | sort_by(.key) | .[] | "\(.key)=\(.value)"' 2>/dev/null || echo "")
 
   # Build reproducible command using RepoDigest
-  # DB image is reproducible via DHIS2_DB_DUMP_URL and DHIS2_DB_IMAGE_SUFFIX args
+  # DB image is reproducible via DB_TYPE and DB_VERSION args
   local dhis2_image_immutable="$DHIS2_IMAGE"
   if [ "$dhis2_image_digest" != "unknown" ] && [ -n "$dhis2_image_digest" ]; then
     dhis2_image_immutable="$dhis2_image_digest"
@@ -513,25 +562,32 @@ generate_metadata() {
     echo "#"
     echo "# Use COMMAND_IMMUTABLE for exact reproduction with pinned image digest"
     echo ""
-    echo "SIMULATION_CLASS=$SIMULATION_CLASS"
-    echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
-    echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
-    echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
+    echo "# Args"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
-    echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
-    if [ -n "$dhis2_labels" ]; then
-      echo "$dhis2_labels"
-    fi
-    echo "DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL"
-    echo "DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX"
-    echo "MVN_ARGS=\"$MVN_ARGS\""
-    echo "PROF_ARGS=\"$PROF_ARGS\""
+    echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "DB_TYPE=$DB_TYPE"
+    echo "DB_VERSION=$DB_VERSION"
+    echo "DHIS2_USERNAME=$DHIS2_USERNAME"
+    echo "DHIS2_PASSWORD=$DHIS2_PASSWORD"
+    echo "ANALYTICS_GENERATE=$ANALYTICS_GENERATE"
+    echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
-    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DHIS2_DB_DUMP_URL=$DHIS2_DB_DUMP_URL DHIS2_DB_IMAGE_SUFFIX=$DHIS2_DB_IMAGE_SUFFIX SIMULATION_CLASS=$SIMULATION_CLASS${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS} $0"
+    echo "PROF_ARGS=\"$PROF_ARGS\""
+    echo "MVN_ARGS=\"$MVN_ARGS\""
+    echo ""
+    echo "# Additional metadata"
+    echo "GIT_BRANCH_PERFORMANCE_TESTS=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'unknown')"
+    echo "GIT_COMMIT_PERFORMANCE_TESTS=$git_commit"
+    echo "GIT_DIRTY_PERFORMANCE_TESTS=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')"
+    echo "DHIS2_IMAGE_DIGEST=$dhis2_image_digest"
+    if [ -n "$dhis2_labels" ]; then
+      echo "$dhis2_labels"
+    fi
+    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_GENERATE:+ ANALYTICS_GENERATE=$ANALYTICS_GENERATE}${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
+    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_GENERATE:+ ANALYTICS_GENERATE=$ANALYTICS_GENERATE}${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
   } > "$simulation_run_file"
 
   echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
@@ -571,6 +627,8 @@ run_simulation() {
   # shellcheck disable=SC2086
   mvn gatling:test \
     -Dgatling.simulationClass="$SIMULATION_CLASS" \
+    -Dusername="$DHIS2_USERNAME" \
+    -Dpassword="$DHIS2_PASSWORD" \
     $MVN_ARGS $extra_mvn_args
   local mvn_exit_code=$?
   set -e

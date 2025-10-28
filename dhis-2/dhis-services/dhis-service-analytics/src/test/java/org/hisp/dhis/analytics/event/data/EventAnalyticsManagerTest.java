@@ -705,9 +705,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     // Verify that the Measure criteria is applied to the query
     assertThat(sql.getValue().trim(), containsString("having"));
     assertThat(
-        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) > 10.0"));
+        sql.getValue().trim(),
+        containsString("round(count(ax.\"event\"), 10) > ('10.0')::numeric(38,10)"));
     assertThat(
-        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) < 20.0"));
+        sql.getValue().trim(),
+        containsString("round(count(ax.\"event\"), 10) < ('20.0')::numeric(38,10)"));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(

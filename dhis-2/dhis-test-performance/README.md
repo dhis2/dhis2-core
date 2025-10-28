@@ -16,10 +16,11 @@ Run `./run-simulation.sh` for full usage including profiling and database option
 
 ## CI
 
-`./run-simulation.sh` is used in CI just like you do locally
+CI workflows use `./run-simulation.sh` the same way as local runs:
 
-* [`../../.github/workflows/run-performance-tests.yml`](../../.github/workflows/run-performance-tests.yml)
-to compare performance between baseline and candidate DHIS2 versions
+* [`performance-tests-scheduled.yml`](../../.github/workflows/performance-tests-scheduled.yml) - Daily scheduled tests
+* [`performance-tests.yml`](../../.github/workflows/performance-tests.yml) - Manual single test
+* [`performance-tests-compare.yml`](../../.github/workflows/performance-tests-compare.yml) - Manual baseline vs candidate comparison
 
 ## Results
 
@@ -53,13 +54,7 @@ These tests are self-contained within the `raw` package and do not affect other 
 
 ### Running Raw Tests
 
-```sh
-DHIS2_IMAGE=dhis2/core-dev:latest \
-SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest \
-MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=43 -Dbaseline=41" \
-ANALYTICS_GENERATE=true \
-./run-simulation.sh
-```
+Run `./run-simulation.sh` for full usage including raw test examples.
 
 > [!NOTE]
 > Analytics endpoints require `ANALYTICS_GENERATE=true` to pre-generate analytics tables before
@@ -70,11 +65,6 @@ ANALYTICS_GENERATE=true \
 
 * `test-scenarios/sierra-leone/*.json` - Sierra Leone database tests
 * `test-scenarios/hmis/*.json` - HMIS database tests
-
-> [!WARNING]
-> Currently only the sierra-leone databases are available for testing. The HMIS database scenarios
-> exist but require a corresponding database dump that is not yet available for you locally or in
-> CI. We are working on making additional databases available.
 
 ### Configuration
 
