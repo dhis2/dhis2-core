@@ -4,22 +4,17 @@ run-name: Performance tests scheduled
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - DHIS2-20288
-    paths:
-      - '.github/workflows/performance-tests-scheduled.yml'
   schedule:
     # Run at 1 AM UTC every day
     - cron: "0 1 * * *"
 
 jobs:
   run-scheduled-tests:
+    name: ${{ matrix.name }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Team Tracker Backend Tests
           - name: tracker
             env: |
               DHIS2_IMAGE=dhis2/core-dev:latest
