@@ -1,0 +1,297 @@
+# Performance test workflow - can be triggered manually or called by other workflows
+#
+# This workflow accepts .env file format as input to overcome GitHub Actions' 10-input limit.
+# The test_env input accepts any environment variables that run-simulation.sh supports
+# (see dhis-2/dhis-test-performance/run-simulation.sh).
+#
+# After each test run, run-simulation.sh generates a run-simulation.env file containing all
+# the inputs used plus metadata. You can use this file to reproduce runs or as a template
+# for new runs.
+#
+# USAGE EXAMPLES
+# ==============
+#
+# Basic manual test run:
+#
+# gh workflow run performance-tests.yml \
+#   --field perf_tests_git_ref="master" \
+#   --field test_env="DHIS2_IMAGE=dhis2/core-dev:latest
+# SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest"
+#
+# Analytics test with ANALYTICS_GENERATE for sierra-leone:
+#
+# gh workflow run performance-tests-compare.yml \
+#   --field perf_tests_git_ref="master" \
+#   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
+# SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
+# DB_VERSION=2.42.0
+# MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=41.0"
+# ANALYTICS_GENERATE=true'
+#
+# REPRODUCING FROM PREVIOUS RUNS
+# ===============================
+#
+# Download artifacts from a previous run and use the generated run-simulation.env file:
+#
+# gh workflow run performance-tests.yml \
+#   --field perf_tests_git_ref="master" \
+#   --field test_env=@test-dir/run-simulation.env
+#
+name: Performance tests
+run-name: Performance test ${{ inputs.test_name || inputs.perf_tests_git_ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      perf_tests_git_ref:
+        description: 'Git ref (tag/branch/commit) to checkout dhis2-core performance tests'
+        required: true
+        type: string
+      test_env:
+        description: |
+          Test configuration in .env file format (multiline).
+          Required: DHIS2_IMAGE, SIMULATION_CLASS
+          Optional: All run-simulation.sh env vars (MVN_ARGS, PROF_ARGS, WARMUP, CAPTURE_SQL_LOGS, ANALYTICS_GENERATE, etc.)
+          Example:
+          DHIS2_IMAGE=dhis2/core:2.42.1
+          SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+          DB_TYPE=sierra-leone
+          DB_VERSION=2.42.1
+          WARMUP=2
+        required: true
+        type: string
+      test_name:
+        description: 'Test name for artifact naming (defaults to "manual")'
+        required: false
+        type: string
+        default: manual
+  workflow_call:
+    inputs:
+      perf_tests_git_ref:
+        description: 'Git ref for performance tests'
+        required: true
+        type: string
+      test_env:
+        description: 'Test environment configuration'
+        required: true
+        type: string
+      test_name:
+        description: 'Test name for artifact naming'
+        required: true
+        type: string
+    secrets:
+      slack_webhook:
+        description: 'Slack webhook URL for failure notifications'
+        required: false
+
+jobs:
+  performance-tests:
+    runs-on: perf
+    timeout-minutes: 240
+    defaults:
+      run:
+        working-directory: dhis-2/dhis-test-performance
+
+    steps:
+    - name: Checkout performance tests
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ inputs.perf_tests_git_ref }}
+        sparse-checkout: |
+          dhis-2/dhis-test-performance
+
+    # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
+    - name: Cleanup containers
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+
+    - name: Clean target directory
+      run: mvn clean
+
+    - name: Run performance tests
+      run: |
+        # Write env to file
+        cat > test.env << 'ENV_EOF'
+        ${{ inputs.test_env }}
+        ENV_EOF
+
+        # Source the env file (set -a exports all variables)
+        set -a
+        source test.env
+        set +a
+
+        # Override workflow-specific settings
+        export REPORT_SUFFIX="${{ inputs.test_name }}"
+
+        ./run-simulation.sh
+
+    - name: Upload Gatling report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gatling-report-${{ inputs.test_name }}-${{ github.run_id }}
+        path: dhis-2/dhis-test-performance/target/gatling/
+
+    - name: Create job summary
+      if: always()
+      run: |
+        # Read metadata from run-simulation.env file
+        RUN_ENV=$(find target/gatling -path "*-${{ inputs.test_name }}/run-simulation.env" 2>/dev/null | head -n1)
+
+        # Check if env file exists
+        if [ ! -f "$RUN_ENV" ]; then
+          echo "# ⚠️ Performance Test Failed: ${{ inputs.test_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The performance test run failed before generating results." >> $GITHUB_STEP_SUMMARY
+          echo "This typically indicates an execution error (not an assertion failure)." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the workflow logs above for error details." >> $GITHUB_STEP_SUMMARY
+          exit 0
+        fi
+
+        # Parse test metadata
+        DHIS2_IMAGE=$(grep "^DHIS2_IMAGE=" "$RUN_ENV" | cut -d= -f2-)
+        DHIS2_VERSION=$(grep "^DHIS2_VERSION=" "$RUN_ENV" | cut -d= -f2-)
+        DHIS2_BRANCH=$(grep "^DHIS2_BUILD_BRANCH=" "$RUN_ENV" | cut -d= -f2-)
+        DHIS2_REVISION=$(grep "^DHIS2_BUILD_REVISION=" "$RUN_ENV" | cut -d= -f2-)
+        DHIS2_DIGEST=$(grep "^DHIS2_IMAGE_DIGEST=" "$RUN_ENV" | cut -d= -f2-)
+        SIM_CLASS=$(grep "^SIMULATION_CLASS=" "$RUN_ENV" | cut -d= -f2-)
+        PERF_GIT_BRANCH=$(grep "^GIT_BRANCH_PERFORMANCE_TESTS=" "$RUN_ENV" | cut -d= -f2-)
+        PERF_GIT_COMMIT=$(grep "^GIT_COMMIT_PERFORMANCE_TESTS=" "$RUN_ENV" | cut -d= -f2-)
+        WARMUP_COUNT=$(grep "^WARMUP=" "$RUN_ENV" | cut -d= -f2-)
+        MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$RUN_ENV" | cut -d= -f2-)
+        PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$RUN_ENV" | cut -d= -f2-)
+        CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$RUN_ENV" | cut -d= -f2-)
+        DB_TYPE=$(grep "^DB_TYPE=" "$RUN_ENV" | cut -d= -f2-)
+        DB_VERSION=$(grep "^DB_VERSION=" "$RUN_ENV" | cut -d= -f2-)
+        COMMAND_IMMUTABLE=$(grep "^COMMAND_IMMUTABLE=" "$RUN_ENV" | cut -d= -f2-)
+
+        echo "# 🚀 Performance Test Results: ${{ inputs.test_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 📊 Test Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ inputs.test_name }}" != "manual" ]; then
+          echo "* **Test name**: \`${{ inputs.test_name }}\`" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "* **Simulation**: \`$SIM_CLASS\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
+        echo "* **Database**: \`$DB_TYPE\` / \`$DB_VERSION\`" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$MVN_ARGS_VALUE" ]; then
+          echo "* **Maven arguments**: \`$MVN_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$PROF_ARGS_VALUE" ]; then
+          echo "* **Profiler arguments**: \`$PROF_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
+          echo "* **SQL logging**: enabled" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 🐳 DHIS2 Image" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* **Image**: \`$DHIS2_IMAGE\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **DHIS2_VERSION**: \`$DHIS2_VERSION\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **DHIS2_BUILD_BRANCH**: \`$DHIS2_BRANCH\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **DHIS2_BUILD_REVISION**: \`$DHIS2_REVISION\`" >> $GITHUB_STEP_SUMMARY
+        echo "* **Image Digest**: \`${DHIS2_DIGEST#*@}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Use GitHub CLI to download the performance test results:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Results are in \`gatling-report-${{ inputs.test_name }}-${{ github.run_id }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "$WARMUP_COUNT" -gt 0 ]; then
+          echo "* **Warmup runs**: \`<simulation-class>-<timestamp>-${{ inputs.test_name }}-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "* **Test run**: \`<simulation-class>-<timestamp>-${{ inputs.test_name }}/\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
+        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases) and can be analyzed using [gatling-statistics](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`profile.collapsed\` - Collapsed stack traces (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Tests ran on self-hosted runner with the following specifications:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "* **CPU**: Intel(R) Xeon(R) CPU E3-1275 v6 @ 3.80GHz (8 core)" >> $GITHUB_STEP_SUMMARY
+        echo "* **Memory**: 64GiB System Memory" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### On GitHub" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/performance-tests.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Download the artifacts and use the @ syntax to pass the file directly:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
+        echo "gh workflow run performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --field test_env=@test-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.workflow_sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Locally" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Run this locally in the [https://github.com/dhis2/dhis2-core](https://github.com/dhis2/dhis2-core) repo in the \`dhis-2/dhis-test-performance\` directory:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
+        echo "git checkout $PERF_GIT_COMMIT && $COMMAND_IMMUTABLE" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+    - name: Check if Slack webhook is configured
+      if: always()
+      id: check_slack
+      run: |
+        if [ -n "${{ secrets.slack_webhook }}" ]; then
+          echo "webhook_configured=true" >> $GITHUB_OUTPUT
+        else
+          echo "webhook_configured=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Send Slack notification on failure
+      if: failure() && steps.check_slack.outputs.webhook_configured == 'true'
+      uses: slackapi/slack-github-action@v2.0.0
+      with:
+        webhook: ${{ secrets.slack_webhook }}
+        webhook-type: incoming-webhook
+        payload: |
+          text: "🚨 ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }} Performance Test Failed"
+          blocks:
+            - type: header
+              text:
+                type: plain_text
+                text: "🚨 ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }} Performance Test Failed"
+            - type: section
+              fields:
+                - type: mrkdwn
+                  text: "*Branch:*\n${{ github.ref_name }}"
+            - type: actions
+              elements:
+                - type: button
+                  text:
+                    type: plain_text
+                    text: "View Workflow Run"
+                  url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  style: danger

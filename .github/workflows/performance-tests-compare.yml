@@ -13,7 +13,7 @@
 #
 # Basic example with required env vars:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env="DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest" \
@@ -22,7 +22,7 @@
 #
 # Analytics test with ANALYTICS_GENERATE for sierra-leone:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
@@ -37,7 +37,7 @@
 #
 # Analytics test with ANALYTICS_GENERATE for hmis:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
@@ -64,13 +64,13 @@
 # Download artifacts from a previous run and use the generated run-simulation.env files. You can
 # pass the files directly using @ syntax:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env=@baseline-dir/run-simulation.env \
 #   --field candidate_env=@candidate-dir/run-simulation.env
 #
-name: Performance tests
-run-name: Performance test ${{ inputs.perf_tests_git_ref }}
+name: Performance tests compare
+run-name: Performance tests compare ${{ inputs.perf_tests_git_ref }}
 
 on:
   workflow_dispatch:
@@ -88,7 +88,7 @@ on:
           DHIS2_IMAGE=dhis2/core:2.42.1
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
           DB_TYPE=sierra-leone
-          DB_VERSION=2.42
+          DB_VERSION=2.42.1
           WARMUP=2
         required: true
         type: string
@@ -120,12 +120,6 @@ jobs:
         ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |
           dhis-2/dhis-test-performance
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v5
-      with:
-        java-version: '17'
-        distribution: 'temurin'
 
     # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
     - name: Cleanup containers
@@ -368,18 +362,18 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### On GitHub" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/run-performance-tests.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
+        echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/performance-tests-compare.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Method 1: Using generated run-simulation.env files (recommended for exact reproduction)**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Download the artifacts and use the @ syntax to pass files directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo "gh workflow run run-performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
+        echo "gh workflow run performance-tests-compare.yml \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field baseline_env=@baseline-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field candidate_env=@candidate-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --ref $PERF_GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.workflow_sha }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Method 2: Using input configurations from this run**" >> $GITHUB_STEP_SUMMARY

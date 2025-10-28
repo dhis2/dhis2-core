@@ -1,0 +1,32 @@
+# Scheduled performance tests - runs a matrix of tests on a schedule
+name: Performance tests scheduled
+run-name: Performance tests scheduled
+
+on:
+  # NOTE: workflow_dispatch is only to test this workflow! Use ./performance-tests.yml to test a
+  # single DHIS2 version and ./performance-tests-compare.yml if you want to compare a baseline
+  # version against a candidate
+  workflow_dispatch:
+  schedule:
+    # Run at 1 AM UTC every day
+    - cron: "0 1 * * *"
+
+jobs:
+  run-scheduled-tests:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: tracker
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+            slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
+    uses: ./.github/workflows/performance-tests.yml
+    with:
+      perf_tests_git_ref: master
+      test_env: ${{ matrix.env }}
+      test_name: ${{ matrix.name }}
+    secrets:
+      slack_webhook: ${{ secrets[matrix.slack_webhook_secret] }}

@@ -37,10 +37,8 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -181,7 +179,11 @@ public class TrackerEventPersister
       TrackerEvent currentEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    eventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
+    eventChangeLogService.addFieldChangeLog(
+        currentEntity,
+        payloadEntity,
+        payloadEntity.getProgramStage().getProgram(),
+        user.getUsername());
   }
 
   private void handleDataValues(
@@ -191,13 +193,8 @@ public class TrackerEventPersister
       TrackerEvent event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
-        Optional.ofNullable(event)
-            .map(
-                a ->
-                    a.getEventDataValues().stream()
-                        .collect(
-                            Collectors.toMap(EventDataValue::getDataElement, Function.identity())))
-            .orElse(new HashMap<>());
+        event.getEventDataValues().stream()
+            .collect(Collectors.toMap(EventDataValue::getDataElement, Function.identity()));
 
     payloadDataValues.forEach(
         dataValue -> {
@@ -206,12 +203,19 @@ public class TrackerEventPersister
 
           if (isNewDataValue(dbDataValue, dataValue)) {
             eventChangeLogService.addEventChangeLog(
-                event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
+                event,
+                dataElement,
+                event.getProgramStage().getProgram(),
+                null,
+                dataValue.getValue(),
+                CREATE,
+                user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             eventChangeLogService.addEventChangeLog(
                 event,
                 dataElement,
+                event.getProgramStage().getProgram(),
                 dbDataValue.getValue(),
                 dataValue.getValue(),
                 UPDATE,
@@ -220,7 +224,13 @@ public class TrackerEventPersister
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             eventChangeLogService.addEventChangeLog(
-                event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
+                event,
+                dataElement,
+                event.getProgramStage().getProgram(),
+                dbDataValue.getValue(),
+                null,
+                DELETE,
+                user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
