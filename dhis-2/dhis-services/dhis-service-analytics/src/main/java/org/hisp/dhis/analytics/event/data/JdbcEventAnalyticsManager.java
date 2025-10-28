@@ -227,7 +227,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns =
         Lists.newArrayList(
-            "count(event) as count", "ST_Extent(" + sqlClusterFields + ") as extent");
+            String.format("count(event) as count", "ST_Extent(%s) as extent", sqlClusterFields));
 
     columns.add(
         "case when count(event) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
