@@ -97,11 +97,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   private final PeriodStore periodStore;
 
-  /**
-   * Maximum number of {@code VALUES} pairs that get added to a single {@code INSERT} SQL statement.
-   */
-  private static final int MAX_ROWS_PER_INSERT = 500;
-
   public HibernateDataEntryStore(
       EntityManager entityManager,
       PeriodStore periodStore,
@@ -724,26 +719,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
   }
 
-  private static final String UPSERT_SQL_TEMPLATE =
-      // language=SQL
-      """
-        INSERT INTO datavalue
-        (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid,
-        value, comment, followup, deleted)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
-        DO UPDATE SET
-        value = EXCLUDED.value,
-        comment = CASE
-        WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
-        ELSE EXCLUDED.comment
-        END,
-        deleted = EXCLUDED.deleted,
-        followup = EXCLUDED.followup,
-        lastupdated = now(),
-        storedby = current_setting('dhis2.user')
-        """;
-
   @Override
   @UsageTestOnly
   public int upsertValuesForJdbcTest(List<DataEntryValue> values) {
@@ -970,16 +945,15 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     List<DataEntryRow> rows = upsertValuesResolveIds(values);
     if (rows.isEmpty()) return 0;
 
-    final int STAGING_THRESHOLD = 100_000;
 
     try {
       return withTxnRetries(
           () -> {
+            // Data entry; very common
             if (rows.size() == 1) {
-              // Data entry; very common
               return upsertSingleRow(rows.get(0));
             } else {
-              // Large batches: use TEMP table staging + single merge
+              // Batches: use TEMP table staging + single merge
               return upsertViaTempStageMerge(rows);
             }
           });
