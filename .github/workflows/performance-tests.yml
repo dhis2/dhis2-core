@@ -291,12 +291,12 @@ jobs:
         webhook: ${{ secrets.slack_webhook }}
         webhook-type: incoming-webhook
         payload: |
-          text: "Performance tests failed :detective-duck:"
+          text: "🚨 ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }} Performance Test Failed"
           blocks:
             - type: header
               text:
                 type: plain_text
-                text: "🚨 Performance Test Failed"
+                text: "🚨 ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }} Performance Test Failed"
             - type: section
               fields:
                 - type: mrkdwn
