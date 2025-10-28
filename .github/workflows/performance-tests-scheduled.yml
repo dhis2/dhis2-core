@@ -3,6 +3,9 @@ name: Performance tests scheduled
 run-name: Performance tests scheduled
 
 on:
+  # NOTE: workflow_dispatch is only to test this workflow! Use ./performance-tests.yml to test a
+  # single DHIS2 version and ./performance-tests-compare.yml if you want to compare a baseline
+  # version against a candidate
   workflow_dispatch:
   schedule:
     # Run at 1 AM UTC every day

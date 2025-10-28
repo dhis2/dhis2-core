@@ -107,20 +107,6 @@ jobs:
     - name: Clean target directory
       run: mvn clean
 
-    - name: Validate environment configuration
-      run: |
-        # Extract and validate SIMULATION_CLASS
-        SIMULATION_CLASS=$(echo '${{ inputs.test_env }}' | grep "^SIMULATION_CLASS=" | cut -d= -f2-)
-
-        if [ -z "$SIMULATION_CLASS" ]; then
-          echo "Error: SIMULATION_CLASS is required in test configuration"
-          exit 1
-        fi
-
-        echo "✓ Validation passed"
-        echo "  Test name: ${{ inputs.test_name }}"
-        echo "  SIMULATION_CLASS: $SIMULATION_CLASS"
-
     - name: Run performance tests
       run: |
         # Write env to file

@@ -16,7 +16,7 @@ Run `./run-simulation.sh` for full usage including profiling and database option
 
 ## CI
 
-CI workflows use `./run-simulation.sh` with the same syntax as local runs:
+CI workflows use `./run-simulation.sh` the same way as local runs:
 
 * [`performance-tests-scheduled.yml`](../../.github/workflows/performance-tests-scheduled.yml) - Daily scheduled tests
 * [`performance-tests.yml`](../../.github/workflows/performance-tests.yml) - Manual single test
