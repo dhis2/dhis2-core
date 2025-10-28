@@ -42,8 +42,8 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -111,7 +111,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   public void dataElementOrgUnitTypeFilterDimensionAndOrgUnitAsFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -136,7 +136,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        5,
+        2,
         2); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -182,7 +182,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   public void orgUnitFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -204,7 +204,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         37,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -290,7 +290,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   public void dataElementOrgUnitTypeFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -312,7 +312,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         0,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -356,7 +356,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: eventDate")
   public void financialYear2022WithEventDate() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -382,7 +382,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2497,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -476,7 +476,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: enrollmentDate")
   public void financialYear2022WithEnrollmentDate() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -502,7 +502,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2497,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -617,7 +617,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: incidentDate")
   public void financialYear2022WithIncidentDateDate() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -643,7 +643,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2497,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -745,8 +745,8 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   @Test
   @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: completedDate")
   public void financialYear2022WithCompletedDate() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -772,7 +772,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         5,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -820,15 +820,10 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "GxdhnY5wmHq", "2327");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
-
-    // Validate selected values for row index 4
-    validateRowValueByName(response, actualHeaders, 4, "value", "1");
-    validateRowValueByName(response, actualHeaders, 4, "GxdhnY5wmHq", "4817");
-    validateRowValueByName(response, actualHeaders, 4, "ou", "ImspTQPwCqd");
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "2327"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "4817"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3387.5"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3338.5"));
+    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "3766.5"));
   }
 }

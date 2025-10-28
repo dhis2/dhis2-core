@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -58,7 +57,6 @@ import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -90,8 +88,6 @@ class HibernatePotentialDuplicateStore
 
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
-  private final DhisConfigurationProvider config;
-
   public HibernatePotentialDuplicateStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -99,13 +95,11 @@ class HibernatePotentialDuplicateStore
       AclService aclService,
       AuditManager auditManager,
       HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore,
-      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore,
-      DhisConfigurationProvider config) {
+      TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
     this.auditManager = auditManager;
     this.hibernateTrackedEntityChangeLogStore = hibernateTrackedEntityChangeLogStore;
     this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
-    this.config = config;
   }
 
   public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
@@ -244,17 +238,17 @@ class HibernatePotentialDuplicateStore
       ChangeLogType changeLogType) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    TrackedEntityChangeLog updatedTrackedEntityChangeLog =
-        new TrackedEntityChangeLog(
-            createOrUpdateTeav.getTrackedEntity(),
-            createOrUpdateTeav.getAttribute(),
-            previousValue,
-            createOrUpdateTeav.getPlainValue(),
-            changeLogType,
-            new Date(),
-            currentUsername);
+    if (createOrUpdateTeav.getTrackedEntity().getTrackedEntityType().isEnableChangeLog()) {
+      TrackedEntityChangeLog updatedTrackedEntityChangeLog =
+          new TrackedEntityChangeLog(
+              createOrUpdateTeav.getTrackedEntity(),
+              createOrUpdateTeav.getAttribute(),
+              previousValue,
+              createOrUpdateTeav.getPlainValue(),
+              changeLogType,
+              new Date(),
+              currentUsername);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
       hibernateTrackedEntityChangeLogStore.addTrackedEntityChangeLog(updatedTrackedEntityChangeLog);
     }
   }

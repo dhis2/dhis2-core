@@ -50,7 +50,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -203,7 +203,7 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
 
     String name = mapView.getName();
 
-    Period period = null;
+    PeriodDimension period = null;
 
     if (!mapView.getPeriods().isEmpty()) // TODO integrate with
     // BaseAnalyticalObject
@@ -242,7 +242,7 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
     // Create and setup an internal layer
     InternalMapLayer mapLayer = new InternalMapLayer();
     mapLayer.setName(name);
-    mapLayer.setPeriod(period);
+    mapLayer.setPeriod(period == null ? null : period.getPeriod());
     mapLayer.setMethod(mapView.getMethod());
     mapLayer.setLayer(mapView.getLayer());
     mapLayer.setRadiusLow(radiusLow);

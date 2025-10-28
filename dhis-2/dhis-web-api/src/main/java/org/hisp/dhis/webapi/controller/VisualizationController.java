@@ -53,7 +53,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -162,8 +162,8 @@ public class VisualizationController
           }
 
           if (isNotEmpty(visualization.getPeriods())) {
-            for (Period period : visualization.getPeriods()) {
-              period.setName(i18nFormat.formatPeriod(period));
+            for (PeriodDimension period : visualization.getPeriods()) {
+              period.setName(i18nFormat.formatPeriod(period.getPeriod()));
             }
           }
 
@@ -189,8 +189,8 @@ public class VisualizationController
       I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
       if (isNotEmpty(visualization.getPeriods())) {
-        for (Period period : visualization.getPeriods()) {
-          period.setName(i18nFormat.formatPeriod(period));
+        for (PeriodDimension period : visualization.getPeriods()) {
+          period.setName(i18nFormat.formatPeriod(period.getPeriod()));
         }
       }
 

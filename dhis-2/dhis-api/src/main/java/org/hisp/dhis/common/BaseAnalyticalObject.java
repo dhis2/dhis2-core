@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -69,6 +68,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,8 +81,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.common.adapter.JacksonExtendedPeriodSerializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
@@ -98,11 +98,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -202,7 +204,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
-  protected List<Period> periods = new ArrayList<>();
+  private List<PeriodDimension> periods = new ArrayList<>();
 
   protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -703,23 +705,23 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
           new BaseDimensionalObject(
               dimension, DimensionType.DATA_X, getDataDimensionNameableObjects()));
     } else if (PERIOD_DIM_ID.equals(actualDim)) {
-      List<Period> periodList = new ArrayList<>();
+      List<PeriodDimension> periodList = new ArrayList<>();
 
       // For backward compatibility, where periods are not in the "raw" list yet.
       if (isEmpty(rawPeriods)) {
         rawPeriods = new ArrayList<>();
         rawPeriods.addAll(
             getPeriods().stream()
-                .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
-                .map(period -> period.getDimensionItem())
-                .collect(toSet()));
+                .map(PeriodDimension::getDimensionItem)
+                .filter(dimensionItem -> !rawPeriods.contains(dimensionItem))
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
       }
 
       if (isNotEmpty(rawPeriods)) {
         for (String period : rawPeriods) {
           if (RelativePeriodEnum.contains(period)) {
             RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
-            Period relPeriod = new Period(relPeriodTypeEnum);
+            PeriodDimension relPeriod = PeriodDimension.of(relPeriodTypeEnum);
 
             if (!periodList.contains(relPeriod)) {
               periodList.add(relPeriod);
@@ -727,10 +729,11 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
           } else {
             Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
             boolean isIsoPeriod = isoPeriod != null;
-            boolean addPeriod = isIsoPeriod && !periodList.contains(isoPeriod);
+            boolean addPeriod =
+                isIsoPeriod && periodList.stream().noneMatch(p -> p.getIsoDate().equals(period));
 
             if (addPeriod) {
-              periodList.add(isoPeriod);
+              periodList.add(PeriodDimension.of(isoPeriod));
             }
           }
         }
@@ -940,8 +943,9 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     return Optional.empty();
   }
 
-  private void setPeriodNames(List<Period> periods, boolean dynamicNames, I18nFormat format) {
-    for (Period period : periods) {
+  private void setPeriodNames(
+      List<PeriodDimension> periods, boolean dynamicNames, I18nFormat format) {
+    for (PeriodDimension period : periods) {
       RelativePeriods.setName(period, null, dynamicNames, format);
     }
   }
@@ -1324,17 +1328,36 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   @Override
-  @JsonProperty
-  @JsonSerialize(contentUsing = JacksonPeriodSerializer.class)
-  @JsonDeserialize(contentUsing = JacksonPeriodDeserializer.class)
-  @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
-  public List<Period> getPeriods() {
+  @JsonIgnore
+  public List<PeriodDimension> getPeriods() {
     return periods;
   }
 
-  public void setPeriods(List<Period> periods) {
+  public void setPeriods(List<PeriodDimension> periods) {
     this.periods = periods;
+  }
+
+  protected final boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
+  }
+
+  @JsonProperty("periods")
+  @JsonSerialize(contentUsing = JacksonExtendedPeriodSerializer.class)
+  @JsonDeserialize(contentUsing = JacksonPeriodDeserializer.class)
+  @Property(persisted = Property.Value.TRUE, owner = Property.Value.TRUE)
+  @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
+  @Override
+  public List<Period> getPersistedPeriods() {
+    return periods == null ? null : periods.stream().map(PeriodDimension::getPeriod).toList();
+  }
+
+  @Override
+  public void setPersistedPeriods(List<Period> periods) {
+    this.periods =
+        periods == null
+            ? null
+            : new ArrayList<>(periods.stream().map(PeriodDimension::of).toList());
   }
 
   @JsonProperty

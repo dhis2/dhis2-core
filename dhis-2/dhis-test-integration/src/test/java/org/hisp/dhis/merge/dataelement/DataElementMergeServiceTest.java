@@ -68,9 +68,9 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
@@ -182,7 +182,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
-  @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private SingleEventChangeLogService singleEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -226,6 +226,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(coc1);
 
     program = createProgram('q');
+    program.setEnableChangeLog(true);
     identifiableObjectManager.save(program);
 
     User user = userService.getUserByUsername("admin");
@@ -2793,11 +2794,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // ------------------------
-  // -- DataValueAudit --
+  // -- DataValueChangelog --
   // ------------------------
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
+      "DataValueChangelogs with references to source DataElements are not changed or deleted when sources not deleted")
   void dataValueAuditMergeTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2819,13 +2820,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams sourceDvaQueryParams =
+    DataValueChangelogQueryParams sourceDvaQueryParams =
         getQueryParams(List.of(deSource1, deSource2), List.of(p1));
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(List.of(deTarget), List.of(p1));
+    DataValueChangelogQueryParams targetDvaQueryParams =
+        getQueryParams(List.of(deTarget), List.of(p1));
 
-    List<DataValueAudit> sourceAudits =
-        dataValueAuditStore.getDataValueAudits(sourceDvaQueryParams);
-    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+    List<DataValueChangelog> sourceAudits =
+        dataValueChangelogStore.getEntries(sourceDvaQueryParams);
+    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2838,7 +2840,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to source DataElements are deleted when sources are deleted")
+      "DataValueChangelogs with references to source DataElements are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2861,13 +2863,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    DataValueAuditQueryParams sourceDvaQueryParams =
+    DataValueChangelogQueryParams sourceDvaQueryParams =
         getQueryParams(List.of(deSource1, deSource2), List.of(p1));
-    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(List.of(deTarget), List.of(p1));
+    DataValueChangelogQueryParams targetDvaQueryParams =
+        getQueryParams(List.of(deTarget), List.of(p1));
 
-    List<DataValueAudit> sourceAudits =
-        dataValueAuditStore.getDataValueAudits(sourceDvaQueryParams);
-    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+    List<DataValueChangelog> sourceAudits =
+        dataValueChangelogStore.getEntries(sourceDvaQueryParams);
+    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -3050,12 +3053,12 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
     trackerEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private void addEventChangeLog(SingleEvent event, DataElement dataElement, String currentValue) {
     singleEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {
@@ -3063,9 +3066,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
         de.getUid(), ou1.getUid(), coc1.getUid(), coc1.getUid(), p.getIsoDate(), value, null);
   }
 
-  private DataValueAuditQueryParams getQueryParams(
+  private DataValueChangelogQueryParams getQueryParams(
       List<DataElement> dataElements, List<Period> periods) {
-    return new DataValueAuditQueryParams().setDataElements(dataElements).setPeriods(periods);
+    return new DataValueChangelogQueryParams()
+        .setDataElements(dataElements.stream().map(DataElement::getUid).map(UID::of).toList())
+        .setPeriods(periods);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

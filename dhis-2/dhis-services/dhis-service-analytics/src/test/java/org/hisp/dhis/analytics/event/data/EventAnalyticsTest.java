@@ -35,7 +35,7 @@ import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.mockito.Mockito.when;
@@ -172,7 +172,7 @@ abstract class EventAnalyticsTest {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
+    params.withPeriods(createPeriodDimensions("2000Q1"), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
@@ -186,7 +186,7 @@ abstract class EventAnalyticsTest {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
+    params.withPeriods(createPeriodDimensions("2000Q1"), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
@@ -200,7 +200,7 @@ abstract class EventAnalyticsTest {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
+    params.withPeriods(createPeriodDimensions("2000Q1"), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
@@ -212,7 +212,7 @@ abstract class EventAnalyticsTest {
     OrganisationUnit ouA = createOrganisationUnit('A');
     ouA.setPath("/" + ouA.getUid());
     EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(getList(createPeriod("2000Q1")), "quarterly");
+    params.withPeriods(createPeriodDimensions("2000Q1"), "quarterly");
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);

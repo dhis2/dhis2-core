@@ -286,7 +286,7 @@ public class GeneratorHelper {
   private static String buildTestConfigurationBlock() {
     return """
            // Read the 'expect.postgis' system property at runtime to adapt assertions.
-           boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+           boolean expectPostgis = isPostgres();
 
            """; // Default to false if property not set
   }

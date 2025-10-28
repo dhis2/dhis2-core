@@ -41,7 +41,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -105,7 +104,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
   @Test
   public void valueParamAndStageParam() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -128,7 +127,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -175,7 +174,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
   @Test
   public void valueWithStageParamAndStageParam() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -198,7 +197,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -245,7 +244,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
   @Test
   public void valueWithStageParam() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -267,7 +266,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -314,7 +313,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
   @Test
   public void valueWithoutStageParam() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -336,7 +335,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -383,7 +382,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
   @Test
   public void dataElementOrgUnitTypeFilterDimensionAndOrgUnitAsFilter() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -406,7 +405,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        5,
+        2,
         2); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name

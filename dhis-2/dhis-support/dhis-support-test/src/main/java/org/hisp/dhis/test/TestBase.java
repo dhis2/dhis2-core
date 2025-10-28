@@ -148,6 +148,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
@@ -1130,11 +1131,8 @@ public abstract class TestBase {
    */
   public static Period createPeriod(PeriodType type, Date startDate) {
     Period period = new Period();
-    period.setAutoFields();
-
     period.setPeriodType(type);
     period.setStartDate(startDate);
-
     return period;
   }
 
@@ -1145,12 +1143,9 @@ public abstract class TestBase {
    */
   public static Period createPeriod(PeriodType type, Date startDate, Date endDate) {
     Period period = new Period();
-    period.setAutoFields();
-
     period.setPeriodType(type);
     period.setStartDate(startDate);
     period.setEndDate(endDate);
-
     return period;
   }
 
@@ -1176,13 +1171,14 @@ public abstract class TestBase {
    */
   public static Period createPeriod(Date startDate, Date endDate) {
     Period period = new Period();
-    period.setAutoFields();
-
     period.setPeriodType(new MonthlyPeriodType());
     period.setStartDate(startDate);
     period.setEndDate(endDate);
-
     return period;
+  }
+
+  public static List<PeriodDimension> createPeriodDimensions(String... isoPeriod) {
+    return createPeriods(isoPeriod).stream().map(PeriodDimension::of).toList();
   }
 
   /**

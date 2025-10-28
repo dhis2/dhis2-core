@@ -67,7 +67,7 @@ public class HousekeepingJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("Housekeeping");
 
     progress.startingStage("Apply job cancellation", SKIP_STAGE);

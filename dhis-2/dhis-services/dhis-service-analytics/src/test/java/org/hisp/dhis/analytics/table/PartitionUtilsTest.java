@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.joda.time.DateTime;
@@ -51,9 +52,12 @@ import org.junit.jupiter.api.Test;
 class PartitionUtilsTest {
   private final PeriodType quarterly = new QuarterlyPeriodType();
 
-  private final Period q1 = quarterly.createPeriod(new DateTime(2018, 7, 1, 0, 0).toDate());
-  private final Period q2 = quarterly.createPeriod(new DateTime(2018, 10, 1, 0, 0).toDate());
-  private final Period q3 = quarterly.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate());
+  private final PeriodDimension q1 =
+      PeriodDimension.of(quarterly.createPeriod(new DateTime(2018, 7, 1, 0, 0).toDate()));
+  private final PeriodDimension q2 =
+      PeriodDimension.of(quarterly.createPeriod(new DateTime(2018, 10, 1, 0, 0).toDate()));
+  private final PeriodDimension q3 =
+      PeriodDimension.of(quarterly.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate()));
 
   @Test
   void testGetPartitions() {
