@@ -373,7 +373,7 @@ jobs:
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field baseline_env=@baseline-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field candidate_env=@candidate-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --ref $PERF_GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.workflow_sha }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Method 2: Using input configurations from this run**" >> $GITHUB_STEP_SUMMARY

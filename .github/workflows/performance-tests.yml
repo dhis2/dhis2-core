@@ -248,7 +248,7 @@ jobs:
         echo "gh workflow run performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field test_env=@test-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --ref $PERF_GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.workflow_sha }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
