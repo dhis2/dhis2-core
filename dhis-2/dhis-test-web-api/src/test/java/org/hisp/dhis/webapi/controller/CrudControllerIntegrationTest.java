@@ -39,14 +39,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -244,5 +248,69 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     JsonArray translations =
         GET("/dataSets/{id}/translations", id).content().getArray("translations");
     assertEquals(1, translations.size());
+  }
+
+
+  @Test
+  void testPage2AndOrderByDisplayName() {
+    setUpTestFilterByDisplayName();
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=displayName&paging=true&pageSize=2&page=2")
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(2, ous.size());
+    assertEquals("C", ous.get(0).getDisplayName());
+    assertEquals("D", ous.get(1).getDisplayName());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "1, 2, A, B",
+      "2, 2, C, D",
+  })
+  void testOrderByDisplayName(int page, int size, String firstItem, String secondItem) {
+    setUpTestFilterByDisplayName();
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=displayName&paging=true&pageSize=2&page=" + page)
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(size, ous.size());
+    assertEquals(firstItem, ous.get(0).getDisplayName());
+    assertEquals(secondItem, ous.get(1).getDisplayName());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+      "1, 2, E, D",
+      "2, 2, C, B",
+  })
+  void testOrderByDisplayNameDesc(int page, int size, String firstItem, String secondItem) {
+    setUpTestFilterByDisplayName();
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=displayName:desc&paging=true&pageSize=2&page=" + page)
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(size, ous.size());
+    assertEquals(firstItem, ous.get(0).getDisplayName());
+    assertEquals(secondItem, ous.get(1).getDisplayName());
+  }
+
+  @Test
+  void testFilterOuByDisplayName() {
+    setUpTestFilterByDisplayName();
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?filter=displayName:in:[A,B,C]&paging=true&pageSize=2&page=2")
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(1, ous.size());
+    assertEquals("C", ous.get(0).getDisplayName());
+  }
+
+  private void setUpTestFilterByDisplayName() {
+    manager.save(createOrganisationUnit("A"));
+    manager.save(createOrganisationUnit("B"));
+    manager.save(createOrganisationUnit("C"));
+    manager.save(createOrganisationUnit("D"));
+    manager.save(createOrganisationUnit("E"));
   }
 }

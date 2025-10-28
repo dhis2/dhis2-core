@@ -41,6 +41,7 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +59,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -235,6 +237,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     String translationKey = property.getTranslationKey();
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    String localeStr = locale != null ? locale.toString() : "en";
 
     // Use the custom jsonb_get_translated_value function to extract the translated value
     Expression<String> translatedValue =
@@ -243,13 +246,36 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             String.class,
             root.get("translations"),
             builder.literal(translationKey),
-            builder.literal(locale.toString()));
+            builder.literal(localeStr));
+
+    // Get the base property name that corresponds to the display property
+    // e.g., displayName -> name, displayDescription -> description, displayShortName -> shortName
+    String basePropertyName = getBasePropertyName(property.getName());
+    Expression<String> baseValue = root.get(basePropertyName);
+
+    // Use COALESCE to fall back to the base property if translation doesn't exist
+    Expression<String> coalescedValue = builder.coalesce(translatedValue, baseValue);
 
     // Apply ordering with case-insensitivity if requested
     Expression<String> orderExpression =
-        order.isIgnoreCase() ? builder.lower(translatedValue) : translatedValue;
+        order.isIgnoreCase() ? builder.lower(coalescedValue) : coalescedValue;
 
     return order.isAscending() ? builder.asc(orderExpression) : builder.desc(orderExpression);
+  }
+
+  /**
+   * Maps display property names to their base property names.
+   *
+   * @param displayPropertyName the display property name (e.g., "displayName")
+   * @return the base property name (e.g., "name")
+   */
+  private String getBasePropertyName(String displayPropertyName) {
+    return switch (displayPropertyName) {
+      case "displayName" -> "name";
+      case "displayDescription" -> "description";
+      case "displayShortName" -> "shortName";
+      default -> displayPropertyName;
+    };
   }
 
   private void initStoreMap() {
@@ -364,10 +390,44 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     Property property = path.getProperty();
     String translationKey = property.getTranslationKey();
+    String basePropertyName = getBasePropertyName(property.getName());
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
     String localeStr = locale != null ? locale.toString() : "en";
 
-    // Get the filter value from the operator
+    // Handle 'in' operator with multiple values
+    if (filter.getOperator() instanceof InOperator
+        && !filter.getOperator().getArgs().isEmpty()) {
+      Collection<?> values = filter.getOperator().getArgs();
+      Predicate orCondition = builder.disjunction();
+      for (Object value : values) {
+        String searchValue = String.valueOf(value);
+        String regexPattern = "(?i).*" + escapeRegex(searchValue) + ".*";
+
+        // Translation search with regex
+        Expression<Boolean> translationSearch =
+            builder.function(
+                JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
+                Boolean.class,
+                root.get("translations"),
+                builder.literal("{" + translationKey + "}"),
+                builder.literal(localeStr),
+                builder.literal(regexPattern));
+
+        // Base property search
+        Predicate basePropertySearch =
+            stringPredicateIgnoreCase(
+                builder,
+                root.get(basePropertyName),
+                searchValue,
+                JpaQueryUtils.StringSearchMode.ANYWHERE);
+
+        // Add OR condition for this value
+        orCondition.getExpressions().add(builder.or(builder.isTrue(translationSearch), basePropertySearch));
+      }
+      return orCondition;
+    }
+
+    // Handle single-value operators (eq, like, etc.)
     Object filterValue = filter.getOperator().getArgs().get(0);
     String searchValue = String.valueOf(filterValue);
 
@@ -383,7 +443,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     //   $2: array of property keys to search (e.g., '{NAME}')
     //   $3: locale string
     //   $4: regex pattern to match against value
-    Expression<Boolean> searchFunction =
+    Expression<Boolean> translationSearch =
         builder.function(
             JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
             Boolean.class,
@@ -392,7 +452,13 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             builder.literal(localeStr),
             builder.literal(regexPattern));
 
-    return builder.isTrue(searchFunction);
+    // Also search in the base property as a fallback if translation doesn't exist
+    Predicate basePropertySearch =
+        stringPredicateIgnoreCase(
+            builder, root.get(basePropertyName), searchValue, JpaQueryUtils.StringSearchMode.ANYWHERE);
+
+    // Return OR condition: either translation matches OR base property matches
+    return builder.or(builder.isTrue(translationSearch), basePropertySearch);
   }
 
   /**
