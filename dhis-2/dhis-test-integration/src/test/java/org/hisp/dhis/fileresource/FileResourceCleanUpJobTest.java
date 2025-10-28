@@ -92,7 +92,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private ExternalFileResourceService externalFileResourceService;
-  
+
   private DataValue dataValueA;
 
   private DataValue dataValueB;

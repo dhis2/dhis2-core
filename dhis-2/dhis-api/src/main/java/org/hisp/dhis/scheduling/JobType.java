@@ -115,7 +115,7 @@ public enum JobType {
   System Jobs
   */
   HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
-  DATA_VALUE_TRIM(every(20,"D2datatrim8", "Data value trim")),
+  DATA_VALUE_TRIM(every(20, "D2datatrim8", "Data value trim")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
