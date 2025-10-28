@@ -285,9 +285,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams()).withValue(booleanElement).build();
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("sum(ax.\"" + booleanElement.getUid() + "\")"));
+    assertThat(clause.sql(), is("sum(ax.\"" + booleanElement.getUid() + "\")"));
   }
 
   @Test
@@ -304,9 +305,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("sum(ax.\"fWIAEtYVEGk\")"));
+    assertThat(clause.sql(), is("sum(ax.\"fWIAEtYVEGk\")"));
   }
 
   @Test
@@ -346,9 +348,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params = paramsBuilder.build();
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("null"));
+    assertThat(clause.sql(), is("null"));
   }
 
   private static Stream<Arguments> noAggregationTestCases() {
@@ -377,9 +380,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withOutputType(EventOutputType.EVENT)
             .build();
 
-    String aggregateClause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause aggregateClause =
+        eventSubject.getAggregateClause(params);
 
-    assertEquals("count(ax.\"event\")", aggregateClause);
+    assertEquals("count(ax.\"event\")", aggregateClause.sql());
   }
 
   @Test
@@ -396,9 +400,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withOutputType(EventOutputType.ENROLLMENT)
             .build();
 
-    String aggregateClause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause aggregateClause =
+        eventSubject.getAggregateClause(params);
 
-    assertEquals("count(distinct ax.\"enrollment\")", aggregateClause);
+    assertEquals("count(distinct ax.\"enrollment\")", aggregateClause.sql());
   }
 
   @Test
@@ -417,9 +422,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             params.getLatestEndDate()))
         .thenReturn("select * from table");
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("avg(select * from table)"));
+    assertThat(clause.sql(), is("avg(select * from table)"));
   }
 
   @Test
@@ -441,9 +447,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             params.getLatestEndDate()))
         .thenReturn("select * from table");
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("(select * from table)"));
+    assertThat(clause.sql(), is("(select * from table)"));
   }
 
   @Test
@@ -463,9 +470,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             params.getLatestEndDate()))
         .thenReturn("select * from table");
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("avg(select * from table)"));
+    assertThat(clause.sql(), is("avg(select * from table)"));
   }
 
   @Test

@@ -482,4 +482,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
             "create %sindex %s on %s using %s(%s %s);",
             unique, quote(index.getName()), quote(tableName), typeName, columns, sortOrder);
   }
+
+  @Override
+  public String castDecimal(String expr, int precision, int scale) {
+    return String.format("(%s)::numeric(%d,%d)", expr, precision, scale);
+  }
+
+  @Override
+  public String decimalLiteral(String literal, int precision, int scale) {
+    // Force a DECIMAL literal to avoid DOUBLE coercion in comparisons.
+    // Use 'escape' to preserve any single quotes/backslashes correctly.
+    return String.format("('%s')::numeric(%d,%d)", escape(literal), precision, scale);
+  }
 }

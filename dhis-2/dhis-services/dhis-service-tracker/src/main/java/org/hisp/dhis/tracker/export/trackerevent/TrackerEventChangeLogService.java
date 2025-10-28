@@ -33,7 +33,6 @@ import java.util.Date;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
@@ -46,9 +45,8 @@ public class TrackerEventChangeLogService
   protected TrackerEventChangeLogService(
       TrackerEventService trackerEventService,
       HibernateEventChangeLogStore<TrackerEventChangeLog, TrackerEvent>
-          hibernateEventChangeLogStore,
-      DhisConfigurationProvider config) {
-    super(trackerEventService, hibernateEventChangeLogStore, config);
+          hibernateEventChangeLogStore) {
+    super(trackerEventService, hibernateEventChangeLogStore);
   }
 
   @Override
