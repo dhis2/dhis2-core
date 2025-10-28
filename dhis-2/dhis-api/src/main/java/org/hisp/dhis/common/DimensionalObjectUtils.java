@@ -385,7 +385,7 @@ public class DimensionalObjectUtils {
    * dimension name separator, if exists, splits the string part on the option separator and returns
    * the resulting values. If the dimension name separator does not exist an empty list is returned,
    * indicating that all dimension options should be used.
-   * 
+   *
    * @param param the parameter.
    */
   public static List<String> getDimensionItemsFromParam(String param) {
@@ -406,7 +406,7 @@ public class DimensionalObjectUtils {
   /**
    * Splits the given string on the ; character and returns the items in a list. Returns null if the
    * given string is null.
-   * 
+   *
    * @param param the parameter.
    */
   public static List<String> getItemsFromParam(String param) {
@@ -881,8 +881,8 @@ public class DimensionalObjectUtils {
   }
 
   /**
-   * Transforms a List of {@see DimensionItemObjectValue} into a map of 
-   * {@link DimensionalItemObject} and value.
+   * Transforms a List of {@see DimensionItemObjectValue} into a map of {@link
+   * DimensionalItemObject} and value.
    */
   public static Map<DimensionalItemObject, Object> convertToDimItemValueMap(
       List<DimensionItemObjectValue> dimensionItemObjectValues) {

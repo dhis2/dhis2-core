@@ -249,11 +249,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     sql += getWhereClause(params);
 
     sql +=
-        "group by ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_Centroid("
-            + sqlClusterFields
-            + "), 4326), 3785), "
-            + params.getClusterSize()
-            + ") ";
+        String.format(
+            "group by ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_Centroid(%s), 4326), 3785), %d) ",
+            sqlClusterFields, params.getClusterSize());
 
     log.debug("Analytics event cluster SQL: '{}'", sql);
 
