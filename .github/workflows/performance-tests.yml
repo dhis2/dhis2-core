@@ -289,39 +289,23 @@ jobs:
       uses: slackapi/slack-github-action@v2.0.0
       with:
         webhook: ${{ secrets.slack_webhook }}
+        webhook-type: incoming-webhook
         payload: |
-          {
-            "text": "Performance tests failed :detective-duck:",
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": "🚨 Performance Test Failed"
-                }
-              },
-              {
-                "type": "section",
-                "fields": [
-                  {
-                    "type": "mrkdwn",
-                    "text": "*Branch:*\n${{ github.ref_name }}"
-                  }
-                ]
-              },
-              {
-                "type": "actions",
-                "elements": [
-                  {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "View Workflow Run"
-                    },
-                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                    "style": "danger"
-                  }
-                ]
-              }
-            ]
-          }
+          text: "Performance tests failed :detective-duck:"
+          blocks:
+            - type: header
+              text:
+                type: plain_text
+                text: "🚨 Performance Test Failed"
+            - type: section
+              fields:
+                - type: mrkdwn
+                  text: "*Branch:*\n${{ github.ref_name }}"
+            - type: actions
+              elements:
+                - type: button
+                  text:
+                    type: plain_text
+                    text: "View Workflow Run"
+                  url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  style: danger
