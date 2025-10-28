@@ -987,7 +987,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     columns.forEach(
         column -> {
-          if (columnIsInFormula(column) || hasColunnPrefix(column, "ax")) {
+          if (columnIsInFormula(column) || hasColumnPrefix(column, "ax")) {
             sb.addColumn(column);
           } else {
             sb.addColumn(column, "ax");
@@ -1013,7 +1013,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
   }
 
-  private boolean hasColunnPrefix(String column, String prefix) {
+  /**
+   * Checks if the given column starts with the given prefix.
+   *
+   * @param column the column name.
+   * @return true if the column starts with the given prefix, false otherwise.
+   */
+  private boolean hasColumnPrefix(String column, String prefix) {
     return column.startsWith(prefix + ".");
   }
 
@@ -1023,7 +1029,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   @Override
-  CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
+  protected CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
     if (cteContext == null) {
       cteContext = new CteContext(EndpointItem.EVENT);
     }
