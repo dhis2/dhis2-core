@@ -49,12 +49,15 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,6 +74,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DataElementService dataElementService;
+  
+  @Autowired private PeriodService periodService;
 
   @Test
   void testGetNonAccessibleObject() {
@@ -535,7 +540,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             HttpStatus.CREATED,
             POST(
                 "/dataSets/",
-                "{'name':'Health Monthly Report', 'shortName': 'HMR', 'periodType':'Monthly'}"));
+                "{'name':'Health Monthly Report', 'shortName': 'HMR', 'periodType':'Monthly', 'formName':'FormA'}"));
 
     String ds2Id =
         assertStatus(
@@ -551,15 +556,15 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
                 "/dataSets/",
                 "{'name':'Education Monthly Report', 'shortName': 'EMR', 'periodType':'Monthly'}"));
 
-    // Test combining displayName filter with periodType filter
-    // Should return only datasets with "Health" in displayName AND periodType = Monthly
+    // Test combining displayName filter with formName filter
+    // Should return only datasets with "Health" in displayName AND formName = FormA
     JsonList<JsonIdentifiableObject> results =
-        GET("/dataSets?fields=id,displayName,periodType&filter=displayName:like:Health&filter=periodType:eq:Monthly")
+        GET("/dataSets?fields=id,displayName,periodType&filter=displayName:like:Health&filter=formName:eq:FormA")
             .content()
             .getList("dataSets", JsonIdentifiableObject.class);
 
     assertEquals(
-        1, results.size(), "Should find 1 dataset with 'Health' in name and Monthly period type");
+        1, results.size(), "Should find 1 dataset with 'Health' in name and FormA formName");
     assertEquals(ds1Id, results.get(0).getId());
     assertEquals("Health Monthly Report", results.get(0).getDisplayName());
   }
