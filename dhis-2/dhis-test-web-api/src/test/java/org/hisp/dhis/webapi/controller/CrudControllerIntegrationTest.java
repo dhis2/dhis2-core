@@ -50,14 +50,12 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -74,7 +72,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DataElementService dataElementService;
-  
+
   @Autowired private PeriodService periodService;
 
   @Test
@@ -506,7 +504,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     // Test requesting displayName, displayDescription, and displayShortName fields
     JsonList<JsonIdentifiableObject> results =
         GET("/dataSets?fields=id,name,displayName,description,displayDescription,shortName,displayShortName&filter=id:eq:"
-            + dsId)
+                + dsId)
             .content()
             .getList("dataSets", JsonIdentifiableObject.class);
 
@@ -583,8 +581,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @ParameterizedTest
   @CsvSource({
-      "1, 2, A, B",
-      "2, 2, C, D",
+    "1, 2, A, B",
+    "2, 2, C, D",
   })
   void testOrderByDisplayName(int page, int size, String firstItem, String secondItem) {
     setUpTestFilterByDisplayName();
@@ -599,8 +597,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @ParameterizedTest
   @CsvSource({
-      "1, 2, E, D",
-      "2, 2, C, B",
+    "1, 2, E, D",
+    "2, 2, C, B",
   })
   void testOrderByDisplayNameDesc(int page, int size, String firstItem, String secondItem) {
     setUpTestFilterByDisplayName();
@@ -623,7 +621,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     assertEquals(1, ous.size());
     assertEquals("C", ous.get(0).getDisplayName());
   }
-  
+
   @Test
   void testGetCsvOrderDesc() {
     createDataElements(36);
@@ -647,7 +645,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     assertEquals("DataElement0", firstRowDisplayNameValue);
     assertEquals(1, rowCount);
   }
-  
+
   @Test
   void testGetCsvOrderAsc() {
     createDataElements(36);
@@ -657,7 +655,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
     assertEquals("DataElement1", thirdRowDisplayNameValue);
   }
-  
+
   private void setUpTestFilterByDisplayName() {
     manager.save(createOrganisationUnit("A"));
     manager.save(createOrganisationUnit("B"));
@@ -677,8 +675,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
                 "{'name':'english data Set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
 
     PUT(
-        "/dataSets/" + id + "/translations",
-        "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'french dataSet'}]}")
+            "/dataSets/" + id + "/translations",
+            "{'translations': [{'locale':'fr', 'property':'NAME', 'value':'french dataSet'}]}")
         .content(HttpStatus.NO_CONTENT);
 
     assertEquals(1, GET("/dataSets", id).content().getArray("dataSets").size());

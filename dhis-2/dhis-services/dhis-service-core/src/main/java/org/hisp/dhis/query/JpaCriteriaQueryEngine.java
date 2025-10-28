@@ -395,8 +395,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     String localeStr = locale != null ? locale.toString() : "en";
 
     // Handle 'in' operator with multiple values
-    if (filter.getOperator() instanceof InOperator
-        && !filter.getOperator().getArgs().isEmpty()) {
+    if (filter.getOperator() instanceof InOperator && !filter.getOperator().getArgs().isEmpty()) {
       Collection<?> values = filter.getOperator().getArgs();
       Predicate orCondition = builder.disjunction();
       for (Object value : values) {
@@ -422,7 +421,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
                 JpaQueryUtils.StringSearchMode.ANYWHERE);
 
         // Add OR condition for this value
-        orCondition.getExpressions().add(builder.or(builder.isTrue(translationSearch), basePropertySearch));
+        orCondition
+            .getExpressions()
+            .add(builder.or(builder.isTrue(translationSearch), basePropertySearch));
       }
       return orCondition;
     }
@@ -455,7 +456,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     // Also search in the base property as a fallback if translation doesn't exist
     Predicate basePropertySearch =
         stringPredicateIgnoreCase(
-            builder, root.get(basePropertyName), searchValue, JpaQueryUtils.StringSearchMode.ANYWHERE);
+            builder,
+            root.get(basePropertyName),
+            searchValue,
+            JpaQueryUtils.StringSearchMode.ANYWHERE);
 
     // Return OR condition: either translation matches OR base property matches
     return builder.or(builder.isTrue(translationSearch), basePropertySearch);
