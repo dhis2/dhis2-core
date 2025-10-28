@@ -767,7 +767,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return imported;
   }
 
-  private int upsertSingleRow(DataEntryRow v)  {
+  private int upsertSingleRow(DataEntryRow v) {
     final Session session = entityManager.unwrap(Session.class);
     final String user = getCurrentUsername();
 
@@ -944,7 +944,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     if (values == null || values.isEmpty()) return 0;
     List<DataEntryRow> rows = upsertValuesResolveIds(values);
     if (rows.isEmpty()) return 0;
-
 
     try {
       return withTxnRetries(
