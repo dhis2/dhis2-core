@@ -44,7 +44,6 @@ import java.sql.SQLException;
 import java.sql.SQLTransactionRollbackException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -793,16 +792,66 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return imported;
   }
 
+  private int upsertSingleRow(DataEntryRow v)  {
+    final Session session = entityManager.unwrap(Session.class);
+    final String user = getCurrentUsername();
+
+    final String sql =
+        """
+        INSERT INTO datavalue
+          (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid,
+           value, comment, followup, deleted, lastupdated, storedby)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), current_setting('dhis2.user'))
+        ON CONFLICT (dataelementid, periodid, sourceid, categoryoptioncomboid, attributeoptioncomboid)
+        DO UPDATE SET
+          value       = EXCLUDED.value,
+          comment     = CASE
+                          WHEN datavalue.deleted = false AND EXCLUDED.deleted = true THEN datavalue.comment
+                          ELSE EXCLUDED.comment
+                        END,
+          deleted     = EXCLUDED.deleted,
+          followup    = EXCLUDED.followup,
+          lastupdated = now(),
+          storedby    = EXCLUDED.storedby
+        """;
+
+    AtomicInteger count = new AtomicInteger();
+    session.doWork(
+        conn -> {
+          try (PreparedStatement setUser =
+              conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
+            setUser.setString(1, user);
+            setUser.execute();
+          }
+
+          try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, v.de());
+            ps.setLong(2, v.pe());
+            ps.setLong(3, v.ou());
+            ps.setLong(4, v.coc());
+            ps.setLong(5, v.aoc());
+            ps.setString(6, v.value());
+            ps.setString(7, v.comment());
+            ps.setObject(8, v.followup());
+            ps.setBoolean(9, v.deleted());
+            count.set(ps.executeUpdate());
+          }
+        });
+    session.clear();
+    return count.get();
+  }
+
   /**
-   * Large-batch path: stage rows into a TEMP table (WAL-free) and perform a single INSERT ...
-   * SELECT ... ORDER BY ... ON CONFLICT DO UPDATE merge. Deadlock safety: ORDER BY enforces a
-   * consistent lock acquisition order.
+   * Batch path: stage rows into a TEMP table (WAL-free) and perform a single INSERT ... SELECT ...
+   * ORDER BY ... ON CONFLICT DO UPDATE merge. Deadlock safety: ORDER BY enforces a consistent lock
+   * acquisition order.
    */
   private int upsertViaTempStageMerge(@Nonnull List<DataEntryRow> rows) {
     if (rows.isEmpty()) return 0;
 
     final Session session = entityManager.unwrap(Session.class);
     final String user = getCurrentUsername();
+    // Batch size for staging inserts
     final int STAGE_BATCH = 50_000;
 
     // DDL for the session-scoped staging table
@@ -915,71 +964,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     return imported.get();
   }
 
-  private int upsertBatchedInOrder(@Nonnull List<DataEntryRow> rows) {
-    if (rows.isEmpty()) return 0;
-
-    final Session session = entityManager.unwrap(Session.class);
-    final String user = getCurrentUsername();
-    final AtomicInteger imported = new AtomicInteger();
-
-    session.doWork(
-        conn -> {
-          try (PreparedStatement set =
-              conn.prepareStatement("SELECT set_config('dhis2.user', ?, true)")) {
-            set.setString(1, user);
-            set.execute();
-          }
-
-          final boolean prevAuto = conn.getAutoCommit();
-          if (prevAuto) conn.setAutoCommit(false);
-          try {
-            final int size = rows.size();
-            int from = 0;
-            while (from < size) {
-              final int n = Math.min(MAX_ROWS_PER_INSERT, size - from);
-              final int to = from + n;
-
-              final String sql = upsertNValuesSql(n);
-              try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                int p = 0;
-                // Bind in the exact order of the sorted rows to preserve lock order
-                for (int i = from; i < to; i++) {
-                  DataEntryRow v = rows.get(i);
-                  ps.setLong(++p, v.de());
-                  ps.setLong(++p, v.pe());
-                  ps.setLong(++p, v.ou());
-                  ps.setLong(++p, v.coc());
-                  ps.setLong(++p, v.aoc());
-                  ps.setString(++p, v.value());
-                  ps.setString(++p, v.comment());
-                  ps.setObject(++p, v.followup()); // null-safe
-                  ps.setBoolean(++p, v.deleted());
-                }
-                imported.addAndGet(ps.executeUpdate());
-              }
-
-              from = to;
-            }
-            if (prevAuto) conn.commit();
-          } catch (SQLException e) {
-            try {
-              if (prevAuto) conn.rollback();
-            } catch (SQLException ignore) {
-              // Ignored
-            }
-            throw e;
-          } finally {
-            try {
-              if (prevAuto) conn.setAutoCommit(true);
-            } catch (SQLException ignore) {
-              // Ignored
-            }
-          }
-        });
-    session.clear();
-    return imported.get();
-  }
-
   @Override
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
@@ -991,17 +975,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     try {
       return withTxnRetries(
           () -> {
-            if (rows.size() <= STAGING_THRESHOLD) {
-              // Small batches: deterministic lock order to avoid deadlocks
-              rows.sort(
-                  Comparator.comparingLong(DataEntryRow::de)
-                      .thenComparingLong(DataEntryRow::pe)
-                      .thenComparingLong(DataEntryRow::ou)
-                      .thenComparingLong(DataEntryRow::coc)
-                      .thenComparingLong(DataEntryRow::aoc));
-              return upsertBatchedInOrder(rows);
+            if (rows.size() == 1) {
+              // Data entry; very common
+              return upsertSingleRow(rows.get(0));
             } else {
-              // Large batches: avoid client-side sorting, use TEMP table staging + single merge
+              // Large batches: use TEMP table staging + single merge
               return upsertViaTempStageMerge(rows);
             }
           });
@@ -1036,14 +1014,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       }
     }
     return internalValues;
-  }
-
-  @Nonnull
-  private static String upsertNValuesSql(int n) {
-    if (n == 1) return UPSERT_SQL_TEMPLATE;
-    return UPSERT_SQL_TEMPLATE.replace(
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        "(?, ?, ?, ?, ?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
   }
 
   private Map<String, Long> getDataElementIdMap(Stream<UID> ids) {
