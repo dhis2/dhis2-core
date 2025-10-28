@@ -41,6 +41,9 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -245,5 +248,17 @@ class JobConfigurationTest {
     config.setJobStatus(JobStatus.DISABLED);
 
     assertEquals(JobStatus.SCHEDULED, config.getJobStatus());
+  }
+
+  @Test
+  void nowUniqueIsAlwaysUnique() {
+    List<Long> timestamps = new ArrayList<>();
+    for (int i = 0; i < 50; i++) timestamps.add(JobConfiguration.nowUnique());
+    long now = System.currentTimeMillis();
+    for (int i = 0; i < 50; i++) timestamps.add(JobConfiguration.nowUnique());
+    assertEquals(100, timestamps.size());
+    Set<Long> uniqueTimestamps = Set.copyOf(timestamps);
+    assertEquals(timestamps.size(), uniqueTimestamps.size());
+    assertTrue(uniqueTimestamps.contains(now));
   }
 }
