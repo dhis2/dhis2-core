@@ -94,15 +94,15 @@ import org.locationtech.jts.geom.Geometry;
         "update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities")
 @JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
-public class TrackedEntity extends BaseTrackerObject implements IdentifiableObject,
-    SoftDeletableEntity {
+public class TrackedEntity extends BaseTrackerObject
+    implements IdentifiableObject, SoftDeletableEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @SequenceGenerator(sequenceName = "trackedentityinstance_sequence")
   @Column(name = "trackedentityid")
   private long id;
-  
+
   private boolean deleted = false;
 
   @Column(name = "createdatclient")
@@ -130,12 +130,16 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
 
   @AuditAttribute
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "organisationunitid", foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"))
+  @JoinColumn(
+      name = "organisationunitid",
+      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"))
   private OrganisationUnit organisationUnit;
 
   @AuditAttribute
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "trackedentitytypeid", foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"))
+  @JoinColumn(
+      name = "trackedentitytypeid",
+      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"))
   private TrackedEntityType trackedEntityType;
 
   @AuditAttribute
@@ -163,7 +167,7 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
 
   public TrackedEntity() {}
 
-  @Override 
+  @Override
   public void setAutoFields() {
     if (getUid() == null || getUid().isEmpty()) {
       setUid(CodeGenerator.generateUid());
@@ -176,7 +180,7 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
     }
 
     setLastUpdated(date);
-    
+
     if (createdAtClient == null) {
       createdAtClient = created;
     }
@@ -185,7 +189,7 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
       lastUpdatedAtClient = lastUpdated;
     }
   }
-  
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -199,7 +203,7 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
     trackedEntityAttributeValues.remove(attributeValue);
     attributeValue.setTrackedEntity(null);
   }
-  
+
   // -------------------------------------------------------------------------
   // Equals and hashCode
   // -------------------------------------------------------------------------
@@ -220,11 +224,11 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
 
     TrackedEntity other = (TrackedEntity) obj;
     return Objects.equals(getUid(), other.getUid())
-           && Objects.equals(getCode(), other.getCode())
-           && Objects.equals(getName(), other.getName())
-           && isDeleted() == other.isDeleted();
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName())
+        && isDeleted() == other.isDeleted();
   }
-  
+
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
@@ -248,13 +252,11 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
     return potentialDuplicate;
   }
 
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getCreatedAtClient() {
     return createdAtClient;
   }
-
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -268,7 +270,6 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
   public OrganisationUnit getOrganisationUnit() {
     return organisationUnit;
   }
-
 
   @JsonProperty("trackedEntityAttributeValues")
   @JacksonXmlElementWrapper(
@@ -285,14 +286,13 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
   public Set<Enrollment> getEnrollments() {
     return enrollments;
   }
-  
+
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
   public Set<TrackedEntityProgramOwner> getProgramOwners() {
     return programOwners;
   }
-
 
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
@@ -301,19 +301,16 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
     return trackedEntityType;
   }
 
-
   @JsonProperty
   @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
   public boolean isInactive() {
     return inactive;
   }
 
-
   @JsonIgnore
   public Date getLastSynchronized() {
     return lastSynchronized;
   }
-
 
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
@@ -322,20 +319,17 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
     return relationshipItems;
   }
 
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Geometry getGeometry() {
     return geometry;
   }
 
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public UserInfoSnapshot getCreatedByUserInfo() {
     return createdByUserInfo;
   }
-
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -383,7 +377,7 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
       return getPropertyValue(idScheme);
     }
   }
-  
+
   // -------------------------------------------------------------------------
   // Not supported methods
   // -------------------------------------------------------------------------
@@ -392,20 +386,19 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
   public String getDisplayName() {
     return getName();
   }
-  
+
   @Override
   public Sharing getSharing() {
     return Sharing.empty();
   }
 
   @Override
-  public void setSharing(Sharing sharing) {
-  }
+  public void setSharing(Sharing sharing) {}
 
   // -------------------------------------------------------------------------
   // Not supported properties
   // -------------------------------------------------------------------------
-  
+
   @Override
   public Set<Translation> getTranslations() {
     return Set.of();
@@ -414,12 +407,10 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
   /**
    * @param user
    * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
-   * used for web api backward compatibility
+   *     used for web api backward compatibility
    */
   @Override
-  public void setUser(User user) {
-    
-  }
+  public void setUser(User user) {}
 
   @Override
   public void setTranslations(Set<Translation> translations) {
@@ -445,49 +436,36 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
   public void setName(String name) {
     // not supported
   }
-  
-  /**
-   * TrackedEntity does not support sharing
-   */
+
+  /** TrackedEntity does not support sharing */
   @Override
   public boolean hasSharing() {
     return false;
   }
 
-  /**
-   * TrackedEntity does not support sharing
-   */
+  /** TrackedEntity does not support sharing */
   @Override
-  public void setOwner(String owner) {
-  }
+  public void setOwner(String owner) {}
 
-  /**
-   * TrackedEntity does not support AttributeValues
-   */
+  /** TrackedEntity does not support AttributeValues */
   @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
-  /**
-   * TrackedEntity does not support AttributeValues
-   */
+  /** TrackedEntity does not support AttributeValues */
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
     // not supported
   }
 
-  /**
-   * TrackedEntity does not support AttributeValues
-   */
+  /** TrackedEntity does not support AttributeValues */
   @Override
   public void addAttributeValue(String attributeUid, String value) {
     // not supported
   }
 
-  /**
-   * TrackedEntity does not support AttributeValues
-   */
+  /** TrackedEntity does not support AttributeValues */
   @Override
   public void removeAttributeValue(String attributeId) {
     // not supported
@@ -511,7 +489,8 @@ public class TrackedEntity extends BaseTrackerObject implements IdentifiableObje
 
   /**
    * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
-   */  @Override
+   */
+  @Override
   public User getCreatedBy() {
     return null;
   }

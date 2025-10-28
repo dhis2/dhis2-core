@@ -98,7 +98,7 @@ public class BaseMetadataObject implements MetadataObject {
 
   /** Access information for this object. Applies to current user. */
   @Transient @Setter protected Access access;
-  
+
   // -------------------------------------------------------------------------------------------
   // Getters
   // -------------------------------------------------------------------------------------------

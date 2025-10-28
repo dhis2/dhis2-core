@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
@@ -95,7 +96,7 @@ public class ProgramMessageRecipients implements Serializable {
   // -------------------------------------------------------------------------
 
   @JsonProperty(value = "trackedEntity")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "trackedEntity")
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;

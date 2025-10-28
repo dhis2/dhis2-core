@@ -85,7 +85,7 @@ public class TrackedEntityProgramOwner implements Serializable {
   }
 
   @JsonProperty("trackedEntityInstance")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;

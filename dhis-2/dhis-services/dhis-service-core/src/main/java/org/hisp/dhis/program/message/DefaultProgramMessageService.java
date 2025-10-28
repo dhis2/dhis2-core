@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -247,8 +246,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
         .toList();
   }
 
-  private <T extends IdentifiableObject> T getEntity(
-      Class<T> klass, IdentifiableObject entity) {
+  private <T extends IdentifiableObject> T getEntity(Class<T> klass, IdentifiableObject entity) {
     if (entity == null) {
       return null;
     }
