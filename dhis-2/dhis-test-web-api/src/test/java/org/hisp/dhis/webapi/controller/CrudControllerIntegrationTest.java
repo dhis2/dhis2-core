@@ -30,14 +30,19 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.CsvUtils.getRowCountFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getValueFromCsv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -64,6 +69,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @Autowired private UserSettingsService userSettingsService;
 
   @Autowired private SystemSettingsService settingsService;
+
+  @Autowired private DataElementService dataElementService;
 
   @Test
   void testGetNonAccessibleObject() {
@@ -611,7 +618,41 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     assertEquals(1, ous.size());
     assertEquals("C", ous.get(0).getDisplayName());
   }
+  
+  @Test
+  void testGetCsvOrderDesc() {
+    createDataElements(36);
+    String response = GET("/dataElements.csv?order=displayName:desc").content("text/csv");
 
+    assertNotNull(response);
+    String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
+    assertEquals("DataElementy", thirdRowDisplayNameValue);
+  }
+
+  @Test
+  void testGetCsvFilterByDisplayName() {
+    createDataElements(36);
+    String response =
+        GET("/dataElements.csv?filter=displayName:eq:DataElement0&skipHeader=true")
+            .content("text/csv");
+
+    assertNotNull(response);
+    String firstRowDisplayNameValue = getValueFromCsv(1, 0, response);
+    int rowCount = getRowCountFromCsv(response);
+    assertEquals("DataElement0", firstRowDisplayNameValue);
+    assertEquals(1, rowCount);
+  }
+  
+  @Test
+  void testGetCsvOrderAsc() {
+    createDataElements(36);
+    String response = GET("/dataElements.csv?order=displayName:asc").content("text/csv");
+
+    assertNotNull(response);
+    String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
+    assertEquals("DataElement1", thirdRowDisplayNameValue);
+  }
+  
   private void setUpTestFilterByDisplayName() {
     manager.save(createOrganisationUnit("A"));
     manager.save(createOrganisationUnit("B"));
@@ -640,5 +681,12 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     JsonArray translations =
         GET("/dataSets/{id}/translations", id).content().getArray("translations");
     assertEquals(1, translations.size());
+  }
+
+  private void createDataElements(int count) {
+    for (int i = 0; i < count; ++i) {
+      DataElement dataElement = createDataElement(Character.forDigit(i, 36));
+      dataElementService.addDataElement(dataElement);
+    }
   }
 }
