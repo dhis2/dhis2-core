@@ -66,7 +66,6 @@ import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -142,8 +141,6 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
   private final CategoryService categoryService;
 
   private final I18nManager i18nManager;
-
-  private final OrganisationUnitService organisationUnitService;
 
   // -------------------------------------------------------------------------
   // Implementation
@@ -468,7 +465,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     progress.startingStage(
         "Dispatching DHIS " + type + " notification messages", messages.size(), SKIP_ITEM_OUTLIER);
 
-    // filter out messages without recipients
+    // Filter out messages without recipients
     messages = messages.stream().filter(msg -> !msg.recipients.isEmpty()).toList();
 
     progress.runStage(
