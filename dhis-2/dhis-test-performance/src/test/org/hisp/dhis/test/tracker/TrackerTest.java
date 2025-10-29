@@ -187,6 +187,12 @@ public class TrackerTest extends Simulation {
             + trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
+    String searchTEByNameAndLastName =
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ines&filter=zDhUuAYrxNC:like:Bebea"
+            + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            + trackerProgram
+            + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
+
     String searchEventByProgramStage =
         "/api/tracker/events?filter=yLIPuJHRgey:ge:50&order=createdAt:desc&page=1"
             + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
@@ -226,6 +232,9 @@ public class TrackerTest extends Simulation {
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName, 200, "Search TE by name with like operator", "Get a list of TEs");
+    Request searchTeByNameAndLastNameWithLikeOperator =
+        new Request(
+            searchTEByNameAndLastName, 200, "Search TE by name and last name with like operator", "Get a list of TEs");
     Request searchTeByNationalIdWithEqualOperator =
         new Request(
             searchForTEByNationalId,
@@ -291,6 +300,7 @@ public class TrackerTest extends Simulation {
                         exec(notFoundTeByNameWithLikeOperator.action())
                             .exec(notFoundTeByNationalIdWithEqualOperator.action())
                             .exec(searchTeByNameWithLikeOperator.action())
+                            .exec(searchTeByNameAndLastNameWithLikeOperator.action())
                             .exec(searchTeByNationalIdWithEqualOperator.action())
                             .exec(
                                 searchEventsByProgramStage
@@ -333,6 +343,7 @@ public class TrackerTest extends Simulation {
             notFoundTeByNameWithLikeOperator,
             notFoundTeByNationalIdWithEqualOperator,
             searchTeByNameWithLikeOperator,
+            searchTeByNameAndLastNameWithLikeOperator,
             searchTeByNationalIdWithEqualOperator,
             searchEventsByProgramStage,
             getTrackedEntitiesForEvents,
