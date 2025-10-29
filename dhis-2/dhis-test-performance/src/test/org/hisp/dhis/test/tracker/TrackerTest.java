@@ -234,7 +234,10 @@ public class TrackerTest extends Simulation {
             searchTEByName, 200, "Search TE by name with like operator", "Get a list of TEs");
     Request searchTeByNameAndLastNameWithLikeOperator =
         new Request(
-            searchTEByNameAndLastName, 200, "Search TE by name and last name with like operator", "Get a list of TEs");
+            searchTEByNameAndLastName,
+            200,
+            "Search TE by name and last name with like operator",
+            "Get a list of TEs");
     Request searchTeByNationalIdWithEqualOperator =
         new Request(
             searchForTEByNationalId,
