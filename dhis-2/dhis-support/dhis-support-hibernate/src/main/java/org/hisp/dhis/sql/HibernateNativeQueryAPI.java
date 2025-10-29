@@ -36,7 +36,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.QueryProducer;
 import org.hibernate.type.BooleanType;

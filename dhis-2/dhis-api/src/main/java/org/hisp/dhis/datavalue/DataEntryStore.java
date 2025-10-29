@@ -73,14 +73,10 @@ public interface DataEntryStore {
    *   ...
    * </pre>
    *
-   * The parts of the key are ordered A,B,C because that is the alphabetical order of the category
-   * codes. This allows the caller to take input in form of C=CO (codes) and do the same
-   * alphabetically ordered concatenation to get a lookup key for the result map.
-   *
    * @param dataSet the dataset for context
    * @param attributeOptions the identifier of a category option that is concatenated into a key
    * @return A map from a concatenated key to an AOC UID. The key is composed of the options of the
-   *     AOC in alphabetical order of the categories
+   *     AOC
    */
   Map<Set<String>, String> getDataSetAocIdMapping(
       @Nonnull UID dataSet, @Nonnull IdProperty attributeOptions);

@@ -30,6 +30,7 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import lombok.AccessLevel;
@@ -40,6 +41,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 
@@ -68,12 +70,27 @@ public class DataExportInputParams {
   private Date startDate;
   private Date endDate;
   private boolean children;
+
+  @OpenApi.Since(43)
+  @Maturity.Beta
+  @OpenApi.Description(
+      "Can be used in addition to `orgUnit` and/or `orgUnitGroup` to narrow the scope to a specific level.")
+  private Integer level;
+
   private boolean includeDeleted;
   private Date lastUpdated;
   private String lastUpdatedDuration;
   private Integer limit;
   private Integer offset;
+
+  @OpenApi.Description(
+      "If used it has the effect of adding `PE` to `order` as 1st (most significant) order property.")
+  @Deprecated(since = "2.43")
   private boolean orderByPeriod;
+
+  @OpenApi.Since(43)
+  @Maturity.Beta
+  private List<DataExportParams.Order> order;
 
   /*
    * Input IdSchemes
@@ -82,10 +99,12 @@ public class DataExportInputParams {
   /**
    * @since 2.43
    */
-  @OpenApi.Description("""
+  @OpenApi.Description(
+      """
     When `true` and input IDs are expected to be `UID` due to being the default
     the decoding will attempt decoding as `CODE` for IDs that cannot be resolved as `UID`.""")
   private Boolean inputUseCodeFallback;
+
   private IdentifiableProperty inputIdScheme;
   private IdentifiableProperty inputOrgUnitIdScheme;
   private IdentifiableProperty inputDataElementIdScheme;
@@ -125,15 +144,6 @@ public class DataExportInputParams {
     setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
     setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
     return schemes;
-  }
-
-  private static void setNonNull(
-      IdSchemes schemes,
-      IdentifiableProperty property,
-      BiFunction<IdSchemes, String, IdSchemes> setter) {
-    if (property != null) {
-      setNonNull(schemes, property.name(), setter);
-    }
   }
 
   private static void setNonNull(

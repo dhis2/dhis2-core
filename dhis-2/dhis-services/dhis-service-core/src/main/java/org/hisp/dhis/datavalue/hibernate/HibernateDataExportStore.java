@@ -29,40 +29,35 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
-import static java.util.stream.Collectors.toMap;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static java.lang.System.currentTimeMillis;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 
 import jakarta.persistence.EntityManager;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.datavalue.DataEntryKey;
-import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportParams.Order;
+import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.sql.NativeSQL;
 import org.hisp.dhis.sql.QueryBuilder;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.user.UserDetails;
 import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
 
@@ -75,7 +70,7 @@ public class HibernateDataExportStore implements DataExportStore {
 
   @Override
   @CheckForNull
-  public DataExportValue getDataValue(@Nonnull DataEntryKey key) {
+  public DataExportValue exportValue(@Nonnull DataEntryKey key) {
     String sql =
         """
       SELECT
@@ -84,6 +79,7 @@ public class HibernateDataExportStore implements DataExportStore {
         ou.uid AS ou,
         coc.uid AS coc,
         aoc.uid AS aoc,
+        de.valuetype,
         dv.value,
         dv.comment,
         dv.followup,
@@ -104,7 +100,7 @@ public class HibernateDataExportStore implements DataExportStore {
         AND (cast(:coc as text) IS NOT NULL AND coc.uid = :coc OR :coc IS NULL AND coc.name = 'default')
         AND (cast(:aoc as text) IS NOT NULL AND aoc.uid = :aoc OR :aoc IS NULL AND aoc.name = 'default')
       LIMIT 1""";
-    return createSelectQuery(sql)
+    return createQuery(sql)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
         .setParameter("pe", key.period())
@@ -119,15 +115,20 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   @UsageTestOnly
   public List<DataExportValue> getAllDataValues() {
-    return getDataValues(new DataExportParams().setIncludeDeleted(false)).toList();
+    return exportValues(DataExportParams.builder().includeDeleted(false).build()).toList();
   }
 
+  @Nonnull
   @Override
-  public Stream<DataExportValue> getDataValues(DataExportParams params) {
-    return createExportQuery(params, NativeSQL.of(getSession())).stream().map(DataExportValue::of);
+  public Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) {
+    return createExportQuery(
+            params, NativeSQL.of(getSession()), CurrentUserUtil::getCurrentUserDetails)
+        .stream()
+        .map(DataExportValue::of);
   }
 
-  static QueryBuilder createExportQuery(DataExportParams params, SQL.QueryAPI api) {
+  static QueryBuilder createExportQuery(
+      DataExportParams params, SQL.QueryAPI api, Supplier<UserDetails> currentUser) {
     String sql =
         """
       WITH
@@ -178,6 +179,7 @@ public class HibernateDataExportStore implements DataExportStore {
         ou.uid AS ouid,
         coc.uid AS cocid,
         aoc.uid AS aocid,
+        de.valuetype,
         dv.value,
         dv.comment,
         dv.followup,
@@ -207,15 +209,13 @@ public class HibernateDataExportStore implements DataExportStore {
           WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))
       ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
       """;
-    Date lastUpdated = null;
-    if (params.hasLastUpdatedDuration())
-      lastUpdated = DateUtils.nowMinusDuration(params.getLastUpdatedDuration());
-    if (params.hasLastUpdated()) lastUpdated = params.getLastUpdated();
+    Date lastUpdated = params.getLastUpdated();
+    if (lastUpdated == null && params.getLastUpdatedDuration() != null)
+      lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
     String accessSql =
-        params.isOrderForSync()
-                || !params.getAttributeOptionCombos().isEmpty()
-                || CurrentUserUtil.getCurrentUserDetails().isSuper()
+        !(params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
+                || currentUser.get().isSuper()
             ? null // explicit AOCs mean they are already sharing checked
             : generateSQlQueryForSharingCheck(
                 "co.sharing", CurrentUserUtil.getCurrentUserDetails(), LIKE_READ_DATA);
@@ -237,27 +237,33 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
         .setDynamicClause("access", accessSql)
-        .eraseOrder("ou.path", !params.isOrderByOrgUnitPath())
-        .eraseOrder("pe.startdate", !params.isOrderByPeriod() && !params.isOrderForSync())
-        .eraseOrder("pe.enddate", !params.isOrderByPeriod())
-        .eraseOrder("dv.created", !params.isOrderForSync())
-        .eraseOrder("deid", !params.isOrderForSync())
         .eraseNullParameterLines()
-        .eraseJoinLine("ou_ids", descendants)
-        .eraseJoinLine("ou_with_descendants_ids", !descendants)
+        .eraseJoinLine("de_ids", !params.hasDataElementFilters())
+        .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
+        .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
+        .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
         .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
-        .setOffset(params.getOffset());
+        .setOffset(params.getOffset())
+        .setOrders(
+            params.getOrders(),
+            Map.ofEntries(
+                Map.entry(Order.OU, "ou.path"),
+                Map.entry(Order.PE, "pe.startdate, pe.enddate"),
+                Map.entry(Order.CREATED, "dv.created"),
+                Map.entry(Order.DE, "deid"),
+                Map.entry(Order.AOC, "aocid")));
   }
 
   @CheckForNull
   @Override
-  public UID getAttributeOptionCombo(@CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions) {
-    //TODO
+  public UID getAttributeOptionCombo(
+      @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions) {
+    // TODO
     return null;
   }
 
-  private QueryBuilder createSelectQuery(@Language("sql") String sql) {
+  private QueryBuilder createQuery(@Language("sql") String sql) {
     return SQL.of(sql, NativeSQL.of(getSession()));
   }
 

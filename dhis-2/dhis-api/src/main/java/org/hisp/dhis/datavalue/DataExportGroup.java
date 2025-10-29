@@ -29,25 +29,21 @@
  */
 package org.hisp.dhis.datavalue;
 
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.period.Period;
-
 import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.period.Period;
 
 public record DataExportGroup(
     @CheckForNull UID dataSet,
     @CheckForNull Period period,
     @CheckForNull UID orgUnit,
     @CheckForNull UID attributeOptionCombo,
-    @CheckForNull Map<UID, UID> attributeOptions,
-    @Nonnull Stream<DataExportValue> values
-    ) {
+    @Nonnull Stream<DataExportValue> values) {
 
   /**
    * A group of values {@link DataExportValue.Output}. If any key-dimensions are given for the group
@@ -59,23 +55,10 @@ public record DataExportGroup(
       @CheckForNull String orgUnit,
       @CheckForNull String attributeOptionCombo,
       @CheckForNull Map<String, String> attributeOptions,
-      @Nonnull Set<String> numericDataElements,
       @Nonnull Stream<DataExportValue.Output> values) {
 
     public Output {
-      requireNonNull(numericDataElements);
       requireNonNull(values);
-    }
-
-    public Output withValues(Stream<DataExportValue.Output> values) {
-      return new Output(
-          dataSet,
-          period,
-          orgUnit,
-          attributeOptionCombo,
-          attributeOptions,
-          numericDataElements,
-          values);
     }
   }
 }

@@ -158,10 +158,17 @@ public final class QueryBuilder {
     return this;
   }
 
+  public <T extends Enum<T>> QueryBuilder setOrders(
+      @CheckForNull List<T> orders, @Nonnull Map<T, String> constToColumn) {
+    Map<String, String> propToColumn = new HashMap<>();
+    constToColumn.forEach((k, v) -> propToColumn.put(k.name(), v));
+    return setOrders(orders, Enum::name, e -> true, propToColumn);
+  }
+
   public <T> QueryBuilder setOrders(
       @CheckForNull List<T> orders,
-      @Nonnull Function<T, String> property,
-      @Nonnull Predicate<T> ascending,
+      @Nonnull Function<? super T, String> property,
+      @Nonnull Predicate<? super T> ascending,
       @Nonnull Map<String, String> propToColumn) {
     if (orders == null || orders.isEmpty() || propToColumn.isEmpty()) return this;
     for (T order : orders) {
@@ -202,13 +209,13 @@ public final class QueryBuilder {
     return this;
   }
 
-  public QueryBuilder setLimit(Integer limit) {
-    this.limit = limit;
+  public QueryBuilder setLimit(@CheckForNull Integer limit) {
+    this.limit = limit == null ? null : Math.abs(limit);
     return this;
   }
 
-  public QueryBuilder setOffset(Integer offset) {
-    this.offset = offset;
+  public QueryBuilder setOffset(@CheckForNull Integer offset) {
+    this.offset = offset == null ? null : Math.abs(offset);
     return this;
   }
 

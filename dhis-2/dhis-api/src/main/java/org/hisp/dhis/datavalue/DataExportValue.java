@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 
 /**
  * A flat data value using UIDs and ISO period values for the keys.
@@ -51,6 +52,7 @@ public record DataExportValue(
     @Nonnull UID orgUnit,
     @Nonnull UID categoryOptionCombo,
     @Nonnull UID attributeOptionCombo,
+    @Nonnull ValueType type,
     @CheckForNull String value,
     @CheckForNull String comment,
     @CheckForNull Boolean followUp,
@@ -66,6 +68,7 @@ public record DataExportValue(
     requireNonNull(orgUnit);
     requireNonNull(categoryOptionCombo);
     requireNonNull(attributeOptionCombo);
+    requireNonNull(type);
   }
 
   /**
@@ -81,13 +84,14 @@ public record DataExportValue(
         UID.of((String) row[2]),
         UID.of((String) row[3]),
         UID.of((String) row[4]),
-        (String) row[5],
+        ValueType.valueOf((String) row[5]),
         (String) row[6],
-        (Boolean) row[7],
-        (String) row[8],
-        (Date) row[9],
+        (String) row[7],
+        (Boolean) row[8],
+        (String) row[9],
         (Date) row[10],
-        (Boolean) row[11]);
+        (Date) row[11],
+        (Boolean) row[12]);
   }
 
   public boolean isFollowUp() {
@@ -112,6 +116,7 @@ public record DataExportValue(
       @CheckForNull String categoryOptionCombo,
       @CheckForNull Map<String, String> categoryOptions,
       @CheckForNull String attributeOptionCombo,
+      @Nonnull ValueType type,
       @CheckForNull String value,
       @CheckForNull String comment,
       @CheckForNull Boolean followUp,
@@ -122,6 +127,7 @@ public record DataExportValue(
 
     public Output {
       requireNonNull(dataElement);
+      requireNonNull(type);
       if (categoryOptionCombo == null && categoryOptions == null)
         requireNonNull(categoryOptionCombo); // fail - one is required
     }

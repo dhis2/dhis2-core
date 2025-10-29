@@ -229,7 +229,7 @@ final class DataExportOutput {
                       dv.categoryOptions().forEach(out::writeAttribute);
                     if (dv.attributeOptionCombo() != null)
                       out.writeAttribute("attributeOptionCombo", dv.attributeOptionCombo());
-                    if (group.numericDataElements().contains(dv.dataElement())) {
+                    if (dv.type().isNumeric()) {
                       out.writeAttribute("value", dv.value());
                     } else {
                       out.writeAttribute("value", "0");

@@ -62,8 +62,10 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
       case ID, UID -> UID;
       case CODE -> CODE;
       case NAME -> NAME;
-      case ATTRIBUTE -> throw new IllegalArgumentException("Attribute must be used with the attribute ID");
-      case UUID -> throw new UnsupportedOperationException("UUID is not supported for this operation");
+      case ATTRIBUTE ->
+          throw new IllegalArgumentException("Attribute must be used with the attribute ID");
+      case UUID ->
+          throw new UnsupportedOperationException("UUID is not supported for this operation");
     };
   }
 

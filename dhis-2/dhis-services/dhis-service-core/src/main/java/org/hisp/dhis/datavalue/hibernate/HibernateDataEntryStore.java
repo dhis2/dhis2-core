@@ -125,6 +125,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       FROM dataset ds
       JOIN categorycombos_categories cc_c ON ds.categorycomboid = cc_c.categorycomboid
       JOIN category c ON cc_c.categoryid = c.categoryid
+      WHERE ds.uid = :ds
       ORDER BY sort_name
       """;
     String sql = replace(sqlTemplate, Map.of("c_id", columnName("c", categories)));
@@ -153,6 +154,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           FROM dataset ds
           JOIN categorycombos_optioncombos cc_coc ON ds.categorycomboid = cc_coc.categorycomboid
           JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          WHERE ds.uid = :ds
           GROUP BY coc_co.categoryoptioncomboid
         ) co_coc
         JOIN categoryoptioncombo coc ON co_coc.categoryoptioncomboid = coc.categoryoptioncomboid""";

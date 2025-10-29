@@ -32,15 +32,18 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 
+import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SQL generation as performed by {@link
- * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI)}
+ * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, Supplier)}
  *
  * @author Jan Bernitt
  */
@@ -49,9 +52,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilter_Period() {
     DataExportParams params =
-        new DataExportParams()
-            .setOrderForSync(true) // bypass user context logic
-            .setPeriods(Set.of(getPeriodFromIsoString("2020")));
+        DataExportParams.builder().periods(List.of(getPeriodFromIsoString("2020"))).build();
     assertSQL(
         """
         SELECT
@@ -77,6 +78,6 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           AND dv.deleted = :deleted
         ORDER BY pe.startdate , dv.created , deid""",
         Set.of("pe", "deleted"),
-        createExportQuery(params, createSpyQuery()));
+        createExportQuery(params, createSpyQuery(), SystemUser::new));
   }
 }

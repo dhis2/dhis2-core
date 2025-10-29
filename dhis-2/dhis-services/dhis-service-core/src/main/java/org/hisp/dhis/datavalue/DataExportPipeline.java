@@ -76,12 +76,14 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJson(DataExportInputParams params, OutputStream out) throws ConflictException {
+  public void exportAsJson(DataExportInputParams params, OutputStream out)
+      throws ConflictException {
     DataExportOutput.toJson(service.exportGroup(params, false), out);
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJsonSync(DataExportInputParams params, OutputStream out) throws ConflictException {
+  public void exportAsJsonSync(DataExportInputParams params, OutputStream out)
+      throws ConflictException {
     DataExportOutput.toJson(service.exportGroup(params, true), out);
   }
 
@@ -98,7 +100,7 @@ public class DataExportPipeline {
   @Transactional(readOnly = true)
   public void exportAsXmlGroups(DataExportInputParams params, OutputStream out)
       throws ConflictException {
-    //ADX special handling of decoding and encoding
+    // ADX special handling of decoding and encoding
     Boolean outputCodeFallback = params.getInputUseCodeFallback();
     if (outputCodeFallback == null) params.setInputUseCodeFallback(true);
     IdSchemes encodeTo = params.getOutputIdSchemes();

@@ -29,13 +29,14 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.ArrayList;
+import java.time.Duration;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.UID;
@@ -45,90 +46,78 @@ import org.hisp.dhis.period.PeriodType;
 /**
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
+@Value
+@Builder(toBuilder = true)
 @Accessors(chain = true)
-@NoArgsConstructor
+@AllArgsConstructor
 public class DataExportParams {
 
+  public enum Order {
+    DE,
+    OU,
+    PE,
+    CREATED,
+    AOC
+  }
+
   /* what DEs to include */
-  private List<UID> dataSets;
-  private List<UID> dataElements;
-  private List<UID> dataElementGroups;
+  List<UID> dataSets;
+  List<UID> dataElements;
+  List<UID> dataElementGroups;
 
   /* what OUs to include */
-  private List<UID> organisationUnits;
-  private List<UID> organisationUnitGroups;
-  private Integer orgUnitLevel;
-  private boolean includeDescendants;
+  List<UID> organisationUnits;
+  List<UID> organisationUnitGroups;
+  Integer orgUnitLevel;
+  boolean includeDescendants;
 
   /* what timeframe to include */
-  private List<Period> periods;
-  private Set<PeriodType> periodTypes;
-  private Date startDate;
-  private Date endDate;
-  private Date includedDate;
+  List<Period> periods;
+  Set<PeriodType> periodTypes;
+  Date startDate;
+  Date endDate;
+  Date includedDate;
 
-  private List<UID> categoryOptionCombos = new ArrayList<>();
-  private List<UID> attributeOptionCombos = new ArrayList<>();
+  List<UID> categoryOptionCombos;
+  List<UID> attributeOptionCombos;
 
-  private boolean orderByOrgUnitPath;
-  private boolean orderByPeriod;
-  private boolean orderForSync;
-  private boolean includeDeleted;
+  boolean includeDeleted;
+  List<Order> orders;
 
-  private Date lastUpdated;
-  private String lastUpdatedDuration;
+  Date lastUpdated;
+  Duration lastUpdatedDuration;
 
   /* Paging */
-  private Integer limit;
-  private Integer offset;
+  Integer limit;
+  Integer offset;
 
-  private IdSchemes outputIdSchemes;
+  IdSchemes outputIdSchemes;
 
-  public boolean hasDataElements() {
-    return dataElements != null && !dataElements.isEmpty();
+  public boolean hasDataElementFilters() {
+    return notEmpty(dataSets) || notEmpty(dataElements) || notEmpty(dataElementGroups);
   }
 
-  public boolean hasDataSets() {
-    return dataSets != null && !dataSets.isEmpty();
+  public boolean hasPeriodFilters() {
+    return notEmpty(periods)
+        || notEmpty(periodTypes)
+        || (startDate != null && endDate != null)
+        || includedDate != null;
   }
 
-  public boolean hasDataElementGroups() {
-    return dataElementGroups != null && !dataElementGroups.isEmpty();
+  public boolean hasOrgUnitFilters() {
+    return notEmpty(organisationUnits) || notEmpty(organisationUnitGroups);
   }
 
-  public boolean hasPeriods() {
-    return periods != null && !periods.isEmpty();
+  /**
+   * @return true if the OU filters can only match units specified in {@link #organisationUnits}
+   */
+  public boolean isExactOrgUnitsFilter() {
+    return notEmpty(organisationUnits)
+        && !isIncludeDescendants()
+        && (organisationUnitGroups == null || organisationUnitGroups.isEmpty());
   }
 
-  public boolean hasStartEndDate() {
-    return startDate != null && endDate != null;
+  private static boolean notEmpty(Collection<?> c) {
+    return c != null && !c.isEmpty();
   }
-
-  public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
-  }
-
-  public boolean hasOrganisationUnitGroups() {
-    return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
-  }
-
-  public boolean hasAttributeOptionCombos() {
-    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
-  }
-
-  public boolean hasLastUpdated() {
-    return lastUpdated != null;
-  }
-
-  public boolean hasLastUpdatedDuration() {
-    return lastUpdatedDuration != null;
-  }
-
-  public boolean hasLimit() {
-    return limit != null;
-  }
-
-
 }

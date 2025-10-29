@@ -30,27 +30,32 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 
 /**
  * Support for bulk data value export.
  *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
 public interface DataExportStore {
 
+  /*
+  Decode support
+   */
   @CheckForNull
-  UID getAttributeOptionCombo(@CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
+  UID getAttributeOptionCombo(
+      @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
+
+  /*
+  Export
+   */
 
   @CheckForNull
-  DataExportValue getDataValue(@Nonnull DataEntryKey key);
+  DataExportValue exportValue(@Nonnull DataEntryKey key);
 
   /**
    * Returns data values for the given data export parameters.
@@ -58,7 +63,16 @@ public interface DataExportStore {
    * @param params the data export parameters.
    * @return a list of data values.
    */
-  Stream<DataExportValue> getDataValues(DataExportParams params);
+  @Nonnull
+  Stream<DataExportValue> exportValues(@Nonnull DataExportParams params);
+
+  /*
+  Validation support
+   */
+
+  /*
+  Test support
+  */
 
   /**
    * Returns all DataValues.

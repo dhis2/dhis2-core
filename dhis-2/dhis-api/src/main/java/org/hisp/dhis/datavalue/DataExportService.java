@@ -59,7 +59,8 @@ public interface DataExportService {
   @CheckForNull
   DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException;
 
-  Stream<DataExportValue> exportValues(@Nonnull DataExportInputParams params) throws ConflictException;
+  Stream<DataExportValue> exportValues(@Nonnull DataExportInputParams params)
+      throws ConflictException;
 
   DataExportGroup.Output exportGroup(@Nonnull DataExportInputParams params, boolean sync)
       throws ConflictException;
