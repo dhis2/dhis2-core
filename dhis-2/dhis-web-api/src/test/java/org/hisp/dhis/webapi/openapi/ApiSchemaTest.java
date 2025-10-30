@@ -36,9 +36,11 @@ import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +50,7 @@ class ApiSchemaTest {
 
   private static class NonIdentifiable {}
 
-  private static class Identifiable implements org.hisp.dhis.common.IdentifiableObject {
+  private static class Identifiable implements IdentifiableObject {
     @Override
     public String getCode() {
       return "";
@@ -102,6 +104,26 @@ class ApiSchemaTest {
     public void setAccess(Access access) {}
 
     @Override
+    public Set<String> getFavorites() {
+      return Set.of();
+    }
+
+    @Override
+    public boolean isFavorite() {
+      return false;
+    }
+
+    @Override
+    public boolean setAsFavorite(UserDetails user) {
+      return false;
+    }
+
+    @Override
+    public boolean removeAsFavorite(UserDetails user) {
+      return false;
+    }
+
+    @Override
     public User getCreatedBy() {
       return null;
     }
@@ -141,33 +163,6 @@ class ApiSchemaTest {
     }
 
     @Override
-    public void setId(long id) {}
-
-    @Override
-    public void setUid(String uid) {}
-
-    @Override
-    public void setName(String name) {}
-
-    @Override
-    public void setCode(String code) {}
-
-    @Override
-    public void setOwner(String owner) {}
-
-    @Override
-    public void setTranslations(Set<Translation> translations) {}
-
-    @Override
-    public void setLastUpdated(Date lastUpdated) {}
-
-    @Override
-    public void setLastUpdatedBy(User user) {}
-
-    @Override
-    public void setCreated(Date created) {}
-
-    @Override
     public String getHref() {
       return "";
     }
@@ -183,6 +178,11 @@ class ApiSchemaTest {
     @Override
     public String getUid() {
       return "";
+    }
+
+    @Override
+    public int compareTo(IdentifiableObject o) {
+      return 0;
     }
   }
 
