@@ -32,7 +32,7 @@ section_order: 3
 summary_sql: >-
   WITH rs as (
   SELECT uid,name,
-  'Single event with tracked entity type' as comment
+  'Single event program with tracked entity type' as comment
   from program
   where type = 'WITHOUT_REGISTRATION'
   AND trackedentitytypeid IS NOT NULL
@@ -48,7 +48,7 @@ summary_sql: >-
   from rs;
 details_sql: >-
   SELECT uid,name,
-  'Single event with tracked entity type' as comment
+  'Single event program with tracked entity type' as comment
   from program
   where type = 'WITHOUT_REGISTRATION'
   AND trackedentitytypeid IS NOT NULL
@@ -73,13 +73,14 @@ introduction: >
 details_id_type: programs
 recommendation: >-
   In order to fix tracker programs without a tracked entity type, the easiest solution would be to use
-  the API to set a tracked entity type for the program. This requires that a suitable tracked entity type
-  already exists in the system.
+  the maintenance app to set a suitable tracked entity type for the program.
+  This requires that a suitable tracked entity type already exists in the system.
   
+  Another possibility would be to use the DHIS2 API to set the tracked entity type for the program.
   A sample API request to set the tracked entity type for a program using CURL and with a JSON PATCH request is
   shown below. Replace {programUid} with the UID of the program to be updated
   and {trackedEntityTypeUid} with the UID of the tracked entity type to be associated with the program. 
-  Also be sure to replace the base URL with the URL of your DHIS2 instance, and the username and password. 
+  Also be sure to replace the {baseURL} with the URL of your DHIS2 instance, and the username and password. 
   
   ```bash
     curl -X PATCH \
@@ -91,10 +92,12 @@ recommendation: >-
         "value": { "uid": "{trackedEntityTypeUid}" }
         }
   ]' \
-    "https://your-dhis2-instance.org/api/programs/{programUid}"
+    "https://{baseURL}/api/programs/{programUid}"
   ```
 
-  To remove the tracked entity type from single event programs, a similar API request can be used as seen below:
+  For single event programs with a tracked entity type, you will need to use the DHIS2 API
+    to remove the tracked entity type from the program. A sample API request to remove the tracked
+    entity type for a program using CURL and with a JSON PATCH request is shown below.
     ```bash
     curl -X PATCH \
     -u "admin:district" \
@@ -104,5 +107,7 @@ recommendation: >-
         "path": "/trackedEntityType"
         }
   ]' \
-    "https://your-dhis2-instance.org/api/programs/{programUid}"
+    "https://{baseURL}/api/programs/{programUid}"
   ```
+  Replace {programUid} with the UID of the program to be updated. Also be sure to replace the {baseURL} 
+  with the URL of your DHIS2 instance, and the username and password.

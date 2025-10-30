@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
+class DataIntegrityProgramInconsistentlyLinkedTrackedEntityType
     extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private ProgramService programService;
@@ -83,7 +83,7 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
         50,
         programB.getUid(),
         programB.getName(),
-        "Single event with tracked entity type",
+        "Single event program with tracked entity type",
         true);
   }
 
