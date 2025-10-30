@@ -108,7 +108,7 @@ public class TrigramIndexTest extends Simulation {
                       "http://localhost:8080/api/trackedEntityAttributes/w75KJ2mc4zz?mergeMode=REPLACE"))
               .header("Content-Type", "application/json")
               .header("Authorization", "Basic " + encodedAuth)
-              .POST(HttpRequest.BodyPublishers.ofString(body))
+              .PUT(HttpRequest.BodyPublishers.ofString(body))
               .build();
 
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
