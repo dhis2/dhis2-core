@@ -110,7 +110,7 @@
 
     <!-- Spring -->
     <spring.version>6.2.8</spring.version>
-    <spring-session-core.version>3.5.1</spring-session-core.version>
+    <spring-session-core.version>3.5.3</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
