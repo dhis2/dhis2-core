@@ -1,0 +1,108 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: programs_inconsistent_tracked_entity_type
+description: Programs which are inconsistently linked to a tracked entity type.
+section: Programs
+section_order: 3
+summary_sql: >-
+  WITH rs as (
+  SELECT uid,name,
+  'Single event with tracked entity type' as comment
+  from program
+  where type = 'WITHOUT_REGISTRATION'
+  AND trackedentitytypeid IS NOT NULL
+  UNION
+  SELECT uid,name,
+  'Tracker program without tracked entity type' as comment
+  from program
+  where type = 'WITH_REGISTRATION'
+  AND trackedentitytypeid IS NULL
+  )
+  SELECT COUNT(*) as value,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) from program),0) as percent
+  from rs;
+details_sql: >-
+  SELECT uid,name,
+  'Single event with tracked entity type' as comment
+  from program
+  where type = 'WITHOUT_REGISTRATION'
+  AND trackedentitytypeid IS NOT NULL
+  UNION
+  SELECT uid,name,
+  'Tracker program without tracked entity type' as comment
+  from program
+  where type = 'WITH_REGISTRATION'
+  AND trackedentitytypeid IS NULL;
+severity: SEVERE
+introduction: >
+  Tracker programs, i.e. those with type 'WITH_REGISTRATION', 
+  should always have a tracked entity type associated with them.
+  Similarly, single event programs, i.e. those with type 'WITHOUT_REGISTRATION', 
+  should not have a tracked entity type associated with them.
+  
+  Tracker programs without a tracked entity type will not be able to register
+  new tracked entity instances and may cause errors when loading the Capture app.
+  Single event programs with a tracked entity type may cause confusion
+  for users as the tracked entity type is not used in single event programs.
+
+details_id_type: programs
+recommendation: >-
+  In order to fix tracker programs without a tracked entity type, the easiest solution would be to use
+  the API to set a tracked entity type for the program. This requires that a suitable tracked entity type
+  already exists in the system.
+  
+  A sample API request to set the tracked entity type for a program using CURL and with a JSON PATCH request is
+  shown below. Replace {programUid} with the UID of the program to be updated
+  and {trackedEntityTypeUid} with the UID of the tracked entity type to be associated with the program. 
+  Also be sure to replace the base URL with the URL of your DHIS2 instance, and the username and password. 
+  
+  ```bash
+    curl -X PATCH \
+    -u "admin:district" \
+    -H "Content-Type: application/json-patch+json" \
+    -d '[{
+        "op": "replace",
+        "path": "/trackedEntityType",
+        "value": { "uid": "{trackedEntityTypeUid}" }
+        }
+  ]' \
+    "https://your-dhis2-instance.org/api/programs/{programUid}"
+  ```
+
+  To remove the tracked entity type from single event programs, a similar API request can be used as seen below:
+    ```bash
+    curl -X PATCH \
+    -u "admin:district" \
+    -H "Content-Type: application/json-patch+json" \
+    -d '[{
+        "op": "remove",
+        "path": "/trackedEntityType"
+        }
+  ]' \
+    "https://your-dhis2-instance.org/api/programs/{programUid}"
+  ```
