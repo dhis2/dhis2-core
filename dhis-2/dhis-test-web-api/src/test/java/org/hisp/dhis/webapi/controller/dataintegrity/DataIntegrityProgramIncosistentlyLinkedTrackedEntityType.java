@@ -47,8 +47,8 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
     extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private ProgramService programService;
-  private static final String detailsIdType = "programs";
-  private static final String checkName = "programs_inconsistent_tracked_entity_type";
+  private static final String DETAILS_ID_TYPE = "programs";
+  private static final String CHECK_NAME = "programs_inconsistent_tracked_entity_type";
 
   @Test
   void testSingleEventProgramWithTrackedEntityType() {
@@ -77,8 +77,8 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
     dbmsManager.clearSession();
 
     assertHasDataIntegrityIssues(
-        detailsIdType,
-        checkName,
+        DETAILS_ID_TYPE,
+        CHECK_NAME,
         50,
         programB.getUid(),
         programB.getName(),
@@ -113,8 +113,8 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
     dbmsManager.clearSession();
 
     assertHasDataIntegrityIssues(
-        detailsIdType,
-        checkName,
+        DETAILS_ID_TYPE,
+        CHECK_NAME,
         50,
         programA.getUid(),
         programA.getName(),
@@ -124,6 +124,6 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
 
   @Test
   void testCheckRuns() {
-    assertHasNoDataIntegrityIssues(detailsIdType, checkName, false);
+    assertHasNoDataIntegrityIssues( DETAILS_ID_TYPE, CHECK_NAME, false);
   }
 }
