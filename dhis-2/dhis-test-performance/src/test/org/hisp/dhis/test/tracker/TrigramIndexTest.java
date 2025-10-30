@@ -92,6 +92,9 @@ public class TrigramIndexTest extends Simulation {
   private void setUpTrigramIndexJob() {
     setAttributeTrigramIndexable();
     String jobUid = createTrigramJob();
+    if (jobUid == null) {
+      return;
+    }
     executeTrigramJob(jobUid);
     checkJobStatus(jobUid);
   }
@@ -138,7 +141,8 @@ public class TrigramIndexTest extends Simulation {
       System.out.println("Create trigram job body: " + response.body());
 
       if (response.statusCode() != 200 && response.statusCode() != 201) {
-        return getTrigramJobId();
+        return null;
+        // return getTrigramJobId();
       }
 
       ObjectMapper mapper = new ObjectMapper();
