@@ -266,6 +266,12 @@ public class TrigramIndexTest extends Simulation {
             + trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
+    String searchTEByNameAndLastNameByEnding =
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:ew:nes&filter=zDhUuAYrxNC:like:ebea"
+            + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            + trackerProgram
+            + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
+
     TrigramIndexTest.Request searchTeByNameWithLikeOperator =
         new TrigramIndexTest.Request(
             searchTEByName, 200, "Search TE by name with like operator", "Get a list of TEs");
@@ -275,6 +281,12 @@ public class TrigramIndexTest extends Simulation {
             200,
             "Search TE by name and last name with like operator",
             "Get a list of TEs");
+    TrigramIndexTest.Request searchTeByNameAndLastNameWithEndsWithOperator =
+        new TrigramIndexTest.Request(
+            searchTEByNameAndLastNameByEnding,
+            200,
+            "Search TE by name and last name with EW operator",
+            "Get a list of TEs");
     ScenarioBuilder scenarioBuilder =
         scenario("Tracker Program")
             .exec(login())
@@ -283,11 +295,15 @@ public class TrigramIndexTest extends Simulation {
                 group("Get a list of TEs")
                     .on(
                         exec(searchTeByNameWithLikeOperator.action())
-                            .exec(searchTeByNameAndLastNameWithLikeOperator.action())));
+                            .exec(searchTeByNameAndLastNameWithLikeOperator.action())
+                            .exec(searchTeByNameAndLastNameWithEndsWithOperator.action())));
 
     return new TrigramIndexTest.ScenarioWithRequests(
         scenarioBuilder,
-        List.of(searchTeByNameWithLikeOperator, searchTeByNameAndLastNameWithLikeOperator));
+        List.of(
+            searchTeByNameWithLikeOperator,
+            searchTeByNameAndLastNameWithLikeOperator,
+            searchTeByNameAndLastNameWithEndsWithOperator));
   }
 
   private HttpRequestActionBuilder login() {
