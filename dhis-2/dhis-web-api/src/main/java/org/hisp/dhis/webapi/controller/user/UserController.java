@@ -45,7 +45,6 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -55,6 +54,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +68,6 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -84,6 +83,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -106,7 +107,6 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -128,6 +128,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @Controller
 @RequestMapping("/api/users")
+@AllArgsConstructor
 public class UserController
     extends AbstractCrudController<User, UserController.GetUserObjectListParams> {
 
@@ -135,19 +136,12 @@ public class UserController
 
   public static final String BULK_INVITE_PATH = "/invites";
 
-  @Autowired protected DbmsManager dbmsManager;
-
-  @Autowired private UserGroupService userGroupService;
-
-  @Autowired private UserControllerUtils userControllerUtils;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private PasswordValidationService passwordValidationService;
-
-  @Autowired private TwoFactorAuthService twoFactorAuthService;
-
-  @Autowired private EntityManager entityManager;
+  private final UserGroupService userGroupService;
+  private final UserControllerUtils userControllerUtils;
+  private final OrganisationUnitService organisationUnitService;
+  private final PasswordValidationService passwordValidationService;
+  private final TwoFactorAuthService twoFactorAuthService;
+  private final FileResourceService fileResourceService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -566,6 +560,9 @@ public class UserController
       throws ConflictException, ForbiddenException, NotFoundException {
     User user = getEntity(userUid);
 
+    // get existing avatar to check if it has been changed/deleted
+    FileResource currentUserAvatar = user.getAvatar();
+
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canUpdate(currentUser, user)) {
@@ -600,6 +597,7 @@ public class UserController
     ImportReport importReport =
         importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
+    // import was successful
     if (importReport.getStatus() == Status.OK && importReport.getStats().updated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
 
@@ -610,6 +608,8 @@ public class UserController
       if (isPasswordChangeAttempt) {
         userService.invalidateUserSessions(inputUser.getUsername());
       }
+
+      userService.handleUserAvatarChange(currentUserAvatar, inputUser.getAvatar());
     }
 
     return importReport;

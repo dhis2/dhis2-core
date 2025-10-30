@@ -248,6 +248,9 @@ public class MeController {
           "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first");
     }
 
+    // get current user avatar before merging
+    FileResource currentUserAvatar = currentUser.getAvatar();
+
     merge(currentUser, user);
 
     if (user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp(user.getWhatsApp())) {
@@ -267,6 +270,8 @@ public class MeController {
 
       currentUser.setAvatar(fileResource);
     }
+
+    userService.handleUserAvatarChange(currentUserAvatar, user.getAvatar());
 
     manager.update(currentUser);
 

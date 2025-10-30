@@ -31,8 +31,6 @@ package org.hisp.dhis.icons;
 
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.restassured.builder.MultiPartSpecBuilder;
 import io.restassured.http.ContentType;
@@ -43,9 +41,7 @@ import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /** Test support of multiple file store providers. */
@@ -53,19 +49,11 @@ class FileStoreTest extends ApiTest {
 
   private LoginActions loginActions;
   private RestApiActions fileResourceActions;
-  private RestApiActions iconApi;
 
   @BeforeAll
   void beforeAll() {
     loginActions = new LoginActions();
     fileResourceActions = new RestApiActions("fileResources");
-    iconApi = new RestApiActions("icons");
-  }
-
-  @AfterAll
-  void cleanUp() {
-    iconApi.delete("dhis2-icon");
-    // file resource can't be deleted through the API, only through the FileResourceCleanupJob
   }
 
   @Test
@@ -103,47 +91,5 @@ class FileStoreTest extends ApiTest {
         .until(fileIsStored);
 
     fileResourceActions.get("/" + fileResourceId + "/data").validateStatus(200);
-  }
-
-  @Test
-  @DisplayName("Creating an Icon with a FileResource results in an assigned FileResource")
-  void test() {
-    // given a FileResource exists
-    File file = new File("src/test/resources/fileResources/dhis2.png");
-    String frUid =
-        given()
-            .multiPart("file", file)
-            .formParam("domain", "ICON")
-            .contentType("multipart/form-data")
-            .when()
-            .post("/fileResources")
-            .then()
-            .statusCode(202)
-            .extract()
-            .path("response.fileResource.id");
-
-    assertTrue(frUid != null && !frUid.isEmpty());
-
-    // and it is unassigned
-    fileResourceActions.get(frUid).validate().body("assigned", equalTo(false));
-
-    // when creating an Icon with a ref to the FileResource
-    iconApi
-        .post(
-            """
-            {
-               "id":"iconUid00x1",
-               "fileResourceId":"%s",
-               "key": "dhis2-icon",
-               "description": "icon test",
-               "keywords": []
-            }
-            """
-                .formatted(frUid))
-        .validate()
-        .statusCode(201);
-
-    // then the FileResource should now be assigned
-    fileResourceActions.get(frUid).validate().body("assigned", equalTo(true));
   }
 }

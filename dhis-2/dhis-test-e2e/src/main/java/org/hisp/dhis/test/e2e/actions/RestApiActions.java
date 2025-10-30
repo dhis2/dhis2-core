@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -258,6 +258,26 @@ public class RestApiActions {
 
     addCoverage("PUT", resourceId);
     return new ApiResponse(response);
+  }
+
+  /**
+   * Sends PUT request.
+   *
+   * @param body Body of request
+   */
+  public ApiResponse put(String body) {
+    Response put = given().contentType(ContentType.JSON).body(body).when().put();
+    return new ApiResponse(put);
+  }
+
+  /**
+   * Sends PUT request.
+   *
+   * @param body Body of request
+   */
+  public ApiResponse put(String resourceId, Object body) {
+    Response put = given().contentType(ContentType.JSON).body(body).when().put(resourceId);
+    return new ApiResponse(put);
   }
 
   /**
