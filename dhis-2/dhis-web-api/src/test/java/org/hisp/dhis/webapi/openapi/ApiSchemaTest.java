@@ -42,7 +42,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
-public class ApiSchemaTest {
+class ApiSchemaTest {
 
   private static class SomeClass {}
 
