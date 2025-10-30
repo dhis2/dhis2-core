@@ -124,6 +124,6 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
 
   @Test
   void testCheckRuns() {
-    assertHasNoDataIntegrityIssues( DETAILS_ID_TYPE, CHECK_NAME, false);
+    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, false);
   }
 }
