@@ -51,10 +51,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class TrigramIndexTest extends Simulation {
   private final HttpClient client = HttpClient.newHttpClient();
+  private String encodedAuth = Base64.getEncoder().encodeToString(("admin:district").getBytes());
 
   public TrigramIndexTest() {
     String repeat = System.getProperty("repeat", "100");
@@ -104,6 +106,7 @@ public class TrigramIndexTest extends Simulation {
                   URI.create(
                       "http://localhost:8080/api/trackedEntityAttributes/w75KJ2mc4zz?mergeMode=REPLACE"))
               .header("Content-Type", "application/json")
+              .header("Authorization", "Basic " + encodedAuth)
               .POST(HttpRequest.BodyPublishers.ofString(body))
               .build();
 
@@ -125,12 +128,13 @@ public class TrigramIndexTest extends Simulation {
           HttpRequest.newBuilder()
               .uri(URI.create("http://localhost:8080/api/jobConfigurations"))
               .header("Content-Type", "application/json")
+              .header("Authorization", "Basic " + encodedAuth)
               .POST(HttpRequest.BodyPublishers.ofString(body))
               .build();
 
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      System.out.println("Set attribute indexable status: " + response.statusCode());
-      System.out.println("Set attribute indexable body: " + response.body());
+      System.out.println("Create trigram job status: " + response.statusCode());
+      System.out.println("Create trigram job body: " + response.body());
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode root = mapper.readTree(response.body());
@@ -149,12 +153,13 @@ public class TrigramIndexTest extends Simulation {
           HttpRequest.newBuilder()
               .uri(URI.create("http://localhost:8080/api/jobConfigurations/" + uid + "/execute"))
               .header("Content-Type", "application/json")
+              .header("Authorization", "Basic " + encodedAuth)
               .POST(HttpRequest.BodyPublishers.noBody())
               .build();
 
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      System.out.println("Set attribute indexable status: " + response.statusCode());
-      System.out.println("Set attribute indexable body: " + response.body());
+      System.out.println("Execute trigram job status: " + response.statusCode());
+      System.out.println("Execute trigram job body: " + response.body());
     } catch (Exception e) {
       throw new RuntimeException("Failed to execute job", e);
     }
@@ -173,17 +178,20 @@ public class TrigramIndexTest extends Simulation {
                     URI.create(
                         "http://localhost:8080/api/scheduling/completed/TRACKER_TRIGRAM_INDEX_MAINTENANCE"))
                 .header("Content-Type", "application/json")
+                .header("Authorization", "Basic " + encodedAuth)
                 .GET()
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("Set attribute indexable status: " + response.statusCode());
-        System.out.println("Set attribute indexable body: " + response.body());
+        System.out.println("Check job status: " + response.statusCode());
+        System.out.println("Check job status body: " + response.body());
 
         JsonNode root = mapper.readTree(response.body());
+        System.out.println("Job status body: " + response.body());
+
         JsonNode sequence = root.path("sequence");
 
-        if (sequence.isArray() && sequence.size() > 0) {
+        if (sequence.isArray() && !sequence.isEmpty()) {
           JsonNode first = sequence.get(0);
           String summary = first.path("summary").asText();
           String status = first.path("status").asText();
