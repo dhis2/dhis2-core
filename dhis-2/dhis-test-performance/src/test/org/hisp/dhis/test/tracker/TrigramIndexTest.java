@@ -63,7 +63,7 @@ public class TrigramIndexTest extends Simulation {
     String repeat = System.getProperty("repeat", "100");
     String trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
 
-    setUpTrigramIndexJob();
+    // setUpTrigramIndexJob();
 
     HttpProtocolBuilder httpProtocolBuilder =
         http.baseUrl("http://localhost:8080")
