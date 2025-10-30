@@ -46,6 +46,7 @@ import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -119,7 +120,7 @@ public class TrigramIndexTest extends Simulation {
   }
 
   private String createTrigramJob() {
-    String uid = "";
+    String uid;
     try {
       String body =
           "{\"name\":\"Tracker search optimization\", \"jobType\":\"TRACKER_TRIGRAM_INDEX_MAINTENANCE\", \"cronExpression\":\"0 0 3 ? * *\"}";
@@ -136,15 +137,52 @@ public class TrigramIndexTest extends Simulation {
       System.out.println("Create trigram job status: " + response.statusCode());
       System.out.println("Create trigram job body: " + response.body());
 
+      if (response.statusCode() != 200 && response.statusCode() != 201) {
+        return getTrigramJobId();
+      }
+
       ObjectMapper mapper = new ObjectMapper();
       JsonNode root = mapper.readTree(response.body());
 
       uid = root.path("response").path("uid").asText();
+      System.out.println("Job created, uid: " + uid);
     } catch (Exception e) {
       throw new RuntimeException("Failed to create job", e);
     }
 
     return uid;
+  }
+
+  private String getTrigramJobId() throws IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create("http://localhost:8080/api/jobConfigurations"))
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Basic " + encodedAuth)
+            .GET()
+            .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    System.out.println("Get trigram job status: " + response.statusCode());
+    System.out.println("Get trigram job body: " + response.body());
+
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode root = mapper.readTree(response.body());
+
+    String trigramJobId = null;
+
+    for (JsonNode job : root) {
+      if ("TRACKER_TRIGRAM_INDEX_MAINTENANCE".equals(job.path("type").asText())) {
+        JsonNode sequence = job.path("sequence");
+        if (sequence.isArray() && !sequence.isEmpty()) {
+          trigramJobId = sequence.get(0).path("id").asText();
+        }
+        break;
+      }
+    }
+
+    System.out.println("Tracker trigram index job ID: " + trigramJobId);
+    return trigramJobId;
   }
 
   private void executeTrigramJob(String uid) {
