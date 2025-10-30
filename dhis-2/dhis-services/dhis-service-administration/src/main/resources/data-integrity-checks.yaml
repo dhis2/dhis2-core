@@ -42,6 +42,7 @@ checks:
   - option_sets/option_groups_empty.yaml
   - programs/programs_custom_data_entry_form_empty.yaml
   - programs/program_stages_no_programs.yaml
+  - programs/programs_inconsistent_tracked_entity_type.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
