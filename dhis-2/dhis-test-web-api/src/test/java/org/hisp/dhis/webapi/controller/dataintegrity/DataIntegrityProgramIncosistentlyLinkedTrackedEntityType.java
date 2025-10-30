@@ -52,7 +52,7 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
 
   @Test
   void testSingleEventProgramWithTrackedEntityType() {
-    // Single event with no tracked entity type
+    // Single event with no tracked entity type should not be flagged
     // Use the service layer, since hopefully the API layer will block this in future
     Program programA = new Program();
     programA.setAutoFields();
@@ -65,6 +65,7 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
     TrackedEntityType tet = createTrackedEntityType('A');
     manager.save(tet);
 
+    // Single event with tracked entity type should be flagged
     Program programB = new Program();
     programB.setAutoFields();
     programB.setName("Program B");
@@ -88,8 +89,7 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
 
   @Test
   void testTrackerProgramWithoutTrackedEntityType() {
-    // Single event with no tracked entity type
-    // Use the service layer, since hopefully the API layer will block this in future
+    // Tracker program without tracked entity type should be flagged
     Program programA = new Program();
     programA.setAutoFields();
     programA.setName("Program A");
@@ -101,6 +101,7 @@ class DataIntegrityProgramIncosistentlyLinkedTrackedEntityType
     TrackedEntityType tet = createTrackedEntityType('A');
     manager.save(tet);
 
+    // Tracker program with tracked entity type should not be flagged
     Program programB = new Program();
     programB.setAutoFields();
     programB.setName("Program B");
