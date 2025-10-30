@@ -223,6 +223,7 @@ public interface RelationshipItemMapper {
   @Mapping(target = "attribute")
   @Mapping(target = "created")
   @Mapping(target = "lastUpdated")
+  @Mapping(target = "value")
   TrackedEntityAttributeValue map(TrackedEntityAttributeValue attributeValue);
 
   @BeanMapping(ignoreByDefault = true)
