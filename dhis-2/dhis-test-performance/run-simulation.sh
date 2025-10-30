@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Run Gatling simulations against a DHIS2 instance running in Docker
 set -euo pipefail
 
