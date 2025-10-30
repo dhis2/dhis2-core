@@ -170,14 +170,10 @@ public class TrigramIndexTest extends Simulation {
     JsonNode root = mapper.readTree(response.body());
 
     String trigramJobId = null;
-
-    for (JsonNode job : root) {
-      if ("TRACKER_TRIGRAM_INDEX_MAINTENANCE".equals(job.path("type").asText())) {
-        JsonNode sequence = job.path("sequence");
-        if (sequence.isArray() && !sequence.isEmpty()) {
-          trigramJobId = sequence.get(0).path("id").asText();
-        }
-        break;
+    for (JsonNode job : root.path("jobConfigurations")) {
+      if ("Tracker search optimization".equals(job.path("displayName").asText())) {
+        trigramJobId = job.path("id").asText();
+        break; // stop once found
       }
     }
 
