@@ -116,13 +116,13 @@ public class TrackedEntity extends BaseTrackerObject
   @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new LinkedHashSet<>();
 
-  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<Enrollment> enrollments = new HashSet<>();
 
-  @OneToMany(mappedBy = "trackedEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
   @Column(name = "potentialDuplicate")
