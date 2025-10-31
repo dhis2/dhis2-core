@@ -49,7 +49,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.session.SessionInformation;
 
@@ -862,6 +861,4 @@ public interface UserService {
    */
   User replicateUser(User existingUser, String username, String password)
       throws ConflictException, NotFoundException, BadRequestException;
-
-  void handleUserAvatarChange(FileResource currentAvatar, FileResource newAvatar);
 }

@@ -24,6 +24,7 @@ class FileResourceTest extends ApiTest {
   private RestApiActions iconApi;
   private RestApiActions meApi;
   private RestApiActions usersApi;
+  private RestApiActions orgUnitApi;
 
   @BeforeAll
   void beforeAll() {
@@ -32,6 +33,7 @@ class FileResourceTest extends ApiTest {
     iconApi = new RestApiActions("icons");
     meApi = new RestApiActions("me");
     usersApi = new RestApiActions("users");
+    orgUnitApi = new RestApiActions("organisationUnits");
   }
 
   @Test
@@ -129,12 +131,12 @@ class FileResourceTest extends ApiTest {
     meApi
         .put(
             """
-        {
-          "avatar": {
-            "id": "%s"
-          }
-        }
-        """
+            {
+              "avatar": {
+                "id": "%s"
+              }
+            }
+            """
                 .formatted(frUid1))
         .validate()
         .statusCode(200);
@@ -217,6 +219,150 @@ class FileResourceTest extends ApiTest {
 
     // put user without avatar field
     usersApi.put("M5zQapPyTZI", payload).validate().statusCode(200);
+
+    // then the FileResource should now be unassigned
+    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+  }
+
+  @Test
+  @DisplayName("Adding and then updating an org unit image flips the FileResource assigned value")
+  void imageUpdateFileResourceTest() {
+    // given 2 FileResources exist
+    File file1 = new File("src/test/resources/fileResources/dhis2.png");
+    String frUid1 = postFileResource(file1, "ORG_UNIT");
+
+    File file2 = new File("src/test/resources/fileResources/dhis3.png");
+    String frUid2 = postFileResource(file2, "ORG_UNIT");
+
+    assertTrue(frUid1 != null && !frUid1.isEmpty());
+    assertTrue(frUid2 != null && !frUid2.isEmpty());
+
+    // and they are unassigned
+    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(false));
+    fileResourceApi.get(frUid2).validate().body("assigned", equalTo(false));
+
+    // and an org unit exists
+    orgUnitApi
+        .post(
+            """
+            {
+                "id": "orgUnit00x1",
+                "name": "test org 1",
+                "shortName": "test org 1",
+                "openingDate": "2023-06-15"
+            }
+            """)
+        .validateStatus(201);
+
+    // when adding the 1st image to an org unit
+    orgUnitApi
+        .put(
+            "orgUnit00x1",
+            """
+            {
+               "id": "orgUnit00x1",
+               "name": "test org 1",
+               "shortName": "test org 1",
+               "openingDate": "2023-06-15",
+               "image":{
+                 "id": "%s"
+               }
+            }
+            """
+                .formatted(frUid1))
+        .validate()
+        .statusCode(200);
+
+    // then the FileResource should now be assigned
+    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(true));
+
+    // and when the image is updated
+    orgUnitApi
+        .put(
+            "orgUnit00x1",
+            """
+            {
+               "id": "orgUnit00x1",
+               "name": "test org 1",
+               "shortName": "test org 1",
+               "openingDate": "2023-06-15",
+               "image":{
+                 "id": "%s"
+               }
+            }
+            """
+                .formatted(frUid2))
+        .validate()
+        .statusCode(200);
+
+    // then the old FileResource should now be unassigned
+    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(false));
+
+    // and the new FileResource should now be assigned
+    fileResourceApi.get(frUid2).validate().body("assigned", equalTo(true));
+  }
+
+  @Test
+  @DisplayName("Deleting an org unit image flips the FileResource assigned value")
+  void imageDeleteFileResourceTest() {
+    // given 1 FileResource exists
+    File file = new File("src/test/resources/fileResources/dhis2.png");
+    String frUid = postFileResource(file, "ORG_UNIT");
+
+    assertTrue(frUid != null && !frUid.isEmpty());
+
+    // and they are unassigned
+    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+
+    // and an org unit exists
+    orgUnitApi
+        .post(
+            """
+            {
+                "id": "orgUnit00x2",
+                "name": "test org 2",
+                "shortName": "test org 2",
+                "openingDate": "2023-06-15"
+            }
+            """)
+        .validateStatus(201);
+
+    // when adding the 1st image to an org unit
+    orgUnitApi
+        .put(
+            "orgUnit00x2",
+            """
+            {
+               "id": "orgUnit00x2",
+               "name": "test org 2",
+               "shortName": "test org 2",
+               "openingDate": "2023-06-15",
+               "image":{
+                 "id": "%s"
+               }
+            }
+            """
+                .formatted(frUid))
+        .validate()
+        .statusCode(200);
+
+    // then the FileResource should now be assigned
+    fileResourceApi.get(frUid).validate().body("assigned", equalTo(true));
+
+    // and when the image is deleted
+    orgUnitApi
+        .put(
+            "orgUnit00x2",
+            """
+            {
+               "id": "orgUnit00x2",
+               "name": "test org 2",
+               "shortName": "test org 2",
+               "openingDate": "2023-06-15"
+            }
+            """)
+        .validate()
+        .statusCode(200);
 
     // then the FileResource should now be unassigned
     fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));

@@ -60,17 +60,11 @@ import org.joda.time.Days;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kristian Wærstad
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
-@ExtendWith(MockitoExtension.class)
 class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   private FileResourceCleanUpJob cleanUpJob;

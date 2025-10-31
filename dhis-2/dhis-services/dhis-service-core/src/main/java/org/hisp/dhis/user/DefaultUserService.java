@@ -93,8 +93,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
@@ -142,7 +140,6 @@ public class DefaultUserService implements UserService {
   private final UserSettingsService userSettingsService;
   private final RestTemplate restTemplate;
   private final MessageSender emailMessageSender;
-  private final FileResourceService fileResourceService;
   private final I18nManager i18nManager;
   private final ObjectMapper jsonMapper;
   private final MetadataMergeService metadataMergeService;
@@ -158,7 +155,6 @@ public class DefaultUserService implements UserService {
       UserSettingsService userSettingsService,
       RestTemplate restTemplate,
       MessageSender emailMessageSender,
-      FileResourceService fileResourceService,
       I18nManager i18nManager,
       ObjectMapper jsonMapper,
       UserStore userStore,
@@ -185,7 +181,6 @@ public class DefaultUserService implements UserService {
     checkNotNull(restTemplate);
     checkNotNull(cacheProvider);
     checkNotNull(emailMessageSender);
-    checkNotNull(fileResourceService);
     checkNotNull(i18nManager);
     checkNotNull(jsonMapper);
     checkNotNull(metadataMergeService);
@@ -204,7 +199,6 @@ public class DefaultUserService implements UserService {
     this.userSettingsService = userSettingsService;
     this.restTemplate = restTemplate;
     this.emailMessageSender = emailMessageSender;
-    this.fileResourceService = fileResourceService;
     this.i18nManager = i18nManager;
     this.jsonMapper = jsonMapper;
     this.metadataMergeService = metadataMergeService;
@@ -1576,32 +1570,5 @@ public class DefaultUserService implements UserService {
 
     userReplica.setAttributeValues(
         userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
-  }
-
-  @Override
-  public void handleUserAvatarChange(
-      @Nullable FileResource currentAvatar, @Nullable FileResource newAvatar) {
-    // avatar added
-    if (currentAvatar == null && newAvatar != null) {
-      FileResource newUserAvatar = fileResourceService.getFileResource(newAvatar.getUid());
-      if (newUserAvatar != null) {
-        newUserAvatar.setAssigned(true);
-      }
-    }
-
-    // avatar updated
-    if (currentAvatar != null && newAvatar != null) {
-      FileResource newUserAvatar = fileResourceService.getFileResource(newAvatar.getUid());
-      if (newUserAvatar != null) {
-        newUserAvatar.setAssigned(true);
-        currentAvatar.setAssigned(false);
-      }
-    }
-
-    // avatar deleted
-    if (currentAvatar != null && newAvatar == null) {
-      currentAvatar.setAssigned(false);
-      fileResourceService.updateFileResource(currentAvatar);
-    }
   }
 }

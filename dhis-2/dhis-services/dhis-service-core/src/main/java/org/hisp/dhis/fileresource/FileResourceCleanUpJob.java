@@ -77,30 +77,30 @@ public class FileResourceCleanUpJob implements Job {
     FileResourceRetentionStrategy retentionStrategy =
         settingsProvider.getCurrentSettings().getFileResourceRetentionStrategy();
 
-    List<ExpiredFileResource> deletedFileResources = new ArrayList<>();
+    List<UnassignedFileResource> deletedFileResources = new ArrayList<>();
 
     // DV FRs
     if (!FileResourceRetentionStrategy.FOREVER.equals(retentionStrategy)) {
-      List<FileResource> dvExpired =
+      List<FileResource> dvUnassigned =
           fileResourceService.getExpiredDataValueFileResources(retentionStrategy);
       deleteFrs(
           progress,
           "Deleting unassigned DataValue file resources",
-          dvExpired,
+          dvUnassigned,
           deletedFileResources);
     }
 
     // Job Data FRs
-    List<FileResource> unassignedJobDataFileResources =
+    List<FileResource> jobDataUnassigned =
         fileResourceService.getAllUnassignedByJobDataDomainWithNoJobConfig();
     deleteFrs(
         progress,
-        "Deleting JOB_DATA file resources associated with deleted ONCE_ASAP jobs",
-        unassignedJobDataFileResources,
+        "Deleting unassigned JOB_DATA file resources associated with deleted ONCE_ASAP jobs",
+        jobDataUnassigned,
         deletedFileResources);
 
     // Remaining FRs to be deleted
-    List<FileResource> remainingExpired =
+    List<FileResource> remainingUnassigned =
         fileResourceService.getExpiredFileResources(domainsToDeleteWhenUnassigned);
     deleteFrs(
         progress,
@@ -109,7 +109,7 @@ public class FileResourceCleanUpJob implements Job {
                 domainsToDeleteWhenUnassigned.stream()
                     .map(Enum::name)
                     .collect(Collectors.joining())),
-        remainingExpired,
+        remainingUnassigned,
         deletedFileResources);
 
     log.info(
@@ -124,7 +124,7 @@ public class FileResourceCleanUpJob implements Job {
       JobProgress progress,
       String message,
       List<FileResource> fileResources,
-      List<ExpiredFileResource> deletedFileResources) {
+      List<UnassignedFileResource> deletedFileResources) {
     progress.startingStage(message, fileResources.size(), SKIP_ITEM_OUTLIER);
     progress.runStage(
         fileResources,
@@ -132,7 +132,7 @@ public class FileResourceCleanUpJob implements Job {
         fr -> {
           if (safeDelete(fr)) {
             deletedFileResources.add(
-                new ExpiredFileResource(fr.getUid(), fr.getName(), fr.getDomain().name()));
+                new UnassignedFileResource(fr.getUid(), fr.getName(), fr.getDomain().name()));
           }
         });
     progress.completedStage(null);
@@ -142,7 +142,7 @@ public class FileResourceCleanUpJob implements Job {
     return fr.getUid() + ":" + fr.getName();
   }
 
-  private record ExpiredFileResource(String uid, String name, String domain) {
+  private record UnassignedFileResource(String uid, String name, String domain) {
     @Nonnull
     @Override
     public String toString() {

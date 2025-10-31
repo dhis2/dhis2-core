@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -50,6 +50,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
@@ -136,23 +137,27 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
       UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
-      throws NotFoundException {
-    Document document = documentService.getDocument(documentUid);
-    if (document != null) {
-      FileResource fr = document.getFileResource();
-      ObjectReport objectReport = new ObjectReport(Document.class, 0, documentUid);
-      try {
-        documentService.deleteDocument(document);
-        if (fr != null) {
-          fr.setAssigned(false);
-          fileResourceService.updateFileResource(fr);
-        }
-        return ok().setResponse(new ObjectReportWebMessageResponse(objectReport));
-      } catch (Exception e) {
-        return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
-            .setMessage("One or more errors occurred, please see full details in import report.")
-            .setResponse(new ObjectReportWebMessageResponse(objectReport));
+      throws NotFoundException, ForbiddenException {
+
+    Document document = getEntity(documentUid);
+    if (!aclService.canDelete(currentUser, document)) {
+      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
+    }
+
+    // unassign the doc's file resource when deleting
+    FileResource fr = document.getFileResource();
+    ObjectReport objectReport = new ObjectReport(Document.class, 0, documentUid);
+    try {
+      documentService.deleteDocument(document);
+      if (fr != null) {
+        fr.setAssigned(false);
+        fileResourceService.updateFileResource(fr);
       }
-    } else throw new NotFoundException(Document.class, documentUid);
+      return ok().setResponse(new ObjectReportWebMessageResponse(objectReport));
+    } catch (Exception e) {
+      return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
+          .setMessage("One or more errors occurred, please see full details in import report.")
+          .setResponse(new ObjectReportWebMessageResponse(objectReport));
+    }
   }
 }
