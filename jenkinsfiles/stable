@@ -37,7 +37,7 @@ pipeline {
         DOCKER_IMAGE_TAG = "${env.DHIS2_VERSION.replace('SNAPSHOT', 'rc')}"
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
         // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
-        BASE_IMAGE = "tomcat:10.1.30-jre17"
+        BASE_IMAGE = "tomcat:10.1.48-jre17"
     }
 
     stages {
