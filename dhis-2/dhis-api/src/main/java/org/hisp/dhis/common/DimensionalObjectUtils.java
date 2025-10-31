@@ -385,6 +385,8 @@ public class DimensionalObjectUtils {
    * dimension name separator, if exists, splits the string part on the option separator and returns
    * the resulting values. If the dimension name separator does not exist an empty list is returned,
    * indicating that all dimension options should be used.
+   *
+   * @param param the parameter.
    */
   public static List<String> getDimensionItemsFromParam(String param) {
     if (param == null) {
@@ -404,6 +406,8 @@ public class DimensionalObjectUtils {
   /**
    * Splits the given string on the ; character and returns the items in a list. Returns null if the
    * given string is null.
+   *
+   * @param param the parameter.
    */
   public static List<String> getItemsFromParam(String param) {
     if (param == null) {
@@ -413,7 +417,11 @@ public class DimensionalObjectUtils {
     return new ArrayList<>(Arrays.asList(param.split(OPTION_SEP)));
   }
 
-  /** Indicates whether at least one of the given dimenions has at least one item. */
+  /**
+   * Indicates whether at least one of the given dimenions has at least one item.
+   *
+   * @param dimensions the collection of {@link DimensionalObject}.
+   */
   public static boolean anyDimensionHasItems(Collection<DimensionalObject> dimensions) {
     if (dimensions == null || dimensions.isEmpty()) {
       return false;
@@ -449,10 +457,10 @@ public class DimensionalObjectUtils {
   }
 
   /**
-   * Retrieves the uid from the given org. unit group parameter.
+   * Retrieves the identifier from the given org unit group parameter.
    *
-   * @param ouGroupParam the org. unit group param in the format OU_GROUP-<uid>
-   * @return the uid of the param
+   * @param ouGroupParam the org unit group param on the format {@code OU_GROUP-<uid>}.
+   * @return the identifier of the parameter.
    */
   public static String getUidFromGroupParam(String ouGroupParam) {
     return getValueFromKeywordParam(ouGroupParam);
@@ -578,7 +586,6 @@ public class DimensionalObjectUtils {
     }
 
     Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher(compositeItem);
-
     return matcher.matches() ? matcher.group("id3") : null;
   }
 
@@ -874,8 +881,8 @@ public class DimensionalObjectUtils {
   }
 
   /**
-   * Transforms a List of {@see DimensionItemObjectValue} into a Map of {@see DimensionalItemObject}
-   * and value
+   * Transforms a List of {@see DimensionItemObjectValue} into a map of {@link
+   * DimensionalItemObject} and value.
    */
   public static Map<DimensionalItemObject, Object> convertToDimItemValueMap(
       List<DimensionItemObjectValue> dimensionItemObjectValues) {
