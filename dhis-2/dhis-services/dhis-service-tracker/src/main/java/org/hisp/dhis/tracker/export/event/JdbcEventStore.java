@@ -43,6 +43,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -170,6 +171,7 @@ class JdbcEventStore {
   private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES =
       "coc_attributevalues";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
+  private static final String COLUMN_EVENT_LAST_UPDATED_GT = " ev.lastupdated >= ";
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
@@ -234,6 +236,90 @@ class JdbcEventStore {
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
+  }
+
+  public List<Event> getEvents(
+      EventQueryParams queryParams, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+    List<Event> events = fetchEvents(queryParams, null);
+    return applySkipSyncFiltering(events, psdesWithSkipSyncTrue);
+  }
+
+  public long countEvents(EventQueryParams queryParams) {
+    return getEventCount(queryParams);
+  }
+
+  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
+    if (eventUids == null || eventUids.isEmpty() || lastSynchronized == null) {
+      return;
+    }
+
+    String sql =
+        """
+        UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+        """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", eventUids);
+
+    jdbcTemplate.update(sql, parameters);
+  }
+
+  private List<Event> applySkipSyncFiltering(
+      List<Event> events, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+    if (psdesWithSkipSyncTrue == null || psdesWithSkipSyncTrue.isEmpty()) {
+      return events;
+    }
+
+    return events.stream()
+        .map(event -> filterEventDataValues(event, psdesWithSkipSyncTrue))
+        .toList();
+  }
+
+  /**
+   * Filters out event data values that should be skipped during synchronization.
+   *
+   * <p>This method removes data values from an event based on program stage-specific skip
+   * synchronization configurations. Some data elements in certain program stages may be configured
+   * to skip synchronization to external systems, typically for sensitive data that should not leave
+   * the local instance.
+   *
+   * <p>The filtering is performed by:
+   *
+   * <ol>
+   *   <li>Identifying the event's program stage
+   *   <li>Looking up data elements configured for skip synchronization for that program stage
+   *   <li>Removing any data values whose data element UID matches the skip sync configuration
+   * </ol>
+   *
+   * @param event the event to filter data values from
+   * @param psdesWithSkipSyncTrue mapping of program stage UIDs to sets of data element UIDs that
+   *     should be skipped during synchronization. The structure is: Map<ProgramStageUID,
+   *     Set<DataElementUID>>
+   * @return the same event instance with filtered data values, or the original event if no program
+   *     stage is set or no skip sync configuration exists for the program stage For a program stage
+   *     "ps123" with skip sync configured for data elements "de456" and "de789" An event with data
+   *     values [de123, de456, de789] becomes [de123] after filtering
+   */
+  private Event filterEventDataValues(Event event, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+    if (event.getProgramStage() == null || event.getProgramStage().getUid() == null) {
+      return event;
+    }
+
+    String programStageUid = event.getProgramStage().getUid();
+    Set<String> skipSyncDataElements = psdesWithSkipSyncTrue.get(programStageUid);
+
+    if (skipSyncDataElements == null || skipSyncDataElements.isEmpty()) {
+      return event;
+    }
+
+    event.setEventDataValues(
+        event.getEventDataValues().stream()
+            .filter(dataValue -> !skipSyncDataElements.contains(dataValue.getDataElement()))
+            .collect(Collectors.toSet()));
+
+    return event;
   }
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
@@ -854,6 +940,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder
           .append(hlp.whereAnd())
           .append(" (en.enrollmentdate >= :enrollmentEnrolledAfter ) ");
+    }
+
+    if (params.isSynchronizationQuery()) {
+      fromBuilder.append(hlp.whereAnd()).append(" psi.lastupdated > psi.lastsynchronized ");
+    }
+
+    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
+      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(COLUMN_EVENT_LAST_UPDATED_GT)
+          .append(":skipChangedBefore ");
     }
 
     if (params.getEnrollmentOccurredBefore() != null) {

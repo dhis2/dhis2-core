@@ -31,8 +31,10 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -70,7 +72,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service("org.hisp.dhis.tracker.export.event.EventService")
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 class DefaultEventService implements EventService {
 
@@ -87,8 +88,10 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
+  private final EventOperationParamsMapper eventOperationParamsMapper;
 
   @Override
+  @Transactional(readOnly = true)
   public FileResourceStream getFileResource(@Nonnull UID event, @Nonnull UID dataElement)
       throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(event, dataElement);
@@ -96,6 +99,7 @@ class DefaultEventService implements EventService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public FileResourceStream getFileResourceImage(
       @Nonnull UID event, @Nonnull UID dataElement, ImageFileDimension dimension)
       throws NotFoundException, ForbiddenException {
@@ -163,6 +167,7 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public Optional<Event> findEvent(@Nonnull UID event) {
     try {
       return Optional.of(getEvent(event));
@@ -173,12 +178,22 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public Event getEvent(@Nonnull UID event) throws NotFoundException {
     return getEvent(event, TrackerIdSchemeParams.builder().build(), EventFields.none());
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public long countEvents(@Nonnull EventOperationParams operationParams)
+      throws ForbiddenException, BadRequestException {
+    EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
+    return eventStore.countEvents(queryParams);
+  }
+
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
@@ -236,6 +251,7 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public List<Event> findEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
@@ -255,6 +271,17 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
+  public List<Event> findEvents(
+      @Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue)
+      throws BadRequestException, ForbiddenException {
+    EventQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
+    return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
   public Page<Event> findEvents(
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
@@ -274,7 +301,14 @@ class DefaultEventService implements EventService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return eventStore.getOrderableFields();
+  }
+
+  @Override
+  @Transactional
+  public void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized) {
+    eventStore.updateEventsSyncTimestamp(eventsUIDs, lastSynchronized);
   }
 }

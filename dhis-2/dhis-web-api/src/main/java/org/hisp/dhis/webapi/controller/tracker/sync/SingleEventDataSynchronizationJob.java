@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobEntry;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Zubair Asghar
  */
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public enum SyncEndpoint {
-  COMPLETE_DATA_SET_REGISTRATIONS("/api/completeDataSetRegistrations", ImportSummary.class),
-  DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class),
-  EVENTS("/api/tracker", ImportSummaries.class);
+@Component
+@AllArgsConstructor
+public class SingleEventDataSynchronizationJob implements Job {
 
-  private final String path;
+  private final SingleEventDataSynchronizationService eventSync;
 
-  private final Class<? extends WebMessageResponse> klass;
+  @Override
+  public JobType getJobType() {
+    return JobType.SINGLE_EVENT_DATA_SYNC_JOB;
+  }
+
+  @Override
+  public void execute(JobEntry config, JobProgress progress) {
+    SingleEventDataSynchronizationJobParameters params =
+        (SingleEventDataSynchronizationJobParameters) config.parameters();
+    eventSync.synchronizeData(params.getPageSize(), progress);
+  }
 }

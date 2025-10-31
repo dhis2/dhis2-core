@@ -106,7 +106,11 @@ class EventQueryParams {
 
   @Getter private Date enrollmentOccurredAfter;
 
+  @Getter private Date skipChangedBefore;
+
   @Getter private CategoryOptionCombo categoryOptionCombo;
+
+  @Getter private boolean synchronizationQuery;
 
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
@@ -205,6 +209,11 @@ class EventQueryParams {
     return this;
   }
 
+  public EventQueryParams setSynchronizationQuery(Boolean synchronizationQuery) {
+    this.synchronizationQuery = synchronizationQuery;
+    return this;
+  }
+
   public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
     this.orgUnit = orgUnit;
     return this;
@@ -248,6 +257,11 @@ class EventQueryParams {
 
   public EventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
     this.updatedAtStartDate = updatedAtStartDate;
+    return this;
+  }
+
+  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
+    this.skipChangedBefore = skipChangedBefore;
     return this;
   }
 

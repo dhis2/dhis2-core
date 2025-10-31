@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.scheduling.parameters;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
 import lombok.Getter;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import lombok.Setter;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Zubair Asghar
  */
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public enum SyncEndpoint {
-  COMPLETE_DATA_SET_REGISTRATIONS("/api/completeDataSetRegistrations", ImportSummary.class),
-  DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class),
-  EVENTS("/api/tracker", ImportSummaries.class);
+@Setter
+public class SingleEventDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-  private final String path;
+  static final int PAGE_SIZE_MAX = 200;
 
-  private final Class<? extends WebMessageResponse> klass;
+  @JsonProperty private int pageSize = 60;
+
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
+    }
+
+    return Optional.empty();
+  }
 }
