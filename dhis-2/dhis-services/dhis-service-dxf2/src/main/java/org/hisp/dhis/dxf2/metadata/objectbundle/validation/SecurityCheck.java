@@ -152,13 +152,11 @@ public class SecurityCheck implements ObjectValidationCheck {
         }
       }
 
-      if (!bundle.isSkipSharing()) {
-        List<ErrorReport> sharingErrorReports =
-            ctx.getAclService().verifySharing(object, bundle.getUserDetails());
-        if (!sharingErrorReports.isEmpty()) {
-          addReports.accept(createObjectReport(sharingErrorReports, object, bundle));
-          ctx.markForRemoval(object);
-        }
+      List<ErrorReport> sharingErrorReports =
+          ctx.getAclService().verifySharing(object, bundle.getUserDetails());
+      if (!sharingErrorReports.isEmpty()) {
+        addReports.accept(createObjectReport(sharingErrorReports, object, bundle));
+        ctx.markForRemoval(object);
       }
     }
   }

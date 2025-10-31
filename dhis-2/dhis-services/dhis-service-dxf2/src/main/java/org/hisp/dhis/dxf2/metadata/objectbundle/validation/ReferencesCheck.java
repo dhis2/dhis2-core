@@ -138,9 +138,7 @@ public class ReferencesCheck implements ValidationCheck {
           object, bundle.getPreheat(), bundle.getPreheatIdentifier(), preheatErrorReports);
     }
 
-    if (schema.hasPersistedProperty("sharing")
-        && !bundle.isSkipSharing()
-        && object.getSharing() != null) {
+    if (schema.hasPersistedProperty("sharing") && object.getSharing() != null) {
       checkSharing(object, bundle.getPreheat(), preheatErrorReports);
     }
 
