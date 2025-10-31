@@ -131,6 +131,7 @@ class EventOperationParamsMapper {
         .setScheduledStartDate(operationParams.getScheduledAfter())
         .setSkipChangedBefore(operationParams.getSkipChangedBefore())
         .setScheduledEndDate(operationParams.getScheduledBefore())
+        .setSynchronizationQuery(operationParams.isSynchronizationQuery())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
         .setUpdatedAtEndDate(operationParams.getUpdatedBefore())
         .setUpdatedAtDuration(operationParams.getUpdatedWithin())

@@ -110,6 +110,8 @@ class EventQueryParams {
 
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
+  @Getter private boolean synchronizationQuery;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
    * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
@@ -204,6 +206,11 @@ class EventQueryParams {
 
   public EventQueryParams setFollowUp(Boolean followUp) {
     this.followUp = followUp;
+    return this;
+  }
+
+  public EventQueryParams setSynchronizationQuery(Boolean synchronizationQuery) {
+    this.synchronizationQuery = synchronizationQuery;
     return this;
   }
 

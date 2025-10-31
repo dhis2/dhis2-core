@@ -171,6 +171,7 @@ class JdbcEventStore {
   private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES =
       "coc_attributevalues";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
+  private static final String COLUMN_EVENT_LAST_UPDATED_GT = " ev.lastupdated >= ";
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
@@ -939,6 +940,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder
           .append(hlp.whereAnd())
           .append(" (en.enrollmentdate >= :enrollmentEnrolledAfter ) ");
+    }
+
+    if (params.isSynchronizationQuery()) {
+      fromBuilder.append(hlp.whereAnd()).append(" psi.lastupdated > psi.lastsynchronized ");
+    }
+
+    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
+      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(COLUMN_EVENT_LAST_UPDATED_GT)
+          .append(":skipChangedBefore ");
     }
 
     if (params.getEnrollmentOccurredBefore() != null) {
