@@ -253,7 +253,7 @@ public class MeController {
     if (user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp(user.getWhatsApp())) {
       throw new ConflictException("Invalid format for WhatsApp value '" + user.getWhatsApp() + "'");
     }
-    
+
     manager.update(currentUser);
 
     if (fields.isEmpty()) {
