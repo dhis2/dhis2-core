@@ -52,7 +52,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -65,9 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
 
@@ -80,8 +76,6 @@ public class DefaultCompleteDataSetRegistrationService
   private final AggregateAccessManager accessManager;
 
   private final MessageService messageService;
-
-  private final PeriodStore periodStore;
 
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService

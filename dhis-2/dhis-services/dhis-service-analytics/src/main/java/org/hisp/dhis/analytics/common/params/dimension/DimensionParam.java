@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.common.params.dimension;
 import static java.util.Objects.nonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.STATIC;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.byForeignType;
@@ -63,6 +62,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityHeaderProvider;
 import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
@@ -380,11 +380,11 @@ public class DimensionParam implements UidObject {
       // Finally check if the value matches the column name.
       return Stream.<BiPredicate<StaticDimension, String>>of(
               // First checks if the value matches the name.
-              (sd, v) -> equalsIgnoreCase(sd.name(), v),
+              (sd, v) -> Strings.CI.equals(sd.name(), v),
               // Then checks if the value matches the normalized name.
-              (sd, v) -> equalsIgnoreCase(sd.normalizedName(), v),
+              (sd, v) -> Strings.CI.equals(sd.normalizedName(), v),
               // And finally checks if the value matches the column name.
-              (sd, v) -> equalsIgnoreCase(sd.columnName, v))
+              (sd, v) -> Strings.CI.equals(sd.columnName, v))
           .map(
               predicate ->
                   Arrays.stream(StaticDimension.values())

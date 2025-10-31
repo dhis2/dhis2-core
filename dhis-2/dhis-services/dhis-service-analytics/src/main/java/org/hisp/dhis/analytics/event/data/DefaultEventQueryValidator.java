@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.lang3.StringUtils.replace;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -235,7 +235,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
    * @return the value with the correct separators.
    */
   private String replaceDateTimeSeparators(String dateTime) {
-    return replace(dateTime, ".", ":", 2);
+    return Strings.CS.replace(dateTime, ".", ":", 2);
   }
 
   @Override
