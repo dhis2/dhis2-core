@@ -72,8 +72,6 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   @Override
   public List<FileResource> getExpiredDataValueFileResources(
       DateTime retentionPeriod, DateTime gracePeriod) {
-    System.out.println("gracePeriod: " + gracePeriod);
-    System.out.println("retentionPeriod: " + retentionPeriod);
     @Language("SQL")
     String sql =
         """

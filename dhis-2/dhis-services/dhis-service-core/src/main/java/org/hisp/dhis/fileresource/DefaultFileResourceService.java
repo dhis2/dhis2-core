@@ -130,7 +130,11 @@ public class DefaultFileResourceService implements FileResourceService {
   public List<FileResource> getExpiredFileResources(
       Set<FileResourceDomain> domainsToDeleteWhenUnassigned) {
     return fileResourceStore.getUnassignedPastGracePeriod(
-        domainsToDeleteWhenUnassigned, new DateTime().minus(UNASSIGNED_GRACE_PERIOD));
+        domainsToDeleteWhenUnassigned, DefaultFileResourceService.getGracePeriod());
+  }
+
+  public static DateTime getGracePeriod() {
+    return new DateTime().minus(UNASSIGNED_GRACE_PERIOD);
   }
 
   @Override
@@ -414,7 +418,7 @@ public class DefaultFileResourceService implements FileResourceService {
       FileResourceRetentionStrategy retentionStrategy) {
     DateTime retentionPeriod = DateTime.now().minus(retentionStrategy.getRetentionTime());
     return fileResourceStore.getExpiredDataValueFileResources(
-        retentionPeriod, new DateTime().minus(UNASSIGNED_GRACE_PERIOD));
+        retentionPeriod, DefaultFileResourceService.getGracePeriod());
   }
 
   @Override
