@@ -51,13 +51,13 @@ class FileStoreTest extends ApiTest {
   private RestApiActions fileResourceActions;
 
   @BeforeAll
-  public void beforeAll() {
+  void beforeAll() {
     loginActions = new LoginActions();
     fileResourceActions = new RestApiActions("fileResources");
   }
 
   @Test
-  public void shouldStoreFileResourceInExternalStore() {
+  void shouldStoreFileResourceInExternalStore() {
     loginActions.loginAsSuperUser();
 
     File file = new File(getClass().getClassLoader().getResource("dhis2.png").getFile());

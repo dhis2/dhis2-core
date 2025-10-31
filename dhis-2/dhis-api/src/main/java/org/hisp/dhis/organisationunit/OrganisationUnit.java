@@ -1034,6 +1034,22 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   public void setImage(FileResource image) {
+    // if new -> new assigned
+    if (this.image == null && image != null) {
+      image.setAssigned(true);
+    }
+
+    // if update -> old unassigned + new assigned
+    if (this.image != null && image != null && (!this.image.getUid().equals(image.getUid()))) {
+      this.image.setAssigned(false);
+      image.setAssigned(true);
+    }
+
+    // if delete - unassigned
+    if (this.image != null && image == null) {
+      this.image.setAssigned(false);
+    }
+
     this.image = image;
   }
 

@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -71,19 +70,6 @@ public class DefaultDocumentService implements DocumentService {
   @Override
   public Document getDocument(String uid) {
     return documentStore.getByUid(uid);
-  }
-
-  @Override
-  public void deleteFileFromDocument(Document document) {
-    FileResource fileResource = document.getFileResource();
-
-    // Remove reference to fileResource from document to avoid db constraint
-    // exception
-    document.setFileResource(null);
-    documentStore.save(document);
-
-    // Delete file
-    fileResourceService.deleteFileResource(fileResource.getUid());
   }
 
   @Override
