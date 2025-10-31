@@ -43,9 +43,9 @@ pipeline {
                                 // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
                                 env.BASE_IMAGE = "tomcat:10.1.30-jre17"
                             } else if (majorVersion == 41) {
-                                env.BASE_IMAGE = "tomcat:9.0.109-jre17"
+                                env.BASE_IMAGE = "tomcat:9.0.111-jre17"
                             } else {
-                                env.BASE_IMAGE = "tomcat:9.0.96-jre11"
+                                env.BASE_IMAGE = "tomcat:9.0.111-jre11"
                             }
 
                             sh """#!/bin/bash

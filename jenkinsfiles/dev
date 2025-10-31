@@ -105,7 +105,7 @@ pipeline {
         stage('Publish image') {
             environment {
                 // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web/dhis-web-portal/pom.xml
-                BASE_IMAGE = "tomcat:9.0.109-jre17"
+                BASE_IMAGE = "tomcat:9.0.111-jre17"
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
             }
 
