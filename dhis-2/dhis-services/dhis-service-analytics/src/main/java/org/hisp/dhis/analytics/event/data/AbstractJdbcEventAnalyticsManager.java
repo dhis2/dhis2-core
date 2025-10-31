@@ -123,6 +123,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
@@ -752,7 +753,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     AggregateClause aggregateClause = getAggregateClause(params);
     List<String> columns =
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
-
+    params.getAllOrganisationUnits();
     String sql =
         TextUtils.removeLastComma(
             "select "
@@ -962,6 +963,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     EventOutputType outputType = params.getOutputType();
 
+    AnalyticsAggregationType analyticsAggregationType = params.getAggregationTypeFallback();
     AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
 
     String function =
