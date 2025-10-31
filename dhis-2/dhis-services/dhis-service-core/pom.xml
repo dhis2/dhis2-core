@@ -113,7 +113,7 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.7.6</version>
+      <version>3.7.12</version>
     </dependency>
     <dependency>
       <groupId>io.projectreactor.netty</groupId>
