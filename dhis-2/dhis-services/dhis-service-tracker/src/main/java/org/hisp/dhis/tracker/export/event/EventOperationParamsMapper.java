@@ -129,6 +129,7 @@ class EventOperationParamsMapper {
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())
+        .setSkipChangedBefore(operationParams.getSkipChangedBefore())
         .setScheduledEndDate(operationParams.getScheduledBefore())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
         .setUpdatedAtEndDate(operationParams.getUpdatedBefore())

@@ -106,6 +106,8 @@ class EventQueryParams {
 
   @Getter private Date enrollmentOccurredAfter;
 
+  @Getter private Date skipChangedBefore;
+
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
   /**
@@ -248,6 +250,11 @@ class EventQueryParams {
 
   public EventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
     this.updatedAtStartDate = updatedAtStartDate;
+    return this;
+  }
+
+  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
+    this.skipChangedBefore = skipChangedBefore;
     return this;
   }
 

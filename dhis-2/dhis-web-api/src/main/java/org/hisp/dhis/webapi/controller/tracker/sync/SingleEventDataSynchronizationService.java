@@ -218,7 +218,13 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
         page -> format("Synchronizing page %d with size %d", page, context.getPageSize()),
         page -> {
           try {
-            synchronizePage(page, context, systemSettings);
+            synchronizePage(
+                page,
+                context.getSkipChangedBefore(),
+                context.psdesWithSkipSyncTrue,
+                systemSettings,
+                context.getInstance(),
+                context.getStartTime());
           } catch (ForbiddenException | BadRequestException e) {
             throw new RuntimeException(e);
           }
@@ -228,26 +234,34 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   protected void synchronizePage(
-      int page, EventSynchronizationContext context, SystemSettings systemSettings)
+      int page,
+      Date skipChangeBefore,
+      Map<String, Set<String>> psdesWithSkipSyncTrue,
+      SystemSettings systemSettings,
+      SystemInstance systemInstance,
+      Date startTime)
       throws ForbiddenException, BadRequestException {
     List<Event> events =
         eventService.findEvents(
-            EventOperationParams.builder()
-                .skipChangedBefore(context.getSkipChangedBefore())
-                .build(),
-            context.psdesWithSkipSyncTrue);
+            EventOperationParams.builder().skipChangedBefore(skipChangeBefore).build(),
+            psdesWithSkipSyncTrue);
+
+    Set<org.hisp.dhis.webapi.controller.tracker.view.Event> eventDtos =
+        events.stream().map(EVENTS_MAPPER::map).collect(Collectors.toSet());
 
     log.debug("Events to be synchronized: {}", events);
 
-    if (sendSynchronizationRequest(events, context.getInstance(), systemSettings)) {
-      updateEventsSyncTimestamp(events, context.getStartTime());
+    if (sendSynchronizationRequest(eventDtos, systemInstance, systemSettings)) {
+      updateEventsSyncTimestamp(events, startTime);
     } else {
       throw new MetadataSyncServiceException(format("Page %d synchronization failed", page));
     }
   }
 
   private boolean sendSynchronizationRequest(
-      List<Event> events, SystemInstance instance, SystemSettings systemSettings) {
+      Set<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
+      SystemInstance instance,
+      SystemSettings systemSettings) {
     RequestCallback requestCallback =
         request -> {
           request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -257,9 +271,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
                   SyncUtils.HEADER_AUTHORIZATION,
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-          renderService.toJson(
-              request.getBody(),
-              events.stream().map(EVENTS_MAPPER::map).collect(Collectors.toSet()));
+          renderService.toJson(request.getBody(), events);
         };
 
     return sendSyncRequest(
