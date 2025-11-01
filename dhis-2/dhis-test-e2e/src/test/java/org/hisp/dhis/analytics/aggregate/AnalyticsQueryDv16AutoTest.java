@@ -730,4 +730,41 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 995, "Data ID", "IpHINAT79UW.wQLfBvPrXqq");
     validateRowValueByName(response, actualHeaders, 995, "december 2020", "");
   }
+
+  @Test
+  public void novemberFinancialYearMetadata() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=true")
+            .add("includeMetadataDetails=true")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:Uvn6LCg7dVU,pe:2024Nov");
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        0,
+        0,
+        0); // Pass runtime flag, row count, and expected header counts
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"name\":\"Data\",\"dimensionType\":\"DATA_X\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"Uvn6LCg7dVU\":{\"uid\":\"Uvn6LCg7dVU\",\"code\":\"IN_52486\",\"name\":\"ANC 1 Coverage\",\"description\":\"Total 1st ANC visits (Fixed and outreach) by expected number of pregnant women.\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"INDICATOR\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"AVERAGE\",\"indicatorType\":{\"name\":\"Per cent\",\"displayName\":\"Per cent\",\"factor\":100,\"number\":false}},\"2024Nov\":{\"uid\":\"2024Nov\",\"code\":\"2024Nov\",\"name\":\"November 2024 - October 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2024-11-01T00:00:00.000\",\"endDate\":\"2025-10-31T00:00:00.000\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\"],\"pe\":[\"2024Nov\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+  }
 }

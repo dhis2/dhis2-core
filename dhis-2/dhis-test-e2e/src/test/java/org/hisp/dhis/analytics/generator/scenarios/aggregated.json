@@ -190,6 +190,13 @@
       "version": {
         "min": 39
       }
+    },
+    {
+      "name": "novemberFinancialYearMetadata",
+      "query": "/api/analytics.json?dimension=dx:Uvn6LCg7dVU,pe:2024Nov&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true",
+      "version": {
+        "min": 40
+      }
     }
   ]
 }

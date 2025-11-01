@@ -55,7 +55,7 @@ public class FinancialNovemberPeriodType extends FinancialPeriodType {
 
   @Override
   public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
-    return String.format("%dNov", dateTimeUnit.getYear() + 1);
+    return String.format("%dNov", dateTimeUnit.getYear());
   }
 
   @Override
