@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.hibernate;
+package org.hisp.dhis.common;
 
-import jakarta.persistence.EntityManager;
-import java.util.Date;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.SoftDeletableEntity;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+public interface SoftDeletableEntity extends IdentifiableObject {
 
-/**
- * @author Enrico Colasante
- */
-public class SoftDeleteHibernateObjectStore<T extends SoftDeletableEntity>
-    extends HibernateIdentifiableObjectStore<T> {
-  public SoftDeleteHibernateObjectStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<T> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
-  }
+  boolean isDeleted();
 
-  @Override
-  public void delete(@Nonnull SoftDeletableEntity object) {
-    object.setDeleted(true);
-    object.setLastUpdated(new Date());
-    getSession().update(object);
-  }
+  void setDeleted(boolean deleted);
 }

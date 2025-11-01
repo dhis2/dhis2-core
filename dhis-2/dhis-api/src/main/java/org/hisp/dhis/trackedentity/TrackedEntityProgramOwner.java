@@ -41,6 +41,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
@@ -85,7 +86,7 @@ public class TrackedEntityProgramOwner implements Serializable {
   }
 
   @JsonProperty("trackedEntityInstance")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;

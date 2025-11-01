@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
@@ -43,6 +42,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.Date;
 import lombok.Setter;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
@@ -55,15 +55,12 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.User;
 
-/**
- * Base Object for metadata entities. All declared properties must be mapped to corresponding
- * database columns.
- */
 @MappedSuperclass
-public class BaseMetadataObject implements MetadataObject {
+public class BaseTrackerObject {
 
-  @Column(name = "uid", unique = true, nullable = false, length = 11)
   @Setter
+  @AuditAttribute
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
   protected String uid;
 
   @Column(name = "created", nullable = false, updatable = false)
@@ -81,10 +78,9 @@ public class BaseMetadataObject implements MetadataObject {
   @Setter
   protected User lastUpdatedBy;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "userid")
+  @Column(name = "storedby", length = 255)
   @Setter
-  protected User createdBy;
+  protected String storedBy;
 
   // -------------------------------------------------------------------------------------------
   // Transient fields
@@ -143,17 +139,6 @@ public class BaseMetadataObject implements MetadataObject {
     return lastUpdatedBy;
   }
 
-  @Gist(included = Include.FALSE)
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getCreatedBy() {
-    return createdBy;
-  }
-
   @Sortable(value = false)
   @Gist(included = Include.FALSE)
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -162,13 +147,9 @@ public class BaseMetadataObject implements MetadataObject {
     return access;
   }
 
-  @OpenApi.Ignore
   @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return createdBy;
+  public String getStoredBy() {
+    return storedBy;
   }
 }
