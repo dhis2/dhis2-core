@@ -237,26 +237,20 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     String translationKey = property.getTranslationKey();
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-    String localeStr = locale != null ? locale.toString() : "en";
 
-    // Use the custom jsonb_get_translated_value function to extract the translated value
     Expression<String> translatedValue =
         builder.function(
             JsonbFunctions.GET_TRANSLATED_VALUE,
             String.class,
             root.get("translations"),
             builder.literal(translationKey),
-            builder.literal(localeStr));
+            builder.literal(locale.getLanguage()));
 
-    // Get the base property name that corresponds to the display property
-    // e.g., displayName -> name, displayDescription -> description, displayShortName -> shortName
     String basePropertyName = getBasePropertyName(property.getName());
     Expression<String> baseValue = root.get(basePropertyName);
 
-    // Use COALESCE to fall back to the base property if translation doesn't exist
     Expression<String> coalescedValue = builder.coalesce(translatedValue, baseValue);
 
-    // Apply ordering with case-insensitivity if requested
     Expression<String> orderExpression =
         order.isIgnoreCase() ? builder.lower(coalescedValue) : coalescedValue;
 
@@ -270,12 +264,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * @return the base property name (e.g., "name")
    */
   private String getBasePropertyName(String displayPropertyName) {
-    return switch (displayPropertyName) {
-      case "displayName" -> "name";
-      case "displayDescription" -> "description";
-      case "displayShortName" -> "shortName";
-      default -> displayPropertyName;
-    };
+    // get base property name by removing "display" prefix
+   return displayPropertyName.substring(0, 7).toLowerCase() + displayPropertyName.substring(7);
   }
 
   private void initStoreMap() {
