@@ -207,7 +207,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.5</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.5.1</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
 
     <!-- Monitoring -->
@@ -236,7 +236,7 @@
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
-    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.5.1</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
