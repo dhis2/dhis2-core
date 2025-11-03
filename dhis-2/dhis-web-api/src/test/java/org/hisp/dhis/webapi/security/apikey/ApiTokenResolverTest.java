@@ -56,111 +56,58 @@ class ApiTokenResolverTest {
   }
 
   @Test
-  void testTokenInHeaderAndQueryShouldReject() {
-    // Given GET request with token in query string and header
-    when(request.getMethod()).thenReturn("GET");
-    when(request.getQueryString()).thenReturn("api_token=" + VALID_TOKEN);
+  void testValidTokenInAuthorizationHeader_ShouldSucceed() {
+    // Given request with valid token in Authorization header
     when(request.getHeader("Authorization")).thenReturn("ApiToken " + VALID_TOKEN);
 
     // When resolving token
-    ApiTokenAuthenticationException exception =
-        assertThrows(ApiTokenAuthenticationException.class, () -> resolver.resolve(request));
-
-    // Then should throw an exception because token is in both header and query string
-    assertTrue(exception.getMessage().contains("Found multiple tokens in the request"));
-  }
-
-  @Test
-  void testPostRequestWithTokenInQueryStringShouldReject() {
-    // Given POST request with token in query string
-    when(request.getMethod()).thenReturn("POST");
-    when(request.getQueryString()).thenReturn("api_token=" + VALID_TOKEN);
-    when(request.getContentType()).thenReturn("text/plain"); // Not form-encoded
-
-    // When resolving token
-    ApiTokenAuthenticationException exception =
-        assertThrows(ApiTokenAuthenticationException.class, () -> resolver.resolve(request));
-
-    // Then should throw an exception because token is in query string but only form body is allowed
-    assertTrue(
-        exception
-            .getMessage()
-            .contains(
-                "API token found in URL query string but only form-encoded body parameters are allowed"));
-  }
-
-  @Test
-  void testPostRequestWithTokenInFormBodyShouldSucceed() {
-    // Given POST request with token in form body (proper scenario)
-    when(request.getMethod()).thenReturn("POST");
-    when(request.getQueryString()).thenReturn(null); // No query string
-    when(request.getParameterValues("api_token")).thenReturn(new String[] {VALID_TOKEN});
-    when(request.getContentType()).thenReturn("application/x-www-form-urlencoded");
-
-    // When resolving token
     String result = resolver.resolve(request);
 
-    // Then should succeed
+    // Then should return hashed token
     assertNotNull(result);
   }
 
   @Test
-  void testPostRequestWithTokenInBothQueryAndBodyWhenFormBodyAllowed_ShouldReject() {
-    // Given POST request with token in both query string and body
-    when(request.getMethod()).thenReturn("POST");
-    when(request.getQueryString()).thenReturn("api_token=" + VALID_TOKEN);
-    when(request.getParameterValues("api_token")).thenReturn(new String[] {VALID_TOKEN});
-    when(request.getContentType()).thenReturn("application/x-www-form-urlencoded");
-
-    // When resolving token
-    ApiTokenAuthenticationException exception =
-        assertThrows(ApiTokenAuthenticationException.class, () -> resolver.resolve(request));
-
-    // Then should throw an exception because token is in both places
-    assertTrue(
-        exception
-            .getMessage()
-            .contains(
-                "API token found in URL query string but only form-encoded body parameters are allowed"));
-  }
-
-  @Test
-  void testGetRequestWithTokenInQueryStringWhenQueryAllowed_ShouldSucceed() {
-    // Given GET request with token in query string
-    when(request.getMethod()).thenReturn("GET");
-    when(request.getQueryString()).thenReturn("api_token=" + VALID_TOKEN);
+  void testMissingAuthorizationHeader_ShouldReturnNull() {
+    // Given request without Authorization header
+    when(request.getHeader("Authorization")).thenReturn(null);
 
     // When resolving token
     String result = resolver.resolve(request);
 
-    // Then should succeed
-    assertNotNull(result);
+    // Then should return null
+    assertNull(result);
   }
 
   @Test
-  void testPostRequestWithWrongContentTypeWhenFormBodyAllowed_ShouldCheckForQueryToken() {
-    // Given POST request with wrong Content-Type but with token in query string
-    when(request.getMethod()).thenReturn("POST");
-    when(request.getQueryString()).thenReturn("api_token=" + VALID_TOKEN);
-    when(request.getContentType()).thenReturn("application/json");
+  void testWrongHeaderPrefix_ShouldReturnNull() {
+    // Given request with wrong header prefix
+    when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
+
+    // When resolving token
+    String result = resolver.resolve(request);
+
+    // Then should return null (not an API token)
+    assertNull(result);
+  }
+
+  @Test
+  void testMalformedAuthorizationHeader_ShouldThrowException() {
+    // Given request with malformed Authorization header (missing space)
+    when(request.getHeader("Authorization")).thenReturn("ApiToken" + VALID_TOKEN);
 
     // When resolving token
     ApiTokenAuthenticationException exception =
         assertThrows(ApiTokenAuthenticationException.class, () -> resolver.resolve(request));
 
-    // Then should throw an exception because token is in query string
-    assertTrue(
-        exception
-            .getMessage()
-            .contains(
-                "API token found in URL query string but only form-encoded body parameters are allowed"));
+    // Then should throw exception for malformed token
+    assertTrue(exception.getMessage().contains("Api token is malformed"));
   }
 
   @Test
   void testInvalidTokenChecksum_ShouldThrowException() {
-    // Given GET request with invalid token
-    when(request.getMethod()).thenReturn("GET");
-    when(request.getQueryString()).thenReturn("api_token=invalid_token");
+    // Given request with invalid token (bad checksum)
+    when(request.getHeader("Authorization")).thenReturn("ApiToken invalid_token");
 
     // When resolving token
     ApiTokenAuthenticationException exception =
@@ -171,37 +118,9 @@ class ApiTokenResolverTest {
   }
 
   @Test
-  void testMultipleTokensInQuery_ShouldThrowException() {
-    // Given GET request with multiple tokens in query string
-    when(request.getMethod()).thenReturn("GET");
-    when(request.getQueryString())
-        .thenReturn("api_token=" + VALID_TOKEN + "&api_token=" + VALID_TOKEN);
-
-    // When resolving token
-    ApiTokenAuthenticationException exception =
-        assertThrows(ApiTokenAuthenticationException.class, () -> resolver.resolve(request));
-
-    // Then should throw multiple tokens exception
-    assertTrue(exception.getMessage().contains("Found multiple Api tokens in the request"));
-  }
-
-  @Test
-  void testUrlDecodingInQueryString_ShouldWork() {
-    // Given GET request with URL-encoded token
-    when(request.getMethod()).thenReturn("GET");
-    when(request.getQueryString()).thenReturn("api_token=" + VALID_TOKEN.replace("_", "%5F"));
-
-    // When resolving token
-    String result = resolver.resolve(request);
-
-    // Then should succeed and properly decode the token
-    assertNotNull(result);
-  }
-
-  @Test
-  void testPutRequestWithFormBodyConfiguration_ShouldReturnNull() {
-    // Given PUT request with token
-    when(request.getMethod()).thenReturn("PUT");
+  void testEmptyAuthorizationHeader_ShouldReturnNull() {
+    // Given request with empty Authorization header
+    when(request.getHeader("Authorization")).thenReturn("");
 
     // When resolving token
     String result = resolver.resolve(request);
@@ -211,9 +130,20 @@ class ApiTokenResolverTest {
   }
 
   @Test
-  void testDeleteRequestWithQueryConfiguration_ShouldReturnNull() {
-    // Given DELETE request with token in header
-    when(request.getMethod()).thenReturn("DELETE");
+  void testCaseInsensitiveHeaderPrefix_ShouldSucceed() {
+    // Given request with lowercase token prefix
+    when(request.getHeader("Authorization")).thenReturn("apitoken " + VALID_TOKEN);
+
+    // When resolving token
+    String result = resolver.resolve(request);
+
+    // Then should succeed (case insensitive)
+    assertNotNull(result);
+  }
+
+  @Test
+  void testGetRequestWithHeaderToken_ShouldSucceed() {
+    // Given request with token in header
     when(request.getHeader("Authorization")).thenReturn("ApiToken " + VALID_TOKEN);
 
     // When resolving token
