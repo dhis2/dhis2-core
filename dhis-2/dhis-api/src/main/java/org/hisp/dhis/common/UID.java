@@ -126,4 +126,8 @@ public final class UID implements Serializable {
       @Nonnull Collection<T> elements) {
     return elements.stream().map(IdentifiableObject::getUid).collect(toUnmodifiableSet());
   }
+
+  public boolean isDefaultOptionCombo() {
+    return "HllvX50cXC0".equals(value);
+  }
 }

@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -181,9 +182,8 @@ public class DefaultDataExportService implements DataExportService {
             groups.add(
                 new DataExportGroup(ds, getPeriodFromIsoString(peG), ouG, aocG, valuesG.stream()));
           valuesG = new ArrayList<>();
-        } else {
-          valuesG.add(dv);
         }
+        valuesG.add(dv);
         peG = pe;
         ouG = ou;
         aocG = aoc;
@@ -213,8 +213,6 @@ public class DefaultDataExportService implements DataExportService {
     Period peG = group.period();
     UID ouG = group.orgUnit();
     UID aocG = group.attributeOptionCombo();
-    if (ouG != null) dvOu = uid -> null;
-    if (aocG != null) dvAoc = uid -> null;
     boolean encodeDe = deTo.isNotUID();
     boolean encodeOu = ouTo.isNotUID() && ouG == null;
     boolean encodeCoc = cocTo.isNotUID() && !cocAsMap;
@@ -246,43 +244,62 @@ public class DefaultDataExportService implements DataExportService {
         dvCocMap =
             idCoder.mapEncodedOptionCombosAsCategoryAndOption(
                 cTo, coTo, list.stream().map(DataExportValue::categoryOptionCombo));
-        gAocMap = idCoder.mapEncodedOptionCombosAsCategoryAndOption(cTo, coTo, Stream.of(aocG));
+        gAocMap =
+            idCoder.mapEncodedOptionCombosAsCategoryAndOption(
+                cTo, coTo, list.stream().map(DataExportValue::attributeOptionCombo));
       }
       // by only doing this in case of other IDs being used UIDs can be truly stream processed
       values = list.stream(); // renew the already consumed stream
     }
-    Function<UID, String> deOfFinal = dvDe;
-    Function<UID, String> ouOfFinal = dvOu;
-    Function<UID, String> cocOfFinal = dvCoc;
-    Function<UID, String> aocOfFinal = dvAoc;
+
     Map<UID, Map<String, String>> dvCocMapFinal = dvCocMap;
     Map<String, String> aocGMap = cocAsMap ? gAocMap.get(aocG) : null;
+    String period = peG == null ? null : peG.getIsoDate();
+    String orgUnit = idCoder.getEncodedId(OU, ouTo, ouG);
+    String attributeOptionCombo = aocGMap != null ? null : idCoder.getEncodedId(COC, aocTo, aocG);
+    Function<UID, String> dvDeOf = dvDe;
+    UnaryOperator<String> dvPeOf =
+        period == null ? UnaryOperator.identity() : pe -> pe.equals(period) ? null : pe;
+    Function<UID, String> dvOuOf =
+        orgUnit == null ? dvOu : ou -> ou.equals(ouG) ? null : ou.getValue();
+    Function<UID, String> dvCocPlain = dvCoc;
+    Function<UID, String> dvCocOf =
+        coc -> coc.isDefaultOptionCombo() ? null : dvCocPlain.apply(coc);
+    Function<UID, String> dvAocPlain = dvAoc;
+    Function<UID, String> dvAocOf =
+        attributeOptionCombo == null && (aocGMap == null || aocGMap.isEmpty())
+            ? aoc -> aoc.isDefaultOptionCombo() ? null : dvAocPlain.apply(aoc)
+            : aoc -> aoc.equals(aocG) || aoc.isDefaultOptionCombo() ? null : aoc.getValue();
     return new DataExportGroup.Output(
         idCoder.getEncodedId(DS, IdProperty.of(to.getDataSetIdScheme()), group.dataSet()),
-        peG == null ? null : peG.getIsoDate(),
-        idCoder.getEncodedId(OU, ouTo, ouG),
-        aocGMap != null ? null : idCoder.getEncodedId(COC, aocTo, aocG),
+        period,
+        orgUnit,
+        attributeOptionCombo,
         aocGMap,
         values.map(
             dv -> {
               Map<String, String> cocMap =
                   cocAsMap ? dvCocMapFinal.get(dv.categoryOptionCombo()) : null;
               return new DataExportValue.Output(
-                  deOfFinal.apply(dv.dataElement()),
-                  peG != null ? null : dv.period(),
-                  ouOfFinal.apply(dv.orgUnit()),
-                  cocMap != null ? null : cocOfFinal.apply(dv.categoryOptionCombo()),
+                  dvDeOf.apply(dv.dataElement()),
+                  dvPeOf.apply(dv.period()),
+                  dvOuOf.apply(dv.orgUnit()),
+                  cocMap != null ? null : dvCocOf.apply(dv.categoryOptionCombo()),
                   cocMap,
-                  aocOfFinal.apply(dv.attributeOptionCombo()),
+                  dvAocOf.apply(dv.attributeOptionCombo()),
                   dv.type(),
                   dv.value(),
-                  dv.comment(),
+                  emptyAsNull(dv.comment()),
                   dv.followUp(),
-                  dv.storedBy(),
+                  emptyAsNull(dv.storedBy()),
                   dv.created(),
                   dv.lastUpdated(),
                   dv.deleted());
             }));
+  }
+
+  private static String emptyAsNull(String value) {
+    return value == null || value.isEmpty() ? null : value;
   }
 
   private DataExportParams decodeParams(DataExportInputParams params) {

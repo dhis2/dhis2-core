@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -90,7 +91,7 @@ public interface IdCoder {
    *     property is null)
    */
   @Nonnull
-  Stream<String> listEncodedIds(
+  List<String> listEncodedIds(
       @Nonnull ObjectType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
 
   /**
@@ -107,7 +108,8 @@ public interface IdCoder {
       @Nonnull ObjectType type, @Nonnull IdProperty to, @CheckForNull UID id) {
     if (id == null) return null;
     if (to == IdProperty.UID) return id.getValue();
-    return listEncodedIds(type, to, Stream.of(id)).findFirst().orElse(null);
+    List<String> matches = listEncodedIds(type, to, Stream.of(id));
+    return matches.isEmpty() ? null : matches.get(0);
   }
 
   /**

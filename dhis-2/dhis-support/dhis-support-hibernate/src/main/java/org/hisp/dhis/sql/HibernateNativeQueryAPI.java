@@ -87,9 +87,16 @@ class HibernateNativeQueryAPI {
     @SuppressWarnings("unchecked")
     public <T> Stream<T> stream(@Nonnull Class<T> of) {
       NativeQuery<T> query =
-          of == Object[].class ? impl.createNativeQuery(sql) : impl.createNativeQuery(sql, of);
+          isKnownNotMappedType(of) ? impl.createNativeQuery(sql) : impl.createNativeQuery(sql, of);
       setters.forEach(s -> s.accept(query));
       return query.stream();
+    }
+
+    private static <T> boolean isKnownNotMappedType(@Nonnull Class<T> of) {
+      return of == Object[].class
+          || of == String.class
+          || of == Boolean.class
+          || Number.class.isAssignableFrom(of);
     }
 
     @Override

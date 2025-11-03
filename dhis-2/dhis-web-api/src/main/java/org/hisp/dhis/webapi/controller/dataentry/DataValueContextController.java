@@ -34,9 +34,12 @@ import static java.util.stream.Collectors.toSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportInputParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
@@ -77,6 +80,10 @@ public class DataValueContextController {
             .map(Period::getIsoDate)
             .collect(toSet());
 
+    Set<UID> attributeOptions =
+        params.getCp() == null
+            ? null
+            : Set.copyOf(Stream.of(params.getCp().split(";")).map(UID::of).toList());
     List<DataExportValue> dataValues =
         dataExportPipeline.exportAsList(
             DataExportInputParams.builder()
@@ -84,9 +91,9 @@ public class DataValueContextController {
                 .period(periods)
                 .orgUnit(Set.of(params.getOu()))
                 .categoryOptionCombo(Set.of(params.getCo()))
-                .attributeCombo(params.getCc())
-                .attributeOptions(params.getCp() == null ? null : Set.of(params.getCp().split(";")))
-                .orderByPeriod(true)
+                .attributeCombo(UID.ofNullable(params.getCc()))
+                .attributeOptions(attributeOptions)
+                .order(List.of(DataExportParams.Order.PE))
                 .build(),
             Function.identity());
 

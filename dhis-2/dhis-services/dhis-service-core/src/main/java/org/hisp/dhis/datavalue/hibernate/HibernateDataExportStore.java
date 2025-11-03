@@ -259,8 +259,25 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   public UID getAttributeOptionCombo(
       @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions) {
+    String sql =
+        """
+      SELECT coc.uid
+      FROM categorycombo cc
+      JOIN categorycombos_optioncombos cc_coc ON cc.categorycomboid = cc_coc.categorycomboid
+      JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+      WHERE 1=1
+        AND cc.name = :name
+        AND cc.uid = :cc
+      """;
     // TODO
-    return null;
+    return createQuery(sql)
+        .setParameter("cc", categoryCombo == null ? null : categoryCombo.getValue())
+        .setParameter("name", categoryCombo == null ? "default" : null)
+        .eraseNullParameterLines()
+        .stream(String.class)
+        .map(UID::of)
+        .findFirst()
+        .orElse(null);
   }
 
   private QueryBuilder createQuery(@Language("sql") String sql) {

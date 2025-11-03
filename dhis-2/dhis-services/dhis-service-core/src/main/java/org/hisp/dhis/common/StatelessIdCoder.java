@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -93,13 +94,13 @@ public class StatelessIdCoder implements IdCoder {
 
   @Nonnull
   @Override
-  public Stream<String> listEncodedIds(
+  public List<String> listEncodedIds(
       @Nonnull ObjectType type, @Nonnull IdProperty to, @Nonnull Stream<UID> identifiers) {
     if (to == IdProperty.UID)
-      return identifiers.filter(Objects::nonNull).map(UID::getValue).distinct();
+      return identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toList();
     String[] ids =
         identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
-    if (ids.length == 0) return Stream.empty();
+    if (ids.length == 0) return List.of();
     @Language("sql")
     String sqlTemplate =
         """
@@ -111,7 +112,7 @@ public class StatelessIdCoder implements IdCoder {
     String sql =
         replace(sqlTemplate, Map.of("table", tableName(type), "property", columnName("t", to)));
     return runReadInStatelessSession(
-        sql, q -> q.setParameter("ids", ids).stream(row -> row.getString(0)));
+        sql, q -> q.setParameter("ids", ids).stream(String.class).toList());
   }
 
   @Nonnull
@@ -163,7 +164,7 @@ public class StatelessIdCoder implements IdCoder {
   private static boolean anyNull(Object[] arr) {
     if (arr == null) return true;
     if (arr.length == 0) return false;
-    if (arr.length == 1) return arr[0] != null;
+    if (arr.length == 1) return arr[0] == null;
     for (int i = 0; i < arr.length; i++) if (arr[i] == null) return true;
     return false;
   }

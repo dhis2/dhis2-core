@@ -128,8 +128,9 @@ public record DataExportValue(
     public Output {
       requireNonNull(dataElement);
       requireNonNull(type);
-      if (categoryOptionCombo == null && categoryOptions == null)
-        requireNonNull(categoryOptionCombo); // fail - one is required
+      // Note: AOC + COC can be null
+      // AOC if it is defined in a group's header or is default
+      // COC if it is default
     }
   }
 }
