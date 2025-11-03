@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,108 +27,33 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import com.google.common.net.HttpHeaders;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.net.HttpHeaders;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public final class ApiTokenResolver
-{
-    private static final Pattern authorizationPattern = Pattern.compile( "^ApiToken (?<token>[a-zA-Z0-9-._~+/]+=*)$",
-        Pattern.CASE_INSENSITIVE );
+public final class ApiTokenResolver {
+  private static final Pattern authorizationPattern =
+      Pattern.compile("^ApiToken (?<token>[a-zA-Z0-9-._~+/]+=*)$", Pattern.CASE_INSENSITIVE);
 
-    public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
+  public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
 
-    public static final String REQUEST_PARAMETER_NAME = "api_token";
-
-    private boolean allowFormEncodedBodyParameter = false;
-
-    private boolean allowUriQueryParameter = false;
-
-    private String bearerTokenHeaderName = HttpHeaders.AUTHORIZATION;
-
-    public String resolve( HttpServletRequest request )
-    {
-        String authorizationHeaderToken = resolveFromAuthorizationHeader( request );
-        String parameterToken = resolveFromRequestParameters( request );
-
-        if ( authorizationHeaderToken != null )
-        {
-            if ( parameterToken != null )
-            {
-                throw new ApiTokenAuthenticationException( ApiTokenErrors
-                    .invalidRequest( "Found multiple api tokens in the request" ) );
-            }
-            return authorizationHeaderToken;
-        }
-
-        if ( parameterToken != null && isParameterTokenSupportedForRequest( request ) )
-        {
-            return parameterToken;
-        }
-
-        return null;
+  public String resolve(HttpServletRequest request) {
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+    if (!StringUtils.startsWithIgnoreCase(authorization, HEADER_TOKEN_KEY_PREFIX)) {
+      return null;
     }
 
-    public void setAllowFormEncodedBodyParameter( boolean allowFormEncodedBodyParameter )
-    {
-        this.allowFormEncodedBodyParameter = allowFormEncodedBodyParameter;
+    Matcher matcher = authorizationPattern.matcher(authorization);
+    if (!matcher.matches()) {
+      throw new ApiTokenAuthenticationException(
+          ApiTokenErrors.invalidToken("Api token is malformed"));
     }
 
-    public void setAllowUriQueryParameter( boolean allowUriQueryParameter )
-    {
-        this.allowUriQueryParameter = allowUriQueryParameter;
-    }
-
-    public void setBearerTokenHeaderName( String bearerTokenHeaderName )
-    {
-        this.bearerTokenHeaderName = bearerTokenHeaderName;
-    }
-
-    private String resolveFromAuthorizationHeader( HttpServletRequest request )
-    {
-        String authorization = request.getHeader( this.bearerTokenHeaderName );
-        if ( !StringUtils.startsWithIgnoreCase( authorization, HEADER_TOKEN_KEY_PREFIX ) )
-        {
-            return null;
-        }
-
-        Matcher matcher = authorizationPattern.matcher( authorization );
-        if ( !matcher.matches() )
-        {
-            throw new ApiTokenAuthenticationException( ApiTokenErrors.invalidToken( "Api token is malformed" ) );
-        }
-
-        return matcher.group( "token" );
-    }
-
-    private static String resolveFromRequestParameters( HttpServletRequest request )
-    {
-        String[] values = request.getParameterValues( REQUEST_PARAMETER_NAME );
-        if ( values == null || values.length == 0 )
-        {
-            return null;
-        }
-
-        if ( values.length == 1 )
-        {
-            return values[0];
-        }
-
-        throw new ApiTokenAuthenticationException(
-            ApiTokenErrors.invalidRequest( "Found multiple Api tokens in the request" ) );
-    }
-
-    private boolean isParameterTokenSupportedForRequest( HttpServletRequest request )
-    {
-        return ((this.allowFormEncodedBodyParameter && "POST".equals( request.getMethod() ))
-            || (this.allowUriQueryParameter && "GET".equals( request.getMethod() )));
-    }
+    return matcher.group("token");
+  }
 }
