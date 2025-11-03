@@ -41,7 +41,6 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +58,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -315,9 +313,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
       PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-      if (path != null && isTranslationFilter(path)) {
-        return buildTranslatableFilter(builder, root, filter, path);
-      }
       return filter.getOperator().getPredicate(builder, root, path);
     }
     // handle special cases:
@@ -360,117 +355,4 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return or;
   }
 
-  /**
-   * Builds a predicate for filtering on translatable properties (displayName, displayDescription,
-   * displayShortName). These properties are derived from the translations JSONB column based on the
-   * current user's locale.
-   *
-   * <p>Uses the custom PostgreSQL function jsonb_search_translated_token which searches through the
-   * translations JSONB array for matching locale, property key, and value.
-   *
-   * @param builder the criteria builder
-   * @param root the root entity
-   * @param filter the filter to apply
-   * @param path the property path
-   * @param <Y> the entity type
-   * @return a predicate that queries the translations JSONB column
-   */
-  private <Y> Predicate buildTranslatableFilter(
-      CriteriaBuilder builder, Root<Y> root, Filter filter, PropertyPath path) {
-
-    Property property = path.getProperty();
-    String translationKey = property.getTranslationKey();
-    String basePropertyName = getBasePropertyName(property.getName());
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-    String localeStr = locale != null ? locale.toString() : "en";
-
-    // Handle 'in' operator with multiple values
-    if (filter.getOperator() instanceof InOperator && !filter.getOperator().getArgs().isEmpty()) {
-      Collection<?> values = filter.getOperator().getArgs();
-      Predicate orCondition = builder.disjunction();
-      for (Object value : values) {
-        String searchValue = String.valueOf(value);
-        String regexPattern = "(?i).*" + escapeRegex(searchValue) + ".*";
-
-        // Translation search with regex
-        Expression<Boolean> translationSearch =
-            builder.function(
-                JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
-                Boolean.class,
-                root.get("translations"),
-                builder.literal("{" + translationKey + "}"),
-                builder.literal(localeStr),
-                builder.literal(regexPattern));
-
-        // Base property search
-        Predicate basePropertySearch =
-            stringPredicateIgnoreCase(
-                builder,
-                root.get(basePropertyName),
-                searchValue,
-                JpaQueryUtils.StringSearchMode.ANYWHERE);
-
-        // Add OR condition for this value
-        orCondition
-            .getExpressions()
-            .add(builder.or(builder.isTrue(translationSearch), basePropertySearch));
-      }
-      return orCondition;
-    }
-
-    // Handle single-value operators (eq, like, etc.)
-    Object filterValue = filter.getOperator().getArgs().get(0);
-    String searchValue = String.valueOf(filterValue);
-
-    // Build regex pattern for case-insensitive search
-    // The (?i) flag makes the regex case-insensitive
-    // We escape special regex characters in the search value
-    String regexPattern = "(?i).*" + escapeRegex(searchValue) + ".*";
-
-    // Use the custom jsonb_search_translated_token function
-    // Function signature: jsonb_search_translated_token(jsonb, text, text, text)
-    // Parameters:
-    //   $1: translations JSONB column
-    //   $2: array of property keys to search (e.g., '{NAME}')
-    //   $3: locale string
-    //   $4: regex pattern to match against value
-    Expression<Boolean> translationSearch =
-        builder.function(
-            JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
-            Boolean.class,
-            root.get("translations"),
-            builder.literal("{" + translationKey + "}"),
-            builder.literal(localeStr),
-            builder.literal(regexPattern));
-
-    // Also search in the base property as a fallback if translation doesn't exist
-    Predicate basePropertySearch =
-        stringPredicateIgnoreCase(
-            builder,
-            root.get(basePropertyName),
-            searchValue,
-            JpaQueryUtils.StringSearchMode.ANYWHERE);
-
-    // Return OR condition: either translation matches OR base property matches
-    return builder.or(builder.isTrue(translationSearch), basePropertySearch);
-  }
-
-  /**
-   * Escapes special regex characters in a string to be used in a regex pattern.
-   *
-   * @param input the input string
-   * @return the escaped string
-   */
-  private String escapeRegex(String input) {
-    // Escape special regex characters: . * + ? ^ $ { } ( ) | [ ] \
-    return input.replaceAll("([.\\*+?^${}()\\[\\]|\\\\])", "\\\\$1");
-  }
-
-  /** Checks if the given property path corresponds to a translatable display property. */
-  private boolean isTranslationFilter(PropertyPath path) {
-    return path.getPath() != null
-        && path.getPath().startsWith("display")
-        && path.getProperty().isTranslatable()
-        && path.getProperty().getTranslationKey() != null;
-  }
 }

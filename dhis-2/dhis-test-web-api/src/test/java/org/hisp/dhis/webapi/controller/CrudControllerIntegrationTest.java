@@ -612,17 +612,6 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   }
 
   @Test
-  void testFilterOuByDisplayName() {
-    setUpTestFilterByDisplayName();
-    JsonList<JsonOrganisationUnit> ous =
-        GET("/organisationUnits?filter=displayName:in:[A,B,C]&paging=true&pageSize=2&page=2")
-            .content(HttpStatus.OK)
-            .getList("organisationUnits", JsonOrganisationUnit.class);
-    assertEquals(1, ous.size());
-    assertEquals("C", ous.get(0).getDisplayName());
-  }
-
-  @Test
   void testGetCsvOrderDesc() {
     createDataElements(36);
     String response = GET("/dataElements.csv?order=displayName:desc").content("text/csv");
