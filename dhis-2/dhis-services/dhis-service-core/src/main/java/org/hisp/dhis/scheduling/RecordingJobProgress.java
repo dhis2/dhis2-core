@@ -229,7 +229,7 @@ public class RecordingJobProgress implements JobProgress {
     incompleteStage.set(null);
     incompleteItem.remove();
     Process process = addProcessRecord(message);
-    logInfo(process, "started", message);
+    logDebug(process, "started", message);
   }
 
   @Nonnull
@@ -267,7 +267,7 @@ public class RecordingJobProgress implements JobProgress {
     tracker.completedProcess(message);
     Process process = getOrAddLastIncompleteProcess();
     process.complete(message);
-    logInfo(process, "completed", format(message, args));
+    logDebug(process, "completed", format(message, args));
   }
 
   @Override
@@ -323,7 +323,7 @@ public class RecordingJobProgress implements JobProgress {
     bucketed = 0;
     Stage stage =
         addStageRecord(getOrAddLastIncompleteProcess(), description, workItems, onFailure);
-    logInfo(stage, "", description);
+    logDebug(stage, "", description);
   }
 
   @Nonnull
@@ -343,7 +343,7 @@ public class RecordingJobProgress implements JobProgress {
     Stage stage = getOrAddLastIncompleteStage();
     autoCompleteWorkItemBucket();
     stage.complete(message);
-    logInfo(stage, "completed", message);
+    logDebug(stage, "completed", message);
   }
 
   @Override
