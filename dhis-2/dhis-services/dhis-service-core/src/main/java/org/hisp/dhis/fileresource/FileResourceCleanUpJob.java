@@ -84,6 +84,8 @@ import org.springframework.stereotype.Component;
  * </ol>
  *
  * <br>
+ * The job currently excludes {@code PUSH_ANALYSIS} & {@code MESSAGE_ATTACHMENT} domains. Product
+ * need to review these. As such, these files are not currently cleaned up.<br>
  * This job runs nightly (see {@link JobType for details}.<br>
  * Reviewed and updated for 2.43
  *
@@ -96,6 +98,7 @@ public class FileResourceCleanUpJob implements Job {
   private final FileResourceService fileResourceService;
   private final SystemSettingsProvider settingsProvider;
 
+  // PUSH_ANALYSIS & MESSAGE_ATTACHMENT currently omitted
   private final Set<FileResourceDomain> domainsToDeleteWhenUnassigned =
       Set.of(DOCUMENT, ICON, ORG_UNIT, USER_AVATAR);
 
