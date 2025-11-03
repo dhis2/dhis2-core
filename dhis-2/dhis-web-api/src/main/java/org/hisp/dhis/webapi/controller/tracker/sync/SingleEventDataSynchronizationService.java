@@ -160,7 +160,10 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
     long objectsToSynchronize =
         eventService.countEvents(
-            EventOperationParams.builder().skipChangedBefore(skipChangedBefore).build());
+            EventOperationParams.builder()
+                .skipChangedBefore(skipChangedBefore)
+                .synchronizationQuery(true)
+                .build());
 
     if (objectsToSynchronize == 0) {
       return new EventSynchronizationContext(skipChangedBefore, pageSize);
@@ -243,7 +246,10 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
       throws ForbiddenException, BadRequestException {
     List<Event> events =
         eventService.findEvents(
-            EventOperationParams.builder().skipChangedBefore(skipChangeBefore).build(),
+            EventOperationParams.builder()
+                .skipChangedBefore(skipChangeBefore)
+                .synchronizationQuery(true)
+                .build(),
             psdesWithSkipSyncTrue);
 
     Set<org.hisp.dhis.webapi.controller.tracker.view.Event> eventDtos =

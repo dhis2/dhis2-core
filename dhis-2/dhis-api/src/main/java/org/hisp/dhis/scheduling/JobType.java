@@ -194,7 +194,10 @@ public enum JobType {
    *     (System User will not work).
    */
   public boolean isValidUserRequiredForJob() {
-    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE || this == META_DATA_SYNC;
+    return this == HTML_PUSH_ANALYTICS
+        || this == AGGREGATE_DATA_EXCHANGE
+        || this == META_DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC_JOB;
   }
 
   /**
@@ -213,6 +216,7 @@ public enum JobType {
         || this == VALIDATION_RESULTS_NOTIFICATION
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC_JOB
         || this == SMS_SEND
         || this == PUSH_ANALYSIS
         || this == PREDICTOR
