@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -49,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +57,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -90,7 +89,6 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -219,10 +217,6 @@ class JdbcTrackerEventStore {
   @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
-  private final UserService userService;
-
-  private final IdentifiableObjectManager manager;
-
   public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
@@ -235,7 +229,6 @@ class JdbcTrackerEventStore {
   private List<TrackerEvent> fetchEvents(
       TrackerEventQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, TrackerEvent> eventsByUid;
     if (pageParams == null) {
@@ -501,7 +494,6 @@ class JdbcTrackerEventStore {
 
   private long getEventCount(TrackerEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
@@ -812,13 +804,25 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    if (params.getProgram() != null) {
-      sqlParameters.addValue("programid", params.getProgram().getId());
+    if (params.hasEnrolledInTrackerProgram()) {
+      sqlParameters.addValue("programid", params.getEnrolledInTrackerProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programid",
+          params.getAccessibleTrackerPrograms().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleTrackerPrograms()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programid in (")
+          .append(":programid")
+          .append(") ");
     }
 
-    if (params.getProgramStage() != null) {
+    if (params.hasProgramStage()) {
       sqlParameters.addValue("programstageid", params.getProgramStage().getId());
 
       fromBuilder
@@ -826,6 +830,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ps.programstageid = ")
           .append(":programstageid")
           .append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programstageid",
+          params.getAccessibleTrackerProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleTrackerProgramStages()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programstageid in (")
+          .append(":programstageid")
+          .append(") ");
     }
 
     if (params.getEnrollmentStatus() != null) {
@@ -941,32 +957,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (!params.isIncludeDeleted()) {
       fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
-    }
-
-    if (params.hasSecurityFilter()) {
-      sqlParameters.addValue(
-          "program_uid",
-          params.getAccessiblePrograms().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessiblePrograms()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (p.uid in (")
-          .append(":program_uid")
-          .append(")) ");
-
-      sqlParameters.addValue(
-          "programstage_uid",
-          params.getAccessibleProgramStages().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessibleProgramStages()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ps.uid in (")
-          .append(":programstage_uid")
-          .append(")) ");
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
@@ -1181,18 +1171,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } catch (IOException e) {
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
-    }
-  }
-
-  private void setAccessiblePrograms(UserDetails user, TrackerEventQueryParams params) {
-    if (isNotSuperUser(user)) {
-      params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
-
-      params.setAccessibleProgramStages(
-          manager.getDataReadAll(ProgramStage.class).stream()
-              .map(UID::of)
-              .collect(Collectors.toSet()));
     }
   }
 }

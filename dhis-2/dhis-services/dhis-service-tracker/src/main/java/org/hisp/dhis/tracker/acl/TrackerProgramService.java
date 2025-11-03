@@ -40,6 +40,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
@@ -111,6 +112,17 @@ public class TrackerProgramService {
                 p.isRegistration()
                     && Objects.equals(p.getTrackedEntityType().getUid(), trackedEntityType.getUid())
                     && aclService.canDataRead(user, p))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public @Nonnull List<ProgramStage> getAccessibleTrackerProgramStages(
+      @Nonnull List<Program> program) {
+    UserDetails user = getCurrentUserDetails();
+
+    return program.stream()
+        .flatMap(p -> p.getProgramStages().stream())
+        .filter(ps -> aclService.canRead(user, ps) && aclService.canDataRead(user, ps))
         .toList();
   }
 }

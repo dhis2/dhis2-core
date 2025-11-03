@@ -78,6 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -103,6 +104,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+
+  @Autowired private TrackerProgramService trackerProgramService;
 
   private final Date occurredDate = new Date();
 
@@ -226,14 +229,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.update(programB);
 
     programStageA = createProgramStage('A', programA);
+    programStageA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.save(programStageA, false);
     ProgramStage inaccessibleProgramStage = createProgramStage('B', programA);
     inaccessibleProgramStage.getSharing().setOwner(admin);
     inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleProgramStage, false);
-    programA.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
     manager.save(programA, false);
-    programB.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
     manager.save(programB, false);
 
     relationshipTypeA = createRelationshipType('A');

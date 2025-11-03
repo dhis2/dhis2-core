@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.trackerevent;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateMinimumCharactersToSearch;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
@@ -56,6 +57,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
@@ -84,6 +86,8 @@ class TrackerEventOperationParamsMapper {
   private final DataElementService dataElementService;
 
   private final OperationsParamsValidator paramsValidator;
+
+  private final TrackerProgramService trackerProgramService;
 
   @Transactional(readOnly = true)
   public TrackerEventQueryParams map(
@@ -116,9 +120,15 @@ class TrackerEventOperationParamsMapper {
     mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
+    List<Program> accessibleTrackerPrograms = getTrackerPrograms(program);
+
     return queryParams
-        .setProgram(program)
+        .setEnrolledInTrackerProgram(program)
+        .setAccessibleTrackerPrograms(getTrackerPrograms(program))
         .setProgramStage(programStage)
+        .setAccessibleTrackerProgramStages(
+            getTrackerProgramStages(
+                program != null ? List.of(program) : accessibleTrackerPrograms, programStage))
         .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
@@ -146,6 +156,23 @@ class TrackerEventOperationParamsMapper {
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams());
+  }
+
+  private List<Program> getTrackerPrograms(Program program) {
+    if (program == null) {
+      return trackerProgramService.getAccessibleTrackerPrograms();
+    }
+
+    return emptyList();
+  }
+
+  private List<ProgramStage> getTrackerProgramStages(
+      List<Program> programs, ProgramStage programStage) {
+    if (programStage == null) {
+      return trackerProgramService.getAccessibleTrackerProgramStages(programs);
+    }
+
+    return emptyList();
   }
 
   private ProgramStage validateProgramStage(String programStageUid, UserDetails user)

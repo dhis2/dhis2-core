@@ -65,9 +65,30 @@ import org.hisp.dhis.tracker.export.Order;
  * @author Lars Helge Overland
  */
 class TrackerEventQueryParams {
-  @Getter private Program program;
+  /**
+   * Tracker program the event tracked entity must be enrolled in. This should not be set when
+   * {@link #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   */
+  @Getter private Program enrolledInTrackerProgram;
 
+  /**
+   * Tracker programs the user has data read access to. This should not be set when {@link
+   * #enrolledInTrackerProgram} is set.
+   */
+  @Getter private List<Program> accessibleTrackerPrograms = List.of();
+
+  /**
+   * Program stage the event must be tracked entity must be enrolled in. This should not be set when
+   * {@link #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   */
+  // TODO Is this name good enough?
   @Getter private ProgramStage programStage;
+
+  /**
+   * Program stages the user has data read access to. This should not be set when {@link
+   * #programStage} is set.
+   */
+  @Getter private List<ProgramStage> accessibleTrackerProgramStages = List.of();
 
   @Getter private EnrollmentStatus enrollmentStatus;
 
@@ -147,8 +168,8 @@ class TrackerEventQueryParams {
 
   public TrackerEventQueryParams() {}
 
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram != null;
   }
 
   public boolean hasProgramStage() {
@@ -178,13 +199,25 @@ class TrackerEventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  public TrackerEventQueryParams setProgram(Program program) {
-    this.program = program;
+  public TrackerEventQueryParams setEnrolledInTrackerProgram(Program enrolledInTrackerProgram) {
+    this.enrolledInTrackerProgram = enrolledInTrackerProgram;
+    return this;
+  }
+
+  public TrackerEventQueryParams setAccessibleTrackerPrograms(
+      List<Program> accessibleTrackerPrograms) {
+    this.accessibleTrackerPrograms = accessibleTrackerPrograms;
     return this;
   }
 
   public TrackerEventQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
+    return this;
+  }
+
+  public TrackerEventQueryParams setAccessibleTrackerProgramStages(
+      List<ProgramStage> accessibleTrackerProgramStages) {
+    this.accessibleTrackerProgramStages = accessibleTrackerProgramStages;
     return this;
   }
 
