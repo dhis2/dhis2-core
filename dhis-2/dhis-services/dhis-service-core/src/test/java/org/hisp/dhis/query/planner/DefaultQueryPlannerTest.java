@@ -86,7 +86,7 @@ class DefaultQueryPlannerTest {
 
     PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
     when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
-    when(schemaService.getPropertyPath(DataElement.class, eq("displayName")))
+    when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
 
     // When: Query plan is created
@@ -117,7 +117,7 @@ class DefaultQueryPlannerTest {
 
     PropertyPath displayDescriptionPath = new PropertyPath(displayDescriptionProperty, true);
     when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
-    when(schemaService.getPropertyPath(DataElement.class, eq("displayDescription")))
+    when(schemaService.getPropertyPath(DataElement.class, "displayDescription"))
         .thenReturn(displayDescriptionPath);
 
     // When: Query plan is created
@@ -144,7 +144,7 @@ class DefaultQueryPlannerTest {
 
     PropertyPath displayShortNamePath = new PropertyPath(displayShortNameProperty, true);
     when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
-    when(schemaService.getPropertyPath(DataElement.class, eq("displayShortName")))
+    when(schemaService.getPropertyPath(DataElement.class, "displayShortName"))
         .thenReturn(displayShortNamePath);
 
     // When: Query plan is created
@@ -204,9 +204,9 @@ class DefaultQueryPlannerTest {
     PropertyPath customPropertyPath = new PropertyPath(customProperty, false);
 
     when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
-    when(schemaService.getPropertyPath(DataElement.class, eq("displayName")))
+    when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
-    when(schemaService.getPropertyPath(DataElement.class, eq("customProperty")))
+    when(schemaService.getPropertyPath(DataElement.class, "customProperty"))
         .thenReturn(customPropertyPath);
 
     // When: Query plan is created
@@ -233,7 +233,7 @@ class DefaultQueryPlannerTest {
 
     PropertyPath nonPersistedPath = new PropertyPath(nonPersistedProperty, false);
     when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
-    when(schemaService.getPropertyPath(DataElement.class, eq("nonPersistedProperty")))
+    when(schemaService.getPropertyPath(DataElement.class, "nonPersistedProperty"))
         .thenReturn(nonPersistedPath);
 
     // When: Query plan is created
