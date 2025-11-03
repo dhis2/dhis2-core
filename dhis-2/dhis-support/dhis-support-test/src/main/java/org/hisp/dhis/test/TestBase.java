@@ -1841,6 +1841,11 @@ public abstract class TestBase {
     ProgramStage stage = createProgramStage(uniqueCharacter, 0, false);
     stage.setProgram(program);
 
+    if (program.getProgramStages() == null) {
+      program.setProgramStages(new HashSet<>());
+    }
+    program.getProgramStages().add(stage);
+
     return stage;
   }
 

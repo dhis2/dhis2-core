@@ -235,8 +235,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     inaccessibleProgramStage.getSharing().setOwner(admin);
     inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleProgramStage, false);
-    manager.save(programA, false);
-    manager.save(programB, false);
 
     relationshipTypeA = createRelationshipType('A');
     relationshipTypeA

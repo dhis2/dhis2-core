@@ -81,7 +81,6 @@ class TrackerEventQueryParams {
    * Program stage the event must be tracked entity must be enrolled in. This should not be set when
    * {@link #accessibleTrackerPrograms} is set. The user must have data read access to this program.
    */
-  // TODO Is this name good enough?
   @Getter private ProgramStage programStage;
 
   /**

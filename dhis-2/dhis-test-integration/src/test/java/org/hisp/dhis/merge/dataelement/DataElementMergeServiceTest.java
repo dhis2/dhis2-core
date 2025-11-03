@@ -31,6 +31,7 @@ package org.hisp.dhis.merge.dataelement;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -2899,6 +2900,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
+    stage.getSharing().setPublicAccess(READ_ONLY);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -3006,6 +3008,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
+    stage.getSharing().setPublicAccess(READ_ONLY);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
