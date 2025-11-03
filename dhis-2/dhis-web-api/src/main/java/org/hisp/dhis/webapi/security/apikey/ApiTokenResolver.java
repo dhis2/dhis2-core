@@ -43,14 +43,6 @@ public final class ApiTokenResolver {
   public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
 
   public String resolve(HttpServletRequest request) {
-    String authorizationHeaderToken = resolveFromAuthorizationHeader(request);
-    if (authorizationHeaderToken != null) {
-      return authorizationHeaderToken;
-    }
-    return null;
-  }
-
-  private String resolveFromAuthorizationHeader(HttpServletRequest request) {
     String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (!StringUtils.startsWithIgnoreCase(authorization, HEADER_TOKEN_KEY_PREFIX)) {
       return null;
