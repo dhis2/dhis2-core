@@ -2901,6 +2901,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
     stage.getSharing().setPublicAccess(READ_ONLY);
+    program.getProgramStages().add(stage);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -3009,6 +3010,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
     stage.getSharing().setPublicAccess(READ_ONLY);
+    program.getProgramStages().add(stage);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
