@@ -263,7 +263,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    */
   private String getBasePropertyName(String displayPropertyName) {
     // get base property name by removing "display" prefix
-   return displayPropertyName.substring(0, 7).toLowerCase() + displayPropertyName.substring(7);
+    return displayPropertyName.substring(0, 7).toLowerCase() + displayPropertyName.substring(7);
   }
 
   private void initStoreMap() {
@@ -354,5 +354,4 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
     return or;
   }
-
 }
