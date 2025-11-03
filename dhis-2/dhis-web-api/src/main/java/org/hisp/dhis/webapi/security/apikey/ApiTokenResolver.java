@@ -42,47 +42,16 @@ public final class ApiTokenResolver {
 
   public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
 
-  public static final String REQUEST_PARAMETER_NAME = "api_token";
-
-  private boolean allowFormEncodedBodyParameter = false;
-
-  private boolean allowUriQueryParameter = false;
-
-  private String bearerTokenHeaderName = HttpHeaders.AUTHORIZATION;
-
   public String resolve(HttpServletRequest request) {
     String authorizationHeaderToken = resolveFromAuthorizationHeader(request);
-    String parameterToken = resolveFromRequestParameters(request);
-
     if (authorizationHeaderToken != null) {
-      if (parameterToken != null) {
-        throw new ApiTokenAuthenticationException(
-            ApiTokenErrors.invalidRequest("Found multiple api tokens in the request"));
-      }
       return authorizationHeaderToken;
     }
-
-    if (parameterToken != null && isParameterTokenSupportedForRequest(request)) {
-      return parameterToken;
-    }
-
     return null;
   }
 
-  public void setAllowFormEncodedBodyParameter(boolean allowFormEncodedBodyParameter) {
-    this.allowFormEncodedBodyParameter = allowFormEncodedBodyParameter;
-  }
-
-  public void setAllowUriQueryParameter(boolean allowUriQueryParameter) {
-    this.allowUriQueryParameter = allowUriQueryParameter;
-  }
-
-  public void setBearerTokenHeaderName(String bearerTokenHeaderName) {
-    this.bearerTokenHeaderName = bearerTokenHeaderName;
-  }
-
   private String resolveFromAuthorizationHeader(HttpServletRequest request) {
-    String authorization = request.getHeader(this.bearerTokenHeaderName);
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
     if (!StringUtils.startsWithIgnoreCase(authorization, HEADER_TOKEN_KEY_PREFIX)) {
       return null;
     }
@@ -94,24 +63,5 @@ public final class ApiTokenResolver {
     }
 
     return matcher.group("token");
-  }
-
-  private static String resolveFromRequestParameters(HttpServletRequest request) {
-    String[] values = request.getParameterValues(REQUEST_PARAMETER_NAME);
-    if (values == null || values.length == 0) {
-      return null;
-    }
-
-    if (values.length == 1) {
-      return values[0];
-    }
-
-    throw new ApiTokenAuthenticationException(
-        ApiTokenErrors.invalidRequest("Found multiple Api tokens in the request"));
-  }
-
-  private boolean isParameterTokenSupportedForRequest(HttpServletRequest request) {
-    return ((this.allowFormEncodedBodyParameter && "POST".equals(request.getMethod()))
-        || (this.allowUriQueryParameter && "GET".equals(request.getMethod())));
   }
 }
