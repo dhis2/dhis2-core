@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.lang.System.Logger.Level.DEBUG;
 import static java.lang.System.Logger.Level.INFO;
 import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
@@ -348,7 +349,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  @TimeExecution(level = INFO, name = "data value upsert")
+  @TimeExecution(level = DEBUG, name = "data value upsert")
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
@@ -385,7 +386,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  @TimeExecution(level = INFO, name = "data value deletion")
+  @TimeExecution(level = DEBUG, name = "data value deletion")
   public DataEntrySummary deleteGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {

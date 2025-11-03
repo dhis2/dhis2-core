@@ -86,7 +86,7 @@ public class RecordingJobProgress implements JobProgress {
     JobProgress track =
         notifier == null
             ? JobProgress.noop()
-            : new NotifierJobProgress(notifier, job, params, NotificationLevel.INFO);
+            : new NotifierJobProgress(notifier, job, params, NotificationLevel.DEBUG);
     return new RecordingJobProgress(null, null, track, true, () -> {}, false, true);
   }
 
