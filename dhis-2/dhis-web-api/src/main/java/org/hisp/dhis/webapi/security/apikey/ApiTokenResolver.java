@@ -33,8 +33,6 @@ import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChe
 
 import com.google.common.net.HttpHeaders;
 import jakarta.servlet.http.HttpServletRequest;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
@@ -52,7 +50,6 @@ public final class ApiTokenResolver {
       Pattern.compile("^ApiToken (?<token>[a-z0-9-._~+/]+=*)$", Pattern.CASE_INSENSITIVE);
 
   public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
-  public static final String REQUEST_PARAMETER_NAME = "api_token";
   public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
 
   private String bearerTokenHeaderName = HttpHeaders.AUTHORIZATION;
@@ -60,10 +57,11 @@ public final class ApiTokenResolver {
   @CheckForNull
   public String resolve(HttpServletRequest request) {
     char[] headerToken = extractTokenFromHeader(request);
-    char[] parameterToken = extractTokenFromParameters(request);
 
-    if (validateHeaderToken(headerToken, parameterToken)) return hashToken(headerToken);
-    if (validateParameterToken(request, parameterToken)) return hashToken(parameterToken);
+    if (headerToken.length > 0) {
+      validateChecksum(headerToken);
+      return hashToken(headerToken);
+    }
 
     return null;
   }
@@ -81,112 +79,6 @@ public final class ApiTokenResolver {
     }
 
     return matcher.group("token").toCharArray();
-  }
-
-  private static boolean validateHeaderToken(
-      char[] authorizationHeaderToken, char[] parameterToken) {
-    if (authorizationHeaderToken.length > 0) {
-      validateChecksum(authorizationHeaderToken);
-
-      if (parameterToken.length > 0) {
-        throw new ApiTokenAuthenticationException(
-            ApiTokenErrors.invalidRequest("Found multiple tokens in the request"));
-      }
-      return true;
-    }
-
-    return false;
-  }
-
-  private char[] extractTokenFromParameters(HttpServletRequest request) {
-    if ("POST".equals(request.getMethod())) {
-      return extractTokenFromFormBody(request);
-    } else if ("GET".equals(request.getMethod())) {
-      return extractTokenFromQueryString(request);
-    }
-    return new char[0];
-  }
-
-  private static char[] extractTokenFromQueryString(HttpServletRequest request) {
-    String queryString = request.getQueryString();
-    if (queryString == null || queryString.isEmpty()) {
-      return new char[0];
-    }
-
-    // Parse query string manually to avoid mixing with body parameters
-    String[] pairs = queryString.split("&");
-    String tokenValue = null;
-    int tokenCount = 0;
-
-    for (String pair : pairs) {
-      String[] keyValue = pair.split("=", 2);
-      if (keyValue.length == 2 && REQUEST_PARAMETER_NAME.equals(keyValue[0])) {
-        tokenValue = keyValue[1];
-        tokenCount++;
-      }
-    }
-
-    if (tokenCount == 0) {
-      return new char[0];
-    }
-
-    if (tokenCount == 1) {
-      return URLDecoder.decode(tokenValue, StandardCharsets.UTF_8).toCharArray();
-    }
-
-    throw new ApiTokenAuthenticationException(
-        ApiTokenErrors.invalidRequest("Found multiple Api tokens in the request"));
-  }
-
-  private static char[] extractTokenFromFormBody(HttpServletRequest request) {
-    // Validate Content-Type for form-encoded requests
-    String contentType = request.getContentType();
-    if (contentType == null
-        || !contentType.toLowerCase().startsWith("application/x-www-form-urlencoded")) {
-      // If not form-encoded, check if token is in query string (which should be rejected)
-      if (request.getQueryString() != null
-          && request.getQueryString().contains(REQUEST_PARAMETER_NAME)) {
-        throw new ApiTokenAuthenticationException(
-            ApiTokenErrors.invalidRequest(
-                "API token found in URL query string but only form-encoded body parameters are allowed"));
-      }
-      return new char[0];
-    }
-
-    // For form-encoded requests, we need to extract only from the body, not query string
-    String[] allValues = request.getParameterValues(REQUEST_PARAMETER_NAME);
-    if (allValues == null || allValues.length == 0) {
-      return new char[0];
-    }
-
-    // Check if token is also in query string (which should be rejected)
-    String queryString = request.getQueryString();
-    if (queryString != null && queryString.contains(REQUEST_PARAMETER_NAME)) {
-      throw new ApiTokenAuthenticationException(
-          ApiTokenErrors.invalidRequest(
-              "API token found in URL query string but only form-encoded body parameters are allowed"));
-    }
-
-    if (allValues.length == 1) {
-      return allValues[0].toCharArray();
-    }
-
-    throw new ApiTokenAuthenticationException(
-        ApiTokenErrors.invalidRequest("Found multiple Api tokens in the request"));
-  }
-
-  private boolean validateParameterToken(HttpServletRequest request, char[] parameterToken) {
-    if (parameterToken.length > 0) {
-      String method = request.getMethod();
-      if ("POST".equals(method) || "GET".equals(method)) {
-        validateChecksum(parameterToken);
-        return true;
-      }
-      throw new ApiTokenAuthenticationException(
-          ApiTokenErrors.invalidRequest(
-              "API token source not allowed for this request method and configuration"));
-    }
-    return false;
   }
 
   private static void validateChecksum(char[] token) {
