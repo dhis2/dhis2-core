@@ -213,7 +213,7 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<FileResource> getUnassignedPastGracePeriod(
+  public List<FileResource> getUnassignedPassedGracePeriod(
       Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime gracePeriod) {
     @Language("SQL")
     String sql =

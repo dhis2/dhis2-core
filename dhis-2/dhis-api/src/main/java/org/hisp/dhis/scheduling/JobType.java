@@ -30,6 +30,7 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobType.Defaults.daily1am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.daily2am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.daily7am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.dailyRandomBetween3and5;
@@ -115,11 +116,11 @@ public enum JobType {
   System Jobs
   */
   HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
-  DATA_VALUE_TRIM(every(20, "D2datatrim8", "Data value trim")),
+  DATA_VALUE_TRIM(daily1am("D2datatrim8", "Data value trim")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
-  FILE_RESOURCE_CLEANUP(every(20, "pd6O228pqr0", "File resource clean up")),
+  FILE_RESOURCE_CLEANUP(daily2am("pd6O228pqr0", "File resource clean up")),
   ACCOUNT_EXPIRY_ALERT(daily2am("fUWM1At1TUx", "User account expiry alert")),
   VALIDATION_RESULTS_NOTIFICATION(daily7am("Js3vHn2AVuG", "Validation result notification")),
   REMOVE_USED_OR_EXPIRED_RESERVED_VALUES(

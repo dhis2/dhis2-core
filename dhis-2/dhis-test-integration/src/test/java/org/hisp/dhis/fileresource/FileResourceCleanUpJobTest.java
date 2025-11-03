@@ -49,9 +49,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Kristian Wærstad
- */
 class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private FileResourceCleanUpJob cleanUpJob;
@@ -59,7 +56,7 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
   @Autowired private FileResourceStore fileResourceStore;
 
   @Test
-  @DisplayName("Unassigned file resources are deleted")
+  @DisplayName("Expected unassigned file resources are deleted and assigned file resources are not")
   void unassignedTest() {
     // mock grace period to simulate that it has passed
     try (MockedStatic<DefaultFileResourceService> mocked =

@@ -118,6 +118,6 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
    */
   List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
 
-  List<FileResource> getUnassignedPastGracePeriod(
+  List<FileResource> getUnassignedPassedGracePeriod(
       Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime minus);
 }

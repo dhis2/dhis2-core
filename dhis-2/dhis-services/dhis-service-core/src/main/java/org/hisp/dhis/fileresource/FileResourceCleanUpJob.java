@@ -43,6 +43,9 @@ import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -51,10 +54,40 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload FileResources and
- * deletes them from the database and/or file store.
+ * The {@link FileResourceCleanUpJob} is responsible for cleaning up unassigned {@link
+ * FileResource}s. Each {@link FileResourceDomain} flow e.g. create {@link DataValue}, delete {@link
+ * Icon} etc. is responsible for setting and unsetting the {@code assigned} value of a {@link
+ * FileResource}. The {@link FileResourceCleanUpJob} will delete {@link FileResource} entries in the
+ * {@code fileresource} table. When those deletes occur, they trigger {@link FileDeletedEvent}s
+ * which then delete the actual file from the file system. <br>
+ * There are 3 targeted delete operations, as each have slightly different criteria for deletion:
  *
- * @author Halvdan Hoem Grelland
+ * <ol>
+ *   <li>{@link FileResource} domains for {@code DATA_VALUE} will be deleted when:
+ *       <ul>
+ *         <li>unassigned
+ *         <li>{@link DefaultFileResourceService#getGracePeriod()} has passed
+ *         <li>{@link FileResourceRetentionStrategy} has passed
+ *       </ul>
+ *   <li>{@link FileResource} domains for {@code JOB_DATA} will be deleted when:
+ *       <ul>
+ *         <li>unassigned
+ *         <li>No {@link FileResource} UID in the {@code jobconfiguration} table for {@code
+ *             ONCE_ASAP} jobs
+ *       </ul>
+ *   <li>{@link FileResource} domains for {@code domainsToDeleteWhenUnassigned} will be deleted
+ *       when:
+ *       <ul>
+ *         <li>unassigned
+ *         <li>{@link DefaultFileResourceService#getGracePeriod()} has passed
+ *       </ul>
+ * </ol>
+ *
+ * <br>
+ * This job runs nightly (see {@link JobType for details}.<br>
+ * Reviewed and updated for 2.43
+ *
+ * @author davidmackessy
  */
 @Slf4j
 @AllArgsConstructor
@@ -99,7 +132,7 @@ public class FileResourceCleanUpJob implements Job {
         jobDataUnassigned,
         deletedFileResources);
 
-    // Remaining FRs to be deleted
+    // Remaining applicable FRs to be deleted
     List<FileResource> remainingUnassigned =
         fileResourceService.getExpiredFileResources(domainsToDeleteWhenUnassigned);
     deleteFrs(
@@ -157,10 +190,10 @@ public class FileResourceCleanUpJob implements Job {
   }
 
   /**
-   * Attempts to delete a fileresource. Fixes the isAssigned status if it turns out to be referenced
-   * by something else
+   * Attempts to delete a {@link FileResource}. Fixes the {@code assigned} status if it turns out to
+   * be referenced by something else
    *
-   * @param fileResource the fileresource to delete
+   * @param fileResource the {@link FileResource} to delete
    * @return true if deletion was successful
    */
   private boolean safeDelete(FileResource fileResource) {
