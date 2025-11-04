@@ -120,8 +120,8 @@ public class TrackerProgramTest extends Simulation {
     Request getEventsByProgramStage =
         new Request(
             getEventsUrlByProgramStage,
-            10,
-            "Get relationships for first event",
+            100,
+            "Get events by program stage",
             "Get a list of single events",
             "Get one single event");
 
