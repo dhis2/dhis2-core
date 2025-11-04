@@ -14,6 +14,7 @@ on:
 jobs:
   run-scheduled-tests:
     name: ${{ matrix.name }}
+    if: github.repository == 'dhis2/dhis2-core'
     strategy:
       fail-fast: false
       matrix:
