@@ -75,8 +75,8 @@ Raw tests accept system properties via `MVN_ARGS`. Key parameters:
 * `scenario` - Path to scenario file
 * `query` - Optional: run only a specific query URL
 
-See [ConfigLoader.java](src/test/org/hisp/dhis/test/raw/ConfigLoader.java) for all options and
-defaults.
+See [ConfigLoader.java](src/test/java/org/hisp/dhis/test/raw/ConfigLoader.java) for all options
+and defaults.
 
 ### Scenario File Structure
 
