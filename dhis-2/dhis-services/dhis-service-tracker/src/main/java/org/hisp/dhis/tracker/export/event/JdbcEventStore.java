@@ -943,7 +943,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.isSynchronizationQuery()) {
-      fromBuilder.append(hlp.whereAnd()).append(" psi.lastupdated > psi.lastsynchronized ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
     }
 
     if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
