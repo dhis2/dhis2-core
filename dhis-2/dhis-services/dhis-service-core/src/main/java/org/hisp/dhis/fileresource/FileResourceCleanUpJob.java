@@ -144,7 +144,7 @@ public class FileResourceCleanUpJob implements Job {
             .formatted(
                 domainsToDeleteWhenUnassigned.stream()
                     .map(Enum::name)
-                    .collect(Collectors.joining())),
+                    .collect(Collectors.joining(","))),
         remainingUnassigned,
         deletedFileResources);
 
