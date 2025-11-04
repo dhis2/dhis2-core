@@ -31,6 +31,7 @@ package org.hisp.dhis.document;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.user.User;
 
 /**
@@ -68,7 +69,7 @@ public interface DocumentService {
    *
    * @param document the Document to delete.
    */
-  void deleteDocument(Document document);
+  void deleteDocument(Document document) throws ForbiddenException;
 
   /**
    * Retrieves all Documents.

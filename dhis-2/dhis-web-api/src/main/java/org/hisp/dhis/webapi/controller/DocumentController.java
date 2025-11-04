@@ -50,7 +50,6 @@ import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
@@ -137,22 +136,11 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
       UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
-      throws NotFoundException, ForbiddenException {
-
+      throws NotFoundException {
     Document document = getEntity(documentUid);
-    if (!aclService.canDelete(currentUser, document)) {
-      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
-    }
-
-    // unassign the doc's file resource when deleting
-    FileResource fr = document.getFileResource();
-    ObjectReport objectReport = new ObjectReport(Document.class, 0, documentUid);
+    ObjectReport objectReport = new ObjectReport(Document.class, 0, document.getUid());
     try {
       documentService.deleteDocument(document);
-      if (fr != null) {
-        fr.setAssigned(false);
-        fileResourceService.updateFileResource(fr);
-      }
       return ok().setResponse(new ObjectReportWebMessageResponse(objectReport));
     } catch (Exception e) {
       return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)

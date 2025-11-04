@@ -171,7 +171,6 @@ public class FileResourceCleanUpJob implements Job {
                 new UnassignedFileResource(fr.getUid(), fr.getName(), fr.getDomain().name()));
           }
         });
-    progress.completedStage(null);
   }
 
   private static String toIdentifier(FileResource fr) {
