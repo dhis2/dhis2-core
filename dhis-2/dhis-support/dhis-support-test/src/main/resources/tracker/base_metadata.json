@@ -1274,6 +1274,33 @@
       "validationStrategy": "ON_COMPLETE"
     },
     {
+      "id": "ZfzckZBvDkB",
+      "autoGenerateEvent": true,
+      "created": "2020-05-31T09:02:52.687",
+      "description": "test-program-stage-low-level-org-unit",
+      "displayGenerateEventBox": true,
+      "lastUpdated": "2020-05-31T11:41:22.426",
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "minDaysFromStart": 0,
+      "name": "test-program-stage-low-level-org-unit",
+      "notificationTemplates": [
+        {
+          "id": "FdIeUL4gyoB"
+        }
+      ],
+      "program": {
+        "id": "UWRnoyBjvqi"
+      },
+      "repeatable": true,
+      "sortOrder": 1,
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "validationStrategy": "ON_COMPLETE"
+    },
+    {
       "id": "uLQthmAPTPq",
       "autoGenerateEvent": true,
       "created": "2020-05-31T09:02:52.687",
@@ -1714,11 +1741,17 @@
       "organisationUnits": [
         {
           "id": "tSsGrtfRzjY"
+        },
+        {
+          "id": "h4w96yEMlzO"
         }
       ],
       "programStages": [
         {
           "id": "ZfzckZBvDkA"
+        },
+        {
+          "id": "ZfzckZBvDkB"
         }
       ],
       "programType": "WITH_REGISTRATION",

@@ -98,8 +98,7 @@ class TrackerEventRequestParamsMapper {
         eventRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element and attribute");
 
     TrackerEventOperationParamsBuilder builder =
-        TrackerEventOperationParams.builder()
-            .program(eventRequestParams.getProgram())
+        TrackerEventOperationParams.builderForProgram(eventRequestParams.getProgram())
             .programStage(eventRequestParams.getProgramStage())
             .orgUnit(eventRequestParams.getOrgUnit())
             .trackedEntity(eventRequestParams.getTrackedEntity())

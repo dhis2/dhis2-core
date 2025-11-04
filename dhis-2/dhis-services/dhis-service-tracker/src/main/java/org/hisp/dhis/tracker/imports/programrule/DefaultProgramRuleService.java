@@ -115,10 +115,12 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment =
                   RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
 
+              Program program = preheat.getProgram(e.getProgram());
+
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
-                  preheat.getProgram(e.getProgram()),
+                  getEventsFromEnrollment(e.getUid(), UID.of(program.getUid()), bundle, preheat),
+                  program,
                   bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)
@@ -141,7 +143,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(UID.of(e), bundle, preheat),
+                  getEventsFromEnrollment(
+                      UID.of(e), UID.of(e.getProgram().getUid()), bundle, preheat),
                   e.getProgram(),
                   bundle.getUser());
             })
@@ -211,13 +214,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // using the one from payload if they are present in both places
   @Nonnull
   private List<RuleEvent> getEventsFromEnrollment(
-      UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
+      UID enrollmentUid, UID programUid, TrackerBundle bundle, TrackerPreheat preheat) {
     Stream<TrackerEvent> events;
     try {
       events =
           trackerEventService
               .findEvents(
-                  TrackerEventOperationParams.builder()
+                  TrackerEventOperationParams.builderForProgram(programUid)
                       .fields(TrackerEventFields.all())
                       .orgUnitMode(ACCESSIBLE)
                       .enrollments(Set.of(enrollmentUid))

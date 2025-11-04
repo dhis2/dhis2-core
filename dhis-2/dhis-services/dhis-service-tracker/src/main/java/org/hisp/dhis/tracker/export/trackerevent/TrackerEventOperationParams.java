@@ -259,4 +259,18 @@ public class TrackerEventOperationParams {
       return this;
     }
   }
+
+  public static TrackerEventOperationParamsBuilder builderForProgram(@Nonnull UID program) {
+    return new TrackerEventOperationParamsBuilder().program(program);
+  }
+
+  public static TrackerEventOperationParamsBuilder builderForEvent(@Nonnull UID event) {
+    return new TrackerEventOperationParamsBuilder().events(Set.of(event));
+  }
+
+  // Do not remove this unused method. This hides the builder with no params which Lombok
+  // creates by default.
+  private static TrackerEventOperationParamsBuilder builder() {
+    return new TrackerEventOperationParamsBuilder();
+  }
 }

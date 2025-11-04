@@ -65,6 +65,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -122,7 +123,9 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder =
-        TrackerEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+        TrackerEventOperationParams.builderForProgram(UID.of(programStage.getProgram().getUid()))
+            .orgUnit(orgUnit)
+            .orgUnitMode(SELECTED);
   }
 
   @Test
@@ -337,7 +340,7 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     TrackerEventOperationParams params =
-        operationParamsBuilder
+        TrackerEventOperationParams.builderForProgram(UID.of("shPjYNifvMK"))
             .orgUnit(UID.of("uoNW0E3xXUy"))
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo(UID.of("O4VaNks6tta"))
@@ -608,24 +611,28 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
   void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgram()
       throws ForbiddenException, BadRequestException {
     Program program = get(Program.class, programStage.getProgram().getUid());
+    TrackerEventOperationParamsBuilder operationParams =
+        TrackerEventOperationParams.builderForEvent((UID.of("D9PbzJY8bJM")));
 
     updatePublicAccessSharing(program, DATA_READ);
 
     injectSecurityContextUser(userService.getUser("Z7870757a75"));
 
-    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+    assertIsEmpty(getEvents(operationParams.build()));
   }
 
   @Test
   void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgram()
       throws ForbiddenException, BadRequestException {
     Program program = get(Program.class, programStage.getProgram().getUid());
+    TrackerEventOperationParamsBuilder operationParams =
+        TrackerEventOperationParams.builderForEvent((UID.of("D9PbzJY8bJM")));
 
     updatePublicAccessSharing(program, READ);
 
     injectSecurityContextUser(userService.getUser("Z7870757a75"));
 
-    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+    assertIsEmpty(getEvents(operationParams.build()));
   }
 
   @Test
