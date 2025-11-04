@@ -110,7 +110,7 @@ public class TrackerProgramTest extends Simulation {
     String getEventsUrlByProgramStage =
         "/api/tracker/events?program="
             + eventProgram
-            + "programStage="
+            + "&programStage="
             + programStage
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,"
             + "&orgUnit=DiszpKrYNg8"
@@ -124,6 +124,9 @@ public class TrackerProgramTest extends Simulation {
             "Get events by program stage",
             "Get a list of single events",
             "Get one single event");
+
+    System.out.println("Request URL: " + getEventsUrlByProgramStage);
+    System.out.println("programStage = " + programStage);
 
     ScenarioBuilder scenarioBuilder =
         scenario("Single Events")
