@@ -58,6 +58,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -235,6 +236,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     String translationKey = property.getTranslationKey();
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    String localeStr = locale != null ? locale.toString() : "en";
 
     Expression<String> translatedValue =
         builder.function(
@@ -242,7 +244,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             String.class,
             root.get("translations"),
             builder.literal(translationKey),
-            builder.literal(locale.getLanguage()));
+            builder.literal(localeStr));
 
     String basePropertyName = getBasePropertyName(property.getName());
     Expression<String> baseValue = root.get(basePropertyName);
@@ -262,8 +264,12 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * @return the base property name (e.g., "name")
    */
   private String getBasePropertyName(String displayPropertyName) {
-    // get base property name by removing "display" prefix
-    return displayPropertyName.substring(0, 7).toLowerCase() + displayPropertyName.substring(7);
+    return switch (displayPropertyName) {
+      case "displayName" -> "name";
+      case "displayDescription" -> "description";
+      case "displayShortName" -> "shortName";
+      default -> displayPropertyName;
+    };
   }
 
   private void initStoreMap() {
@@ -312,7 +318,13 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       CriteriaBuilder builder, Root<Y> root, Filter filter, Query<?> query) {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
-      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+      String filterPath = filter.getPath();
+      // Map display properties to their base properties
+      if (filterPath.startsWith("display")) {
+        filterPath = getBasePropertyName(filterPath);
+        filter = new Filter(filterPath, filter.getOperator());
+      }
+      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
       return filter.getOperator().getPredicate(builder, root, path);
     }
     // handle special cases:
