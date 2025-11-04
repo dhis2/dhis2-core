@@ -86,6 +86,7 @@ on:
 
 jobs:
   performance-tests:
+    if: github.repository == 'dhis2/dhis2-core'
     runs-on: perf
     timeout-minutes: 240
     defaults:
