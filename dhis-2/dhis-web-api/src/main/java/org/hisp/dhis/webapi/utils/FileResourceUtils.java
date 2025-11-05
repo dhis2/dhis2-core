@@ -203,11 +203,6 @@ public class FileResourceUtils {
     }
   }
 
-  public FileResource saveFileResource(MultipartFile file, FileResourceDomain domain)
-      throws IOException, ConflictException {
-    return saveFileResource(null, file, domain);
-  }
-
   public FileResource saveFileResource(String uid, MultipartFile file, FileResourceDomain domain)
       throws IOException, ConflictException {
     String filename =

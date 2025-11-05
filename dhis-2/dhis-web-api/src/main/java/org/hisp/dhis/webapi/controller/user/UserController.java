@@ -45,7 +45,6 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -68,7 +67,6 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -105,6 +103,7 @@ import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -135,8 +134,6 @@ public class UserController
 
   public static final String BULK_INVITE_PATH = "/invites";
 
-  @Autowired protected DbmsManager dbmsManager;
-
   @Autowired private UserGroupService userGroupService;
 
   @Autowired private UserControllerUtils userControllerUtils;
@@ -147,7 +144,7 @@ public class UserController
 
   @Autowired private TwoFactorAuthService twoFactorAuthService;
 
-  @Autowired private EntityManager entityManager;
+  @Autowired private FileResourceUtils fileResourceUtils;
 
   // -------------------------------------------------------------------------
   // GET
@@ -600,6 +597,7 @@ public class UserController
     ImportReport importReport =
         importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
+    // import was successful
     if (importReport.getStatus() == Status.OK && importReport.getStats().updated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
 
