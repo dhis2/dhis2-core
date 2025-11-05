@@ -38,12 +38,12 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -110,24 +110,23 @@ class SupplementaryDataProviderTest extends TestBase {
   void getUserRolesSupplementaryData() {
     when(organisationUnitGroupService.getOrganisationUnitGroup(ORG_UNIT_GROUP_UID))
         .thenReturn(orgUnitGroup);
-    Map<String, List<String>> supplementaryData =
+    RuleSupplementaryData supplementaryData =
         providerToTest.getSupplementaryData(
             getProgramRule('C', "d2:inOrgUnitGroup('OrgUnitGroupId')"), currentUser);
-    assertFalse(supplementaryData.isEmpty());
-    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER_ROLES")));
-    assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
-    assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
-    assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
+    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.getUserRoles()));
+    assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
+    assertEquals(
+        orgUnitA.getUid(), supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).get(0));
+    assertNull(supplementaryData.getOrgUnitGroups().get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
   }
 
   @Test
   void getUserGroupsSupplementaryData() {
-    Map<String, List<String>> supplementaryData =
+    RuleSupplementaryData supplementaryData =
         providerToTest.getSupplementaryData(
             getProgramRule('D', "d2:inUserGroup('UserGroupId')"), currentUser);
-    assertFalse(supplementaryData.isEmpty());
-    assertFalse(supplementaryData.get("USER_GROUPS").isEmpty());
-    assertTrue(supplementaryData.get("USER_GROUPS").contains(userGroupA.getUid()));
+    assertFalse(supplementaryData.getUserGroups().isEmpty());
+    assertTrue(supplementaryData.getUserGroups().contains(userGroupA.getUid()));
   }
 
   private List<ProgramRule> getProgramRule(char ch, String condition) {

@@ -90,7 +90,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.11</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.4.0-SNAPSHOT</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->

@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
-import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroupService;
 import org.springframework.stereotype.Component;
@@ -50,9 +50,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SupplementaryDataProvider {
-  private static final String USER_ROLES = "USER_ROLES";
-  private static final String USER_GROUPS = "USER_GROUPS";
-
   private static final String ORG_UNIT_GROUP_REGEX =
       "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
           + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
@@ -66,19 +63,19 @@ public class SupplementaryDataProvider {
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
   @Nonnull private final UserGroupService userGroupService;
 
-  public Map<String, List<String>> getSupplementaryData(
+  public RuleSupplementaryData getSupplementaryData(
       List<ProgramRule> programRules, UserDetails user) {
-    Map<String, List<String>> supplementaryData = Maps.newHashMap();
 
     Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(programRules);
-    supplementaryData.putAll(orgUnitGroupData);
 
-    Map<String, List<String>> userGroupData = extractUserGroups(programRules, user);
-    supplementaryData.putAll(userGroupData);
+    extractUserGroups(programRules, user);
 
-    supplementaryData.put(USER_ROLES, new ArrayList<>(user.getUserRoleIds()));
+    user.getUserRoleIds();
 
-    return supplementaryData;
+    return new RuleSupplementaryData(
+        extractUserGroups(programRules, user),
+        user.getUserRoleIds().stream().toList(),
+        orgUnitGroupData);
   }
 
   private Map<String, List<String>> extractOrgUnitGroups(List<ProgramRule> programRules) {
@@ -106,8 +103,7 @@ public class SupplementaryDataProvider {
                         .toList()));
   }
 
-  private Map<String, List<String>> extractUserGroups(
-      List<ProgramRule> programRules, UserDetails user) {
+  private List<String> extractUserGroups(List<ProgramRule> programRules, UserDetails user) {
     List<String> userGroups = new ArrayList<>();
     for (ProgramRule programRule : programRules) {
       Matcher matcher =
@@ -118,9 +114,9 @@ public class SupplementaryDataProvider {
     }
 
     if (userGroups.isEmpty()) {
-      return Collections.emptyMap();
+      return List.of();
     }
 
-    return Map.of(USER_GROUPS, user.getUserGroupIds().stream().toList());
+    return user.getUserGroupIds().stream().toList();
   }
 }

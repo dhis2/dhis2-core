@@ -50,6 +50,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
+import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
@@ -182,7 +183,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
             .collect(
                 Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
 
-    Map<String, List<String>> supplementaryData =
+    RuleSupplementaryData supplementaryData =
         supplementaryDataProvider.getSupplementaryData(programRules, user);
 
     return new RuleEngineContext(
