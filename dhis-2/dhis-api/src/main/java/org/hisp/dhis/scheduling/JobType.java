@@ -115,6 +115,7 @@ public enum JobType {
   System Jobs
   */
   HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
+  DATA_VALUE_TRIM(Defaults.daily1am("D2datatrim8", "Data value trim")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
@@ -149,6 +150,10 @@ public enum JobType {
       return new Defaults(UID.of(uid), "0 0 2 ? * *", null, name);
     }
 
+    static Defaults daily1am(String uid, String name) {
+      return new Defaults(UID.of(uid), "0 0 1 ? * *", null, name);
+    }
+
     static Defaults daily7am(String uid, String name) {
       return new Defaults(UID.of(uid), "0 0 7 ? * *", null, name);
     }
@@ -166,6 +171,8 @@ public enum JobType {
   }
 
   @CheckForNull private final Class<? extends JobParameters> jobParameters;
+
+  /** A job with defaults is a system job and gets spawned automatically if it does not yet exist */
   @CheckForNull private final Defaults defaults;
 
   JobType() {
