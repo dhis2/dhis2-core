@@ -36,8 +36,8 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.USER_AVATAR;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -100,8 +100,8 @@ public class FileResourceCleanUpJob implements Job {
   private final SystemSettingsProvider settingsProvider;
 
   // PUSH_ANALYSIS & MESSAGE_ATTACHMENT currently omitted
-  private final Set<FileResourceDomain> domainsToDeleteWhenUnassigned =
-      Set.of(DOCUMENT, ICON, ORG_UNIT, USER_AVATAR);
+  private final EnumSet<FileResourceDomain> domainsToDeleteWhenUnassigned =
+          EnumSet.of(DOCUMENT, ICON, ORG_UNIT, USER_AVATAR);
 
   @Override
   public JobType getJobType() {

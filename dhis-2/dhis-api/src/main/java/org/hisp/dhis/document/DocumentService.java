@@ -70,7 +70,6 @@ public interface DocumentService {
    * @param document the Document to delete.
    */
   void deleteDocument(Document document) throws ForbiddenException;
-  ;
 
   /**
    * Retrieves all Documents.
