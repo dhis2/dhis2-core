@@ -51,7 +51,22 @@ src/test/java/org/hisp/dhis/test/generated/RecordedSimulation.java
 
 **Reset browser proxy** when done.
 
-### 6. Run Recorded Simulation
+### 6. Move Request Body Files (Workaround for Gatling Bug)
+
+**Known Issue:** Gatling 4.x has a bug where request body files (`*_request.json`) are placed at the
+root of `src/test/resources/` instead of in the package subdirectory where the generated code
+expects them. See [gatling/gatling#3706](https://github.com/gatling/gatling/issues/3706).
+
+After recording, move the files to the correct location:
+
+```sh
+mkdir -p src/test/resources/org/hisp/dhis/test/generated/recordedsimulation
+mv src/test/resources/*_request.json src/test/resources/org/hisp/dhis/test/generated/recordedsimulation/
+```
+
+This applies when recording POST/PUT/PATCH requests with request bodies.
+
+### 7. Run Recorded Simulation
 
 ```sh
 mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.generated.RecordedSimulation
