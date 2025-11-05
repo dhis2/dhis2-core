@@ -74,11 +74,15 @@ final class DataExportOutput {
       if (group.dataSet() != null) out.writeStringField("dataSet", group.dataSet());
       if (group.period() != null) out.writeStringField("period", group.period());
       if (group.orgUnit() != null) out.writeStringField("orgUnit", group.orgUnit());
-      if (group.attributeOptionCombo() != null)
+      if (group.attributeOptionCombo() != null) {
         out.writeStringField("attributeOptionCombo", group.attributeOptionCombo());
-      if (group.attributeOptions() != null)
+      } else if (group.attributeOptions() != null) {
+        out.writeFieldName("attributeOptionCombo");
+        out.writeStartObject();
         for (Map.Entry<String, String> e : group.attributeOptions().entrySet())
           out.writeStringField(e.getKey(), e.getValue());
+        out.writeEndObject();
+      }
       out.writeArrayFieldStart("dataValues");
       Iterator<DataExportValue.Output> iter = group.values().iterator();
       while (iter.hasNext()) {
@@ -87,11 +91,15 @@ final class DataExportOutput {
         out.writeStringField("dataElement", dv.dataElement());
         if (dv.period() != null) out.writeStringField("period", dv.period());
         if (dv.orgUnit() != null) out.writeStringField("orgUnit", dv.orgUnit());
-        if (dv.categoryOptionCombo() != null)
+        if (dv.categoryOptionCombo() != null) {
           out.writeStringField("categoryOptionCombo", dv.categoryOptionCombo());
-        if (dv.categoryOptions() != null)
+        } else if (dv.categoryOptions() != null) {
+          out.writeFieldName("categoryOptionCombo");
+          out.writeStartObject();
           for (Map.Entry<String, String> e : dv.categoryOptions().entrySet())
             out.writeStringField(e.getKey(), e.getValue());
+          out.writeEndObject();
+        }
         if (dv.attributeOptionCombo() != null)
           out.writeStringField("attributeOptionCombo", dv.attributeOptionCombo());
         if (dv.value() != null) out.writeStringField("value", dv.value());

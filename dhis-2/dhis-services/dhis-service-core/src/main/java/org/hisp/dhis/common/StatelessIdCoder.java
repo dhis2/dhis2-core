@@ -34,7 +34,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 
 import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -94,29 +93,6 @@ public class StatelessIdCoder implements IdCoder {
 
   @Nonnull
   @Override
-  public List<String> listEncodedIds(
-      @Nonnull ObjectType type, @Nonnull IdProperty to, @Nonnull Stream<UID> identifiers) {
-    if (to == IdProperty.UID)
-      return identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toList();
-    String[] ids =
-        identifiers.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
-    if (ids.length == 0) return List.of();
-    @Language("sql")
-    String sqlTemplate =
-        """
-      SELECT ${property}
-      FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON t.uid = input.id
-      WHERE ${property} IS NOT NULL
-      """;
-    String sql =
-        replace(sqlTemplate, Map.of("table", tableName(type), "property", columnName("t", to)));
-    return runReadInStatelessSession(
-        sql, q -> q.setParameter("ids", ids).stream(String.class).toList());
-  }
-
-  @Nonnull
-  @Override
   public Map<UID, Map<String, String>> mapEncodedOptionCombosAsCategoryAndOption(
       @Nonnull IdProperty toCategory,
       @Nonnull IdProperty toOption,
@@ -165,7 +141,7 @@ public class StatelessIdCoder implements IdCoder {
     if (arr == null) return true;
     if (arr.length == 0) return false;
     if (arr.length == 1) return arr[0] == null;
-    for (int i = 0; i < arr.length; i++) if (arr[i] == null) return true;
+    for (Object o : arr) if (o == null) return true;
     return false;
   }
 

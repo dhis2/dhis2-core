@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -79,22 +78,6 @@ public interface IdCoder {
       @Nonnull ObjectType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
 
   /**
-   * Resolves UIDs to other identifiers.
-   *
-   * <p>If a mapping (order) is needed use {@link #mapEncodedIds(ObjectType, IdProperty, Stream)}.
-   *
-   * @param type what object (table)
-   * @param to the unknown, requested identifier (result stream value)
-   * @param ids know UID identifiers
-   * @return a stream of target identifiers which correspond to the given UIDs, in no particular
-   *     order (not including a value for UIDs that are either not found or where the target
-   *     property is null)
-   */
-  @Nonnull
-  List<String> listEncodedIds(
-      @Nonnull ObjectType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
-
-  /**
    * Resolve a single UID to another identifier.
    *
    * @param type what object (table)
@@ -108,8 +91,8 @@ public interface IdCoder {
       @Nonnull ObjectType type, @Nonnull IdProperty to, @CheckForNull UID id) {
     if (id == null) return null;
     if (to == IdProperty.UID) return id.getValue();
-    List<String> matches = listEncodedIds(type, to, Stream.of(id));
-    return matches.isEmpty() ? null : matches.get(0);
+    Map<UID, String> map = mapEncodedIds(type, to, Stream.of(id));
+    return map.isEmpty() ? null : map.get(id);
   }
 
   /**

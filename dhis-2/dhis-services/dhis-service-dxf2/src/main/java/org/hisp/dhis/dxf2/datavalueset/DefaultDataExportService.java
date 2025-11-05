@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import static java.util.function.Predicate.not;
 import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DEG;
@@ -125,18 +126,15 @@ public class DefaultDataExportService implements DataExportService {
       validateFilters(params);
       validateAccess(params);
     }
-    return exportGroupInternal(params, parameters.getOutputIdSchemes());
-  }
-
-  @Nonnull
-  private DataExportGroup.Output exportGroupInternal(DataExportParams params, IdSchemes encodeTo) {
+    IdSchemes encodeTo = parameters.getOutputIdSchemes();
     UID ds = getUnique(params.getDataSets());
     Period pe = getUnique(params.getPeriods());
     UID ou = getUnique(params.getOrganisationUnits());
     if (!params.isExactOrgUnitsFilter()) ou = null; // result may contain other units
     UID aoc = getUnique(params.getAttributeOptionCombos());
+    boolean cocAsMap = Boolean.TRUE.equals(parameters.getUnfoldOptionCombos());
     return encodeGroup(
-        new DataExportGroup(ds, pe, ou, aoc, store.exportValues(params)), encodeTo, false);
+        new DataExportGroup(ds, pe, ou, aoc, store.exportValues(params)), encodeTo, cocAsMap);
   }
 
   private <T> T getUnique(List<T> elements) {
@@ -195,107 +193,143 @@ public class DefaultDataExportService implements DataExportService {
     }
 
     IdSchemes encodeTo = parameters.getOutputIdSchemes();
-    return groups.stream().map(g -> encodeGroup(g, encodeTo, true));
+    boolean cocAsMap = Boolean.TRUE.equals(parameters.getUnfoldOptionCombos());
+    List<DataExportGroup.Output> res = new ArrayList<>(groups.size());
+    for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, cocAsMap));
+    return res.stream();
   }
 
-  private DataExportGroup.Output encodeGroup(
-      DataExportGroup group, IdSchemes to, boolean cocAsMap) {
+  private DataExportGroup.Output encodeGroup(DataExportGroup group, IdSchemes to, boolean cocAsMap)
+      throws ConflictException {
+    IdProperty dsTo = IdProperty.of(to.getDataSetIdScheme());
     IdProperty deTo = IdProperty.of(to.getDataElementIdScheme());
     IdProperty ouTo = IdProperty.of(to.getOrgUnitIdScheme());
     IdProperty cocTo = IdProperty.of(to.getCategoryOptionComboIdScheme());
     IdProperty aocTo = IdProperty.of(to.getAttributeOptionComboIdScheme());
-    Function<UID, String> dvDe = UID::getValue;
-    Function<UID, String> dvOu = UID::getValue;
-    Function<UID, String> dvCoc = UID::getValue;
-    Map<UID, Map<String, String>> dvCocMap = Map.of();
-    Function<UID, String> dvAoc = UID::getValue;
-    Map<UID, Map<String, String>> gAocMap = Map.of();
-    Period peG = group.period();
+    Function<UID, String> deOf = UID::getValue;
+    Function<UID, String> ouOf = UID::getValue;
+    Function<UID, String> cocOf = UID::getValue;
+    Map<UID, Map<String, String>> cocMap = Map.of();
+    Function<UID, String> aocOf = UID::getValue;
+    boolean deToOther = deTo.isNotUID();
+    boolean ouToOther = ouTo.isNotUID();
+    boolean cocToOther = cocTo.isNotUID() && !cocAsMap;
+    boolean aocToOther = aocTo.isNotUID() && !cocAsMap;
+
+    UID dsG = group.dataSet();
+    String dataSet = idCoder.getEncodedId(DS, dsTo, dsG);
+    if (dsG != null && dataSet == null)
+      throw new ConflictException(ErrorCode.E8200, dsTo.name(), dsG);
+
     UID ouG = group.orgUnit();
     UID aocG = group.attributeOptionCombo();
-    boolean encodeDe = deTo.isNotUID();
-    boolean encodeOu = ouTo.isNotUID() && ouG == null;
-    boolean encodeCoc = cocTo.isNotUID() && !cocAsMap;
-    boolean encodeAoc = aocTo.isNotUID() && aocG == null && !cocAsMap;
-
     Stream<DataExportValue> values = group.values();
-    if (encodeDe || encodeOu || encodeCoc || encodeAoc || cocAsMap) {
+    if (deToOther || ouToOther || cocToOther || aocToOther || cocAsMap) {
       // this is guarded, so we only consume the original stream
       // if we have to, in order to fetch id mappings
       List<DataExportValue> list = values.toList();
-      if (encodeDe)
-        dvDe =
-            idCoder.mapEncodedIds(DE, deTo, list.stream().map(DataExportValue::dataElement))::get;
-      if (encodeOu)
-        dvOu = idCoder.mapEncodedIds(OU, ouTo, list.stream().map(DataExportValue::orgUnit))::get;
-      if (encodeCoc)
-        dvCoc =
-            idCoder.mapEncodedIds(
-                    COC, cocTo, list.stream().map(DataExportValue::categoryOptionCombo))
-                ::get;
-      if (encodeAoc)
-        dvAoc =
-            idCoder.mapEncodedIds(
-                    COC, aocTo, list.stream().map(DataExportValue::attributeOptionCombo))
-                ::get;
+      if (deToOther) {
+        List<UID> deIds = list.stream().map(DataExportValue::dataElement).distinct().toList();
+        Map<UID, String> deIdMap = idCoder.mapEncodedIds(DE, deTo, deIds.stream());
+        List<UID> deIdsNoTargetId = deIds.stream().filter(not(deIdMap::containsKey)).toList();
+        if (!deIdsNoTargetId.isEmpty())
+          throw new ConflictException(ErrorCode.E8201, deTo.name(), deIdsNoTargetId);
+        deOf = deIdMap::get;
+      }
+      if (ouToOther) {
+        List<UID> ouIds = list.stream().map(DataExportValue::orgUnit).distinct().toList();
+        Map<UID, String> ouIdMap = idCoder.mapEncodedIds(OU, ouTo, ouIds.stream());
+        List<UID> ouIdsNoTargetId = ouIds.stream().filter(not(ouIdMap::containsKey)).toList();
+        if (!ouIdsNoTargetId.isEmpty())
+          throw new ConflictException(ErrorCode.E8202, ouTo.name(), ouIdsNoTargetId);
+        ouOf = ouIdMap::get;
+        // auto-detect common OU in group (work already done, might as well use it)
+        if (ouIds.size() == 1 && ouG == null) ouG = ouIds.get(0);
+      }
+      if (cocToOther) {
+        List<UID> cocIds =
+            list.stream().map(DataExportValue::categoryOptionCombo).distinct().toList();
+        Map<UID, String> cocIdMap = idCoder.mapEncodedIds(COC, cocTo, cocIds.stream());
+        List<UID> cocIdsNoTargetId = cocIds.stream().filter(not(cocIdMap::containsKey)).toList();
+        if (!cocIdsNoTargetId.isEmpty())
+          throw new ConflictException(ErrorCode.E8203, cocTo.name(), cocIdsNoTargetId);
+        cocOf = cocIdMap::get;
+      }
+      if (aocToOther) {
+        List<UID> aocIds = list.stream().map(DataExportValue::attributeOptionCombo).toList();
+        Map<UID, String> aocIdMap = idCoder.mapEncodedIds(COC, aocTo, aocIds.stream());
+        List<UID> aocIdsNoTargetId = aocIds.stream().filter(not(aocIdMap::containsKey)).toList();
+        if (!aocIdsNoTargetId.isEmpty())
+          throw new ConflictException(ErrorCode.E8203, aocTo.name(), aocIdsNoTargetId);
+        aocOf = aocIdMap::get;
+        // auto-detect common AOC in group (work already done, might as well use it)
+        if (aocIds.size() == 1 && aocG == null) aocG = aocIds.get(0);
+      }
       if (cocAsMap) {
         IdProperty cTo = IdProperty.of(to.getCategoryIdScheme());
         IdProperty coTo = IdProperty.of(to.getCategoryOptionIdScheme());
-        dvCocMap =
-            idCoder.mapEncodedOptionCombosAsCategoryAndOption(
-                cTo, coTo, list.stream().map(DataExportValue::categoryOptionCombo));
-        gAocMap =
-            idCoder.mapEncodedOptionCombosAsCategoryAndOption(
-                cTo, coTo, list.stream().map(DataExportValue::attributeOptionCombo));
+        List<UID> cocIds =
+            Stream.concat(
+                    list.stream().map(DataExportValue::categoryOptionCombo),
+                    list.stream().map(DataExportValue::attributeOptionCombo))
+                .distinct()
+                .toList();
+        cocMap = idCoder.mapEncodedOptionCombosAsCategoryAndOption(cTo, coTo, cocIds.stream());
+        List<UID> cocIdsNoTargetId = cocIds.stream().filter(not(cocMap::containsKey)).toList();
+        if (!cocIdsNoTargetId.isEmpty())
+          throw new ConflictException(ErrorCode.E8204, cTo.name(), coTo.name(), cocIdsNoTargetId);
       }
       // by only doing this in case of other IDs being used UIDs can be truly stream processed
       values = list.stream(); // renew the already consumed stream
     }
 
-    Map<UID, Map<String, String>> dvCocMapFinal = dvCocMap;
-    Map<String, String> aocGMap = cocAsMap ? gAocMap.get(aocG) : null;
+    // group encoded
+    Period peG = group.period();
     String period = peG == null ? null : peG.getIsoDate();
-    String orgUnit = idCoder.getEncodedId(OU, ouTo, ouG);
-    String attributeOptionCombo = aocGMap != null ? null : idCoder.getEncodedId(COC, aocTo, aocG);
-    Function<UID, String> dvDeOf = dvDe;
-    UnaryOperator<String> dvPeOf =
+    String orgUnit = ouG == null ? null : ouOf.apply(ouG);
+    String attributeOptionCombo =
+        aocG == null || aocG.isDefaultOptionCombo() || cocAsMap ? null : aocOf.apply(aocG);
+    Map<String, String> aocGMap =
+        aocG == null || aocG.isDefaultOptionCombo() || !cocAsMap ? null : cocMap.get(aocG);
+    // DV encoding
+    Map<UID, Map<String, String>> cocEncodeMap = cocMap;
+    Function<UID, String> deEncode = deOf;
+    UnaryOperator<String> peEncode =
         period == null ? UnaryOperator.identity() : pe -> pe.equals(period) ? null : pe;
-    Function<UID, String> dvOuOf =
-        orgUnit == null ? dvOu : ou -> ou.equals(ouG) ? null : ou.getValue();
-    Function<UID, String> dvCocPlain = dvCoc;
-    Function<UID, String> dvCocOf =
-        coc -> coc.isDefaultOptionCombo() ? null : dvCocPlain.apply(coc);
-    Function<UID, String> dvAocPlain = dvAoc;
-    Function<UID, String> dvAocOf =
-        attributeOptionCombo == null && (aocGMap == null || aocGMap.isEmpty())
-            ? aoc -> aoc.isDefaultOptionCombo() ? null : dvAocPlain.apply(aoc)
-            : aoc -> aoc.equals(aocG) || aoc.isDefaultOptionCombo() ? null : aoc.getValue();
+    UID ouGroup = ouG;
+    Function<UID, String> ouEncode =
+        ouGroup == null ? ouOf : ou -> ou.equals(ouGroup) ? null : ou.getValue();
+    Function<UID, String> dvCocPlain = cocOf;
+    Function<UID, String> cocEncode =
+        cocAsMap ? coc -> null : coc -> coc.isDefaultOptionCombo() ? null : dvCocPlain.apply(coc);
+    Function<UID, String> dvAocPlain = aocOf;
+    Function<UID, String> aocEncode =
+        aocG != null
+            ? aoc -> null
+            : aoc -> aoc.isDefaultOptionCombo() ? null : dvAocPlain.apply(aoc);
     return new DataExportGroup.Output(
-        idCoder.getEncodedId(DS, IdProperty.of(to.getDataSetIdScheme()), group.dataSet()),
+        dataSet,
         period,
         orgUnit,
         attributeOptionCombo,
         aocGMap,
         values.map(
-            dv -> {
-              Map<String, String> cocMap =
-                  cocAsMap ? dvCocMapFinal.get(dv.categoryOptionCombo()) : null;
-              return new DataExportValue.Output(
-                  dvDeOf.apply(dv.dataElement()),
-                  dvPeOf.apply(dv.period()),
-                  dvOuOf.apply(dv.orgUnit()),
-                  cocMap != null ? null : dvCocOf.apply(dv.categoryOptionCombo()),
-                  cocMap,
-                  dvAocOf.apply(dv.attributeOptionCombo()),
-                  dv.type(),
-                  dv.value(),
-                  emptyAsNull(dv.comment()),
-                  dv.followUp(),
-                  emptyAsNull(dv.storedBy()),
-                  dv.created(),
-                  dv.lastUpdated(),
-                  dv.deleted());
-            }));
+            dv ->
+                new DataExportValue.Output(
+                    deEncode.apply(dv.dataElement()),
+                    peEncode.apply(dv.period()),
+                    ouEncode.apply(dv.orgUnit()),
+                    cocEncode.apply(dv.categoryOptionCombo()),
+                    cocEncodeMap.get(dv.categoryOptionCombo()),
+                    aocEncode.apply(dv.attributeOptionCombo()),
+                    dv.type(),
+                    dv.value(),
+                    emptyAsNull(dv.comment()),
+                    dv.followUp(),
+                    emptyAsNull(dv.storedBy()),
+                    dv.created(),
+                    dv.lastUpdated(),
+                    dv.deleted())));
   }
 
   private static String emptyAsNull(String value) {

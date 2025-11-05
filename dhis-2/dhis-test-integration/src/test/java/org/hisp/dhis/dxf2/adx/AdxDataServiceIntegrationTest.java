@@ -41,6 +41,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -464,8 +465,8 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
         new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"),
         new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportPipeline.exportAsXmlGroups(params, out);
-    String result = out.toString("UTF-8");
+    dataExportPipeline.exportAsXmlGroups(params, () -> out);
+    String result = out.toString(StandardCharsets.UTF_8);
     InputStream expectedStream = new ClassPathResource(filePath).getInputStream();
     String expected =
         new BufferedReader(new InputStreamReader(expectedStream))

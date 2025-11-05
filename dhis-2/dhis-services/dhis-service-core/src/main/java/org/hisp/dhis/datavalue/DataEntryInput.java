@@ -56,6 +56,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
@@ -224,7 +225,10 @@ public final class DataEntryInput {
     // keys that are common for all values
     String ou = dvs.getString("orgUnit").string();
     String pe = dvs.getString("period").string();
-    String aoc = dvs.getString("attributeOptionCombo").string();
+    JsonString aoc = dvs.getString("attributeOptionCombo");
+    String aocId = aoc.isString() ? aoc.string() : null;
+    Map<String, String> aocMap =
+        aoc.isObject() ? aoc.asMap(JsonString.class).toMap(JsonString::string) : null;
     Boolean dryRun = dvs.getBoolean("dryRun").bool();
     if (dryRun != null) options.setDryRun(dryRun);
     // ID schemes
@@ -249,12 +253,15 @@ public final class DataEntryInput {
           .forEachRemaining(
               node -> {
                 JsonObject dv = JsonMixed.of(node);
+                JsonString coc = dv.getString("categoryOptionCombo");
                 values.add(
                     new DataEntryValue.Input(
                         dv.getString("dataElement").string(),
                         dv.getString("orgUnit").string(),
-                        dv.getString("categoryOptionCombo").string(),
-                        null,
+                        coc.isString() ? coc.string() : null,
+                        coc.isObject()
+                            ? coc.asMap(JsonString.class).toMap(JsonString::string)
+                            : null,
                         dv.getString("attributeOptionCombo").string(),
                         null,
                         null,
@@ -265,7 +272,7 @@ public final class DataEntryInput {
                         dv.getBoolean("deleted").bool()));
               });
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
-    return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values));
+    return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aocId, aocMap, values));
   }
 
   @Nonnull

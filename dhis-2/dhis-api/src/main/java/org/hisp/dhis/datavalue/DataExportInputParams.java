@@ -29,16 +29,22 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static org.hisp.dhis.util.DateUtils.getSqlDateString;
+
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.Maturity;
@@ -56,6 +62,15 @@ import org.hisp.dhis.common.UID;
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DataExportInputParams {
+
+  // file output details
+  private Compression compression;
+
+  @OpenApi.Description("Optional user defined result file name")
+  private String attachment;
+
+  @OpenApi.Description("`json` or `xml` or `csv` or `adx+xml` to define the file output format")
+  private String format;
 
   private Set<String> dataSet;
   private Set<String> dataElement;
@@ -128,6 +143,15 @@ public class DataExportInputParams {
   private String dataSetIdScheme;
   private String attributeOptionComboIdScheme;
 
+  @OpenApi.Description(
+      """
+    When `true`, the category option combos and attribute option combos
+    are exported as pairs of category and category option values using
+    `categoryIdScheme` and `categoryOptionIdScheme`.
+    """)
+  @Maturity.Alpha
+  private Boolean unfoldOptionCombos;
+
   @OpenApi.Ignore
   public IdSchemes getOutputIdSchemes() {
     IdSchemes schemes = new IdSchemes();
@@ -151,5 +175,27 @@ public class DataExportInputParams {
     if (property != null) {
       setter.apply(schemes, property);
     }
+  }
+
+  @Nonnull
+  public Compression getCompression() {
+    return compression == null ? Compression.NONE : compression;
+  }
+
+  @OpenApi.Ignore
+  public String getFilename() {
+    String comp =
+        switch (getCompression()) {
+          default -> "";
+          case GZIP -> ".gz";
+          case ZIP -> ".zip";
+        };
+    String fmt = format == null ? ".json" : "." + format.replace('+', '.');
+    String name = attachment == null ? "dataValues" : attachment;
+    if (name.endsWith(comp)) name = name.substring(0, name.length() - comp.length());
+    if (name.endsWith(fmt)) name = name.substring(0, name.length() - fmt.length());
+    if (startDate != null) name += "_" + getSqlDateString(startDate);
+    if (endDate != null) name += "_" + getSqlDateString(endDate);
+    return replace("${name}${fmt}${comp}", Map.of("name", name, "fmt", fmt, "comp", comp));
   }
 }
