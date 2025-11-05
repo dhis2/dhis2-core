@@ -101,7 +101,7 @@ public class FileResourceCleanUpJob implements Job {
 
   // PUSH_ANALYSIS & MESSAGE_ATTACHMENT currently omitted
   private final EnumSet<FileResourceDomain> domainsToDeleteWhenUnassigned =
-          EnumSet.of(DOCUMENT, ICON, ORG_UNIT, USER_AVATAR);
+      EnumSet.of(DOCUMENT, ICON, ORG_UNIT, USER_AVATAR);
 
   @Override
   public JobType getJobType() {
