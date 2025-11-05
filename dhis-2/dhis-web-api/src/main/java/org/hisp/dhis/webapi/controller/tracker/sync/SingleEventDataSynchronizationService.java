@@ -61,15 +61,10 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
@@ -156,8 +151,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
   private EventSynchronizationContext createSynchronizationContext(
       int pageSize, SystemSettings systemSettings) throws ForbiddenException, BadRequestException {
-    ensureAuthentication(systemSettings);
-
     Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
     long objectsToSynchronize =
         eventService.countEvents(
@@ -180,30 +173,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
     return new EventSynchronizationContext(
         skipChangedBefore, objectsToSynchronize, instance, pageSize, skipSyncElements);
-  }
-
-  /** Ensures a valid {@link User} is available during event synchronization. */
-  private void ensureAuthentication(SystemSettings systemSettings) {
-    if (CurrentUserUtil.getCurrentUserDetails() != null) {
-      return;
-    }
-
-    initializeSyncUser(systemSettings);
-  }
-
-  private void initializeSyncUser(SystemSettings systemSettings) {
-    log.info("CurrentUser is null, initializing remote sync user for EVENT_PROGRAMS_DATA_SYNC");
-
-    String remoteUsername = systemSettings.getRemoteInstanceUsername();
-    User user = userService.getUserByUsername(remoteUsername);
-    UserDetails userDetails = userService.createUserDetails(user);
-
-    var authentication =
-        new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-
-    var securityContext = SecurityContextHolder.createEmptyContext();
-    securityContext.setAuthentication(authentication);
-    SecurityContextHolder.setContext(securityContext);
   }
 
   private boolean executeSynchronizationWithPaging(
