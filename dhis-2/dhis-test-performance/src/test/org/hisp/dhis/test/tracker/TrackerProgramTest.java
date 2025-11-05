@@ -68,18 +68,29 @@ public class TrackerProgramTest extends Simulation {
 
     // only one user at a time
     ScenarioWithRequests eventScenario = eventProgramScenario(repeat, eventProgram, programStage);
+    ScenarioWithRequests trackerScenario = trackerProgramScenario(repeat, trackerProgram);
 
     List<Assertion> allAssertions = new ArrayList<>();
     allAssertions.add(forAll().successfulRequests().percent().gte(100d));
     allAssertions.addAll(eventScenario.requests().stream().map(Request::assertion).toList());
+    allAssertions.addAll(trackerScenario.requests().stream().map(Request::assertion).toList());
 
-    setUp(eventScenario.scenario().injectClosed(constantConcurrentUsers(1).during(1)))
+    setUp(
+            eventScenario
+                .scenario()
+                .injectClosed(constantConcurrentUsers(1).during(1))
+                .andThen(
+                    trackerScenario.scenario().injectClosed(constantConcurrentUsers(1).during(1))))
         .protocols(httpProtocolBuilder)
         .assertions(allAssertions);
   }
 
   private ScenarioWithRequests eventProgramScenario(
       String repeat, String eventProgram, String programStage) {
+    String singleEventUrl = "/api/tracker/events/#{eventUid}";
+    String relationshipUrl =
+        "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
+
     String getEventsUrl =
         "/api/tracker/events?program="
             + eventProgram
@@ -106,6 +117,20 @@ public class TrackerProgramTest extends Simulation {
             100,
             "Search single events in date interval in program " + eventProgram,
             "Get a list of single events");
+    Request getFirstEvent =
+        new Request(
+            singleEventUrl,
+            25,
+            "Get first event",
+            "Get a list of single events",
+            "Get one single event");
+    Request getRelationshipsForFirstEvent =
+        new Request(
+            relationshipUrl,
+            10,
+            "Get relationships for first event",
+            "Get a list of single events",
+            "Get one single event");
 
     String getEventsUrlByProgramStage =
         "/api/tracker/events?program="
@@ -122,11 +147,7 @@ public class TrackerProgramTest extends Simulation {
             getEventsUrlByProgramStage,
             100,
             "Get events by program stage",
-            "Get a list of single events",
-            "Get one single event");
-
-    System.out.println("Request URL: " + getEventsUrlByProgramStage);
-    System.out.println("programStage = " + programStage);
+            "Get a list of single events");
 
     ScenarioBuilder scenarioBuilder =
         scenario("Single Events")
@@ -141,11 +162,206 @@ public class TrackerProgramTest extends Simulation {
                                 searchSingleEvents
                                     .action()
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                            .exec(getEventsByProgramStage.action())
                             .group("Get one single event")
-                            .on(exec(getEventsByProgramStage.action()))));
+                            .on(
+                                exec(getFirstEvent.action())
+                                    .exec(getRelationshipsForFirstEvent.action()))));
 
     return new ScenarioWithRequests(
-        scenarioBuilder, List.of(goToFirstPage, goToSecondPage, searchSingleEvents));
+        scenarioBuilder,
+        List.of(
+            goToFirstPage,
+            goToSecondPage,
+            searchSingleEvents,
+            getFirstEvent,
+            getRelationshipsForFirstEvent));
+  }
+
+  private ScenarioWithRequests trackerProgramScenario(String repeat, String trackerProgram) {
+    String getTEsUrl =
+        "/api/tracker/trackedEntities?"
+            + "order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + trackerProgram
+            + "&fields=:all,!relationships,programOwner[orgUnit,program]";
+
+    String searchForTEByNationalId =
+        "/api/tracker/trackedEntities?orgUnitMode=ACCESSIBLE&program="
+            + trackerProgram
+            + "&filter=AuPLng5hLbE:eq:123";
+
+    String notFoundByNationalId =
+        "/api/tracker/trackedEntities?orgUnitMode=ACCESSIBLE&program="
+            + trackerProgram
+            + "&filter=AuPLng5hLbE:eq:aaa";
+
+    String notFoundTEByName =
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:notfoundname"
+            + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            + trackerProgram
+            + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
+
+    String searchTEByName =
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ines"
+            + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
+            + trackerProgram
+            + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
+
+    String searchEventByProgramStage =
+        "/api/tracker/events?filter=yLIPuJHRgey:ge:50&order=createdAt:desc&page=1"
+            + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + trackerProgram
+            + "&programStage=jdRD35YwbRH&fields=*";
+
+    String getTEsFromEvents =
+        "/api/tracker/trackedEntities?pageSize=15&program="
+            + trackerProgram
+            + "&trackedEntities=#{trackedEntityUids}&fields=trackedEntity,createdAt,attributes[attribute,value],programOwners[orgUnit],enrollments[enrollment,status,orgUnit,enrolledAt]";
+
+    String singleTrackedEntityUrl =
+        "/api/tracker/trackedEntities/#{trackedEntityUid}?program"
+            + trackerProgram
+            + "&fields=programOwners[orgUnit],enrollments";
+    String singleEnrollmentUrl =
+        "/api/tracker/enrollments/#{enrollmentUid}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
+
+    String relationshipForTrackedEntityUrl =
+        "/api/tracker/relationships?trackedEntity=#{trackedEntityUid}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]";
+
+    String relationshipForEventUrl =
+        "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
+
+    String eventUrl =
+        "/api/tracker/events/#{eventUid}?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]";
+
+    Request notFoundTeByNameWithLikeOperator =
+        new Request(
+            notFoundTEByName, 200, "Not found TE by name with like operator", "Get a list of TEs");
+    Request notFoundTeByNationalIdWithEqualOperator =
+        new Request(
+            notFoundByNationalId,
+            10,
+            "Not found TE by national id with eq operator",
+            "Get a list of TEs");
+    Request searchTeByNameWithLikeOperator =
+        new Request(
+            searchTEByName, 200, "Search TE by name with like operator", "Get a list of TEs");
+    Request searchTeByNationalIdWithEqualOperator =
+        new Request(
+            searchForTEByNationalId,
+            10,
+            "Search TE by national id with eq operator",
+            "Get a list of TEs");
+    Request searchEventsByProgramStage =
+        new Request(
+            searchEventByProgramStage, 25, "Search events by program stage", "Get a list of TEs");
+    Request getTrackedEntitiesForEvents =
+        new Request(getTEsFromEvents, 25, "Get tracked entities from events", "Get a list of TEs");
+    Request getFirstPageOfTEs =
+        new Request(
+            getTEsUrl,
+            200,
+            "Get first page of TEs of program " + trackerProgram,
+            "Get a list of TEs");
+    Request getFirstTrackedEntity =
+        new Request(
+            singleTrackedEntityUrl,
+            50,
+            "Get first tracked entity",
+            "Get a list of TEs",
+            "Go to single enrollment");
+    Request getFirstEnrollment =
+        new Request(
+            singleEnrollmentUrl,
+            15,
+            "Get first enrollment",
+            "Get a list of TEs",
+            "Go to single enrollment");
+    Request getRelationshipsForTrackedEntity =
+        new Request(
+            relationshipForTrackedEntityUrl,
+            10,
+            "Get relationships for first tracked entity",
+            "Get a list of TEs",
+            "Go to single enrollment");
+    Request getFirstEventFromEnrollment =
+        new Request(
+            eventUrl,
+            25,
+            "Get first event from enrollment",
+            "Get a list of TEs",
+            "Go to single enrollment",
+            "Get one event");
+    Request getRelationshipsForEvent =
+        new Request(
+            relationshipForEventUrl,
+            10,
+            "Get relationships for first event",
+            "Get a list of TEs",
+            "Go to single enrollment",
+            "Get one event");
+
+    ScenarioBuilder scenarioBuilder =
+        scenario("Tracker Program")
+            .exec(login())
+            .repeat(Integer.parseInt(repeat))
+            .on(
+                group("Get a list of TEs")
+                    .on(
+                        exec(notFoundTeByNameWithLikeOperator.action())
+                            .exec(notFoundTeByNationalIdWithEqualOperator.action())
+                            .exec(searchTeByNameWithLikeOperator.action())
+                            .exec(searchTeByNationalIdWithEqualOperator.action())
+                            .exec(
+                                searchEventsByProgramStage
+                                    .action()
+                                    .check(
+                                        jsonPath("$.events[*].trackedEntity")
+                                            .findAll()
+                                            .transform(
+                                                list ->
+                                                    String.join(
+                                                        ",", list.stream().distinct().toList()))
+                                            .saveAs("trackedEntityUids")))
+                            .exec(getTrackedEntitiesForEvents.action())
+                            .exec(
+                                getFirstPageOfTEs
+                                    .action()
+                                    .check(
+                                        jsonPath("$.trackedEntities[0].trackedEntity")
+                                            .saveAs("trackedEntityUid")))
+                            .group("Go to single enrollment")
+                            .on(
+                                exec(getFirstTrackedEntity
+                                        .action()
+                                        .check(
+                                            jsonPath("$.enrollments[0].enrollment")
+                                                .saveAs("enrollmentUid"))
+                                        .check(
+                                            jsonPath("$.enrollments[0].events[0].event")
+                                                .saveAs("eventUid")))
+                                    .exec(getFirstEnrollment.action())
+                                    .exec(getRelationshipsForTrackedEntity.action())
+                                    .group("Get one event")
+                                    .on(
+                                        exec(getFirstEventFromEnrollment.action())
+                                            .exec(getRelationshipsForEvent.action())))));
+
+    return new ScenarioWithRequests(
+        scenarioBuilder,
+        List.of(
+            notFoundTeByNameWithLikeOperator,
+            notFoundTeByNationalIdWithEqualOperator,
+            searchTeByNameWithLikeOperator,
+            searchTeByNationalIdWithEqualOperator,
+            searchEventsByProgramStage,
+            getTrackedEntitiesForEvents,
+            getFirstPageOfTEs,
+            getFirstTrackedEntity,
+            getFirstEnrollment,
+            getRelationshipsForTrackedEntity,
+            getFirstEventFromEnrollment,
+            getRelationshipsForEvent));
   }
 
   private HttpRequestActionBuilder login() {
