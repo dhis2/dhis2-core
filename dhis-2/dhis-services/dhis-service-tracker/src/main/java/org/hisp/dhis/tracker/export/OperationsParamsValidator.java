@@ -211,7 +211,6 @@ public class OperationsParamsValidator {
       return null;
     }
 
-    // TODO(tracker) Are these validations enough? Should we check for ownership too?
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
     if (trackedEntity == null || (trackedEntity.isDeleted() && !includeDeleted)) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
