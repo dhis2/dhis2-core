@@ -270,62 +270,6 @@ class JdbcEventStore {
     jdbcTemplate.update(sql, parameters);
   }
 
-  private List<Event> applySkipSyncFiltering(
-      List<Event> events, Map<String, Set<String>> psdesWithSkipSyncTrue) {
-    if (psdesWithSkipSyncTrue == null || psdesWithSkipSyncTrue.isEmpty()) {
-      return events;
-    }
-
-    return events.stream()
-        .map(event -> filterEventDataValues(event, psdesWithSkipSyncTrue))
-        .toList();
-  }
-
-  /**
-   * Filters out event data values that should be skipped during synchronization.
-   *
-   * <p>This method removes data values from an event based on program stage-specific skip
-   * synchronization configurations. Some data elements in certain program stages may be configured
-   * to skip synchronization to external systems, typically for sensitive data that should not leave
-   * the local instance.
-   *
-   * <p>The filtering is performed by:
-   *
-   * <ol>
-   *   <li>Identifying the event's program stage
-   *   <li>Looking up data elements configured for skip synchronization for that program stage
-   *   <li>Removing any data values whose data element UID matches the skip sync configuration
-   * </ol>
-   *
-   * @param event the event to filter data values from
-   * @param psdesWithSkipSyncTrue mapping of program stage UIDs to sets of data element UIDs that
-   *     should be skipped during synchronization. The structure is: Map<ProgramStageUID,
-   *     Set<DataElementUID>>
-   * @return the same event instance with filtered data values, or the original event if no program
-   *     stage is set or no skip sync configuration exists for the program stage For a program stage
-   *     "ps123" with skip sync configured for data elements "de456" and "de789" An event with data
-   *     values [de123, de456, de789] becomes [de123] after filtering
-   */
-  private Event filterEventDataValues(Event event, Map<String, Set<String>> psdesWithSkipSyncTrue) {
-    if (event.getProgramStage() == null || event.getProgramStage().getUid() == null) {
-      return event;
-    }
-
-    String programStageUid = event.getProgramStage().getUid();
-    Set<String> skipSyncDataElements = psdesWithSkipSyncTrue.get(programStageUid);
-
-    if (skipSyncDataElements == null || skipSyncDataElements.isEmpty()) {
-      return event;
-    }
-
-    event.setEventDataValues(
-        event.getEventDataValues().stream()
-            .filter(dataValue -> !skipSyncDataElements.contains(dataValue.getDataElement()))
-            .collect(Collectors.toSet()));
-
-    return event;
-  }
-
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, queryParams);
