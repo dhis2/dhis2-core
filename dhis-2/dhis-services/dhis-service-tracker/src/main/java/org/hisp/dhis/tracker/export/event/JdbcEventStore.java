@@ -1043,19 +1043,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return fromBuilder;
   }
 
-  /** Returns either original eventdatavalues or filtered version based on skip sync config */
+  /**
+   * Returns either the original event data values or a filtered version, depending on the "skip
+   * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
+   * event synchronization.
+   */
   private String getFilteredEventDataValuesSelect(
       EventQueryParams params, MapSqlParameterSource sqlParameters) {
-
-    // Only apply filtering for sync queries that have skip sync configuration
     if (!params.isSynchronizationQuery()
         || params.getPsdesWithSkipSyncTrue() == null
         || params.getPsdesWithSkipSyncTrue().isEmpty()) {
 
-      return "ev.eventdatavalues"; // Return original JSONB
+      return "ev.eventdatavalues";
     }
 
-    // Use CASE statement for conditional JSONB filtering
     StringBuilder caseStatement = new StringBuilder("CASE ");
 
     int caseCounter = 0;
