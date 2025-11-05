@@ -66,8 +66,11 @@ public class FileResource extends BaseIdentifiableObject {
   /**
    * Flag indicating whether the resource is assigned (e.g. to a DataValue) or not. Unassigned
    * FileResources are generally safe to delete when reaching a certain age (unassigned objects
-   * might be in staging).
+   * might be in staging).<br>
+   * It is marked as read-only as it should only be set internally by code when it is used/no longer
+   * used by one of its domains, never through the API.
    */
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private boolean assigned = false;
 
   /** The domain which this FileResource belongs to. */

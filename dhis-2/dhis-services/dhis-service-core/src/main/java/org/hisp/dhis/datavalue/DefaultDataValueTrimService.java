@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,62 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.document;
+package org.hisp.dhis.datavalue;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.user.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Lars Helge Overland
- */
-public interface DocumentService {
-  String DIR = "documents";
+@Service
+@RequiredArgsConstructor
+public class DefaultDataValueTrimService implements DataValueTrimService {
 
-  /**
-   * Saves a Document.
-   *
-   * @param document the Document to save.
-   * @return the generated identifier.
-   */
-  long saveDocument(Document document);
+  private final DataValueTrimStore store;
 
-  /**
-   * Retrieves the Document with the given identifier.
-   *
-   * @param id the identifier of the Document.
-   * @return the Document.
-   */
-  Document getDocument(long id);
+  @Override
+  @Transactional
+  public int updateFileResourcesNotAssignedToAnyDataValue() {
+    return store.updateFileResourcesNotAssignedToAnyDataValue();
+  }
 
-  /**
-   * Retrieves the Document with the given identifier.
-   *
-   * @param uid the identifier of the Document.
-   * @return the Document.
-   */
-  Document getDocument(String uid);
+  @Override
+  @Transactional
+  public int updateFileResourcesAssignedToAnyDataValue() {
+    return store.updateFileResourcesAssignedToAnyDataValue();
+  }
 
-  /**
-   * Deletes a Document.
-   *
-   * @param document the Document to delete.
-   */
-  void deleteDocument(Document document) throws ForbiddenException;
-
-  /**
-   * Retrieves all Documents.
-   *
-   * @return a Collection of Documents.
-   */
-  List<Document> getAllDocuments();
-
-  int getDocumentCount();
-
-  int getDocumentCountByName(String name);
-
-  List<Document> getDocumentsByUid(@Nonnull List<String> uids);
-
-  long getCountDocumentByUser(User user);
+  @Override
+  @Transactional
+  public int updateDeletedIfNotZeroIsSignificant() {
+    return store.updateDeletedIfNotZeroIsSignificant();
+  }
 }
