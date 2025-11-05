@@ -112,6 +112,8 @@ class EventQueryParams {
 
   @Getter private boolean synchronizationQuery;
 
+  @Getter private Map<String, Set<String>> psdesWithSkipSyncTrue;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
    * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
@@ -186,6 +188,11 @@ class EventQueryParams {
 
   public EventQueryParams setProgram(Program program) {
     this.program = program;
+    return this;
+  }
+
+  public EventQueryParams withSkipSyncFiltering(Map<String, Set<String>> psdesWithSkipSyncTrue) {
+    this.psdesWithSkipSyncTrue = psdesWithSkipSyncTrue;
     return this;
   }
 

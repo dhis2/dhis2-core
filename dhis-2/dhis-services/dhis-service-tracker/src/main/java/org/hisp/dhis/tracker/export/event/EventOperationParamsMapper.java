@@ -116,6 +116,7 @@ class EventOperationParamsMapper {
     return queryParams
         .setProgram(program)
         .setProgramStage(programStage)
+        .setProgramType(operationParams.getProgramType())
         .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())

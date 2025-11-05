@@ -53,6 +53,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
@@ -161,6 +162,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     long objectsToSynchronize =
         eventService.countEvents(
             EventOperationParams.builder()
+                .programType(ProgramType.WITHOUT_REGISTRATION)
                 .skipChangedBefore(skipChangedBefore)
                 .synchronizationQuery(true)
                 .build());
@@ -247,6 +249,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     List<Event> events =
         eventService.findEvents(
             EventOperationParams.builder()
+                .programType(ProgramType.WITHOUT_REGISTRATION)
                 .skipChangedBefore(skipChangeBefore)
                 .synchronizationQuery(true)
                 .build(),

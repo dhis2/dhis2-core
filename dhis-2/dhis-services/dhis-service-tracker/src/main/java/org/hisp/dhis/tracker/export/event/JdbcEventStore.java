@@ -240,8 +240,12 @@ class JdbcEventStore {
 
   public List<Event> getEvents(
       EventQueryParams queryParams, Map<String, Set<String>> psdesWithSkipSyncTrue) {
-    List<Event> events = fetchEvents(queryParams, null);
-    return applySkipSyncFiltering(events, psdesWithSkipSyncTrue);
+    if (queryParams.isSynchronizationQuery()
+        && psdesWithSkipSyncTrue != null
+        && !psdesWithSkipSyncTrue.isEmpty()) {
+      queryParams = queryParams.withSkipSyncFiltering(psdesWithSkipSyncTrue);
+    }
+    return fetchEvents(queryParams, null);
   }
 
   public long countEvents(EventQueryParams queryParams) {
@@ -770,7 +774,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(COLUMN_EVENT_OCCURRED_DATE)
             .append(", ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
-            .append(", ev.eventdatavalues as ")
+            .append(", ")
+            .append(getFilteredEventDataValuesSelect(params, mapSqlParameterSource))
+            .append(" as ")
             .append(COLUMN_EVENT_DATAVALUES)
             .append(", ev.completedby as ")
             .append(COLUMN_EVENT_COMPLETED_BY)
@@ -1091,6 +1097,47 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     return fromBuilder;
+  }
+
+  /** Returns either original eventdatavalues or filtered version based on skip sync config */
+  private String getFilteredEventDataValuesSelect(
+      EventQueryParams params, MapSqlParameterSource sqlParameters) {
+
+    // Only apply filtering for sync queries that have skip sync configuration
+    if (!params.isSynchronizationQuery()
+        || params.getPsdesWithSkipSyncTrue() == null
+        || params.getPsdesWithSkipSyncTrue().isEmpty()) {
+
+      return "ev.eventdatavalues"; // Return original JSONB
+    }
+
+    // Use CASE statement for conditional JSONB filtering
+    StringBuilder caseStatement = new StringBuilder("CASE ");
+
+    int caseCounter = 0;
+    for (Map.Entry<String, Set<String>> entry : params.getPsdesWithSkipSyncTrue().entrySet()) {
+      String programStageUid = entry.getKey();
+      Set<String> dataElementUids = entry.getValue();
+
+      if (!dataElementUids.isEmpty()) {
+        String paramName = "filter_de_" + caseCounter++;
+        sqlParameters.addValue(paramName, new ArrayList<>(dataElementUids));
+
+        caseStatement
+            .append("WHEN ps.uid = '")
+            .append(programStageUid)
+            .append("' THEN ")
+            .append("(SELECT jsonb_object_agg(key, value) ")
+            .append("FROM jsonb_each(ev.eventdatavalues) ")
+            .append("WHERE key NOT IN (:")
+            .append(paramName)
+            .append(")) ");
+      }
+    }
+
+    caseStatement.append("ELSE ev.eventdatavalues END");
+
+    return caseStatement.toString();
   }
 
   private String getOrgUnitSql(
