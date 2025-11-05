@@ -35,8 +35,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.document.DocumentService")
 public class DefaultDocumentService implements DocumentService {
   private final FileResourceService fileResourceService;
+  private final AclService aclService;
 
   private final DocumentStore documentStore;
 
@@ -74,21 +78,19 @@ public class DefaultDocumentService implements DocumentService {
   }
 
   @Override
-  public void deleteFileFromDocument(Document document) {
-    FileResource fileResource = document.getFileResource();
+  @Transactional
+  public void deleteDocument(Document document) throws ForbiddenException {
+    if (!aclService.canDelete(CurrentUserUtil.getCurrentUserDetails(), document)) {
+      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
+    }
 
-    // Remove reference to fileResource from document to avoid db constraint
-    // exception
-    document.setFileResource(null);
-    documentStore.save(document);
-
-    // Delete file
-    fileResourceService.deleteFileResource(fileResource.getUid());
-  }
-
-  @Override
-  public void deleteDocument(Document document) {
+    // unassign the doc's file resource when deleting
+    FileResource fr = document.getFileResource();
     documentStore.delete(document);
+    if (fr != null) {
+      fr.setAssigned(false);
+      fileResourceService.updateFileResource(fr);
+    }
   }
 
   @Override
