@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,62 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.document;
+package org.hisp.dhis.datavalue;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
- * @author Lars Helge Overland
+ * API for data values operations executed by jobs to trim and adjust the data.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
  */
-public interface DocumentService {
-  String DIR = "documents";
+public interface DataValueTrimStore {
 
   /**
-   * Saves a Document.
+   * Set {@link FileResource#isAssigned()} to {@code false} for any data value related file resource
+   * where no data value exists that actually refers to it (has its UID as value).
    *
-   * @param document the Document to save.
-   * @return the generated identifier.
+   * @return the number of file resources that got changed from assigned being true to becoming
+   *     false
    */
-  long saveDocument(Document document);
+  int updateFileResourcesNotAssignedToAnyDataValue();
 
   /**
-   * Retrieves the Document with the given identifier.
+   * Set {@link FileResource#isAssigned()} to {@code true} for any data value related file resource
+   * where at least one data value exists that actually refers to it (has its UID as value).
    *
-   * @param id the identifier of the Document.
-   * @return the Document.
+   * @return the number of file resources that got changed from assigned being false to becoming
+   *     true
    */
-  Document getDocument(long id);
+  int updateFileResourcesAssignedToAnyDataValue();
 
   /**
-   * Retrieves the Document with the given identifier.
+   * Set any row to deleted {@code true} that has an empty value and a DE that does not consider
+   * zero being significant.
    *
-   * @param uid the identifier of the Document.
-   * @return the Document.
+   * @return the number of data values that got changed from deleted being false to becoming true
    */
-  Document getDocument(String uid);
-
-  /**
-   * Deletes a Document.
-   *
-   * @param document the Document to delete.
-   */
-  void deleteDocument(Document document) throws ForbiddenException;
-
-  /**
-   * Retrieves all Documents.
-   *
-   * @return a Collection of Documents.
-   */
-  List<Document> getAllDocuments();
-
-  int getDocumentCount();
-
-  int getDocumentCountByName(String name);
-
-  List<Document> getDocumentsByUid(@Nonnull List<String> uids);
-
-  long getCountDocumentByUser(User user);
+  int updateDeletedIfNotZeroIsSignificant();
 }

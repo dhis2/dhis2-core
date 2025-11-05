@@ -27,263 +27,102 @@
  */
 package org.hisp.dhis.fileresource;
 
+import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
+import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
+import static org.hisp.dhis.fileresource.FileResourceDomain.JOB_DATA;
+import static org.hisp.dhis.fileresource.FileResourceDomain.MESSAGE_ATTACHMENT;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ORG_UNIT;
+import static org.hisp.dhis.fileresource.FileResourceDomain.PUSH_ANALYSIS;
+import static org.hisp.dhis.fileresource.FileResourceDomain.USER_AVATAR;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Kristian Wærstad
- */
-@MockitoSettings(strictness = Strictness.LENIENT)
-@ExtendWith(MockitoExtension.class)
-class FileResourceCleanUpJobTest extends IntegrationTestBase {
+class FileResourceCleanUpJobTest extends TransactionalIntegrationTest {
 
-  private FileResourceCleanUpJob cleanUpJob;
+  @Autowired private FileResourceCleanUpJob cleanUpJob;
 
-  @Autowired private SystemSettingManager systemSettingManager;
-
-  @Autowired private FileResourceService fileResourceService;
-
-  @Autowired private DataValueAuditService dataValueAuditService;
-
-  /** We use the store directly to backdate audit entries what is usually not possible */
-  @Autowired private DataValueAuditStore dataValueAuditStore;
-
-  @Autowired private DataValueService dataValueService;
-
-  @Autowired private DataElementService dataElementService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private PeriodService periodService;
-
-  @Autowired private ExternalFileResourceService externalFileResourceService;
-
-  @Autowired private UserService _userService;
-
-  @Mock private FileResourceContentStore fileResourceContentStore;
-
-  private DataValue dataValueA;
-
-  private DataValue dataValueB;
-
-  private byte[] content;
-
-  private Period period;
-
-  @BeforeEach
-  public void init() {
-    userService = _userService;
-
-    cleanUpJob =
-        new FileResourceCleanUpJob(
-            fileResourceService, systemSettingManager, fileResourceContentStore);
-
-    period = createPeriod(PeriodType.getPeriodTypeByName("Monthly"), new Date(), new Date());
-    periodService.addPeriod(period);
-  }
+  @Autowired private FileResourceStore fileResourceStore;
 
   @Test
-  void testNoRetention() {
-    when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
+  @DisplayName("Expected unassigned file resources are deleted and assigned file resources are not")
+  void unassignedTest() {
+    // mock grace period to simulate that it has passed
+    try (MockedStatic<DefaultFileResourceService> mocked =
+        mockStatic(DefaultFileResourceService.class)) {
+      mocked
+          .when(DefaultFileResourceService::getGracePeriod)
+          .thenReturn(DateTime.now().plusDays(1));
 
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE);
+      // given 2 file resources exists for each domain (1 assigned, 1 unassigned)
+      FileResource fr1 = createFileResource('a', ORG_UNIT, false, "fr1".getBytes());
+      FileResource fr2 = createFileResource('b', ORG_UNIT, true, "fr2".getBytes());
 
-    content = "filecontentA".getBytes();
-    dataValueA = createFileResourceDataValue('A', content);
-    assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
+      FileResource fr3 = createFileResource('c', DOCUMENT, false, "fr3".getBytes());
+      FileResource fr4 = createFileResource('d', DOCUMENT, true, "fr4".getBytes());
 
-    dataValueService.deleteDataValue(dataValueA);
+      FileResource fr5 = createFileResource('e', ICON, false, "fr5".getBytes());
+      FileResource fr6 = createFileResource('f', ICON, true, "fr6".getBytes());
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+      FileResource fr7 = createFileResource('g', USER_AVATAR, false, "fr7".getBytes());
+      FileResource fr8 = createFileResource('h', USER_AVATAR, true, "fr8".getBytes());
 
-    assertNull(fileResourceService.getFileResource(dataValueA.getValue()));
+      FileResource fr9 = createFileResource('i', MESSAGE_ATTACHMENT, false, "fr9".getBytes());
+      FileResource fr10 = createFileResource('j', MESSAGE_ATTACHMENT, true, "fr10".getBytes());
+
+      FileResource fr11 = createFileResource('k', PUSH_ANALYSIS, false, "fr11".getBytes());
+      FileResource fr12 = createFileResource('l', PUSH_ANALYSIS, true, "fr12".getBytes());
+
+      FileResource fr13 = createFileResource('m', JOB_DATA, false, "fr13".getBytes());
+      FileResource fr14 = createFileResource('n', JOB_DATA, true, "fr14".getBytes());
+
+      FileResource fr15 = createFileResource('o', DATA_VALUE, false, "fr15".getBytes());
+      FileResource fr16 = createFileResource('p', DATA_VALUE, true, "fr16".getBytes());
+
+      // when the cleanup job runs
+      cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+
+      // then unassigned file resources are deleted
+      assertNull(fileResourceStore.getByUid(fr1.getUid()));
+      assertNull(fileResourceStore.getByUid(fr3.getUid()));
+      assertNull(fileResourceStore.getByUid(fr5.getUid()));
+      assertNull(fileResourceStore.getByUid(fr7.getUid()));
+      assertNull(fileResourceStore.getByUid(fr13.getUid()));
+      assertNull(fileResourceStore.getByUid(fr15.getUid()));
+
+      // and assigned file resources still exist
+      assertNotNull(fileResourceStore.getByUid(fr2.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr4.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr6.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr8.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr14.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr16.getUid()));
+
+      // and domains not to be deleted (MESSAGE_ATTACHMENT, PUSH_ANALYSIS) still exist whether
+      // assigned or not
+      assertNotNull(fileResourceStore.getByUid(fr9.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr10.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr11.getUid()));
+      assertNotNull(fileResourceStore.getByUid(fr12.getUid()));
+    }
   }
 
-  @Test
-  void testRetention() {
-    when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(true);
-
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
-
-    content = "filecontentA".getBytes(StandardCharsets.UTF_8);
-    dataValueA = createFileResourceDataValue('A', content);
-    assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
-
-    content = "filecontentB".getBytes(StandardCharsets.UTF_8);
-    dataValueB = createFileResourceDataValue('B', content);
-    assertNotNull(fileResourceService.getFileResource(dataValueB.getValue()));
-
-    content = "fileResourceC".getBytes(StandardCharsets.UTF_8);
-    FileResource fileResource = createFileResource('C', content);
-    dataValueB.setValue(fileResource.getUid());
-    dataValueService.updateDataValue(dataValueB);
-    fileResource.setAssigned(true);
-
-    DataValueAudit audit = dataValueAuditService.getDataValueAudits(dataValueB).get(0);
-    audit.setCreated(getDate(2000, 1, 1));
-    dataValueAuditStore.updateDataValueAudit(audit);
-
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
-
-    assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
-    assertTrue(fileResourceService.getFileResource(dataValueA.getValue()).isAssigned());
-    assertNull(
-        dataValueService.getDataValue(
-            dataValueA.getDataElement(), dataValueA.getPeriod(), dataValueA.getSource(), null));
-    assertNull(fileResourceService.getFileResource(dataValueB.getValue()));
-  }
-
-  @Test
-  void testOrphan() {
-    when(fileResourceContentStore.fileResourceContentExists(any(String.class))).thenReturn(false);
-
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE);
-
-    content = "filecontentA".getBytes(StandardCharsets.UTF_8);
-    FileResource fileResourceA = createFileResource('A', content);
-    fileResourceA.setCreated(DateTime.now().minus(Days.ONE).toDate());
-    String uidA = fileResourceService.asyncSaveFileResource(fileResourceA, content);
-
-    content = "filecontentB".getBytes(StandardCharsets.UTF_8);
-    FileResource fileResourceB = createFileResource('A', content);
-    fileResourceB.setCreated(DateTime.now().minus(Days.ONE).toDate());
-    String uidB = fileResourceService.asyncSaveFileResource(fileResourceB, content);
-
-    User userB = makeUser("B");
-    userB.setAvatar(fileResourceB);
-    userService.addUser(userB);
-
-    assertNotNull(fileResourceService.getFileResource(uidA));
-    assertNotNull(fileResourceService.getFileResource(uidB));
-
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
-
-    assertNull(fileResourceService.getFileResource(uidA));
-    assertNotNull(fileResourceService.getFileResource(uidB));
-
-    // The following is needed because HibernateDbmsManager.emptyDatabase
-    // empties fileresource before userinfo (which it must because
-    // fileresource references userinfo).
-
-    userB.setAvatar(null);
-    userService.updateUser(userB);
-  }
-
-  @Disabled
-  @Test
-  void testFalsePositive() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
-
-    content = "externalA".getBytes();
-    ExternalFileResource ex = createExternal('A', content);
-
-    String uid = ex.getFileResource().getUid();
-    ex.getFileResource().setAssigned(false);
-    fileResourceService.updateFileResource(ex.getFileResource());
-
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
-
-    assertNotNull(
-        externalFileResourceService.getExternalFileResourceByAccessToken(ex.getAccessToken()));
-    assertNotNull(fileResourceService.getFileResource(uid));
-    assertTrue(fileResourceService.getFileResource(uid).isAssigned());
-  }
-
-  @Disabled
-  @Test
-  void testFailedUpload() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS);
-
-    content = "externalA".getBytes();
-    ExternalFileResource ex = createExternal('A', content);
-
-    String uid = ex.getFileResource().getUid();
-    ex.getFileResource().setStorageStatus(FileResourceStorageStatus.PENDING);
-    fileResourceService.updateFileResource(ex.getFileResource());
-
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
-
-    assertNull(
-        externalFileResourceService.getExternalFileResourceByAccessToken(ex.getAccessToken()));
-    assertNull(fileResourceService.getFileResource(uid));
-  }
-
-  private DataValue createFileResourceDataValue(char uniqueChar, byte[] content) {
-    DataElement fileElement =
-        createDataElement(uniqueChar, ValueType.FILE_RESOURCE, AggregationType.NONE);
-
-    OrganisationUnit orgUnit = createOrganisationUnit(uniqueChar);
-
-    dataElementService.addDataElement(fileElement);
-    organisationUnitService.addOrganisationUnit(orgUnit);
-
-    FileResource fileResource = createFileResource(uniqueChar, content);
-    String uid = fileResourceService.asyncSaveFileResource(fileResource, content);
-
-    DataValue dataValue = createDataValue(fileElement, period, orgUnit, uid, null);
-    fileResource.setAssigned(true);
-    fileResource.setCreated(DateTime.now().minus(Days.ONE).toDate());
-    fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
-
-    fileResourceService.updateFileResource(fileResource);
-    dataValueService.addDataValue(dataValue);
-
-    return dataValue;
-  }
-
-  private ExternalFileResource createExternal(char uniqueChar, byte[] content) {
-    ExternalFileResource externalFileResource = createExternalFileResource(uniqueChar, content);
-
-    fileResourceService.asyncSaveFileResource(externalFileResource.getFileResource(), content);
-    externalFileResourceService.saveExternalFileResource(externalFileResource);
-
-    FileResource fileResource = externalFileResource.getFileResource();
-    fileResource.setCreated(DateTime.now().minus(Days.ONE).toDate());
-    fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
-
-    fileResourceService.updateFileResource(fileResource);
-    return externalFileResource;
+  private FileResource createFileResource(
+      char c, FileResourceDomain domain, boolean assigned, byte[] content) {
+    FileResource fr = createFileResource(c, content);
+    fr.setDomain(domain);
+    fr.setAssigned(assigned);
+    fileResourceStore.save(fr);
+    dbmsManager.flushSession();
+    return fr;
   }
 }
