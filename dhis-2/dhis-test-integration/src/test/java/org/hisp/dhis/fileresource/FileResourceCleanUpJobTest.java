@@ -122,7 +122,7 @@ class FileResourceCleanUpJobTest extends TransactionalIntegrationTest {
     fr.setDomain(domain);
     fr.setAssigned(assigned);
     fileResourceStore.save(fr);
-    entityManager.flush();
+    dbmsManager.flushSession();
     return fr;
   }
 }

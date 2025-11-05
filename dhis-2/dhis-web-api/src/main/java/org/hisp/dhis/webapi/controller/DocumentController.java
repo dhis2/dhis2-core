@@ -54,6 +54,7 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.DocumentSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -134,7 +135,7 @@ public class DocumentController extends AbstractCrudController<Document> {
   @Override
   public WebMessage deleteObject(
       String documentUid,
-      UserDetails currentUser,
+      @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws NotFoundException {
