@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -61,6 +62,7 @@ import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -133,8 +135,9 @@ public class DocumentController extends AbstractCrudController<Document> {
   }
 
   @Override
+  @DeleteMapping(value = "/{uid}")
   public WebMessage deleteObject(
-      String documentUid,
+      @OpenApi.Param(UID.class) @PathVariable("uid") String documentUid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
