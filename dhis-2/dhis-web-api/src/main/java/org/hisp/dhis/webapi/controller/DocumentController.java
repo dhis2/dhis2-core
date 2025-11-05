@@ -31,27 +31,36 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,19 +72,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @Slf4j
+@RequiredArgsConstructor
 @RequestMapping("/api/documents")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class DocumentController extends AbstractCrudController<Document, GetObjectListParams> {
 
-  @Autowired private DocumentService documentService;
-
-  @Autowired private LocationManager locationManager;
-
-  @Autowired private FileResourceService fileResourceService;
-
-  @Autowired private ContextUtils contextUtils;
-
-  @Autowired private DhisConfigurationProvider dhisConfig;
+  private final DocumentService documentService;
+  private final LocationManager locationManager;
+  private final FileResourceService fileResourceService;
+  private final ContextUtils contextUtils;
+  private final DhisConfigurationProvider dhisConfig;
 
   @GetMapping("/{uid}/data")
   public void getDocumentContent(@PathVariable("uid") String uid, HttpServletResponse response)
@@ -124,6 +130,25 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
                 "There was an exception when trying to fetch the file from the storage backend. "
                     + "Depending on the provider the root cause could be network or file system related."));
       }
+    }
+  }
+
+  @Override
+  public WebMessage deleteObject(
+      String documentUid,
+      UserDetails currentUser,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws NotFoundException {
+    Document document = getEntity(documentUid);
+    ObjectReport objectReport = new ObjectReport(Document.class, 0, document.getUid());
+    try {
+      documentService.deleteDocument(document);
+      return ok().setResponse(new ObjectReportWebMessageResponse(objectReport));
+    } catch (Exception e) {
+      return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
+          .setMessage("One or more errors occurred, please see full details in import report.")
+          .setResponse(new ObjectReportWebMessageResponse(objectReport));
     }
   }
 }
