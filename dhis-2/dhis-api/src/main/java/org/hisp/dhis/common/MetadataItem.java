@@ -28,7 +28,6 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
@@ -327,21 +326,9 @@ public class MetadataItem implements Serializable {
       return;
     }
     // Override icon path.
-    style.setIcon(getFullIconUrl(style.getIcon()));
+    style.setIcon(style.getIcon());
 
     this.style = style;
-  }
-
-  /**
-   * It returns the full icon URL for the given icon name. The full URL is based on the Icons' API.
-   * See the controller {@link org.hisp.dhis.webapi.controller.IconController} for more details.
-   *
-   * @param iconName the icon name.
-   * @return the icon's full path.
-   */
-  private String getFullIconUrl(String iconName) {
-    String absoluteUrl = appendIfMissing(serverBaseUrl, "/");
-    return absoluteUrl + "api/icons/" + iconName + "/icon.svg";
   }
 
   private void setDataItem(DimensionalObject dimensionalObject) {
