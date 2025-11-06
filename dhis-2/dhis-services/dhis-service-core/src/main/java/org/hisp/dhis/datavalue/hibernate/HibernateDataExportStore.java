@@ -135,7 +135,7 @@ public class HibernateDataExportStore implements DataExportStore {
       de_ids AS (
         SELECT dataelementid
         FROM (
-                (SELECT NULL::bigint AS dataelementid WHERE false)
+                (SELECT cast(NULL as bigint) AS dataelementid WHERE false)
           UNION (SELECT de.dataelementid FROM dataelement de WHERE de.uid = ANY(:de))
           UNION (SELECT dse.dataelementid FROM datasetelement dse \
             JOIN dataset ds ON dse.datasetid = ds.datasetid WHERE ds.uid = ANY(:ds))
@@ -158,7 +158,7 @@ public class HibernateDataExportStore implements DataExportStore {
       ou_ids AS (
         SELECT organisationunitid
         FROM (
-          (SELECT NULL::bigint AS organisationunitid WHERE false)
+          (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
           UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
           UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
                  JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
