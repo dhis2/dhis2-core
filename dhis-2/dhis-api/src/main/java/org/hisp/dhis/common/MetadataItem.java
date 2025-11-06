@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -348,21 +347,9 @@ public class MetadataItem implements Serializable {
       return;
     }
     // Override icon path.
-    style.setIcon(getFullIconUrl(style.getIcon()));
+    style.setIcon(style.getIcon());
 
     this.style = style;
-  }
-
-  /**
-   * It returns the full icon URL for the given icon name. The full URL is based on the Icons' API.
-   * See the controller {@link org.hisp.dhis.webapi.controller.IconController} for more details.
-   *
-   * @param iconName the icon name.
-   * @return the icon's full path.
-   */
-  private String getFullIconUrl(String iconName) {
-    String absoluteUrl = Strings.CS.appendIfMissing(serverBaseUrl, "/");
-    return absoluteUrl + "api/icons/" + iconName + "/icon.svg";
   }
 
   @JsonIgnore
