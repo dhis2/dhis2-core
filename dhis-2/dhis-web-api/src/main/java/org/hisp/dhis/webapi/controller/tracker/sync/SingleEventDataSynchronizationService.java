@@ -61,7 +61,6 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
@@ -85,7 +84,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   private final RestTemplate restTemplate;
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
-  private final UserService userService;
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
