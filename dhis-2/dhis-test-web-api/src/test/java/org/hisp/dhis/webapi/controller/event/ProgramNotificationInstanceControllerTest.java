@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hibernate.annotations.QueryHints.READ_ONLY;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -89,10 +88,8 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     this.userService.updateUser(user);
 
     Program prA = createProgram('A', Set.of(), orgUnit);
-    prA.getSharing().setPublicAccess(READ_ONLY);
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
-    psA.getSharing().setPublicAccess(READ_ONLY);
     prA.getProgramStages().add(psA);
     manager.save(psA);
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
