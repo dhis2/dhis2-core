@@ -135,7 +135,7 @@ public class HibernateDataExportStore implements DataExportStore {
       de_ids AS (
         SELECT dataelementid
         FROM (
-                (SELECT NULL AS dataelementid WHERE false)
+                (SELECT NULL::bigint AS dataelementid WHERE false)
           UNION (SELECT de.dataelementid FROM dataelement de WHERE de.uid = ANY(:de))
           UNION (SELECT dse.dataelementid FROM datasetelement dse \
             JOIN dataset ds ON dse.datasetid = ds.datasetid WHERE ds.uid = ANY(:ds))
@@ -158,7 +158,7 @@ public class HibernateDataExportStore implements DataExportStore {
       ou_ids AS (
         SELECT organisationunitid
         FROM (
-          (SELECT NULL AS organisationunitid WHERE false)
+          (SELECT NULL::bigint AS organisationunitid WHERE false)
           UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
           UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
                  JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
@@ -206,9 +206,7 @@ public class HibernateDataExportStore implements DataExportStore {
         -- access check below must be 1 line for erasure
         AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
           JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))
-      ORDER BY ou.path, pe.startdate, pe.enddate, dv.created, deid
-      """;
+          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))""";
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
@@ -220,6 +218,8 @@ public class HibernateDataExportStore implements DataExportStore {
             : generateSQlQueryForSharingCheck(
                 "co.sharing", CurrentUserUtil.getCurrentUserDetails(), LIKE_READ_DATA);
     boolean descendants = params.isIncludeDescendants();
+    List<Order> orders = params.getOrders();
+    if (orders == null || orders.isEmpty()) orders = List.of(Order.PE, Order.CREATED, Order.DE);
     return SQL.of(sql, api)
         .setParameter("ds", params.getDataSets())
         .setParameter("de", params.getDataElements())
@@ -246,7 +246,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .setLimit(params.getLimit())
         .setOffset(params.getOffset())
         .setOrders(
-            params.getOrders(),
+            orders,
             Map.ofEntries(
                 Map.entry(Order.OU, "ou.path"),
                 Map.entry(Order.PE, "pe.startdate, pe.enddate"),

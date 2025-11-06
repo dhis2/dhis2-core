@@ -55,29 +55,56 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         DataExportParams.builder().periods(List.of(getPeriodFromIsoString("2020"))).build();
     assertSQL(
         """
-        SELECT
-          de.uid AS deid,
-          pe.iso,
-          ou.uid AS ouid,
-          coc.uid AS cocid,
-          aoc.uid AS aocid,
-          dv.value,
-          dv.comment,
-          dv.followup,
-          dv.storedby,
-          dv.created,
-          dv.lastupdated,
-          dv.deleted
-        FROM datavalue dv
-        JOIN dataelement de ON dv.dataelementid = de.dataelementid
-        JOIN period pe ON dv.periodid = pe.periodid
-        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
-        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-        WHERE pe.iso = :pe
-          AND dv.deleted = :deleted
-        ORDER BY pe.startdate , dv.created , deid""",
-        Set.of("pe", "deleted"),
-        createExportQuery(params, createSpyQuery(), SystemUser::new));
+      WITH
+      de_ids AS (
+        SELECT dataelementid
+        FROM (
+                (SELECT NULL::bigint AS dataelementid WHERE false)
+        ) de_all
+        WHERE dataelementid IS NOT NULL
+      ),
+      pe_ids AS (
+        SELECT periodid
+        FROM period
+        WHERE iso = :pe
+      ),
+      ou_ids AS (
+        SELECT organisationunitid
+        FROM (
+          (SELECT NULL::bigint AS organisationunitid WHERE false)
+        ) ou_all
+        WHERE organisationunitid IS NOT NULL
+      ),
+      ou_with_descendants_ids AS (
+        SELECT DISTINCT ou.organisationunitid
+        FROM organisationunit ou
+        LEFT JOIN organisationunit parent_ou ON (ou.path LIKE parent_ou.path || '%')
+        WHERE ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
+             OR parent_ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
+      )
+      SELECT
+        de.uid AS deid,
+        pe.iso,
+        ou.uid AS ouid,
+        coc.uid AS cocid,
+        aoc.uid AS aocid,
+        de.valuetype,
+        dv.value,
+        dv.comment,
+        dv.followup,
+        dv.storedby,
+        dv.created,
+        dv.lastupdated,
+        dv.deleted
+      FROM datavalue dv
+      JOIN pe_ids ON dv.periodid = pe_ids.periodid
+      JOIN dataelement de ON dv.dataelementid = de.dataelementid
+      JOIN period pe ON dv.periodid = pe.periodid
+      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      WHERE dv.deleted = :deleted
+      ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("pe", "deleted"), createExportQuery(params, createSpyQuery(), SystemUser::new));
   }
 }

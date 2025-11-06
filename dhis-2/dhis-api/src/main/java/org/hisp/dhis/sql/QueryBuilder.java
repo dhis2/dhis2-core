@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -89,7 +90,7 @@ public final class QueryBuilder {
 
   private final SQL.QueryAPI api;
   private final Map<String, SQL.Param> params = new HashMap<>();
-  private final Map<String, Boolean> orders = new HashMap<>();
+  private final Map<String, Boolean> orders = new LinkedHashMap<>();
   private final Map<String, String> clauses = new HashMap<>();
   private final Map<String, Set<String>> erasedJoins = new HashMap<>();
   private final Set<String> erasedOrders = new HashSet<>();
@@ -344,7 +345,7 @@ public final class QueryBuilder {
     sql = replaceDynamicClauses(sql);
     sql = simplifyWhere(sql);
     sql = simplifyIn(sql);
-    sql = addOrderBy(sql);
+    if (!forCount) sql = addOrderBy(sql);
     return forCount ? replaceSelect(sql) : sql;
   }
 
