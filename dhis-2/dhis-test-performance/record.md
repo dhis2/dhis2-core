@@ -2,25 +2,44 @@
 
 Use Gatling Recorder to capture DHIS2 traffic and generate performance test simulations.
 
-## Quick Start
+## What is Gatling Recorder?
 
-### 1. Start DHIS2
+Gatling Recorder acts as a proxy between your browser and DHIS2, capturing HTTP requests as you
+interact with the application. It then generates Java code that replays those interactions as a
+performance test simulation.
 
-```sh
-docker compose up
+```
+Browser → Gatling Recorder (proxy) → DHIS2
+                ↓
+        Generated Simulation.java
 ```
 
-### 2. Start Gatling Recorder
+This allows you to capture production workflows and replay them in a testing environment to evaluate
+performance after a DHIS2 upgrade or conduct load testing.
+
+There are two ways to capture traffic:
+
+* **[Gatling Recorder with Proxy](#quick-start)** - Configure browser to use Gatling as proxy
+* **[HAR File Import](#alternative-har-import)** - Capture traffic using browser DevTools and
+  import
+
+## Prerequisites
+
+* **DHIS2 Instance:** Access to a running DHIS2 instance (e.g., `http://localhost:8080` or a remote
+server)
+* **Java & Maven:** Required to run Gatling. See the [Gatling
+documentation](https://docs.gatling.io/reference/install/oss/) for installation requirements
+
+## Quick Start
+
+### 1. Start Gatling Recorder
 
 ```sh
 mvn gatling:recorder
 ```
 
-Configuration is pre-set in `src/test/resources/recorder.conf`:
-* **Mode:** HTTP Proxy on port 8000
-* **Output:** `src/test/java/org/hisp/dhis/test/generated/RecordedSimulation.java`
-* **Format:** Java 17
-* **Filters:** Only captures `/api/*` requests (excludes .js, .css, images)
+Configuration is pre-set in `src/test/resources/recorder.conf` (port 8000, filters to capture only
+certain `/api/*` requests, ...)
 
 Click **Start** in the GUI.
 
@@ -37,9 +56,15 @@ google-chrome --proxy-server="http://localhost:8000" \
 
 ### 4. Record Workflow
 
-1. Browse to `http://localhost:8080`
-2. Login
-3. Perform your test workflow
+**IMPORTANT:** Simulations require authentication. You have two options:
+
+* **Include login in recording:** Login during your workflow and the simulation will replay it
+* **Add authentication manually:** Skip login during recording and add authentication to the
+  generated code (see `TrackerTest.java` for an example)
+
+1. Browse to your DHIS2 instance (e.g., `http://localhost:8080`)
+2. Login with valid credentials (optional if adding authentication manually later)
+3. Perform your test workflow (navigate, search, create data, etc.)
 4. Watch requests appear in Recorder GUI
 
 ### 5. Stop & Save
@@ -86,9 +111,8 @@ See `TrackerTest.java` for examples. Key refinements:
 
 ## Configuration
 
-Edit `src/test/resources/recorder.conf` to customize:
-* Port, output location, filters
-* See `mvn gatling:help -Ddetail=true -Dgoal=recorder` for all options
+Edit `src/test/resources/recorder.conf` to customize port, output location, or filters. See `mvn
+gatling:help -Ddetail=true -Dgoal=recorder` for all options.
 
 ## Alternative: HAR Import
 
@@ -96,13 +120,14 @@ Don't want to configure proxy? Use browser DevTools:
 
 1. Open DevTools (F12) → Network tab
 2. Enable "Preserve log"
-3. Perform your workflow in the browser
-4. Right-click in Network tab → "Save all as HAR" → save as `traffic.har`
-5. Open Gatling Recorder:
+3. **Login to DHIS2 first** (this is mandatory for authentication)
+4. Perform your workflow in the browser
+5. Right-click in Network tab → "Save all as HAR" → save as `traffic.har`
+6. Open Gatling Recorder:
    ```sh
    mvn gatling:recorder
    ```
-6. In the Recorder GUI:
+7. In the Recorder GUI:
    * **IMPORTANT:** Uncheck **"Save preferences"** at the bottom (workaround for Gatling bug)
    * Select **"HAR Converter"** mode from dropdown (top right)
    * Click folder icon to browse and select your `traffic.har` file
@@ -114,8 +139,16 @@ The simulation will be generated at `src/test/java/org/hisp/dhis/test/generated/
 This is a bug in Gatling 4.x where saving HAR converter settings causes infinite recursion in the
 config serialization. Workaround: disable "Save preferences" before starting the conversion.
 
+**IMPORTANT:** Ensure your HAR file includes the login POST request to `/api/auth/login` or similar.
+Without authentication credentials in the recording, the generated simulation will fail with 401
+Unauthorized errors. Alternatively, you can manually add authentication to the generated code (see
+`TrackerTest.java` for an example of adding `.basicAuth()` to the HTTP protocol configuration).
+
 ## Troubleshooting
 
-* **No requests captured:** Check proxy settings, ensure DHIS2 is running
+* **No requests captured:** Check proxy settings, ensure DHIS2 instance is accessible and filters
+are correct (they are Java regexes)
 * **Browser can't connect:** Verify Recorder shows "Listening on port 8000"
 * **File not generated:** Click "Stop & Save", don't just close window
+* **Tests fail with 401 Unauthorized:** Recording doesn't include login. Add add authentication to the
+  generated code (see `TrackerTest.java` for an example).
