@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.QueryFilter.affixLikeWildcards;
 import static org.hisp.dhis.common.QueryFilter.getFilterItems;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
@@ -255,7 +256,6 @@ class JdbcEventStore implements EventStore {
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, Event> eventsByUid;
     if (pageParams == null) {
@@ -539,7 +539,6 @@ class JdbcEventStore implements EventStore {
 
   private long getEventCount(EventQueryParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
@@ -943,10 +942,22 @@ class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    if (params.getProgram() != null) {
-      mapSqlParameterSource.addValue("programid", params.getProgram().getId());
+    if (params.hasEnrollInProgram()) {
+      mapSqlParameterSource.addValue("programid", params.getEnrolledInProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+    } else {
+      mapSqlParameterSource.addValue(
+          "programid",
+          params.getAccessiblePrograms().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessiblePrograms()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" p.programid in (")
+          .append(":programid")
+          .append(") ");
     }
 
     if (params.getProgramStage() != null) {
@@ -957,6 +968,18 @@ class JdbcEventStore implements EventStore {
           .append(" ps.programstageid = ")
           .append(":programstageid")
           .append(" ");
+    } else {
+      mapSqlParameterSource.addValue(
+          "programstageid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleProgramStages()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programstageid in (")
+          .append(":programstageid")
+          .append(") ");
     }
 
     if (params.getProgramStatus() != null) {
@@ -1100,30 +1123,6 @@ class JdbcEventStore implements EventStore {
       fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
     }
 
-    if (params.hasSecurityFilter()) {
-      mapSqlParameterSource.addValue(
-          "program_uid",
-          params.getAccessiblePrograms().isEmpty() ? null : params.getAccessiblePrograms());
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (p.uid in (")
-          .append(":program_uid")
-          .append(")) ");
-
-      mapSqlParameterSource.addValue(
-          "programstage_uid",
-          params.getAccessibleProgramStages().isEmpty()
-              ? null
-              : params.getAccessibleProgramStages());
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ps.uid in (")
-          .append(":programstage_uid")
-          .append(")) ");
-    }
-
     if (params.isSynchronizationQuery()) {
       fromBuilder.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
     }
@@ -1156,7 +1155,7 @@ class JdbcEventStore implements EventStore {
   private String createAccessibleSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
-    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
+    if (isProgramRestricted(params.getEnrolledInProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
     }
 
@@ -1168,7 +1167,7 @@ class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       return createCaptureScopeQuery(
           user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
@@ -1188,7 +1187,7 @@ class JdbcEventStore implements EventStore {
             + (params.getOrgUnit().getHierarchyLevel() + 1)
             + " ) ";
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       return createCaptureScopeQuery(
           user,
           mapSqlParameterSource,
@@ -1211,7 +1210,7 @@ class JdbcEventStore implements EventStore {
             + AND
             + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
       return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
@@ -1600,20 +1599,6 @@ class JdbcEventStore implements EventStore {
     } catch (IOException e) {
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
-    }
-  }
-
-  private void setAccessiblePrograms(User user, EventQueryParams params) {
-    if (!isSuper(user)) {
-      params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream()
-              .map(Program::getUid)
-              .collect(Collectors.toSet()));
-
-      params.setAccessibleProgramStages(
-          manager.getDataReadAll(ProgramStage.class).stream()
-              .map(ProgramStage::getUid)
-              .collect(Collectors.toSet()));
     }
   }
 }

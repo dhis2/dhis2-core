@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
@@ -73,6 +75,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
@@ -1148,6 +1151,52 @@ class EventExporterTest extends TrackerTest {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    EventOperationParamsBuilder operationParams =
+        EventOperationParams.builder().events(Set.of("D9PbzJY8bJM"));
+
+    updatePublicAccessSharing(program, DATA_READ);
+
+    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    EventOperationParamsBuilder operationParams =
+        EventOperationParams.builder().events(Set.of("D9PbzJY8bJM"));
+
+    updatePublicAccessSharing(program, READ);
+
+    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, DATA_READ);
+    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, READ);
+    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
   private static void assertNotes(List<Note> expected, List<Note> actual) {
     assertContainsOnly(expected, actual);
     Map<String, Note> expectedNotes =
@@ -1212,5 +1261,11 @@ class EventExporterTest extends TrackerTest {
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  }
+
+  private void updatePublicAccessSharing(
+      IdentifiableObject identifiableObject, String publicAccess) {
+    identifiableObject.getSharing().setPublicAccess(publicAccess);
+    manager.save(identifiableObject);
   }
 }
