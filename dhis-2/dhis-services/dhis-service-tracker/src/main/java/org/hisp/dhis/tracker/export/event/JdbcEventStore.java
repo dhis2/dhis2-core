@@ -253,7 +253,7 @@ class JdbcEventStore {
   }
 
   public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
-    if (eventUids == null || eventUids.isEmpty() || lastSynchronized == null) {
+    if (eventUids.isEmpty()) {
       return;
     }
 

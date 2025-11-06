@@ -308,7 +308,8 @@ class DefaultEventService implements EventService {
 
   @Override
   @Transactional
-  public void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized) {
+  public void updateEventsSyncTimestamp(
+      @Nonnull List<String> eventsUIDs, @Nonnull Date lastSynchronized) {
     eventStore.updateEventsSyncTimestamp(eventsUIDs, lastSynchronized);
   }
 }

@@ -76,7 +76,6 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class SingleEventDataSynchronizationService implements DataSynchronizationWithPaging {
   private static final String PROCESS_NAME = "Event programs data synchronization";
-
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
   private final EventService eventService;
@@ -224,8 +223,6 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
     Set<org.hisp.dhis.webapi.controller.tracker.view.Event> eventDtos =
         events.stream().map(EVENTS_MAPPER::map).collect(Collectors.toSet());
-
-    log.debug("Events to be synchronized: {}", events);
 
     if (sendSynchronizationRequest(eventDtos, systemInstance, systemSettings)) {
       updateEventsSyncTimestamp(events, startTime);

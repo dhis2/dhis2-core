@@ -141,5 +141,5 @@ public interface EventService {
    * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
    * @param lastSynchronized The date of last successful sync
    */
-  void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized);
+  void updateEventsSyncTimestamp(@Nonnull List<String> eventsUIDs, @Nonnull Date lastSynchronized);
 }
