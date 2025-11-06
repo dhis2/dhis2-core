@@ -65,9 +65,29 @@ import org.hisp.dhis.tracker.export.Order;
  * @author Lars Helge Overland
  */
 class EventQueryParams {
-  @Getter private Program program;
+  /**
+   * Program the event must be enrolled in. This should not be set when {@link #accessiblePrograms}
+   * is set. The user must have data read access to this program.
+   */
+  @Getter private Program enrolledInProgram;
 
+  /**
+   * Programs the user has data read access to. This should not be set when {@link
+   * #enrolledInProgram} is set.
+   */
+  @Getter private List<Program> accessiblePrograms = List.of();
+
+  /**
+   * Program stage the event must be enrolled in. This should not be set when {@link
+   * #accessiblePrograms} is set. The user must have data read access to this program.
+   */
   @Getter private ProgramStage programStage;
+
+  /**
+   * Program stages the user has data read access to. This should not be set when {@link
+   * #programStage} is set.
+   */
+  @Getter private List<ProgramStage> accessibleProgramStages = List.of();
 
   @Getter private EnrollmentStatus enrollmentStatus;
 
@@ -137,10 +157,6 @@ class EventQueryParams {
 
   @Getter private boolean includeDeleted;
 
-  @Getter private Set<UID> accessiblePrograms;
-
-  @Getter private Set<UID> accessibleProgramStages;
-
   @Getter private Set<UID> enrollments;
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
@@ -149,8 +165,8 @@ class EventQueryParams {
 
   public EventQueryParams() {}
 
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrolledInProgram() {
+    return enrolledInProgram != null;
   }
 
   public boolean hasProgramStage() {
@@ -180,13 +196,23 @@ class EventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  public EventQueryParams setProgram(Program program) {
-    this.program = program;
+  public EventQueryParams setEnrolledInProgram(Program enrolledInProgram) {
+    this.enrolledInProgram = enrolledInProgram;
+    return this;
+  }
+
+  public EventQueryParams setAccessiblePrograms(List<Program> accessiblePrograms) {
+    this.accessiblePrograms = accessiblePrograms;
     return this;
   }
 
   public EventQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
+    return this;
+  }
+
+  public EventQueryParams setAccessibleProgramStages(List<ProgramStage> accessibleProgramStages) {
+    this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
 
@@ -363,20 +389,6 @@ class EventQueryParams {
   public EventQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
-  }
-
-  public EventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
-    this.accessiblePrograms = accessiblePrograms;
-    return this;
-  }
-
-  public EventQueryParams setAccessibleProgramStages(Set<UID> accessibleProgramStages) {
-    this.accessibleProgramStages = accessibleProgramStages;
-    return this;
-  }
-
-  public boolean hasSecurityFilter() {
-    return accessiblePrograms != null && accessibleProgramStages != null;
   }
 
   public Set<UID> getEnrollments() {

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
@@ -54,6 +55,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -81,6 +83,8 @@ class EventOperationParamsMapper {
   private final DataElementService dataElementService;
 
   private final OperationsParamsValidator paramsValidator;
+
+  private final TrackerProgramService trackerProgramService;
 
   @Transactional(readOnly = true)
   public EventQueryParams map(
@@ -113,9 +117,14 @@ class EventOperationParamsMapper {
     mapAttributeFilters(queryParams, operationParams.getAttributeFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
+    List<Program> accessiblePrograms = getPrograms(program);
+
     return queryParams
-        .setProgram(program)
+        .setEnrolledInProgram(program)
+        .setAccessiblePrograms(getPrograms(program))
         .setProgramStage(programStage)
+        .setAccessibleProgramStages(
+            getProgramStages(program != null ? List.of(program) : accessiblePrograms, programStage))
         .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
@@ -143,6 +152,22 @@ class EventOperationParamsMapper {
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams());
+  }
+
+  private List<Program> getPrograms(Program program) {
+    if (program == null) {
+      return trackerProgramService.getAccessiblePrograms();
+    }
+
+    return emptyList();
+  }
+
+  private List<ProgramStage> getProgramStages(List<Program> programs, ProgramStage programStage) {
+    if (programStage == null) {
+      return trackerProgramService.getAccessibleProgramStages(programs);
+    }
+
+    return emptyList();
   }
 
   private ProgramStage validateProgramStage(String programStageUid, UserDetails user)

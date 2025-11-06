@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
@@ -56,12 +58,14 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -595,6 +599,52 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    EventOperationParamsBuilder operationParams =
+        EventOperationParams.builder().events(Set.of(UID.of("D9PbzJY8bJM")));
+
+    updatePublicAccessSharing(program, DATA_READ);
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    EventOperationParamsBuilder operationParams =
+        EventOperationParams.builder().events(Set.of(UID.of("D9PbzJY8bJM")));
+
+    updatePublicAccessSharing(program, READ);
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, DATA_READ);
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, READ);
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -612,5 +662,11 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  }
+
+  private void updatePublicAccessSharing(
+      IdentifiableObject identifiableObject, String publicAccess) {
+    identifiableObject.getSharing().setPublicAccess(publicAccess);
+    manager.save(identifiableObject);
   }
 }
