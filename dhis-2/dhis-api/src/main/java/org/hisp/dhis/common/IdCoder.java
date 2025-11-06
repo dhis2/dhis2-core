@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -152,6 +153,6 @@ public interface IdCoder {
    *     all input IDs not being represented for which there is no mapping)
    */
   @Nonnull
-  Stream<String> listDecodedIds(
+  List<UID> listDecodedIds(
       @Nonnull ObjectType type, @Nonnull IdProperty from, @Nonnull Stream<String> ids);
 }

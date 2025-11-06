@@ -400,11 +400,10 @@ public class DefaultDataExportService implements DataExportService {
       List<UID> res = ids.stream().filter(UID::isValid).map(UID::of).toList();
       if (res.size() == ids.size()) return res;
       return Stream.concat(
-              res.stream(),
-              idCoder.listDecodedIds(type, IdProperty.CODE, ids.stream()).map(UID::of))
+              res.stream(), idCoder.listDecodedIds(type, IdProperty.CODE, ids.stream()).stream())
           .toList();
     }
-    return idCoder.listDecodedIds(type, p, ids.stream()).map(UID::of).toList();
+    return idCoder.listDecodedIds(type, p, ids.stream());
   }
 
   private List<Period> decodePeriods(Collection<String> isoPeriods) {

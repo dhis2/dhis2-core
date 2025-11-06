@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -166,11 +167,11 @@ public class StatelessIdCoder implements IdCoder {
 
   @Nonnull
   @Override
-  public Stream<String> listDecodedIds(
+  public List<UID> listDecodedIds(
       @Nonnull ObjectType type, @Nonnull IdProperty from, @Nonnull Stream<String> identifiers) {
-    if (from == IdProperty.UID) return identifiers;
+    if (from == IdProperty.UID) return identifiers.map(UID::of).toList();
     String[] ids = identifiers.filter(Objects::nonNull).distinct().toArray(String[]::new);
-    if (ids.length == 0) return Stream.empty();
+    if (ids.length == 0) return List.of();
     @Language("sql")
     String sqlTemplate =
         """
@@ -181,7 +182,7 @@ public class StatelessIdCoder implements IdCoder {
     String sql =
         replace(sqlTemplate, Map.of("table", tableName(type), "property", columnName("t", from)));
     return runReadInStatelessSession(
-        sql, q -> q.setParameter("ids", ids).stream(row -> row.getString(0)));
+        sql, q -> q.setParameter("ids", ids).stream(String.class).map(UID::of).toList());
   }
 
   private static String tableName(ObjectType type) {
