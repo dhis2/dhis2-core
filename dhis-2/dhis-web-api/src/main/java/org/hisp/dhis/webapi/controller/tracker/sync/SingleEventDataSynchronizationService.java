@@ -249,7 +249,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
                   SyncUtils.HEADER_AUTHORIZATION,
                   CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-          renderService.toJson(request.getBody(), events);
+          renderService.toJson(request.getBody(), Map.of("events", events));
         };
 
     return sendSyncRequest(
