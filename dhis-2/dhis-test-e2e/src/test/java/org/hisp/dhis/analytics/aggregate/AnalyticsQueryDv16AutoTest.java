@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dependsOn.DependsOn;
+import org.hisp.dhis.test.e2e.dependsOn.Resource;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
@@ -729,5 +731,273 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     // Validate selected values for row index 995
     validateRowValueByName(response, actualHeaders, 995, "Data ID", "IpHINAT79UW.wQLfBvPrXqq");
     validateRowValueByName(response, actualHeaders, 995, "december 2020", "");
+  }
+
+  @DependsOn(
+      files = {"ind-period-offset.json"},
+      delete = true)
+  @Test
+  public void periodOffsetIndicatorAsFilter(List<Resource> resource) throws JSONException {
+    // Test for ISSUE DHIS2-18502
+    String indicatorId = resource.get(0).uid();
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "filter=ou:USER_ORGUNIT,pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112")
+            .add("skipData=false")
+            .add("includeMetadataDetails=true")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:%s".formatted(indicatorId));
+
+    // When
+    ApiResponse response = actions.get(params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response, false, 1, 7, 7); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        """
+                {
+                   "dimensions": {
+                      "co": [],
+                      "dx": [
+                         "%s"
+                      ],
+                      "ou": [
+                         "ImspTQPwCqd"
+                      ],
+                      "pe": [
+                         "202101",
+                         "202102",
+                         "202103",
+                         "202104",
+                         "202105",
+                         "202106",
+                         "202107",
+                         "202108",
+                         "202109",
+                         "202110",
+                         "202111",
+                         "202112"
+                      ]
+                   },
+                   "items": {
+                      "202101": {
+                         "code": "202101",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-01-31T00:00:00.000",
+                         "name": "January 2021",
+                         "startDate": "2021-01-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202101",
+                         "valueType": "TEXT"
+                      },
+                      "202102": {
+                         "code": "202102",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-02-28T00:00:00.000",
+                         "name": "February 2021",
+                         "startDate": "2021-02-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202102",
+                         "valueType": "TEXT"
+                      },
+                      "202103": {
+                         "code": "202103",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-03-31T00:00:00.000",
+                         "name": "March 2021",
+                         "startDate": "2021-03-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202103",
+                         "valueType": "TEXT"
+                      },
+                      "202104": {
+                         "code": "202104",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-04-30T00:00:00.000",
+                         "name": "April 2021",
+                         "startDate": "2021-04-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202104",
+                         "valueType": "TEXT"
+                      },
+                      "202105": {
+                         "code": "202105",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-05-31T00:00:00.000",
+                         "name": "May 2021",
+                         "startDate": "2021-05-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202105",
+                         "valueType": "TEXT"
+                      },
+                      "202106": {
+                         "code": "202106",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-06-30T00:00:00.000",
+                         "name": "June 2021",
+                         "startDate": "2021-06-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202106",
+                         "valueType": "TEXT"
+                      },
+                      "202107": {
+                         "code": "202107",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-07-31T00:00:00.000",
+                         "name": "July 2021",
+                         "startDate": "2021-07-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202107",
+                         "valueType": "TEXT"
+                      },
+                      "202108": {
+                         "code": "202108",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-08-31T00:00:00.000",
+                         "name": "August 2021",
+                         "startDate": "2021-08-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202108",
+                         "valueType": "TEXT"
+                      },
+                      "202109": {
+                         "code": "202109",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-09-30T00:00:00.000",
+                         "name": "September 2021",
+                         "startDate": "2021-09-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202109",
+                         "valueType": "TEXT"
+                      },
+                      "202110": {
+                         "code": "202110",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-10-31T00:00:00.000",
+                         "name": "October 2021",
+                         "startDate": "2021-10-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202110",
+                         "valueType": "TEXT"
+                      },
+                      "202111": {
+                         "code": "202111",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-11-30T00:00:00.000",
+                         "name": "November 2021",
+                         "startDate": "2021-11-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202111",
+                         "valueType": "TEXT"
+                      },
+                      "202112": {
+                         "code": "202112",
+                         "dimensionItemType": "PERIOD",
+                         "endDate": "2021-12-31T00:00:00.000",
+                         "name": "December 2021",
+                         "startDate": "2021-12-01T00:00:00.000",
+                         "totalAggregationType": "SUM",
+                         "uid": "202112",
+                         "valueType": "TEXT"
+                      },
+                      "%s": {
+                         "code": "DHIS2-18502",
+                         "dimensionItemType": "INDICATOR",
+                         "indicatorType": {
+                            "displayName": "Number (Factor 1)",
+                            "factor": 1,
+                            "name": "Number (Factor 1)",
+                            "number": true
+                         },
+                         "name": "PERIOD_OFFSET_TEST",
+                         "totalAggregationType": "SUM",
+                         "uid": "%s",
+                         "valueType": "NUMBER"
+                      },
+                      "dx": {
+                         "dimensionType": "DATA_X",
+                         "name": "Data",
+                         "uid": "dx"
+                      },
+                      "ImspTQPwCqd": {
+                         "code": "OU_525",
+                         "dimensionItemType": "ORGANISATION_UNIT",
+                         "name": "Sierra Leone",
+                         "totalAggregationType": "SUM",
+                         "uid": "ImspTQPwCqd",
+                         "valueType": "TEXT"
+                      },
+                      "ou": {
+                         "dimensionType": "ORGANISATION_UNIT",
+                         "name": "Organisation unit",
+                         "uid": "ou"
+                      },
+                      "pe": {
+                         "dimensionType": "PERIOD",
+                         "name": "Period",
+                         "uid": "pe"
+                      }
+                   }
+                }
+                """
+            .formatted(indicatorId, indicatorId, indicatorId);
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "numerator",
+        "Numerator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "denominator",
+        "Denominator",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "multiplier",
+        "Multiplier",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        false);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    validateRowValueByName(response, actualHeaders, 0, "dx", indicatorId);
+    validateRowValueByName(response, actualHeaders, 0, "divisor", "1");
   }
 }

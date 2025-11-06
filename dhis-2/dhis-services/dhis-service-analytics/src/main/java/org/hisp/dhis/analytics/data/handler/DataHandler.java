@@ -146,6 +146,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
@@ -288,9 +289,6 @@ public class DataHandler {
   /**
    * Transform expression dimension item object in the indicator object with some default values
    * missing in expression dimension item
-   *
-   * @param expressionDimensionItems
-   * @return
    */
   private List<Indicator> expressionDimensionItemsToIndicators(
       List<ExpressionDimensionItem> expressionDimensionItems) {
@@ -302,16 +300,8 @@ public class DataHandler {
       DataQueryParams dataSourceParams,
       List<Indicator> indicators,
       Grid grid) {
-    // Try to get filters periods from dimension (pe), or else fall back
-    // to "startDate/endDate" periods
-    List<Period> filterPeriods =
-        isNotEmpty(dataSourceParams.getTypedFilterPeriods())
-            ? dataSourceParams.getTypedFilterPeriods()
-            : dataSourceParams.getStartEndDatesToSingleList();
-
-    // -----------------------------------------------------------------
-    // Get indicator values
-    // -----------------------------------------------------------------
+    List<Period> filterPeriods = getFilterPeriods(dataQueryParams, dataSourceParams);
+    boolean periodsInFilter = dataQueryParams.getPeriods().isEmpty() && !filterPeriods.isEmpty();
 
     Map<String, Map<String, Integer>> permutationOrgUnitTargetMap =
         getOrgUnitTargetMap(dataSourceParams, indicators);
@@ -322,26 +312,209 @@ public class DataHandler {
     Map<DimensionalItemId, DimensionalItemObject> itemMap =
         expressionService.getIndicatorDimensionalItemMap(indicators);
 
+    DataQueryParams paramsForValueMap =
+        getParamsForValueMap(dataQueryParams, itemMap, periodsInFilter, indicators);
+
     Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap =
-        getPermutationDimensionItemValueMap(dataQueryParams, new ArrayList<>(itemMap.values()));
+        getPermutationDimensionItemValueMap(paramsForValueMap, new ArrayList<>(itemMap.values()));
 
     handleEmptyDimensionItemPermutations(dimensionItemPermutations);
 
     for (Indicator indicator : indicators) {
-      for (List<DimensionItem> dimensionItems : dimensionItemPermutations) {
-        IndicatorValue value =
-            getIndicatorValue(
-                filterPeriods,
-                itemMap,
-                permutationOrgUnitTargetMap,
-                permutationDimensionItemValueMap,
-                indicator,
-                dimensionItems);
+      addIndicatorValueToGrid(
+          indicator,
+          dataQueryParams,
+          dataSourceParams,
+          grid,
+          filterPeriods,
+          periodsInFilter,
+          itemMap,
+          permutationOrgUnitTargetMap,
+          permutationDimensionItemValueMap,
+          dimensionItemPermutations,
+          paramsForValueMap);
+    }
+  }
 
-        addIndicatorValuesToGrid(
-            dataQueryParams, grid, dataSourceParams, indicator, dimensionItems, value);
+  /** Adds indicator values to the grid for a single indicator. */
+  private void addIndicatorValueToGrid(
+      Indicator indicator,
+      DataQueryParams dataQueryParams,
+      DataQueryParams dataSourceParams,
+      Grid grid,
+      List<Period> filterPeriods,
+      boolean periodsInFilter,
+      Map<DimensionalItemId, DimensionalItemObject> itemMap,
+      Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
+      Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
+      List<List<DimensionItem>> dimensionItemPermutations,
+      DataQueryParams paramsForValueMap) {
+
+    boolean indicatorHasPeriodOffset = hasPeriodOffsetInItems(itemMap.values());
+
+    if (periodsInFilter && indicatorHasPeriodOffset) {
+      addAggregatedIndicatorValueWithPeriodOffset(
+          indicator,
+          dataQueryParams,
+          dataSourceParams,
+          grid,
+          filterPeriods,
+          itemMap,
+          permutationOrgUnitTargetMap,
+          permutationDimensionItemValueMap,
+          paramsForValueMap);
+    } else {
+      addStandardIndicatorValues(
+          indicator,
+          dataQueryParams,
+          dataSourceParams,
+          grid,
+          filterPeriods,
+          itemMap,
+          permutationOrgUnitTargetMap,
+          permutationDimensionItemValueMap,
+          dimensionItemPermutations);
+    }
+  }
+
+  /**
+   * Handles the special case where periods are in filters and the indicator has periodOffset.
+   * Calculates indicator for each period separately, then aggregates the results.
+   */
+  private void addAggregatedIndicatorValueWithPeriodOffset(
+      Indicator indicator,
+      DataQueryParams dataQueryParams,
+      DataQueryParams dataSourceParams,
+      Grid grid,
+      List<Period> filterPeriods,
+      Map<DimensionalItemId, DimensionalItemObject> itemMap,
+      Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
+      Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
+      DataQueryParams paramsForValueMap) {
+
+    List<List<DimensionItem>> periodDimensionPermutations =
+        paramsForValueMap.getDimensionItemPermutations();
+
+    double sumValue = 0.0;
+    int count = 0;
+
+    for (List<DimensionItem> dimensionItemsWithPeriod : periodDimensionPermutations) {
+      PeriodDimension periodDim = (PeriodDimension) getPeriodItem(dimensionItemsWithPeriod);
+
+      if (periodDim == null || !filterPeriods.contains(periodDim.getPeriod())) {
+        continue;
+      }
+
+      IndicatorValue value =
+          getIndicatorValue(
+              List.of(periodDim.getPeriod()),
+              itemMap,
+              permutationOrgUnitTargetMap,
+              permutationDimensionItemValueMap,
+              indicator,
+              dimensionItemsWithPeriod);
+
+      if (value != null) {
+        sumValue += value.getValue();
+        count++;
       }
     }
+
+    if (count > 0) {
+      // Calculate the final aggregated value based on the indicator's aggregation type
+      double finalValue = sumValue;
+      TotalAggregationType aggregationType = indicator.getTotalAggregationType();
+
+      if (aggregationType == TotalAggregationType.AVERAGE) {
+        finalValue = sumValue / count;
+      }
+
+      IndicatorValue aggregatedValue =
+          new IndicatorValue()
+              .setNumeratorValue(finalValue)
+              .setDenominatorValue(1.0)
+              .setMultiplier(1)
+              .setDivisor(1);
+
+      addIndicatorValuesToGrid(
+          dataQueryParams, grid, dataSourceParams, indicator, new ArrayList<>(), aggregatedValue);
+    }
+  }
+
+  /**
+   * Handles standard indicator value calculation (periods in dimensions or in filters without
+   * periodOffset).
+   */
+  private void addStandardIndicatorValues(
+      Indicator indicator,
+      DataQueryParams dataQueryParams,
+      DataQueryParams dataSourceParams,
+      Grid grid,
+      List<Period> filterPeriods,
+      Map<DimensionalItemId, DimensionalItemObject> itemMap,
+      Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
+      Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
+      List<List<DimensionItem>> dimensionItemPermutations) {
+
+    for (List<DimensionItem> dimensionItems : dimensionItemPermutations) {
+      IndicatorValue value =
+          getIndicatorValue(
+              filterPeriods,
+              itemMap,
+              permutationOrgUnitTargetMap,
+              permutationDimensionItemValueMap,
+              indicator,
+              dimensionItems);
+
+      addIndicatorValuesToGrid(
+          dataQueryParams, grid, dataSourceParams, indicator, dimensionItems, value);
+    }
+  }
+
+  /** Gets filter periods from query parameters. */
+  private List<Period> getFilterPeriods(
+      DataQueryParams dataQueryParams, DataQueryParams dataSourceParams) {
+    if (isNotEmpty(dataQueryParams.getTypedFilterPeriods())) {
+      return dataQueryParams.getTypedFilterPeriods();
+    }
+    if (isNotEmpty(dataSourceParams.getTypedFilterPeriods())) {
+      return dataSourceParams.getTypedFilterPeriods();
+    }
+    return dataSourceParams.getStartEndDatesToSingleList();
+  }
+
+  /** Creates params with periods moved to dimensions if needed for periodOffset handling. */
+  private DataQueryParams getParamsForValueMap(
+      DataQueryParams dataQueryParams,
+      Map<DimensionalItemId, DimensionalItemObject> itemMap,
+      boolean periodsInFilter,
+      List<Indicator> indicators) {
+
+    if (!periodsInFilter) {
+      return dataQueryParams;
+    }
+
+    boolean hasPeriodOffset =
+        indicators.stream()
+            .flatMap(ind -> itemMap.values().stream())
+            .anyMatch(
+                item -> item.getQueryMods() != null && item.getQueryMods().getPeriodOffset() != 0);
+
+    if (!hasPeriodOffset) {
+      return dataQueryParams;
+    }
+
+    return newBuilder(dataQueryParams)
+        .withPeriods(dataQueryParams.getFilterPeriods())
+        .removeFilter(PERIOD_DIM_ID)
+        .build();
+  }
+
+  /** Checks if any items have periodOffset modifier. */
+  private boolean hasPeriodOffsetInItems(Collection<DimensionalItemObject> items) {
+    return items.stream()
+        .anyMatch(
+            item -> item.getQueryMods() != null && item.getQueryMods().getPeriodOffset() != 0);
   }
 
   /**
@@ -1248,15 +1421,29 @@ public class DataHandler {
     DimensionalObject dimension =
         new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, null, DISPLAY_NAME_DATA_X, items);
 
-    DataQueryParams dataSourceParams =
+    // If any items have periodOffset and periods are in filters, we need to
+    // temporarily move periods to dimensions to get period-specific values
+    boolean hasPeriodOffset =
+        items.stream()
+            .anyMatch(
+                item -> item.getQueryMods() != null && item.getQueryMods().getPeriodOffset() != 0);
+    boolean periodsInFilter = params.getPeriods().isEmpty() && !params.getFilterPeriods().isEmpty();
+
+    DataQueryParams.Builder builder =
         newBuilder(params)
             .replaceDimension(dimension)
             .withMeasureCriteria(new HashMap<>())
             .withIncludeNumDen(false)
             .withSkipHeaders(true)
             .withOutputFormat(ANALYTICS)
-            .withSkipMeta(true)
-            .build();
+            .withSkipMeta(true);
+
+    if (hasPeriodOffset && periodsInFilter) {
+      // Move filter periods to dimensions to get period-specific data
+      builder.withPeriods(params.getFilterPeriods()).removeFilter(PERIOD_DIM_ID);
+    }
+
+    DataQueryParams dataSourceParams = builder.build();
 
     Grid grid = dataAggregator.getAggregatedDataValueGrid(dataSourceParams);
 
@@ -1264,7 +1451,7 @@ public class DataHandler {
       return new ArrayListValuedHashMap<>();
     }
 
-    return getAggregatedValueMapFromGrid(params, items, grid);
+    return getAggregatedValueMapFromGrid(dataSourceParams, items, grid);
   }
 
   /**

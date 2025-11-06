@@ -172,7 +172,7 @@
     },
     {
       "name": "programDataElementOptionShortNameInMetaData",
-      "query": "/api/analytics?dimension=dx:qDkgAbB5Jlk.XCMLePzaZiL.vak9GKjzzAP;qDkgAbB5Jlk.XCMLePzaZiL.zPVS0EAEwia,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=SHORTNAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true&relativePeriodDate=2025-03-01",
+      "query": "/api/analytics/api/analytics?dimension=dx%3AueeOgA3p25x,pe%3A202101%3B202102%3B202103%3B202104%3B202105%3B202106%3B202107%3B202108%3B202109%3B202110%3B202111%3B202112&filter=ou%3AUSER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true?dimension=dx:qDkgAbB5Jlk.XCMLePzaZiL.vak9GKjzzAP;qDkgAbB5Jlk.XCMLePzaZiL.zPVS0EAEwia,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=SHORTNAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true&relativePeriodDate=2025-03-01",
       "version": {
         "min": 42
       }
@@ -189,6 +189,13 @@
       "query": "/api/analytics.json?dimension=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112;202201;202202;202203;202204;202205;202206;202207;202208;202209;202210;202211;202212;202001;202002;202003;202004;202005;202006;202007;202008;202009;202010;202011;202012&dimension=dx:FQ2o8UBlcrS;GSae40Fyppf;dSBYyCUjCXd;RUv0hqER0zV;IpHINAT79UW.cejWyOfXge6;IpHINAT79UW.wQLfBvPrXqq&dimension=ou:ImspTQPwCqd;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN&tableLayout=true&columns=pe&rows=dx;ou&skipRounding=false&completedOnly=false",
       "version": {
         "min": 39
+      }
+    },
+    {
+      "name": "periodOffsetIndicatorAsFilter",
+      "query": "/api/analytics?dimension=dx:ueeOgA3p25x&filter=ou:USER_ORGUNIT&filter=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "version": {
+        "min": 42
       }
     }
   ]

@@ -1,0 +1,14 @@
+{
+  "type": "indicator",
+  "code": "DHIS2-18502",
+  "denominator": "1",
+  "denominatorDescription": "Num",
+  "indicatorType": {
+    "id": "JkWynlWMjJR"
+  },
+  "legendSets": [],
+  "name": "PERIOD_OFFSET_TEST",
+  "numerator": "#{FQ2o8UBlcrS}  -  #{FQ2o8UBlcrS}.periodOffset( -1 )",
+  "numeratorDescription": "NUM",
+  "shortName": "PERIOD_OFFSET_TEST"
+}

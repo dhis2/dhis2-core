@@ -94,6 +94,26 @@ class PeriodOffsetUtilsTest {
   }
 
   @Test
+  void verifyAddShiftedPeriodsWithFilterPeriods() {
+    PeriodDimension month1 = createMonthlyPeriod(2020, 11);
+    PeriodDimension month2 = createMonthlyPeriod(2020, 12);
+    PeriodDimension month3 = createMonthlyPeriod(2021, 1);
+    DataElement dataElement = createDataElement(-1);
+    DataQueryParams queryParams =
+        DataQueryParams.newBuilder()
+            .withDataElements(Lists.newArrayList(dataElement))
+            .withFilterPeriods(Lists.newArrayList(month1, month2, month3))
+            .build();
+
+    DataQueryParams params = PeriodOffsetUtils.addShiftedPeriods(queryParams);
+
+    // Should expand filter periods to include the shifted period (202010)
+    assertIsoPeriodsInOrder(params.getFilterPeriods(), "202011", "202012", "202101", "202010");
+    // Dimension periods should still be empty
+    assertThat(params.getPeriods(), hasSize(0));
+  }
+
+  @Test
   void verifyShiftPeriod() {
     Period p1 = PeriodOffsetUtils.shiftPeriod(createMonthlyPeriod(2020, 1), 12).getPeriod();
     assertThat(p1.getIsoDate(), is("202101"));

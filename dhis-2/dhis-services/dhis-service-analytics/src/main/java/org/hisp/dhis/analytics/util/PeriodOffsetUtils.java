@@ -84,7 +84,19 @@ public final class PeriodOffsetUtils {
       return params;
     }
 
-    List<DimensionalItemObject> periods = new ArrayList<>(params.getPeriods());
+    // Determine if periods are in dimensions or filters
+    List<DimensionalItemObject> basePeriods = params.getPeriods();
+    boolean periodsInFilter = basePeriods.isEmpty();
+
+    if (periodsInFilter) {
+      basePeriods = params.getFilterPeriods();
+
+      if (basePeriods.isEmpty()) {
+        return params;
+      }
+    }
+
+    List<DimensionalItemObject> periods = new ArrayList<>(basePeriods);
 
     for (DimensionalItemObject item : dimension.getItems()) {
       QueryModifiers mods = item.getQueryMods();
@@ -92,7 +104,7 @@ public final class PeriodOffsetUtils {
       if (mods != null) {
         if (mods.getPeriodOffset() != 0) {
           // Add periodOffsets only for parameter periods
-          addAllUnique(periods, shiftPeriods(params.getPeriods(), mods.getPeriodOffset()));
+          addAllUnique(periods, shiftPeriods(basePeriods, mods.getPeriodOffset()));
         }
 
         if (mods.isYearToDate()) {
@@ -102,11 +114,16 @@ public final class PeriodOffsetUtils {
       }
     }
 
-    if (periods.equals(params.getPeriods())) {
+    if (periods.equals(basePeriods)) {
       return params;
     }
 
-    return DataQueryParams.newBuilder(params).withPeriods(periods).build();
+    // Update either dimension periods or filter periods based on where they were
+    if (periodsInFilter) {
+      return DataQueryParams.newBuilder(params).withFilterPeriods(periods).build();
+    } else {
+      return DataQueryParams.newBuilder(params).withPeriods(periods).build();
+    }
   }
 
   /**
