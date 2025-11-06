@@ -94,13 +94,25 @@ Edit `src/test/resources/recorder.conf` to customize:
 
 Don't want to configure proxy? Use browser DevTools:
 
-```sh
-# 1. DevTools (F12) → Network → Preserve log
-# 2. Perform workflow → Right-click → "Save all as HAR"
-# 3. Convert:
-mvn gatling:recorder -Dgatling.recorder.mode=Har \
-  -Dgatling.recorder.harFilePath=traffic.har
-```
+1. Open DevTools (F12) → Network tab
+2. Enable "Preserve log"
+3. Perform your workflow in the browser
+4. Right-click in Network tab → "Save all as HAR" → save as `traffic.har`
+5. Open Gatling Recorder:
+   ```sh
+   mvn gatling:recorder
+   ```
+6. In the Recorder GUI:
+   * **IMPORTANT:** Uncheck **"Save preferences"** at the bottom (workaround for Gatling bug)
+   * Select **"HAR Converter"** mode from dropdown (top right)
+   * Click folder icon to browse and select your `traffic.har` file
+   * Click **"Start"** to convert
+
+The simulation will be generated at `src/test/java/org/hisp/dhis/test/generated/RecordedSimulation.java`
+
+**Known Issue:** HAR converter crashes with `StackOverflowError` if "Save preferences" is enabled.
+This is a bug in Gatling 4.x where saving HAR converter settings causes infinite recursion in the
+config serialization. Workaround: disable "Save preferences" before starting the conversion.
 
 ## Troubleshooting
 
