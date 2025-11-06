@@ -737,7 +737,9 @@ public enum ConfigurationKey {
 
   /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
-      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
+      "switch_user_allow_listed_ips",
+      "localhost,127.0.0.1,[0:0:0:0:0:0:0:1],0:0:0:0:0:0:0:1",
+      false),
 
   /** Maximun size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
