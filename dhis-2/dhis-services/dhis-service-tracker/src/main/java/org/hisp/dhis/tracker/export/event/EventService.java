@@ -113,6 +113,27 @@ public interface EventService {
   List<Event> findEvents(@Nonnull EventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
+  /**
+   * Retrieves a list of {@link Event} objects based on the provided query parameters and program
+   * stage data element synchronization configuration.
+   *
+   * <p>This method supports server-side filtering of events according to the given {@link
+   * EventOperationParams}, which may include parameters such as program type, last updated date,
+   * synchronization flag, and other operational filters. Additionally, it takes into account
+   * program stage data elements that have the "skip synchronization" setting enabled, allowing
+   * selective exclusion of event data values during synchronization processes.
+   *
+   * <p>The method is primarily used during event synchronization between DHIS2 instances, where
+   * only a subset of eligible events (and possibly filtered event data values) are fetched to be
+   * sent to a remote instance.
+   *
+   * @param params an {@link EventOperationParams} instance defining filters and options to control
+   *     which events are retrieved (e.g., program type, org units, date ranges, sync flags).
+   * @param psdesWithSkipSyncTrue a mapping of program stage UIDs to their respective sets of data
+   *     element UIDs for which the "skip synchronization" property is enabled. Used to exclude
+   *     certain data values from the result set.
+   * @return a non-null list of {@link Event} objects that match the specified criteria.
+   */
   @Nonnull
   List<Event> findEvents(
       @Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue)
