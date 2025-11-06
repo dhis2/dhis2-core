@@ -13,14 +13,14 @@ extract_credentials() {
     if [[ $args =~ -Duser\.default\.username=([^[:space:]]+) ]]; then
         DHIS2_USERNAME="${BASH_REMATCH[1]}"
     else
-        DHIS2_USERNAME="admin"  # fallback default
+        DHIS2_USERNAME="admin"
     fi
     
     # Extract password using regex
     if [[ $args =~ -Duser\.default\.password=([^[:space:]]+) ]]; then
         DHIS2_PASSWORD="${BASH_REMATCH[1]}"
     else
-        DHIS2_PASSWORD="district"  # fallback default
+        DHIS2_PASSWORD="district" 
     fi
 }
 
@@ -105,7 +105,6 @@ wait_for()
             WAITFORIT_end_ts=$(date +%s)
             echoerr "$WAITFORIT_cmdname: $WAITFORIT_HOST:$WAITFORIT_PORT is available after $((WAITFORIT_end_ts - WAITFORIT_start_ts)) seconds"
             
-            # Call the system info API and save response to file
             call_system_info "$WAITFORIT_HOST" "$WAITFORIT_PORT"
             
             break
