@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toCollection;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -36,6 +38,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
@@ -462,6 +465,38 @@ public class ConfigurationController {
 
     configuration.setCorsWhitelist(corsWhitelist);
 
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping(
+      value = {"/dataOutputPeriodTypes"},
+      produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> getDataOutputPeriodTypes() {
+    Set<PeriodType> periodTypes =
+        configurationService.getConfiguration().getDataOutputPeriodTypes();
+    Set<org.hisp.dhis.webapi.webdomain.PeriodType> periodTypesNames =
+        periodTypes.stream()
+            .map(org.hisp.dhis.webapi.webdomain.PeriodType::new)
+            .collect(toCollection(LinkedHashSet::new));
+
+    return periodTypesNames;
+  }
+
+  @SuppressWarnings("unchecked")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
+  @PostMapping(
+      value = {"/dataOutputPeriodTypes"},
+      consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setDataOutputPeriodTypes(
+      @RequestBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> periodTypes) {
+    Set<PeriodType> periodTypesParsed = new LinkedHashSet<>();
+
+    periodTypes.forEach(
+        p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.getName())));
+
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.getDataOutputPeriodTypes().addAll(periodTypesParsed);
     configurationService.setConfiguration(configuration);
   }
 

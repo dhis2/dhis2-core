@@ -35,10 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -47,7 +50,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author viet
  */
 @Transactional
-class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
+class ConfigurationControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private PeriodService periodService;
 
   @Test
   @DisplayName("Configuration object should have infrastructuralIndicators property")
@@ -82,6 +87,7 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
     configuration.has("facilityOrgUnitGroupSet");
     configuration.has("facilityOrgUnitLevel");
     configuration.has("corsWhitelist");
+    configuration.has("dataOutputPeriodTypes");
   }
 
   @Test
@@ -198,5 +204,29 @@ class ConfigurationControllerTest extends H2ControllerIntegrationTestBase {
         GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
     assertEquals(indicatorGroupId, indicatorGroup.getString("id").string());
     assertEquals("Test Infrastructure Group", indicatorGroup.getString("name").string());
+  }
+
+  @Test
+  @DisplayName("POST /configuration/dataOutputPeriodTypes should set the period types")
+  void testSetDataOutputPeriodTypes() {
+    // Create a Period.
+    periodService.addPeriod(createPeriod(getDay(5), getDay(6)));
+
+    String payload =
+        """
+              [
+                {
+                    'name': 'Monthly'
+                }
+              ]
+            """;
+
+    // Post a period.
+    assertStatus(HttpStatus.NO_CONTENT, POST("/configuration/dataOutputPeriodTypes", payload));
+
+    // Verify it was saved.
+    JsonArray response =
+        GET("/configuration/dataOutputPeriodTypes").content(HttpStatus.OK).as(JsonArray.class);
+    assertEquals("Monthly", response.get(0).asObject().getString("name").string());
   }
 }
