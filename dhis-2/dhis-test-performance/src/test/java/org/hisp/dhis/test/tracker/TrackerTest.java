@@ -30,21 +30,26 @@
 package org.hisp.dhis.test.tracker;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
-import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
+import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
+import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
 import static io.gatling.javaapi.core.CoreDsl.group;
+import static io.gatling.javaapi.core.CoreDsl.incrementUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
+import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.Assertion;
+import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +59,12 @@ public class TrackerTest extends Simulation {
     String repeat = System.getProperty("repeat", "100");
     String eventProgram = System.getProperty("eventProgram", "VBqh0ynB2wv");
     String trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
+
+    // Injection profile configuration
+    String profile = System.getProperty("profile", "load");
+    int users = Integer.getInteger("users", 10);
+    int duration = Integer.getInteger("duration", 600); // seconds (10 minutes)
+    int rampDuration = Integer.getInteger("rampDuration", 300); // seconds (5 minutes)
 
     HttpProtocolBuilder httpProtocolBuilder =
         http.baseUrl("http://localhost:8080")
@@ -74,14 +85,73 @@ public class TrackerTest extends Simulation {
     allAssertions.addAll(eventScenario.requests().stream().map(Request::assertion).toList());
     allAssertions.addAll(trackerScenario.requests().stream().map(Request::assertion).toList());
 
+    OpenInjectionStep[] injectionProfile = getInjectionProfile(profile, users, duration, rampDuration);
+
     setUp(
             eventScenario
                 .scenario()
-                .injectClosed(constantConcurrentUsers(1).during(1))
-                .andThen(
-                    trackerScenario.scenario().injectClosed(constantConcurrentUsers(1).during(1))))
+                .injectOpen(injectionProfile)
+                .andThen(trackerScenario.scenario().injectOpen(injectionProfile)))
         .protocols(httpProtocolBuilder)
         .assertions(allAssertions);
+  }
+
+  /**
+   * Returns the injection profile based on the specified test type.
+   *
+   * @param profile Profile type: load, stress, spike, soak, capacity
+   * @param users Number of users (semantics vary by profile)
+   * @param duration Main test duration in seconds
+   * @param rampDuration Ramp-up duration in seconds
+   * @return OpenInjectionStep for the specified profile
+   */
+  private OpenInjectionStep[] getInjectionProfile(
+      String profile, int users, int duration, int rampDuration) {
+    return switch (profile.toLowerCase()) {
+      case "load" ->
+          // Load Testing: Gradual ramp-up → Sustained peak
+          new OpenInjectionStep[] {
+            rampUsersPerSec(1).to(users).during(Duration.ofSeconds(rampDuration)),
+            constantUsersPerSec(users).during(Duration.ofSeconds(duration))
+          };
+
+      case "stress" ->
+          // Stress Testing: Stepped progressive increases (staircase pattern)
+          new OpenInjectionStep[] {
+            incrementUsersPerSec(users / 10)
+                .times(10)
+                .eachLevelLasting(Duration.ofSeconds(duration / 10))
+                .separatedByRampsLasting(Duration.ofSeconds(60))
+                .startingFrom(users / 10)
+          };
+
+      case "spike" ->
+          // Spike Testing: Baseline → Instant spike → Brief peak
+          new OpenInjectionStep[] {
+            constantUsersPerSec(users / 5).during(Duration.ofSeconds(300)),
+            atOnceUsers(users),
+            constantUsersPerSec(users / 2).during(Duration.ofSeconds(120))
+          };
+
+      case "soak" ->
+          // Soak Testing: Extended duration for memory leaks
+          new OpenInjectionStep[] {
+            rampUsersPerSec(1).to(users).during(Duration.ofSeconds(rampDuration)),
+            constantUsersPerSec(users).during(Duration.ofHours(4))
+          };
+
+      case "capacity" ->
+          // Capacity Testing: Continuous increase to breaking point
+          new OpenInjectionStep[] {
+            rampUsersPerSec(0).to(users * 2).during(Duration.ofSeconds(duration))
+          };
+
+      default ->
+          throw new IllegalArgumentException(
+              "Unknown profile: "
+                  + profile
+                  + ". Valid options: load, stress, spike, soak, capacity");
+    };
   }
 
   private ScenarioWithRequests eventProgramScenario(String repeat, String eventProgram) {
