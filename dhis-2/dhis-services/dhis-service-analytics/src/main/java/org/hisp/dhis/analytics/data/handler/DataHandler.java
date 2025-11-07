@@ -350,7 +350,12 @@ public class DataHandler {
       List<List<DimensionItem>> dimensionItemPermutations,
       DataQueryParams paramsForValueMap) {
 
-    boolean indicatorHasPeriodOffset = hasPeriodOffsetInItems(itemMap.values());
+    // Get dimensional items specific to this indicator only
+    Map<DimensionalItemId, DimensionalItemObject> indicatorItemMap =
+        expressionService.getIndicatorDimensionalItemMap(List.of(indicator));
+
+    // Check periodOffset only for this specific indicator's items
+    boolean indicatorHasPeriodOffset = hasPeriodOffsetInItems(indicatorItemMap.values());
 
     if (periodsInFilter && indicatorHasPeriodOffset) {
       addAggregatedIndicatorValueWithPeriodOffset(
@@ -359,7 +364,7 @@ public class DataHandler {
           dataSourceParams,
           grid,
           filterPeriods,
-          itemMap,
+          indicatorItemMap,
           permutationOrgUnitTargetMap,
           permutationDimensionItemValueMap,
           paramsForValueMap);
@@ -379,7 +384,9 @@ public class DataHandler {
 
   /**
    * Handles the special case where periods are in filters and the indicator has periodOffset.
-   * Calculates indicator for each period separately, then aggregates the results.
+   * Calculates indicator for each period separately, then aggregates the results. Preserves
+   * dimension grouping by aggregating only across filter periods for each distinct combination of
+   * other dimensions (e.g., org units, category combos).
    */
   private void addAggregatedIndicatorValueWithPeriodOffset(
       Indicator indicator,
@@ -395,16 +402,98 @@ public class DataHandler {
     List<List<DimensionItem>> periodDimensionPermutations =
         paramsForValueMap.getDimensionItemPermutations();
 
+    // Group dimension permutations by non-period dimensions (e.g., org units, categories)
+    Map<String, List<List<DimensionItem>>> groupedByNonPeriodDimensions =
+        groupDimensionPermutationsByNonPeriodDimensions(periodDimensionPermutations);
+
+    // For each group (e.g., one org unit), aggregate indicator values across all periods
+    for (Map.Entry<String, List<List<DimensionItem>>> entry :
+        groupedByNonPeriodDimensions.entrySet()) {
+
+      AggregationResult result =
+          aggregateIndicatorAcrossPeriods(
+              entry.getValue(),
+              filterPeriods,
+              itemMap,
+              permutationOrgUnitTargetMap,
+              permutationDimensionItemValueMap,
+              indicator);
+
+      if (result.hasData()) {
+        addAggregatedResultToGrid(result, indicator, dataQueryParams, dataSourceParams, grid);
+      }
+    }
+  }
+
+  /**
+   * Groups dimension permutations by their non-period dimensions. This allows us to aggregate
+   * across periods while preserving the structure of other dimensions (org units, categories,
+   * etc.).
+   *
+   * <p>Example: Input permutations: [(OrgUnit1, Period1), (OrgUnit1, Period2), (OrgUnit2, Period1)]
+   * Output groups: {"OrgUnit1": [(OrgUnit1, Period1), (OrgUnit1, Period2)], "OrgUnit2": [(OrgUnit2,
+   * Period1)]}
+   *
+   * @param periodDimensionPermutations all dimension permutations including periods
+   * @return map where keys are non-period dimension identifiers and values are lists of
+   *     permutations for that group
+   */
+  private Map<String, List<List<DimensionItem>>> groupDimensionPermutationsByNonPeriodDimensions(
+      List<List<DimensionItem>> periodDimensionPermutations) {
+    return periodDimensionPermutations.stream()
+        .collect(
+            Collectors.groupingBy(
+                dimensionItems -> {
+                  // Create a unique key from all non-period dimension items
+                  // Example: "OrgUnit1-CategoryA" or "OrgUnit2-CategoryB"
+                  return dimensionItems.stream()
+                      .filter(item -> !PERIOD_DIM_ID.equals(item.getDimension()))
+                      .map(item -> item.getItem().getDimensionItem())
+                      .collect(Collectors.joining("-"));
+                }));
+  }
+
+  /**
+   * Aggregates indicator values across multiple periods for a single dimension group (e.g., one org
+   * unit). Calculates the indicator separately for each period, then combines the results based on
+   * the indicator's aggregation type.
+   *
+   * @param dimensionPermutations list of dimension permutations for this group (same org unit,
+   *     different periods)
+   * @param filterPeriods the periods to include in aggregation
+   * @param itemMap dimensional items map for indicator expression evaluation
+   * @param permutationOrgUnitTargetMap org unit target counts
+   * @param permutationDimensionItemValueMap dimension item values
+   * @param indicator the indicator to calculate
+   * @return aggregation result containing the summed value, count, and dimension items
+   */
+  private AggregationResult aggregateIndicatorAcrossPeriods(
+      List<List<DimensionItem>> dimensionPermutations,
+      List<Period> filterPeriods,
+      Map<DimensionalItemId, DimensionalItemObject> itemMap,
+      Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
+      Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
+      Indicator indicator) {
+
     double sumValue = 0.0;
     int count = 0;
+    List<DimensionItem> nonPeriodDimensionItems = null;
 
-    for (List<DimensionItem> dimensionItemsWithPeriod : periodDimensionPermutations) {
-      PeriodDimension periodDim = (PeriodDimension) getPeriodItem(dimensionItemsWithPeriod);
+    // Calculate indicator for each period and accumulate results
+    for (List<DimensionItem> dimensionItemsWithPeriod : dimensionPermutations) {
 
-      if (periodDim == null || !filterPeriods.contains(periodDim.getPeriod())) {
-        continue;
+      // Extract and validate the period from this permutation
+      PeriodDimension periodDim = extractValidPeriod(dimensionItemsWithPeriod, filterPeriods);
+      if (periodDim == null) {
+        continue; // Skip invalid or filtered-out periods
       }
 
+      // Capture non-period dimensions from first valid permutation
+      if (nonPeriodDimensionItems == null) {
+        nonPeriodDimensionItems = extractNonPeriodDimensions(dimensionItemsWithPeriod);
+      }
+
+      // Calculate indicator value for this specific period
       IndicatorValue value =
           getIndicatorValue(
               List.of(periodDim.getPeriod()),
@@ -414,31 +503,129 @@ public class DataHandler {
               indicator,
               dimensionItemsWithPeriod);
 
+      // Accumulate non-null values
       if (value != null) {
-        sumValue += value.getValue();
+        double valueDouble = value.getValue();
+        sumValue += valueDouble;
         count++;
       }
     }
 
-    if (count > 0) {
-      // Calculate the final aggregated value based on the indicator's aggregation type
-      double finalValue = sumValue;
-      TotalAggregationType aggregationType = indicator.getTotalAggregationType();
+    return new AggregationResult(sumValue, count, nonPeriodDimensionItems);
+  }
 
-      if (aggregationType == TotalAggregationType.AVERAGE) {
-        finalValue = sumValue / count;
-      }
+  /**
+   * Extracts and validates a period from a list of dimension items. Returns null if the period is
+   * invalid or not in the filter list.
+   *
+   * @param dimensionItems the dimension items that may contain a period
+   * @param filterPeriods the list of valid filter periods
+   * @return the validated PeriodDimension, or null if invalid
+   */
+  private PeriodDimension extractValidPeriod(
+      List<DimensionItem> dimensionItems, List<Period> filterPeriods) {
+    DimensionalItemObject periodItem = getPeriodItem(dimensionItems);
 
-      IndicatorValue aggregatedValue =
-          new IndicatorValue()
-              .setNumeratorValue(finalValue)
-              .setDenominatorValue(1.0)
-              .setMultiplier(1)
-              .setDivisor(1);
-
-      addIndicatorValuesToGrid(
-          dataQueryParams, grid, dataSourceParams, indicator, new ArrayList<>(), aggregatedValue);
+    // Type safety check to prevent ClassCastException
+    if (!(periodItem instanceof PeriodDimension periodDim)) {
+      return null;
     }
+
+    // Check if this period is in our filter list
+    if (!filterPeriods.contains(periodDim.getPeriod())) {
+      return null;
+    }
+
+    return periodDim;
+  }
+
+  /**
+   * Extracts all non-period dimension items from a list of dimension items. This includes org
+   * units, categories, and any other dimensions except the period.
+   *
+   * @param dimensionItems the full list of dimension items
+   * @return list containing only non-period dimension items
+   */
+  private List<DimensionItem> extractNonPeriodDimensions(List<DimensionItem> dimensionItems) {
+    return dimensionItems.stream()
+        .filter(item -> !PERIOD_DIM_ID.equals(item.getDimension()))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Adds the aggregated indicator result to the grid. Calculates the final value based on the
+   * indicator's aggregation type and creates a grid row.
+   *
+   * @param result the aggregation result containing sum, count, and dimensions
+   * @param indicator the indicator being calculated
+   * @param dataQueryParams the original query parameters
+   * @param dataSourceParams the data source query parameters
+   * @param grid the grid to add the result to
+   */
+  private void addAggregatedResultToGrid(
+      AggregationResult result,
+      Indicator indicator,
+      DataQueryParams dataQueryParams,
+      DataQueryParams dataSourceParams,
+      Grid grid) {
+
+    // Calculate final value based on aggregation type (SUM or AVERAGE)
+    double finalValue = calculateAggregatedValue(result.sum, result.count, indicator);
+
+    // Create indicator value object with the final aggregated value
+    IndicatorValue aggregatedValue =
+        new IndicatorValue()
+            .setNumeratorValue(finalValue)
+            .setDenominatorValue(1.0)
+            .setMultiplier(1)
+            .setDivisor(1);
+
+    // Add row to grid with non-period dimensions and aggregated value
+    addIndicatorValuesToGrid(
+        dataQueryParams,
+        grid,
+        dataSourceParams,
+        indicator,
+        result.nonPeriodDimensions,
+        aggregatedValue);
+  }
+
+  /**
+   * Data holder for aggregation results across periods. Contains the accumulated sum, count of
+   * non-null values, and the non-period dimension items for this aggregation group.
+   *
+   * @param sum the accumulated sum of indicator values across periods
+   * @param count the number of non-null values included in the sum
+   * @param nonPeriodDimensions the dimension items excluding period (e.g., org unit, categories)
+   */
+  private record AggregationResult(double sum, int count, List<DimensionItem> nonPeriodDimensions) {
+
+    /** Returns true if this result contains valid data (at least one non-null value). */
+    boolean hasData() {
+      return count > 0;
+    }
+  }
+
+  /**
+   * Calculates the aggregated value based on the indicator's total aggregation type.
+   *
+   * @param sumValue the sum of all values
+   * @param count the count of values
+   * @param indicator the indicator with aggregation type
+   * @return the aggregated value
+   */
+  private double calculateAggregatedValue(double sumValue, int count, Indicator indicator) {
+    TotalAggregationType aggregationType = indicator.getTotalAggregationType();
+
+    // Default to SUM when aggregation type is not specified
+    if (aggregationType == null) {
+      return sumValue;
+    }
+
+    return switch (aggregationType) {
+      case SUM, NONE -> sumValue;
+      case AVERAGE -> sumValue / count;
+    };
   }
 
   /**
@@ -494,13 +681,8 @@ public class DataHandler {
       return dataQueryParams;
     }
 
-    boolean hasPeriodOffset =
-        indicators.stream()
-            .flatMap(ind -> itemMap.values().stream())
-            .anyMatch(
-                item -> item.getQueryMods() != null && item.getQueryMods().getPeriodOffset() != 0);
-
-    if (!hasPeriodOffset) {
+    // Use the reusable hasPeriodOffsetInItems method
+    if (!hasPeriodOffsetInItems(itemMap.values())) {
       return dataQueryParams;
     }
 
@@ -1423,10 +1605,7 @@ public class DataHandler {
 
     // If any items have periodOffset and periods are in filters, we need to
     // temporarily move periods to dimensions to get period-specific values
-    boolean hasPeriodOffset =
-        items.stream()
-            .anyMatch(
-                item -> item.getQueryMods() != null && item.getQueryMods().getPeriodOffset() != 0);
+    boolean hasPeriodOffset = hasPeriodOffsetInItems(items);
     boolean periodsInFilter = params.getPeriods().isEmpty() && !params.getFilterPeriods().isEmpty();
 
     DataQueryParams.Builder builder =

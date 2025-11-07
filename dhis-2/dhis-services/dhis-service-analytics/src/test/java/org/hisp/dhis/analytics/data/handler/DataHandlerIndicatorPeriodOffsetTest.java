@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -52,6 +53,7 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
@@ -72,7 +74,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * Tests for DataHandler indicator handling with periodOffset, specifically for the bug fix where
  * periods in filters with periodOffset returned 0 instead of data.
- *
  */
 @ExtendWith(MockitoExtension.class)
 class DataHandlerIndicatorPeriodOffsetTest {
@@ -158,7 +159,7 @@ class DataHandlerIndicatorPeriodOffsetTest {
     dataHandler.addIndicatorValues(params, grid);
 
     // Then: Grid should have one row with aggregated value
-    assertEquals(1, grid.getRows().size(), "Should have on aggregated row");
+    assertEquals(1, grid.getRows().size(), "Should have one aggregated row");
     List<Object> row = grid.getRow(0);
     assertNotNull(row, "Row should not be null");
     assertFalse(row.isEmpty(), "Row should have values");
@@ -166,6 +167,7 @@ class DataHandlerIndicatorPeriodOffsetTest {
     // The aggregated value should be sum of all periods: 2.0 + (-2.0) + 5.0 = 5.0
     Object value = row.get(row.size() - 1); // Last column is the value
     assertNotNull(value, "Value should not be null");
+    assertEquals(5.0, ((Number) value).doubleValue(), 0.001, "Aggregated value should be 5.0");
   }
 
   @Test
@@ -416,12 +418,213 @@ class DataHandlerIndicatorPeriodOffsetTest {
     assertFalse(row.isEmpty(), "Row should have values");
 
     // The aggregated value should be average: (6.0 + 9.0 + 12.0) / 3 = 9.0
-    // Note: The actual value verification depends on the exact grid structure
     Object value = row.get(row.size() - 1);
     assertNotNull(value, "Value should not be null");
+    assertEquals(9.0, ((Number) value).doubleValue(), 0.001, "Averaged value should be 9.0");
   }
 
-  // Helper methods
+  @Test
+  void testAddIndicatorValuesWithNoneAggregationType() {
+    // Given: Indicator with periodOffset and NONE aggregation type (should behave like SUM)
+    Indicator noneIndicator = spy(new Indicator());
+    noneIndicator.setUid("NoneInd123");
+    noneIndicator.setName("None Aggregation Indicator");
+    noneIndicator.setNumerator("#{FQ2o8UBlcrS} - #{FQ2o8UBlcrS}.periodOffset(-1)");
+    noneIndicator.setDenominator("1");
+    noneIndicator.setIndicatorType(indicatorType);
+
+    // Mock getTotalAggregationType to return NONE
+    when(noneIndicator.getTotalAggregationType()).thenReturn(TotalAggregationType.NONE);
+
+    List<Period> filterPeriods = createMonthlyPeriods(2024, 1, 3); // Jan, Feb, Mar
+
+    DataQueryParams params =
+        newBuilder()
+            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(noneIndicator)))
+            .withFilterPeriods(filterPeriods.stream().map(PeriodDimension::of).toList())
+            .build();
+
+    Grid grid = new ListGrid();
+
+    // Mock the expression service
+    Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
+    itemMap.put(
+        new DimensionalItemId(DimensionItemType.DATA_ELEMENT, dataElement.getUid()), dataElement);
+    when(expressionService.getIndicatorDimensionalItemMap(anyList())).thenReturn(itemMap);
+
+    // Mock indicator values: 3.0, 7.0, 5.0
+    // Expected: NONE behaves like SUM = 3.0 + 7.0 + 5.0 = 15.0
+    when(expressionService.getIndicatorValueObject(
+            any(Indicator.class), anyList(), any(), any(), any()))
+        .thenReturn(createIndicatorValue(3.0)) // Period 1: Jan 2024
+        .thenReturn(createIndicatorValue(7.0)) // Period 2: Feb 2024
+        .thenReturn(createIndicatorValue(5.0)); // Period 3: Mar 2024
+
+    Grid dataGrid = createMockDataGrid(filterPeriods);
+    when(dataAggregator.getAggregatedDataValueGrid(any())).thenReturn(dataGrid);
+
+    // When: Adding indicator values
+    dataHandler.addIndicatorValues(params, grid);
+
+    // Then: Grid should have one row with summed value (NONE behaves like SUM)
+    assertEquals(1, grid.getRows().size(), "Should have one aggregated row");
+    List<Object> row = grid.getRow(0);
+    assertNotNull(row, "Row should not be null");
+    assertFalse(row.isEmpty(), "Row should have values");
+
+    // The aggregated value should be sum: 3.0 + 7.0 + 5.0 = 15.0 (NONE behaves like SUM)
+    Object value = row.get(row.size() - 1);
+    assertNotNull(value, "Value should not be null");
+    assertEquals(
+        15.0,
+        ((Number) value).doubleValue(),
+        0.001,
+        "NONE aggregation should behave like SUM (15.0)");
+  }
+
+  @Test
+  void testMixedIndicatorsWithAndWithoutPeriodOffset() {
+    // Given: Two indicators - one with periodOffset, one without
+    DataElement normalDataElement = new DataElement("Normal Data Element");
+    normalDataElement.setUid("NormalDE456");
+    normalDataElement.setAggregationType(AggregationType.SUM);
+    // No periodOffset
+
+    Indicator normalIndicator = new Indicator();
+    normalIndicator.setUid("NormalInd456");
+    normalIndicator.setName("Normal Indicator");
+    normalIndicator.setNumerator("#{NormalDE456}");
+    normalIndicator.setDenominator("1");
+    normalIndicator.setIndicatorType(indicatorType);
+    normalIndicator.setAggregationType(AggregationType.SUM);
+
+    List<Period> filterPeriods = createMonthlyPeriods(2024, 1, 2);
+
+    // Two separate queries - one for each indicator
+    DataQueryParams paramsWithOffset =
+        newBuilder()
+            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(indicator)))
+            .withFilterPeriods(filterPeriods.stream().map(PeriodDimension::of).toList())
+            .build();
+
+    DataQueryParams paramsWithoutOffset =
+        newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(normalIndicator)))
+            .withFilterPeriods(filterPeriods.stream().map(PeriodDimension::of).toList())
+            .build();
+
+    Grid grid1 = new ListGrid();
+    Grid grid2 = new ListGrid();
+
+    // Mock for indicator with periodOffset
+    Map<DimensionalItemId, DimensionalItemObject> itemMapOffset = new HashMap<>();
+    itemMapOffset.put(
+        new DimensionalItemId(DimensionItemType.DATA_ELEMENT, dataElement.getUid()), dataElement);
+
+    // Mock for indicator without periodOffset
+    Map<DimensionalItemId, DimensionalItemObject> itemMapNormal = new HashMap<>();
+    itemMapNormal.put(
+        new DimensionalItemId(DimensionItemType.DATA_ELEMENT, normalDataElement.getUid()),
+        normalDataElement);
+
+    when(expressionService.getIndicatorDimensionalItemMap(List.of(indicator)))
+        .thenReturn(itemMapOffset);
+    when(expressionService.getIndicatorDimensionalItemMap(List.of(normalIndicator)))
+        .thenReturn(itemMapNormal);
+
+    when(expressionService.getIndicatorValueObject(
+            any(Indicator.class), anyList(), any(), any(), any()))
+        .thenReturn(createIndicatorValue(3.0))
+        .thenReturn(createIndicatorValue(4.0))
+        .thenReturn(createIndicatorValue(10.0));
+
+    Grid dataGrid = createMockDataGrid(filterPeriods);
+    when(dataAggregator.getAggregatedDataValueGrid(any())).thenReturn(dataGrid);
+
+    // When: Adding indicator values for both
+    dataHandler.addIndicatorValues(paramsWithOffset, grid1);
+    dataHandler.addIndicatorValues(paramsWithoutOffset, grid2);
+
+    // Then: Both should produce results independently
+    assertEquals(
+        1, grid1.getRows().size(), "Indicator with periodOffset should have one aggregated row");
+    assertEquals(1, grid2.getRows().size(), "Indicator without periodOffset should have one row");
+  }
+
+  @Test
+  void testIndicatorWithNullValues() {
+    // Given: Indicator with periodOffset where some periods return null
+    List<Period> filterPeriods = createMonthlyPeriods(2024, 1, 3);
+
+    DataQueryParams params =
+        newBuilder()
+            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(indicator)))
+            .withFilterPeriods(filterPeriods.stream().map(PeriodDimension::of).toList())
+            .build();
+
+    Grid grid = new ListGrid();
+
+    Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
+    itemMap.put(
+        new DimensionalItemId(DimensionItemType.DATA_ELEMENT, dataElement.getUid()), dataElement);
+    when(expressionService.getIndicatorDimensionalItemMap(anyList())).thenReturn(itemMap);
+
+    // Mock: Period 1 = 5.0, Period 2 = null, Period 3 = 3.0
+    when(expressionService.getIndicatorValueObject(
+            any(Indicator.class), anyList(), any(), any(), any()))
+        .thenReturn(createIndicatorValue(5.0))
+        .thenReturn(null) // Null value for second period
+        .thenReturn(createIndicatorValue(3.0));
+
+    Grid dataGrid = createMockDataGrid(filterPeriods);
+    when(dataAggregator.getAggregatedDataValueGrid(any())).thenReturn(dataGrid);
+
+    // When: Adding indicator values
+    dataHandler.addIndicatorValues(params, grid);
+
+    // Then: Should aggregate only non-null values: 5.0 + 3.0 = 8.0
+    assertEquals(1, grid.getRows().size(), "Should have one aggregated row");
+    List<Object> row = grid.getRow(0);
+    Object value = row.get(row.size() - 1);
+    assertNotNull(value, "Value should not be null");
+    assertEquals(8.0, ((Number) value).doubleValue(), 0.001, "Should sum only non-null values");
+  }
+
+  @Test
+  void testIndicatorWithAllNullValues() {
+    // Given: Indicator where all periods return null
+    List<Period> filterPeriods = createMonthlyPeriods(2024, 1, 3);
+
+    DataQueryParams params =
+        newBuilder()
+            .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, List.of(indicator)))
+            .withFilterPeriods(filterPeriods.stream().map(PeriodDimension::of).toList())
+            .build();
+
+    Grid grid = new ListGrid();
+
+    Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
+    itemMap.put(
+        new DimensionalItemId(DimensionItemType.DATA_ELEMENT, dataElement.getUid()), dataElement);
+    when(expressionService.getIndicatorDimensionalItemMap(anyList())).thenReturn(itemMap);
+
+    // All periods return null
+    when(expressionService.getIndicatorValueObject(
+            any(Indicator.class), anyList(), any(), any(), any()))
+        .thenReturn(null)
+        .thenReturn(null)
+        .thenReturn(null);
+
+    Grid dataGrid = createMockDataGrid(filterPeriods);
+    when(dataAggregator.getAggregatedDataValueGrid(any())).thenReturn(dataGrid);
+
+    // When: Adding indicator values
+    dataHandler.addIndicatorValues(params, grid);
+
+    // Then: No row should be added when all values are null
+    assertEquals(0, grid.getRows().size(), "Should have no rows when all values are null");
+  }
 
   private List<Period> createMonthlyPeriods(int startYear, int startMonth, int count) {
     MonthlyPeriodType periodType = new MonthlyPeriodType();
