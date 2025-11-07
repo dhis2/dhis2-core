@@ -95,8 +95,7 @@ class MetadataItemTest {
     assertEquals("any-name", item.getName());
     assertEquals(serverBaseUrl, item.getServerBaseUrl());
     assertEquals(style.getIcon(), indicator.getStyle().getIcon());
-    assertEquals(
-        "http://localhost:8080/dhis/api/icons/icon-name/icon.svg", indicator.getStyle().getIcon());
+    assertEquals("icon-name", indicator.getStyle().getIcon());
   }
 
   @Test
@@ -192,6 +191,6 @@ class MetadataItemTest {
     assertEquals("any-name", metadataItem.getName());
     assertEquals(serverUrl, metadataItem.getServerBaseUrl());
     assertEquals(style.getIcon(), metadataItem.getStyle().getIcon());
-    assertEquals(serverUrl + "/api/icons/icon-name/icon.svg", metadataItem.getStyle().getIcon());
+    assertEquals("icon-name", metadataItem.getStyle().getIcon());
   }
 }
