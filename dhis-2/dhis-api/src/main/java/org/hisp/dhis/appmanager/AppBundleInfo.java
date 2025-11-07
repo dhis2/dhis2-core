@@ -60,6 +60,9 @@ public class AppBundleInfo {
     @JsonProperty private String branch;
     @JsonProperty private String etag;
     @JsonProperty private String downloadDate;
+    @JsonProperty private String version;
+    @JsonProperty private String buildDate;
+    @JsonProperty private String commitUrl;
 
     public BundledAppInfo() {
       this.downloadDate = new Date().toString();

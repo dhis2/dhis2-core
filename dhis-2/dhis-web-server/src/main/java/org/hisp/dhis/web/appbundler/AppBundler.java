@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.web.appbundler;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,6 +50,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.appmanager.AppBundleInfo;
 import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
@@ -128,38 +131,106 @@ public class AppBundler {
     info("Found {} valid apps to bundle", appRepoInfos.size());
 
     // Download each app in parallel
-    downloadApps(appRepoInfos, artifactDirPath, etagsDirPath);
+    List<BundledAppInfo> downloadedApps = downloadApps(appRepoInfos, artifactDirPath, etagsDirPath);
+
+    downloadedApps.forEach(bundleInfo::addApp);
 
     // Copy downloaded apps to build directory
     Path targetArtifactDir = copyAppsToBuildDir(downloadDirPath);
+
+    enrichBundleInfo(targetArtifactDir);
 
     // Write bundle info file
     writeBundleFile(targetArtifactDir);
   }
 
-  private void downloadApps(
+  /**
+   * Finds a ZIP entry by filename, searching through all entries in the ZIP file.
+   *
+   * @param zipFile the ZIP file to search
+   * @param filename the name of the file to find
+   * @return the first matching ZipEntry, or null if not found
+   */
+  private ZipEntry findEntryByFilename(ZipFile zipFile, String filename) {
+    ZipEntry shallowestEntry = null;
+    int minDepth = Integer.MAX_VALUE;
+
+    var entries = zipFile.entries();
+    while (entries.hasMoreElements()) {
+      ZipEntry entry = entries.nextElement();
+      String entryName = entry.getName();
+
+      // Check if this entry matches the filename we're looking for
+      if (entryName.endsWith("/" + filename) || entryName.equals(filename)) {
+        // Calculate the depth (number of directory separators)
+        int depth = (int) entryName.chars().filter(ch -> ch == '/').count();
+
+        // Prefer entries at shallower depths
+        if (depth < minDepth) {
+          minDepth = depth;
+          shallowestEntry = entry;
+        }
+      }
+    }
+
+    return shallowestEntry;
+  }
+
+  private void enrichBundleInfo(Path targetPath) {
+    for (BundledAppInfo app : bundleInfo.getApps()) {
+      Path appPath = targetPath.resolve(app.getName() + ".zip");
+      if (Files.exists(appPath)) {
+        try (ZipFile zipFile = new ZipFile(appPath.toFile())) {
+          ZipEntry buildInfoEntry = findEntryByFilename(zipFile, "BUILD_INFO");
+          ZipEntry manifestEntry = findEntryByFilename(zipFile, "package.json");
+
+          if (manifestEntry != null) {
+            String manifestContent =
+                new String(
+                    zipFile.getInputStream(manifestEntry).readAllBytes(), StandardCharsets.UTF_8);
+            JsonNode manifestNode = OBJECT_MAPPER.readTree(manifestContent);
+            String version = manifestNode.get("version").asText();
+            app.setVersion(version);
+          }
+
+          if (buildInfoEntry != null) {
+            String buildInfoContent =
+                new String(
+                    zipFile.getInputStream(buildInfoEntry).readAllBytes(), StandardCharsets.UTF_8);
+            String[] info = buildInfoContent.split("\\R");
+            if (info.length > 2) {
+              app.setBuildDate(info[0].trim());
+              app.setCommitUrl(info[2].trim());
+            }
+          }
+        } catch (IOException e) {
+          error("Error opening zip file for app {}: {}", app.getName(), e, e.getMessage());
+        }
+      }
+    }
+  }
+
+  private List<BundledAppInfo> downloadApps(
       List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path etagDirPath) {
     ForkJoinPool customThreadPool = new ForkJoinPool(DOWNLOAD_POOL_SIZE);
     try {
-      List<BundledAppInfo> downloadedApps =
-          customThreadPool
-              .submit(
-                  () ->
-                      appRepoInfos.parallelStream()
-                          .map(
-                              repoInfo -> {
-                                try {
-                                  return downloadApp(repoInfo, artifactDirPath, etagDirPath);
-                                } catch (IOException e) {
-                                  // error is logged in downloadApp()
-                                  return null;
-                                }
-                              })
-                          .filter(Objects::nonNull)
-                          .toList())
-              .get();
+      return customThreadPool
+          .submit(
+              () ->
+                  appRepoInfos.parallelStream()
+                      .map(
+                          repoInfo -> {
+                            try {
+                              return downloadApp(repoInfo, artifactDirPath, etagDirPath);
+                            } catch (IOException e) {
+                              // error is logged in downloadApp()
+                              return null;
+                            }
+                          })
+                      .filter(Objects::nonNull)
+                      .toList())
+          .get();
 
-      downloadedApps.forEach(bundleInfo::addApp);
     } catch (InterruptedException | ExecutionException e) {
       error("Error during parallel app download", e);
       // Restore interrupt status
@@ -167,6 +238,7 @@ public class AppBundler {
     } finally {
       customThreadPool.shutdown();
     }
+    throw new IllegalStateException("Failed to download apps");
   }
 
   /**
