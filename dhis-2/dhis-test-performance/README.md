@@ -14,6 +14,37 @@ SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest \
 
 Run `./run-simulation.sh` for full usage including profiling and database options.
 
+### With Access Logging
+
+To capture access logs for creating realistic Gatling injection profiles:
+
+```sh
+# 1. Run with logging profile
+docker compose --profile logging up
+
+# 2. Use DHIS2 normally via nginx (port 8081)
+# Access logs are captured automatically for all tracker API requests
+
+# 3. Analyze access patterns in Kibana
+open http://localhost:5601
+```
+
+The logging stack includes:
+
+* **nginx** - Reverse proxy on port 8081 that logs tracker API requests with timing information
+* **vector** - Parses nginx logs and ingests to Elasticsearch
+* **Elasticsearch** - Stores access logs with request/response times
+* **Kibana** - Analyze access patterns, timing distributions, and usage to build injection profiles
+
+Access logs include request method, URI, query parameters, response time, and session information.
+This data is used to create realistic Gatling injection profiles based on actual usage patterns.
+
+DHIS2 is accessible directly on port 8080 (no logging) and via nginx on port 8081 (with logging).
+Login to Kibana with user `elastic` and password `changeme`. Logs are indexed in `tracker-local`.
+
+See [DHIS2-20411.md](DHIS2-20411.md) for detailed logging documentation including how to clean
+data and troubleshoot issues.
+
 ## CI
 
 CI workflows use `./run-simulation.sh` the same way as local runs:

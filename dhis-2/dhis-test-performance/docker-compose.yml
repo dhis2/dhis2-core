@@ -74,3 +74,198 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+  # nginx reverse proxy with tracker request logging
+  nginx:
+    profiles: [logging]
+    image: nginx
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - web
+
+  # vector for parsing and ingesting nginx logs to Elasticsearch
+  vector:
+    profiles: [logging]
+    image: timberio/vector:0.46.1-alpine
+    command: ["-c", "/etc/vector/vector.toml"]
+    environment:
+      - ELASTIC_PASSWORD=changeme
+    volumes:
+      - ./docker/vector.toml:/etc/vector/vector.toml:ro
+      - type: volume
+        source: nginx-logs
+        target: /var/log/nginx
+      - certs:/etc/vector/certs:ro
+    depends_on:
+      nginx:
+        condition: service_started
+      es:
+        condition: service_healthy
+
+  # One-time setup for Elasticsearch SSL certificates and users
+  elk-setup:
+    profiles: [logging]
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.1
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    user: "0"
+    environment:
+      - ELASTIC_PASSWORD=changeme
+      - KIBANA_PASSWORD=changeme
+    command: >
+      bash -c '
+        if [ ! -f config/certs/ca.zip ]; then
+          echo "Creating CA";
+          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+          unzip config/certs/ca.zip -d config/certs;
+        fi;
+        if [ ! -f config/certs/certs.zip ]; then
+          echo "Creating certs";
+          echo -ne \
+          "instances:\n"\
+          "  - name: es\n"\
+          "    dns:\n"\
+          "      - es\n"\
+          "      - localhost\n"\
+          "    ip:\n"\
+          "      - 127.0.0.1\n"\
+          > config/certs/instances.yml;
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
+          unzip config/certs/certs.zip -d config/certs;
+        fi;
+        echo "Setting file permissions"
+        chown -R root:root config/certs;
+        find . -type d -exec chmod 750 \{\} \;;
+        find . -type f -exec chmod 640 \{\} \;;
+        echo "Waiting for Elasticsearch availability";
+        until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "Setting kibana_system password";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:changeme" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"changeme\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "All done!";
+      '
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f config/certs/es/es.crt ]"]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+
+  # Elasticsearch for storing and searching tracker request logs
+  es:
+    profiles: [logging]
+    depends_on:
+      elk-setup:
+        condition: service_healthy
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.1
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    environment:
+      - node.name=es
+      - cluster.name=docker-cluster
+      - cluster.initial_master_nodes=es
+      - ELASTIC_PASSWORD=changeme
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/es/es.key
+      - xpack.security.http.ssl.certificate=certs/es/es.crt
+      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.key=certs/es/es.key
+      - xpack.security.transport.ssl.certificate=certs/es/es.crt
+      - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.license.self_generated.type=basic
+      - xpack.ml.use_auto_machine_memory_percent=true
+    mem_limit: 1073741824  # 1GB
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  # Kibana UI for visualizing and analyzing tracker request logs
+  kibana:
+    profiles: [logging]
+    depends_on:
+      es:
+        condition: service_healthy
+    image: docker.elastic.co/kibana/kibana:9.0.1
+    volumes:
+      - certs:/usr/share/kibana/config/certs
+      - kibanadata:/usr/share/kibana/data
+    ports:
+      - 5601:5601
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=https://es:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=changeme
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+    mem_limit: 1073741824  # 1GB
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  # Optional: Import Kibana dashboards (directory currently empty)
+  kibana-setup:
+    profiles: [logging]
+    image: curlimages/curl:latest
+    depends_on:
+      kibana:
+        condition: service_healthy
+    volumes:
+      - ./docker/kibana-dashboards:/dashboards
+    environment:
+      - KIBANA_PASSWORD=changeme
+    command: >
+      sh -c '
+        echo "Waiting for Kibana to be ready..."
+        until curl -s -I http://kibana:5601 | grep -q "HTTP/1.1 302 Found"; do
+          sleep 10
+        done
+        echo "Kibana is ready"
+        if [ -d /dashboards ] && [ "$$(ls -A /dashboards/*.json 2>/dev/null)" ]; then
+          echo "Importing dashboards..."
+          for dashfile in /dashboards/*.json; do
+            echo "Importing $$dashfile..."
+            curl -X POST "http://kibana:5601/api/saved_objects/_import" \
+              -H "kbn-xsrf: true" \
+              -H "Content-Type: application/json" \
+              --data-binary "@$$dashfile"
+          done
+          echo "Dashboard import completed"
+        else
+          echo "No dashboards found in /dashboards directory"
+        fi
+      '
+
+volumes:
+  nginx-logs:
+    driver: local
+  certs:
+    driver: local
+  esdata:
+    driver: local
+  kibanadata:
+    driver: local
+
