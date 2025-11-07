@@ -193,7 +193,7 @@
     },
     {
       "name": "periodOffsetIndicatorAsFilter",
-      "query": "/api/analytics?dimension=dx:ueeOgA3p25x&filter=ou:USER_ORGUNIT&filter=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics.json?dimension=dx:ueeOgA3p25x&filter=ou:USER_ORGUNIT&filter=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
       "version": {
         "min": 42
       }
