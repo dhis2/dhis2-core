@@ -313,7 +313,7 @@ public class DataHandler {
         expressionService.getIndicatorDimensionalItemMap(indicators);
 
     DataQueryParams paramsForValueMap =
-        getParamsForValueMap(dataQueryParams, itemMap, periodsInFilter, indicators);
+        getParamsForValueMap(dataQueryParams, itemMap, periodsInFilter);
 
     Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap =
         getPermutationDimensionItemValueMap(paramsForValueMap, new ArrayList<>(itemMap.values()));
@@ -540,8 +540,7 @@ public class DataHandler {
   }
 
   /**
-   * Extracts all non-period dimension items from a list of dimension items. This includes org
-   * units, categories, and any other dimensions except the period.
+   * Extracts all non-period dimension items from a list of dimension items.
    *
    * @param dimensionItems the full list of dimension items
    * @return list containing only non-period dimension items
@@ -549,7 +548,7 @@ public class DataHandler {
   private List<DimensionItem> extractNonPeriodDimensions(List<DimensionItem> dimensionItems) {
     return dimensionItems.stream()
         .filter(item -> !PERIOD_DIM_ID.equals(item.getDimension()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -674,8 +673,7 @@ public class DataHandler {
   private DataQueryParams getParamsForValueMap(
       DataQueryParams dataQueryParams,
       Map<DimensionalItemId, DimensionalItemObject> itemMap,
-      boolean periodsInFilter,
-      List<Indicator> indicators) {
+      boolean periodsInFilter) {
 
     if (!periodsInFilter) {
       return dataQueryParams;
