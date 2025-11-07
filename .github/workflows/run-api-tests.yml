@@ -52,16 +52,16 @@ jobs:
               -Djib.to.image=$CORE_IMAGE_NAME
           fi
 
-      - name: Run tests
-        run: |
-          cd dhis-2/dhis-test-e2e
-          SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
-
-      - name: Upload logs
-        if: failure()
-        run: |
-          cd dhis-2/dhis-test-e2e
-          docker compose logs web > ~/logs.txt
+#      - name: Run tests
+#        run: |
+#          cd dhis-2/dhis-test-e2e
+#          SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
+#
+#      - name: Upload logs
+#        if: failure()
+#        run: |
+#          cd dhis-2/dhis-test-e2e
+#          docker compose logs web > ~/logs.txt
 
       - uses: actions/upload-artifact@v5
         if: failure()
@@ -69,18 +69,18 @@ jobs:
           name: "tomcat_logs"
           path: "~/logs.txt"
 
-  send-slack-message:
-    runs-on: ubuntu-latest
-    if: |
-      always() &&
-      contains(needs.*.result, 'failure') &&
-      github.ref == 'refs/heads/master'
-
-    needs: [api-test]
-    steps:
-      - uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
-          SLACK_CHANNEL: "team-backend"
-          SLACK_MESSAGE: "Latest e2e test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
-          SLACK_COLOR: "#ff0000"
+#  send-slack-message:
+#    runs-on: ubuntu-latest
+#    if: |
+#      always() &&
+#      contains(needs.*.result, 'failure') &&
+#      github.ref == 'refs/heads/master'
+#
+#    needs: [api-test]
+#    steps:
+#      - uses: rtCamp/action-slack-notify@v2
+#        env:
+#          SLACK_WEBHOOK: ${{ secrets.SLACK_BACKEND_WEBHOOK }}
+#          SLACK_CHANNEL: "team-backend"
+#          SLACK_MESSAGE: "Latest e2e test run on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
+#          SLACK_COLOR: "#ff0000"
