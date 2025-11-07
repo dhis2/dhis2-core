@@ -176,7 +176,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
       EventSynchronizationContext context, JobProgress progress, SystemSettings systemSettings) {
     String message =
         format(
-            "Found %d anonymous Events to synchronize.%nRemote server: %s%nProcessing %d pages with size %d",
+            "Found %d single events to synchronize.%nRemote server: %s%nProcessing %d pages with size %d",
             context.getObjectsToSynchronize(),
             context.getInstance().getUrl(),
             context.getPages(),
