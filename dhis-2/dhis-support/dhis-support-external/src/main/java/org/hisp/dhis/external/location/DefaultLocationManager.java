@@ -330,10 +330,20 @@ public class DefaultLocationManager extends LogOnceLogger implements LocationMan
    */
   private boolean directoryIsValid(File directory) {
     if (directory.exists()) {
-      if (!directory.canWrite()) {
-        log(log, Level.INFO, "Directory " + directory.getAbsolutePath() + " is not writeable");
+
+      File filedir = new File(directory, "files");
+      File logdir = new File(directory, "logs");
+
+      if (!filedir.canWrite()) {
+        log(log, Level.INFO, "Directory " + filedir.getAbsolutePath() + " is not writeable");
         return false;
       }
+
+      if (!logdir.canWrite()) {
+        log(log, Level.INFO, "Directory " + logdir.getAbsolutePath() + " is not writeable");
+        return false;
+      }
+
     } else {
       try {
         if (!directory.mkdirs()) {
