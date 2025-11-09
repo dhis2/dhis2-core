@@ -57,6 +57,7 @@ public class HttpClientUtils {
     return HttpClientBuilder.create()
         .setConnectionManager(connectionManager)
         .setDefaultRequestConfig(requestConfig)
+        .setUserAgent( "" )
         .build();
   }
 }
