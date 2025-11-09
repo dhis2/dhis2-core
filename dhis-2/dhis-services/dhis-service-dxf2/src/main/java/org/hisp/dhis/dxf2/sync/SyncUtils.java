@@ -63,7 +63,6 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class SyncUtils {
   public static final String HEADER_AUTHORIZATION = "Authorization";
-  public static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
   private static final String PING_PATH = "/api/system/ping";
 
   private SyncUtils() {
@@ -366,19 +365,11 @@ public class SyncUtils {
     return true;
   }
 
-  static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
+  public static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
     String username = settings.getRemoteInstanceUsername();
     String password = settings.getRemoteInstancePassword();
     String syncUrl = settings.getRemoteInstanceUrl() + endpoint.getPath();
 
     return new SystemInstance(syncUrl, username, password);
-  }
-
-  public static SystemInstance getRemoteInstanceWithSyncImportStrategy(
-      SystemSettings settings, SyncEndpoint syncEndpoint) {
-    SystemInstance systemInstance = getRemoteInstance(settings, syncEndpoint);
-    systemInstance.setUrl(systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX);
-
-    return systemInstance;
   }
 }

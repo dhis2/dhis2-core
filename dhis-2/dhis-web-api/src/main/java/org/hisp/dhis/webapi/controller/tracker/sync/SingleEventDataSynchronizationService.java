@@ -162,7 +162,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     }
 
     SystemInstance instance =
-        SyncUtils.getRemoteInstanceWithSyncImportStrategy(systemSettings, SyncEndpoint.EVENTS);
+        SyncUtils.getRemoteInstance(systemSettings, SyncEndpoint.TRACKER_IMPORT);
 
     Map<String, Set<String>> skipSyncElements =
         programStageDataElementService
@@ -248,7 +248,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
         };
 
     return sendSyncRequest(
-        systemSettings, restTemplate, requestCallback, instance, SyncEndpoint.EVENTS);
+        systemSettings, restTemplate, requestCallback, instance, SyncEndpoint.TRACKER_IMPORT);
   }
 
   private void updateEventsSyncTimestamp(List<Event> events, Date syncTime) {
