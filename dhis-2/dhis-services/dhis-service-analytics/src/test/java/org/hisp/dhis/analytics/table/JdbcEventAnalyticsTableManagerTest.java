@@ -105,6 +105,7 @@ import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -348,13 +349,6 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(tables, hasSize(1));
 
     assertThat(tables.get(0).getTablePartitions().get(0).getYear(), equalTo(Year.now().getValue()));
-  }
-
-  private AnalyticsTableColumn getColumn(String column, AnalyticsTable analyticsTable) {
-    return analyticsTable.getDimensionColumns().stream()
-        .filter(col -> col.getName().equals(column))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("Column '" + column + "' not found"));
   }
 
   @Test
@@ -948,6 +942,68 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
+  @Test
+  @DisplayName("Verify that the DE Attribute OU uses Centroid when the setting is enabled")
+  void verifyGetTableWithOuDeUseCentroid() {
+    when(settings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(true);
+
+    Program program = createProgram('A');
+    DataElement de1 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    ProgramStage ps1 = createProgramStage('A', Set.of(de1));
+
+    program.setProgramStages(Set.of(ps1));
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+
+    // Approach 1: Extract the common part as a base template
+    final String BASE_DE_QUERY =
+        "(select %s from \"organisationunit\" ou where ou.uid = "
+            + "eventdatavalues #>> '{deabcdefghG, value}')";
+
+    String aliasTea1 = BASE_DE_QUERY + " as \"%s\"";
+    String centroidTea1 = "ST_Centroid(" + BASE_DE_QUERY + ") as \"%s\"";
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
+            .build();
+
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear(program, true, availableDataYears), Integer.class))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    new AnalyticsTableAsserter.Builder(tables.get(0))
+        .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withTableType(AnalyticsTableType.EVENT)
+        .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
+        .addColumns(periodColumns)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, true))
+        .addColumn(
+            de1.getUid() + "_geom",
+            GEOMETRY,
+            String.format(centroidTea1, "ou.geometry", de1.getUid(), de1.getUid()),
+            IndexType.GIST)
+        .addColumn(
+            de1.getUid() + "_name",
+            TEXT,
+            String.format(aliasTea1, "ou.name", de1.getUid(), de1.getUid()),
+            Skip.SKIP)
+        // .withDefaultColumns(subject.getFixedColumns())
+        .build()
+        .verify();
+  }
+
   private String toSelectExpression(String template, String uid) {
     return String.format(template, uid, uid, uid);
   }
@@ -988,6 +1044,13 @@ class JdbcEventAnalyticsTableManagerTest {
             + latestYear;
 
     return sql;
+  }
+
+  private AnalyticsTableColumn getColumn(String column, AnalyticsTable analyticsTable) {
+    return analyticsTable.getDimensionColumns().stream()
+        .filter(col -> col.getName().equals(column))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Column '" + column + "' not found"));
   }
 
   private void mockPeriodYears(List<Integer> years) {

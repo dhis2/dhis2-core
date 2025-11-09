@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.42.3-SNAPSHOT</version>
+    <version>2.42.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-web-server</artifactId>
@@ -15,14 +15,14 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.11</tomcat.version>
+    <tomcat.version>11.0.13</tomcat.version>
     <jib.version>3.4.6</jib.version>
     <jib.from.image>tomcat:${tomcat.version}-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
     <jib.container.user>65534</jib.container.user>
     <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
-    <spring-boot-maven-plugin.version>3.5.5</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>3.5.7</spring-boot-maven-plugin.version>
   </properties>
 
   <dependencies>
