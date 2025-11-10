@@ -35,7 +35,6 @@ import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
-import static io.gatling.javaapi.core.CoreDsl.group;
 import static io.gatling.javaapi.core.CoreDsl.incrementUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
@@ -56,7 +55,6 @@ import java.util.List;
 public class TrackerTest extends Simulation {
 
   public TrackerTest() {
-    String repeat = System.getProperty("repeat", "100");
     String eventProgram = System.getProperty("eventProgram", "VBqh0ynB2wv");
     String trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
 
@@ -77,8 +75,8 @@ public class TrackerTest extends Simulation {
             .check(status().is(200)); // global check for all requests
 
     // only one user at a time
-    ScenarioWithRequests eventScenario = eventProgramScenario(repeat, eventProgram);
-    ScenarioWithRequests trackerScenario = trackerProgramScenario(repeat, trackerProgram);
+    ScenarioWithRequests eventScenario = eventProgramScenario(eventProgram);
+    ScenarioWithRequests trackerScenario = trackerProgramScenario(trackerProgram);
 
     List<Assertion> allAssertions = new ArrayList<>();
     allAssertions.add(forAll().successfulRequests().percent().gte(100d));
@@ -118,19 +116,19 @@ public class TrackerTest extends Simulation {
       case "stress" ->
           // Stress Testing: Stepped progressive increases (staircase pattern)
           new OpenInjectionStep[] {
-            incrementUsersPerSec(users / 10)
+            incrementUsersPerSec((double) users / 10)
                 .times(10)
                 .eachLevelLasting(Duration.ofSeconds(duration / 10))
                 .separatedByRampsLasting(Duration.ofSeconds(60))
-                .startingFrom(users / 10)
+                .startingFrom((double) users / 10)
           };
 
       case "spike" ->
           // Spike Testing: Baseline → Instant spike → Brief peak
           new OpenInjectionStep[] {
-            constantUsersPerSec(users / 5).during(Duration.ofSeconds(300)),
+            constantUsersPerSec((double) users / 5).during(Duration.ofSeconds(300)),
             atOnceUsers(users),
-            constantUsersPerSec(users / 2).during(Duration.ofSeconds(120))
+            constantUsersPerSec((double) users / 2).during(Duration.ofSeconds(120))
           };
 
       case "soak" ->
@@ -154,7 +152,7 @@ public class TrackerTest extends Simulation {
     };
   }
 
-  private ScenarioWithRequests eventProgramScenario(String repeat, String eventProgram) {
+  private ScenarioWithRequests eventProgramScenario(String eventProgram) {
     String singleEventUrl = "/api/tracker/events/#{eventUid}";
     String relationshipUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
@@ -203,9 +201,7 @@ public class TrackerTest extends Simulation {
     ScenarioBuilder scenarioBuilder =
         scenario("Single Events")
             .exec(login())
-            .repeat(Integer.parseInt(repeat))
-            .on(
-                group("Get a list of single events")
+            .group("Get a list of single events")
                     .on(
                         exec(goToFirstPage.action())
                             .exec(goToSecondPage.action())
@@ -216,7 +212,7 @@ public class TrackerTest extends Simulation {
                             .group("Get one single event")
                             .on(
                                 exec(getFirstEvent.action())
-                                    .exec(getRelationshipsForFirstEvent.action()))));
+                                    .exec(getRelationshipsForFirstEvent.action())));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -228,7 +224,7 @@ public class TrackerTest extends Simulation {
             getRelationshipsForFirstEvent));
   }
 
-  private ScenarioWithRequests trackerProgramScenario(String repeat, String trackerProgram) {
+  private ScenarioWithRequests trackerProgramScenario(String trackerProgram) {
     String getTEsUrl =
         "/api/tracker/trackedEntities?"
             + "order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
@@ -354,9 +350,7 @@ public class TrackerTest extends Simulation {
     ScenarioBuilder scenarioBuilder =
         scenario("Tracker Program")
             .exec(login())
-            .repeat(Integer.parseInt(repeat))
-            .on(
-                group("Get a list of TEs")
+            .group("Get a list of TEs")
                     .on(
                         exec(notFoundTeByNameWithLikeOperator.action())
                             .exec(notFoundTeByNationalIdWithEqualOperator.action())
@@ -395,7 +389,7 @@ public class TrackerTest extends Simulation {
                                     .group("Get one event")
                                     .on(
                                         exec(getFirstEventFromEnrollment.action())
-                                            .exec(getRelationshipsForEvent.action())))));
+                                            .exec(getRelationshipsForEvent.action()))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
