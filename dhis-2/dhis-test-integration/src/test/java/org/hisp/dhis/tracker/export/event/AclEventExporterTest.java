@@ -278,7 +278,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
         "Expected to find events when no program specified, ou mode selected and org units in search scope");
 
     assertContainsOnly(
-        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp", "H0PbzJY8bJG"),
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
         events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
@@ -524,8 +524,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             "JaRDIvcEcEx",
             "YKmfzHdjUDL",
             "SbUJzkxKYAG",
-            "gvULMgNiAfM",
-            "H0PbzJY8bJG"),
+            "gvULMgNiAfM"),
         events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
