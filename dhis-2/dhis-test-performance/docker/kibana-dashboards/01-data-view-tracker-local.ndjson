@@ -1,0 +1,1 @@
+{"attributes":{"fields":"[]","title":"tracker-local","timeFieldName":"@timestamp"},"references":[],"migrationVersion":{"index-pattern":"7.11.0"},"updated_at":"2025-11-10T12:00:00.000Z","version":"WzEsMV0=","type":"index-pattern","id":"tracker-local-dataview"}

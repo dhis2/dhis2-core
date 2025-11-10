@@ -226,7 +226,7 @@ services:
       timeout: 10s
       retries: 120
 
-  # Optional: Import Kibana dashboards (directory currently empty)
+  # Import Kibana dashboards and visualizations from NDJSON files
   kibana-setup:
     profiles: [logging]
     image: curlimages/curl:latest
@@ -244,18 +244,21 @@ services:
           sleep 10
         done
         echo "Kibana is ready"
-        if [ -d /dashboards ] && [ "$$(ls -A /dashboards/*.json 2>/dev/null)" ]; then
-          echo "Importing dashboards..."
-          for dashfile in /dashboards/*.json; do
+
+        # Check for NDJSON files (standard Kibana export format)
+        if [ -d /dashboards ] && [ "$$(ls -A /dashboards/*.ndjson 2>/dev/null)" ]; then
+          echo "Importing saved objects from NDJSON files..."
+          for dashfile in /dashboards/*.ndjson; do
             echo "Importing $$dashfile..."
-            curl -X POST "http://kibana:5601/api/saved_objects/_import" \
+            curl -X POST "http://kibana:5601/api/saved_objects/_import?overwrite=true" \
               -H "kbn-xsrf: true" \
-              -H "Content-Type: application/json" \
-              --data-binary "@$$dashfile"
+              -u "elastic:$$KIBANA_PASSWORD" \
+              --form file=@$$dashfile
+            echo ""
           done
-          echo "Dashboard import completed"
+          echo "Saved objects import completed"
         else
-          echo "No dashboards found in /dashboards directory"
+          echo "No NDJSON files found in /dashboards directory"
         fi
       '
 
