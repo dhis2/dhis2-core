@@ -62,5 +62,6 @@ public interface ProgramStageDataElementStore
    *
    * @return Map<String, Set<String>>
    */
-  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+      ProgramType programType);
 }

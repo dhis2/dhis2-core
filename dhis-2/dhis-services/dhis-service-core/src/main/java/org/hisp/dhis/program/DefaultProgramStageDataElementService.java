@@ -87,8 +87,9 @@ public class DefaultProgramStageDataElementService implements ProgramStageDataEl
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue() {
-    return programStageDataElementStore
-        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+      ProgramType programType) {
+    return programStageDataElementStore.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+        programType);
   }
 }

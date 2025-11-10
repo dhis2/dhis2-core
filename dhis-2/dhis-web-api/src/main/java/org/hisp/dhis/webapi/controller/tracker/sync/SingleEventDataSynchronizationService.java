@@ -165,8 +165,8 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
         SyncUtils.getRemoteInstance(systemSettings, SyncEndpoint.TRACKER_IMPORT);
 
     Map<String, Set<String>> skipSyncElements =
-        programStageDataElementService
-            .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+        programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+            ProgramType.WITHOUT_REGISTRATION);
 
     return new EventSynchronizationContext(
         skipChangedBefore, objectsToSynchronize, instance, pageSize, skipSyncElements);
