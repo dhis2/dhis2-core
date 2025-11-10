@@ -248,10 +248,6 @@ class JdbcEventStore {
     return fetchEvents(queryParams, null);
   }
 
-  public long countEvents(EventQueryParams queryParams) {
-    return getEventCount(queryParams);
-  }
-
   public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
     if (eventUids.isEmpty()) {
       return;
@@ -536,7 +532,7 @@ class JdbcEventStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private long getEventCount(EventQueryParams params) {
+  public long getEventCount(EventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     setAccessiblePrograms(currentUser, params);
 

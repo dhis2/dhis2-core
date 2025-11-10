@@ -188,7 +188,7 @@ class DefaultEventService implements EventService {
   public long countEvents(@Nonnull EventOperationParams operationParams)
       throws ForbiddenException, BadRequestException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
-    return eventStore.countEvents(queryParams);
+    return eventStore.getEventCount(queryParams);
   }
 
   @Nonnull
