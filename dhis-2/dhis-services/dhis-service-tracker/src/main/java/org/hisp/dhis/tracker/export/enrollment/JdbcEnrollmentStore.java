@@ -47,7 +47,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -560,14 +559,6 @@ class JdbcEnrollmentStore {
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
-  }
-
-  public void delete(@Nonnull Enrollment enrollment) {
-    String sql = "UPDATE enrollment SET deleted = true WHERE enrollmentid = :id";
-
-    MapSqlParameterSource params = new MapSqlParameterSource().addValue("id", enrollment.getId());
-
-    jdbcTemplate.update(sql, params);
   }
 
   @Getter
