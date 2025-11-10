@@ -57,10 +57,14 @@ public interface ProgramStageDataElementStore
   List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
 
   /**
-   * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements)
-   * that have skipSynchronization flag set to true
+   * Returns a map of ProgramStages containing sets of DataElements (together forming
+   * ProgramStageDataElements) that have the skipSynchronization flag set to true, filtered by the
+   * specified ProgramType.
    *
-   * @return Map<String, Set<String>>
+   * @param programType the type of program (e.g., WITH_REGISTRATION, WITHOUT_REGISTRATION) used to
+   *     filter ProgramStages
+   * @return a map where the key is the ProgramStage UID and the value is a set of DataElement UIDs
+   *     associated with that ProgramStage that have skipSynchronization set to true
    */
   Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
       ProgramType programType);
