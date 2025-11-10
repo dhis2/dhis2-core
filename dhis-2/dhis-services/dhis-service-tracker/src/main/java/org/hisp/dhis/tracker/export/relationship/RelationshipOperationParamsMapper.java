@@ -33,6 +33,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -69,7 +70,7 @@ class RelationshipOperationParamsMapper {
           null, params.getOrder(), params.isIncludeDeleted(), params.getRelationships());
     }
 
-    IdentifiableObject entity =
+    SoftDeletableEntity entity =
         switch (params.getType()) {
           case TRACKED_ENTITY ->
               getTrackedEntity(params.getIdentifier(), params.isIncludeDeleted());

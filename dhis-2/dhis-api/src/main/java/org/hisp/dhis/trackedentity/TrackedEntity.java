@@ -128,24 +128,22 @@ public class TrackedEntity extends BaseTrackerObject
   private boolean potentialDuplicate;
 
   @AuditAttribute
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "organisationunitid",
-      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"))
+      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"), nullable = false)
   private OrganisationUnit organisationUnit;
 
   @AuditAttribute
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "trackedentitytypeid",
-      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"))
+      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"), nullable = false)
   private TrackedEntityType trackedEntityType;
 
   @AuditAttribute
-  @Column(name = "inactive")
   private boolean inactive;
 
-  @Column(name = "geometry")
   private Geometry geometry;
 
   @Column(name = "lastsynchronized")
