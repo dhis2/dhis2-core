@@ -1154,13 +1154,12 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgram()
       throws ForbiddenException, BadRequestException {
-    Program program = get(Program.class, programStage.getProgram().getUid());
     EventOperationParamsBuilder operationParams =
         EventOperationParams.builder().events(Set.of("D9PbzJY8bJM"));
 
     updatePublicAccessSharing(program, DATA_READ);
 
-    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
 
     assertIsEmpty(getEvents(operationParams.build()));
   }
@@ -1168,13 +1167,12 @@ class EventExporterTest extends TrackerTest {
   @Test
   void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgram()
       throws ForbiddenException, BadRequestException {
-    Program program = get(Program.class, programStage.getProgram().getUid());
     EventOperationParamsBuilder operationParams =
         EventOperationParams.builder().events(Set.of("D9PbzJY8bJM"));
 
     updatePublicAccessSharing(program, READ);
 
-    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
 
     assertIsEmpty(getEvents(operationParams.build()));
   }
@@ -1183,7 +1181,7 @@ class EventExporterTest extends TrackerTest {
   void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgramStage()
       throws ForbiddenException, BadRequestException {
     updatePublicAccessSharing(programStage, DATA_READ);
-    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
 
     assertIsEmpty(getEvents(operationParamsBuilder.build()));
   }
@@ -1192,7 +1190,7 @@ class EventExporterTest extends TrackerTest {
   void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgramStage()
       throws ForbiddenException, BadRequestException {
     updatePublicAccessSharing(programStage, READ);
-    injectSecurityContextUser(userService.getUser("xE7jOejl9FI"));
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
 
     assertIsEmpty(getEvents(operationParamsBuilder.build()));
   }
