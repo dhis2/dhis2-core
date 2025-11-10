@@ -27,34 +27,71 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.tracker.acl;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.ProgramTempOwnershipAudit;
-import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import java.util.Date;
+import lombok.Data;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Repository("org.hisp.dhis.program.ProgramTempOwnershipAuditStore")
-public class HibernateProgramTempOwnershipAuditStore
-    extends HibernateGenericStore<ProgramTempOwnershipAudit>
-    implements ProgramTempOwnershipAuditStore {
-  public HibernateProgramTempOwnershipAuditStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
-  }
+@Entity
+@Data
+@Table(name = "programtempownershipaudit")
+public class ProgramTempOwnershipAudit {
+  @Id
+  @GeneratedValue
+  @Column(name = "programtempownershipauditid")
+  private int id;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "programid",
+      foreignKey = @ForeignKey(name = "fk_programtempownershipaudit_programid"),
+      nullable = false)
+  private Program program;
+
+  @Column(length = 50000)
+  private String reason;
+
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date created;
+
+  @Column(name = "accessedby")
+  private String accessedBy;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "trackedentityid",
+      foreignKey = @ForeignKey(name = "fk_programtempownershipaudit_trackedentityinstanceid"),
+      nullable = false)
+  private TrackedEntity trackedEntity;
 
   // -------------------------------------------------------------------------
-  // ProgramTempOwnershipAuditStore implementation
+  // Constructors
   // -------------------------------------------------------------------------
 
-  @Override
-  public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
-    getSession().save(programTempOwnershipAudit);
+  public ProgramTempOwnershipAudit() {}
+
+  public ProgramTempOwnershipAudit(
+      Program program, TrackedEntity trackedEntity, String reason, String accessedBy) {
+    this.program = program;
+    this.reason = reason;
+    this.accessedBy = accessedBy;
+    this.created = new Date();
+    this.trackedEntity = trackedEntity;
   }
 }

@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.acl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,10 +37,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.program.ProgramOwnershipHistoryService")
+@Service("org.hisp.dhis.tracker.acl.ProgramOwnershipHistoryService")
 @Transactional
 public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService {
-  private final ProgramOwnershipHistoryStore programOwnershipHistoryStore;
+  private final HibernateProgramOwnershipHistoryStore programOwnershipHistoryStore;
 
   // -------------------------------------------------------------------------
   // ProgramOwnershipHistoryService implementation

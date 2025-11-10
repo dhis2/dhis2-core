@@ -27,21 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
-
-import java.util.Comparator;
-import org.hisp.dhis.program.ProgramStageSection;
+package org.hisp.dhis.tracker.acl;
 
 /**
- * @author Chau Thu Tran
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class ProgramStageSectionSortOrderComparator implements Comparator<ProgramStageSection> {
-  @Override
-  public int compare(ProgramStageSection object0, ProgramStageSection object1) {
-    if (object0.getSortOrder() == null) {
-      return object1.getSortOrder() != null ? -1 : 0;
-    }
+public interface ProgramOwnershipHistoryService {
 
-    return object0.getSortOrder().compareTo(object1.getSortOrder());
-  }
+  String ID = ProgramOwnershipHistoryService.class.getName();
+
+  /**
+   * Adds program ownership history
+   *
+   * @param programOwnershipHistory the history to add
+   */
+  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
 }
