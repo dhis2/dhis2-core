@@ -208,6 +208,8 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 searchSingleEvents
                                     .action()
+                                    .check(jsonPath("$.events").exists())
+                                    .check(jsonPath("$.events[0]").exists())
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
                             .group("Get one single event")
                             .on(
@@ -359,6 +361,8 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 searchEventsByProgramStage
                                     .action()
+                                    .check(jsonPath("$.events").exists())
+                                    .check(jsonPath("$.events[0]").exists())
                                     .check(
                                         jsonPath("$.events[*].trackedEntity")
                                             .findAll()
@@ -371,6 +375,8 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 getFirstPageOfTEs
                                     .action()
+                                    .check(jsonPath("$.trackedEntities").exists())
+                                    .check(jsonPath("$.trackedEntities[0]").exists())
                                     .check(
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
@@ -378,9 +384,13 @@ public class TrackerTest extends Simulation {
                             .on(
                                 exec(getFirstTrackedEntity
                                         .action()
+                                        .check(jsonPath("$.enrollments").exists())
+                                        .check(jsonPath("$.enrollments[0]").exists())
                                         .check(
                                             jsonPath("$.enrollments[0].enrollment")
                                                 .saveAs("enrollmentUid"))
+                                        .check(jsonPath("$.enrollments[0].events").exists())
+                                        .check(jsonPath("$.enrollments[0].events[0]").exists())
                                         .check(
                                             jsonPath("$.enrollments[0].events[0].event")
                                                 .saveAs("eventUid")))
