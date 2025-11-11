@@ -31,6 +31,8 @@ package org.hisp.dhis.datastatistics;
 
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,7 +60,6 @@ import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -205,16 +206,12 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     statistics.setObjectCounts(objectCounts);
 
     // Active users
-    Date lastHour = new DateTime().minusHours(1).toDate();
-
     Map<Integer, Integer> activeUsers = new HashMap<>();
-
-    activeUsers.put(0, userService.getActiveUsersCount(lastHour));
-    activeUsers.put(1, userService.getActiveUsersCount(0));
-    activeUsers.put(2, userService.getActiveUsersCount(1));
+    activeUsers.put(0, userService.getActiveUsersCount(hoursAgo(1)));
+    activeUsers.put(1, userService.getActiveUsersCount(startOfToday()));
+    activeUsers.put(2, userService.getActiveUsersCount(2));
     activeUsers.put(7, userService.getActiveUsersCount(7));
     activeUsers.put(30, userService.getActiveUsersCount(30));
-
     statistics.setActiveUsers(activeUsers);
 
     // User invitations
@@ -315,6 +312,19 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     cal.setTime(day);
     cal.add(Calendar.DATE, -1);
     return cal.getTime();
+  }
+
+  private static Date startOfToday() {
+    Calendar cal = PeriodType.createCalendarInstance();
+    cal.set(Calendar.HOUR_OF_DAY, 0);
+    cal.set(Calendar.MINUTE, 0);
+    cal.set(Calendar.SECOND, 0);
+    cal.set(Calendar.MILLISECOND, 0);
+    return cal.getTime();
+  }
+
+  private static Date hoursAgo(int h) {
+    return Date.from( Instant.now().minus(h, ChronoUnit.HOURS));
   }
 
   private int getDays(Date startDate) {
