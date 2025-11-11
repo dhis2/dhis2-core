@@ -59,10 +59,13 @@ public interface ProgramStageDataElementStore
   /**
    * Returns a map of ProgramStages containing sets of DataElements (together forming
    * ProgramStageDataElements) that have the skipSynchronization flag set to true, filtered by the
-   * specified ProgramType.
+   * specified {@link Program}.
    *
-   * @param programType the type of program (e.g., WITH_REGISTRATION, WITHOUT_REGISTRATION) used to
-   *     filter ProgramStages
+   * <p>This method retrieves all ProgramStage–DataElement associations for the given Program where
+   * the skipSynchronization flag is enabled, meaning these data elements should be excluded from
+   * synchronization operations.
+   *
+   * @param program the {@link Program} whose associated ProgramStageDataElements are to be filtered
    * @return a map where the key is the ProgramStage UID and the value is a set of DataElement UIDs
    *     associated with that ProgramStage that have skipSynchronization set to true
    */
