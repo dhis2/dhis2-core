@@ -31,11 +31,6 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -57,13 +52,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseTrackerObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -86,6 +81,7 @@ import org.locationtech.jts.geom.Geometry;
  */
 @Entity
 @Setter
+@Getter
 @Table(name = "trackedentity")
 @NamedNativeQuery(
     name = "updateTrackedEntitiesLastUpdated",
@@ -131,18 +127,19 @@ public class TrackedEntity extends BaseTrackerObject
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "organisationunitid",
-      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"), nullable = false)
+      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_organisationunitid"),
+      nullable = false)
   private OrganisationUnit organisationUnit;
 
   @AuditAttribute
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "trackedentitytypeid",
-      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"), nullable = false)
+      foreignKey = @ForeignKey(name = "fk_trackedentityinstance_trackedentitytypeid"),
+      nullable = false)
   private TrackedEntityType trackedEntityType;
 
-  @AuditAttribute
-  private boolean inactive;
+  @AuditAttribute private boolean inactive;
 
   private Geometry geometry;
 
@@ -231,107 +228,13 @@ public class TrackedEntity extends BaseTrackerObject
   // -------------------------------------------------------------------------
 
   @Override
-  @JsonIgnore
   public long getId() {
     return id;
   }
 
   @Override
-  @JsonProperty
-  @JacksonXmlProperty(localName = "deleted", namespace = DxfNamespaces.DXF_2_0)
   public boolean isDeleted() {
     return deleted;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isPotentialDuplicate() {
-    return potentialDuplicate;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCreatedAtClient() {
-    return createdAtClient;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getLastUpdatedAtClient() {
-    return lastUpdatedAtClient;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
-
-  @JsonProperty("trackedEntityAttributeValues")
-  @JacksonXmlElementWrapper(
-      localName = "trackedEntityAttributeValues",
-      namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0)
-  public Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues() {
-    return trackedEntityAttributeValues;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "enrollments", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Enrollment> getEnrollments() {
-    return enrollments;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
-  public Set<TrackedEntityProgramOwner> getProgramOwners() {
-    return programOwners;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
-  public TrackedEntityType getTrackedEntityType() {
-    return trackedEntityType;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
-  public boolean isInactive() {
-    return inactive;
-  }
-
-  @JsonIgnore
-  public Date getLastSynchronized() {
-    return lastSynchronized;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0)
-  public Set<RelationshipItem> getRelationshipItems() {
-    return relationshipItems;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Geometry getGeometry() {
-    return geometry;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getCreatedByUserInfo() {
-    return createdByUserInfo;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getLastUpdatedByUserInfo() {
-    return lastUpdatedByUserInfo;
   }
 
   @Override
