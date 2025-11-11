@@ -436,10 +436,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataWrite(user, program)) {
