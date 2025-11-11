@@ -474,12 +474,10 @@ public class ConfigurationController {
   public @ResponseBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> getDataOutputPeriodTypes() {
     Set<PeriodType> periodTypes =
         configurationService.getConfiguration().getDataOutputPeriodTypes();
-    Set<org.hisp.dhis.webapi.webdomain.PeriodType> periodTypesNames =
-        periodTypes.stream()
-            .map(org.hisp.dhis.webapi.webdomain.PeriodType::new)
-            .collect(toCollection(LinkedHashSet::new));
 
-    return periodTypesNames;
+    return periodTypes.stream()
+        .map(org.hisp.dhis.webapi.webdomain.PeriodType::new)
+        .collect(toCollection(LinkedHashSet::new));
   }
 
   @SuppressWarnings("unchecked")
