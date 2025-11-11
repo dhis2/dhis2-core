@@ -71,6 +71,7 @@ final class DataExportOutput {
       JsonGenerator out = factory.createGenerator(json);
 
       out.writeStartObject();
+      // group level IDs...
       if (group.dataSet() != null) out.writeStringField("dataSet", group.dataSet());
       if (group.period() != null) out.writeStringField("period", group.period());
       if (group.orgUnit() != null) out.writeStringField("orgUnit", group.orgUnit());
@@ -83,6 +84,26 @@ final class DataExportOutput {
           out.writeStringField(e.getKey(), e.getValue());
         out.writeEndObject();
       }
+
+      // ID schemes
+      DataExportGroup.Ids ids = group.ids();
+      if (ids.dataSets().isNotUID())
+        out.writeStringField("dataSetIdScheme", ids.dataSets().toString());
+      if (ids.dataElements().isNotUID())
+        out.writeStringField("dataElementIdScheme", ids.dataElements().toString());
+      if (ids.orgUnits().isNotUID())
+        out.writeStringField("orgUnitIdScheme", ids.orgUnits().toString());
+      if (ids.categoryOptionCombos().isNotUID())
+        out.writeStringField("categoryOptionComboIdScheme", ids.categoryOptionCombos().toString());
+      if (ids.attributeOptionCombos().isNotUID())
+        out.writeStringField(
+            "attributeOptionComboIdScheme", ids.attributeOptionCombos().toString());
+      if (ids.categories().isNotUID())
+        out.writeStringField("categoryIdScheme", ids.categories().toString());
+      if (ids.categoryOptions().isNotUID())
+        out.writeStringField("categoryOptionIdScheme", ids.categoryOptions().toString());
+
+      // values...
       out.writeArrayFieldStart("dataValues");
       Iterator<DataExportValue.Output> iter = group.values().iterator();
       while (iter.hasNext()) {
@@ -170,12 +191,30 @@ final class DataExportOutput {
     out.openDocument();
     out.openElement("dataValueSet");
     out.writeAttribute("xmlns", "http://dhis2.org/schema/dxf/2.0");
+    // group level IDs
     if (group.dataSet() != null) out.writeAttribute("dataSet", group.dataSet());
     if (group.period() != null) out.writeAttribute("period", toAdxPeriod(group.period()));
     if (group.orgUnit() != null) out.writeAttribute("orgUnit", group.orgUnit());
     if (group.attributeOptionCombo() != null)
       out.writeAttribute("attributeOptionCombo", group.attributeOptionCombo());
     if (group.attributeOptions() != null) group.attributeOptions().forEach(out::writeAttribute);
+
+    // ID schemes
+    DataExportGroup.Ids ids = group.ids();
+    if (ids.dataSets().isNotUID()) out.writeAttribute("dataSetIdScheme", ids.dataSets().toString());
+    if (ids.dataElements().isNotUID())
+      out.writeAttribute("dataElementIdScheme", ids.dataElements().toString());
+    if (ids.orgUnits().isNotUID()) out.writeAttribute("orgUnitIdScheme", ids.orgUnits().toString());
+    if (ids.categoryOptionCombos().isNotUID())
+      out.writeAttribute("categoryOptionComboIdScheme", ids.categoryOptionCombos().toString());
+    if (ids.attributeOptionCombos().isNotUID())
+      out.writeAttribute("attributeOptionComboIdScheme", ids.attributeOptionCombos().toString());
+    if (ids.categories().isNotUID())
+      out.writeAttribute("categoryIdScheme", ids.categories().toString());
+    if (ids.categoryOptions().isNotUID())
+      out.writeAttribute("categoryOptionIdScheme", ids.categoryOptions().toString());
+
+    // values...
     group
         .values()
         .forEach(

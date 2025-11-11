@@ -94,4 +94,14 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
   public boolean isNotUID() {
     return name != Name.UID;
   }
+
+  @Override
+  public String toString() {
+    return switch (name) {
+      case CODE -> "CODE";
+      case NAME -> "NAME";
+      case UID -> "ID";
+      case ATTR -> "ATTRIBUTE:%s".formatted(attributeId);
+    };
+  }
 }

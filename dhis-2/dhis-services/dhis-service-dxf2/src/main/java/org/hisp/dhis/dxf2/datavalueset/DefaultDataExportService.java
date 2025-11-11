@@ -52,7 +52,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataEntryKey;
@@ -126,7 +125,7 @@ public class DefaultDataExportService implements DataExportService {
       validateFilters(params);
       validateAccess(params);
     }
-    IdSchemes encodeTo = parameters.getOutputIdSchemes();
+    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
     UID ds = getUnique(params.getDataSets());
     Period pe = getUnique(params.getPeriods());
     UID ou = getUnique(params.getOrganisationUnits());
@@ -192,20 +191,22 @@ public class DefaultDataExportService implements DataExportService {
             new DataExportGroup(ds, getPeriodFromIsoString(peG), ouG, aocG, valuesG.stream()));
     }
 
-    IdSchemes encodeTo = parameters.getOutputIdSchemes();
+    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
+    ;
     boolean cocAsMap = Boolean.TRUE.equals(parameters.getUnfoldOptionCombos());
     List<DataExportGroup.Output> res = new ArrayList<>(groups.size());
     for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, cocAsMap));
     return res.stream();
   }
 
-  private DataExportGroup.Output encodeGroup(DataExportGroup group, IdSchemes to, boolean cocAsMap)
+  private DataExportGroup.Output encodeGroup(
+      @Nonnull DataExportGroup group, @Nonnull DataExportGroup.Ids to, boolean cocAsMap)
       throws ConflictException {
-    IdProperty dsTo = IdProperty.of(to.getDataSetIdScheme());
-    IdProperty deTo = IdProperty.of(to.getDataElementIdScheme());
-    IdProperty ouTo = IdProperty.of(to.getOrgUnitIdScheme());
-    IdProperty cocTo = IdProperty.of(to.getCategoryOptionComboIdScheme());
-    IdProperty aocTo = IdProperty.of(to.getAttributeOptionComboIdScheme());
+    IdProperty dsTo = to.dataSets();
+    IdProperty deTo = to.dataElements();
+    IdProperty ouTo = to.orgUnits();
+    IdProperty cocTo = to.categoryOptionCombos();
+    IdProperty aocTo = to.attributeOptionCombos();
     Function<UID, String> deOf = UID::getValue;
     Function<UID, String> ouOf = UID::getValue;
     Function<UID, String> cocOf = UID::getValue;
@@ -266,8 +267,8 @@ public class DefaultDataExportService implements DataExportService {
         if (aocIds.size() == 1 && aocG == null) aocG = aocIds.get(0);
       }
       if (cocAsMap) {
-        IdProperty cTo = IdProperty.of(to.getCategoryIdScheme());
-        IdProperty coTo = IdProperty.of(to.getCategoryOptionIdScheme());
+        IdProperty cTo = to.categories();
+        IdProperty coTo = to.categoryOptions();
         List<UID> cocIds =
             Stream.concat(
                     list.stream().map(DataExportValue::categoryOptionCombo),
@@ -308,6 +309,7 @@ public class DefaultDataExportService implements DataExportService {
             ? aoc -> null
             : aoc -> aoc.isDefaultOptionCombo() ? null : dvAocPlain.apply(aoc);
     return new DataExportGroup.Output(
+        to,
         dataSet,
         period,
         orgUnit,

@@ -110,23 +110,31 @@ public final class DataEntryInput {
     IdSchemes schemes = options.getIdSchemes();
     if (!"dataValueSet".equals(dvs.getElementName())) dvs.moveToStartElement("dataValueSet");
     String ds = dvs.getAttributeValue("dataSet");
-    // keys that are common for all values
+    // group level IDs
     String ou = dvs.getAttributeValue("orgUnit");
     String pe = dvs.getAttributeValue("period");
     String aoc = dvs.getAttributeValue("attributeOptionCombo");
     String dryRun = dvs.getAttributeValue("dryRun");
     if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
+
     // ID schemes
     String scheme = dvs.getAttributeValue("idScheme");
     if (scheme != null) schemes.setIdScheme(scheme);
+    scheme = dvs.getAttributeValue("dataSetIdScheme");
+    if (scheme != null) schemes.setDataSetIdScheme(scheme);
     scheme = dvs.getAttributeValue("dataElementIdScheme");
     if (scheme != null) schemes.setDataElementIdScheme(scheme);
     scheme = dvs.getAttributeValue("orgUnitIdScheme");
     if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
     scheme = dvs.getAttributeValue("categoryOptionComboIdScheme");
     if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
-    scheme = dvs.getAttributeValue("dataSetIdScheme");
-    if (scheme != null) schemes.setDataSetIdScheme(scheme);
+    scheme = dvs.getAttributeValue("attributeOptionComboIdScheme");
+    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
+    scheme = dvs.getAttributeValue("categoryIdScheme");
+    if (scheme != null) schemes.setCategoryIdScheme(scheme);
+    scheme = dvs.getAttributeValue("categoryOptionIdScheme");
+    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
+
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
     while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
@@ -233,14 +241,22 @@ public final class DataEntryInput {
     if (dryRun != null) options.setDryRun(dryRun);
     // ID schemes
     if (!dvs.get("idScheme").isUndefined()) schemes.setIdScheme(dvs.getString("idScheme").string());
+    if (!dvs.get("dataSetIdScheme").isUndefined())
+      schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
     if (!dvs.get("dataElementIdScheme").isUndefined())
       schemes.setDataSetIdScheme(dvs.getString("dataElementIdScheme").string());
     if (!dvs.get("orgUnitIdScheme").isUndefined())
       schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
     if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
       schemes.setCategoryOptionComboIdScheme(dvs.getString("categoryOptionComboIdScheme").string());
-    if (!dvs.get("dataSetIdScheme").isUndefined())
-      schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
+    if (!dvs.get("attributeOptionComboIdScheme").isUndefined())
+      schemes.setAttributeOptionComboIdScheme(
+          dvs.getString("attributeOptionComboIdScheme").string());
+    if (!dvs.get("categoryIdScheme").isUndefined())
+      schemes.setCategoryIdScheme(dvs.getString("categoryIdScheme").string());
+    if (!dvs.get("categoryOptionIdScheme").isUndefined())
+      schemes.setCategoryOptionIdScheme(dvs.getString("categoryOptionIdScheme").string());
+
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
     // Note that this uses JsonNode API to iterate without indexing
