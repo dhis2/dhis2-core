@@ -74,7 +74,7 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
             WHERE de.valuetype = 'FILE_RESOURCE'
         )
         UPDATE fileresource fr
-        SET isassigned = false
+        SET isassigned = false, lastupdated = now()
         FROM candidates c
         LEFT JOIN fr_datavalues frdv ON frdv.value = c.uid
         WHERE fr.isassigned = true
