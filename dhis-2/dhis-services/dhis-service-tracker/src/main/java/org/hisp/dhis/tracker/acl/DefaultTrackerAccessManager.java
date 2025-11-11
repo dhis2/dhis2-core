@@ -242,6 +242,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
+    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
     if (isNull(programStage)) {
       return List.of();
     }
@@ -281,6 +282,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
+    // TODO(tracker) Why skip validations if null. Can a PS of a single event ever be null?
     if (isNull(programStage)) {
       return List.of();
     }
@@ -312,6 +314,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
+    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
     if (isNull(programStage)) {
       return List.of();
     }
@@ -347,6 +350,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
+    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
     if (isNull(programStage)) {
       return List.of();
     }
@@ -380,6 +384,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
+    // TODO(tracker) Why skip validations if null. Can a PS of a single event ever be null?
     if (isNull(programStage)) {
       return List.of();
     }
@@ -405,6 +410,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
+    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
     if (isNull(programStage)) {
       return List.of();
     }

@@ -254,20 +254,6 @@ public class MeController {
       throw new ConflictException("Invalid format for WhatsApp value '" + user.getWhatsApp() + "'");
     }
 
-    FileResource avatar = currentUser.getAvatar();
-    if (avatar != null) {
-      FileResource fileResource = fileResourceService.getFileResource(avatar.getUid());
-      if (fileResource == null) {
-        throw new ConflictException("File does not exist");
-      }
-
-      if (!fileResource.getCreatedBy().getUid().equals(currentUser.getUid())) {
-        throw new ConflictException("Not the owner of the file");
-      }
-
-      currentUser.setAvatar(fileResource);
-    }
-
     manager.update(currentUser);
 
     if (fields.isEmpty()) {
@@ -434,7 +420,7 @@ public class MeController {
     return rootNode;
   }
 
-  private void merge(User currentUser, User user) {
+  private void merge(User currentUser, User user) throws ConflictException {
     currentUser.setFirstName(stringWithDefault(user.getFirstName(), currentUser.getFirstName()));
     currentUser.setSurname(stringWithDefault(user.getSurname(), currentUser.getSurname()));
     currentUser.setEmail(stringWithDefault(user.getEmail(), currentUser.getEmail()));
@@ -445,7 +431,18 @@ public class MeController {
         stringWithDefault(user.getIntroduction(), currentUser.getIntroduction()));
     currentUser.setGender(stringWithDefault(user.getGender(), currentUser.getGender()));
 
-    currentUser.setAvatar(user.getAvatar() != null ? user.getAvatar() : currentUser.getAvatar());
+    FileResource newAvatar = null;
+    if (user.getAvatar() != null) {
+      newAvatar = fileResourceService.getFileResource(user.getAvatar().getUid());
+      if (newAvatar == null) {
+        throw new ConflictException("File does not exist");
+      }
+
+      if (!newAvatar.getCreatedBy().getUid().equals(currentUser.getUid())) {
+        throw new ConflictException("Not the owner of the file");
+      }
+    }
+    currentUser.setAvatar(newAvatar != null ? newAvatar : currentUser.getAvatar());
 
     currentUser.setSkype(stringWithDefault(user.getSkype(), currentUser.getSkype()));
     currentUser.setFacebookMessenger(
