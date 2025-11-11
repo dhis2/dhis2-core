@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.time.LocalDate.now;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -47,6 +48,7 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
@@ -88,6 +90,8 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -140,6 +144,10 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private Configuration configuration;
+
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsTableManager subject;
@@ -173,6 +181,7 @@ class JdbcEventAnalyticsTableManagerTest {
   @BeforeEach
   public void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+
     subject =
         new JdbcEventAnalyticsTableManager(
             idObjectManager,
@@ -187,7 +196,8 @@ class JdbcEventAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             new ColumnMapper(sqlBuilder, settingsProvider),
-            sqlBuilder);
+            sqlBuilder,
+            configurationService);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
@@ -223,6 +233,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(programs);
+    whenConfigurationPeriodSettings();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
     assertThat(tables, hasSize(2));
@@ -261,6 +272,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
+    whenConfigurationPeriodSettings();
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -313,6 +325,9 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
             Integer.class))
         .thenReturn(List.of(2018, 2019));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -354,6 +369,7 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
             Integer.class))
         .thenReturn(List.of());
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -393,6 +409,7 @@ class JdbcEventAnalyticsTableManagerTest {
     program.setProgramStages(Set.of(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    whenConfigurationPeriodSettings();
 
     String aliasD1 = "eventdatavalues #>> '{%s, value}' as \"%s\"";
     String aliasD2 =
@@ -443,6 +460,7 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
             Integer.class))
         .thenReturn(List.of(2018, 2019));
+    whenConfigurationPeriodSettings();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -515,6 +533,7 @@ class JdbcEventAnalyticsTableManagerTest {
     program.setProgramStages(Set.of(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    whenConfigurationPeriodSettings();
 
     String aliasD1 =
         """
@@ -582,6 +601,7 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramStages(Set.of(ps1));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -637,6 +657,8 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
+    whenConfigurationPeriodSettings();
+
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
@@ -694,6 +716,8 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
+    whenConfigurationPeriodSettings();
+
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
@@ -745,7 +769,6 @@ class JdbcEventAnalyticsTableManagerTest {
     int latestYear = availableDataYears.get(availableDataYears.size() - 1);
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
-
     when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(ouLevels);
     when(jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from "
@@ -764,6 +787,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + latestYear,
             Integer.class))
         .thenReturn(List.of(2018, 2019));
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
@@ -807,6 +831,8 @@ class JdbcEventAnalyticsTableManagerTest {
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class))
         .thenReturn(ouGroupSet);
+    whenConfigurationPeriodSettings();
+
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
@@ -853,6 +879,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(categoryService.getAttributeCategoryOptionGroupSetsNoAcl()).thenReturn(cogs);
+    whenConfigurationPeriodSettings();
+
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
@@ -887,6 +915,12 @@ class JdbcEventAnalyticsTableManagerTest {
         .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()
         .verify();
+  }
+
+  private void whenConfigurationPeriodSettings() {
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
   }
 
   private void match(OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col) {
@@ -933,6 +967,10 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
+
     mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);

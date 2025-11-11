@@ -30,8 +30,10 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
@@ -54,6 +56,8 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -102,6 +106,10 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private Configuration configuration;
+
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEnrollmentAnalyticsTableManager subject;
@@ -125,7 +133,8 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             new ColumnMapper(sqlBuilder, settingsProvider),
-            sqlBuilder);
+            sqlBuilder,
+            configurationService);
   }
 
   @Test
@@ -141,6 +150,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
     p1.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(p1));
 
     AnalyticsTableUpdateParams params =

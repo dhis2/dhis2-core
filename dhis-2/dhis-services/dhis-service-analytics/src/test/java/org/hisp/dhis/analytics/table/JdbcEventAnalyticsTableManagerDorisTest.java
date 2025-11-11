@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.time.LocalDate.now;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createLegend;
 import static org.hisp.dhis.test.TestBase.createLegendSet;
@@ -66,6 +68,8 @@ import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
@@ -115,6 +119,10 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private Configuration configuration;
+
   @Spy private SqlBuilder sqlBuilder = new DorisSqlBuilder("dhis2", "driver");
 
   private JdbcEventAnalyticsTableManager subject;
@@ -149,6 +157,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
     when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
+
     subject =
         new JdbcEventAnalyticsTableManager(
             idObjectManager,
@@ -163,7 +172,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
             analyticsTableSettings,
             periodDataProvider,
             new ColumnMapper(sqlBuilder, settingsProvider),
-            sqlBuilder);
+            sqlBuilder,
+            configurationService);
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
@@ -191,6 +201,9 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
     program.setProgramAttributes(List.of(ptea));
 
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
     String aliasA = "json_unquote(json_extract(eventdatavalues, '$.%s.value')) as `%s`";

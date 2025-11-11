@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.configuration;
 
+import static java.util.stream.Collectors.toCollection;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -114,6 +118,22 @@ public class Configuration implements Serializable {
 
   public boolean selfRegistrationAllowed() {
     return selfRegistrationRole != null && selfRegistrationOrgUnit != null;
+  }
+
+  /**
+   * It returns the current {@link PeriodType}'s set for output, or the default ones (if nothing is
+   * set).
+   *
+   * @return the {@link PeriodType}'s.
+   */
+  public Set<PeriodType> getDataOutputPeriodTypesOrDefault() {
+    Set<PeriodType> outputPeriodTypes = getDataOutputPeriodTypes();
+
+    if (isNotEmpty(outputPeriodTypes)) {
+      return outputPeriodTypes;
+    }
+
+    return PERIOD_TYPES.stream().collect(toCollection(LinkedHashSet::new));
   }
 
   // -------------------------------------------------------------------------

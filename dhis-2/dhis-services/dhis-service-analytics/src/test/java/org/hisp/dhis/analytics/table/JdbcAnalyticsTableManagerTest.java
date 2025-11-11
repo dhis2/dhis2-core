@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.qualifyVariables;
 import static org.hisp.dhis.analytics.AnalyticsStringUtils.replaceQualify;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -57,6 +59,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -111,6 +115,10 @@ class JdbcAnalyticsTableManagerTest {
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
+
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private Configuration configuration;
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -177,6 +185,9 @@ class JdbcAnalyticsTableManagerTest {
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -217,6 +228,9 @@ class JdbcAnalyticsTableManagerTest {
     when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -263,6 +277,9 @@ class JdbcAnalyticsTableManagerTest {
         .thenReturn(lastLatestPartitionUpdate);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -295,6 +312,9 @@ class JdbcAnalyticsTableManagerTest {
     when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(new Date(42L));
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypesOrDefault())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     assertTrue(subject.getAnalyticsTables(params).isEmpty());
   }
