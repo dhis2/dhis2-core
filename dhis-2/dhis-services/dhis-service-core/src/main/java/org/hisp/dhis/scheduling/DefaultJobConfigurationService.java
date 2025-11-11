@@ -61,7 +61,9 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -124,7 +126,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Transactional
   public int createDefaultJobs() {
     int created = 0;
-    Set<String> jobIds = jobConfigurationStore.getAllIds();
+    Set<UID> jobIds = jobConfigurationStore.getAllIds();
     for (JobType t : JobType.values()) {
       Defaults defaults = t.getDefaults();
       if (defaults != null && !jobIds.contains(defaults.uid())) {
@@ -143,7 +145,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     JobConfiguration config = new JobConfiguration(job.name(), type);
     config.setCronExpression(job.cronExpression());
     config.setDelay(job.delay());
-    config.setUid(job.uid());
+    config.setUid(job.uid().getValue());
     config.setSchedulingType(
         job.delay() != null ? SchedulingType.FIXED_DELAY : SchedulingType.CRON);
     jobConfigurationStore.save(config, actingUser, false);
@@ -224,22 +226,20 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<JobConfiguration> getDueJobConfigurations(
-      int dueInNextSeconds, boolean includeWaiting) {
+  @IndirectTransactional
+  public List<JobEntry> getDueJobConfigurations(int dueInNextSeconds, boolean includeWaiting) {
     Instant now = Instant.now();
     Instant endOfWindow = now.plusSeconds(dueInNextSeconds);
     Duration maxCronDelay =
         Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
-    return jobConfigurationStore
-        .getDueJobConfigurations(includeWaiting)
+    return jobConfigurationStore.getDueJobConfigurations(includeWaiting).stream()
         .filter(c -> c.isDueBetween(now, endOfWindow, maxCronDelay))
         .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<JobConfiguration> getStaleConfigurations(int staleForSeconds) {
+  public List<JobEntry> getStaleConfigurations(int staleForSeconds) {
     if (staleForSeconds <= 0) {
       staleForSeconds = 60 * settingsProvider.getCurrentSettings().getJobsRescheduleAfterMinutes();
     }
@@ -248,10 +248,9 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
 
   @Nonnull
   @Override
-  @Transactional(readOnly = true)
+  @IndirectTransactional
   public List<JobRunErrors> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
-    return jobConfigurationStore
-        .findJobRunErrors(params)
+    return jobConfigurationStore.findJobRunErrors(params).stream()
         .map(json -> errorEntryWithMessages(json, params))
         .toList();
   }

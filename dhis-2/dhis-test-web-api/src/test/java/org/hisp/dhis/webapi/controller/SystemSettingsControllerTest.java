@@ -45,6 +45,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
+
+  @AfterEach
+  void resetLocale() {
+    POST("/systemSettings/keyUiLocale?value=en");
+  }
 
   @Test
   void testSetSystemSettingOrTranslation_NoValue() {

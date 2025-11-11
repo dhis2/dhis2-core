@@ -69,19 +69,29 @@ public class RecordingJobProgress implements JobProgress {
    *     recoding objects
    */
   public static JobProgress transitory() {
-    return transitory(null, null);
+    return transitory((JobKey) null, null);
   }
 
   public static JobProgress transitory(JobConfiguration job, Notifier notifier) {
+    JobKey key = job == null ? null : job.toKey();
+    JobParameters params = job == null ? null : job.getJobParameters();
+    return transitory(key, params, notifier);
+  }
+
+  public static JobProgress transitory(JobKey job, Notifier notifier) {
+    return transitory(job, null, notifier);
+  }
+
+  public static JobProgress transitory(JobKey job, JobParameters params, Notifier notifier) {
     JobProgress track =
         notifier == null
             ? JobProgress.noop()
-            : new NotifierJobProgress(notifier, job, NotificationLevel.INFO);
+            : new NotifierJobProgress(notifier, job, params, NotificationLevel.INFO);
     return new RecordingJobProgress(null, null, track, true, () -> {}, false, true);
   }
 
   @CheckForNull private final MessageService messageService;
-  @CheckForNull private final JobConfiguration configuration;
+  @CheckForNull private final JobKey job;
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
@@ -101,29 +111,27 @@ public class RecordingJobProgress implements JobProgress {
   private int bucketingSize;
   private int bucketed;
 
-  public RecordingJobProgress(JobConfiguration configuration) {
-    this(null, configuration, JobProgress.noop(), true, () -> {}, false, false);
+  public RecordingJobProgress(JobKey job) {
+    this(null, job, JobProgress.noop(), true, () -> {}, false, false);
   }
 
   public RecordingJobProgress(
       @CheckForNull MessageService messageService,
-      @CheckForNull JobConfiguration configuration,
+      @CheckForNull JobKey job,
       JobProgress tracker,
       boolean abortOnFailure,
       Runnable observer,
       boolean logOnDebug,
       boolean skipRecording) {
     this.messageService = messageService;
-    this.configuration = configuration;
+    this.job = job;
     this.tracker = tracker;
     this.abortOnFailure = abortOnFailure;
     this.observer = observer;
     this.logOnDebug = logOnDebug;
     this.skipRecording = skipRecording;
     this.usingErrorNotification =
-        messageService != null
-            && configuration != null
-            && configuration.getJobType().isUsingErrorNotification();
+        messageService != null && job != null && job.type().isUsingErrorNotification();
     this.user =
         CurrentUserUtil.hasCurrentUser() ? CurrentUserUtil.getCurrentUserDetails().getUid() : null;
   }
@@ -488,8 +496,8 @@ public class RecordingJobProgress implements JobProgress {
 
   private Process addProcessRecord(String description) {
     Process process = new Process(description);
-    if (configuration != null) {
-      process.setJobId(configuration.getUid());
+    if (job != null) {
+      process.setJobId(job.id().getValue());
     }
     if (user != null) {
       process.setUserId(user);
@@ -597,9 +605,9 @@ public class RecordingJobProgress implements JobProgress {
             : "";
     String msg = message == null ? "" : ": " + message;
     String type = source instanceof Stage ? "" : source.getClass().getSimpleName() + " ";
-    if (configuration == null) return format("{}{}{}{}", type, action, duration, msg);
-    String jobType = configuration.getJobType().name();
-    String uid = configuration.getUid();
+    if (job == null) return format("{}{}{}{}", type, action, duration, msg);
+    String jobType = job.type().name();
+    String uid = job.id().getValue();
     return format("[{} {}] {}{}{}{}", jobType, uid, type, action, duration, msg);
   }
 }

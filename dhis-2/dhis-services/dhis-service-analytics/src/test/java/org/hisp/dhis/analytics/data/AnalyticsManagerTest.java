@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
@@ -58,7 +57,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
@@ -102,9 +101,9 @@ class AnalyticsManagerTest extends TestBase {
         new AnalyticsAggregationType(
             AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true);
 
-    Period y2017 = createPeriod("2017");
-    Period y2018 = createPeriod("2018");
-    Period finYear2017 = createPeriod(financialYear);
+    PeriodDimension y2017 = PeriodDimension.of(createPeriod("2017"));
+    PeriodDimension y2018 = PeriodDimension.of(createPeriod("2018"));
+    PeriodDimension finYear2017 = PeriodDimension.of(createPeriod(financialYear));
 
     Map<String, Object> dataValueMap = new HashMap<>();
     dataValueMap.put(BASE_UID + "-2018", 1.0);
@@ -135,28 +134,28 @@ class AnalyticsManagerTest extends TestBase {
   void testGetValueClause() {
     DataQueryParams paramsA =
         DataQueryParams.newBuilder()
-            .withPeriods(List.of(createPeriod("202201")))
+            .withPeriods(createPeriodDimensions("202201"))
             .withAggregationType(new AnalyticsAggregationType(SUM, AVERAGE, NUMERIC, false))
             .withDataType(DataType.NUMERIC)
             .build();
 
     DataQueryParams paramsB =
         DataQueryParams.newBuilder()
-            .withPeriods(List.of(createPeriod("202201")))
+            .withPeriods(createPeriodDimensions("202201"))
             .withAggregationType(new AnalyticsAggregationType(MIN, MIN, NUMERIC, false))
             .withDataType(DataType.NUMERIC)
             .build();
 
     DataQueryParams paramsC =
         DataQueryParams.newBuilder()
-            .withPeriods(List.of(createPeriod("202201")))
+            .withPeriods(createPeriodDimensions("202201"))
             .withAggregationType(new AnalyticsAggregationType(NONE, NONE, NUMERIC, false))
             .withDataType(DataType.NUMERIC)
             .build();
 
     DataQueryParams paramsD =
         DataQueryParams.newBuilder()
-            .withPeriods(List.of(createPeriod("202201")))
+            .withPeriods(createPeriodDimensions("202201"))
             .withAggregationType(new AnalyticsAggregationType(LAST, LAST, TEXT, false))
             .withDataType(DataType.TEXT)
             .build();
@@ -171,13 +170,13 @@ class AnalyticsManagerTest extends TestBase {
   void testGetAggregateValueColumn() {
     DataQueryParams paramsA =
         DataQueryParams.newBuilder()
-            .withPeriods(List.of(createPeriod("202201")))
+            .withPeriods(createPeriodDimensions("202201"))
             .withAggregationType(new AnalyticsAggregationType(SUM, AVERAGE, NUMERIC, false))
             .build();
 
     DataQueryParams paramsB =
         DataQueryParams.newBuilder()
-            .withPeriods(List.of(createPeriod("202201")))
+            .withPeriods(createPeriodDimensions("202201"))
             .withAggregationType(new AnalyticsAggregationType(MAX, MAX, NUMERIC, false))
             .build();
 
@@ -187,7 +186,7 @@ class AnalyticsManagerTest extends TestBase {
 
   @Test
   void testReplaceDataPeriodsWithAggregationPeriods() {
-    Period y2012 = createPeriod("2012");
+    PeriodDimension y2012 = PeriodDimension.of(createPeriod("2012"));
 
     AnalyticsAggregationType aggregationType =
         new AnalyticsAggregationType(
@@ -208,10 +207,10 @@ class AnalyticsManagerTest extends TestBase {
 
     ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap =
         new ListMap<>();
-    dataPeriodAggregationPeriodMap.putValue(y2012, createPeriod("2012Q1"));
-    dataPeriodAggregationPeriodMap.putValue(y2012, createPeriod("2012Q2"));
-    dataPeriodAggregationPeriodMap.putValue(y2012, createPeriod("2012Q3"));
-    dataPeriodAggregationPeriodMap.putValue(y2012, createPeriod("2012Q4"));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q1")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q2")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q3")));
+    dataPeriodAggregationPeriodMap.putValue(y2012, PeriodDimension.of(createPeriod("2012Q4")));
 
     analyticsManager.replaceDataPeriodsWithAggregationPeriods(
         dataValueMap, params, dataPeriodAggregationPeriodMap);

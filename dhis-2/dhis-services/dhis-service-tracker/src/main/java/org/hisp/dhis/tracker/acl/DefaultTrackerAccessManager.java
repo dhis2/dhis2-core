@@ -271,10 +271,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataRead(user, program)) {
@@ -326,10 +322,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     OrganisationUnit ou = event.getOrganisationUnit();
@@ -358,10 +350,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     ProgramStage programStage = event.getProgramStage();
-
-    if (isNull(programStage)) {
-      return List.of();
-    }
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
@@ -392,10 +380,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
 
     List<String> errors = new ArrayList<>();
@@ -413,9 +397,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
     ProgramStage programStage = event.getProgramStage();
-    if (isNull(programStage)) {
-      return List.of();
-    }
+
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataRead(user, program)) {
@@ -659,9 +641,5 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           "User has no data read access to tracked entity type: "
               + program.getTrackedEntityType().getUid());
     }
-  }
-
-  private boolean isNull(ProgramStage programStage) {
-    return programStage == null || programStage.getProgram() == null;
   }
 }

@@ -69,7 +69,7 @@ public abstract class PeriodType implements Serializable {
   private static final long serialVersionUID = 2402122626196305083L;
 
   /** Cache for period lookup. */
-  private static Cache<Period> PERIOD_CACHE =
+  private static final Cache<Period> PERIOD_CACHE =
       new SimpleCacheBuilder<Period>()
           .forRegion("periodCache")
           .expireAfterAccess(12, TimeUnit.HOURS)
@@ -81,17 +81,8 @@ public abstract class PeriodType implements Serializable {
     return getCalendar().name() + getName() + date.getTime();
   }
 
-  private String getCacheKey(Date date, String customKey) {
-    return getCalendar().name() + getName() + date.getTime() + customKey;
-  }
-
   private String getCacheKey(org.hisp.dhis.calendar.Calendar calendar, Date date) {
     return calendar.name() + getName() + date.getTime();
-  }
-
-  private String getCacheKey(
-      org.hisp.dhis.calendar.Calendar calendar, Date date, String customKey) {
-    return calendar.name() + getName() + date.getTime() + customKey;
   }
 
   /**
@@ -108,10 +99,6 @@ public abstract class PeriodType implements Serializable {
 
   public static void setCalendarService(CalendarService calendarService) {
     PeriodType.calendarService = calendarService;
-  }
-
-  public static CalendarService getCalendarService() {
-    return calendarService;
   }
 
   public static org.hisp.dhis.calendar.Calendar getCalendar() {
@@ -335,29 +322,12 @@ public abstract class PeriodType implements Serializable {
     Period period;
 
     if (optional.isPresent()) {
-      period = optional.get();
-      period.setDateField(null);
-
       return optional.get();
-    } else {
-      period = createPeriod(date, getCalendar());
-      PERIOD_CACHE.put(getCacheKey(date), period);
     }
+    period = createPeriod(date, getCalendar());
+    PERIOD_CACHE.put(getCacheKey(date), period);
 
     return period;
-  }
-
-  /**
-   * Creates a valid Period based on the given date and "dateField". E.g. the given date is February
-   * 10. 2007, a monthly PeriodType should return February 2007.
-   *
-   * @param date the date which is contained by the created period.
-   * @param dateField the date field of the returned {@link Period}.
-   * @return the valid Period based on the given date.
-   */
-  public Period createPeriod(Date date, String dateField) {
-    return PERIOD_CACHE.get(
-        getCacheKey(date, dateField), s -> createPeriod(date, getCalendar(), dateField));
   }
 
   public Period createPeriod(Calendar cal) {
@@ -381,34 +351,12 @@ public abstract class PeriodType implements Serializable {
     Period period;
 
     if (optional.isPresent()) {
-      period = optional.get();
-      period.setDateField(null);
-
       return optional.get();
-    } else {
-      period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
-      PERIOD_CACHE.put(getCacheKey(calendar, date), period);
     }
+    period = createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar);
+    PERIOD_CACHE.put(getCacheKey(calendar, date), period);
 
     return period;
-  }
-
-  /**
-   * Creates a valid {@link Period} based on the given date. E.g. the given date is February 10.
-   * 2007, a monthly {@link PeriodType} should return February 2007. This method is intended for use
-   * in situations where a huge number of periods will be generated and its desirable to re-use the
-   * calendar.
-   *
-   * @param date the date which is contained by the created period.
-   * @param calendar the calendar implementation to use.
-   * @param dateField the date field of the returned {@link Period}.
-   * @return the valid Period based on the given date.
-   */
-  public Period createPeriod(
-      Date date, org.hisp.dhis.calendar.Calendar calendar, String dateField) {
-    return PERIOD_CACHE.get(
-        getCacheKey(calendar, date, dateField),
-        p -> createPeriod(calendar.fromIso(DateTimeUnit.fromJdkDate(date)), calendar));
   }
 
   public Period toIsoPeriod(DateTimeUnit start, DateTimeUnit end) {

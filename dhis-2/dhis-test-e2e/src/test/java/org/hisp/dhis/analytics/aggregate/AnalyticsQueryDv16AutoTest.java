@@ -41,7 +41,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -135,7 +134,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
   @Test
   public void tableLayoutKeepOrderOfColumnsHeaders() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -160,7 +159,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         12,
-        11,
+        8,
         8); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -297,7 +296,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
   @Test
   public void tableLayoutDownloadPivotTable() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -321,7 +320,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         996,
-        47,
+        44,
         44); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name

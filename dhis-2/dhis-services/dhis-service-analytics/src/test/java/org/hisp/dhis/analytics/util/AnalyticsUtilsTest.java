@@ -94,8 +94,7 @@ import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialNovemberPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -109,6 +108,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 
 /**
@@ -745,10 +745,7 @@ class AnalyticsUtilsTest extends TestBase {
 
   @Test
   void testIsPeriodInPeriods() {
-    Period p1 = PeriodType.getPeriodFromIsoString("202001");
-    Period p2 = PeriodType.getPeriodFromIsoString("202002");
-    Period p3 = PeriodType.getPeriodFromIsoString("202003");
-    List<DimensionalItemObject> periods = List.of(p1, p2, p3);
+    List<PeriodDimension> periods = createPeriodDimensions("202001", "202002", "202003");
     assertTrue(AnalyticsUtils.isPeriodInPeriods("202001", periods));
     assertFalse(AnalyticsUtils.isPeriodInPeriods("202005", periods));
   }
@@ -816,8 +813,7 @@ class AnalyticsUtilsTest extends TestBase {
         };
 
     assertThrows(
-        UncategorizedSQLException.class,
-        () -> AnalyticsUtils.withExceptionHandling(supplier, false));
+        BadSqlGrammarException.class, () -> AnalyticsUtils.withExceptionHandling(supplier, false));
   }
 
   @Test

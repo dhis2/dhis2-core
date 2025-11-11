@@ -57,6 +57,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -77,6 +78,8 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
   @Autowired private DataDumpService dataDumpService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private PeriodService periodService;
 
   @Autowired private ObjectMapper jsonMapper;
 
@@ -149,7 +152,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     dsA.addDataSetElement(deB);
     idObjectManager.save(dsA, false);
     peA = createPeriod("201901");
-    idObjectManager.save(peA);
+    periodService.addPeriod(peA);
     ouA = createOrganisationUnit('A');
     idObjectManager.save(ouA);
     // Data values
@@ -202,7 +205,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
       assertEquals(ouA.getUid(), dv.getOrgUnit());
-      assertEquals(peA.getUid(), dv.getPeriod());
+      assertEquals(peA.getIsoDate(), dv.getPeriod());
       assertTrue(expectedOptionCombos.contains(dv.getAttributeOptionCombo()));
     }
   }

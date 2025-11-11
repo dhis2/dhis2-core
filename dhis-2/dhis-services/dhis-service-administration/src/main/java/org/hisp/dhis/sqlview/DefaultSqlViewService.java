@@ -34,8 +34,13 @@ import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseFilterOperator;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseSelectFields;
+import static org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.parseStringValue;
 
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,8 +57,9 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.OperatorWithPlaceHolderAndArg;
+import org.hisp.dhis.sqlview.hibernate.HibernateSqlViewStore.PlaceholderQueryWithArgs;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -193,12 +199,16 @@ public class DefaultSqlViewService implements SqlViewService {
 
     log.info(String.format("Retrieving data for SQL view: '%s'", sqlView.getUid()));
 
-    String sql =
+    PlaceholderQueryWithArgs placeholderQueryWithArgs =
         sqlView.isQuery()
             ? getSqlForQuery(sqlView, criteria, variables, filters, fields)
             : getSqlForView(sqlView, criteria, filters, fields);
 
-    sqlViewStore.populateSqlViewGrid(grid, sql, transactionMode);
+    sqlViewStore.populateSqlViewGrid(
+        grid,
+        placeholderQueryWithArgs.placeholderQuery(),
+        placeholderQueryWithArgs.args() == null ? null : placeholderQueryWithArgs.args().toArray(),
+        transactionMode);
     return grid;
   }
 
@@ -208,39 +218,55 @@ public class DefaultSqlViewService implements SqlViewService {
     }
   }
 
-  private String parseFilters(List<String> filters, SqlHelper sqlHelper)
+  private PlaceholderQueryWithArgs parseFilters(List<String> filters, SqlHelper sqlHelper)
       throws QueryParserException {
-    String query = "";
+    StringBuilder query = new StringBuilder();
+    List<Object> queryArgs = new ArrayList<>();
 
-    for (String filter : filters) {
+    for (int i = 0; i < filters.size(); i++) {
+      String filter = filters.get(i);
       String[] split = filter.split(":");
 
       if (split.length == 3) {
         int index = split[0].length() + ":".length() + split[1].length() + ":".length();
-        query += getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
+        OperatorWithPlaceHolderAndArg filterQuery =
+            getFilterQuery(sqlHelper, split[0], split[1], filter.substring(index));
+        query.append(filterQuery.operatorWithPlaceholder());
+
+        // this arg could be a collection, so need to add each (not the collection)
+        if (filterQuery.arg() instanceof Collection<?> collection) {
+          queryArgs.addAll(collection);
+        } else {
+          queryArgs.add(filterQuery.arg());
+        }
+
+      } else if (split.length == 2 && (split[1].equals("null") || split[1].equals("!null"))) {
+        query.append(getFilterQuery(sqlHelper, split[0], split[1], null).operatorWithPlaceholder());
       } else {
         throw new QueryParserException("Invalid filter => " + filter);
       }
     }
 
-    return query;
+    return new PlaceholderQueryWithArgs(query.toString(), queryArgs);
   }
 
-  private String getFilterQuery(
+  private OperatorWithPlaceHolderAndArg getFilterQuery(
       SqlHelper sqlHelper, String columnName, String operator, String value) {
-    String query = "";
+    String filter = "";
+    OperatorWithPlaceHolderAndArg operatorWithPlaceHolderAndArg =
+        parseFilterOperator(operator, value);
 
-    query +=
+    filter +=
         sqlHelper.whereAnd()
             + " "
             + columnName
             + " "
-            + QueryUtils.parseFilterOperator(operator, value);
+            + operatorWithPlaceHolderAndArg.operatorWithPlaceholder();
 
-    return query;
+    return new OperatorWithPlaceHolderAndArg(filter, operatorWithPlaceHolderAndArg.arg());
   }
 
-  private String getSqlForQuery(
+  private PlaceholderQueryWithArgs getSqlForQuery(
       SqlView sqlView,
       Map<String, String> criteria,
       Map<String, String> variables,
@@ -252,26 +278,31 @@ public class DefaultSqlViewService implements SqlViewService {
 
     String sql = substituteQueryVariables(sqlView, variables);
 
+    List<Object> args = new ArrayList<>();
     if (hasCriteria || hasFilter) {
       sql = SqlViewUtils.removeQuerySeparator(sql);
 
-      String outerSql =
-          "select " + QueryUtils.parseSelectFields(fields) + " from " + "(" + sql + ") as qry ";
+      String outerSql = "select " + parseSelectFields(fields) + " from " + "(" + sql + ") as qry ";
 
       SqlHelper sqlHelper = new SqlHelper();
 
       if (hasCriteria) {
-        outerSql += getCriteriaSqlClause(criteria, sqlHelper);
+        PlaceholderQueryWithArgs placeholderQueryWithArgs =
+            getCriteriaSqlClause(criteria, sqlHelper);
+        outerSql += placeholderQueryWithArgs.placeholderQuery();
+        args.addAll(placeholderQueryWithArgs.args());
       }
 
       if (hasFilter) {
-        outerSql += parseFilters(filters, sqlHelper);
+        PlaceholderQueryWithArgs placeholderQueryWithArgs = parseFilters(filters, sqlHelper);
+        outerSql += placeholderQueryWithArgs.placeholderQuery();
+        args.addAll(placeholderQueryWithArgs.args());
+        return new PlaceholderQueryWithArgs(outerSql, args);
       }
-
-      sql = outerSql;
+      return new PlaceholderQueryWithArgs(outerSql, args);
     }
 
-    return sql;
+    return new PlaceholderQueryWithArgs(sql, null);
   }
 
   private String substituteQueryVariables(SqlView sqlView, Map<String, String> variables) {
@@ -290,11 +321,11 @@ public class DefaultSqlViewService implements SqlViewService {
     return sql;
   }
 
-  private String getSqlForView(
+  private PlaceholderQueryWithArgs getSqlForView(
       SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields) {
     String sql =
         "select "
-            + QueryUtils.parseSelectFields(fields)
+            + parseSelectFields(fields)
             + " from "
             + SqlUtils.quote(sqlView.getViewName())
             + " ";
@@ -303,39 +334,45 @@ public class DefaultSqlViewService implements SqlViewService {
 
     boolean hasFilter = filters != null && !filters.isEmpty();
 
+    List<Object> args = new ArrayList<>();
     if (hasCriteria || hasFilter) {
       SqlHelper sqlHelper = new SqlHelper();
 
       if (hasCriteria) {
-        sql += getCriteriaSqlClause(criteria, sqlHelper);
+        PlaceholderQueryWithArgs sqlQueryWithArgs = getCriteriaSqlClause(criteria, sqlHelper);
+        sql += sqlQueryWithArgs.placeholderQuery();
+        args.addAll(sqlQueryWithArgs.args());
       }
 
       if (hasFilter) {
-        sql += parseFilters(filters, sqlHelper);
+        PlaceholderQueryWithArgs sqlQueryWithArgs = parseFilters(filters, sqlHelper);
+        sql += sqlQueryWithArgs.placeholderQuery();
+        args.addAll(sqlQueryWithArgs.args());
       }
+      return new PlaceholderQueryWithArgs(sql, args);
     }
 
-    return sql;
+    return new PlaceholderQueryWithArgs(sql, null);
   }
 
-  private String getCriteriaSqlClause(Map<String, String> criteria, SqlHelper sqlHelper) {
-    String sql = "";
+  private PlaceholderQueryWithArgs getCriteriaSqlClause(
+      Map<String, String> criteria, SqlHelper sqlHelper) {
+    StringBuilder sql = new StringBuilder();
 
+    List<Object> args = new ArrayList<>();
     if (criteria != null && !criteria.isEmpty()) {
       sqlHelper = ObjectUtils.firstNonNull(sqlHelper, new SqlHelper());
 
-      for (String filter : criteria.keySet()) {
-        sql +=
-            sqlHelper.whereAnd()
-                + " "
-                + SqlUtils.quote(filter)
-                + "='"
-                + criteria.get(filter)
-                + "' ";
+      for (Map.Entry<String, String> criterion : criteria.entrySet()) {
+        sql.append(sqlHelper.whereAnd())
+            .append(" ")
+            .append(SqlUtils.quote(criterion.getKey()))
+            .append(" = ? ");
+        args.add(parseStringValue(criterion.getValue()));
       }
     }
 
-    return sql;
+    return new PlaceholderQueryWithArgs(sql.toString(), args);
   }
 
   @Override

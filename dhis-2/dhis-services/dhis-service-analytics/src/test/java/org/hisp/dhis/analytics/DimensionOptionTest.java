@@ -43,7 +43,7 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test;
 class DimensionOptionTest extends TestBase {
   private DataElement deA;
 
-  private Period peA;
+  private PeriodDimension peA;
 
   private OrganisationUnit ouA;
 
@@ -63,7 +63,7 @@ class DimensionOptionTest extends TestBase {
   @BeforeEach
   void before() {
     deA = createDataElement('A', new CategoryCombo());
-    peA = createPeriod("2000Q1");
+    peA = PeriodDimension.of(createPeriod("2000Q1"));
     ouA = createOrganisationUnit('A');
     options = new ArrayList<>();
     options.add(new DimensionItem(DATA_X_DIM_ID, deA));

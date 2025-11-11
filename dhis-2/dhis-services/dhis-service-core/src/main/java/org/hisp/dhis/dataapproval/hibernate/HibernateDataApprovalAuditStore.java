@@ -77,10 +77,6 @@ public class HibernateDataApprovalAuditStore extends HibernateGenericStore<DataA
     this.userService = userService;
   }
 
-  // -------------------------------------------------------------------------
-  // DataValueAuditStore implementation
-  // -------------------------------------------------------------------------
-
   @Override
   public void deleteDataApprovalAudits(OrganisationUnit organisationUnit) {
     String hql = "delete from DataApprovalAudit d where d.organisationUnit = :unit";

@@ -42,7 +42,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -66,16 +66,16 @@ public class DataEntryJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobId, JobProgress progress) {
+  public void execute(JobEntry jobId, JobProgress progress) {
     progress.startingProcess("Data value set import");
-    ImportOptions options = (ImportOptions) jobId.getJobParameters();
+    ImportOptions options = (ImportOptions) jobId.parameters();
     if (options == null) options = new ImportOptions();
     NotificationLevel level = options.getNotificationLevel(INFO);
 
     progress.startingStage("Loading file resource");
     FileResource data =
         progress.nonNullStagePostCondition(
-            progress.runStage(() -> fileResourceService.getFileResource(jobId.getUid())));
+            progress.runStage(() -> fileResourceService.getFileResource(jobId.id().getValue())));
     progress.startingStage("Loading file content");
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
@@ -116,14 +116,14 @@ public class DataEntryJob implements Job {
           count.getDeleted(),
           count.getIgnored());
 
-      notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
+      notifier.addJobSummary(jobId.toKey(), level, summary, ImportSummary.class);
     } catch (Exception ex) {
       progress.failedProcess(ex);
       // make sure some summary is put as a client might wait for it
       ImportSummary summary = new ImportSummary();
       summary.setStatus(ImportStatus.ERROR);
       summary.setDescription(ex.getMessage());
-      notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
+      notifier.addJobSummary(jobId.toKey(), level, summary, ImportSummary.class);
     }
   }
 }

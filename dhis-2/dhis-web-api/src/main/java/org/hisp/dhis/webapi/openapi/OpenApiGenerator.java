@@ -517,12 +517,21 @@ public class OpenApiGenerator extends JsonGenerator {
     addNumberMember("maxLength", simpleType.maxLength());
     addStringMember("pattern", simpleType.pattern());
     addRawMember("default", defaultValue);
-    boolean isEnum = !simpleType.enums().isEmpty();
+    List<String> enums = simpleType.enums();
+    boolean isEnum = enums != null && !enums.isEmpty();
     if (isEnum) {
-      addInlineArrayMember("enum", simpleType.enums());
+      addInlineArrayMember("enum", enums);
     }
 
     addStringMultilineMember("description", simpleType.description());
+    Map<String, DirectType.SimpleType> members = simpleType.members();
+    if (members != null && !members.isEmpty()) {
+      addObjectMember(
+          "properties",
+          () ->
+              members.forEach(
+                  (name, t) -> addObjectMember(name, () -> generateSimpleTypeSchema(t, null))));
+    }
   }
 
   private void generateUidSchema(Api.Schema schema) {

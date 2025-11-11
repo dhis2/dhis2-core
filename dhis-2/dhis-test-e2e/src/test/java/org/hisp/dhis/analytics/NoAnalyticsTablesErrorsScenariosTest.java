@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.AnalyticsApiTest.JSON;
 
+import org.hisp.dhis.helpers.EnvUtils;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
@@ -67,6 +69,10 @@ public class NoAnalyticsTablesErrorsScenariosTest {
       new AnalyticsOutlierDetectionActions();
   private final RestApiActions analyticsAggregateActions = new RestApiActions("analytics");
 
+  private static final String ERROR_MSG =
+      "Query failed because a referenced table does not exist. Please ensure analytics job was run ";
+  private final String analyticsDatabase = EnvUtils.getDataSource();
+
   @BeforeAll
   public static void beforeAll() {
     new LoginActions().loginAsAdmin();
@@ -85,10 +91,17 @@ public class NoAnalyticsTablesErrorsScenariosTest {
 
     // Then
     assertNoAnalyticsTableResponse(
-        response, "ERROR: relation \"analytics\" does not exist\n  Position: 68");
+        response,
+        ERROR_MSG + getErrorCode(analyticsDatabase),
+        getDevMessage(analyticsDatabase, "analytics"));
+  }
+
+  private boolean isPgOrDoris() {
+    return analyticsDatabase.equals("postgres") || analyticsDatabase.equals("doris");
   }
 
   @Test
+  @EnabledIf(value = "isPgOrDoris", disabledReason = "This test is only for Postgres and Doris")
   void testEventsQueryAnalyticsWhenAnalyticsTablesAreMissing() {
     // Given
     QueryParamsBuilder params =
@@ -101,7 +114,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
 
     // Then
     assertNoAnalyticsTableResponse(
-        response, "ERROR: relation \"analytics_event_ebayegv0exc\" does not exist\n  Position:");
+        response,
+        ERROR_MSG + getErrorCode(analyticsDatabase),
+        getDevMessage(analyticsDatabase, "analytics_event_ebayegv0exc"));
   }
 
   @Test
@@ -112,11 +127,11 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
-
     // Then
     assertNoAnalyticsTableResponse(
         response,
-        "ERROR: relation \"analytics_enrollment_iphinat79uw\" does not exist\n  Position:");
+        ERROR_MSG + getErrorCode(analyticsDatabase),
+        getDevMessage(analyticsDatabase, "analytics_enrollment_iphinat79uw"));
   }
 
   @Test
@@ -132,7 +147,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
 
     // Then
     assertNoAnalyticsTableResponse(
-        response, "ERROR: relation \"analytics_event_iphinat79uw\" does not exist\n  Position: 68");
+        response,
+        ERROR_MSG + getErrorCode(analyticsDatabase),
+        getDevMessage(analyticsDatabase, "analytics_event_iphinat79uw"));
   }
 
   @Test
@@ -148,8 +165,11 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
+    // TEA tables are only in Postgres
     assertNoAnalyticsTableResponse(
-        response, "ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1865");
+        response,
+        ERROR_MSG + "(SqlState: 42P01)",
+        getDevMessage("postgres", "analytics_te_neenwmsyuep"));
   }
 
   @Test
@@ -179,16 +199,36 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         .body("errorCode", equalTo("E7180"));
   }
 
-  private void assertNoAnalyticsTableResponse(ApiResponse response, String expectedMessage) {
+  private void assertNoAnalyticsTableResponse(
+      ApiResponse response, String expectedMessage, String expectedDevMessage) {
     response
         .validate()
         .statusCode(409)
         .body("status", equalTo("ERROR"))
-        .body(
-            "message",
-            equalTo(
-                "Query failed because a referenced table does not exist. Please ensure analytics job was run (SqlState: 42P01)"))
+        .body("message", equalTo(expectedMessage))
         .body("errorCode", equalTo("E7144"))
-        .body("devMessage", startsWith(expectedMessage));
+        .body("devMessage", startsWith(expectedDevMessage));
+  }
+
+  private String getErrorCode(String analyticsDatabase) {
+    return switch (analyticsDatabase) {
+      case "clickhouse" -> "(SqlState: 22000)";
+      case "doris" -> "(SqlState: HY000)";
+      case "postgres" -> "(SqlState: 42P01)";
+      default -> null;
+    };
+  }
+
+  private String getDevMessage(String analyticsDatabase, String tableName) {
+    return switch (analyticsDatabase) {
+      case "clickhouse" ->
+          "Code: 60. DB::Exception: Unknown table expression identifier '" + tableName + "'";
+      case "doris" ->
+          "errCode = 2, detailMessage = Table ["
+              + tableName
+              + "] does not exist in database [dhis2].";
+      case "postgres" -> "ERROR: relation \"" + tableName + "\" does not exist\n  Position:";
+      default -> null;
+    };
   }
 }

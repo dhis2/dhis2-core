@@ -287,4 +287,12 @@ public class DefaultResourceTableService implements ResourceTableService {
     progress.startingStage("Drop SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
   }
+
+  @Override
+  @Transactional
+  public void updatePeriodResourceTable() {
+    Logged logged = analyticsTableSettings.getTableLogged();
+    ResourceTable table = new PeriodResourceTable(logged, periodService.getAllPeriods());
+    resourceTableStore.generateResourceTable(table);
+  }
 }

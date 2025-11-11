@@ -46,7 +46,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
@@ -100,11 +100,11 @@ public class MetadataSyncJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     log.info("Metadata Sync cron Job started");
 
     try {
-      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
+      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.parameters();
       retryTemplate.execute(
           retryContext -> {
             metadataRetryContext.setRetryContext(retryContext);

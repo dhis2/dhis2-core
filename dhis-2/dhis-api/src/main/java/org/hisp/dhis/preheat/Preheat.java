@@ -50,7 +50,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -75,9 +75,6 @@ public class Preheat {
   /** Map of unique columns, mapped by class type => uid => value. */
   private Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap =
       new HashMap<>();
-
-  /** All periods available. */
-  private Map<String, Period> periodMap = new HashMap<>();
 
   /** All periodTypes available. */
   private Map<String, PeriodType> periodTypeMap = new HashMap<>();
@@ -126,6 +123,11 @@ public class Preheat {
 
   public <T extends IdentifiableObject> T get(
       PreheatIdentifier identifier, Class<? extends IdentifiableObject> klass, String key) {
+    if (klass == PeriodDimension.class)
+      // this is put here as a precaution to notice it
+      // when a PeriodDimension would be attempted to be trated as IdentifiableObject
+      throw new IllegalArgumentException("Periods are implicitly created");
+
     Map<String, IdentifiableObject> byKey =
         getNullable(effectiveIdentifier(identifier, klass), klass);
     if (byKey == null) {
@@ -177,6 +179,10 @@ public class Preheat {
 
     Class<? extends IdentifiableObject> klass = getObjectType(object);
     identifier = effectiveIdentifier(identifier, klass);
+
+    if (klass == PeriodDimension.class) {
+      return get(PreheatIdentifier.CODE, klass, object.getUid());
+    }
 
     if (PreheatIdentifier.UID == identifier) {
       return get(PreheatIdentifier.UID, klass, object.getUid());
@@ -325,20 +331,8 @@ public class Preheat {
     return uniquenessMap;
   }
 
-  public Map<String, Period> getPeriodMap() {
-    return periodMap;
-  }
-
-  public void setPeriodMap(Map<String, Period> periodMap) {
-    this.periodMap = periodMap;
-  }
-
   public Map<String, PeriodType> getPeriodTypeMap() {
     return periodTypeMap;
-  }
-
-  public void setPeriodTypeMap(Map<String, PeriodType> periodTypeMap) {
-    this.periodTypeMap = periodTypeMap;
   }
 
   public Map<Class<?>, Set<String>> getMandatoryAttributes() {

@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Component;
@@ -97,7 +98,7 @@ public class JobScheduler implements Runnable, JobRunner {
   private final JobSchedulerLoopService service;
   private final SystemSettingsService settingsProvider;
   private final ExecutorService workers = Executors.newCachedThreadPool();
-  private final Map<JobType, Queue<String>> continuousJobsByType = new ConcurrentHashMap<>();
+  private final Map<JobType, Queue<UID>> continuousJobsByType = new ConcurrentHashMap<>();
 
   public void start() {
     long loopTimeMs = LOOP_SECONDS * 1000L;
@@ -123,9 +124,9 @@ public class JobScheduler implements Runnable, JobRunner {
       Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS).plusSeconds(1);
       if (service.tryBecomeLeader(TTL_SECONDS)) {
         service.assureAsLeader(TTL_SECONDS);
-        Map<JobType, List<JobConfiguration>> readyByType =
+        Map<JobType, List<JobEntry>> readyByType =
             service.getDueJobConfigurations(LOOP_SECONDS).stream()
-                .collect(groupingBy(JobConfiguration::getJobType));
+                .collect(groupingBy(JobEntry::type));
         // only attempt to start one per type per loop invocation
         readyByType.forEach((type, jobs) -> runIfDue(now, type, jobs));
         if (!readyByType.containsKey(JobType.HOUSEKEEPING)) {
@@ -147,25 +148,25 @@ public class JobScheduler implements Runnable, JobRunner {
   }
 
   @Override
-  public void runIfDue(JobConfiguration job) {
-    runIfDue(Instant.now().truncatedTo(ChronoUnit.SECONDS), job.getJobType(), List.of(job));
+  public void runIfDue(JobEntry job) {
+    runIfDue(Instant.now().truncatedTo(ChronoUnit.SECONDS), job.type(), List.of(job));
   }
 
-  private void runIfDue(Instant now, JobType type, List<JobConfiguration> jobs) {
+  private void runIfDue(Instant now, JobType type, List<JobEntry> jobs) {
     if (!type.isUsingContinuousExecution()) {
       runIfDue(now, jobs.get(0));
       return;
     }
-    Queue<String> jobIds = continuousJobsByType.get(type);
+    Queue<UID> jobIds = continuousJobsByType.get(type);
     boolean spawnWorker = false;
     if (jobIds == null) {
-      Queue<String> localQueue = new ConcurrentLinkedQueue<>();
-      Queue<String> sharedQueue = continuousJobsByType.putIfAbsent(type, localQueue);
+      Queue<UID> localQueue = new ConcurrentLinkedQueue<>();
+      Queue<UID> sharedQueue = continuousJobsByType.putIfAbsent(type, localQueue);
       spawnWorker = sharedQueue == null; // no previous queue => this thread put the queue
       jobIds = continuousJobsByType.get(type);
     }
     // add those IDs to the queue that are not yet in it
-    jobs.stream().map(JobConfiguration::getUid).forEach(jobIds::add);
+    jobs.stream().map(JobEntry::id).forEach(jobIds::add);
 
     if (spawnWorker) {
       // we want to prevent starting more than one worker per job type
@@ -177,11 +178,11 @@ public class JobScheduler implements Runnable, JobRunner {
 
   private void runContinuous(JobType type) {
     try {
-      Queue<String> jobIds = continuousJobsByType.get(type);
-      String jobId = jobIds.poll();
+      Queue<UID> jobIds = continuousJobsByType.get(type);
+      UID jobId = jobIds.poll();
       while (jobId != null) {
-        JobConfiguration config = service.getJobConfiguration(jobId);
-        if (config != null && (config.getJobStatus() == JobStatus.SCHEDULED)) {
+        JobEntry config = service.getJobConfiguration(jobId);
+        if (config != null && (config.status() == JobStatus.SCHEDULED)) {
           Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
           Instant dueTime = dueTime(now, config);
           runDueJob(config, dueTime);
@@ -194,28 +195,28 @@ public class JobScheduler implements Runnable, JobRunner {
     }
   }
 
-  private void runIfDue(Instant now, JobConfiguration config) {
+  private void runIfDue(Instant now, JobEntry config) {
     Instant dueTime = dueTime(now, config);
     if (dueTime != null) {
       workers.submit(() -> runDueJob(config, dueTime));
     }
   }
 
-  private Instant dueTime(Instant now, JobConfiguration config) {
+  private Instant dueTime(Instant now, JobEntry config) {
     Duration maxCronDelay =
         Duration.ofHours(settingsProvider.getCurrentSettings().getJobsMaxCronDelayHours());
-    Instant dueTime = config.nextExecutionTime(now, maxCronDelay);
+    Instant dueTime = config.toTrigger().nextExecutionTime(now, maxCronDelay);
     return dueTime != null && !dueTime.isAfter(now) ? dueTime : null;
   }
 
   @Override
-  public void runDueJob(JobConfiguration config) {
+  public void runDueJob(JobEntry config) {
     runDueJob(config, Instant.now().truncatedTo(ChronoUnit.SECONDS));
   }
 
   /** This is executed on a worker thread. The start time is the desired time to run. */
-  private void runDueJob(JobConfiguration config, Instant start) {
-    String jobId = config.getUid();
+  private void runDueJob(JobEntry config, Instant start) {
+    UID jobId = config.id();
     if (!service.tryRun(jobId)) {
       log.debug(
           String.format(
@@ -228,9 +229,9 @@ public class JobScheduler implements Runnable, JobRunner {
     try {
       settingsProvider.clearCurrentSettings(); // ensure working with recent settings
       AtomicLong lastAlive = new AtomicLong(0L);
-      progress = service.startRun(jobId, config.getExecutedBy(), () -> alive(jobId, lastAlive));
+      progress = service.startRun(jobId, config.executedBy(), () -> alive(jobId, lastAlive));
 
-      jobService.getJob(config.getJobType()).execute(config, progress);
+      jobService.getJob(config.type()).execute(config, progress);
 
       if (progress.isCancelled() && !progress.isAborted()) {
         service.finishRunCancel(jobId);
@@ -248,8 +249,7 @@ public class JobScheduler implements Runnable, JobRunner {
       service.finishRunFail(jobId, ex);
     } finally {
       if (service.finishRunSuccess(jobId) && config.isUsedInQueue()) {
-        JobConfiguration next =
-            service.getNextInQueue(config.getQueueName(), config.getQueuePosition());
+        JobEntry next = service.getNextInQueue(config.queueName(), config.queuePosition());
         if (next != null)
           runDueJob(next, start); // this is a tail recursion but job queues are not very long
       }
@@ -257,7 +257,7 @@ public class JobScheduler implements Runnable, JobRunner {
   }
 
   /** The observing has to be outside the service as it will need a DB transaction. */
-  private void alive(String jobId, AtomicLong lastAssured) {
+  private void alive(UID jobId, AtomicLong lastAssured) {
     long now = currentTimeMillis();
     if (now - lastAssured.get() > 10_000) {
       lastAssured.set(now);

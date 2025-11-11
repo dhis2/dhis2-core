@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,6 @@ import org.hisp.dhis.BaseE2ETest;
 import org.hisp.dhis.login.LoginResponse.STATUS;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.jboss.aerogear.security.otp.Totp;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -564,14 +564,14 @@ public class LoginTest extends BaseE2ETest {
   // public helper methods for parsing and extracting content from emails
   // --------------------------------------------------------------------------------------------
 
-  public static @NotNull String extract2FACodeFromLatestEmail()
+  public static @Nonnull String extract2FACodeFromLatestEmail()
       throws MessagingException, IOException {
     List<WiserMessage> messages = wiser.getMessages();
     String text = getTextFromMessage(messages.get(messages.size() - 1).getMimeMessage());
     return text.substring(text.indexOf("code:") + 7, text.indexOf("code:") + 13);
   }
 
-  public static @NotNull String extractEmailVerifyToken() throws MessagingException, IOException {
+  public static @Nonnull String extractEmailVerifyToken() throws MessagingException, IOException {
     assertFalse(wiser.getMessages().isEmpty());
     WiserMessage wiserMessage = wiser.getMessages().get(0);
     MimeMessage verificationMessage = wiserMessage.getMimeMessage();

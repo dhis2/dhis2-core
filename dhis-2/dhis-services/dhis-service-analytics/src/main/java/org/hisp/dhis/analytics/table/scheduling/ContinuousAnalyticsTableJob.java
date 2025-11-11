@@ -39,8 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.common.TableInfoReader;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -73,15 +74,17 @@ public class ContinuousAnalyticsTableJob implements Job {
 
   private final TableInfoReader tableInfoReader;
 
+  private final SqlBuilder sqlBuilder;
+
   @Override
   public JobType getJobType() {
     return JobType.CONTINUOUS_ANALYTICS_TABLE;
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     ContinuousAnalyticsJobParameters parameters =
-        (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
+        (ContinuousAnalyticsJobParameters) jobConfiguration.parameters();
 
     if (!checkJobOutliersConsistency(parameters)) {
       log.info(
@@ -102,9 +105,8 @@ public class ContinuousAnalyticsTableJob implements Job {
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
               .skipResourceTables(false)
-              .skipOutliers(parameters.getSkipOutliers())
+              .skipOutliers(parameters.getSkipOutliers() || !sqlBuilder.supportsPercentileCont())
               .skipTableTypes(parameters.getSkipTableTypes())
-              .jobId(jobConfiguration)
               .startTime(startTime)
               .build();
 
@@ -121,9 +123,8 @@ public class ContinuousAnalyticsTableJob implements Job {
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
               .skipResourceTables(true)
-              .skipOutliers(parameters.getSkipOutliers())
+              .skipOutliers(parameters.getSkipOutliers() || sqlBuilder.supportsPercentileCont())
               .skipTableTypes(parameters.getSkipTableTypes())
-              .jobId(jobConfiguration)
               .startTime(startTime)
               .build()
               .withLatestPartition();

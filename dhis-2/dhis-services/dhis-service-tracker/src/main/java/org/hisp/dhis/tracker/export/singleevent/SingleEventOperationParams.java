@@ -182,4 +182,18 @@ public class SingleEventOperationParams {
       return this;
     }
   }
+
+  public static SingleEventOperationParamsBuilder builderForProgram(@Nonnull UID program) {
+    return new SingleEventOperationParamsBuilder().program(program);
+  }
+
+  public static SingleEventOperationParamsBuilder builderForEvent(@Nonnull UID event) {
+    return new SingleEventOperationParamsBuilder().events(Set.of(event));
+  }
+
+  // Do not remove this unused method. This hides the builder with no params which Lombok
+  // creates by default.
+  private static SingleEventOperationParamsBuilder builder() {
+    return new SingleEventOperationParamsBuilder();
+  }
 }

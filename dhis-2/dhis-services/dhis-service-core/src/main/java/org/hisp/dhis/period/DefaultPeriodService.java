@@ -63,12 +63,6 @@ public class DefaultPeriodService implements PeriodService {
   }
 
   @Override
-  @Transactional
-  public void deletePeriod(Period period) {
-    periodStore.delete(period);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public Period getPeriod(long id) {
     return periodStore.get(id);

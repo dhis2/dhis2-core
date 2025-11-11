@@ -230,10 +230,6 @@ class PredictionDataValueFetcherTest extends TestBase {
     periodB = createPeriod("202202");
     periodC = createPeriod("202203");
 
-    periodA.setUid("Perio202201");
-    periodB.setUid("Perio202202");
-    periodC.setUid("Perio202203");
-
     periodA.setId(10);
     periodB.setId(11);
     periodC.setId(12);

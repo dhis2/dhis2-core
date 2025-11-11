@@ -36,6 +36,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 
@@ -103,8 +104,8 @@ public final class ReportRatesHelper {
       int totalOfDaysInPeriod = 0;
 
       for (DimensionalItemObject itemObject : filterPeriods) {
-        Period period = (Period) itemObject;
-        totalOfDaysInPeriod += period.getDaysInPeriod();
+        PeriodDimension period = (PeriodDimension) itemObject;
+        totalOfDaysInPeriod += period.getPeriod().getDaysInPeriod();
       }
 
       return consolidateTarget(timeUnits, target, totalOfDaysInPeriod);

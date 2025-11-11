@@ -79,6 +79,11 @@ public record SchemeInfo(Settings settings, Data data) {
       return outputIdScheme != null && !IdScheme.UID.equals(outputIdScheme);
     }
 
+    /** Indicates whether this query defines an identifier scheme different from UID. */
+    public boolean isDataIdSchemeSet() {
+      return dataIdScheme != null && !IdScheme.UID.equals(dataIdScheme);
+    }
+
     public boolean isOutputDataItemIdSchemeSet() {
       return outputDataItemIdScheme != null && !IdScheme.UID.equals(outputDataItemIdScheme);
     }

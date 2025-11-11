@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Duration;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
@@ -52,20 +53,22 @@ import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the job run error result API.
  *
  * @author Jan Bernitt
  */
-@Transactional
 class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private DbmsManager dbmsManager;
 
   private String jobId;
 
   @BeforeEach
   void setUp() throws InterruptedException {
+    dbmsManager.emptyTable("jobconfiguration");
     jobId = createAndRunImportWithErrors();
     switchToNewUser("special-admin", F_JOB_LOG_READ.toString());
   }

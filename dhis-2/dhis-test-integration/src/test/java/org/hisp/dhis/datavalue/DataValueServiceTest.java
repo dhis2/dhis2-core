@@ -618,7 +618,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataExportParams params =
         DataExportParams.builder()
             .dataElement(Set.of(deA.getUid(), deB.getUid()))
-            .period(Set.of(peB.getUid()))
+            .period(Set.of(peB.getIsoDate()))
             .build();
     ConflictException ex =
         assertThrows(ConflictException.class, () -> dataExportService.exportValues(params));

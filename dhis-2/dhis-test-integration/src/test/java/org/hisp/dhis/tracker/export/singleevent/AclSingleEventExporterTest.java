@@ -107,7 +107,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminIntoSecurityContext();
-    operationParamsBuilder = SingleEventOperationParams.builder();
+    operationParamsBuilder = SingleEventOperationParams.builderForProgram(UID.of(program));
   }
 
   @Test
@@ -453,7 +453,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and no org unit provided");
     assertContainsOnly(
-        List.of("DiszpKrYNg8", "uoNW0E3xXUy"),
+        List.of("DiszpKrYNg8"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -471,7 +471,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and org unit provided");
     assertContainsOnly(
-        List.of("DiszpKrYNg8", "uoNW0E3xXUy"),
+        List.of("DiszpKrYNg8"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -488,7 +488,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
     assertContainsOnly(
-        List.of("G9PbzJY8bJG", "ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
         events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 

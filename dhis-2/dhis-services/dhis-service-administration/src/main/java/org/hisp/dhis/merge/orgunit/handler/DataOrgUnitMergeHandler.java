@@ -34,9 +34,10 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -61,7 +62,7 @@ public class DataOrgUnitMergeHandler {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  private final DataValueAuditService dataValueAuditService;
+  private final DataValueChangelogService dataValueChangelogService;
 
   private final DataSetService dataSetService;
 
@@ -72,7 +73,7 @@ public class DataOrgUnitMergeHandler {
   private final MinMaxDataElementService minMaxDataElementService;
 
   public void mergeDataValueAudits(OrgUnitMergeRequest request) {
-    request.getSources().forEach(ou -> dataValueAuditService.deleteDataValueAudits(ou));
+    request.getSources().forEach(ou -> dataValueChangelogService.deleteByOrgUnit(UID.of(ou)));
   }
 
   @Transactional

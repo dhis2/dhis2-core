@@ -39,7 +39,7 @@ import lombok.experimental.UtilityClass;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 /** Utility class for checking period dimensions in event analytics queries. */
 @UtilityClass
@@ -60,7 +60,7 @@ public class EventPeriodUtils {
     }
     List<DimensionalItemObject> items = period.getItems();
     for (DimensionalItemObject item : items) {
-      Period p = (Period) item;
+      PeriodDimension p = (PeriodDimension) item;
       // All periods must either have no dateField (default) or OCCURRED_DATE
       if (p.getDateField() != null && !p.getDateField().equals(OCCURRED_DATE.name())) {
         return false;
@@ -87,6 +87,6 @@ public class EventPeriodUtils {
   }
 
   private static boolean isDefaultPeriod(DimensionalItemObject dimensionalItemObject) {
-    return ((Period) dimensionalItemObject).isDefault();
+    return ((PeriodDimension) dimensionalItemObject).isDefault();
   }
 }

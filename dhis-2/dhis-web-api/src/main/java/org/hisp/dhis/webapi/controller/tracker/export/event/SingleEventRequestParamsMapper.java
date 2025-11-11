@@ -81,8 +81,7 @@ class SingleEventRequestParamsMapper {
     validateOrderParams(eventRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "data element");
 
     SingleEventOperationParamsBuilder builder =
-        SingleEventOperationParams.builder()
-            .program(eventRequestParams.getProgram())
+        SingleEventOperationParams.builderForProgram(eventRequestParams.getProgram())
             .orgUnit(eventRequestParams.getOrgUnit())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())

@@ -52,7 +52,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -65,9 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
 
@@ -81,8 +77,6 @@ public class DefaultCompleteDataSetRegistrationService
 
   private final MessageService messageService;
 
-  private final PeriodStore periodStore;
-
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService
   // -------------------------------------------------------------------------
@@ -91,7 +85,6 @@ public class DefaultCompleteDataSetRegistrationService
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
       throws ConflictException {
-    registration.setPeriod(periodStore.reloadForceAddPeriod(registration.getPeriod()));
     checkCompulsoryDeOperands(registration);
 
     Date date = new Date();
@@ -224,7 +217,7 @@ public class DefaultCompleteDataSetRegistrationService
       DataExportStoreParams params = new DataExportStoreParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
       params.setPeriods(Set.of(period));
-      params.setAttributeOptionCombos(Set.of(attributeOptionCombo));
+      params.setAttributeOptionCombos(List.of(attributeOptionCombo));
       params.setOrganisationUnits(Set.of(organisationUnit));
 
       Map<Long, Map<Long, Set<Long>>> dataPresent = new HashMap<>();

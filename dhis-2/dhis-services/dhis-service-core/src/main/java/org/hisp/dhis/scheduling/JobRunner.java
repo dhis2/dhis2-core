@@ -29,13 +29,15 @@
  */
 package org.hisp.dhis.scheduling;
 
+import org.hisp.dhis.common.UID;
+
 /**
  * Motivation of this separate API is purely to decouple and allow for composition of services via
  * spring.
  *
- * <p>The {@link JobSchedulerService#executeNow(String)} needs access to synchronously run a job in
- * a test setup. This is when it wants to call {@link #runDueJob(JobConfiguration)} directly.
- * Whereas otherwise, in a production setup, this method is never called directly but the {@link
+ * <p>The {@link JobSchedulerService#executeNow(UID)} needs access to synchronously run a job in a
+ * test setup. This is when it wants to call {@link #runDueJob(JobConfiguration)} directly. Whereas
+ * otherwise, in a production setup, this method is never called directly but the {@link
  * JobScheduler} will internally run the jobs when they are due from its scheduling loop.
  *
  * @author Jan Bernitt
@@ -56,7 +58,7 @@ public interface JobRunner {
    *
    * @param config the job to check and potentially run
    */
-  void runIfDue(JobConfiguration config);
+  void runIfDue(JobEntry config);
 
   /**
    * Manually runs a job. OBS! This bypasses any actual checking if the job is due to run. When this
@@ -64,5 +66,5 @@ public interface JobRunner {
    *
    * @param config The job to run.
    */
-  void runDueJob(JobConfiguration config);
+  void runDueJob(JobEntry config);
 }

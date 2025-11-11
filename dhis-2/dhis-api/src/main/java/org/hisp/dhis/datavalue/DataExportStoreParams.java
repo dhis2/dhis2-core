@@ -32,8 +32,10 @@ package org.hisp.dhis.datavalue;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import lombok.Getter;
@@ -91,9 +93,9 @@ public class DataExportStoreParams {
 
   private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
-  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+  private List<CategoryOptionCombo> categoryOptionCombos = new ArrayList<>();
 
-  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+  private List<CategoryOptionCombo> attributeOptionCombos = new ArrayList<>();
 
   private Set<CategoryOption> coDimensionConstraints;
 

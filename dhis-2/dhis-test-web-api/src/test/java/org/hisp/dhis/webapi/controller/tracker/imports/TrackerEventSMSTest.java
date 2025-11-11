@@ -658,7 +658,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<SingleEvent> events =
         singleEventService.findEvents(
-            SingleEventOperationParams.builder().program(eventProgram).build());
+            SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).build());
     assertHasSize(1, events);
     SingleEvent actual = events.get(0);
     assertAll(
@@ -737,9 +737,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
     TrackerEvent actualEvent = events.get(0);
@@ -805,9 +804,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
     TrackerEvent actual = events.get(0);

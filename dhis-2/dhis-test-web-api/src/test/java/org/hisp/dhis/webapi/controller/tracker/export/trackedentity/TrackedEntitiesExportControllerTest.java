@@ -681,7 +681,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   @Test
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
-    assertHasSize(1, te.getEnrollments(), "test expects a tracked entity with one enrollment");
+    assertHasSize(2, te.getEnrollments(), "test expects a tracked entity with two enrollments");
     Enrollment enrollment = te.getEnrollments().iterator().next();
 
     JsonList<JsonEnrollment> json =

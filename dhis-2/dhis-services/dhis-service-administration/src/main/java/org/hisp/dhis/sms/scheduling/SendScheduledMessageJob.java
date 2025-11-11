@@ -37,7 +37,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.sms.outbound.OutboundSms;
@@ -62,7 +62,7 @@ public class SendScheduledMessageJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("Starting to send outbound messages");
     progress.startingStage("Validating environment setup");
     if (!smsMessageSender.isConfigured()) {

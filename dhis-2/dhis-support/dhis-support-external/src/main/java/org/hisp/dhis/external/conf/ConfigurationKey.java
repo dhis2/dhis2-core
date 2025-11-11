@@ -95,9 +95,6 @@ public enum ConfigurationKey {
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
-  /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
-
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
@@ -577,12 +574,6 @@ public enum ConfigurationKey {
    */
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
-  /**
-   * Enable/disable changelog/history log of tracker data values. <br>
-   * (default: on)
-   */
-  CHANGELOG_TRACKER("changelog.tracker", Constants.ON),
-
   /** Use in-memory queue before sending audits into the Artemis queue. (default: off). */
   AUDIT_USE_IN_MEMORY_QUEUE_ENABLED(
       "audit.in_memory-queue.enabled",
@@ -746,7 +737,9 @@ public enum ConfigurationKey {
 
   /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
-      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
+      "switch_user_allow_listed_ips",
+      "localhost,127.0.0.1,[0:0:0:0:0:0:0:1],0:0:0:0:0:0:0:1",
+      false),
 
   /** Maximun size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
@@ -781,7 +774,7 @@ public enum ConfigurationKey {
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
-  /** Enable OAuth2 authentication server. (default: off) */
+  /** Enable OAuth2 Spring Authorization Server (SAS). (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
 
   /** Path to the JWT keystore file. */
@@ -807,7 +800,14 @@ public enum ConfigurationKey {
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
-  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false);
+  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
+
+  // OIDC internal provider configuration for DHIS2 when Authorization Server is enabled, with
+  // property: (OAUTH2_SERVER_ENABLED)
+  OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
+  OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
+  OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
 
   private final String key;
 

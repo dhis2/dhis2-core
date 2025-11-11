@@ -93,7 +93,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DailyPeriodType;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -419,15 +419,15 @@ class DimensionalObjectProviderTest {
     String fiveYearsAgo = Integer.toString(currentYear - 5);
 
     List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-    assertDailyPeriod(lastYear, "LAST_UPDATED", (Period) refPeriods.get(0));
-    assertDailyPeriod(fiveYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(1));
-    assertDailyPeriod(fourYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(2));
-    assertDailyPeriod(threeYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(3));
-    assertDailyPeriod(twoYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get(4));
-    assertDailyPeriod(lastYear, "SCHEDULED_DATE", (Period) refPeriods.get(5));
+    assertDailyPeriod(lastYear, "LAST_UPDATED", (PeriodDimension) refPeriods.get(0));
+    assertDailyPeriod(fiveYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(1));
+    assertDailyPeriod(fourYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(2));
+    assertDailyPeriod(threeYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(3));
+    assertDailyPeriod(twoYearsAgo, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(4));
+    assertDailyPeriod(lastYear, "SCHEDULED_DATE", (PeriodDimension) refPeriods.get(5));
   }
 
-  private void assertDailyPeriod(String year, String dateField, Period period) {
+  private void assertDailyPeriod(String year, String dateField, PeriodDimension period) {
     assertInstanceOf(YearlyPeriodType.class, period.getPeriodType());
     assertEquals(year, period.getIsoDate());
     assertEquals(dateField, period.getDateField());
@@ -453,11 +453,11 @@ class DimensionalObjectProviderTest {
     assertEquals("2021-05-01_2021-06-01", refDimensionKeywords.getKeywords().get(0).getKey());
 
     List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-    assertInstanceOf(DailyPeriodType.class, ((Period) refPeriods.get(0)).getPeriodType());
-    assertEquals("20210501", ((Period) refPeriods.get(0)).getIsoDate());
-    assertEquals("LAST_UPDATED", ((Period) refPeriods.get(0)).getDateField());
-    assertEquals("2021-05-01", ((Period) refPeriods.get(0)).getStartDateString());
-    assertEquals("2021-06-01", ((Period) refPeriods.get(0)).getEndDateString());
+    assertInstanceOf(DailyPeriodType.class, ((PeriodDimension) refPeriods.get(0)).getPeriodType());
+    assertEquals("20210501", ((PeriodDimension) refPeriods.get(0)).getIsoDate());
+    assertEquals("LAST_UPDATED", ((PeriodDimension) refPeriods.get(0)).getDateField());
+    assertEquals("2021-05-01", ((PeriodDimension) refPeriods.get(0)).getStartDateString());
+    assertEquals("2021-06-01", ((PeriodDimension) refPeriods.get(0)).getEndDateString());
   }
 
   @Test

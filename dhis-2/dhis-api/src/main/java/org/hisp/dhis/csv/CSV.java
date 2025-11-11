@@ -98,6 +98,13 @@ public final class CSV {
      *     collecting all names not mapped otherwise.
      */
     String[] ignore() default {};
+
+    /**
+     * @return the name of the column that when it is absent the property should receive all not
+     *     mapped values. If the named column is present unmapped source columns will be ignored
+     *     similar to not defining an any target component
+     */
+    String ifAbsent() default "";
   }
 
   @FunctionalInterface
@@ -130,7 +137,7 @@ public final class CSV {
   }
 
   private static final Map<Class<?>, Function<String, ?>> DESERIALIZERS = new ConcurrentHashMap<>();
-  private static final Map<Class<?>, Columns<?>> MAPPINGS = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Components<?>> MAPPINGS = new ConcurrentHashMap<>();
 
   private static <C> void addDeserializer(Class<C> type, Function<String, C> deserializer) {
     DESERIALIZERS.put(type, deserializer);
@@ -203,42 +210,71 @@ public final class CSV {
     return setValue -> splitOnIndent(setValue).stream().map(valueDeserializer).collect(toSet());
   }
 
-  private record Column<T>(
-      String name, boolean required, boolean any, Function<String, T> deserializer) {}
+  /**
+   * A record component that is a target for a CSV column
+   *
+   * @param target the component set by a CSV column value
+   * @param column name of the column that is stored in this component
+   * @param required if the value is required
+   * @param any if the component should receive all unmapped CSV columns as a {@link Map}
+   * @param anyIfAbsent name of the column that when present disables the any-component as a target
+   *     for unmapped columns
+   * @param deserializer the function that deserializes the CSV string value into the type expected
+   *     by the {@link #target()} component
+   * @param <T> type of the value the target {@link RecordComponent} accepts
+   */
+  private record Component<T>(
+      RecordComponent target,
+      String column,
+      boolean required,
+      boolean any,
+      String anyIfAbsent,
+      Function<String, T> deserializer) {}
 
-  private record Columns<T extends Record>(Class<T> type, boolean any, List<Column<?>> columns) {
+  /**
+   * @param type row record type
+   * @param any true if the type has an "any" component column
+   * @param components the type's component info (index match their corresponding {@link
+   *     RecordComponent})
+   * @param <T> type of the created row record
+   */
+  private record Components<T extends Record>(
+      Class<T> type, boolean any, List<Component<?>> components) {
 
-    Columns(Class<T> type, List<Column<?>> columns) {
-      this(type, columns.stream().anyMatch(Column::any), columns);
+    Components(Class<T> type, List<Component<?>> components) {
+      this(type, components.stream().anyMatch(Component::any), components);
     }
 
     Function<List<String>, T> from(List<String> header) {
-      int[] compIdxByColIdx = compIdxByColIdx(header);
-      checkRequired(compIdxByColIdx);
+      int[] columnToCompIndex = columnToComponentIndexMapping(header);
+      checkRequired(columnToCompIndex);
       Class<?>[] types = getComponentTypes(type);
+      boolean skipAny = isSkipAny(header);
       try {
         Constructor<T> c = type.getDeclaredConstructor(types);
         return values -> {
           Object[] args = new Object[types.length];
           Map<String, String> anyValues = null;
-          int maxColumns = Math.min(compIdxByColIdx.length, values.size());
-          for (int i = 0; i < maxColumns; i++) {
-            int compIdx = compIdxByColIdx[i];
+          int maxColumns = Math.min(columnToCompIndex.length, values.size());
+          for (int col = 0; col < maxColumns; col++) {
+            int compIdx = columnToCompIndex[col];
             if (compIdx >= 0) {
-              String value = values.get(i);
-              Column<?> column = columns.get(compIdx);
-              if (column.any) {
-                if (anyValues == null) {
-                  anyValues = new HashMap<>(header.size());
-                  args[compIdx] = anyValues;
+              String value = values.get(col);
+              Component<?> comp = components.get(compIdx);
+              if (comp.any) {
+                if (!skipAny) {
+                  if (anyValues == null) {
+                    anyValues = new HashMap<>(header.size());
+                    args[compIdx] = anyValues;
+                  }
+                  anyValues.put(header.get(col), value);
                 }
-                anyValues.put(header.get(i), value);
               } else {
-                if (column.required && value == null)
+                if (comp.required && value == null)
                   throw new IllegalArgumentException(
-                      "Column %s is required and cannot be empty".formatted(column.name));
+                      "Column %s is required and cannot be empty".formatted(comp.column));
                 args[compIdx] =
-                    value == null || "null".equals(value) ? null : column.deserializer.apply(value);
+                    value == null || "null".equals(value) ? null : comp.deserializer.apply(value);
               }
             }
           }
@@ -256,13 +292,22 @@ public final class CSV {
       }
     }
 
+    private boolean isSkipAny(List<String> header) {
+      return !any
+          || components.stream()
+              .map(Component::anyIfAbsent)
+              .filter(not(String::isEmpty))
+              .anyMatch(header::contains);
+    }
+
     private void checkRequired(int[] compIdxByColIdx) {
-      List<String> required = columns.stream().filter(Column::required).map(Column::name).toList();
+      List<String> required =
+          components.stream().filter(Component::required).map(Component::column).toList();
       List<String> present =
           IntStream.of(compIdxByColIdx)
               .filter(i -> i >= 0)
-              .mapToObj(columns::get)
-              .map(Column::name)
+              .mapToObj(components::get)
+              .map(Component::column)
               .toList();
       if (!present.containsAll(required))
         throw new IllegalArgumentException(
@@ -270,13 +315,13 @@ public final class CSV {
                 + required.stream().filter(not(present::contains)).toList());
     }
 
-    private int[] compIdxByColIdx(List<String> columns) {
+    private int[] columnToComponentIndexMapping(List<String> columns) {
       Map<String, Integer> compIdxByName = compIdxByName();
       int[] res = new int[columns.size()];
       for (int i = 0; i < columns.size(); i++) {
-        String name = columns.get(i);
-        Integer compIdx = compIdxByName.get(name);
-        if (compIdx == null) compIdx = compIdxByName.get(name.toLowerCase());
+        String column = columns.get(i);
+        Integer compIdx = compIdxByName.get(column);
+        if (compIdx == null) compIdx = compIdxByName.get(column.toLowerCase());
         if (compIdx == null) compIdx = compIdxByName.get("*");
         if (compIdx == null) compIdx = -1;
         res[i] = compIdx;
@@ -319,17 +364,18 @@ public final class CSV {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T extends Record> Columns<T> toColumnsCached(Class<T> type) {
-    return (Columns<T>) MAPPINGS.computeIfAbsent(type, t -> new Columns<>(type, toColumns(type)));
+  private static <T extends Record> Components<T> getComponentsCached(Class<T> type) {
+    return (Components<T>)
+        MAPPINGS.computeIfAbsent(type, t -> new Components<>(type, getComponents(type)));
   }
 
-  private static List<Column<?>> toColumns(Class<? extends Record> type) {
-    return List.copyOf(Stream.of(type.getRecordComponents()).map(CSV::toColumn).toList());
+  private static List<Component<?>> getComponents(Class<? extends Record> type) {
+    return List.copyOf(Stream.of(type.getRecordComponents()).map(CSV::toComponent).toList());
   }
 
   @Nonnull
-  private static Column<?> toColumn(RecordComponent c) {
-    if (isAnyTarget(c)) return new Column<>("*", false, true, null);
+  private static Component<?> toComponent(RecordComponent c) {
+    if (isAnyTarget(c)) return new Component<>(c, "*", false, true, getAnyIfAbsentName(c), null);
     Function<String, ?> deserializer = getDeserializer(c);
     if (deserializer == null)
       throw new UnsupportedOperationException("%s is not supported".formatted(c.getGenericType()));
@@ -337,7 +383,12 @@ public final class CSV {
         c.getType().isPrimitive()
             || c.isAnnotationPresent(Nonnull.class)
             || c.isAnnotationPresent(OpenApi.Required.class);
-    return new Column<>(c.getName(), required, false, deserializer);
+    return new Component<>(c, c.getName(), required, false, "", deserializer);
+  }
+
+  private static String getAnyIfAbsentName(RecordComponent c) {
+    Any any = c.getAnnotation(Any.class);
+    return any == null ? "" : any.ifAbsent();
   }
 
   private record Config(BufferedReader csv) implements CsvConfig {
@@ -345,7 +396,7 @@ public final class CSV {
     @Nonnull
     @Override
     public <T extends Record> CsvReader<T> as(Class<T> type) {
-      return new Reader<>(csv, toColumnsCached(type));
+      return new Reader<>(csv, getComponentsCached(type));
     }
   }
 
@@ -409,7 +460,7 @@ public final class CSV {
     return c == ' ' || c == '\t';
   }
 
-  private record Reader<T extends Record>(BufferedReader csv, Columns<T> as)
+  private record Reader<T extends Record>(BufferedReader csv, Components<T> as)
       implements CsvReader<T> {
 
     @Nonnull

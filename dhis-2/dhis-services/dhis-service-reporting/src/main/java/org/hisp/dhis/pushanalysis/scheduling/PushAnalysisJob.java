@@ -33,7 +33,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
@@ -53,8 +53,8 @@ public class PushAnalysisJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    PushAnalysisJobParameters params = (PushAnalysisJobParameters) config.getJobParameters();
+  public void execute(JobEntry config, JobProgress progress) {
+    PushAnalysisJobParameters params = (PushAnalysisJobParameters) config.parameters();
 
     List<String> pushAnalysis = params.getPushAnalysis();
     progress.startingProcess("Push analysis for " + pushAnalysis);

@@ -62,7 +62,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
@@ -160,8 +159,6 @@ class DataSetNotificationServiceTest extends TestBase {
 
   @Mock private I18nManager i18nManager;
 
-  @Mock private OrganisationUnitService organisationUnitService;
-
   @Mock private MessageSender emailMessageSender;
 
   @Captor private ArgumentCaptor<CompleteDataSetRegistration> registrationCaptor;
@@ -185,8 +182,7 @@ class DataSetNotificationServiceTest extends TestBase {
             completeDataSetRegistrationService,
             periodService,
             categoryService,
-            i18nManager,
-            organisationUnitService);
+            i18nManager);
 
     setUpConfigurations();
   }

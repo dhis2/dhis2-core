@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis;
 
-import com.epam.reportportal.junit5.ReportPortalExtension;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.hisp.dhis.helpers.extensions.CoverageLoggerExtension;
@@ -46,7 +45,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ConfigurationExtension.class)
 @ExtendWith(MetadataSetupExtension.class)
 @ExtendWith(CoverageLoggerExtension.class)
-@ExtendWith(ReportPortalExtension.class)
 public abstract class ApiTest {
   @AfterAll
   public void afterAll() {

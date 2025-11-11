@@ -170,7 +170,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -188,6 +188,42 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractJdbcEventAnalyticsManager {
+
+  /**
+   * Represents an aggregate clause with its SQL expression and metadata about the aggregation type.
+   *
+   * @param sql the SQL aggregate expression (e.g., "avg(column)")
+   * @param aggregationType the type of aggregation being performed
+   * @param innerExpression the expression inside the aggregate function (e.g., "column"), used for
+   *     decimalization
+   */
+  public record AggregateClause(
+      String sql, AggregationType aggregationType, String innerExpression) {
+
+    /**
+     * Whether this aggregate should be decimalized for exact numeric precision. COUNT aggregates
+     * should not be decimalized as they always return integers.
+     */
+    public boolean requiresDecimalization() {
+      return aggregationType != AggregationType.COUNT
+          && aggregationType != AggregationType.NONE
+          && aggregationType != AggregationType.CUSTOM
+          && aggregationType != AggregationType.DEFAULT;
+    }
+
+    /**
+     * Creates an AggregateClause for aggregates that don't have an inner expression (e.g., COUNT).
+     */
+    public static AggregateClause of(String sql, AggregationType type) {
+      return new AggregateClause(sql, type, null);
+    }
+
+    /** Creates an AggregateClause with an inner expression for decimalization. */
+    public static AggregateClause of(String sql, AggregationType type, String innerExpression) {
+      return new AggregateClause(sql, type, innerExpression);
+    }
+  }
+
   protected static final String COL_COUNT = "count";
 
   protected static final String COL_EXTENT = "extent";
@@ -505,7 +541,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               if (params.isAggregatedEnrollments()
                   && dimension.getDimensionType() == DimensionType.PERIOD) {
                 for (DimensionalItemObject it : dimension.getItems()) {
-                  columns.add(((Period) it).getPeriodType().getPeriodTypeEnum().getName());
+                  columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
                 }
                 return;
               }
@@ -530,14 +566,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   || dimension.getDimensionType() != DimensionType.PERIOD) {
                 columns.add(getTableAndColumn(params, dimension, isGroupByClause));
               } else if (params.hasSinglePeriod()) {
-                Period period = (Period) params.getPeriods().get(0);
+                PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
                 columns.add(
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
-                Period period = (Period) params.getFilterPeriods().get(0);
+                PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
                 columns.add(
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
@@ -713,13 +749,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   @Transactional(readOnly = true, propagation = REQUIRES_NEW)
   public Grid getAggregatedEventData(EventQueryParams passedParams, Grid grid, int maxLimit) {
     EventQueryParams params = piDisagInfoInitializer.getParamsWithDisaggregationInfo(passedParams);
-    String aggregateClause = getAggregateClause(params);
+    AggregateClause aggregateClause = getAggregateClause(params);
     List<String> columns =
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
     String sql =
         TextUtils.removeLastComma(
-            "select " + aggregateClause + " as value," + StringUtils.join(columns, ",") + " ");
+            "select "
+                + aggregateClause.sql()
+                + " as value,"
+                + StringUtils.join(columns, ",")
+                + " ");
 
     // ---------------------------------------------------------------------
     // Criteria
@@ -904,18 +944,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Returns the aggregate clause based on value dimension and output type.
+   * Returns the aggregate clause based on value dimension and output type, including metadata about
+   * the aggregation type and inner expression for decimalization.
    *
    * @param params the {@link EventQueryParams}.
+   * @return an {@link AggregateClause} containing the SQL and metadata
    */
-  protected String getAggregateClause(EventQueryParams params) {
+  protected AggregateClause getAggregateClause(EventQueryParams params) {
     // TODO include output type if aggregation type is count
 
     // If no aggregation type is set for this event data item and no override aggregation type is
     // set
     // no need to continue and skip aggregation all together by returning NULL
     if (hasNoAggregationType(params)) {
-      return "null";
+      return AggregateClause.of("null", AggregationType.NONE);
     }
 
     EventOutputType outputType = params.getOutputType();
@@ -926,14 +968,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
 
     if (!params.isAggregation()) {
-      return quoteAlias(params.getValue().getUid());
+      String sql = quoteAlias(params.getValue().getUid());
+      return AggregateClause.of(sql, AggregationType.NONE);
     } else if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
         && params.hasEventProgramIndicatorDimension()) {
-      return function + "(value)";
+      String sql = function + "(value)";
+      return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
       String expression = quoteAlias(params.getValue().getUid());
-
-      return function + "(" + expression + ")";
+      String sql = function + "(" + expression + ")";
+      return AggregateClause.of(sql, aggregationType, expression);
     } else if (params.hasProgramIndicatorDimension()) {
       String expression =
           programIndicatorService.getAnalyticsSql(
@@ -942,29 +986,33 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               params.getProgramIndicator(),
               params.getEarliestStartDate(),
               params.getLatestEndDate());
-
-      return function + "(" + expression + ")";
+      String sql = function + "(" + expression + ")";
+      return AggregateClause.of(sql, aggregationType, expression);
     } else {
       if (params.hasEnrollmentProgramIndicatorDimension()) {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct trackedentity)";
+          return AggregateClause.of("count(distinct trackedentity)", AggregationType.COUNT);
         } else // ENROLLMENT
         {
-          return "count(enrollment)";
+          return AggregateClause.of("count(enrollment)", AggregationType.COUNT);
         }
       } else {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct " + quoteAlias("trackedentity") + ")";
+          String sql = "count(distinct " + quoteAlias("trackedentity") + ")";
+          return AggregateClause.of(sql, AggregationType.COUNT);
         } else if (EventOutputType.ENROLLMENT.equals(outputType)) {
           if (params.hasEnrollmentProgramIndicatorDimension()) {
-            return "count(" + quoteAlias("enrollment") + ")";
+            String sql = "count(" + quoteAlias("enrollment") + ")";
+            return AggregateClause.of(sql, AggregationType.COUNT);
           }
-          return "count(distinct " + quoteAlias("enrollment") + ")";
+          String sql = "count(distinct " + quoteAlias("enrollment") + ")";
+          return AggregateClause.of(sql, AggregationType.COUNT);
         } else // EVENT
         {
-          return "count(" + quoteAlias("event") + ")";
+          String sql = "count(" + quoteAlias("event") + ")";
+          return AggregateClause.of(sql, AggregationType.COUNT);
         }
       }
     }
@@ -1816,28 +1864,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
-   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. The
-   * expression has to be first cast to a numeric type and then rounded to 10 decimal places,
-   * otherwise the comparison may fail due to floating point precision issues in Postgres.
+   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. For
+   * numeric aggregates, the expression is cast to a decimal type and then rounded to 10 decimal
+   * places, otherwise the comparison may fail due to floating point precision issues.
    *
    * @param params the {@link EventQueryParams}
-   * @param aggregateClause the aggregate clause to use in the SQL
+   * @param aggregateClause the aggregate clause containing SQL and metadata
    * @return the "having" clause
    */
-  protected String getMeasureCriteriaSql(EventQueryParams params, String aggregateClause) {
+  protected String getMeasureCriteriaSql(EventQueryParams params, AggregateClause aggregateClause) {
     SqlHelper sqlHelper = new SqlHelper();
     StringBuilder builder = new StringBuilder();
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
-      Double criterion = params.getMeasureCriteria().get(filter);
+      String criterion = params.getMeasureCriteria().get(filter).toString();
 
-      String sqlFilter =
-          String.format(
-              " round(%s, 10) %s %s ",
-              sqlBuilder.cast(aggregateClause, org.hisp.dhis.analytics.DataType.NUMERIC),
-              getOperatorByMeasureFilter(filter),
-              criterion);
+      final int PRECISION = 38;
+      final int SCALE_IN = 12;
+      final int S_OUT = 10;
 
+      // Use the metadata from the record to determine if decimalization is needed
+      String lhs;
+      if (aggregateClause.requiresDecimalization() && aggregateClause.innerExpression() != null) {
+        // Decimalize the inner expression and reconstruct the aggregate
+        String decimalizedInner =
+            sqlBuilder.castDecimal(aggregateClause.innerExpression(), PRECISION, SCALE_IN);
+        String decimalizedAggregate =
+            aggregateClause.aggregationType().getValue() + "(" + decimalizedInner + ")";
+        lhs = String.format("round(%s, %d)", decimalizedAggregate, S_OUT);
+      } else {
+        // COUNT or other non-numeric aggregates - use as-is
+        lhs = String.format("round(%s, %d)", aggregateClause.sql(), S_OUT);
+      }
+
+      String rhs = sqlBuilder.decimalLiteral(criterion, PRECISION, S_OUT);
+
+      String sqlFilter = String.format(" %s %s %s ", lhs, getOperatorByMeasureFilter(filter), rhs);
       builder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
 

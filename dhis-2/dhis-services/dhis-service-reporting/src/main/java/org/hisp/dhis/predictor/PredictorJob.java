@@ -31,7 +31,7 @@ package org.hisp.dhis.predictor;
 
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -54,8 +54,8 @@ public class PredictorJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    PredictorJobParameters params = (PredictorJobParameters) config.getJobParameters();
+  public void execute(JobEntry config, JobProgress progress) {
+    PredictorJobParameters params = (PredictorJobParameters) config.parameters();
 
     if (params == null) {
       throw new IllegalStateException("No job parameters present in predictor job");
@@ -63,7 +63,7 @@ public class PredictorJob implements Job {
 
     progress.startingProcess("Making predictions");
     PredictionSummary summary = predictionService.predictJob(params, progress);
-    notifier.addJobSummary(config, summary, PredictionSummary.class);
+    notifier.addJobSummary(config.toKey(), summary, PredictionSummary.class);
     if (summary.getStatus() == PredictionStatus.SUCCESS) {
       progress.completedProcess(summary.getDescription());
     } else {

@@ -418,6 +418,14 @@ public class CategoryOption extends BaseMetadataObject
     return translations.getTranslation("NAME", name);
   }
 
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return translations.getTranslation("FORM_NAME", getFormName());
+  }
+
   @Override
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)

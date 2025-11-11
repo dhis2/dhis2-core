@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
@@ -241,7 +241,7 @@ public class TrackerDataElementMergeHandler {
    * either be deleted or left as is, based on whether the source {@link DataElement}s are being
    * deleted or not.
    *
-   * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
+   * @param sources source {@link DataElement}s used to retrieve {@link DataValueChangelog}s
    * @param mergeRequest merge request
    */
   public void handleEventChangeLogs(

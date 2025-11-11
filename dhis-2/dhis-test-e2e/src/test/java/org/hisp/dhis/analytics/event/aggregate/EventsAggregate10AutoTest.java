@@ -38,7 +38,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -59,7 +58,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // generated sql condition:
     // where (((ax."lastupdated" >= '2018-07-01' and ax."lastupdated" < '2019-01-31'))))
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -83,7 +82,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2179,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -144,7 +143,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // (((ax."occurreddate" >= '2021-01-01' and ax."occurreddate" < '2021-07-01')))
 
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -168,7 +167,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         8,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -229,7 +228,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // or
     // (ax."enrollmentdate" >= '2024-02-01' and ax."enrollmentdate" < '2024-03-01')))
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -253,7 +252,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         6,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -314,7 +313,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // (((ax."scheduleddate" >= '2019-10-01' and ax."scheduleddate" < '2024-10-01')))
 
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -338,7 +337,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         21,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -400,7 +399,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // '2023-05-01')))
 
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -424,7 +423,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1471,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -486,7 +485,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // ((ax."scheduleddate" >= '2020-01-01' and ax."scheduleddate" < '2025-01-01')))
 
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -511,7 +510,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         17,
-        7,
+        4,
         4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -568,7 +567,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
   @DisplayName("Events Query - Using createdDate Time Field")
   public void eventQueryUsingCreatedDateTimeField() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -596,7 +595,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         19003,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -658,7 +657,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
   @DisplayName("Events Query - Using completedDate Time Field")
   public void eventQueryUsingCompletedDateTimeField() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =
@@ -686,7 +685,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         12,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
