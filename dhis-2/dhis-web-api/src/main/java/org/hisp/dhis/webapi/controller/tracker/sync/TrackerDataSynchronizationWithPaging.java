@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
+import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * @author Viet Nguyen
+ * Base class for tracker data synchronization jobs that require paging support and an associated
+ * Program UID context. Extends {@link DataSynchronizationWithPaging} to add tracker-specific
+ * synchronization behavior.
  */
-public interface ProgramStageDataElementStore
-    extends IdentifiableObjectStore<ProgramStageDataElement> {
-  String ID = ProgramStageDataElementStore.class.getName();
+public abstract class TrackerDataSynchronizationWithPaging
+    implements DataSynchronizationWithPaging {
 
   /**
-   * Retrieve ProgramStageDataElement list on a program stage and a data element
+   * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
    *
-   * @param programStage ProgramStage
-   * @param dataElement DataElement
-   * @return ProgramStageDataElement
+   * @param pageSize number of records per page
+   * @param progress job progress reporter
+   * @param programUid UID of the program whose tracker data should be synchronized
+   * @return result of synchronization
    */
-  ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement);
-
-  List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
-
-  List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
+  public abstract SynchronizationResult synchronizeTrackerData(
+      int pageSize, JobProgress progress, UID programUid);
 
   /**
-   * Returns a map of ProgramStages containing sets of DataElements (together forming
-   * ProgramStageDataElements) that have the skipSynchronization flag set to true, filtered by the
-   * specified ProgramType.
-   *
-   * @param programType the type of program (e.g., WITH_REGISTRATION, WITHOUT_REGISTRATION) used to
-   *     filter ProgramStages
-   * @return a map where the key is the ProgramStage UID and the value is a set of DataElement UIDs
-   *     associated with that ProgramStage that have skipSynchronization set to true
+   * This method from {@link DataSynchronizationWithPaging} is not directly used here.
+   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress, UID)} instead
+   * when a program context is available.
    */
-  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-      Program program);
+  @Override
+  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
+    throw new UnsupportedOperationException(
+        "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
+  }
 }

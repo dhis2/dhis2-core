@@ -39,10 +39,10 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -96,7 +96,8 @@ public class HibernateProgramStageDataElementStore
 
   @Override
   public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-      ProgramType programType) {
+      Program program) {
+
     final String sql =
         "SELECT ps.uid AS ps_uid, de.uid AS de_uid "
             + "FROM programstagedataelement psde "
@@ -104,13 +105,13 @@ public class HibernateProgramStageDataElementStore
             + "JOIN dataelement de ON psde.dataelementid = de.dataelementid "
             + "JOIN program p ON ps.programid = p.programid "
             + "WHERE psde.skipsynchronization = TRUE "
-            + "AND p.type = ?";
+            + "AND p.uid = ?";
 
     final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
 
     jdbcTemplate.query(
         sql,
-        ps -> ps.setString(1, programType.name()),
+        ps -> ps.setString(1, program.getUid()),
         rs -> {
           String programStageUid = rs.getString("ps_uid");
           String dataElementUid = rs.getString("de_uid");

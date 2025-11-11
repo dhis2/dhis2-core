@@ -43,8 +43,8 @@ import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
@@ -52,6 +52,8 @@ import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.render.RenderService;
@@ -74,7 +76,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SingleEventDataSynchronizationService implements DataSynchronizationWithPaging {
+public class SingleEventDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
   private static final String PROCESS_NAME = "Event programs data synchronization";
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
@@ -83,6 +85,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   private final RestTemplate restTemplate;
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
+  private final ProgramService programService;
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
@@ -108,7 +111,8 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   @Override
-  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
+  public SynchronizationResult synchronizeTrackerData(
+      int pageSize, JobProgress progress, UID program) {
     progress.startingProcess("Starting " + PROCESS_NAME);
 
     SystemSettings systemSettings = systemSettingsService.getCurrentSettings();
@@ -118,7 +122,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
     }
 
     EventSynchronizationContext context =
-        initializeSynchronizationContext(pageSize, progress, systemSettings);
+        initializeSynchronizationContext(pageSize, progress, systemSettings, program);
     if (context.hasNoObjectsToSynchronize()) {
       return endProcess(progress, PROCESS_NAME + " skipped. No new or updated events found.");
     }
@@ -136,23 +140,26 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
   }
 
   private EventSynchronizationContext initializeSynchronizationContext(
-      int pageSize, JobProgress progress, SystemSettings systemSettings) {
+      int pageSize, JobProgress progress, SystemSettings systemSettings, UID program) {
     return progress.runStage(
         new EventSynchronizationContext(null, pageSize),
         ctx ->
             "Events last changed before "
                 + ctx.getSkipChangedBefore()
                 + " will not be synchronized.",
-        () -> createSynchronizationContext(pageSize, systemSettings));
+        () -> createSynchronizationContext(pageSize, systemSettings, program));
   }
 
   private EventSynchronizationContext createSynchronizationContext(
-      int pageSize, SystemSettings systemSettings) throws ForbiddenException, BadRequestException {
+      int pageSize, SystemSettings systemSettings, UID program)
+      throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = systemSettings.getSyncSkipSyncForDataChangedBefore();
+    Program eventProgram = programService.getProgram(program.getValue());
     long objectsToSynchronize =
         eventService.countEvents(
             EventOperationParams.builder()
                 .programType(ProgramType.WITHOUT_REGISTRATION)
+                .program(eventProgram)
                 .skipChangedBefore(skipChangedBefore)
                 .synchronizationQuery(true)
                 .build());
@@ -166,7 +173,7 @@ public class SingleEventDataSynchronizationService implements DataSynchronizatio
 
     Map<String, Set<String>> skipSyncElements =
         programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-            ProgramType.WITHOUT_REGISTRATION);
+            eventProgram);
 
     return new EventSynchronizationContext(
         skipChangedBefore, objectsToSynchronize, instance, pageSize, skipSyncElements);

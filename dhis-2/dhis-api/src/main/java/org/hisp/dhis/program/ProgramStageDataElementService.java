@@ -32,6 +32,7 @@ package org.hisp.dhis.program;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -100,5 +101,5 @@ public interface ProgramStageDataElementService {
    *     associated with that ProgramStage that have skipSynchronization set to true
    */
   Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-      ProgramType programType);
+      @Nonnull Program program);
 }

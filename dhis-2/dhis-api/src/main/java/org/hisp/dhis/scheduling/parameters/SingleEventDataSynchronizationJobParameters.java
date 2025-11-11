@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -48,6 +49,8 @@ public class SingleEventDataSynchronizationJobParameters implements JobParameter
   static final int PAGE_SIZE_MAX = 200;
 
   @JsonProperty private int pageSize = 60;
+
+  @JsonProperty private UID program;
 
   @Override
   public Optional<ErrorReport> validate() {

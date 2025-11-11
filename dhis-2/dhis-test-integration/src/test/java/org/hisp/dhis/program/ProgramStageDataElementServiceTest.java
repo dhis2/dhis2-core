@@ -65,6 +65,7 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramStageService programStageService;
 
   private OrganisationUnit organisationUnit;
+  private Program programWithOutReg;
 
   private ProgramStage stageA;
 
@@ -86,7 +87,7 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     Program program = createProgram('A', new HashSet<>(), organisationUnit);
-    Program programWithOutReg = createProgram('B', new HashSet<>(), organisationUnit);
+    programWithOutReg = createProgram('B', new HashSet<>(), organisationUnit);
     programWithOutReg.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     programService.addProgram(program);
     programService.addProgram(programWithOutReg);
@@ -200,7 +201,7 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
 
     Map<String, Set<String>> result =
         programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-            ProgramType.WITHOUT_REGISTRATION);
+            programWithOutReg);
 
     assertNotNull(result);
     assertTrue(result.containsKey(singleEvent.getUid()));
