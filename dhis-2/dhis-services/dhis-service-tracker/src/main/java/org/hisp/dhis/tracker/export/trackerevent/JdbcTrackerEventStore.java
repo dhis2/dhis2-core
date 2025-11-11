@@ -150,7 +150,8 @@ class JdbcTrackerEventStore {
   private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
   private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
   private static final String COLUMN_ORG_UNIT_ATTRIBUTE_VALUES = "orgunit_attributevalues";
-  private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
+  private static final String COLUMN_TRACKED_ENTITY_UID = "te_uid";
+  private static final String COLUMN_TRACKED_ENTITY_ORG_UNIT_UID = "te_org_unit_uid";
   private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
   private static final String COLUMN_EVENT_STATUS = "ev_status";
@@ -188,7 +189,7 @@ class JdbcTrackerEventStore {
           entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
-          entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
+          entry("enrollment.trackedEntity.uid", COLUMN_TRACKED_ENTITY_UID),
           entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
           entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
@@ -278,7 +279,9 @@ class JdbcTrackerEventStore {
                   AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
 
               TrackedEntity te = new TrackedEntity();
-              te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
+              te.setUid(resultSet.getString(COLUMN_TRACKED_ENTITY_UID));
+              OrganisationUnit teOrgUnit = new OrganisationUnit();
+              teOrgUnit.setUid(COLUMN_TRACKED_ENTITY_ORG_UNIT_UID);
               te.setOrganisationUnit(orgUnit);
               event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
 
@@ -731,7 +734,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 + ", en.occurreddate as en_occurreddate, ")
         .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
-        .append(COLUMN_TRACKEDENTITY_UID)
+        .append(COLUMN_TRACKED_ENTITY_UID)
+        .append(", teou.uid as ")
+        .append(COLUMN_TRACKED_ENTITY_ORG_UNIT_UID)
         .append(getFromWhereClause(params, mapSqlParameterSource, user, hlp))
         .toString();
   }
@@ -779,7 +784,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
         .append("inner join organisationunit ou on (po.organisationunitid=ou.organisationunitid) ")
         .append(
-            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
+            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ")
+        .append(
+            "inner join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ");
 
     fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
