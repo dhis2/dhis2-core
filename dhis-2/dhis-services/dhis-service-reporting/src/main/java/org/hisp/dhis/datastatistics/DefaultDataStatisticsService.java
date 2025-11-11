@@ -324,7 +324,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   private static Date hoursAgo(int h) {
-    return Date.from( Instant.now().minus(h, ChronoUnit.HOURS));
+    return Date.from(Instant.now().minus(h, ChronoUnit.HOURS));
   }
 
   private int getDays(Date startDate) {
