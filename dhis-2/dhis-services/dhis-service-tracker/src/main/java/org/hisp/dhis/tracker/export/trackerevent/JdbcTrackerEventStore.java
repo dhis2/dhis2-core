@@ -817,7 +817,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       fromBuilder
           .append(hlp.whereAnd())
-          .append(" ps.programid in (")
+          .append(" p.programid in (")
           .append(":programid")
           .append(") ");
     }

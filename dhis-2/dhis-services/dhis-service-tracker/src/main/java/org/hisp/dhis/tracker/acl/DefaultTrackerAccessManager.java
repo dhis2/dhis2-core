@@ -242,11 +242,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataRead(user, program)) {
@@ -282,11 +277,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    // TODO(tracker) Why skip validations if null. Can a PS of a single event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataRead(user, program)) {
@@ -313,11 +303,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
@@ -350,11 +335,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
 
@@ -384,11 +364,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     ProgramStage programStage = event.getProgramStage();
 
-    // TODO(tracker) Why skip validations if null. Can a PS of a single event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
     if (!aclService.canDataWrite(user, program)) {
@@ -409,11 +384,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
 
     Program program = programStage.getProgram();
 
@@ -663,9 +633,5 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
-  }
-
-  private boolean isNull(ProgramStage programStage) {
-    return programStage == null || programStage.getProgram() == null;
   }
 }
