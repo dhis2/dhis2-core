@@ -270,8 +270,16 @@ class JdbcTrackerEventStore {
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
 
+              OrganisationUnit orgUnit = new OrganisationUnit();
+              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
+              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
+              orgUnit.setAttributeValues(
+                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
+
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
+              te.setOrganisationUnit(orgUnit);
               event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
 
               ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
@@ -287,13 +295,6 @@ class JdbcTrackerEventStore {
               enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
               enrollment.setProgram(program);
               enrollment.setTrackedEntity(te);
-
-              OrganisationUnit orgUnit = new OrganisationUnit();
-              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
-              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
-              orgUnit.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
               event.setOrganisationUnit(orgUnit);
 
               ProgramStage ps = new ProgramStage();
@@ -302,6 +303,7 @@ class JdbcTrackerEventStore {
               ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
               ps.setAttributeValues(
                   AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
+              ps.setProgram(program);
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
               enrollment.setStatus(
