@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -37,72 +38,55 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Julie Hill Roa
  * @author Yrjan Fraschetti
  */
+
+/** Aggregated DataStatistics snapshot over a period (year/month/week/day). */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AggregatedStatistics {
-  private Integer year;
 
-  private Integer month;
+  // period parts
+  @JsonProperty private Integer year;
+  @JsonProperty private Integer month;
+  @JsonProperty private Integer week;
+  @JsonProperty private Integer day;
 
-  private Integer week;
+  // counts (BIGINT -> long)
+  @JsonProperty private long mapViews;
+  @JsonProperty private long visualizationViews;
+  @JsonProperty private long eventReportViews;
+  @JsonProperty private long eventChartViews;
+  @JsonProperty private long eventVisualizationViews;
+  @JsonProperty private long dashboardViews;
+  @JsonProperty private long passiveDashboardViews;
+  @JsonProperty private long dataSetReportViews;
+  @JsonProperty private long totalViews;
 
-  private Integer day;
+  @JsonProperty private long savedMaps;
+  @JsonProperty private long savedVisualizations;
+  @JsonProperty private long savedEventReports;
+  @JsonProperty private long savedEventCharts;
+  @JsonProperty private long savedEventVisualizations;
+  @JsonProperty private long savedDashboards;
+  @JsonProperty private long savedIndicators;
+  @JsonProperty private long savedDataValues;
 
-  private Integer mapViews;
+  // averages (double precision)
+  @JsonProperty private double averageViews;
+  @JsonProperty private double averageMapViews;
+  @JsonProperty private double averageVisualizationViews;
+  @JsonProperty private double averageEventReportViews;
+  @JsonProperty private double averageEventChartViews;
+  @JsonProperty private double averageEventVisualizationViews;
+  @JsonProperty private double averageDashboardViews;
+  @JsonProperty private double averagePassiveDashboardViews;
 
-  private Integer visualizationViews;
-
-  private Integer eventReportViews;
-
-  private Integer eventChartViews;
-
-  private Integer eventVisualizationViews;
-
-  private Integer dashboardViews;
-
-  private Integer passiveDashboardViews;
-
-  private Integer dataSetReportViews;
-
-  private Integer totalViews;
-
-  private Integer averageViews;
-
-  private Integer averageMapViews;
-
-  private Integer averageVisualizationViews;
-
-  private Integer averageEventReportViews;
-
-  private Integer averageEventChartViews;
-
-  private Integer averageEventVisualizationViews;
-
-  private Integer averageDashboardViews;
-
-  private Integer averagePassiveDashboardViews;
-
-  private Integer savedMaps;
-
-  private Integer savedVisualizations;
-
-  private Integer savedEventReports;
-
-  private Integer savedEventCharts;
-
-  private Integer savedEventVisualizations;
-
-  private Integer savedDashboards;
-
-  private Integer savedIndicators;
-
-  private Integer savedDataValues;
-
-  private Integer activeUsers;
-
-  private Integer users;
+  // users
+  @JsonProperty private Long activeUsers;
+  @JsonProperty private Long users;
 
   public AggregatedStatistics() {}
 
-  @JsonProperty
+  // getters/setters (only showing a few; generate the rest with your IDE)
+
   public Integer getYear() {
     return year;
   }
@@ -111,7 +95,6 @@ public class AggregatedStatistics {
     this.year = year;
   }
 
-  @JsonProperty
   public Integer getMonth() {
     return month;
   }
@@ -120,7 +103,6 @@ public class AggregatedStatistics {
     this.month = month;
   }
 
-  @JsonProperty
   public Integer getWeek() {
     return week;
   }
@@ -129,7 +111,6 @@ public class AggregatedStatistics {
     this.week = week;
   }
 
-  @JsonProperty
   public Integer getDay() {
     return day;
   }
@@ -138,246 +119,219 @@ public class AggregatedStatistics {
     this.day = day;
   }
 
-  @JsonProperty
-  public Integer getActiveUsers() {
-    return activeUsers;
-  }
-
-  public void setActiveUsers(Integer activeUsers) {
-    this.activeUsers = activeUsers;
-  }
-
-  @JsonProperty
-  public Integer getVisualizationViews() {
-    return visualizationViews;
-  }
-
-  public void setVisualizationViews(Integer visualizationViews) {
-    this.visualizationViews = visualizationViews;
-  }
-
-  @JsonProperty
-  public Integer getMapViews() {
+  public long getMapViews() {
     return mapViews;
   }
 
-  public void setMapViews(Integer mapViews) {
+  public void setMapViews(long mapViews) {
     this.mapViews = mapViews;
   }
 
-  @JsonProperty
-  public Integer getEventReportViews() {
+  public long getVisualizationViews() {
+    return visualizationViews;
+  }
+
+  public void setVisualizationViews(long visualizationViews) {
+    this.visualizationViews = visualizationViews;
+  }
+
+  public long getEventReportViews() {
     return eventReportViews;
   }
 
-  public void setEventReportViews(Integer eventReportViews) {
+  public void setEventReportViews(long eventReportViews) {
     this.eventReportViews = eventReportViews;
   }
 
-  @JsonProperty
-  public Integer getEventChartViews() {
+  public long getEventChartViews() {
     return eventChartViews;
   }
 
-  public void setEventChartViews(Integer eventChartViews) {
+  public void setEventChartViews(long eventChartViews) {
     this.eventChartViews = eventChartViews;
   }
 
-  @JsonProperty
-  public Integer getEventVisualizationViews() {
+  public long getEventVisualizationViews() {
     return eventVisualizationViews;
   }
 
-  public void setEventVisualizationViews(Integer eventVisualizationViews) {
+  public void setEventVisualizationViews(long eventVisualizationViews) {
     this.eventVisualizationViews = eventVisualizationViews;
   }
 
-  @JsonProperty
-  public Integer getDashboardViews() {
+  public long getDashboardViews() {
     return dashboardViews;
   }
 
-  public void setDashboardViews(Integer dashboardViews) {
+  public void setDashboardViews(long dashboardViews) {
     this.dashboardViews = dashboardViews;
   }
 
-  @JsonProperty
-  public Integer getPassiveDashboardViews() {
+  public long getPassiveDashboardViews() {
     return passiveDashboardViews;
   }
 
-  public void setPassiveDashboardViews(Integer passiveDashboardViews) {
+  public void setPassiveDashboardViews(long passiveDashboardViews) {
     this.passiveDashboardViews = passiveDashboardViews;
   }
 
-  @JsonProperty
-  public Integer getDataSetReportViews() {
+  public long getDataSetReportViews() {
     return dataSetReportViews;
   }
 
-  public void setDataSetReportViews(Integer dataSetReportViews) {
+  public void setDataSetReportViews(long dataSetReportViews) {
     this.dataSetReportViews = dataSetReportViews;
   }
 
-  @JsonProperty
-  public Integer getTotalViews() {
+  public long getTotalViews() {
     return totalViews;
   }
 
-  public void setTotalViews(Integer totalViews) {
+  public void setTotalViews(long totalViews) {
     this.totalViews = totalViews;
   }
 
-  @JsonProperty
-  public Integer getAverageViews() {
+  public double getAverageViews() {
     return averageViews;
   }
 
-  public void setAverageViews(Integer averageViews) {
+  public void setAverageViews(double averageViews) {
     this.averageViews = averageViews;
   }
 
-  @JsonProperty
-  public Integer getAverageDashboardViews() {
-    return averageDashboardViews;
-  }
-
-  public void setAverageDashboardViews(Integer averageDashboardViews) {
-    this.averageDashboardViews = averageDashboardViews;
-  }
-
-  @JsonProperty
-  public Integer getAveragePassiveDashboardViews() {
-    return averagePassiveDashboardViews;
-  }
-
-  public void setAveragePassiveDashboardViews(Integer averagePassiveDashboardViews) {
-    this.averagePassiveDashboardViews = averagePassiveDashboardViews;
-  }
-
-  @JsonProperty
-  public Integer getAverageMapViews() {
+  public double getAverageMapViews() {
     return averageMapViews;
   }
 
-  public void setAverageMapViews(Integer averageMapViews) {
+  public void setAverageMapViews(double averageMapViews) {
     this.averageMapViews = averageMapViews;
   }
 
-  @JsonProperty
-  public Integer getAverageVisualizationViews() {
+  public double getAverageVisualizationViews() {
     return averageVisualizationViews;
   }
 
-  public void setAverageVisualizationViews(Integer averageVisualizationViews) {
+  public void setAverageVisualizationViews(double averageVisualizationViews) {
     this.averageVisualizationViews = averageVisualizationViews;
   }
 
-  @JsonProperty
-  public Integer getAverageEventReportViews() {
+  public double getAverageEventReportViews() {
     return averageEventReportViews;
   }
 
-  public void setAverageEventReportViews(Integer averageEventReportViews) {
+  public void setAverageEventReportViews(double averageEventReportViews) {
     this.averageEventReportViews = averageEventReportViews;
   }
 
-  @JsonProperty
-  public Integer getAverageEventChartViews() {
+  public double getAverageEventChartViews() {
     return averageEventChartViews;
   }
 
-  public void setAverageEventChartViews(Integer averageEventChartViews) {
+  public void setAverageEventChartViews(double averageEventChartViews) {
     this.averageEventChartViews = averageEventChartViews;
   }
 
-  @JsonProperty
-  public Integer getAverageEventVisualizationViews() {
+  public double getAverageEventVisualizationViews() {
     return averageEventVisualizationViews;
   }
 
-  public void setAverageEventVisualizationViews(Integer averageEventVisualizationViews) {
+  public void setAverageEventVisualizationViews(double averageEventVisualizationViews) {
     this.averageEventVisualizationViews = averageEventVisualizationViews;
   }
 
-  @JsonProperty
-  public Integer getSavedMaps() {
+  public double getAverageDashboardViews() {
+    return averageDashboardViews;
+  }
+
+  public void setAverageDashboardViews(double averageDashboardViews) {
+    this.averageDashboardViews = averageDashboardViews;
+  }
+
+  public double getAveragePassiveDashboardViews() {
+    return averagePassiveDashboardViews;
+  }
+
+  public void setAveragePassiveDashboardViews(double averagePassiveDashboardViews) {
+    this.averagePassiveDashboardViews = averagePassiveDashboardViews;
+  }
+
+  public long getSavedMaps() {
     return savedMaps;
   }
 
-  public void setSavedMaps(Integer savedMaps) {
+  public void setSavedMaps(long savedMaps) {
     this.savedMaps = savedMaps;
   }
 
-  @JsonProperty
-  public Integer getSavedVisualizations() {
+  public long getSavedVisualizations() {
     return savedVisualizations;
   }
 
-  public void setSavedVisualizations(Integer savedVisualizations) {
+  public void setSavedVisualizations(long savedVisualizations) {
     this.savedVisualizations = savedVisualizations;
   }
 
-  @JsonProperty
-  public Integer getSavedEventReports() {
+  public long getSavedEventReports() {
     return savedEventReports;
   }
 
-  public void setSavedEventReports(Integer savedEventReports) {
+  public void setSavedEventReports(long savedEventReports) {
     this.savedEventReports = savedEventReports;
   }
 
-  @JsonProperty
-  public Integer getSavedEventCharts() {
+  public long getSavedEventCharts() {
     return savedEventCharts;
   }
 
-  public void setSavedEventCharts(Integer savedEventCharts) {
+  public void setSavedEventCharts(long savedEventCharts) {
     this.savedEventCharts = savedEventCharts;
   }
 
-  @JsonProperty
-  public Integer getSavedEventVisualizations() {
+  public long getSavedEventVisualizations() {
     return savedEventVisualizations;
   }
 
-  public void setSavedEventVisualizations(Integer savedEventVisualizations) {
+  public void setSavedEventVisualizations(long savedEventVisualizations) {
     this.savedEventVisualizations = savedEventVisualizations;
   }
 
-  @JsonProperty
-  public Integer getSavedDashboards() {
+  public long getSavedDashboards() {
     return savedDashboards;
   }
 
-  public void setSavedDashboards(Integer savedDashboards) {
+  public void setSavedDashboards(long savedDashboards) {
     this.savedDashboards = savedDashboards;
   }
 
-  @JsonProperty
-  public Integer getSavedIndicators() {
+  public long getSavedIndicators() {
     return savedIndicators;
   }
 
-  public void setSavedIndicators(Integer savedIndicators) {
+  public void setSavedIndicators(long savedIndicators) {
     this.savedIndicators = savedIndicators;
   }
 
-  @JsonProperty
-  public Integer getSavedDataValues() {
+  public long getSavedDataValues() {
     return savedDataValues;
   }
 
-  public void setSavedDataValues(Integer savedDataValues) {
+  public void setSavedDataValues(long savedDataValues) {
     this.savedDataValues = savedDataValues;
   }
 
-  @JsonProperty
-  public Integer getUsers() {
+  public Long getActiveUsers() {
+    return activeUsers;
+  }
+
+  public void setActiveUsers(Long activeUsers) {
+    this.activeUsers = activeUsers;
+  }
+
+  public Long getUsers() {
     return users;
   }
 
-  public void setUsers(Integer users) {
+  public void setUsers(Long users) {
     this.users = users;
   }
 

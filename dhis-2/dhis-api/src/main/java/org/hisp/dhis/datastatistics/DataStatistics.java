@@ -55,8 +55,8 @@ public class DataStatistics extends BaseIdentifiableObject {
   @JsonProperty private Long savedIndicators;
   @JsonProperty private Long savedDataValues;
 
-  @JsonProperty private Integer activeUsers;
-  @JsonProperty private Integer users;
+  @JsonProperty private Long activeUsers;
+  @JsonProperty private Long users;
 
   public DataStatistics() {}
 
@@ -78,8 +78,8 @@ public class DataStatistics extends BaseIdentifiableObject {
       Number savedDashboards,
       Number savedIndicators,
       Number savedDataValues,
-      Integer activeUsers,
-      Integer users) {
+      Number activeUsers,
+      Number users) {
 
     this.mapViews = toLong(mapViews);
     this.visualizationViews = toLong(visualizationViews);
@@ -100,8 +100,8 @@ public class DataStatistics extends BaseIdentifiableObject {
     this.savedIndicators = toLong(savedIndicators);
     this.savedDataValues = toLong(savedDataValues);
 
-    this.activeUsers = activeUsers;
-    this.users = users;
+    this.activeUsers = toLong(activeUsers);
+    this.users = toLong(users);
   }
 
   private static Long toLong(Number n) {
@@ -246,19 +246,19 @@ public class DataStatistics extends BaseIdentifiableObject {
     this.savedDataValues = v;
   }
 
-  public Integer getActiveUsers() {
+  public Long getActiveUsers() {
     return activeUsers;
   }
 
-  public void setActiveUsers(Integer v) {
+  public void setActiveUsers(Long v) {
     this.activeUsers = v;
   }
 
-  public Integer getUsers() {
+  public Long getUsers() {
     return users;
   }
 
-  public void setUsers(Integer v) {
+  public void setUsers(Long v) {
     this.users = v;
   }
 

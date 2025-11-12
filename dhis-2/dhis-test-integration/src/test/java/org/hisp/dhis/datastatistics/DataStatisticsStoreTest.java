@@ -70,22 +70,10 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     ds1 = new DataStatistics();
-    ds2 =
-        new DataStatistics(
-            1.0, 3.0, 4.0, 5.0, 3.0, 6.0, 17.0, 10.0, 8.0, 11.0, 14.0, 11.0, 15.0, 20.0, 16.0, 17.0,
-            11.0, 1, 18);
-    ds3 =
-        new DataStatistics(
-            1.0, 4.0, 5.0, 6.0, 4.0, 7.0, 17.0, 8.0, 11.0, 12.0, 15.0, 12.0, 16.0, 21.0, 17.0, 18.0,
-            11.0, 2, 19);
-    ds4 =
-        new DataStatistics(
-            1.0, 1.0, 6.0, 5.0, 5.0, 4.0, 16.0, 8.0, 10.0, 4.0, 9.0, 7.0, 14.0, 22.0, 6.0, 4.0,
-            11.9, 3, 2);
-    ds5 =
-        new DataStatistics(
-            3.0, 4.0, 3.0, 5.0, 6.0, 7.0, 16.0, 8.0, 10.0, 1.6, 8.0, 8.2, 16.0, 23.0, 9.4, 9.6,
-            11.0, 2, 9);
+    ds2 = new DataStatistics(1, 3, 4, 5, 3, 6, 17, 10, 8, 11, 14, 11, 15, 20, 16, 17, 11, 1, 18);
+    ds3 = new DataStatistics(1, 4, 5, 6, 4, 7, 17, 8, 11, 12, 15, 12, 16, 21, 17, 18, 11, 2, 19);
+    ds4 = new DataStatistics(1, 1, 6, 5, 5, 4, 16, 8, 10, 4, 9, 7, 14, 22, 6, 4, 12, 3, 2);
+    ds5 = new DataStatistics(3, 4, 3, 5, 6, 7, 16, 8, 10, 2, 8, 8, 16, 23, 9, 10, 11, 2, 9);
     ds1Id = 0;
     ds2Id = 0;
     date = getDate(2016, 3, 21);
