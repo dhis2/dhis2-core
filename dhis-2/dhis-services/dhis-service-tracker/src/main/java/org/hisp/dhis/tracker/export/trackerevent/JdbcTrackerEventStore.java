@@ -271,6 +271,13 @@ class JdbcTrackerEventStore {
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
 
+              OrganisationUnit orgUnit = new OrganisationUnit();
+              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
+              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
+              orgUnit.setAttributeValues(
+                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
+
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKED_ENTITY_UID));
               OrganisationUnit teOrgUnit = new OrganisationUnit();
@@ -291,13 +298,6 @@ class JdbcTrackerEventStore {
               enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
               enrollment.setProgram(program);
               enrollment.setTrackedEntity(te);
-
-              OrganisationUnit orgUnit = new OrganisationUnit();
-              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
-              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
-              orgUnit.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
               event.setOrganisationUnit(orgUnit);
 
               ProgramStage ps = new ProgramStage();
