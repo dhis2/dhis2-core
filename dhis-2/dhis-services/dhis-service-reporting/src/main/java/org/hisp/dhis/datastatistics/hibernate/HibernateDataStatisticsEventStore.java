@@ -108,7 +108,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
         pss,
         (rs, i) -> {
           DataStatisticsEventType type = DataStatisticsEventType.valueOf(rs.getString("eventtype"));
-          long count = rs.getLong("numberofviews"); // COUNT(*) is non-null
+          long count = rs.getLong("numberofviews");
           eventTypeCountMap.put(type, count);
           return null;
         });
