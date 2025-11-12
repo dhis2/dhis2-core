@@ -414,10 +414,18 @@ public class DefaultDataExportService implements DataExportService {
   }
 
   public void validateFilters(DataExportParams params) throws ConflictException {
+    // DE+OU+PE dimensions must be restricted
+    // to limit scope of the export to reasonable slices
     if (params == null) throw new ConflictException(ErrorCode.E2000);
     if (!params.hasDataElementFilters()) throw new ConflictException(ErrorCode.E2001);
     if (!params.hasPeriodFilters()) throw new ConflictException(ErrorCode.E2002);
     if (!params.hasOrgUnitFilters()) throw new ConflictException(ErrorCode.E2006);
+    // additional restrictions that are not strictly required
+    // but are kept for backwards compatibility
+    if (params.isPeriodOverSpecified()) throw new ConflictException(ErrorCode.E2003);
+    if (params.isDateRangeOutOfBounds()) throw new ConflictException(ErrorCode.E2004);
+    if (params.isOrgUnitGroupsOverSpecified()) throw new ConflictException(ErrorCode.E2007);
+    if (params.isLimitOutOfBounds()) throw new ConflictException(ErrorCode.E2009);
   }
 
   private void validateAccess(DataEntryKey key) throws ConflictException {

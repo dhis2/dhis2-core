@@ -117,6 +117,22 @@ public class DataExportParams {
         && (organisationUnitGroups == null || organisationUnitGroups.isEmpty());
   }
 
+  public boolean isPeriodOverSpecified() {
+    return notEmpty(periods) && startDate != null && endDate != null;
+  }
+
+  public boolean isDateRangeOutOfBounds() {
+    return startDate != null && endDate != null && !startDate.before(endDate);
+  }
+
+  public boolean isLimitOutOfBounds() {
+    return limit != null && limit < 0;
+  }
+
+  public boolean isOrgUnitGroupsOverSpecified() {
+    return notEmpty(organisationUnitGroups) && includeDescendants;
+  }
+
   private static boolean notEmpty(Collection<?> c) {
     return c != null && !c.isEmpty();
   }
