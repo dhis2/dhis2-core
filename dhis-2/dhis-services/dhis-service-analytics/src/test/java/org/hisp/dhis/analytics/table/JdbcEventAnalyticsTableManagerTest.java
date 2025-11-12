@@ -326,7 +326,7 @@ class JdbcEventAnalyticsTableManagerTest {
             Integer.class))
         .thenReturn(List.of(2018, 2019));
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     AnalyticsTableUpdateParams params =
@@ -919,7 +919,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private void whenConfigurationPeriodSettings() {
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
   }
 
@@ -968,7 +968,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     mockPeriodYears(List.of(2018, 2019, now().getYear()));

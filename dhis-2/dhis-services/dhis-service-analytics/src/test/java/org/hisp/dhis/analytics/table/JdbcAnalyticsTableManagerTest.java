@@ -186,7 +186,7 @@ class JdbcAnalyticsTableManagerTest {
         .thenReturn(dataYears);
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -229,7 +229,7 @@ class JdbcAnalyticsTableManagerTest {
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -278,7 +278,7 @@ class JdbcAnalyticsTableManagerTest {
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -313,7 +313,7 @@ class JdbcAnalyticsTableManagerTest {
     when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
 
     assertTrue(subject.getAnalyticsTables(params).isEmpty());

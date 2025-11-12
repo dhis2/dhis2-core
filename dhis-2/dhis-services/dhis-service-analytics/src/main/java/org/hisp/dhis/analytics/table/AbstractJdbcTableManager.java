@@ -502,7 +502,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected List<AnalyticsTableColumn> getPeriodTypeColumns(String prefix) {
     Set<PeriodType> periodTypes =
-        configurationService.getConfiguration().getDataOutputPeriodTypesOrDefault();
+        configurationService.getConfiguration().getDataOutputPeriodTypes();
 
     return periodTypes.stream()
         .map(

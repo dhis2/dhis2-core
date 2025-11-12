@@ -333,7 +333,7 @@ class JdbcValidationResultTableManagerTest {
 
   private void whenConfigurationPeriodSettings() {
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
   }
 }

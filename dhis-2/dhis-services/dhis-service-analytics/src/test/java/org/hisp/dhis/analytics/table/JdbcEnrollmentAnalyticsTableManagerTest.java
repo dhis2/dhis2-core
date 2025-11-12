@@ -151,7 +151,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     p1.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
     when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getDataOutputPeriodTypesOrDefault())
+    when(configuration.getDataOutputPeriodTypes())
         .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(p1));
 
