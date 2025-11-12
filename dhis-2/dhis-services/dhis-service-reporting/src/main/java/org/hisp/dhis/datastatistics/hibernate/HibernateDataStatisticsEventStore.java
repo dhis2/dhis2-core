@@ -76,7 +76,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
   @Override
   public Map<DataStatisticsEventType, Long> getDataStatisticsEventCount(
       Date startDate, Date endDate) {
-    // EnumMap is ideal for enum keys
+
     Map<DataStatisticsEventType, Long> eventTypeCountMap =
         new EnumMap<>(DataStatisticsEventType.class);
 
