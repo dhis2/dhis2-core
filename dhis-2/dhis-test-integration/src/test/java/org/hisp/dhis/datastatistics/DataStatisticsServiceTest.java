@@ -49,6 +49,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -62,6 +63,8 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataStatisticsService dataStatisticsService;
 
   @Autowired private DataStatisticsStore hibernateDataStatisticsStore;
+
+  @Autowired private JdbcTemplate jdbc;
 
   @Autowired private TestSetup testSetup;
 
@@ -91,6 +94,22 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     testSetup.importMetadata();
     injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
     testSetup.importTrackerData();
+    var eventIds =
+        jdbc.queryForList(
+            "select eventid from singleevent order by eventid asc limit 2", Long.class);
+
+    // backdate: 7 days
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '7 days' where eventid = ?",
+        eventIds.get(0));
+
+    // backdate: 30 days
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '30 days' where eventid = ?",
+        eventIds.get(1));
+
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Test
@@ -126,17 +145,17 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   void testGetSystemStatisticsSummary() {
     DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
     assertAll(
-        () -> assertEquals(17, summary.getEventCount().get(0)),
-        () -> assertEquals(17, summary.getEventCount().get(1)),
-        () -> assertEquals(17, summary.getEventCount().get(7)),
+        () -> assertEquals(15, summary.getEventCount().get(0)),
+        () -> assertEquals(15, summary.getEventCount().get(1)),
+        () -> assertEquals(16, summary.getEventCount().get(7)),
         () -> assertEquals(17, summary.getEventCount().get(30)),
         () -> assertEquals(10, summary.getTrackerEventCount().get(0)),
         () -> assertEquals(10, summary.getTrackerEventCount().get(1)),
         () -> assertEquals(10, summary.getTrackerEventCount().get(7)),
         () -> assertEquals(10, summary.getTrackerEventCount().get(30)),
-        () -> assertEquals(7, summary.getSingleEventCount().get(0)),
-        () -> assertEquals(7, summary.getSingleEventCount().get(1)),
-        () -> assertEquals(7, summary.getSingleEventCount().get(7)),
+        () -> assertEquals(5, summary.getSingleEventCount().get(0)),
+        () -> assertEquals(5, summary.getSingleEventCount().get(1)),
+        () -> assertEquals(6, summary.getSingleEventCount().get(7)),
         () -> assertEquals(7, summary.getSingleEventCount().get(30)),
         () -> assertEquals(12, summary.getEnrollmentCount().get(0)),
         () -> assertEquals(12, summary.getEnrollmentCount().get(1)),
