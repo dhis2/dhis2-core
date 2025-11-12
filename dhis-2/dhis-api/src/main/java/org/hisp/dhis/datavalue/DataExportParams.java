@@ -122,7 +122,7 @@ public class DataExportParams {
   }
 
   public boolean isDateRangeOutOfBounds() {
-    return startDate != null && endDate != null && !startDate.before(endDate);
+    return startDate != null && endDate != null && startDate.after(endDate);
   }
 
   public boolean isLimitOutOfBounds() {

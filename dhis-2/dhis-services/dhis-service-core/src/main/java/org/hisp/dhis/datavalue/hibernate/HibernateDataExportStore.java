@@ -263,18 +263,24 @@ public class HibernateDataExportStore implements DataExportStore {
       @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions) {
     String sql =
         """
-      SELECT coc.uid
-      FROM categorycombo cc
-      JOIN categorycombos_optioncombos cc_coc ON cc.categorycomboid = cc_coc.categorycomboid
-      JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
-      WHERE 1=1
-        AND cc.name = :name
+        SELECT coc.uid
+        FROM categoryoptioncombo coc
+        INNER JOIN categorycombos_optioncombos c_coc ON c_coc.categoryoptioncomboid = coc.categoryoptioncomboid
+        INNER JOIN categorycombo cc ON cc.categorycomboid = c_coc.categorycomboid
+        INNER JOIN categoryoptioncombos_categoryoptions coc_co ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
+        INNER JOIN categoryoption co ON co.categoryoptionid = coc_co.categoryoptionid
+        WHERE 1=1
         AND cc.uid = :cc
-      """;
-    // TODO
+        AND cc.name = :name
+        AND co.uid = ANY (:co)
+        GROUP BY coc.uid
+        HAVING COUNT(DISTINCT co.uid) = :n""";
+    List<UID> co = categoryOptions.toList();
     return createQuery(sql)
         .setParameter("cc", categoryCombo == null ? null : categoryCombo.getValue())
         .setParameter("name", categoryCombo == null ? "default" : null)
+        .setParameter("co", co)
+        .setParameter("n", co.size())
         .eraseNullParameterLines()
         .stream(String.class)
         .map(UID::of)
