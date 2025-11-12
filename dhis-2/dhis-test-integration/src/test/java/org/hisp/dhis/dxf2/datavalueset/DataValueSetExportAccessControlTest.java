@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -63,7 +64,6 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -167,7 +167,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
    * User has data read sharing access to cocA and coCB through category options. Verifies that only
    * data values for those attribute option combinations are returned.
    */
-  @Disabled("TODO(DHIS2-17768 platform) fix")
+  // @Disabled("TODO(DHIS2-17768 platform) fix")
   @Test
   void testExportAttributeOptionComboAccessLimitedUserA() throws Exception {
     // User
@@ -200,12 +200,14 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     Set<String> expectedOptionCombos = Sets.newHashSet(cocA.getUid(), cocB.getUid());
     assertNotNull(dvs);
+    assertEquals(ouA.getUid(), dvs.getOrgUnit());
+    assertEquals(peA.getIsoDate(), dvs.getPeriod());
     assertNotNull(dvs.getDataValues());
     assertEquals(2, dvs.getDataValues().size());
     for (org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues()) {
       assertNotNull(dv);
-      assertEquals(ouA.getUid(), dv.getOrgUnit());
-      assertEquals(peA.getIsoDate(), dv.getPeriod());
+      assertNull(dv.getOrgUnit());
+      assertNull(dv.getPeriod());
       assertTrue(expectedOptionCombos.contains(dv.getAttributeOptionCombo()));
     }
   }

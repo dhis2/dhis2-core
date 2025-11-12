@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,8 +67,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -438,25 +437,29 @@ public class DefaultDataExportService implements DataExportService {
         params.getDataSets(), params.getAttributeOptionCombos(), params.getOrganisationUnits());
   }
 
-  /**
-   * @implNote This should be done in SQL based on UIDs (not require having the objects). It is also
-   *     suspicious that this does not validate COC access similar to AOC access (as we do on
-   *     writes) - likely this is missing and should be added
-   */
   private void validateAccess(List<UID> dataSets, List<UID> attributeCombos, List<UID> orgUnits)
       throws ConflictException {
-    // Verify data set read sharing
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser.isSuper()) return;
+    if (getCurrentUserDetails().isSuper()) return;
 
-    // TODO
-    // - user can data read all datasets
-    // => throw new ConflictException(ErrorCode.E2010, dataSet.getUid());
+    if (dataSets != null && !dataSets.isEmpty()) {
+      // Note that DS access is only checked if it is explicitly specified
+      // a user not using that filter can read data belonging to DS
+      // that he does not have access to (not my logic)
+      List<String> dsNoAccess = store.getDataSetsNoDataReadAccess(dataSets.stream());
+      if (!dsNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E2010, dsNoAccess);
+    }
 
-    // - user can data read all AOCs (used as filter? seems wrong - should be all AOCs returned)
-    // => throw new ConflictException(ErrorCode.E2011, optionCombo.getUid());
+    if (attributeCombos != null && !attributeCombos.isEmpty()) {
+      // Note that if no AOC filter is set AOC dimension acts as a filter
+      // and any data is removed from results that a user does not have access to
+      List<String> aocNoAccess = store.getAocNoDataReadAccess(attributeCombos.stream());
+      if (!aocNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E2011, aocNoAccess);
+    }
 
-    // - all OUs targeted are in user capture hierarchy
-    // => throw new ConflictException(ErrorCode.E2012, unit.getUid());
+    if (orgUnits != null && !orgUnits.isEmpty()) {
+      List<String> ouNotInHierarchy = store.getOrgUnitsNotInUserHierarchy(orgUnits.stream());
+      if (!ouNotInHierarchy.isEmpty())
+        throw new ConflictException(ErrorCode.E2012, ouNotInHierarchy);
+    }
   }
 }

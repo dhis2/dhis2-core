@@ -210,16 +210,17 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
         new DataValue(deB, peA, ouB, cocA, cocA, "1"),
         new DataValue(deB, peA, ouB, cocB, cocB, "1"));
 
-    dataSetService.updateDataSet(dsA);
-    dataSetService.updateDataSet(dsB);
-
     user = makeUser("A");
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.addUser(user);
-    injectSecurityContextUser(user);
 
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(user, dsB, AccessStringHelper.DATA_READ_WRITE);
+
+    dataSetService.updateDataSet(dsA);
+    dataSetService.updateDataSet(dsB);
+
+    injectSecurityContextUser(user);
   }
 
   // -------------------------------------------------------------------------

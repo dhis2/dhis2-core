@@ -605,8 +605,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         """
       SELECT ds.uid
       FROM dataset ds
-      WHERE ds.uid = :ds AND NOT (%s);
-      """;
+      WHERE ds.uid = :ds AND NOT (%s)""";
     String ds = dataSet.getValue();
     return listAsStrings(sql.formatted(accessSql), q -> q.setParameter("ds", ds)).isEmpty();
   }
@@ -679,8 +678,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       JOIN categoryoptioncombos_categoryoptions aoc_co ON coc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
       JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
       WHERE coc.uid IN (:coc)
-      AND NOT (%s);
-      """;
+      AND NOT (%s)""";
     // ignore nulls (default COC) assuming that it does not have special user restrictions
     String[] coc =
         optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);

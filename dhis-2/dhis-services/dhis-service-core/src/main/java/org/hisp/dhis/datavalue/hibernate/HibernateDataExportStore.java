@@ -30,8 +30,10 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
+import static java.util.function.Function.identity;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import java.util.Date;
@@ -278,6 +280,76 @@ public class HibernateDataExportStore implements DataExportStore {
         .map(UID::of)
         .findFirst()
         .orElse(null);
+  }
+
+  @Override
+  @Nonnull
+  public List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String accessSql = generateSQlQueryForSharingCheck("ds.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT ds.uid
+      FROM dataset ds
+      WHERE ds.uid = ANY(:ds)
+        AND NOT (:access)""";
+    return createQuery(sql)
+        .setParameter("ds", dataSets)
+        .setDynamicClause("access", accessSql)
+        .useEqualsOverInForParameters("ds")
+        .stream(String.class)
+        .toList();
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String accessSql = generateSQlQueryForSharingCheck("co.sharing", user, LIKE_READ_DATA);
+    String sql =
+        """
+      SELECT coc.uid
+      FROM categoryoptioncombo coc
+      WHERE coc.uid = ANY (:coc)
+        AND EXISTS(
+          SELECT 1
+          FROM categoryoptioncombos_categoryoptions aoc_co
+          JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
+          WHERE coc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
+            AND NOT (:access)
+      )""";
+    return createQuery(sql)
+        .setParameter("coc", attributeOptionCombos)
+        .setDynamicClause("access", accessSql)
+        .useEqualsOverInForParameters("coc")
+        .stream(String.class)
+        .toList();
+  }
+
+  @Nonnull
+  @Override
+  public List<String> getOrgUnitsNotInUserHierarchy(@Nonnull Stream<UID> orgUnits) {
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return List.of();
+    String sql =
+        """
+      SELECT ou.uid
+      FROM organisationunit ou
+      WHERE ou.uid = ANY(:ou)
+        AND NOT EXISTS(
+          SELECT 1
+          FROM organisationunit parent
+          WHERE parent.uid = ANY(:parent)
+            AND (ou.path = parent.path OR ou.path LIKE parent.path || '/%')
+      )""";
+    return createQuery(sql)
+        .setParameter("ou", orgUnits)
+        .setParameter("parent", user.getUserOrgUnitIds(), identity())
+        .useEqualsOverInForParameters("ou")
+        .stream(String.class)
+        .toList();
   }
 
   private QueryBuilder createQuery(@Language("sql") String sql) {

@@ -70,6 +70,21 @@ public interface DataExportStore {
   Validation support
    */
 
+  /**
+   * @param dataSets scope of the check
+   * @return The UIDs of the given datasets that the current user does not have data read access to.
+   *     Meaning, if the current user has access to all given datasets an empty list should be
+   *     returned.
+   */
+  @Nonnull
+  List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets);
+
+  @Nonnull
+  List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos);
+
+  @Nonnull
+  List<String> getOrgUnitsNotInUserHierarchy(@Nonnull Stream<UID> orgUnits);
+
   /*
   Test support
   */

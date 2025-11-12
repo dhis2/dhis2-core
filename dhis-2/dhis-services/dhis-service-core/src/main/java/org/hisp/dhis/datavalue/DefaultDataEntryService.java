@@ -427,7 +427,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
-  public Set<UID> getNotReadableOptionCombos(Collection<UID> optionCombos) {
+  public Set<UID> getNotReadableCategoryOptions(Collection<UID> optionCombos) {
     return store.getCategoryOptionsCanNotDataRead(optionCombos.stream()).stream()
         .map(UID::of)
         .collect(toSet());
