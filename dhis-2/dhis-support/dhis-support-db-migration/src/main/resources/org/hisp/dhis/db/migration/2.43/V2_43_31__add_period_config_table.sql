@@ -26,9 +26,7 @@ begin
     from configuration
     )
   then
-    -- Copy all period types into configuration_dataoutputperiodtype table.
-  	stmt := 'insert into configuration_dataoutputperiodtype (periodtypeid, configurationid) select p.periodtypeid, c.configurationid from periodtype p, configuration c';
-  	execute stmt;
+    insert into configuration_dataoutputperiodtype (periodtypeid, configurationid) select p.periodtypeid, c.configurationid from periodtype p, configuration c where p.name != 'TwoYearly';
   else
     RAISE INFO '%','Configuration table has no rows';
   end if;
