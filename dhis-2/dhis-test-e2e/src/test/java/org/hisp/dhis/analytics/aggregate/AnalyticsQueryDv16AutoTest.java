@@ -743,7 +743,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
-            .add("dimension=dx:jU1ivuoWAEp,pe:LAST_12_MONTHS")
+            .add("dimension=dx:zx8exJrQpR5,pe:LAST_12_MONTHS")
             .add("relativePeriodDate=2025-11-01");
 
     // When
@@ -764,7 +764,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"name\":\"September 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-09-01T00:00:00.000\",\"endDate\":\"2025-09-30T00:00:00.000\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"name\":\"July 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-07-01T00:00:00.000\",\"endDate\":\"2025-07-31T00:00:00.000\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"name\":\"August 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-08-01T00:00:00.000\",\"endDate\":\"2025-08-31T00:00:00.000\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"name\":\"May 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-05-01T00:00:00.000\",\"endDate\":\"2025-05-31T00:00:00.000\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"name\":\"June 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-06-01T00:00:00.000\",\"endDate\":\"2025-06-30T00:00:00.000\"},\"O6uvpzGd5pu\":{\"uid\":\"O6uvpzGd5pu\",\"code\":\"OU_264\",\"name\":\"Bo\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"name\":\"March 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-03-01T00:00:00.000\",\"endDate\":\"2025-03-31T00:00:00.000\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"name\":\"April 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-04-01T00:00:00.000\",\"endDate\":\"2025-04-30T00:00:00.000\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"name\":\"January 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-01-01T00:00:00.000\",\"endDate\":\"2025-01-31T00:00:00.000\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"name\":\"February 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-02-01T00:00:00.000\",\"endDate\":\"2025-02-28T00:00:00.000\"},\"YuQRtpLP10I\":{\"uid\":\"YuQRtpLP10I\",\"code\":\"OU_539\",\"name\":\"Badjia\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"name\":\"November 2024\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2024-11-01T00:00:00.000\",\"endDate\":\"2024-11-30T00:00:00.000\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"name\":\"October 2025\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2025-10-01T00:00:00.000\",\"endDate\":\"2025-10-31T00:00:00.000\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"name\":\"December 2024\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2024-12-01T00:00:00.000\",\"endDate\":\"2024-12-31T00:00:00.000\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"name\":\"Data\",\"dimensionType\":\"DATA_X\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"jU1ivuoWAEp\":{\"uid\":\"jU1ivuoWAEp\",\"code\":\"LVT001\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"LAST\",\"totalAggregationType\":\"SUM\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"name\":\"default\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"jU1ivuoWAEp\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"ImspTQPwCqd\",\"O6uvpzGd5pu\",\"YuQRtpLP10I\"],\"co\":[\"HllvX50cXC0\"]}}";
+        "{\"items\":{\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"endDate\":\"2025-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2025\",\"startDate\":\"2025-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"endDate\":\"2025-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2025\",\"startDate\":\"2025-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"endDate\":\"2025-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2025\",\"startDate\":\"2025-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"endDate\":\"2025-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2025\",\"startDate\":\"2025-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"endDate\":\"2025-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2025\",\"startDate\":\"2025-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"O6uvpzGd5pu\":{\"uid\":\"O6uvpzGd5pu\",\"code\":\"OU_264\",\"valueType\":\"TEXT\",\"name\":\"Bo\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"endDate\":\"2025-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2025\",\"startDate\":\"2025-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"endDate\":\"2025-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2025\",\"startDate\":\"2025-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"endDate\":\"2025-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2025\",\"startDate\":\"2025-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"endDate\":\"2025-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2025\",\"startDate\":\"2025-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"YuQRtpLP10I\":{\"uid\":\"YuQRtpLP10I\",\"code\":\"OU_539\",\"valueType\":\"TEXT\",\"name\":\"Badjia\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"endDate\":\"2024-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2024\",\"startDate\":\"2024-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"endDate\":\"2025-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2025\",\"startDate\":\"2025-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"zx8exJrQpR5\":{\"uid\":\"zx8exJrQpR5\",\"aggregationType\":\"LAST\",\"valueType\":\"NUMBER\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"endDate\":\"2024-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2024\",\"startDate\":\"2024-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"zx8exJrQpR5\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"ImspTQPwCqd\",\"O6uvpzGd5pu\",\"YuQRtpLP10I\"],\"co\":[\"HllvX50cXC0\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -807,16 +807,16 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
-    validateRow(response, List.of("jU1ivuoWAEp", "202508", "374", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202509", "374", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202506", "374", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202507", "374", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202504", "1326", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202505", "374", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202502", "136", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202503", "1078", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202501", "1101", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202510", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202508", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202509", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202506", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202507", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202504", "1326", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202505", "374", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202502", "136", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202503", "1078", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202501", "1101", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202510", "374", "", "", "", "", ""));
   }
 
   @Test
@@ -831,16 +831,12 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
-            .add("dimension=dx:jU1ivuoWAEp,pe:LAST_12_MONTHS")
+            .add("dimension=dx:zx8exJrQpR5,pe:LAST_12_MONTHS")
             .add("relativePeriodDate=2025-11-01");
 
     // When
     ApiResponse response = actions.get(params);
 
-    // Then
-    // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
     validateResponseStructure(
         response, true, 9, 8, 8); // Pass runtime flag, row count, and expected header counts
 
@@ -852,7 +848,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"DiszpKrYNg8\":{\"uid\":\"DiszpKrYNg8\",\"code\":\"OU_559\",\"valueType\":\"TEXT\",\"name\":\"Ngelehun CHC\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"endDate\":\"2025-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2025\",\"startDate\":\"2025-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"endDate\":\"2025-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2025\",\"startDate\":\"2025-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"endDate\":\"2025-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2025\",\"startDate\":\"2025-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"endDate\":\"2025-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2025\",\"startDate\":\"2025-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"endDate\":\"2025-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2025\",\"startDate\":\"2025-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"endDate\":\"2025-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2025\",\"startDate\":\"2025-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"endDate\":\"2025-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2025\",\"startDate\":\"2025-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"endDate\":\"2025-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2025\",\"startDate\":\"2025-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"endDate\":\"2025-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2025\",\"startDate\":\"2025-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"endDate\":\"2024-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2024\",\"startDate\":\"2024-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"endDate\":\"2025-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2025\",\"startDate\":\"2025-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"endDate\":\"2024-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2024\",\"startDate\":\"2024-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"jU1ivuoWAEp\":{\"uid\":\"jU1ivuoWAEp\",\"aggregationType\":\"LAST\",\"code\":\"LVT001\",\"valueType\":\"NUMBER\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"jU1ivuoWAEp\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"DiszpKrYNg8\"],\"co\":[\"HllvX50cXC0\"]}}";
+        "{\"items\":{\"DiszpKrYNg8\":{\"uid\":\"DiszpKrYNg8\",\"code\":\"OU_559\",\"valueType\":\"TEXT\",\"name\":\"Ngelehun CHC\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"202509\":{\"uid\":\"202509\",\"code\":\"202509\",\"endDate\":\"2025-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2025\",\"startDate\":\"2025-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202507\":{\"uid\":\"202507\",\"code\":\"202507\",\"endDate\":\"2025-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2025\",\"startDate\":\"2025-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202508\":{\"uid\":\"202508\",\"code\":\"202508\",\"endDate\":\"2025-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2025\",\"startDate\":\"2025-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202505\":{\"uid\":\"202505\",\"code\":\"202505\",\"endDate\":\"2025-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2025\",\"startDate\":\"2025-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202506\":{\"uid\":\"202506\",\"code\":\"202506\",\"endDate\":\"2025-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2025\",\"startDate\":\"2025-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202503\":{\"uid\":\"202503\",\"code\":\"202503\",\"endDate\":\"2025-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2025\",\"startDate\":\"2025-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202504\":{\"uid\":\"202504\",\"code\":\"202504\",\"endDate\":\"2025-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2025\",\"startDate\":\"2025-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202501\":{\"uid\":\"202501\",\"code\":\"202501\",\"endDate\":\"2025-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2025\",\"startDate\":\"2025-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202502\":{\"uid\":\"202502\",\"code\":\"202502\",\"endDate\":\"2025-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2025\",\"startDate\":\"2025-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202411\":{\"uid\":\"202411\",\"code\":\"202411\",\"endDate\":\"2024-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2024\",\"startDate\":\"2024-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202510\":{\"uid\":\"202510\",\"code\":\"202510\",\"endDate\":\"2025-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2025\",\"startDate\":\"2025-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"zx8exJrQpR5\":{\"uid\":\"zx8exJrQpR5\",\"aggregationType\":\"LAST\",\"valueType\":\"NUMBER\",\"name\":\"LAST_VALUE_TEST\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"202412\":{\"uid\":\"202412\",\"code\":\"202412\",\"endDate\":\"2024-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2024\",\"startDate\":\"2024-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"dx\":{\"uid\":\"dx\",\"dimensionType\":\"DATA_X\",\"name\":\"Data\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\",\"name\":\"Period\"},\"HllvX50cXC0\":{\"uid\":\"HllvX50cXC0\",\"code\":\"default\",\"valueType\":\"NUMBER\",\"name\":\"default\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"zx8exJrQpR5\"],\"pe\":[\"202411\",\"202412\",\"202501\",\"202502\",\"202503\",\"202504\",\"202505\",\"202506\",\"202507\",\"202508\",\"202509\",\"202510\"],\"ou\":[\"DiszpKrYNg8\"],\"co\":[\"HllvX50cXC0\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -895,19 +891,19 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
-    validateRow(response, List.of("jU1ivuoWAEp", "202508", "314", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202509", "314", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202506", "314", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202507", "314", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202504", "314", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202505", "314", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202502", "12", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202503", "12", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202510", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202508", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202509", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202506", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202507", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202504", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202505", "314", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202502", "12", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202503", "12", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202510", "314", "", "", "", "", ""));
   }
 
   @Test
-  public void lastValueOrgUniDataValue_DistrictLevel() throws JSONException {
+  public void lastValueOrgUniDataValue_DistrictLevel() {
 
     // Given
     QueryParamsBuilder params =
@@ -918,7 +914,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
-            .add("dimension=dx:jU1ivuoWAEp,pe:LAST_12_MONTHS")
+            .add("dimension=dx:zx8exJrQpR5,pe:LAST_12_MONTHS")
             .add("relativePeriodDate=2025-11-01");
 
     // When
@@ -981,15 +977,15 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
     validateHeaderPropertiesByName(
         response, actualHeaders, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
-    validateRow(response, List.of("jU1ivuoWAEp", "202508", "354", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202509", "354", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202506", "354", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202507", "354", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202504", "1306", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202505", "354", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202502", "116", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202503", "1058", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202510", "354", "", "", "", "", ""));
-    validateRow(response, List.of("jU1ivuoWAEp", "202501", "1101", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202508", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202509", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202506", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202507", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202504", "1306", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202505", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202502", "116", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202503", "1058", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202510", "354", "", "", "", "", ""));
+    validateRow(response, List.of("zx8exJrQpR5", "202501", "1101", "", "", "", "", ""));
   }
 }
