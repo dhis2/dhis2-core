@@ -274,7 +274,7 @@ class JdbcTrackerEventStore {
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKED_ENTITY_UID));
               OrganisationUnit teOrgUnit = new OrganisationUnit();
-              teOrgUnit.setUid(COLUMN_TRACKED_ENTITY_ORG_UNIT_UID);
+              teOrgUnit.setUid(resultSet.getString(COLUMN_TRACKED_ENTITY_ORG_UNIT_UID));
               te.setOrganisationUnit(teOrgUnit);
               event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
 
