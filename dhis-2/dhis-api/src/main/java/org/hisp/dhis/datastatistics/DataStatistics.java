@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
-@JsonInclude(JsonInclude.Include.NON_NULL) // optional: drop nulls from JSON
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataStatistics extends BaseIdentifiableObject {
 
   @JsonProperty private Long mapViews;
@@ -60,7 +60,6 @@ public class DataStatistics extends BaseIdentifiableObject {
 
   public DataStatistics() {}
 
-  /** Convenience ctor: accepts any Number (Integer/Long/Double 3.0) and coerces to Long. */
   public DataStatistics(
       Number mapViews,
       Number visualizationViews,
