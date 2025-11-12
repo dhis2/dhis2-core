@@ -27,45 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.tracker.imports.validation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import lombok.Data;
 
-/**
- * Class representing information about all the bundled apps. This is serialized to JSON and stored
- * in the apps-bundle.json file.
- */
-@Data
-public class AppBundleInfo {
-  @JsonProperty private String buildDate;
-  @JsonProperty private List<BundledAppInfo> apps = new ArrayList<>();
-
-  public AppBundleInfo() {
-    this.buildDate = new Date().toString();
-  }
-
-  public void addApp(BundledAppInfo app) {
-    this.apps.add(app);
-  }
-
-  /** Class representing information about a single bundled app. */
-  @Data
-  public static class BundledAppInfo {
-    @JsonProperty private String name;
-    @JsonProperty private String url;
-    @JsonProperty private String branch;
-    @JsonProperty private String etag;
-    @JsonProperty private String downloadDate;
-    @JsonProperty private String version;
-    @JsonProperty private String buildDate;
-    @JsonProperty private String commitUrl;
-
-    public BundledAppInfo() {
-      this.downloadDate = new Date().toString();
-    }
-  }
-}
+public record ErrorMessage(ValidationCode validationCode, String userUid, List<Object> args) {}
