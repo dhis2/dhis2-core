@@ -123,16 +123,17 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
     EventSynchronizationContext context =
         initializeSynchronizationContext(pageSize, progress, systemSettings, program);
+
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, PROCESS_NAME + " skipped. No new or updated events found.");
+      log.info("No events found for synchronization.");
     }
 
-    boolean success = executeSynchronizationWithPaging(context, progress, systemSettings);
-
-    return success
-        ? endProcess(progress, PROCESS_NAME + " completed successfully.")
-        : failProcess(
-            progress, PROCESS_NAME + " failed. Not all pages were synchronized successfully.");
+    if (executeSynchronizationWithPaging(context, progress, systemSettings)) {
+      return endProcess(progress, PROCESS_NAME + " completed successfully.");
+    } else {
+      return failProcess(
+          progress, PROCESS_NAME + " failed. Not all pages were synchronized successfully.");
+    }
   }
 
   private boolean isRemoteServerAvailable(SystemSettings systemSettings) {
@@ -161,6 +162,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
                 .programType(ProgramType.WITHOUT_REGISTRATION)
                 .program(eventProgram)
                 .skipChangedBefore(skipChangedBefore)
+                .includeDeleted(true)
                 .synchronizationQuery(true)
                 .build());
 
@@ -219,23 +221,77 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SystemInstance systemInstance,
       Date startTime)
       throws ForbiddenException, BadRequestException {
+
     List<Event> events =
         eventService.findEvents(
             EventOperationParams.builder()
                 .programType(ProgramType.WITHOUT_REGISTRATION)
                 .skipChangedBefore(skipChangeBefore)
                 .synchronizationQuery(true)
+                .includeDeleted(true)
                 .build(),
             psdesWithSkipSyncTrue);
+
+    // Separate soft-deleted and active events
+    Map<Boolean, List<Event>> partitionedEvents =
+        events.stream().collect(Collectors.partitioningBy(Event::isDeleted));
+
+    List<Event> deletedEvents = partitionedEvents.get(true);
+    List<Event> activeEvents = partitionedEvents.get(false);
+
+    if (!activeEvents.isEmpty()) {
+      syncEventsWithStrategy(
+          activeEvents, "CREATE_AND_UPDATE", page, systemInstance, systemSettings, startTime);
+    }
+
+    if (!deletedEvents.isEmpty()) {
+      syncEventsWithStrategy(
+          deletedEvents, "DELETE", page, systemInstance, systemSettings, startTime);
+    }
+  }
+
+  /** Generic method to send events using given import strategy (CREATE_AND_UPDATE or DELETE) */
+  private void syncEventsWithStrategy(
+      List<Event> events,
+      String importStrategy,
+      int page,
+      SystemInstance instance,
+      SystemSettings systemSettings,
+      Date syncTime) {
 
     Set<org.hisp.dhis.webapi.controller.tracker.view.Event> eventDtos =
         events.stream().map(EVENTS_MAPPER::map).collect(Collectors.toSet());
 
-    if (sendSynchronizationRequest(eventDtos, systemInstance, systemSettings)) {
-      updateEventsSyncTimestamp(events, startTime);
+    if (sendSynchronizationRequest(eventDtos, instance, systemSettings, importStrategy)) {
+      updateEventsSyncTimestamp(events, syncTime);
     } else {
-      throw new MetadataSyncServiceException(format("Page %d synchronization failed", page));
+      throw new MetadataSyncServiceException(
+          format("Page %d synchronization failed for importStrategy=%s", page, importStrategy));
     }
+  }
+
+  /** Sends synchronization request with the specified import strategy. */
+  private boolean sendSynchronizationRequest(
+      Set<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
+      SystemInstance instance,
+      SystemSettings systemSettings,
+      String importStrategy) {
+
+    RequestCallback requestCallback =
+        request -> {
+          request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+          request
+              .getHeaders()
+              .add(
+                  SyncUtils.HEADER_AUTHORIZATION,
+                  CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
+
+          renderService.toJson(
+              request.getBody(), Map.of("importStrategy", importStrategy, "events", events));
+        };
+
+    return sendSyncRequest(
+        systemSettings, restTemplate, requestCallback, instance, SyncEndpoint.TRACKER_IMPORT);
   }
 
   private boolean sendSynchronizationRequest(
