@@ -105,7 +105,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
     when(bundle.getUser()).thenReturn(user);
-    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
+    when(trackerAccessManager.canCreate(any(), eq(convertedRelationship))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, relationship);
 
@@ -117,7 +117,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
     when(bundle.getUser()).thenReturn(user);
-    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
+    when(trackerAccessManager.canCreate(any(), eq(convertedRelationship)))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, relationship);
