@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,267 +29,238 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
-/**
- * DataStatistics object to be saved as snapshot.
- *
- * @author Julie Hill Roa
- * @author Yrjan A. F. Fraschetti
- */
+@JsonInclude(JsonInclude.Include.NON_NULL) // optional: drop nulls from JSON
 public class DataStatistics extends BaseIdentifiableObject {
-  private Double mapViews;
 
-  private Double visualizationViews;
+  @JsonProperty private Long mapViews;
+  @JsonProperty private Long visualizationViews;
+  @JsonProperty private Long eventReportViews;
+  @JsonProperty private Long eventChartViews;
+  @JsonProperty private Long eventVisualizationViews;
+  @JsonProperty private Long dashboardViews;
+  @JsonProperty private Long passiveDashboardViews;
+  @JsonProperty private Long dataSetReportViews;
+  @JsonProperty private Long totalViews;
 
-  private Double eventReportViews;
+  @JsonProperty private Long savedMaps;
+  @JsonProperty private Long savedVisualizations;
+  @JsonProperty private Long savedEventReports;
+  @JsonProperty private Long savedEventCharts;
+  @JsonProperty private Long savedEventVisualizations;
+  @JsonProperty private Long savedDashboards;
+  @JsonProperty private Long savedIndicators;
+  @JsonProperty private Long savedDataValues;
 
-  private Double eventChartViews;
-
-  private Double eventVisualizationViews;
-
-  private Double dashboardViews;
-
-  private Double passiveDashboardViews;
-
-  private Double dataSetReportViews;
-
-  private Double totalViews;
-
-  private Double savedMaps;
-
-  private Double savedVisualizations;
-
-  private Double savedEventReports;
-
-  private Double savedEventCharts;
-
-  private Double savedEventVisualizations;
-
-  private Double savedDashboards;
-
-  private Double savedIndicators;
-
-  private Double savedDataValues;
-
-  private Integer activeUsers;
-
-  private Integer users;
+  @JsonProperty private Integer activeUsers;
+  @JsonProperty private Integer users;
 
   public DataStatistics() {}
 
+  /** Convenience ctor: accepts any Number (Integer/Long/Double 3.0) and coerces to Long. */
   public DataStatistics(
-      Double mapViews,
-      Double visualizationViews,
-      Double eventReportViews,
-      Double eventChartViews,
-      Double eventVisualizationViews,
-      Double dashboardViews,
-      Double passiveDashboardViews,
-      Double dataSetReportViews,
-      Double totalViews,
-      Double savedMaps,
-      Double savedVisualizations,
-      Double savedEventReports,
-      Double savedEventCharts,
-      Double savedEventVisualizations,
-      Double savedDashboards,
-      Double savedIndicators,
-      Double savedDataValues,
+      Number mapViews,
+      Number visualizationViews,
+      Number eventReportViews,
+      Number eventChartViews,
+      Number eventVisualizationViews,
+      Number dashboardViews,
+      Number passiveDashboardViews,
+      Number dataSetReportViews,
+      Number totalViews,
+      Number savedMaps,
+      Number savedVisualizations,
+      Number savedEventReports,
+      Number savedEventCharts,
+      Number savedEventVisualizations,
+      Number savedDashboards,
+      Number savedIndicators,
+      Number savedDataValues,
       Integer activeUsers,
       Integer users) {
-    this.mapViews = mapViews;
-    this.visualizationViews = visualizationViews;
-    this.eventReportViews = eventReportViews;
-    this.eventChartViews = eventChartViews;
-    this.eventVisualizationViews = eventVisualizationViews;
-    this.dashboardViews = dashboardViews;
-    this.passiveDashboardViews = passiveDashboardViews;
-    this.dataSetReportViews = dataSetReportViews;
-    this.totalViews = totalViews;
-    this.savedMaps = savedMaps;
-    this.savedVisualizations = savedVisualizations;
-    this.savedEventReports = savedEventReports;
-    this.savedEventCharts = savedEventCharts;
-    this.savedEventVisualizations = savedEventVisualizations;
-    this.savedDashboards = savedDashboards;
-    this.savedIndicators = savedIndicators;
-    this.savedDataValues = savedDataValues;
+
+    this.mapViews = toLong(mapViews);
+    this.visualizationViews = toLong(visualizationViews);
+    this.eventReportViews = toLong(eventReportViews);
+    this.eventChartViews = toLong(eventChartViews);
+    this.eventVisualizationViews = toLong(eventVisualizationViews);
+    this.dashboardViews = toLong(dashboardViews);
+    this.passiveDashboardViews = toLong(passiveDashboardViews);
+    this.dataSetReportViews = toLong(dataSetReportViews);
+    this.totalViews = toLong(totalViews);
+
+    this.savedMaps = toLong(savedMaps);
+    this.savedVisualizations = toLong(savedVisualizations);
+    this.savedEventReports = toLong(savedEventReports);
+    this.savedEventCharts = toLong(savedEventCharts);
+    this.savedEventVisualizations = toLong(savedEventVisualizations);
+    this.savedDashboards = toLong(savedDashboards);
+    this.savedIndicators = toLong(savedIndicators);
+    this.savedDataValues = toLong(savedDataValues);
+
     this.activeUsers = activeUsers;
     this.users = users;
   }
 
-  @JsonProperty
+  private static Long toLong(Number n) {
+    return n == null ? null : n.longValue();
+  }
+
+  // ---- getters/setters as Long/Integer ----
+
+  public Long getMapViews() {
+    return mapViews;
+  }
+
+  public void setMapViews(Long v) {
+    this.mapViews = v;
+  }
+
+  public Long getVisualizationViews() {
+    return visualizationViews;
+  }
+
+  public void setVisualizationViews(Long v) {
+    this.visualizationViews = v;
+  }
+
+  public Long getEventReportViews() {
+    return eventReportViews;
+  }
+
+  public void setEventReportViews(Long v) {
+    this.eventReportViews = v;
+  }
+
+  public Long getEventChartViews() {
+    return eventChartViews;
+  }
+
+  public void setEventChartViews(Long v) {
+    this.eventChartViews = v;
+  }
+
+  public Long getEventVisualizationViews() {
+    return eventVisualizationViews;
+  }
+
+  public void setEventVisualizationViews(Long v) {
+    this.eventVisualizationViews = v;
+  }
+
+  public Long getDashboardViews() {
+    return dashboardViews;
+  }
+
+  public void setDashboardViews(Long v) {
+    this.dashboardViews = v;
+  }
+
+  public Long getPassiveDashboardViews() {
+    return passiveDashboardViews;
+  }
+
+  public void setPassiveDashboardViews(Long v) {
+    this.passiveDashboardViews = v;
+  }
+
+  public Long getDataSetReportViews() {
+    return dataSetReportViews;
+  }
+
+  public void setDataSetReportViews(Long v) {
+    this.dataSetReportViews = v;
+  }
+
+  public Long getTotalViews() {
+    return totalViews;
+  }
+
+  public void setTotalViews(Long v) {
+    this.totalViews = v;
+  }
+
+  public Long getSavedMaps() {
+    return savedMaps;
+  }
+
+  public void setSavedMaps(Long v) {
+    this.savedMaps = v;
+  }
+
+  public Long getSavedVisualizations() {
+    return savedVisualizations;
+  }
+
+  public void setSavedVisualizations(Long v) {
+    this.savedVisualizations = v;
+  }
+
+  public Long getSavedEventReports() {
+    return savedEventReports;
+  }
+
+  public void setSavedEventReports(Long v) {
+    this.savedEventReports = v;
+  }
+
+  public Long getSavedEventCharts() {
+    return savedEventCharts;
+  }
+
+  public void setSavedEventCharts(Long v) {
+    this.savedEventCharts = v;
+  }
+
+  public Long getSavedEventVisualizations() {
+    return savedEventVisualizations;
+  }
+
+  public void setSavedEventVisualizations(Long v) {
+    this.savedEventVisualizations = v;
+  }
+
+  public Long getSavedDashboards() {
+    return savedDashboards;
+  }
+
+  public void setSavedDashboards(Long v) {
+    this.savedDashboards = v;
+  }
+
+  public Long getSavedIndicators() {
+    return savedIndicators;
+  }
+
+  public void setSavedIndicators(Long v) {
+    this.savedIndicators = v;
+  }
+
+  public Long getSavedDataValues() {
+    return savedDataValues;
+  }
+
+  public void setSavedDataValues(Long v) {
+    this.savedDataValues = v;
+  }
+
   public Integer getActiveUsers() {
     return activeUsers;
   }
 
-  public void setActiveUsers(Integer activeUsers) {
-    this.activeUsers = activeUsers;
+  public void setActiveUsers(Integer v) {
+    this.activeUsers = v;
   }
 
-  @JsonProperty
-  public Double getMapViews() {
-    return mapViews;
-  }
-
-  public void setMapViews(Double mapViews) {
-    this.mapViews = mapViews;
-  }
-
-  @JsonProperty
-  public Double getVisualizationViews() {
-    return visualizationViews;
-  }
-
-  public void setVisualizationViews(Double visualizationViews) {
-    this.visualizationViews = visualizationViews;
-  }
-
-  @JsonProperty
-  public Double getEventReportViews() {
-    return eventReportViews;
-  }
-
-  public void setEventReportViews(Double eventReportViews) {
-    this.eventReportViews = eventReportViews;
-  }
-
-  @JsonProperty
-  public Double getEventChartViews() {
-    return eventChartViews;
-  }
-
-  public void setEventChartViews(Double eventChartViews) {
-    this.eventChartViews = eventChartViews;
-  }
-
-  @JsonProperty
-  public Double getEventVisualizationViews() {
-    return eventVisualizationViews;
-  }
-
-  public void setEventVisualizationViews(Double eventVisualizationViews) {
-    this.eventVisualizationViews = eventVisualizationViews;
-  }
-
-  @JsonProperty
-  public Double getDashboardViews() {
-    return dashboardViews;
-  }
-
-  public void setDashboardViews(Double dashboardViews) {
-    this.dashboardViews = dashboardViews;
-  }
-
-  @JsonProperty
-  public Double getPassiveDashboardViews() {
-    return passiveDashboardViews;
-  }
-
-  public void setPassiveDashboardViews(Double passiveDashboardViews) {
-    this.passiveDashboardViews = passiveDashboardViews;
-  }
-
-  @JsonProperty
-  public Double getDataSetReportViews() {
-    return dataSetReportViews;
-  }
-
-  public void setDataSetReportViews(Double dataSetReportViews) {
-    this.dataSetReportViews = dataSetReportViews;
-  }
-
-  @JsonProperty
-  public Double getTotalViews() {
-    return totalViews;
-  }
-
-  public void setTotalViews(Double totalViews) {
-    this.totalViews = totalViews;
-  }
-
-  @JsonProperty
-  public Double getSavedMaps() {
-    return savedMaps;
-  }
-
-  public void setSavedMaps(Double savedMaps) {
-    this.savedMaps = savedMaps;
-  }
-
-  @JsonProperty
-  public Double getSavedVisualizations() {
-    return savedVisualizations;
-  }
-
-  public void setSavedVisualizations(Double savedVisualizations) {
-    this.savedVisualizations = savedVisualizations;
-  }
-
-  @JsonProperty
-  public Double getSavedEventReports() {
-    return savedEventReports;
-  }
-
-  public void setSavedEventReports(Double savedEventReports) {
-    this.savedEventReports = savedEventReports;
-  }
-
-  @JsonProperty
-  public Double getSavedEventCharts() {
-    return savedEventCharts;
-  }
-
-  public void setSavedEventCharts(Double savedEventCharts) {
-    this.savedEventCharts = savedEventCharts;
-  }
-
-  @JsonProperty
-  public Double getSavedEventVisualizations() {
-    return savedEventVisualizations;
-  }
-
-  public void setSavedEventVisualizations(Double savedEventVisualizations) {
-    this.savedEventVisualizations = savedEventVisualizations;
-  }
-
-  @JsonProperty
-  public Double getSavedDashboards() {
-    return savedDashboards;
-  }
-
-  public void setSavedDashboards(Double savedDashboards) {
-    this.savedDashboards = savedDashboards;
-  }
-
-  @JsonProperty
-  public Double getSavedIndicators() {
-    return savedIndicators;
-  }
-
-  public void setSavedIndicators(Double savedIndicators) {
-    this.savedIndicators = savedIndicators;
-  }
-
-  @JsonProperty
-  public Double getSavedDataValues() {
-    return savedDataValues;
-  }
-
-  public void setSavedDataValues(Double savedDataValues) {
-    this.savedDataValues = savedDataValues;
-  }
-
-  @JsonProperty
   public Integer getUsers() {
     return users;
   }
 
-  @JsonProperty
-  public void setUsers(Integer users) {
-    this.users = users;
+  public void setUsers(Integer v) {
+    this.users = v;
   }
 
   @Override
@@ -310,6 +281,8 @@ public class DataStatistics extends BaseIdentifiableObject {
         + dashboardViews
         + ", passiveDashboardViews="
         + passiveDashboardViews
+        + ", dataSetReportViews="
+        + dataSetReportViews
         + ", totalViews="
         + totalViews
         + ", savedMaps="

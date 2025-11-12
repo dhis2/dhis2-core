@@ -31,12 +31,14 @@ package org.hisp.dhis.datastatistics;
 
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.Dhis2Info;
@@ -46,7 +48,7 @@ import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -58,7 +60,6 @@ import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,6 +86,8 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   private final EventVisualizationStore eventVisualizationStore;
 
   private final SystemService systemService;
+
+  private static final ZoneId SERVER_ZONE = ZoneId.systemDefault();
 
   // -------------------------------------------------------------------------
   // DataStatisticsService implementation
@@ -143,29 +146,29 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     progress.startingStage("Counting users", SKIP_STAGE);
     Integer users = progress.runStage(errorValue, () -> idObjectManager.getCount(User.class));
     progress.startingStage("Counting views", SKIP_STAGE);
-    Map<DataStatisticsEventType, Double> eventCountMap =
+    Map<DataStatisticsEventType, Long> eventCountMap =
         progress.runStage(
             Map.of(), () -> dataStatisticsEventStore.getDataStatisticsEventCount(startDate, day));
 
     return new DataStatistics(
-        eventCountMap.get(DataStatisticsEventType.MAP_VIEW),
-        eventCountMap.get(DataStatisticsEventType.VISUALIZATION_VIEW),
-        eventCountMap.get(DataStatisticsEventType.EVENT_REPORT_VIEW),
-        eventCountMap.get(DataStatisticsEventType.EVENT_CHART_VIEW),
-        eventCountMap.get(DataStatisticsEventType.EVENT_VISUALIZATION_VIEW),
-        eventCountMap.get(DataStatisticsEventType.DASHBOARD_VIEW),
-        eventCountMap.get(DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW),
-        eventCountMap.get(DataStatisticsEventType.DATA_SET_REPORT_VIEW),
-        eventCountMap.get(DataStatisticsEventType.TOTAL_VIEW),
-        asDouble(savedMaps),
-        asDouble(savedVisualizations),
-        asDouble(savedEventReports),
-        asDouble(savedEventCharts),
-        asDouble(savedEventVisualizations),
-        asDouble(savedDashboards),
-        asDouble(savedIndicators),
-        asDouble(savedDataValues),
-        eventCountMap.get(DataStatisticsEventType.ACTIVE_USERS).intValue(),
+        c(eventCountMap, DataStatisticsEventType.MAP_VIEW),
+        c(eventCountMap, DataStatisticsEventType.VISUALIZATION_VIEW),
+        c(eventCountMap, DataStatisticsEventType.EVENT_REPORT_VIEW),
+        c(eventCountMap, DataStatisticsEventType.EVENT_CHART_VIEW),
+        c(eventCountMap, DataStatisticsEventType.EVENT_VISUALIZATION_VIEW),
+        c(eventCountMap, DataStatisticsEventType.DASHBOARD_VIEW),
+        c(eventCountMap, DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW),
+        c(eventCountMap, DataStatisticsEventType.DATA_SET_REPORT_VIEW),
+        c(eventCountMap, DataStatisticsEventType.TOTAL_VIEW),
+        savedMaps,
+        savedVisualizations,
+        savedEventReports,
+        savedEventCharts,
+        savedEventVisualizations,
+        savedDashboards,
+        savedIndicators,
+        savedDataValues,
+        (int) c(eventCountMap, DataStatisticsEventType.ACTIVE_USERS),
         users);
   }
 
@@ -205,16 +208,13 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     statistics.setObjectCounts(objectCounts);
 
     // Active users
-    Date lastHour = new DateTime().minusHours(1).toDate();
-
-    Map<Integer, Integer> activeUsers = new HashMap<>();
-
-    activeUsers.put(0, userService.getActiveUsersCount(lastHour));
-    activeUsers.put(1, userService.getActiveUsersCount(0));
-    activeUsers.put(2, userService.getActiveUsersCount(1));
-    activeUsers.put(7, userService.getActiveUsersCount(7));
-    activeUsers.put(30, userService.getActiveUsersCount(30));
-
+    Map<Integer, Integer> activeUsers =
+        Map.ofEntries(
+            Map.entry(0, userService.getActiveUsersCount(hoursAgo(1))),
+            Map.entry(1, userService.getActiveUsersCount(startOfToday())),
+            Map.entry(2, userService.getActiveUsersCount(daysAgo(2))),
+            Map.entry(7, userService.getActiveUsersCount(daysAgo(7))),
+            Map.entry(30, userService.getActiveUsersCount(daysAgo(30))));
     statistics.setActiveUsers(activeUsers);
 
     // User invitations
@@ -231,72 +231,52 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
     statistics.setUserInvitations(userInvitations);
 
-    Map<Integer, Integer> dataValueCount = new HashMap<>();
-    dataValueCount.put(0, dataValueService.getDataValueCount(0));
-    dataValueCount.put(1, dataValueService.getDataValueCount(1));
-    dataValueCount.put(7, dataValueService.getDataValueCount(7));
-    dataValueCount.put(30, dataValueService.getDataValueCount(30));
+    Map<Integer, Integer> dataValueCount =
+        Map.ofEntries(
+            Map.entry(0, dataValueService.getDataValueCountLastUpdatedAfter(hoursAgo(1), true)),
+            Map.entry(1, dataValueService.getDataValueCountLastUpdatedAfter(daysAgo(1), true)),
+            Map.entry(7, dataValueService.getDataValueCountLastUpdatedAfter(daysAgo(7), true)),
+            Map.entry(30, dataValueService.getDataValueCountLastUpdatedAfter(daysAgo(30), true)));
     statistics.setDataValueCount(dataValueCount);
 
-    long trackerEventCountUpdatedToday =
-        idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(0));
-    long trackerEventCountUpdatedOneDayAgo =
-        idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(1));
-    long trackerEventCountUpdatedSevenDaysAgo =
-        idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(7));
-    long trackerEventCountUpdatedOneMonthAgo =
-        idObjectManager.getCountByLastUpdated(TrackerEvent.class, todayMinusDays(30));
-    long singleEventCountUpdatedToday =
-        idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(0));
-    long singleEventCountUpdatedOneDayAgo =
-        idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(1));
-    long singleEventCountUpdatedSevenDaysAgo =
-        idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(7));
-    long singleEventCountUpdatedOneMonthAgo =
-        idObjectManager.getCountByLastUpdated(SingleEvent.class, todayMinusDays(30));
-
-    Map<Integer, Long> trackerEventCount = new HashMap<>();
-    trackerEventCount.put(0, trackerEventCountUpdatedToday);
-    trackerEventCount.put(1, trackerEventCountUpdatedOneDayAgo);
-    trackerEventCount.put(7, trackerEventCountUpdatedSevenDaysAgo);
-    trackerEventCount.put(30, trackerEventCountUpdatedOneMonthAgo);
+    Map<Integer, Long> trackerEventCount =
+        Map.ofEntries(
+            Map.entry(
+                0, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, hoursAgo(1))),
+            Map.entry(
+                1, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, daysAgo(1))),
+            Map.entry(
+                7, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, daysAgo(7))),
+            Map.entry(
+                30, (long) idObjectManager.getCountByLastUpdated(TrackerEvent.class, daysAgo(30))));
     statistics.setTrackerEventCount(trackerEventCount);
 
-    Map<Integer, Long> singleEventCount = new HashMap<>();
-    singleEventCount.put(0, singleEventCountUpdatedOneDayAgo);
-    singleEventCount.put(1, singleEventCountUpdatedOneDayAgo);
-    singleEventCount.put(7, singleEventCountUpdatedSevenDaysAgo);
-    singleEventCount.put(30, singleEventCountUpdatedOneMonthAgo);
+    Map<Integer, Long> singleEventCount =
+        Map.ofEntries(
+            Map.entry(
+                0, (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, hoursAgo(1))),
+            Map.entry(
+                1, (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, daysAgo(1))),
+            Map.entry(
+                7, (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, daysAgo(7))),
+            Map.entry(
+                30, (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, daysAgo(30))));
     statistics.setEventCount(singleEventCount);
 
-    Map<Integer, Long> eventCount = new HashMap<>();
-    eventCount.put(0, trackerEventCountUpdatedToday + singleEventCountUpdatedToday);
-    eventCount.put(1, trackerEventCountUpdatedOneDayAgo + singleEventCountUpdatedOneDayAgo);
-    eventCount.put(7, trackerEventCountUpdatedSevenDaysAgo + singleEventCountUpdatedSevenDaysAgo);
-    eventCount.put(30, trackerEventCountUpdatedOneMonthAgo + singleEventCountUpdatedOneMonthAgo);
-    statistics.setEventCount(eventCount);
+    Map<Integer, Long> eventCount = new HashMap<>(trackerEventCount);
+    singleEventCount.forEach((k, v) -> eventCount.merge(k, v, Long::sum));
+    statistics.setEventCount(Map.copyOf(eventCount));
 
-    Map<Integer, Long> enrollmentCount = new HashMap<>();
-    enrollmentCount.put(
-        0,
-        (long)
-            idObjectManager.getCountByLastUpdated(
-                org.hisp.dhis.program.Enrollment.class, todayMinusDays(0)));
-    enrollmentCount.put(
-        1,
-        (long)
-            idObjectManager.getCountByLastUpdated(
-                org.hisp.dhis.program.Enrollment.class, todayMinusDays(1)));
-    enrollmentCount.put(
-        7,
-        (long)
-            idObjectManager.getCountByLastUpdated(
-                org.hisp.dhis.program.Enrollment.class, todayMinusDays(7)));
-    enrollmentCount.put(
-        30,
-        (long)
-            idObjectManager.getCountByLastUpdated(
-                org.hisp.dhis.program.Enrollment.class, todayMinusDays(30)));
+    Map<Integer, Long> enrollmentCount =
+        Map.ofEntries(
+            Map.entry(
+                0, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, hoursAgo(1))),
+            Map.entry(
+                1, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(1))),
+            Map.entry(
+                7, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(7))),
+            Map.entry(
+                30, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(30))));
     statistics.setEnrollmentCount(enrollmentCount);
 
     statistics.setSystem(getDhis2Info());
@@ -304,27 +284,30 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     return statistics;
   }
 
-  private static Date todayMinusDays(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-    return cal.getTime();
+  private static long c(Map<DataStatisticsEventType, Long> map, DataStatisticsEventType type) {
+    return map.getOrDefault(type, 0L);
+  }
+
+  private static Date startOfToday() {
+    return Date.from(LocalDate.now(SERVER_ZONE).atStartOfDay(ZoneId.systemDefault()).toInstant());
+  }
+
+  private static Date daysAgo(int d) {
+    return Date.from(ZonedDateTime.now(SERVER_ZONE).minusDays(d).toInstant());
+  }
+
+  private static Date hoursAgo(int h) {
+    return Date.from(ZonedDateTime.now(SERVER_ZONE).minusHours(h).toInstant());
   }
 
   private Date getStartDate(Date day) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(day);
-    cal.add(Calendar.DATE, -1);
-    return cal.getTime();
+    return Date.from(day.toInstant().atZone(SERVER_ZONE).minusDays(1).toInstant());
   }
 
   private int getDays(Date startDate) {
-    Date now = new Date();
-    long diff = now.getTime() - startDate.getTime();
-    return (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
-  }
-
-  private Double asDouble(Integer count) {
-    return count == null ? null : count.doubleValue();
+    LocalDate start = startDate.toInstant().atZone(SERVER_ZONE).toLocalDate();
+    LocalDate today = LocalDate.now(SERVER_ZONE);
+    return (int) ChronoUnit.DAYS.between(start, today);
   }
 
   private Dhis2Info getDhis2Info() {

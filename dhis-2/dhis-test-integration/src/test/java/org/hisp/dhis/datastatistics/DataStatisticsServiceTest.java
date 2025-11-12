@@ -69,7 +69,7 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   @BeforeAll
   void setUp() {
     DateTime formatdate;
-    fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
+    fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
     formatdate = fmt.parseDateTime("2016-03-22");
     Date now = formatdate.toDate();
     dse1 = new DataStatisticsEvent();

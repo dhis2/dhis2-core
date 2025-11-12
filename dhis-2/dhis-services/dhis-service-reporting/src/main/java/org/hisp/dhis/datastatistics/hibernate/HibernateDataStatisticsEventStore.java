@@ -31,11 +31,10 @@ package org.hisp.dhis.datastatistics.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
-import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import jakarta.persistence.EntityManager;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -75,53 +74,64 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
   }
 
   @Override
-  public Map<DataStatisticsEventType, Double> getDataStatisticsEventCount(
+  public Map<DataStatisticsEventType, Long> getDataStatisticsEventCount(
       Date startDate, Date endDate) {
-    Map<DataStatisticsEventType, Double> eventTypeCountMap = new HashMap<>();
+    // EnumMap is ideal for enum keys
+    Map<DataStatisticsEventType, Long> eventTypeCountMap =
+        new EnumMap<>(DataStatisticsEventType.class);
 
     final String sql =
         "select eventtype as eventtype, count(eventtype) as numberofviews "
             + "from datastatisticsevent "
             + "where timestamp between ? and ? "
-            + "group by eventtype;";
+            + "group by eventtype";
+
+    final String totalSql =
+        "select count(eventtype) as total "
+            + "from datastatisticsevent "
+            + "where timestamp between ? and ?";
+
+    final String activeUsersSql =
+        "select count(distinct username) as activeusers "
+            + "from datastatisticsevent "
+            + "where timestamp between ? and ?";
 
     PreparedStatementSetter pss =
-        (ps) -> {
+        ps -> {
           int i = 1;
-          ps.setDate(i++, asSqlDate(startDate));
-          ps.setDate(i++, asSqlDate(endDate));
+          ps.setTimestamp(i++, new java.sql.Timestamp(startDate.getTime()));
+          ps.setTimestamp(i++, new java.sql.Timestamp(endDate.getTime()));
         };
 
     jdbcTemplate.query(
         sql,
         pss,
-        (rs, i) ->
-            eventTypeCountMap.put(
-                DataStatisticsEventType.valueOf(rs.getString("eventtype")),
-                rs.getDouble("numberofviews")));
+        (rs, i) -> {
+          DataStatisticsEventType type = DataStatisticsEventType.valueOf(rs.getString("eventtype"));
+          long count = rs.getLong("numberofviews"); // COUNT(*) is non-null
+          eventTypeCountMap.put(type, count);
+          return null;
+        });
 
-    final String totalSql =
-        "select count(eventtype) as total "
-            + "from datastatisticsevent "
-            + "where timestamp between ? and ?;";
-
+    // total views
     jdbcTemplate.query(
         totalSql,
         pss,
-        (resultSet, i) ->
-            eventTypeCountMap.put(
-                DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble("total")));
+        (rs, i) -> {
+          long total = rs.getLong("total");
+          eventTypeCountMap.put(DataStatisticsEventType.TOTAL_VIEW, total);
+          return null;
+        });
 
-    final String activeUsersSql =
-        "select count(distinct username) as activeusers "
-            + "from datastatisticsevent "
-            + "where timestamp between ? and ?;";
+    // active users
     jdbcTemplate.query(
         activeUsersSql,
         pss,
-        (resultSet, i) ->
-            eventTypeCountMap.put(
-                DataStatisticsEventType.ACTIVE_USERS, resultSet.getDouble("activeusers")));
+        (rs, i) -> {
+          long active = rs.getLong("activeusers");
+          eventTypeCountMap.put(DataStatisticsEventType.ACTIVE_USERS, active);
+          return null;
+        });
 
     return eventTypeCountMap;
   }
