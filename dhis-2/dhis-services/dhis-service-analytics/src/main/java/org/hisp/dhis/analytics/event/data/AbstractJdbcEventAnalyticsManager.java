@@ -2620,6 +2620,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param cteContext the {@link CteContext} object
    */
   private void generateFilterCTEs(EventQueryParams params, CteContext cteContext) {
+    // Filter CTEs are only meaningful for Enrollment queries
+    if (cteContext.isEventsAnalytics()) {
+      return;
+    }
     generateFilterCTEs(params, cteContext, false);
   }
 
@@ -2630,8 +2634,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param cteContext the {@link CteContext} to which the new CTE definition(s) will be added
    * @param item the {@link QueryItem} containing program-stage details
-   * @param params the {@link EventQueryParams}, used for checking row-context eligibility, offsets,
-   *     etc.
+   * @param params the {@link EventQueryParams}params.getEndpointItem(), used for checking
+   *     row-context eligibility, offsets, etc.
    */
   private void buildProgramStageCte(
       CteContext cteContext, QueryItem item, EventQueryParams params) {
