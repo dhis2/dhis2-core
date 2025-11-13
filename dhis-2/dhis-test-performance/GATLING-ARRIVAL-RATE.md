@@ -128,7 +128,7 @@ Open Kibana and navigate to the user arrival rate dashboard:
 open http://localhost:5601/app/dashboards
 ```
 
-Look for the dashboard named "User Arrival Rate" or "Injection Profile".
+Look for the dashboard named "Arrival Rate & Load".
 
 ### Step 3: Select Time Range
 
@@ -141,7 +141,7 @@ Use Kibana's time picker (top right) to select your analysis period:
 
 The dashboard shows:
 
-* **Arrival Rate Plot**: Visual representation of new users/sec over time (1-second intervals)
+* **User Arrival Rate - λ (Arrival)**: Visual representation of new users/sec over time (1-second intervals)
 * **Total Unique Sessions**: Total distinct sessions in the selected period
 
 ### Step 5: Use in Load Tests
