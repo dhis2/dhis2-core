@@ -154,7 +154,7 @@ WITH filtered AS (
         + "SELECT\n"
         + "  date_trunc('year', created) AS period,\n"
         + "  EXTRACT(YEAR FROM date_trunc('year', created))::int AS yr,\n"
-        + commonSelectList()
+        + COMMON_SELECT_LIST
         + "\n"
         + "FROM filtered\n"
         + "GROUP BY period, yr\n"
@@ -170,7 +170,7 @@ WITH filtered AS (
         + "SELECT period,\n"
         + "       EXTRACT(YEAR  FROM period)::int AS yr,\n"
         + "       EXTRACT(MONTH FROM period)::int AS mnt,\n"
-        + commonSelectList()
+        + COMMON_SELECT_LIST
         + "\n"
         + "FROM bucketed\n"
         + "GROUP BY period, yr, mnt\n"
@@ -186,7 +186,7 @@ WITH filtered AS (
         + "SELECT period,\n"
         + "       EXTRACT(ISOYEAR FROM period)::int AS isoyear,\n"
         + "       EXTRACT(WEEK    FROM period)::int AS wk,\n"
-        + commonSelectList()
+        + COMMON_SELECT_LIST
         + "\n"
         + "FROM bucketed\n"
         + "GROUP BY period, isoyear, wk\n"
@@ -203,7 +203,7 @@ WITH filtered AS (
         + "       EXTRACT(YEAR  FROM period)::int  AS yr,\n"
         + "       EXTRACT(MONTH FROM period)::int  AS mnt,\n"
         + "       EXTRACT(DAY   FROM period)::int  AS day,\n"
-        + commonSelectList()
+        + COMMON_SELECT_LIST
         + "\n"
         + "FROM bucketed\n"
         + "GROUP BY period, yr, mnt, day\n"
@@ -219,37 +219,37 @@ WITH filtered AS (
     };
   }
 
-  private static String commonSelectList() {
-    return String.join(
-        ", ",
-        "SUM(mapviews)::bigint                AS mapViews",
-        "SUM(visualizationviews)::bigint      AS visualizationViews",
-        "SUM(eventreportviews)::bigint        AS eventReportViews",
-        "SUM(eventchartviews)::bigint         AS eventChartViews",
-        "SUM(eventvisualizationviews)::bigint AS eventVisualizationViews",
-        "SUM(dashboardviews)::bigint          AS dashboardViews",
-        "SUM(passivedashboardviews)::bigint   AS passiveDashboardViews",
-        "SUM(datasetreportviews)::bigint      AS dataSetReportViews",
-        "MAX(active_users)                    AS activeUsers",
-        "COALESCE(SUM(totalviews)::double precision              / NULLIF(MAX(active_users), 0), 0) AS averageViews",
-        "COALESCE(SUM(mapviews)::double precision                / NULLIF(MAX(active_users), 0), 0) AS averageMapViews",
-        "COALESCE(SUM(visualizationviews)::double precision      / NULLIF(MAX(active_users), 0), 0) AS averageVisualizationViews",
-        "COALESCE(SUM(eventreportviews)::double precision        / NULLIF(MAX(active_users), 0), 0) AS averageEventReportViews",
-        "COALESCE(SUM(eventchartviews)::double precision         / NULLIF(MAX(active_users), 0), 0) AS averageEventChartViews",
-        "COALESCE(SUM(eventvisualizationviews)::double precision / NULLIF(MAX(active_users), 0), 0) AS averageEventVisualizationViews",
-        "COALESCE(SUM(dashboardviews)::double precision          / NULLIF(MAX(active_users), 0), 0) AS averageDashboardViews",
-        "COALESCE(SUM(passivedashboardviews)::double precision   / NULLIF(MAX(active_users), 0), 0) AS averagePassiveDashboardViews",
-        "SUM(totalviews)::bigint              AS totalViews",
-        "SUM(maps)::bigint                    AS savedMaps",
-        "SUM(visualizations)::bigint          AS savedVisualizations",
-        "SUM(eventreports)::bigint            AS savedEventReports",
-        "SUM(eventcharts)::bigint             AS savedEventCharts",
-        "SUM(eventvisualizations)::bigint     AS savedEventVisualizations",
-        "SUM(dashboards)::bigint              AS savedDashboards",
-        "SUM(indicators)::bigint              AS savedIndicators",
-        "SUM(datavalues)::bigint              AS savedDataValues",
-        "MAX(users)                           AS users");
-  }
+    static final String COMMON_SELECT_LIST =
+        """
+        SUM(mapviews)::bigint                AS mapViews,
+        SUM(visualizationviews)::bigint      AS visualizationViews,
+        SUM(eventreportviews)::bigint        AS eventReportViews,
+        SUM(eventchartviews)::bigint         AS eventChartViews,
+        SUM(eventvisualizationviews)::bigint AS eventVisualizationViews,
+        SUM(dashboardviews)::bigint          AS dashboardViews,
+        SUM(passivedashboardviews)::bigint   AS passiveDashboardViews,
+        SUM(datasetreportviews)::bigint      AS dataSetReportViews,
+        MAX(active_users)                    AS activeUsers,
+        COALESCE(SUM(totalviews)::double precision              / NULLIF(MAX(active_users), 0), 0) AS averageViews,
+        COALESCE(SUM(mapviews)::double precision                / NULLIF(MAX(active_users), 0), 0) AS averageMapViews,
+        COALESCE(SUM(visualizationviews)::double precision      / NULLIF(MAX(active_users), 0), 0) AS averageVisualizationViews,
+        COALESCE(SUM(eventreportviews)::double precision        / NULLIF(MAX(active_users), 0), 0) AS averageEventReportViews,
+        COALESCE(SUM(eventchartviews)::double precision         / NULLIF(MAX(active_users), 0), 0) AS averageEventChartViews,
+        COALESCE(SUM(eventvisualizationviews)::double precision / NULLIF(MAX(active_users), 0), 0) AS averageEventVisualizationViews,
+        COALESCE(SUM(dashboardviews)::double precision          / NULLIF(MAX(active_users), 0), 0) AS averageDashboardViews,
+        COALESCE(SUM(passivedashboardviews)::double precision   / NULLIF(MAX(active_users), 0), 0) AS averagePassiveDashboardViews,
+        SUM(totalviews)::bigint              AS totalViews,
+        SUM(maps)::bigint                    AS savedMaps,
+        SUM(visualizations)::bigint          AS savedVisualizations,
+        SUM(eventreports)::bigint            AS savedEventReports,
+        SUM(eventcharts)::bigint             AS savedEventCharts,
+        SUM(eventvisualizations)::bigint     AS savedEventVisualizations,
+        SUM(dashboards)::bigint              AS savedDashboards,
+        SUM(indicators)::bigint              AS savedIndicators,
+        SUM(datavalues)::bigint              AS savedDataValues,
+        MAX(users)                           AS users
+        """;
+
 
   private static boolean hasColumn(ResultSet rs, String name) {
     try {

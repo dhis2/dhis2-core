@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -90,8 +91,8 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     ds1Id = ds1.getId();
     dataStatisticsStore.save(ds2);
     ds2Id = ds2.getId();
-    assertTrue(ds1Id != 0);
-    assertTrue(ds2Id != 0);
+    assertNotEquals(0L, ds1Id;
+    assertNotEquals(0L, ds2Id);
   }
 
   @Test
