@@ -71,143 +71,183 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
   public List<AggregatedStatistics> getSnapshotsInInterval(
       EventInterval eventInterval, Date startDate, Date endDate) {
 
-    final String sql = getQuery(eventInterval); // uses the CTE with ? ? placeholders
+    final String sql = getQuery(eventInterval);
 
     log.debug("Get snapshots SQL: {}", sql);
 
     PreparedStatementSetter pss =
         ps -> {
           ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime())); // inclusive
-          ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime())); // exclusive
+          ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime())); // inclusive (per your <=)
         };
 
     return jdbcTemplate.query(
         sql,
         pss,
         (rs, i) -> {
-          AggregatedStatistics ads = new AggregatedStatistics();
 
-          if (hasColumn(rs, "yr")) ads.setYear(rs.getInt("yr"));
+          // period fields are nullable
+          Integer year = null;
+          Integer month = null;
+          Integer week = null;
+          Integer day = null;
+
           switch (eventInterval) {
-            case DAY -> {
-              ads.setMonth(rs.getInt("mnt"));
-              ads.setDay(rs.getInt("day"));
+            case YEAR -> {
+              year = rs.getInt("yr");
+              if (rs.wasNull()) year = null;
+            }
+            case MONTH -> {
+              year = rs.getInt("yr");
+              if (rs.wasNull()) year = null;
+              month = rs.getInt("mnt");
+              if (rs.wasNull()) month = null;
             }
             case WEEK -> {
-              ads.setYear(rs.getInt("isoyear"));
-              ads.setWeek(rs.getInt("wk"));
+              year = rs.getInt("isoyear");
+              if (rs.wasNull()) year = null;
+              week = rs.getInt("wk");
+              if (rs.wasNull()) week = null;
             }
-            case MONTH -> ads.setMonth(rs.getInt("mnt"));
-            default -> {
-              /* YEAR already handled via yr */
+            case DAY -> {
+              year = rs.getInt("yr");
+              if (rs.wasNull()) year = null;
+              month = rs.getInt("mnt");
+              if (rs.wasNull()) month = null;
+              day = rs.getInt("day");
+              if (rs.wasNull()) day = null;
             }
           }
 
-          // counts (BIGINT) -> long
-          ads.setMapViews(rs.getLong("mapViews"));
-          ads.setVisualizationViews(rs.getLong("visualizationViews"));
-          ads.setEventReportViews(rs.getLong("eventReportViews"));
-          ads.setEventChartViews(rs.getLong("eventChartViews"));
-          ads.setEventVisualizationViews(rs.getLong("eventVisualizationViews"));
-          ads.setDashboardViews(rs.getLong("dashboardViews"));
-          ads.setPassiveDashboardViews(rs.getLong("passiveDashboardViews"));
-          ads.setDataSetReportViews(rs.getLong("dataSetReportViews"));
-          ads.setTotalViews(rs.getLong("totalViews"));
-          ads.setSavedMaps(rs.getLong("savedMaps"));
-          ads.setSavedVisualizations(rs.getLong("savedVisualizations"));
-          ads.setSavedEventReports(rs.getLong("savedEventReports"));
-          ads.setSavedEventCharts(rs.getLong("savedEventCharts"));
-          ads.setSavedEventVisualizations(rs.getLong("savedEventVisualizations"));
-          ads.setSavedDashboards(rs.getLong("savedDashboards"));
-          ads.setSavedIndicators(rs.getLong("savedIndicators"));
-          ads.setSavedDataValues(rs.getLong("savedDataValues"));
+          return new AggregatedStatistics(
+              year,
+              month,
+              week,
+              day,
 
-          // averages (double precision)
-          ads.setAverageViews(rs.getDouble("averageViews"));
-          ads.setAverageMapViews(rs.getDouble("averageMapViews"));
-          ads.setAverageVisualizationViews(rs.getDouble("averageVisualizationViews"));
-          ads.setAverageEventReportViews(rs.getDouble("averageEventReportViews"));
-          ads.setAverageEventChartViews(rs.getDouble("averageEventChartViews"));
-          ads.setAverageEventVisualizationViews(rs.getDouble("averageEventVisualizationViews"));
-          ads.setAverageDashboardViews(rs.getDouble("averageDashboardViews"));
-          ads.setAveragePassiveDashboardViews(rs.getDouble("averagePassiveDashboardViews"));
+              // counts (BIGINT → Long)
+              rs.getLong("mapViews"),
+              rs.getLong("visualizationViews"),
+              rs.getLong("eventReportViews"),
+              rs.getLong("eventChartViews"),
+              rs.getLong("eventVisualizationViews"),
+              rs.getLong("dashboardViews"),
+              rs.getLong("passiveDashboardViews"),
+              rs.getLong("dataSetReportViews"),
+              rs.getLong("totalViews"),
 
-          // users
-          ads.setActiveUsers(rs.getLong("activeUsers"));
-          ads.setUsers(rs.getLong("users"));
+              // averages (double precision → Double)
+              rs.getDouble("averageViews"),
+              rs.getDouble("averageMapViews"),
+              rs.getDouble("averageVisualizationViews"),
+              rs.getDouble("averageEventReportViews"),
+              rs.getDouble("averageEventChartViews"),
+              rs.getDouble("averageEventVisualizationViews"),
+              rs.getDouble("averageDashboardViews"),
+              rs.getDouble("averagePassiveDashboardViews"),
 
-          return ads;
+              // saved entities (BIGINT → Long)
+              rs.getLong("savedMaps"),
+              rs.getLong("savedVisualizations"),
+              rs.getLong("savedEventReports"),
+              rs.getLong("savedEventCharts"),
+              rs.getLong("savedEventVisualizations"),
+              rs.getLong("savedDashboards"),
+              rs.getLong("savedIndicators"),
+              rs.getLong("savedDataValues"),
+
+              // users (BIGINT → Long)
+              rs.getLong("activeUsers"),
+              rs.getLong("users"));
         });
   }
 
-  static final String BASE_CTE =
-"""
-WITH filtered AS (
-  SELECT *
-  FROM datastatistics
-  WHERE created >= ? AND created <= ?
-)
-""";
-
   private static String byYearSql() {
-    return BASE_CTE
-        + "SELECT\n"
-        + "  date_trunc('year', created) AS period,\n"
-        + "  EXTRACT(YEAR FROM date_trunc('year', created))::int AS yr,\n"
-        + COMMON_SELECT_LIST
-        + "\n"
-        + "FROM filtered\n"
-        + "GROUP BY period, yr\n"
-        + "ORDER BY period";
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('year', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(YEAR FROM period)::int AS yr,
+               %s
+        FROM bucketed
+        GROUP BY period, yr
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
   }
 
   private static String byMonthSql() {
-    return BASE_CTE
-        + ", bucketed AS (\n"
-        + "  SELECT date_trunc('month', created) AS period, *\n"
-        + "  FROM filtered\n"
-        + ")\n"
-        + "SELECT period,\n"
-        + "       EXTRACT(YEAR  FROM period)::int AS yr,\n"
-        + "       EXTRACT(MONTH FROM period)::int AS mnt,\n"
-        + COMMON_SELECT_LIST
-        + "\n"
-        + "FROM bucketed\n"
-        + "GROUP BY period, yr, mnt\n"
-        + "ORDER BY period";
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('month', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(YEAR  FROM period)::int AS yr,
+               EXTRACT(MONTH FROM period)::int AS mnt,
+               %s
+        FROM bucketed
+        GROUP BY period, yr, mnt
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
   }
 
   private static String byWeekSql() {
-    return BASE_CTE
-        + ", bucketed AS (\n"
-        + "  SELECT date_trunc('week', created) AS period, *\n"
-        + "  FROM filtered\n"
-        + ")\n"
-        + "SELECT period,\n"
-        + "       EXTRACT(ISOYEAR FROM period)::int AS isoyear,\n"
-        + "       EXTRACT(WEEK    FROM period)::int AS wk,\n"
-        + COMMON_SELECT_LIST
-        + "\n"
-        + "FROM bucketed\n"
-        + "GROUP BY period, isoyear, wk\n"
-        + "ORDER BY period";
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('week', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(ISOYEAR FROM period)::int AS isoyear,
+               EXTRACT(WEEK    FROM period)::int AS wk,
+               %s
+        FROM bucketed
+        GROUP BY period, isoyear, wk
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
   }
 
   private static String byDaySql() {
-    return BASE_CTE
-        + ", bucketed AS (\n"
-        + "  SELECT date_trunc('day', created) AS period, *\n"
-        + "  FROM filtered\n"
-        + ")\n"
-        + "SELECT period,\n"
-        + "       EXTRACT(YEAR  FROM period)::int  AS yr,\n"
-        + "       EXTRACT(MONTH FROM period)::int  AS mnt,\n"
-        + "       EXTRACT(DAY   FROM period)::int  AS day,\n"
-        + COMMON_SELECT_LIST
-        + "\n"
-        + "FROM bucketed\n"
-        + "GROUP BY period, yr, mnt, day\n"
-        + "ORDER BY period";
+    return """
+        WITH filtered AS (
+            SELECT *
+            FROM datastatistics
+            WHERE created >= ? AND created <= ?
+        ),
+        bucketed AS (
+            SELECT date_trunc('day', created) AS period, *
+            FROM filtered
+        )
+        SELECT period,
+               EXTRACT(YEAR  FROM period)::int AS yr,
+               EXTRACT(MONTH FROM period)::int AS mnt,
+               EXTRACT(DAY   FROM period)::int AS day,
+               %s
+        FROM bucketed
+        GROUP BY period, yr, mnt, day
+        ORDER BY period
+        """
+        .formatted(COMMON_SELECT_LIST);
   }
 
   private String getQuery(EventInterval interval) {
@@ -219,17 +259,17 @@ WITH filtered AS (
     };
   }
 
-    static final String COMMON_SELECT_LIST =
-        """
-        SUM(mapviews)::bigint                AS mapViews,
-        SUM(visualizationviews)::bigint      AS visualizationViews,
-        SUM(eventreportviews)::bigint        AS eventReportViews,
-        SUM(eventchartviews)::bigint         AS eventChartViews,
-        SUM(eventvisualizationviews)::bigint AS eventVisualizationViews,
-        SUM(dashboardviews)::bigint          AS dashboardViews,
-        SUM(passivedashboardviews)::bigint   AS passiveDashboardViews,
-        SUM(datasetreportviews)::bigint      AS dataSetReportViews,
-        MAX(active_users)                    AS activeUsers,
+  static final String COMMON_SELECT_LIST =
+      """
+        COALESCE(SUM(mapviews), 0)::bigint                AS mapViews,
+        COALESCE(SUM(visualizationviews), 0)::bigint      AS visualizationViews,
+        COALESCE(SUM(eventreportviews), 0)::bigint        AS eventReportViews,
+        COALESCE(SUM(eventchartviews), 0)::bigint         AS eventChartViews,
+        COALESCE(SUM(eventvisualizationviews), 0)::bigint AS eventVisualizationViews,
+        COALESCE(SUM(dashboardviews), 0)::bigint          AS dashboardViews,
+        COALESCE(SUM(passivedashboardviews), 0)::bigint   AS passiveDashboardViews,
+        COALESCE(SUM(datasetreportviews), 0)::bigint      AS dataSetReportViews,
+        COALESCE(MAX(active_users), 0)                    AS activeUsers,
         COALESCE(SUM(totalviews)::double precision              / NULLIF(MAX(active_users), 0), 0) AS averageViews,
         COALESCE(SUM(mapviews)::double precision                / NULLIF(MAX(active_users), 0), 0) AS averageMapViews,
         COALESCE(SUM(visualizationviews)::double precision      / NULLIF(MAX(active_users), 0), 0) AS averageVisualizationViews,
@@ -238,18 +278,17 @@ WITH filtered AS (
         COALESCE(SUM(eventvisualizationviews)::double precision / NULLIF(MAX(active_users), 0), 0) AS averageEventVisualizationViews,
         COALESCE(SUM(dashboardviews)::double precision          / NULLIF(MAX(active_users), 0), 0) AS averageDashboardViews,
         COALESCE(SUM(passivedashboardviews)::double precision   / NULLIF(MAX(active_users), 0), 0) AS averagePassiveDashboardViews,
-        SUM(totalviews)::bigint              AS totalViews,
-        SUM(maps)::bigint                    AS savedMaps,
-        SUM(visualizations)::bigint          AS savedVisualizations,
-        SUM(eventreports)::bigint            AS savedEventReports,
-        SUM(eventcharts)::bigint             AS savedEventCharts,
-        SUM(eventvisualizations)::bigint     AS savedEventVisualizations,
-        SUM(dashboards)::bigint              AS savedDashboards,
-        SUM(indicators)::bigint              AS savedIndicators,
-        SUM(datavalues)::bigint              AS savedDataValues,
-        MAX(users)                           AS users
+        COALESCE(SUM(totalviews),0)::bigint              AS totalViews,
+        COALESCE(SUM(maps),0)::bigint                    AS savedMaps,
+        COALESCE(SUM(visualizations),0)::bigint          AS savedVisualizations,
+        COALESCE(SUM(eventreports),0)::bigint            AS savedEventReports,
+        COALESCE(SUM(eventcharts),0)::bigint             AS savedEventCharts,
+        COALESCE(SUM(eventvisualizations),0)::bigint     AS savedEventVisualizations,
+        COALESCE(SUM(dashboards),0)::bigint              AS savedDashboards,
+        COALESCE(SUM(indicators),0)::bigint              AS savedIndicators,
+        COALESCE(SUM(datavalues),0)::bigint              AS savedDataValues,
+        COALESCE(MAX(users),0)::bigint                           AS users
         """;
-
 
   private static boolean hasColumn(ResultSet rs, String name) {
     try {

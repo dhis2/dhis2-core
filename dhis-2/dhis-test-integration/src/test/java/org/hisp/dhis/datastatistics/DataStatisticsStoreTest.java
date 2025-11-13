@@ -31,7 +31,6 @@ package org.hisp.dhis.datastatistics;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -91,7 +90,7 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     ds1Id = ds1.getId();
     dataStatisticsStore.save(ds2);
     ds2Id = ds2.getId();
-    assertNotEquals(0L, ds1Id;
+    assertNotEquals(0L, ds1Id);
     assertNotEquals(0L, ds2Id);
   }
 
@@ -169,37 +168,42 @@ class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
     dataStatisticsStore.save(ds4);
     dataStatisticsStore.save(ds5);
     dbmsManager.flushSession();
+
     List<AggregatedStatistics> asList =
         dataStatisticsStore.getSnapshotsInInterval(
             EventInterval.YEAR, getDate(2015, 3, 21), getDate(2016, 3, 21));
+
     assertEquals(1, asList.size());
+
     AggregatedStatistics as = asList.get(0);
-    assertEquals(6, as.getMapViews());
-    assertEquals(12, as.getVisualizationViews());
-    assertEquals(18, as.getEventReportViews());
-    assertEquals(21, as.getEventChartViews());
-    assertEquals(18, as.getEventVisualizationViews());
-    assertEquals(24, as.getDashboardViews());
-    assertEquals(66, as.getPassiveDashboardViews());
-    assertEquals(34, as.getDataSetReportViews());
-    assertEquals(39, as.getTotalViews());
-    assertEquals(13, as.getAverageViews());
-    assertEquals(2, as.getAverageMapViews());
-    assertEquals(4, as.getAverageVisualizationViews());
-    assertEquals(6, as.getAverageEventReportViews());
-    assertEquals(7, as.getAverageEventChartViews());
-    assertEquals(6, as.getAverageEventVisualizationViews());
-    assertEquals(8, as.getAverageDashboardViews());
-    assertEquals(22, as.getAveragePassiveDashboardViews());
-    assertEquals(29, as.getSavedMaps());
-    assertEquals(46, as.getSavedVisualizations());
-    assertEquals(38, as.getSavedEventReports());
-    assertEquals(61, as.getSavedEventCharts());
-    assertEquals(86, as.getSavedEventVisualizations());
-    assertEquals(48, as.getSavedDashboards());
-    assertEquals(49, as.getSavedIndicators());
-    assertEquals(45, as.getSavedDataValues());
-    assertEquals(3, as.getActiveUsers());
-    assertEquals(19, as.getUsers());
+
+    assertEquals(2016, as.year());
+    assertEquals(6L, as.mapViews());
+    assertEquals(12L, as.visualizationViews());
+    assertEquals(18L, as.eventReportViews());
+    assertEquals(21L, as.eventChartViews());
+    assertEquals(18L, as.eventVisualizationViews());
+    assertEquals(24L, as.dashboardViews());
+    assertEquals(66L, as.passiveDashboardViews());
+    assertEquals(34L, as.dataSetReportViews());
+    assertEquals(39L, as.totalViews());
+    assertEquals(13.0, as.averageViews(), 0.0001);
+    assertEquals(2.0, as.averageMapViews(), 0.0001);
+    assertEquals(4.0, as.averageVisualizationViews(), 0.0001);
+    assertEquals(6.0, as.averageEventReportViews(), 0.0001);
+    assertEquals(7.0, as.averageEventChartViews(), 0.0001);
+    assertEquals(6.0, as.averageEventVisualizationViews(), 0.0001);
+    assertEquals(8.0, as.averageDashboardViews(), 0.0001);
+    assertEquals(22.0, as.averagePassiveDashboardViews(), 0.0001);
+    assertEquals(29L, as.savedMaps());
+    assertEquals(46L, as.savedVisualizations());
+    assertEquals(38L, as.savedEventReports());
+    assertEquals(61L, as.savedEventCharts());
+    assertEquals(86L, as.savedEventVisualizations());
+    assertEquals(48L, as.savedDashboards());
+    assertEquals(49L, as.savedIndicators());
+    assertEquals(45L, as.savedDataValues());
+    assertEquals(3L, as.activeUsers());
+    assertEquals(19L, as.users());
   }
 }
