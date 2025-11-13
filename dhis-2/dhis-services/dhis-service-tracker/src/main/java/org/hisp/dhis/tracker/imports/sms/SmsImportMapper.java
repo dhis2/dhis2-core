@@ -73,7 +73,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
@@ -146,7 +145,7 @@ class SmsImportMapper {
             List.of(mapToEnrollment(submission, programAttributes, existingAttributeValues)))
         .events(
             emptyIfNull(submission.getEvents()).stream()
-                .map(e -> mapToEvent(e, username, submission.getEnrollment()))
+                .map(e -> mapToTrackerEvent(e, username, submission.getEnrollment()))
                 .toList())
         .build();
   }
@@ -277,7 +276,7 @@ class SmsImportMapper {
   }
 
   @Nonnull
-  private static Event mapToEvent(
+  private static TrackerEvent mapToTrackerEvent(
       @Nonnull SmsEvent submission, @Nonnull String username, @Nonnull Uid enrollment) {
     return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
@@ -297,11 +296,11 @@ class SmsImportMapper {
   @Nonnull
   static TrackerObjects map(
       @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
-    return TrackerObjects.builder().events(List.of(mapEvent(submission, username))).build();
+    return TrackerObjects.builder().events(List.of(mapTrackerEvent(submission, username))).build();
   }
 
   @Nonnull
-  private static Event mapEvent(
+  private static TrackerEvent mapTrackerEvent(
       @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
     return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
@@ -321,11 +320,11 @@ class SmsImportMapper {
   @Nonnull
   static TrackerObjects map(
       @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
-    return TrackerObjects.builder().events(List.of(mapEvent(submission, username))).build();
+    return TrackerObjects.builder().events(List.of(mapTrackerEvent(submission, username))).build();
   }
 
   @Nonnull
-  private static Event mapEvent(
+  private static TrackerEvent mapTrackerEvent(
       @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
     return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
@@ -426,7 +425,7 @@ class SmsImportMapper {
       enrollments = List.of(enrollment);
     }
 
-    Event event =
+    TrackerEvent event =
         mapCommandEvent(sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService);
     event.setEnrollment(enrollmentUid);
 
@@ -499,7 +498,7 @@ class SmsImportMapper {
         .build();
   }
 
-  static @Nonnull Event mapCommandEvent(
+  static @Nonnull TrackerEvent mapCommandEvent(
       @Nonnull IncomingSms sms,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,

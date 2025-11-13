@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -47,22 +45,10 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
   @Override
   protected void registerHandler() {
     whenVetoing(Program.class, this::allowDeleteProgram);
-    whenDeleting(Program.class, this::deleteProgram);
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {
-    if (program.isWithoutRegistration()) {
-      return ACCEPT;
-    }
     String sql = "select 1 from enrollment where programid = :id limit 1";
     return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
-  }
-
-  private void deleteProgram(Program program) {
-    if (program.isRegistration()) {
-      return;
-    }
-
-    delete("delete from enrollment where programid = :id", Map.of("id", program.getId()));
   }
 }

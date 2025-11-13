@@ -93,6 +93,12 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** Time interval for last updated date; */
   private String lastUpdated;
 
+  /** Time interval for created date; */
+  private String createdDate;
+
+  /** Time interval for completed date; */
+  private String completedDate;
+
   /**
    * Dimension identifier including data elements, attributes, program indicators, periods,
    * organisation units and organisation unit group sets. Parameter can be repeated any number of

@@ -49,7 +49,7 @@ import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.util.DateUtils;
 
 public class PeriodCondition extends BaseRenderable {
@@ -68,16 +68,16 @@ public class PeriodCondition extends BaseRenderable {
 
     Date minDate =
         dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
-            .map(Period.class::cast)
-            .map(Period::getStartDate)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getStartDate)
             .filter(Objects::nonNull)
             .reduce(DateUtils::min)
             .orElse(null);
 
     Date maxDate =
         dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
-            .map(Period.class::cast)
-            .map(Period::getEndDate)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getEndDate)
             .filter(Objects::nonNull)
             .map(this::nextDay)
             .reduce(DateUtils::max)
@@ -86,7 +86,8 @@ public class PeriodCondition extends BaseRenderable {
     this.interval = Pair.of(minDate, maxDate);
     this.timeField =
         TimeField.valueOf(
-            ((Period) dimensionIdentifier.getDimension().getDimensionalObject().getItems().get(0))
+            ((PeriodDimension)
+                    dimensionIdentifier.getDimension().getDimensionalObject().getItems().get(0))
                 .getDateField());
   }
 

@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,15 +57,10 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -86,75 +80,9 @@ class AggregateDataExchangeServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private DataValueSetService dataValueSetService;
+  @Mock private DataExportService dataExportService;
 
   @InjectMocks private AggregateDataExchangeService service;
-
-  @Test
-  @SuppressWarnings("unchecked")
-  void testExchangeData() {
-    when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
-        .thenReturn(new DataValueSet());
-    when(dataQueryService.getDimension(
-            eq(DATA_X_DIM_ID),
-            any(),
-            any(Date.class),
-            nullable(List.class),
-            anyBoolean(),
-            nullable(DisplayProperty.class),
-            nullable(IdScheme.class)))
-        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
-    when(dataQueryService.getDimension(
-            eq(PERIOD_DIM_ID),
-            any(),
-            any(Date.class),
-            nullable(List.class),
-            anyBoolean(),
-            nullable(DisplayProperty.class),
-            nullable(IdScheme.class)))
-        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
-    when(dataQueryService.getDimension(
-            eq(ORGUNIT_DIM_ID),
-            any(),
-            any(Date.class),
-            nullable(List.class),
-            anyBoolean(),
-            nullable(DisplayProperty.class),
-            nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
-    when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
-        .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
-    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
-        .thenReturn(true);
-
-    SourceRequest sourceRequest =
-        new SourceRequest()
-            .setName("SourceRequestA")
-            .setDx(List.of("Vz0C3i4Wy3M", "ToaOToReol6"))
-            .setPe(List.of("202101", "202102"))
-            .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN"));
-    Source source = new Source().setRequests(List.of(sourceRequest));
-    TargetRequest request =
-        new TargetRequest()
-            .setDataElementIdScheme("code")
-            .setOrgUnitIdScheme("code")
-            .setIdScheme("uid");
-    Target target = new Target().setType(TargetType.INTERNAL).setApi(new Api()).setRequest(request);
-    AggregateDataExchange exchange =
-        new AggregateDataExchange().setSource(source).setTarget(target);
-
-    ImportSummaries summaries =
-        service.exchangeData(UserDetails.fromUser(new User()), exchange, JobProgress.noop());
-
-    assertNotNull(summaries);
-    assertEquals(1, summaries.getImportSummaries().size());
-
-    ImportSummary summary = summaries.getImportSummaries().get(0);
-
-    assertNotNull(summary);
-    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
-  }
 
   @Test
   @SuppressWarnings("unchecked")

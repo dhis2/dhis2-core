@@ -74,7 +74,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -382,7 +381,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid \
+            """,
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
@@ -709,10 +709,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    // Doris does not support update statements on multikey tables
-    boolean supportsUpdate = !sqlBuilder.getDatabase().equals(Database.DORIS);
-    new AggregationLevelsHelper(jdbcTemplate, sqlBuilder)
-        .applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
+    boolean supportsUpdate = sqlBuilder.supportsUpdateForMultiKeyTable();
+    AggregationLevelsHelper helper = new AggregationLevelsHelper(jdbcTemplate, sqlBuilder);
+    helper.applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
   }
 
   /**

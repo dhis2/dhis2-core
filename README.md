@@ -30,6 +30,9 @@ The software is open source and released under the [BSD 3-Clause license](https:
 
 ## Run DHIS2 in Docker
 
+> [!WARNING]  
+> DO NOT use this Docker Compose file in production! Use the [production-ready Docker Compose deployment](https://github.com/dhis2/docker-deployment).
+
 The following guides runs DHIS2 with [Docker Compose](https://docs.docker.com/compose/install/).
 
 Our Docker Compose file depends on various environment variables. See .env.example for a list of these. You can copy the file to .env and set the variables there.

@@ -300,7 +300,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
             from ${trackedentity} te \
             inner join ${enrollment} en on te.trackedentityid=en.trackedentityid \
-            inner join ${event} ev on en.enrollmentid=ev.enrollmentid \
+            inner join ${trackerevent} ev on en.enrollmentid=ev.enrollmentid \
             where ev.lastupdated <= '${startTime}' \
             and te.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
@@ -383,7 +383,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         replaceQualify(
             sqlBuilder,
             """
-            from ${event} ev \
+            from ${trackerevent} ev \
             inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and ${enDeletedClause} \
             inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
             and ${teDeletedClause} and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \

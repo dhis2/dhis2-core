@@ -46,11 +46,6 @@ import org.hisp.dhis.period.Period;
  * @author Jim Grace
  */
 public interface DataApprovalStore {
-  String ID = DataApprovalStore.class.getName();
-
-  // -------------------------------------------------------------------------
-  // Basic DataApproval
-  // -------------------------------------------------------------------------
 
   /**
    * Adds a DataApproval in order to approve data.
@@ -105,14 +100,6 @@ public interface DataApprovalStore {
       Period period,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo);
-
-  /**
-   * Indicates whether a persisted instance of the given data approval object exists.
-   *
-   * @param dataApproval the data approval to check.
-   * @return true if persisted data approval exists.
-   */
-  boolean dataApprovalExists(DataApproval dataApproval);
 
   /**
    * Returns DataApproval objects (if any) for given collections of approval level, workflow,

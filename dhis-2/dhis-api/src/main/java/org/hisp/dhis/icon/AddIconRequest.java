@@ -48,6 +48,7 @@ public class AddIconRequest {
   private String key;
 
   @JsonProperty private String description;
+
   @JsonProperty private Set<String> keywords = new HashSet<>();
 
   @JsonProperty(required = true)

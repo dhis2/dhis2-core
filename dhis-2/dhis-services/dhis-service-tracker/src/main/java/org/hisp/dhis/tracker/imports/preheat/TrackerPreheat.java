@@ -244,9 +244,6 @@ public class TrackerPreheat {
   /** A Map of trackedEntity uid connected to Enrollments */
   @Getter @Setter private Map<UID, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
-  /** A Map of program uid and without registration {@see Enrollment}. */
-  private final Map<String, Enrollment> enrollmentsWithoutRegistration = new HashMap<>();
-
   /**
    * A map of valid users by username that are present in the payload. A user not available in this
    * cache means, payload's username or uid is invalid. These users are primarily used to represent
@@ -266,7 +263,7 @@ public class TrackerPreheat {
   @Getter @Setter private List<UID> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
   /** A list of Program Stage UID having 1 or more Events */
-  private final List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
+  private final List<Pair<String, String>> programStageWithTrackerEvents = Lists.newArrayList();
 
   /** idScheme map */
   @Getter @Setter private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
@@ -540,14 +537,6 @@ public class TrackerPreheat {
     }
   }
 
-  public Enrollment getEnrollmentsWithoutRegistration(String programUid) {
-    return enrollmentsWithoutRegistration.get(programUid);
-  }
-
-  public void putEnrollmentsWithoutRegistration(String programUid, Enrollment enrollment) {
-    this.enrollmentsWithoutRegistration.put(programUid, enrollment);
-  }
-
   public void addProgramOwners(List<TrackedEntityProgramOwnerOrgUnit> tepos) {
     tepos.forEach(
         tepo -> addProgramOwner(UID.of(tepo.getTrackedEntityId()), tepo.getProgramId(), tepo));
@@ -622,14 +611,14 @@ public class TrackerPreheat {
     return get(TrackedEntityAttribute.class, id);
   }
 
-  public TrackerPreheat addProgramStageWithEvents(String programStageUid, String enrollmentUid) {
-    this.programStageWithEvents.add(Pair.of(programStageUid, enrollmentUid));
-    return this;
+  public void addProgramStageWithTrackerEvents(String programStageUid, String enrollmentUid) {
+    this.programStageWithTrackerEvents.add(Pair.of(programStageUid, enrollmentUid));
   }
 
-  public boolean hasProgramStageWithEvents(MetadataIdentifier programStage, String enrollmentUid) {
+  public boolean hasProgramStageWithTrackerEvents(
+      MetadataIdentifier programStage, String enrollmentUid) {
     ProgramStage ps = this.getProgramStage(programStage);
-    return this.programStageWithEvents.contains(Pair.of(ps.getUid(), enrollmentUid));
+    return this.programStageWithTrackerEvents.contains(Pair.of(ps.getUid(), enrollmentUid));
   }
 
   /** Checks if an entity exists in the DB. */

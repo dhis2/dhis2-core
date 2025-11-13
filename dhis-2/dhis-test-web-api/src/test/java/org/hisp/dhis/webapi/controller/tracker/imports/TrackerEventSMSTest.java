@@ -256,7 +256,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     eventProgram.addOrganisationUnit(orgUnit);
     eventProgram.getSharing().setOwner(user1);
     eventProgram.getSharing().addUserAccess(fullAccess(user1));
-    eventProgram.setTrackedEntityType(trackedEntityType);
     eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.save(eventProgram, false);
 
@@ -270,9 +269,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     manager.save(eventProgramStage, false);
     eventProgram.getProgramStages().add(eventProgramStage);
     manager.save(eventProgram, false);
-
-    // create default enrollment for event program
-    manager.save(createEnrollment(eventProgram, null, orgUnit));
   }
 
   @AfterEach
@@ -601,7 +597,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     assertAll(
         "created event",
         () -> assertEquals(eventUid, actual.getUid()),
-        () -> assertEqualUids(submission.getEventProgram(), actual.getEnrollment().getProgram()),
+        () -> assertEqualUids(submission.getEventProgram(), actual.getProgramStage().getProgram()),
         () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
@@ -662,13 +658,13 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<SingleEvent> events =
         singleEventService.findEvents(
-            SingleEventOperationParams.builder().program(eventProgram).build());
+            SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).build());
     assertHasSize(1, events);
     SingleEvent actual = events.get(0);
     assertAll(
         "created event",
         () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
-        () -> assertEqualUids(eventProgram, actual.getEnrollment().getProgram()),
+        () -> assertEqualUids(eventProgram, actual.getProgramStage().getProgram()),
         () -> assertEqualUids(eventProgramStage, actual.getProgramStage()),
         () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
@@ -741,9 +737,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
     TrackerEvent actualEvent = events.get(0);
@@ -809,9 +804,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
     TrackerEvent actual = events.get(0);

@@ -173,8 +173,8 @@ public final class WebMessageUtils {
       return conflict("An error occurred, please check import summary.").setResponse(importSummary);
     }
     if (importSummary.isStatus(ImportStatus.WARNING)) {
-      return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
-          .setMessage("One more conflicts encountered, please check import summary.")
+      return new WebMessage(Status.WARNING, HttpStatus.OK)
+          .setMessage("Import completed with warnings, please check import summary.")
           .setResponse(importSummary);
     }
     return ok("Import was successful.").setResponse(importSummary);

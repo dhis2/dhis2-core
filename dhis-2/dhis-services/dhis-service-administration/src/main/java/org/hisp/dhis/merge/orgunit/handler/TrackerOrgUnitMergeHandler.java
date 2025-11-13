@@ -56,6 +56,15 @@ public class TrackerOrgUnitMergeHandler {
   }
 
   @Transactional
+  public void mergeSingleEvents(OrgUnitMergeRequest request) {
+    migrate(
+        "update SingleEvent ev "
+            + "set ev.organisationUnit = :target "
+            + "where ev.organisationUnit.id in (:sources)",
+        request);
+  }
+
+  @Transactional
   public void mergeEnrollments(OrgUnitMergeRequest request) {
     migrate(
         "update TrackerEvent ev "

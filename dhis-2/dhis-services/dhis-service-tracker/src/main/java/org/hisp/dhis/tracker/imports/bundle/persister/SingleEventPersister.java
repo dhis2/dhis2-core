@@ -37,14 +37,11 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
@@ -179,7 +176,11 @@ public class SingleEventPersister
       SingleEvent currentEntity,
       UserDetails user) {
     handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    singleEventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
+    singleEventChangeLogService.addFieldChangeLog(
+        currentEntity,
+        payloadEntity,
+        payloadEntity.getProgramStage().getProgram(),
+        user.getUsername());
   }
 
   private void handleDataValues(
@@ -189,13 +190,8 @@ public class SingleEventPersister
       SingleEvent event,
       UserDetails user) {
     Map<String, EventDataValue> dataValueDBMap =
-        Optional.ofNullable(event)
-            .map(
-                a ->
-                    a.getEventDataValues().stream()
-                        .collect(
-                            Collectors.toMap(EventDataValue::getDataElement, Function.identity())))
-            .orElse(new HashMap<>());
+        event.getEventDataValues().stream()
+            .collect(Collectors.toMap(EventDataValue::getDataElement, Function.identity()));
 
     payloadDataValues.forEach(
         dataValue -> {
@@ -204,12 +200,19 @@ public class SingleEventPersister
 
           if (isNewDataValue(dbDataValue, dataValue)) {
             singleEventChangeLogService.addEventChangeLog(
-                event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
+                event,
+                dataElement,
+                event.getProgramStage().getProgram(),
+                null,
+                dataValue.getValue(),
+                CREATE,
+                user.getUsername());
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             singleEventChangeLogService.addEventChangeLog(
                 event,
                 dataElement,
+                event.getProgramStage().getProgram(),
                 dbDataValue.getValue(),
                 dataValue.getValue(),
                 UPDATE,
@@ -218,7 +221,13 @@ public class SingleEventPersister
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             singleEventChangeLogService.addEventChangeLog(
-                event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
+                event,
+                dataElement,
+                event.getProgramStage().getProgram(),
+                dbDataValue.getValue(),
+                null,
+                DELETE,
+                user.getUsername());
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
@@ -293,10 +302,7 @@ public class SingleEventPersister
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(SingleEvent entity) {
-    return Stream.of(entity.getEnrollment())
-        .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> UID.of(e.getTrackedEntity()))
-        .collect(Collectors.toSet());
+    return Set.of();
   }
 
   private boolean isNewDataValue(

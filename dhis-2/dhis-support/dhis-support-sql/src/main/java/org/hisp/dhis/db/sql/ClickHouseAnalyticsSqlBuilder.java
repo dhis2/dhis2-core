@@ -32,6 +32,10 @@ package org.hisp.dhis.db.sql;
 public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
     implements AnalyticsSqlBuilder {
 
+  public ClickHouseAnalyticsSqlBuilder(String database) {
+    super(database);
+  }
+
   @Override
   public String getEventDataValues() {
     return "ev.eventdatavalues";

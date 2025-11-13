@@ -167,7 +167,7 @@ class DataValueSetTest extends ApiTest {
         .post(dataValueSetImport(), getDataValueQueryParams("NEW_AND_UPDATES"))
         .validateStatus(200)
         .validate()
-        .body("response.importCount.imported", equalTo(1));
+        .body("response.importCount.updated", equalTo(1));
   }
 
   private QueryParamsBuilder getDataValueQueryParams(String importStrategy) {
@@ -251,11 +251,12 @@ class DataValueSetTest extends ApiTest {
                                   "id": "%s"
                               }
                           }
-                      ]
+                      ],
+                      "organisationUnits": [{"id":"%s"}]
                   }
               ]
           }
           """
-        .formatted(ORG_UNIT_UID, DATA_ELEMENT_UID, DATA_SET_UID, DATA_ELEMENT_UID);
+        .formatted(ORG_UNIT_UID, DATA_ELEMENT_UID, DATA_SET_UID, DATA_ELEMENT_UID, ORG_UNIT_UID);
   }
 }

@@ -42,6 +42,7 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
@@ -60,11 +61,14 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDIC
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.NON_REPEATABLE;
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.REPEATABLE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
@@ -96,6 +100,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,6 +108,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -134,9 +140,11 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGen
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.analytics.util.sql.ColumnUtils;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -162,7 +170,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -180,6 +188,42 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractJdbcEventAnalyticsManager {
+
+  /**
+   * Represents an aggregate clause with its SQL expression and metadata about the aggregation type.
+   *
+   * @param sql the SQL aggregate expression (e.g., "avg(column)")
+   * @param aggregationType the type of aggregation being performed
+   * @param innerExpression the expression inside the aggregate function (e.g., "column"), used for
+   *     decimalization
+   */
+  public record AggregateClause(
+      String sql, AggregationType aggregationType, String innerExpression) {
+
+    /**
+     * Whether this aggregate should be decimalized for exact numeric precision. COUNT aggregates
+     * should not be decimalized as they always return integers.
+     */
+    public boolean requiresDecimalization() {
+      return aggregationType != AggregationType.COUNT
+          && aggregationType != AggregationType.NONE
+          && aggregationType != AggregationType.CUSTOM
+          && aggregationType != AggregationType.DEFAULT;
+    }
+
+    /**
+     * Creates an AggregateClause for aggregates that don't have an inner expression (e.g., COUNT).
+     */
+    public static AggregateClause of(String sql, AggregationType type) {
+      return new AggregateClause(sql, type, null);
+    }
+
+    /** Creates an AggregateClause with an inner expression for decimalization. */
+    public static AggregateClause of(String sql, AggregationType type, String innerExpression) {
+      return new AggregateClause(sql, type, innerExpression);
+    }
+  }
+
   protected static final String COL_COUNT = "count";
 
   protected static final String COL_EXTENT = "extent";
@@ -271,6 +315,80 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return sql;
   }
 
+  /**
+   * Returns a SQL sort clause, aware of existing CTEs for program indicators and data elements.
+   *
+   * @param cteContext the {@link CteContext}.
+   * @param params the {@link EventQueryParams}.
+   * @return the SQL sort clause.
+   */
+  protected String getCteAwareSortClause(CteContext cteContext, EventQueryParams params) {
+    if (!params.isSorting()) {
+      return "";
+    }
+
+    StringJoiner sortColumns = new StringJoiner(", ", "order by ", " ");
+    addSortColumns(sortColumns, cteContext, params, ASC);
+    addSortColumns(sortColumns, cteContext, params, DESC);
+
+    return sortColumns.toString();
+  }
+
+  private void addSortColumns(
+      StringJoiner joiner, CteContext cteContext, EventQueryParams params, SortOrder order) {
+    List<QueryItem> items = (order == ASC) ? params.getAsc() : params.getDesc();
+
+    for (QueryItem item : items) {
+      String columnExpression = getColumnExpression(cteContext, params, item);
+      String sortClause = columnExpression + getSortOrderClause(order);
+      joiner.add(sortClause);
+    }
+  }
+
+  private String getColumnExpression(
+      CteContext cteContext, EventQueryParams params, QueryItem item) {
+    DimensionItemType itemType = item.getItem().getDimensionItemType();
+
+    if (itemType == null) {
+      return quote(item.getItem().getUid());
+    }
+
+    return switch (itemType) {
+      case PROGRAM_INDICATOR -> getProgramIndicatorColumn(cteContext, item);
+      case DATA_ELEMENT -> getDataElementColumn(cteContext, item);
+      default -> getDefaultColumn(params, item);
+    };
+  }
+
+  private String getProgramIndicatorColumn(CteContext cteContext, QueryItem item) {
+    String cteKey = item.getItem().getUid();
+    CteDefinition cte = cteContext.getDefinitionByKey(cteKey);
+
+    return (cte != null) ? cte.getAlias() + ".value" : quote(cteKey);
+  }
+
+  private String getDataElementColumn(CteContext cteContext, QueryItem item) {
+    String col = getSortColumnForDataElementDimensionType(item, false);
+    String cteKey = col.replace(".", "_");
+    CteDefinition cte = cteContext.getDefinitionByKey(cteKey);
+
+    return (cte != null) ? cte.getAlias() + ".value" : quote(col);
+  }
+
+  private String getDefaultColumn(EventQueryParams params, QueryItem item) {
+    // Query returns UIDs but we want sorting on name or shortName
+    // depending on the display property for OUGS and COGS
+    return Optional.ofNullable(extract(params.getDimensions(), item.getItem()))
+        .filter(this::isSupported)
+        .filter(DimensionalObject::hasItems)
+        .map(dim -> toCase(dim, quote(item.getItem().getUid()), params.getDisplayProperty()))
+        .orElse(quote(item.getItem().getUid()));
+  }
+
+  private String getSortOrderClause(SortOrder order) {
+    return (order == ASC) ? " asc nulls last" : " desc nulls last";
+  }
+
   private String getSortColumns(EventQueryParams params, SortOrder order) {
     String sql = "";
 
@@ -278,7 +396,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (item.getItem().getDimensionItemType() == PROGRAM_INDICATOR) {
         sql += quote(item.getItem().getUid());
       } else if (item.getItem().getDimensionItemType() == DATA_ELEMENT) {
-        sql += getSortColumnForDataElementDimensionType(item);
+        sql += getSortColumnForDataElementDimensionType(item, true);
       } else {
         // Query returns UIDs but we want sorting on name or shortName
         // depending on the display property for OUGS and COGS
@@ -297,20 +415,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return sql;
   }
 
-  private String getSortColumnForDataElementDimensionType(QueryItem item) {
+  private String getSortColumnForDataElementDimensionType(QueryItem item, boolean quoteResult) {
+    String col = null;
     if (ValueType.ORGANISATION_UNIT == item.getValueType()) {
-      return quote(item.getItemName() + OU_NAME_COL_POSTFIX);
+      col = item.getItemName() + OU_NAME_COL_POSTFIX;
     }
 
     if (item.hasRepeatableStageParams()) {
-      return quote(item.getRepeatableStageParams().getDimension());
+      col = item.getRepeatableStageParams().getDimension();
     }
 
     if (item.getProgramStage() != null) {
-      return quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
+      col = item.getProgramStage().getUid() + "." + item.getItem().getUid();
     }
-
-    return quote(item.getItem().getUid());
+    if (col == null) {
+      col = item.getItem().getUid();
+    }
+    return quoteResult ? quote(col) : col;
   }
 
   /**
@@ -357,7 +478,21 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * clause.
    */
   protected List<String> getGroupByColumnNames(EventQueryParams params, boolean isAggregated) {
-    return getSelectColumns(params, true, isAggregated);
+    List<String> columns = getSelectColumns(params, true, isAggregated);
+
+    return removeAliases(columns);
+  }
+
+  /**
+   * It removes the aliases from the list of given columns, if any.
+   *
+   * <p>ie: columnA as cA -> columnA
+   *
+   * @param columns the columns that may have aliases.
+   * @return the columns without aliases.
+   */
+  List<String> removeAliases(List<String> columns) {
+    return columns.stream().map(c -> substringBefore(c, " as ")).toList();
   }
 
   /**
@@ -406,7 +541,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               if (params.isAggregatedEnrollments()
                   && dimension.getDimensionType() == DimensionType.PERIOD) {
                 for (DimensionalItemObject it : dimension.getItems()) {
-                  columns.add(((Period) it).getPeriodType().getPeriodTypeEnum().getName());
+                  columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
                 }
                 return;
               }
@@ -431,14 +566,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   || dimension.getDimensionType() != DimensionType.PERIOD) {
                 columns.add(getTableAndColumn(params, dimension, isGroupByClause));
               } else if (params.hasSinglePeriod()) {
-                Period period = (Period) params.getPeriods().get(0);
+                PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
                 columns.add(
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
-                Period period = (Period) params.getFilterPeriods().get(0);
+                PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
                 columns.add(
                     singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
@@ -614,13 +749,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   @Transactional(readOnly = true, propagation = REQUIRES_NEW)
   public Grid getAggregatedEventData(EventQueryParams passedParams, Grid grid, int maxLimit) {
     EventQueryParams params = piDisagInfoInitializer.getParamsWithDisaggregationInfo(passedParams);
-    String aggregateClause = getAggregateClause(params);
+    AggregateClause aggregateClause = getAggregateClause(params);
     List<String> columns =
         union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
     String sql =
         TextUtils.removeLastComma(
-            "select " + aggregateClause + " as value," + StringUtils.join(columns, ",") + " ");
+            "select "
+                + aggregateClause.sql()
+                + " as value,"
+                + StringUtils.join(columns, ",")
+                + " ");
 
     // ---------------------------------------------------------------------
     // Criteria
@@ -805,18 +944,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Returns the aggregate clause based on value dimension and output type.
+   * Returns the aggregate clause based on value dimension and output type, including metadata about
+   * the aggregation type and inner expression for decimalization.
    *
    * @param params the {@link EventQueryParams}.
+   * @return an {@link AggregateClause} containing the SQL and metadata
    */
-  protected String getAggregateClause(EventQueryParams params) {
+  protected AggregateClause getAggregateClause(EventQueryParams params) {
     // TODO include output type if aggregation type is count
 
     // If no aggregation type is set for this event data item and no override aggregation type is
     // set
     // no need to continue and skip aggregation all together by returning NULL
     if (hasNoAggregationType(params)) {
-      return "null";
+      return AggregateClause.of("null", AggregationType.NONE);
     }
 
     EventOutputType outputType = params.getOutputType();
@@ -827,14 +968,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
 
     if (!params.isAggregation()) {
-      return quoteAlias(params.getValue().getUid());
+      String sql = quoteAlias(params.getValue().getUid());
+      return AggregateClause.of(sql, AggregationType.NONE);
     } else if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
         && params.hasEventProgramIndicatorDimension()) {
-      return function + "(value)";
+      String sql = function + "(value)";
+      return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
       String expression = quoteAlias(params.getValue().getUid());
-
-      return function + "(" + expression + ")";
+      String sql = function + "(" + expression + ")";
+      return AggregateClause.of(sql, aggregationType, expression);
     } else if (params.hasProgramIndicatorDimension()) {
       String expression =
           programIndicatorService.getAnalyticsSql(
@@ -843,29 +986,33 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               params.getProgramIndicator(),
               params.getEarliestStartDate(),
               params.getLatestEndDate());
-
-      return function + "(" + expression + ")";
+      String sql = function + "(" + expression + ")";
+      return AggregateClause.of(sql, aggregationType, expression);
     } else {
       if (params.hasEnrollmentProgramIndicatorDimension()) {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct trackedentity)";
+          return AggregateClause.of("count(distinct trackedentity)", AggregationType.COUNT);
         } else // ENROLLMENT
         {
-          return "count(enrollment)";
+          return AggregateClause.of("count(enrollment)", AggregationType.COUNT);
         }
       } else {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct " + quoteAlias("trackedentity") + ")";
+          String sql = "count(distinct " + quoteAlias("trackedentity") + ")";
+          return AggregateClause.of(sql, AggregationType.COUNT);
         } else if (EventOutputType.ENROLLMENT.equals(outputType)) {
           if (params.hasEnrollmentProgramIndicatorDimension()) {
-            return "count(" + quoteAlias("enrollment") + ")";
+            String sql = "count(" + quoteAlias("enrollment") + ")";
+            return AggregateClause.of(sql, AggregationType.COUNT);
           }
-          return "count(distinct " + quoteAlias("enrollment") + ")";
+          String sql = "count(distinct " + quoteAlias("enrollment") + ")";
+          return AggregateClause.of(sql, AggregationType.COUNT);
         } else // EVENT
         {
-          return "count(" + quoteAlias("event") + ")";
+          String sql = "count(" + quoteAlias("event") + ")";
+          return AggregateClause.of(sql, AggregationType.COUNT);
         }
       }
     }
@@ -1290,6 +1437,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return getQueryItemsAndFiltersWhereClause(params, Set.of(), helper);
   }
 
+  private static RepeatableStateStatus classify(QueryItem qi, EventQueryParams params) {
+    return (qi.hasRepeatableStageParams()
+            && params.getEndpointItem() == ENROLLMENT
+            && params.isComingFromQuery())
+        ? RepeatableStateStatus.REPEATABLE
+        : RepeatableStateStatus.NON_REPEATABLE;
+  }
+
   /**
    * Returns a SQL where clause string for query items and query item filters.
    *
@@ -1298,6 +1453,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getQueryItemsAndFiltersWhereClause(
       EventQueryParams params, Set<QueryItem> exclude, SqlHelper helper) {
+
     if (params.isEnhancedCondition()) {
       return getItemsSqlForEnhancedConditions(params, helper);
     }
@@ -1305,20 +1461,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Creates a map grouping query items referring to repeatable stages and
     // those referring to non-repeatable stages. This is for enrollment
     // only, event query items are treated as non-repeatable.
-    Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
+    Map<RepeatableStateStatus, List<QueryItem>> itemsByRepeatableFlag =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
-            .filter(queryItem -> !exclude.contains(queryItem))
+            .filter(qi -> !exclude.contains(qi))
             .collect(
                 groupingBy(
-                    queryItem ->
-                        queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem() == ENROLLMENT
-                            && params.isComingFromQuery()));
+                    qi -> classify(qi, params),
+                    () -> new EnumMap<>(RepeatableStateStatus.class),
+                    toList()));
 
     // Groups repeatable conditions based on PSI.DEID
     Map<String, List<String>> repeatableConditionsByIdentifier =
-        asSqlCollection(itemsByRepeatableFlag.get(true), params)
+        asSqlCollection(itemsByRepeatableFlag.get(REPEATABLE), params)
             .collect(
                 groupingBy(
                     IdentifiableSql::getIdentifier, mapping(IdentifiableSql::getSql, toList())));
@@ -1331,7 +1486,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // Non-repeatable conditions
     List<String> andConditions =
-        asSqlCollection(itemsByRepeatableFlag.get(false), params)
+        asSqlCollection(itemsByRepeatableFlag.get(NON_REPEATABLE), params)
             .map(IdentifiableSql::getSql)
             .toList();
 
@@ -1346,7 +1501,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * @param relation the relation to quote, e.g. a table or column name.
-   * @return a double quoted relation.
+   * @return a double-quoted relation.
    */
   protected String quote(String relation) {
     return sqlBuilder.quote(relation);
@@ -1523,11 +1678,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * Checks if an enrollment prefix is required. Currently, TEA objects need it because we want to
    * query the enrollment values, as the TEA is associated with the enrollment.
    *
-   * @param item the {@DimensionalItemObject}.
-   * @param params the {@EventQueryParams}.
+   * @param item the {@link DimensionalItemObject}.
+   * @param params the {@link EventQueryParams}.
    * @return true if a prefix is needed, false otherwise.
    */
-  private boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
+  public boolean needsEnrollmentPrefix(DimensionalItemObject item, EventQueryParams params) {
     return params.getEndpointAction() == AGGREGATE
         && params.getEndpointItem() == ENROLLMENT
         && item instanceof TrackedEntityAttribute;
@@ -1684,7 +1839,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // Remove duplicates
-    return columns.stream().distinct().toList();
+    return columns.stream()
+        // in case of row context == true, a column item can contain multiple columns
+        // that have to be split first
+        .flatMap(column -> ColumnUtils.splitColumns(column).stream())
+        .distinct()
+        .toList();
   }
 
   /**
@@ -1704,28 +1864,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /**
    * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
-   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. The
-   * expression has to be first cast to a numeric type and then rounded to 10 decimal places,
-   * otherwise the comparison may fail due to floating point precision issues in Postgres.
+   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. For
+   * numeric aggregates, the expression is cast to a decimal type and then rounded to 10 decimal
+   * places, otherwise the comparison may fail due to floating point precision issues.
    *
    * @param params the {@link EventQueryParams}
-   * @param aggregateClause the aggregate clause to use in the SQL
+   * @param aggregateClause the aggregate clause containing SQL and metadata
    * @return the "having" clause
    */
-  protected String getMeasureCriteriaSql(EventQueryParams params, String aggregateClause) {
+  protected String getMeasureCriteriaSql(EventQueryParams params, AggregateClause aggregateClause) {
     SqlHelper sqlHelper = new SqlHelper();
     StringBuilder builder = new StringBuilder();
 
     for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
-      Double criterion = params.getMeasureCriteria().get(filter);
+      String criterion = params.getMeasureCriteria().get(filter).toString();
 
-      String sqlFilter =
-          String.format(
-              " round(%s, 10) %s %s ",
-              sqlBuilder.cast(aggregateClause, org.hisp.dhis.analytics.DataType.NUMERIC),
-              getOperatorByMeasureFilter(filter),
-              criterion);
+      final int PRECISION = 38;
+      final int SCALE_IN = 12;
+      final int S_OUT = 10;
 
+      // Use the metadata from the record to determine if decimalization is needed
+      String lhs;
+      if (aggregateClause.requiresDecimalization() && aggregateClause.innerExpression() != null) {
+        // Decimalize the inner expression and reconstruct the aggregate
+        String decimalizedInner =
+            sqlBuilder.castDecimal(aggregateClause.innerExpression(), PRECISION, SCALE_IN);
+        String decimalizedAggregate =
+            aggregateClause.aggregationType().getValue() + "(" + decimalizedInner + ")";
+        lhs = String.format("round(%s, %d)", decimalizedAggregate, S_OUT);
+      } else {
+        // COUNT or other non-numeric aggregates - use as-is
+        lhs = String.format("round(%s, %d)", aggregateClause.sql(), S_OUT);
+      }
+
+      String rhs = sqlBuilder.decimalLiteral(criterion, PRECISION, S_OUT);
+
+      String sqlFilter = String.format(" %s %s %s ", lhs, getOperatorByMeasureFilter(filter), rhs);
       builder.append(sqlHelper.havingAnd()).append(sqlFilter);
     }
 
@@ -1836,7 +2010,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param params the {@link EventQueryParams} to drive the query generation.
    * @return a complete SQL query string.
    */
-  String buildAnalyticsQuery(EventQueryParams params) {
+  String buildAnalyticsQuery(EventQueryParams params, int maxLimit) {
 
     // 1. Create the CTE context (collect all CTE definitions for program indicators, program
     // stages, etc.)
@@ -1859,6 +2033,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // 3.3: Append the "FROM" clause (the main enrollment analytics table)
     addFromClause(sb, params);
 
+    addOrgUnitJoin(sb, params);
+
     // 3.4: Append LEFT JOINs for each relevant CTE definition
     addCteJoins(sb, cteContext);
 
@@ -1866,7 +2042,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     addWhereClause(sb, params, cteContext);
 
     // 3.6: Append ORDER BY and paging
-    addSortingAndPaging(sb, params);
+    addSortingAndPaging(cteContext, sb, params, maxLimit);
 
     if (needsOptimizedCtes(params, cteContext)) {
       // 3.7 : Add shadow CTEs for optimized query
@@ -2257,24 +2433,29 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   void generateFilterCTEs(
       EventQueryParams params, CteContext cteContext, boolean isAggregateQuery) {
-    // Combine items and item filters
+
+    // Combine items and item filters and filter only those with an actual filter
     List<QueryItem> queryItems =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
             .toList();
 
     // Group query items by repeatable and non-repeatable stages
-    Map<Boolean, List<QueryItem>> itemsByRepeatableFlag =
+    Map<RepeatableStateStatus, List<QueryItem>> itemsByRepeatableFlag =
         queryItems.stream()
             .collect(
                 groupingBy(
-                    queryItem ->
-                        queryItem.hasRepeatableStageParams()
-                            && params.getEndpointItem()
-                                == RequestTypeAware.EndpointItem.ENROLLMENT));
+                    qi ->
+                        (qi.hasRepeatableStageParams()
+                                && params.getEndpointItem()
+                                    == RequestTypeAware.EndpointItem.ENROLLMENT)
+                            ? REPEATABLE
+                            : NON_REPEATABLE,
+                    () -> new EnumMap<>(RepeatableStateStatus.class),
+                    toList()));
 
     // Process repeatable stage filters
-    itemsByRepeatableFlag.getOrDefault(true, List.of()).stream()
+    itemsByRepeatableFlag.getOrDefault(REPEATABLE, List.of()).stream()
         .collect(groupingBy(CteUtils::getIdentifier))
         .forEach(
             (identifier, items) -> {
@@ -2288,7 +2469,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // Process non-repeatable stage filters
     itemsByRepeatableFlag
-        .getOrDefault(false, List.of())
+        .getOrDefault(NON_REPEATABLE, List.of())
         .forEach(
             queryItem -> {
               if (queryItem.hasProgram() && queryItem.hasProgramStage()) {
@@ -2366,18 +2547,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sb.where(Condition.and(baseConditions, cteConditions));
   }
 
-  private void addSortingAndPaging(SelectBuilder builder, EventQueryParams params) {
+  private void addSortingAndPaging(
+      CteContext cteContext, SelectBuilder builder, EventQueryParams params, int maxLimit) {
     if (params.isSorting()) {
-      builder.orderBy(getSortClause(params));
+      builder.orderBy(getCteAwareSortClause(cteContext, params));
     }
 
     // Paging with max limit of 5000
     if (params.isPaging()) {
       if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
+        builder.limitWithMax(params.getPageSizeWithDefault(), maxLimit).offset(params.getOffset());
       } else {
         builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
+            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), maxLimit)
             .offset(params.getOffset());
       }
     } else {
@@ -2810,7 +2992,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
     assert baseAggregatedCte != null;
 
-    String cteSql = buildAggregatedCteSql(eventTableName, colName, item, baseAggregatedCte);
+    String cteSql = buildAggregatedCteSql(eventTableName, colName, item);
 
     cteContext.addCte(
         item.getProgramStage(),
@@ -2826,11 +3008,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param eventTableName the event table name
    * @param colName the quoted column name for the item
    * @param item the {@link QueryItem} containing program-stage details
-   * @param baseAggregatedCte the base aggregated CTE
    * @return the aggregated CTE SQL
    */
-  private String buildAggregatedCteSql(
-      String eventTableName, String colName, QueryItem item, CteDefinition baseAggregatedCte) {
+  private String buildAggregatedCteSql(String eventTableName, String colName, QueryItem item) {
     String template =
         """
         select
@@ -2847,7 +3027,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             from ${eventTableName} evt
             join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
             where evt.eventstatus != 'SCHEDULE'
-                and evt.ps = '${programStageUid}' and ${aggregateWhereClause}) evt
+                and evt.ps = '${programStageUid}') evt
         where evt.rn = 1
         """;
 
@@ -2856,13 +3036,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("eventTableName", eventTableName);
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
-    values.put(
-        "aggregateWhereClause",
-        baseAggregatedCte
-            .getAggregateWhereClause()
-            // Replace the "ax." alias (from subqueries) with empty string
-            .replace("ax.", "")
-            .replace("%s", "eb"));
 
     return new StringSubstitutor(values).replace(template);
   }
@@ -2922,5 +3095,37 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("programStageUid", item.getProgramStage().getUid());
 
     return new StringSubstitutor(values).replace(template);
+  }
+
+  /**
+   * Appends the organisation unit joins required by the query.
+   *
+   * <p>The joins contributed by {@link OrgUnitTableJoiner#joinOrgUnitTables(EventQueryParams,
+   * AnalyticsType)} fall into two categories:
+   *
+   * <ul>
+   *   <li>If the request resolves the organisation unit via tracked-entity ownership (org unit
+   *       field type {@code OWNER_AT_START}/{@code OWNER_AT_END}), a LEFT JOIN is added against the
+   *       program-specific ownership analytics table (alias {@code ownership}). The join aligns the
+   *       tracked entity identifier and constrains the ownership record to the reporting period
+   *       window.
+   *   <li>If the query needs hierarchy metadata for the chosen org unit field (attributes,
+   *       registration org unit, enrollment org unit for event analytics, or ownership types), LEFT
+   *       JOINs are added to {@code analytics_rs_orgunitstructure} and, when organisation unit
+   *       group sets are requested, to {@code analytics_rs_organisationunitgroupsetstructure}.
+   *       These joins expose the hierarchy and group set columns required for selection or
+   *       filtering.
+   * </ul>
+   *
+   * The composed SQL fragment is added verbatim to the {@link SelectBuilder} so that subsequent
+   * clauses can reference the relevant organisation unit columns.
+   */
+  private void addOrgUnitJoin(SelectBuilder sb, EventQueryParams params) {
+    sb.addRawJoin(joinOrgUnitTables(params, getAnalyticsType()));
+  }
+
+  enum RepeatableStateStatus {
+    REPEATABLE,
+    NON_REPEATABLE,
   }
 }

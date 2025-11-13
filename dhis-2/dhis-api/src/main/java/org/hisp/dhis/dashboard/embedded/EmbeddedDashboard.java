@@ -55,4 +55,7 @@ public class EmbeddedDashboard implements Serializable {
 
   /** Customization options for embedded dashboard. */
   @JsonProperty private EmbeddedOptions options;
+
+  /** Security options for embedded dashboard. */
+  @JsonProperty private EmbeddedSecurity security;
 }

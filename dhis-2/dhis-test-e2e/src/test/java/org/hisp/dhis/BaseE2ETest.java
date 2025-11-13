@@ -43,6 +43,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -51,7 +52,6 @@ import javax.mail.internet.MimeMultipart;
 import org.hisp.dhis.login.LoginRequest;
 import org.hisp.dhis.login.LoginResponse;
 import org.hisp.dhis.login.LoginResponse.STATUS;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -360,7 +360,7 @@ public class BaseE2ETest {
     return template;
   }
 
-  @NotNull
+  @Nonnull
   public static RestTemplate getRestTemplateNoRedirects() {
     // Disable auto-redirects
     ClientHttpRequestFactory requestFactory =

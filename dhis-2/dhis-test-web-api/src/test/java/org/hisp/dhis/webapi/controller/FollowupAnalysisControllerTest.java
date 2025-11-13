@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
@@ -54,6 +55,24 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
+
+  private String de2;
+  private String ouA;
+  private String ouB;
+
+  @Override
+  protected List<String> setUpAdditionalDataElements() {
+    de2 = addDataElement("Another DE", "DE2", ValueType.INTEGER, null, categoryComboId);
+    return List.of(de2);
+  }
+
+  @Override
+  protected List<String> setUpAdditionalOrgUnits() {
+    ouA = addOrganisationUnit("A", orgUnitId);
+    ouB = addOrganisationUnit("B", orgUnitId);
+    return List.of(ouA, ouB);
+  }
+
   /**
    * This test makes sure the fields returned by a {@link org.hisp.dhis.dataanalysis.FollowupValue}
    * are mapped correctly.
@@ -70,7 +89,7 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
     assertEquals(dataElementId, value.getDe());
     assertEquals("My data element", value.getDeName());
     assertEquals(orgUnitId, value.getOu());
-    assertEquals("My Unit", value.getOuName());
+    assertEquals("OU1", value.getOuName());
     assertEquals("/" + orgUnitId, value.getOuPath());
     assertEquals("202103", value.getPe());
     assertEquals("Monthly", value.getPeType());
@@ -118,22 +137,6 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
 
   @Test
   void testPerformFollowupAnalysis_OrgUnitFiltering() {
-    String ouA =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'A', 'shortName':'A', 'openingDate': '2020-01-01', 'parent': { 'id':'"
-                    + orgUnitId
-                    + "'}}"));
-    String ouB =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'B', 'shortName':'B', 'openingDate': '2020-01-01', 'parent': {'id':'"
-                    + orgUnitId
-                    + "'}}"));
     addDataValue("2021-01", "13", "Needs_check A", true, dataElementId, ouA);
     addDataValue("2021-01", "14", "Needs_check B", true, dataElementId, ouB);
     assertFollowupValues(orgUnitId, dataElementId, "2021-01", "Needs_check A", "Needs_check B");
@@ -143,16 +146,6 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest {
 
   @Test
   void testPerformFollowupAnalysis_DataElementFiltering() {
-    String de2 =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataElements/",
-                "{'name':'Another DE', 'shortName':'DE2', 'code':'DE2', 'valueType':'INTEGER', "
-                    + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
-                    + "'categoryCombo': {'id': '"
-                    + categoryComboId
-                    + "'}}"));
     addDataValue("2021-01", "13", "Needs check DE1", true, dataElementId, orgUnitId);
     addDataValue("2021-01", "14", "Needs check DE2", true, de2, orgUnitId);
     assertFollowupValues(orgUnitId, dataElementId, "2021-01", "Needs check DE1");

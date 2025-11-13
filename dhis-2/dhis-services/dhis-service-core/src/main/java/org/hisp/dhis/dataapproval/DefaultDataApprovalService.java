@@ -422,25 +422,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean isApproved(
-      DataApprovalWorkflow workflow,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo) {
-    if (workflow == null) {
-      return false;
-    }
-
-    DataApproval da =
-        new DataApproval(null, workflow, period, organisationUnit, attributeOptionCombo);
-
-    da = DataApproval.getLowestApproval(da);
-
-    return da != null && dataApprovalStore.dataApprovalExists(da);
-  }
-
-  @Override
   @Transactional
   public Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses(
       List<DataApproval> dataApprovalList) {
@@ -476,7 +457,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
             + ", "
             + period.getPeriodType().getName()
             + " "
-            + period.getName()
+            + period.getIsoDate()
             + " "
             + period
             + ", "
@@ -781,7 +762,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
   private String approvalKey(DataApproval da) {
     return da.getDataApprovalLevel().getUid()
         + da.getWorkflow().getUid()
-        + da.getPeriod().getCode()
+        + da.getPeriod().getIsoDate()
         + da.getOrganisationUnit().getUid()
         + da.getAttributeOptionCombo().getUid();
   }
@@ -799,7 +780,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
   private String daKey(DataApproval da, String orgUnitUid, String attributeOptionComboUid) {
     return da.getWorkflow().getUid()
-        + da.getPeriod().getCode()
+        + da.getPeriod().getIsoDate()
         + orgUnitUid
         + attributeOptionComboUid;
   }

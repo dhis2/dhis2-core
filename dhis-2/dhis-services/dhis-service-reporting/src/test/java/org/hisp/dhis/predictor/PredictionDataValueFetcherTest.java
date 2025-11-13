@@ -50,7 +50,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -230,10 +230,6 @@ class PredictionDataValueFetcherTest extends TestBase {
     periodB = createPeriod("202202");
     periodC = createPeriod("202203");
 
-    periodA.setUid("Perio202201");
-    periodB.setUid("Perio202202");
-    periodC.setUid("Perio202203");
-
     periodA.setId(10);
     periodB.setId(11);
     periodC.setId(12);
@@ -343,11 +339,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testGetDataValues() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportParams) p.getArgument(0)).getBlockingQueue();
+                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(deflatedDataValueA);
               blockingQueue.put(deflatedDataValueAB);
               blockingQueue.put(deflatedDataValueB);
@@ -392,11 +388,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testGetDataValuesWithAllDisaggregations() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportParams) p.getArgument(0)).getBlockingQueue();
+                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(deflatedDataValueA);
               blockingQueue.put(deflatedDataValueAB);
               blockingQueue.put(deflatedDataValueB);
@@ -439,11 +435,11 @@ class PredictionDataValueFetcherTest extends TestBase {
 
   @Test
   void testNoDataValues() {
-    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DataExportStoreParams.class)))
         .thenAnswer(
             p -> {
               BlockingQueue<DeflatedDataValue> blockingQueue =
-                  ((DataExportParams) p.getArgument(0)).getBlockingQueue();
+                  ((DataExportStoreParams) p.getArgument(0)).getBlockingQueue();
               blockingQueue.put(END_OF_DDV_DATA);
               return new ArrayList<>();
             });

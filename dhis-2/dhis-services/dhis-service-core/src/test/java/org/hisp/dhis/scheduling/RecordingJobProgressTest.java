@@ -61,7 +61,7 @@ import org.junit.jupiter.api.Test;
 class RecordingJobProgressTest {
   private final JobConfiguration config = createJobConfig();
 
-  private final JobProgress progress = new RecordingJobProgress(config);
+  private final JobProgress progress = new RecordingJobProgress(config.toKey());
 
   @BeforeAll
   static void setup() {

@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -129,7 +129,7 @@ public class TrackedEntityQueryRequestMapper {
    */
   private boolean matchesTet(Program program, TrackedEntityType trackedEntityType) {
     return Objects.nonNull(program.getTrackedEntityType())
-        && StringUtils.equals(program.getTrackedEntityType().getUid(), trackedEntityType.getUid());
+        && Strings.CS.equals(program.getTrackedEntityType().getUid(), trackedEntityType.getUid());
   }
 
   /**

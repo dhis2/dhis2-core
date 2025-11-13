@@ -36,6 +36,7 @@ import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -109,7 +110,17 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder =
-        SingleEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+        SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"))
+            .orgUnit(orgUnit)
+            .orgUnitMode(SELECTED);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenWhenProgramIsWithRegistration() {
+    SingleEventOperationParams params =
+        operationParamsBuilder.program(UID.of("shPjYNifvMK")).build();
+
+    assertThrows(BadRequestException.class, () -> singleEventService.findEvents(params));
   }
 
   @Test

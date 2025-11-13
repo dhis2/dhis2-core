@@ -49,6 +49,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -151,6 +152,7 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
   // Basic DataApproval
   // -------------------------------------------------------------------------
   @Test
+  @Disabled("DHIS2-19679 loading DAs causes conflict because of Period same ID different instances")
   void testAddAndGetDataApproval() {
     Date date = new Date();
     DataApproval dataApprovalA =

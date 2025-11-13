@@ -67,6 +67,188 @@ class SelectBuilderTest {
   }
 
   @Nested
+  @DisplayName("Column aliases")
+  class ColumnAliases {
+    @Test
+    @DisplayName("should preserve alias for qualified column with AS keyword")
+    void shouldPreserveAliasForQualifiedColumn() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("u.name as user_name")
+              .addColumn("u.email as user_email")
+              .from("users", "u")
+              .build();
+
+      assertEquals("select u.name as user_name, u.email as user_email from users as u", sql);
+    }
+
+    @Test
+    void shouldPreserveAlias() {
+
+      String sql =
+          new SelectBuilder()
+              .addColumn("enrollment", "ax")
+              .from("analytics_enrollment", "ax")
+              .build();
+      assertEquals("select ax.enrollment from analytics_enrollment as ax", sql);
+    }
+
+    @Test
+    @DisplayName("should preserve quoted alias for qualified column")
+    void shouldPreserveQuotedAliasForQualifiedColumn() {
+      String sql =
+          new SelectBuilder().addColumn("ab.column as \"my_alias\"").from("table", "ab").build();
+
+      assertEquals("select ab.column as \"my_alias\" from table as ab", sql);
+    }
+
+    @Test
+    @DisplayName("should preserve alias for unqualified column")
+    void shouldPreserveAliasForUnqualifiedColumn() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("name as display_name")
+              .addColumn("email as contact_email")
+              .from("users", "u")
+              .build();
+
+      assertEquals("select name as display_name, email as contact_email from users as u", sql);
+    }
+
+    @Test
+    @DisplayName("should preserve quoted alias for unqualified column")
+    void shouldPreserveQuotedAliasForUnqualifiedColumn() {
+      String sql =
+          new SelectBuilder().addColumn("column as \"my_alias\"").from("table", "t").build();
+
+      assertEquals("select column as \"my_alias\" from table as t", sql);
+    }
+
+    @Test
+    @DisplayName("should handle case-insensitive AS keyword")
+    void shouldHandleCaseInsensitiveAs() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("u.name AS user_name")
+              .addColumn("u.email As user_email")
+              .addColumn("u.age aS user_age")
+              .from("users", "u")
+              .build();
+
+      assertEquals(
+          "select u.name as user_name, u.email as user_email, u.age as user_age from users as u",
+          sql);
+    }
+
+    @Test
+    @DisplayName("should handle alias with spaces around AS keyword")
+    void shouldHandleAliasWithSpaces() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("u.name  as  user_name")
+              .addColumn("u.email   AS   user_email")
+              .from("users", "u")
+              .build();
+
+      assertEquals("select u.name as user_name, u.email as user_email from users as u", sql);
+    }
+
+    @Test
+    @DisplayName("should handle mixed columns with and without aliases")
+    void shouldHandleMixedColumnsWithAndWithoutAliases() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("u.id")
+              .addColumn("u.name as user_name")
+              .addColumn("u.email")
+              .addColumn("u.created_at as \"registration_date\"")
+              .from("users", "u")
+              .build();
+
+      assertEquals(
+          "select u.id, u.name as user_name, u.email, u.created_at as \"registration_date\" from users as u",
+          sql);
+    }
+
+    @Test
+    @DisplayName("should handle complex expressions with aliases")
+    void shouldHandleComplexExpressionsWithAliases() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("count(*) as total_count")
+              .addColumn("sum(amount) as \"total_amount\"")
+              .addColumn("avg(score) AS average_score")
+              .from("transactions", "t")
+              .build();
+
+      assertEquals(
+          "select count(*) as total_count, sum(amount) as \"total_amount\", avg(score) as average_score from transactions as t",
+          sql);
+    }
+
+    @Test
+    @DisplayName("should handle CASE expressions with aliases")
+    void shouldHandleCaseExpressionsWithAliases() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("CASE WHEN active THEN 'Active' ELSE 'Inactive' END as status")
+              .addColumn("u.name as \"user_name\"")
+              .from("users", "u")
+              .build();
+
+      assertEquals(
+          "select case when active then 'Active' else 'Inactive' end as status, u.name as \"user_name\" from users as u",
+          sql);
+    }
+
+    @Test
+    @DisplayName("should handle qualified column with dots in table alias")
+    void shouldHandleQualifiedColumnWithComplexAlias() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("t1.column_name as \"result_value\"")
+              .addColumn("t2.other_column AS result_other")
+              .from("table1", "t1")
+              .leftJoin("table2", "t2", alias -> alias + ".id = t1.id")
+              .build();
+
+      assertEquals(
+          "select t1.column_name as \"result_value\", t2.other_column as result_other from table1 as t1 left join table2 t2 on t2.id = t1.id",
+          sql);
+    }
+
+    @Test
+    @DisplayName("should preserve single-quoted aliases")
+    void shouldPreserveSingleQuotedAliases() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("u.name as 'user_name'")
+              .addColumn("u.email as \"user_email\"")
+              .from("users", "u")
+              .build();
+
+      assertEquals("select u.name as 'user_name', u.email as \"user_email\" from users as u", sql);
+    }
+
+    @Test
+    @DisplayName("should handle mixed quoted and unquoted aliases")
+    void shouldHandleMixedQuotedAndUnquotedAliases() {
+      String sql =
+          new SelectBuilder()
+              .addColumn("u.id as user_id")
+              .addColumn("u.name as \"user name\"")
+              .addColumn("u.email as 'user-email'")
+              .addColumn("u.age as user_age")
+              .from("users", "u")
+              .build();
+
+      assertEquals(
+          "select u.id as user_id, u.name as \"user name\", u.email as 'user-email', u.age as user_age from users as u",
+          sql);
+    }
+  }
+
+  @Nested
   @DisplayName("CTEs")
   class CommonTableExpressions {
     @Test

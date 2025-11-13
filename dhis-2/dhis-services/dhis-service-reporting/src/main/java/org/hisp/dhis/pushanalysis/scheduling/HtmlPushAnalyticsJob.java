@@ -36,9 +36,10 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
@@ -87,9 +88,8 @@ public class HtmlPushAnalyticsJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    HtmlPushAnalyticsJobParameters params =
-        (HtmlPushAnalyticsJobParameters) config.getJobParameters();
+  public void execute(JobEntry config, JobProgress progress) {
+    HtmlPushAnalyticsJobParameters params = (HtmlPushAnalyticsJobParameters) config.parameters();
     String urlTemplate = settingsProvider.getCurrentSettings().getHtmlPushAnalyticsUrl();
 
     progress.startingProcess("HTML push analytics");
@@ -102,10 +102,10 @@ public class HtmlPushAnalyticsJob implements Job {
     }
 
     String url = urlTemplate.replace("{id}", params.getDashboard());
-    String subject = config.getName();
+    String subject = config.name();
     if (params.getMode() == ViewMode.EXECUTOR) {
-      String viewerId = config.getExecutedBy();
-      User viewer = userService.getUser(viewerId);
+      UID viewerId = config.executedBy();
+      User viewer = userService.getUser(viewerId.getValue());
       String viewerName = viewer.getUsername();
       String viewerUrl = substituteUrl(url, viewerName);
       progress.startingStage(

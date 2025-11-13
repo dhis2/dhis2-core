@@ -103,7 +103,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertImportedObjects(2, persistenceReport, TrackerType.ENROLLMENT);
     assertImportedObjects(2, persistenceReport, TrackerType.EVENT);
     assertImportedObjects(2, persistenceReport, TrackerType.RELATIONSHIP);
-    assertEquals(6, getNumberOfEntities(Enrollment.class));
+    assertEquals(2, getNumberOfEntities(Enrollment.class));
     assertEquals(
         persistenceReport.getTypeReportMap().get(TrackerType.EVENT).getStats().getCreated(),
         getNumberOfEntities(TrackerEvent.class));
@@ -180,7 +180,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertDeletedObjects(9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
     // remaining
     assertEquals(4, getNumberOfEntities(TrackedEntity.class));
-    assertEquals(4, getNumberOfEntities(Enrollment.class));
+    assertEquals(0, getNumberOfEntities(Enrollment.class));
     assertEquals(0, getNumberOfEntities(TrackerEvent.class));
     assertEquals(0, getNumberOfEntities(Relationship.class));
   }
@@ -200,7 +200,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
     // remaining
-    assertEquals(5, getNumberOfEntities(Enrollment.class));
+    assertEquals(1, getNumberOfEntities(Enrollment.class));
     assertEquals(1, getNumberOfEntities(TrackerEvent.class));
     assertEquals(2, getNumberOfEntities(Relationship.class));
   }

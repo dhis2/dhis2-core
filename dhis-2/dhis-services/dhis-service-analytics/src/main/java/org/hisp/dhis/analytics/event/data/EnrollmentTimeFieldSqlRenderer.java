@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -78,7 +79,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
       return sql.append(
               periods.stream()
                   .filter(this::isPeriod)
-                  .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+                  .map(PeriodDimension.class::cast)
                   .map(period -> toSqlCondition(period, timeField.get()))
                   .collect(Collectors.joining(" or ", "(", ")")))
           .toString();
@@ -136,18 +137,23 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     format.applyPattern(Period.DEFAULT_DATE_FORMAT);
 
     String sql = EMPTY;
+    boolean firstIteration = true;
     for (String programStage : map.keySet()) {
       Set<AnalyticsPeriodBoundary> boundaries = map.get(programStage);
 
       String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
       sql +=
-          " exists(select 1 from "
+          (firstIteration ? "" : " and ")
+              + " exists(select 1 from "
               + eventTableName
               + " where "
               + eventTableName
               + ".enrollment = "
               + ANALYTICS_TBL_ALIAS
-              + ".enrollment and occurreddate is not null ";
+              + ".enrollment and occurreddate is not null "
+              + "and ps = '"
+              + programStage
+              + "'";
 
       for (AnalyticsPeriodBoundary boundary : boundaries) {
         sql +=
@@ -159,12 +165,13 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
       }
 
       sql += " limit 1)";
+      firstIteration = false;
     }
 
     return sql;
   }
 
-  private String toSqlCondition(Period period, TimeField timeField) {
+  private String toSqlCondition(PeriodDimension period, TimeField timeField) {
     String timeCol = sqlBuilder.quoteAx(timeField.getEnrollmentColumnName());
     return "( "
         + timeCol

@@ -34,7 +34,6 @@ import static java.util.function.UnaryOperator.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_UNIT;
 import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_VALUE;
@@ -61,7 +60,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -246,12 +245,11 @@ public class PredictionDataValueFetcher implements Runnable {
   /** In a separate thread, fetches all the requested data values. */
   @Override
   public void run() {
-    DataExportParams params = new DataExportParams();
+    DataExportStoreParams params = new DataExportStoreParams();
     params.setDataElements(dataElements);
     params.setDataElementOperands(dataElementOperands);
     params.setPeriods(queryPeriods);
     params.setOrganisationUnits(currentUserOrgUnits);
-    params.setOuMode(DESCENDANTS);
     params.setOrgUnitLevel(orgUnitLevel);
     params.setBlockingQueue(blockingQueue);
     params.setOrderByOrgUnitPath(true);

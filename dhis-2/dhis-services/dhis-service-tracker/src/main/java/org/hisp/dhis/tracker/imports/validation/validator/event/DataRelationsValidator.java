@@ -61,14 +61,14 @@ class DataRelationsValidator implements Validator<Event> {
 
     validateProgramStageInProgram(reporter, event, programStage, program);
     validateProgramHasOrgUnit(reporter, bundle.getPreheat(), event, organisationUnit, program);
-    if (event instanceof TrackerEvent) {
-      validateProgramWithRegistrationHasTrackedEntity(reporter, bundle, event);
-      validateRegistrationProgram(reporter, bundle, event, program);
+    if (event instanceof TrackerEvent trackerEvent) {
+      validateProgramWithRegistrationHasTrackedEntity(reporter, bundle, trackerEvent);
+      validateRegistrationProgram(reporter, bundle, trackerEvent, program);
     }
   }
 
   private void validateProgramWithRegistrationHasTrackedEntity(
-      Reporter reporter, TrackerBundle bundle, Event event) {
+      Reporter reporter, TrackerBundle bundle, TrackerEvent event) {
     if (!enrollmentFromEventHasTrackedEntity(bundle, event)) {
       reporter.addError(event, E1313, event.getEvent());
     }
@@ -82,7 +82,7 @@ class DataRelationsValidator implements Validator<Event> {
   }
 
   private void validateRegistrationProgram(
-      Reporter reporter, TrackerBundle bundle, Event event, Program program) {
+      Reporter reporter, TrackerBundle bundle, TrackerEvent event, Program program) {
     Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
 
     if (!program.equals(enrollmentProgram)) {
@@ -107,7 +107,7 @@ class DataRelationsValidator implements Validator<Event> {
         || !programAndOrgUnitsMap.get(program.getUid()).contains(orgUnit.getUid());
   }
 
-  private Program getEnrollmentProgramFromEvent(TrackerBundle bundle, Event event) {
+  private Program getEnrollmentProgramFromEvent(TrackerBundle bundle, TrackerEvent event) {
     Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
     if (preheatEnrollment != null) {
       return preheatEnrollment.getProgram();
@@ -131,7 +131,7 @@ class DataRelationsValidator implements Validator<Event> {
    * @param event the event of an enrollment
    * @return whether the enrollment of the event has an existing tracked entity
    */
-  private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, Event event) {
+  private boolean enrollmentFromEventHasTrackedEntity(TrackerBundle bundle, TrackerEvent event) {
     if (event.getEnrollment() == null) {
       return true;
     }

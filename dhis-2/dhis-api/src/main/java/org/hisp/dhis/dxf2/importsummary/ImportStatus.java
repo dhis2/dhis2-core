@@ -29,18 +29,25 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum ImportStatus {
+  /** For data entry, success entails that all values were written successfully. */
   SUCCESS(1),
+  /**
+   * For data entry, warning entails that some values were skipped due to value level errors but
+   * overall the import was successful.
+   */
   WARNING(2),
+  /**
+   * For data entry, error entails that for a data entry group there were set level issues and no
+   * values were written for the group. When multiple groups are submitted at once groups previously
+   * finished successful are already committed and thus written.
+   */
   ERROR(3);
 
   private final int order;
-
-  ImportStatus(int order) {
-    this.order = order;
-  }
-
-  public int getOrder() {
-    return order;
-  }
 }

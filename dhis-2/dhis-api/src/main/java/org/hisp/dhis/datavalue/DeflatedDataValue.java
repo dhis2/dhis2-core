@@ -32,8 +32,10 @@ package org.hisp.dhis.datavalue;
 import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
+import org.hisp.dhis.common.adapter.JacksonExtendedPeriodSerializer;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
@@ -269,6 +271,7 @@ public class DeflatedDataValue {
   }
 
   @JsonProperty
+  @JsonSerialize(using = JacksonExtendedPeriodSerializer.class)
   public Period getPeriod() {
     return period;
   }

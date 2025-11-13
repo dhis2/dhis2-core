@@ -89,7 +89,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -241,7 +241,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         Assert.notNull(periodKey, String.format("Period key cannot be null, key: '%s'", key));
 
         List<DimensionalItemObject> periods =
-            dataPeriodAggregationPeriodMap.get(PeriodType.getPeriodFromIsoString(periodKey));
+            dataPeriodAggregationPeriodMap.get(
+                PeriodDimension.of(PeriodType.getPeriodFromIsoString(periodKey)));
 
         Assert.notNull(
             periods,
@@ -254,17 +255,17 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         for (DimensionalItemObject period : periods) {
           String[] keyCopy = keyArray.clone();
 
-          keyCopy[periodIndex] = ((Period) period).getIsoDate();
+          keyCopy[periodIndex] = ((PeriodDimension) period).getIsoDate();
 
           String replacementKey = TextUtils.toString(keyCopy, DIMENSION_SEP);
 
           if (dataValueMap.containsKey(replacementKey)
-              && ((Period) period).getPeriodType().spansMultipleCalendarYears()) {
+              && ((PeriodDimension) period).getPeriodType().spansMultipleCalendarYears()) {
             Object weightedAverage =
                 AnalyticsUtils.calculateYearlyWeightedAverage(
                     (Double) dataValueMap.get(replacementKey),
                     (Double) value,
-                    AnalyticsUtils.getBaseMonth(((Period) period).getPeriodType()));
+                    AnalyticsUtils.getBaseMonth(((PeriodDimension) period).getPeriodType()));
 
             dataValueMap.put(TextUtils.toString(keyCopy, DIMENSION_SEP), weightedAverage);
           } else {
@@ -757,7 +758,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    */
   private List<String> getFirstOrLastValueSubqueryDimensionAndFilterColumns(
       DataQueryParams params) {
-    Period period = params.getLatestPeriod();
+    PeriodDimension period = params.getLatestPeriod();
 
     List<String> cols = Lists.newArrayList();
 

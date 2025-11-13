@@ -89,4 +89,10 @@ public class DefaultProgramStageService implements ProgramStageService {
   public List<ProgramStage> getProgramStagesByProgram(Program program) {
     return programStageStore.getByProgram(program);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramStage> getProgramStages(List<String> uids) {
+    return programStageStore.getProgramStages(uids);
+  }
 }

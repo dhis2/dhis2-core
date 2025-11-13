@@ -41,7 +41,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
@@ -62,8 +61,6 @@ public class VisualizationDeletionHandler
     whenDeleting(DataElement.class, this::deleteDataElement);
     whenDeleting(DataSet.class, this::deleteDataSet);
     whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
-    whenDeleting(Period.class, this::deletePeriod);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
     whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);

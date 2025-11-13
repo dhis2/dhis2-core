@@ -44,6 +44,7 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.util.DateUtils.SECONDS_PER_DAY;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,7 +68,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -289,7 +289,24 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     return filterDimensionColumns(columns);
   }
 
+  /**
+   * Returns the data years for complete data set registrations.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @return a list of data years.
+   */
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
+    String sql = getDataYearsQuery(params);
+    return jdbcTemplate.queryForList(sql, Integer.class);
+  }
+
+  /**
+   * Returns the SQL to get data years for complet data set registrations.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @return the SQL to get the data years.
+   */
+  String getDataYearsQuery(AnalyticsTableUpdateParams params) {
     String sql =
         replaceQualify(
             sqlBuilder,
@@ -298,16 +315,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             from ${completedatasetregistration} cdr \
             inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
             where ps.startdate is not null \
-            and cdr.date < '${startTime}'""",
+            and cdr.date < '${startTime}' \
+            """,
             Map.of("startTime", toLongDate(params.getStartTime())));
 
     if (params.getFromDate() != null) {
       sql +=
           replace(
               "and ps.startdate >= '${fromDate}'",
-              Map.of("fromDate", DateUtils.toLongDate(params.getFromDate())));
+              Map.of("fromDate", toMediumDate(params.getFromDate())));
     }
 
-    return jdbcTemplate.queryForList(sql, Integer.class);
+    return sql;
   }
 }

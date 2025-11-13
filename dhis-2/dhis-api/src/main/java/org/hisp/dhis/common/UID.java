@@ -62,12 +62,16 @@ public final class UID implements Serializable {
   private final String value;
 
   private UID(String value) {
-    if (!CodeGenerator.isValidUid(value)) {
+    if (!isValid(value)) {
       throw new IllegalArgumentException(
           "UID must be an alphanumeric string of 11 characters starting with a letter, but was: "
               + value);
     }
     this.value = value;
+  }
+
+  public static boolean isValid(String value) {
+    return CodeGenerator.isValidUid(value);
   }
 
   @Override
@@ -83,6 +87,11 @@ public final class UID implements Serializable {
   @JsonCreator
   public static UID of(@Nonnull String value) {
     return new UID(value);
+  }
+
+  @CheckForNull
+  public static UID ofNullable(@CheckForNull String value) {
+    return value == null ? null : of(value);
   }
 
   public static UID of(@CheckForNull UidObject object) {

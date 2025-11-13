@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
@@ -131,7 +130,7 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEvents() {
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(uid())
             .enrollment(uid())
@@ -164,7 +163,7 @@ class TrackerIdentifierCollectorTest {
 
   @Test
   void collectEventsSkipsNotesWithoutAValue() {
-    Event event =
+    TrackerEvent event =
         TrackerEvent.builder()
             .event(UID.generate())
             .notes(List.of(Note.builder().note(UID.of("i1vviSlidJE")).build()))

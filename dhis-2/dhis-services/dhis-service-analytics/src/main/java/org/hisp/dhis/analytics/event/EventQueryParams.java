@@ -94,7 +94,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -585,6 +585,7 @@ public class EventQueryParams extends DataQueryParams {
     return key.addIgnoreNull("value", value, () -> value.getUid())
         .addIgnoreNull("requestValue", requestValue)
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
+        .addIgnoreNull("programStage", programStage, () -> programStage.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
         .addIgnoreNull("page", page)
         .addIgnoreNull("pageSize", pageSize)
@@ -622,9 +623,9 @@ public class EventQueryParams extends DataQueryParams {
    * them.
    */
   void replacePeriodsWithDates() {
-    List<Period> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
+    List<PeriodDimension> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
 
-    for (Period period : periods) {
+    for (PeriodDimension period : periods) {
       Date start = period.getStartDate();
       Date end = period.getEndDate();
       DateRange dateRange = new DateRange(start, end);
@@ -942,6 +943,49 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasTimeDateRanges() {
     return MapUtils.isNotEmpty(getTimeDateRanges());
+  }
+
+  /** Returns true if multiple time dimensions are active (have date ranges or constraints). */
+  public boolean hasMultipleTimeDimensions() {
+    return getActiveTimeDimensions().size() > 1;
+  }
+
+  /**
+   * Returns the set of time dimensions that are actively used in this query. A time dimension is
+   * considered active if it has date ranges defined.
+   */
+  public Set<TimeField> getActiveTimeDimensions() {
+    return timeDateRanges.keySet();
+  }
+
+  /** Returns true if the specified time dimension is active in this query. */
+  public boolean hasActiveTimeDimension(TimeField timeField) {
+    return timeDateRanges.containsKey(timeField) && isNotEmpty(timeDateRanges.get(timeField));
+  }
+
+  /**
+   * Returns a new EventQueryParams containing only the specified time dimension, removing all other
+   * time dimensions. Used for query splitting.
+   */
+  public EventQueryParams withSingleTimeDimension(TimeField timeField) {
+    EventQueryParams params = new EventQueryParams.Builder(this).build();
+
+    // Clear all time dimensions except the specified one
+    Map<TimeField, List<DateRange>> singleTimeDimension = new EnumMap<>(TimeField.class);
+    if (timeDateRanges.containsKey(timeField)) {
+      singleTimeDimension.put(timeField, timeDateRanges.get(timeField));
+    }
+    params.timeDateRanges = singleTimeDimension;
+
+    // Set the legacy timeField for backward compatibility
+    params.timeField = timeField.name();
+
+    return params;
+  }
+
+  /** Returns the number of active time dimensions in this query. */
+  public int getActiveTimeDimensionCount() {
+    return getActiveTimeDimensions().size();
   }
 
   /**

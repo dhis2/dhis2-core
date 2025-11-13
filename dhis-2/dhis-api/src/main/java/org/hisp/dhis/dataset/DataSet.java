@@ -30,7 +30,6 @@
 package org.hisp.dhis.dataset;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -41,7 +40,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -71,13 +69,10 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 
 /**
@@ -448,40 +443,6 @@ public class DataSet extends BaseDimensionalItemObject
   public boolean hasCategoryCombo() {
     return categoryCombo != null
         && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals(categoryCombo.getName());
-  }
-
-  /**
-   * Indicates whether the data set is locked for data entry based on the expiry days.
-   *
-   * @param period the period to compare with.
-   * @param now the date indicating now, uses current date if null.
-   */
-  public boolean isLocked(UserDetails user, Period period, Date now) {
-    if (expiryDays == DataSet.NO_EXPIRY
-        || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
-      return false;
-    }
-
-    // Adds effectively 1 day to the end date since the date's time portion is set to 00:00.
-    // This means the comparison starts on the day after the end date at midnight.
-    Date dataEntryOpenedDate = addDays(period.getEndDate(), 1);
-    Date date = now != null ? now : new Date();
-    return !Period.isDateWithTimeInTimeFrame(null, addDays(dataEntryOpenedDate, expiryDays), date);
-  }
-
-  /**
-   * Checks if the given period and date combination conforms to any of the dataInputPeriods.
-   * Returns true if no dataInputPeriods exists, or the combination conforms to at least one
-   * dataInputPeriod.
-   *
-   * @param period
-   * @param date
-   * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
-   */
-  public boolean isDataInputPeriodAndDateAllowed(Period period, Date date) {
-    return dataInputPeriods.isEmpty()
-        || dataInputPeriods.stream()
-            .anyMatch(dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid(period, date));
   }
 
   // -------------------------------------------------------------------------

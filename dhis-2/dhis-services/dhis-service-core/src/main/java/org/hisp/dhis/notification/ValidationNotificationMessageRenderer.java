@@ -74,7 +74,7 @@ public class ValidationNotificationMessageRenderer
               .put(LEFT_SIDE_VALUE, vr -> Double.toString(vr.getLeftsideValue()))
               .put(RIGHT_SIDE_VALUE, vr -> Double.toString(vr.getRightsideValue()))
               .put(ORG_UNIT_NAME, vr -> vr.getOrganisationUnit().getDisplayName())
-              .put(PERIOD, vr -> vr.getPeriod().getDisplayName())
+              .put(PERIOD, vr -> vr.getPeriod().getIsoDate())
               .put(CURRENT_DATE, vr -> formatDate(new Date()))
               .build();
 

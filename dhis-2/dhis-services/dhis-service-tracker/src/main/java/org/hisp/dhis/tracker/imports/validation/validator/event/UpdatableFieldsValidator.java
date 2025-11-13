@@ -49,25 +49,24 @@ class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.import
       Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     ProgramStage programStage;
     Enrollment enrollment;
-    if (event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent) {
+    if (event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent) {
 
-      TrackerEvent preheatEvent = bundle.getPreheat().getTrackerEvent(event.getEvent());
+      TrackerEvent preheatEvent = bundle.getPreheat().getTrackerEvent(trackerEvent.getEvent());
       programStage = preheatEvent.getProgramStage();
       enrollment = preheatEvent.getEnrollment();
+      reporter.addErrorIf(
+          () ->
+              trackerEvent.getEnrollment() != null
+                  && !trackerEvent.getEnrollment().getValue().equals(enrollment.getUid()),
+          trackerEvent,
+          E1128,
+          "enrollment");
     } else {
       SingleEvent preheatEvent = bundle.getPreheat().getSingleEvent(event.getEvent());
       programStage = preheatEvent.getProgramStage();
-      enrollment = preheatEvent.getEnrollment();
     }
     reporter.addErrorIf(
         () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
-    reporter.addErrorIf(
-        () ->
-            event.getEnrollment() != null
-                && !event.getEnrollment().getValue().equals(enrollment.getUid()),
-        event,
-        E1128,
-        "enrollment");
   }
 
   @Override

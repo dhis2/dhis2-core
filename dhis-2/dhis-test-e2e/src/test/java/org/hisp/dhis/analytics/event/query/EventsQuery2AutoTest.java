@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -56,7 +55,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
   @Test
   public void queryVisitOverviewThisYearBombali() throws JSONException {
 
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
@@ -77,11 +76,11 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 26 : 23)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 27 : 23)))
         .body("rows", hasSize(equalTo(100)))
         .body("height", equalTo(100))
-        .body("width", equalTo(expectPostgis ? 26 : 23))
-        .body("headerWidth", equalTo(expectPostgis ? 26 : 23));
+        .body("width", equalTo(expectPostgis ? 27 : 23))
+        .body("headerWidth", equalTo(expectPostgis ? 27 : 23));
 
     // Assert metaData.
     String expectedMetaData =
@@ -136,9 +135,18 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
     if (expectPostgis) {
       validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
-          response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response,
+          9,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
       validateHeader(
-          response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 10, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+      validateHeader(
+          response, 11, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -291,12 +299,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:06:04.136",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Gbendembu Wesleyan CHC",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Gbendembu Wesleyan CHC",
                 "OU_193281",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "YAuJ3fyoEuI",
                 "",
@@ -308,7 +317,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         1,
@@ -323,12 +332,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:04:59.342",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Yankasa MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
                 "OU_193257",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "SQz3xtx1Sgr",
                 "",
@@ -340,7 +350,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         2,
@@ -355,12 +365,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:04:55.022",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kabombeh MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Kabombeh MCHP",
                 "OU_193273",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "CbIWQQoWcLc",
                 "",
@@ -372,7 +383,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "85.03",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         3,
@@ -387,12 +398,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:06.536",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kagbankona MCHP",
                 "Sierra Leone / Bombali / Biriwa / Kagbankona MCHP",
                 "OU_193229",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OjTS752GbZE",
                 "",
@@ -404,7 +416,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         4,
@@ -419,12 +431,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:02:57.842",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Borongoh Makarankay CHP",
                 "Sierra Leone / Bombali / Gbanti Kamaranka / Borongoh Makarankay CHP",
                 "OU_193220",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "cZZG5BMDLps",
                 "",
@@ -436,7 +449,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         5,
@@ -451,12 +464,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:52.892",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kolisokor MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Kolisokor MCHP",
                 "OU_193259",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "m7fBMpmVpSM",
                 "",
@@ -468,7 +482,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         6,
@@ -483,12 +497,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:36.212",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Panlap MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Panlap MCHP",
                 "OU_193258",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "zLiMZ1WrxdG",
                 "",
@@ -500,7 +515,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         7,
@@ -515,12 +530,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:22.145",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Binkolo CHC",
                 "Sierra Leone / Bombali / Safroko Limba / Binkolo CHC",
                 "OU_193275",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "GHHvGp7tgtZ",
                 "",
@@ -532,7 +548,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         8,
@@ -547,12 +563,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:20.726",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mambiama CHP",
                 "Sierra Leone / Bombali / Magbaimba Ndowahun / Mambiama CHP",
                 "OU_193226",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "LmRTf03IFkA",
                 "",
@@ -564,7 +581,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         9,
@@ -579,12 +596,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:57:56.755",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Govt. Hosp. Makeni",
                 "Sierra Leone / Bombali / Bombali Sebora / Govt. Hosp. Makeni",
                 "OU_193206",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "GQcsUZf81vP",
                 "",
@@ -596,7 +614,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         10,
@@ -611,12 +629,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:56:58.057",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mateboi CHC",
                 "Sierra Leone / Bombali / Sanda Tendaren / Mateboi CHC",
                 "OU_193197",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "EXbPGmEUdnc",
                 "",
@@ -628,7 +647,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         11,
@@ -643,12 +662,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:56:14.295",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Stocco CHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Stocco CHP",
                 "OU_193263",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "Zwnfm4rnzbZ",
                 "",
@@ -660,7 +680,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         12,
@@ -675,12 +695,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:28.516",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamawornie CHP",
                 "Sierra Leone / Bombali / Sella Limba / Kamawornie CHP",
                 "OU_193290",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wO4z5Aqo0hf",
                 "",
@@ -692,7 +713,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         13,
@@ -707,12 +728,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:11.362",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Rokulan CHC",
                 "Sierra Leone / Bombali / Sanda Tendaren / Rokulan CHC",
                 "OU_193196",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "X79FDd4EAgo",
                 "",
@@ -724,7 +746,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         14,
@@ -739,12 +761,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:29:41.234",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kagbankona MCHP",
                 "Sierra Leone / Bombali / Biriwa / Kagbankona MCHP",
                 "OU_193229",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OjTS752GbZE",
                 "",
@@ -756,7 +779,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         15,
@@ -771,12 +794,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:29:37.742",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Punthun MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Punthun MCHP",
                 "OU_193260",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "rNaQEFRINbd",
                 "",
@@ -788,7 +812,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         16,
@@ -803,12 +827,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:41.834",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mabunduka CHC",
                 "Sierra Leone / Bombali / Sanda Tendaren / Mabunduka CHC",
                 "OU_193195",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "TmCsvdJLHoX",
                 "",
@@ -820,7 +845,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         17,
@@ -835,12 +860,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:21.424",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makeni-Lol MCHP",
                 "Sierra Leone / Bombali / Paki Masabong / Makeni-Lol MCHP",
                 "OU_193297",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "dmdYffw2I0F",
                 "",
@@ -852,7 +878,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         18,
@@ -867,12 +893,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:01:40.305",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kayongoro MCHP",
                 "Sierra Leone / Bombali / Biriwa / Kayongoro MCHP",
                 "OU_193232",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "tEgxbwwrwUd",
                 "",
@@ -884,7 +911,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         19,
@@ -899,12 +926,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:01:23.279",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kagbo MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Kagbo MCHP",
                 "OU_193268",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OTlKtnhvEm1",
                 "",
@@ -916,7 +944,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         20,
@@ -931,12 +959,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:00.57",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamabaio MCHP",
                 "Sierra Leone / Bombali / Sella Limba / Kamabaio MCHP",
                 "OU_193294",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OwHjzJEVEUN",
                 "",
@@ -948,7 +977,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         21,
@@ -963,12 +992,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:56.192",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Maselleh MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Maselleh MCHP",
                 "OU_193269",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "CY8cV5khn7e",
                 "",
@@ -980,7 +1010,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         22,
@@ -995,12 +1025,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:36.418",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kagbaneh CHP",
                 "Sierra Leone / Bombali / Biriwa / Kagbaneh CHP",
                 "OU_193230",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "duGLGssecoD",
                 "",
@@ -1012,7 +1043,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         23,
@@ -1027,12 +1058,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:10.251",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Fullah Town (B.Sebora) MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Fullah Town (B.Sebora) MCHP",
                 "OU_424885",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "aQoqXL4cZaF",
                 "",
@@ -1044,7 +1076,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         24,
@@ -1059,12 +1091,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:57:49.535",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Bumbanday MCHP",
                 "Sierra Leone / Bombali / Biriwa / Bumbanday MCHP",
                 "OU_193238",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "LZclRdyVk1t",
                 "",
@@ -1076,7 +1109,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         25,
@@ -1091,12 +1124,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:56:49.366",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Tambiama CHC",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
                 "OU_193280",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "agEKP19IUKI",
                 "",
@@ -1108,7 +1142,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         26,
@@ -1123,12 +1157,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:44.068",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kaimunday CHP",
                 "Sierra Leone / Bombali / Libeisaygahun / Kaimunday CHP",
                 "OU_193305",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "hpXXBtRXXSd",
                 "",
@@ -1140,7 +1175,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         27,
@@ -1155,12 +1190,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:16.254",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mabonkanie MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Mabonkanie MCHP",
                 "OU_193270",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "CEoD9uQVIZB",
                 "",
@@ -1172,7 +1208,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         28,
@@ -1187,12 +1223,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:52:44.834",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Fullah Town (B.Sebora) MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Fullah Town (B.Sebora) MCHP",
                 "OU_424885",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "aQoqXL4cZaF",
                 "",
@@ -1204,7 +1241,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         29,
@@ -1219,12 +1256,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:30:08.87",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makaiba MCHP",
                 "Sierra Leone / Bombali / Gbanti Kamaranka / Makaiba MCHP",
                 "OU_193219",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "ewh5SKxcCAl",
                 "",
@@ -1236,7 +1274,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         30,
@@ -1251,12 +1289,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:29:09.533",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Govt. Hosp. Makeni",
                 "Sierra Leone / Bombali / Bombali Sebora / Govt. Hosp. Makeni",
                 "OU_193206",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "GQcsUZf81vP",
                 "",
@@ -1268,7 +1307,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         31,
@@ -1283,12 +1322,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:29.643",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Maharie MCHP",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Maharie MCHP",
                 "OU_193282",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "qEQFWnKh4gs",
                 "",
@@ -1300,7 +1340,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         32,
@@ -1315,12 +1355,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:13.831",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kagbere CHC",
                 "Sierra Leone / Bombali / Magbaimba Ndowahun / Kagbere CHC",
                 "OU_193225",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "TjZwphhxCuV",
                 "",
@@ -1332,7 +1373,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         33,
@@ -1347,12 +1388,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:13.554",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Madina Fullah CHP",
                 "Sierra Leone / Bombali / Sanda Loko / Madina Fullah CHP",
                 "OU_193244",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "pJj2r2HElLE",
                 "",
@@ -1364,7 +1406,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         34,
@@ -1379,12 +1421,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:04:56.645",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kaponkie MCHP",
                 "Sierra Leone / Bombali / Sella Limba / Kaponkie MCHP",
                 "OU_193287",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "Crgx572DnXR",
                 "",
@@ -1396,7 +1439,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         35,
@@ -1411,12 +1454,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:56.83",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Maharibo MCHP",
                 "Sierra Leone / Bombali / Sanda Loko / Maharibo MCHP",
                 "OU_193241",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "CKJ9YS2AbWy",
                 "",
@@ -1428,7 +1472,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         36,
@@ -1443,12 +1487,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:05.389",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kayasie MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Kayasie MCHP",
                 "OU_193276",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "dczh6Jfd4no",
                 "",
@@ -1460,7 +1505,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         37,
@@ -1475,12 +1520,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:46.716",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Masabong Pil MCHP",
                 "Sierra Leone / Bombali / Paki Masabong / Masabong Pil MCHP",
                 "OU_193300",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "suFG8zx4bU3",
                 "",
@@ -1492,7 +1538,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         38,
@@ -1507,12 +1553,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:57:29.421",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kathanta Bana MCHP",
                 "Sierra Leone / Bombali / Paki Masabong / Kathanta Bana MCHP",
                 "OU_193298",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "pmzk0ho80aA",
                 "",
@@ -1524,7 +1571,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         39,
@@ -1539,12 +1586,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:56:31.365",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mabolleh MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Mabolleh MCHP",
                 "OU_193210",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "PybxeRWVSrI",
                 "",
@@ -1556,7 +1604,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         40,
@@ -1571,12 +1619,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:38.768",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kayongoro MCHP",
                 "Sierra Leone / Bombali / Biriwa / Kayongoro MCHP",
                 "OU_193232",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "tEgxbwwrwUd",
                 "",
@@ -1588,7 +1637,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         41,
@@ -1603,12 +1652,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:28.246",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Pate Bana CHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Pate Bana CHP",
                 "OU_193200",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wzvDhS0TkAF",
                 "",
@@ -1620,7 +1670,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         42,
@@ -1635,12 +1685,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:52:57.781",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Masuba MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Masuba MCHP",
                 "OU_193202",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "XzmWizbR343",
                 "",
@@ -1652,7 +1703,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         43,
@@ -1667,12 +1718,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:31:19.304",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Stocco CHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Stocco CHP",
                 "OU_193263",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "Zwnfm4rnzbZ",
                 "",
@@ -1684,7 +1736,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         44,
@@ -1699,12 +1751,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:07:03.995",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Matoto MCHP",
                 "Sierra Leone / Bombali / Libeisaygahun / Matoto MCHP",
                 "OU_193304",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "uGa5JtIMfRx",
                 "",
@@ -1716,7 +1769,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         45,
@@ -1731,12 +1784,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:06:25.945",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kabonka MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Kabonka MCHP",
                 "OU_193274",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wfGRNqXqf92",
                 "",
@@ -1748,7 +1802,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         46,
@@ -1763,12 +1817,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:06:04.481",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Loreto Clinic",
                 "Sierra Leone / Bombali / Bombali Sebora / Loreto Clinic",
                 "OU_193213",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "cgqkFdShPzg",
                 "",
@@ -1780,7 +1835,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         47,
@@ -1795,12 +1850,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:04.666",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Panlap MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Panlap MCHP",
                 "OU_193258",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "zLiMZ1WrxdG",
                 "",
@@ -1812,7 +1868,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         48,
@@ -1827,12 +1883,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:22.528",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Madina Loko CHP",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Madina Loko CHP",
                 "OU_193283",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "I48Qu6R0sGm",
                 "",
@@ -1844,7 +1901,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         49,
@@ -1859,12 +1916,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:02:32.266",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makarie MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Makarie MCHP",
                 "OU_193253",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wSHfjjFqUay",
                 "",
@@ -1876,7 +1934,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         50,
@@ -1891,12 +1949,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:02:01.592",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Punthun MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Punthun MCHP",
                 "OU_193260",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "rNaQEFRINbd",
                 "",
@@ -1908,7 +1967,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         51,
@@ -1923,12 +1982,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:15.141",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kaimunday CHP",
                 "Sierra Leone / Bombali / Libeisaygahun / Kaimunday CHP",
                 "OU_193305",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "hpXXBtRXXSd",
                 "",
@@ -1940,7 +2000,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         52,
@@ -1955,12 +2015,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:08.229",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamabai CHC",
                 "Sierra Leone / Bombali / Biriwa / Kamabai CHC",
                 "OU_193231",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "mt47bcb0Rcj",
                 "",
@@ -1972,7 +2033,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         53,
@@ -1987,12 +2048,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:57:34.723",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Bumban MCHP",
                 "Sierra Leone / Bombali / Biriwa / Bumban MCHP",
                 "OU_193236",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OI0BQUurVFS",
                 "",
@@ -2004,7 +2066,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         54,
@@ -2019,12 +2081,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:56:06.812",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Bumbanday MCHP",
                 "Sierra Leone / Bombali / Biriwa / Bumbanday MCHP",
                 "OU_193238",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "LZclRdyVk1t",
                 "",
@@ -2036,7 +2099,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         55,
@@ -2051,12 +2114,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:59.447",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Tonkomba MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Tonkomba MCHP",
                 "OU_193264",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "xIMxph4NMP1",
                 "",
@@ -2068,7 +2132,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         56,
@@ -2083,12 +2147,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:38.208",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamabai CHC",
                 "Sierra Leone / Bombali / Biriwa / Kamabai CHC",
                 "OU_193231",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "mt47bcb0Rcj",
                 "",
@@ -2100,7 +2165,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         57,
@@ -2115,12 +2180,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:34.083",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mabunduka CHC",
                 "Sierra Leone / Bombali / Sanda Tendaren / Mabunduka CHC",
                 "OU_193195",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "TmCsvdJLHoX",
                 "",
@@ -2132,7 +2198,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         58,
@@ -2147,12 +2213,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:09.238",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Samaya CHP",
                 "Sierra Leone / Bombali / Tambaka / Samaya CHP",
                 "OU_193248",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "BnVjTzwis3o",
                 "",
@@ -2164,7 +2231,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         59,
@@ -2179,12 +2246,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:30:01.486",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Tambiama CHC",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
                 "OU_193280",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "agEKP19IUKI",
                 "",
@@ -2196,7 +2264,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         60,
@@ -2211,12 +2279,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:29:02.774",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makaiba MCHP",
                 "Sierra Leone / Bombali / Gbanti Kamaranka / Makaiba MCHP",
                 "OU_193219",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "ewh5SKxcCAl",
                 "",
@@ -2228,7 +2297,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         61,
@@ -2243,12 +2312,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:28:48.277",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kaimunday CHP",
                 "Sierra Leone / Bombali / Libeisaygahun / Kaimunday CHP",
                 "OU_193305",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "hpXXBtRXXSd",
                 "",
@@ -2260,7 +2330,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         62,
@@ -2275,12 +2345,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:06:25.059",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mabunduka CHC",
                 "Sierra Leone / Bombali / Sanda Tendaren / Mabunduka CHC",
                 "OU_193195",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "TmCsvdJLHoX",
                 "",
@@ -2292,7 +2363,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         63,
@@ -2307,12 +2378,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:05:41.808",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mabenteh Community Hospital",
                 "Sierra Leone / Bombali / Makari Gbanti / Mabenteh Community Hospital",
                 "OU_193250",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "taKiTcaf05H",
                 "",
@@ -2324,7 +2396,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         64,
@@ -2339,12 +2411,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:32.977",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makarie MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Makarie MCHP",
                 "OU_193253",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wSHfjjFqUay",
                 "",
@@ -2356,7 +2429,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         65,
@@ -2371,12 +2444,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:12.981",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mangay Loko MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Mangay Loko MCHP",
                 "OU_193265",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "gaOSAjPM07w",
                 "",
@@ -2388,7 +2462,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         66,
@@ -2403,12 +2477,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:01:23.109",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kayongoro MCHP",
                 "Sierra Leone / Bombali / Biriwa / Kayongoro MCHP",
                 "OU_193232",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "tEgxbwwrwUd",
                 "",
@@ -2420,7 +2495,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         67,
@@ -2435,12 +2510,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:31.568",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kapethe MCHP",
                 "Sierra Leone / Bombali / Safroko Limba / Kapethe MCHP",
                 "OU_193271",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "GhDwjKv07iC",
                 "",
@@ -2452,7 +2528,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         68,
@@ -2467,12 +2543,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:16.854",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Borongoh Makarankay CHP",
                 "Sierra Leone / Bombali / Gbanti Kamaranka / Borongoh Makarankay CHP",
                 "OU_193220",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "cZZG5BMDLps",
                 "",
@@ -2484,7 +2561,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         69,
@@ -2499,12 +2576,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:12.413",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Masabong Pil MCHP",
                 "Sierra Leone / Bombali / Paki Masabong / Masabong Pil MCHP",
                 "OU_193300",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "suFG8zx4bU3",
                 "",
@@ -2516,7 +2594,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         70,
@@ -2531,12 +2609,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:59:07.604",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makump Bana MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Makump Bana MCHP",
                 "OU_193211",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "E7IDb3nNiW7",
                 "",
@@ -2548,7 +2627,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         71,
@@ -2563,12 +2642,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:52:53.7",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Madina Fullah CHP",
                 "Sierra Leone / Bombali / Sanda Loko / Madina Fullah CHP",
                 "OU_193244",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "pJj2r2HElLE",
                 "",
@@ -2580,7 +2660,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         72,
@@ -2595,12 +2675,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:52:46.006",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Tambiama CHC",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Tambiama CHC",
                 "OU_193280",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "agEKP19IUKI",
                 "",
@@ -2612,7 +2693,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         73,
@@ -2627,12 +2708,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:30:24.141",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamalo CHC",
                 "Sierra Leone / Bombali / Sanda Loko / Kamalo CHC",
                 "OU_193242",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "HNv1aLPdMYb",
                 "",
@@ -2644,7 +2726,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         74,
@@ -2659,12 +2741,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:29:38.714",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makarie MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Makarie MCHP",
                 "OU_193253",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wSHfjjFqUay",
                 "",
@@ -2676,7 +2759,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         75,
@@ -2691,12 +2774,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:29:22.651",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Pate Bana CHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Pate Bana CHP",
                 "OU_193200",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wzvDhS0TkAF",
                 "",
@@ -2708,7 +2792,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         76,
@@ -2723,12 +2807,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:28:48.134",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kerefay Loko MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Kerefay Loko MCHP",
                 "OU_193261",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "GhXvo3BpCvo",
                 "",
@@ -2740,7 +2825,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         77,
@@ -2755,12 +2840,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:28:43.268",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Maharie MCHP",
                 "Sierra Leone / Bombali / Gbendembu Ngowahun / Maharie MCHP",
                 "OU_193282",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "qEQFWnKh4gs",
                 "",
@@ -2772,7 +2858,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         78,
@@ -2787,12 +2873,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:06:33.419",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Gbonkonka CHP",
                 "Sierra Leone / Bombali / Libeisaygahun / Gbonkonka CHP",
                 "OU_193307",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "v2vi8UaIYlo",
                 "",
@@ -2804,7 +2891,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         79,
@@ -2819,12 +2906,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:06:01.581",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamakwie MCHP",
                 "Sierra Leone / Bombali / Sella Limba / Kamakwie MCHP",
                 "OU_193292",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "KnU2XHRvyiX",
                 "",
@@ -2836,7 +2924,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         80,
@@ -2851,12 +2939,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:04:21.177",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Bumban MCHP",
                 "Sierra Leone / Bombali / Biriwa / Bumban MCHP",
                 "OU_193236",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OI0BQUurVFS",
                 "",
@@ -2868,7 +2957,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         81,
@@ -2883,12 +2972,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:18.501",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kabba Ferry MCHP",
                 "Sierra Leone / Bombali / Sella Limba / Kabba Ferry MCHP",
                 "OU_193289",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "TWMVxJANJeU",
                 "",
@@ -2900,7 +2990,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         82,
@@ -2915,12 +3005,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:03:08.301",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Pate Bana CHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Pate Bana CHP",
                 "OU_193200",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wzvDhS0TkAF",
                 "",
@@ -2932,7 +3023,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "Sjp6IB3gthI",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         83,
@@ -2947,12 +3038,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:02:21.107",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Stocco CHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Stocco CHP",
                 "OU_193263",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "Zwnfm4rnzbZ",
                 "",
@@ -2964,7 +3056,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         84,
@@ -2979,12 +3071,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:54.104",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Fullah Town (B.Sebora) MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Fullah Town (B.Sebora) MCHP",
                 "OU_424885",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "aQoqXL4cZaF",
                 "",
@@ -2996,7 +3089,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         85,
@@ -3011,12 +3104,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:30.412",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Fintonia CHC",
                 "Sierra Leone / Bombali / Tambaka / Fintonia CHC",
                 "OU_193247",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "xKaB8tfbTzm",
                 "",
@@ -3028,7 +3122,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "wgbW2ZQnlIc"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         86,
@@ -3043,12 +3137,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:18.393",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makeni-Lol MCHP",
                 "Sierra Leone / Bombali / Paki Masabong / Makeni-Lol MCHP",
                 "OU_193297",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "dmdYffw2I0F",
                 "",
@@ -3060,7 +3155,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "lnccUWrmqL0",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         87,
@@ -3075,12 +3170,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:57:41.592",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Mambiama CHP",
                 "Sierra Leone / Bombali / Magbaimba Ndowahun / Mambiama CHP",
                 "OU_193226",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "LmRTf03IFkA",
                 "",
@@ -3092,7 +3188,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         88,
@@ -3107,12 +3203,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:59.504",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kamabaio MCHP",
                 "Sierra Leone / Bombali / Sella Limba / Kamabaio MCHP",
                 "OU_193294",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "OwHjzJEVEUN",
                 "",
@@ -3124,7 +3221,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         89,
@@ -3139,12 +3236,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:55:25.268",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kayongoro MCHP",
                 "Sierra Leone / Bombali / Biriwa / Kayongoro MCHP",
                 "OU_193232",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "tEgxbwwrwUd",
                 "",
@@ -3156,7 +3254,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         90,
@@ -3171,12 +3269,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:40.11",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Kagbere CHC",
                 "Sierra Leone / Bombali / Magbaimba Ndowahun / Kagbere CHC",
                 "OU_193225",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "TjZwphhxCuV",
                 "",
@@ -3188,7 +3287,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "NxQrJ3icPkE",
                 "86.53",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         91,
@@ -3203,12 +3302,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:32.76",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Gbonkonka CHP",
                 "Sierra Leone / Bombali / Libeisaygahun / Gbonkonka CHP",
                 "OU_193307",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "v2vi8UaIYlo",
                 "",
@@ -3220,7 +3320,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         92,
@@ -3235,12 +3335,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:53:29.398",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Panlap MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Panlap MCHP",
                 "OU_193258",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "zLiMZ1WrxdG",
                 "",
@@ -3252,7 +3353,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "GDFw7T4aFGz",
                 "",
                 "GWuQsWJDGvN"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         93,
@@ -3267,12 +3368,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:31:09.465",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Manjoro MCHP",
                 "Sierra Leone / Bombali / Biriwa / Manjoro MCHP",
                 "OU_193237",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "Uwcj0mz78BV",
                 "",
@@ -3284,7 +3386,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         94,
@@ -3299,12 +3401,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:30:00.307",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Rokulan CHC",
                 "Sierra Leone / Bombali / Sanda Tendaren / Rokulan CHC",
                 "OU_193196",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "X79FDd4EAgo",
                 "",
@@ -3316,7 +3419,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "B1X4JyH4Mdw"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         95,
@@ -3331,12 +3434,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:02:20.764",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Pate Bana CHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Pate Bana CHP",
                 "OU_193200",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wzvDhS0TkAF",
                 "",
@@ -3348,7 +3452,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         96,
@@ -3363,12 +3467,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:01:41.158",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Makarie MCHP",
                 "Sierra Leone / Bombali / Makari Gbanti / Makarie MCHP",
                 "OU_193253",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "wSHfjjFqUay",
                 "",
@@ -3380,7 +3485,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "xVezsaEXU3k",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         97,
@@ -3395,12 +3500,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 14:00:30.201",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Maforay (B. Sebora) MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Maforay (B. Sebora) MCHP",
                 "OU_193204",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "C1zlHePEQe6",
                 "",
@@ -3412,7 +3518,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "AD5jueZTZSK",
                 "",
                 "sxFVvKLpE0y"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         98,
@@ -3427,12 +3533,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:58:53.036",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Maharibo MCHP",
                 "Sierra Leone / Bombali / Sanda Loko / Maharibo MCHP",
                 "OU_193241",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "CKJ9YS2AbWy",
                 "",
@@ -3444,7 +3551,7 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "BHlWGFLIU20"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
     validateRow(
         response,
         99,
@@ -3459,12 +3566,13 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "2018-04-21 13:57:41.308",
                 "",
                 "",
+                "",
                 "0.0",
                 "0.0",
                 "Fullah Town (B.Sebora) MCHP",
                 "Sierra Leone / Bombali / Bombali Sebora / Fullah Town (B.Sebora) MCHP",
                 "OU_424885",
-                "ACTIVE",
+                "",
                 "COMPLETED",
                 "aQoqXL4cZaF",
                 "",
@@ -3476,6 +3584,6 @@ public class EventsQuery2AutoTest extends AnalyticsApiTest {
                 "b9UzeWaSs2u",
                 "",
                 "CivTksSoCt0"),
-            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10))));
+            (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
   }
 }

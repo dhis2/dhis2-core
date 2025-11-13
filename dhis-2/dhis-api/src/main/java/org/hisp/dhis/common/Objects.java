@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -91,6 +92,8 @@ public enum Objects {
   TRACKEDENTITY("trackedEntity", TrackedEntity.class),
   ENROLLMENT("enrollment", Enrollment.class),
   EVENT("event", TrackerEvent.class), // Event includes tracker and single events
+  TRACKEREVENT("trackerevent", TrackerEvent.class),
+  SINGLEEVENT("singleevent", SingleEvent.class),
   TRACKEDENTITYATTRIBUTE("trackedEntityAttribute", TrackedEntityAttribute.class),
   EXPRESSIONDIMENSIONITEM("expressionDimensionItem", ExpressionDimensionItem.class);
 

@@ -60,6 +60,7 @@ public enum TimeField {
   SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
   COMPLETED_DATE(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME),
   CREATED(EventAnalyticsColumnName.CREATED_COLUMN_NAME),
+  CREATED_DATE(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME),
   LAST_UPDATED(
       EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
       EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,

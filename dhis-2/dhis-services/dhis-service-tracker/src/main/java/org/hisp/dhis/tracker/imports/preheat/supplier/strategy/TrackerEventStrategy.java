@@ -79,10 +79,7 @@ public class TrackerEventStrategy extends HibernateGenericStore<TrackerEvent>
                     """
                         select ev
                         from TrackerEvent as ev
-                        join ev.programStage as ps
-                        join ps.program as p
                         where ev.uid in (:uids)
-                        and p.programType = 'WITH_REGISTRATION'
                         """,
                     TrackerEvent.class)
                 .setParameter("uids", uidsPartition)

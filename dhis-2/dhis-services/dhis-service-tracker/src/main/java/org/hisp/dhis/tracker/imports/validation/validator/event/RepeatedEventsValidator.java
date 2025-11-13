@@ -62,12 +62,14 @@ class RepeatedEventsValidator implements Validator<List<TrackerEvent>> {
                   return !programStage.getRepeatable();
                 })
             .toList();
-    Map<Pair<MetadataIdentifier, UID>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage =
-        validNotRepeatableEvents.stream()
-            .filter(e -> !bundle.getStrategy(e).isDelete())
-            .collect(Collectors.groupingBy(e -> Pair.of(e.getProgramStage(), e.getEnrollment())));
+    Map<Pair<MetadataIdentifier, UID>, List<TrackerEvent>>
+        eventsByEnrollmentAndNotRepeatableProgramStage =
+            validNotRepeatableEvents.stream()
+                .filter(e -> !bundle.getStrategy(e).isDelete())
+                .collect(
+                    Collectors.groupingBy(e -> Pair.of(e.getProgramStage(), e.getEnrollment())));
 
-    for (Map.Entry<Pair<MetadataIdentifier, UID>, List<Event>> mapEntry :
+    for (Map.Entry<Pair<MetadataIdentifier, UID>, List<TrackerEvent>> mapEntry :
         eventsByEnrollmentAndNotRepeatableProgramStage.entrySet()) {
       if (mapEntry.getValue().size() > 1) {
         for (Event event : mapEntry.getValue()) {
@@ -82,7 +84,8 @@ class RepeatedEventsValidator implements Validator<List<TrackerEvent>> {
             e ->
                 bundle
                     .getPreheat()
-                    .hasProgramStageWithEvents(e.getProgramStage(), e.getEnrollment().getValue()))
+                    .hasProgramStageWithTrackerEvents(
+                        e.getProgramStage(), e.getEnrollment().getValue()))
         .forEach(e -> reporter.addError(e, ValidationCode.E1039, e.getProgramStage()));
   }
 }

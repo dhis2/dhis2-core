@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.sync;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
@@ -55,9 +55,9 @@ public class DataSynchronizationJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     DataSynchronizationJobParameters params =
-        (DataSynchronizationJobParameters) config.getJobParameters();
+        (DataSynchronizationJobParameters) config.parameters();
 
     dataValueSync.synchronizeData(params.getPageSize(), progress);
     completenessSync.synchronizeData(progress);

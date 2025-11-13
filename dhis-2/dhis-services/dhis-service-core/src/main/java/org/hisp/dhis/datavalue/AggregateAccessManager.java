@@ -39,14 +39,6 @@ import org.hisp.dhis.user.UserDetails;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 public interface AggregateAccessManager {
-  /**
-   * Check if given User has DATA_READ access for given DataValue
-   *
-   * @param userDetails to check permission for
-   * @param dataValue a {@link DataValue} object
-   * @return List of errors
-   */
-  List<String> canRead(UserDetails userDetails, DataValue dataValue);
 
   /**
    * Check if given user has DATA_WRITE

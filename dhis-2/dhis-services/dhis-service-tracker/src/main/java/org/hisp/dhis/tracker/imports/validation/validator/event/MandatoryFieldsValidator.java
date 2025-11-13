@@ -46,7 +46,7 @@ class MandatoryFieldsValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     reporter.addErrorIf(
-        () -> event instanceof TrackerEvent && event.getEnrollment() == null,
+        () -> event instanceof TrackerEvent trackerEvent && trackerEvent.getEnrollment() == null,
         event,
         E1123,
         "enrollment");

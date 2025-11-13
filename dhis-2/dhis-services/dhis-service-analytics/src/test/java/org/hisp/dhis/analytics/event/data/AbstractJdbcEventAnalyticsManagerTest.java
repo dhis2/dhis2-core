@@ -55,7 +55,7 @@ import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.hisp.dhis.test.TestBase.getDate;
@@ -106,8 +106,7 @@ import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
@@ -286,9 +285,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams()).withValue(booleanElement).build();
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("sum(ax.\"" + booleanElement.getUid() + "\")"));
+    assertThat(clause.sql(), is("sum(ax.\"" + booleanElement.getUid() + "\")"));
   }
 
   @Test
@@ -305,9 +305,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withAggregationType(AnalyticsAggregationType.SUM)
             .build();
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("sum(ax.\"fWIAEtYVEGk\")"));
+    assertThat(clause.sql(), is("sum(ax.\"fWIAEtYVEGk\")"));
   }
 
   @Test
@@ -347,9 +348,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     EventQueryParams params = paramsBuilder.build();
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("null"));
+    assertThat(clause.sql(), is("null"));
   }
 
   private static Stream<Arguments> noAggregationTestCases() {
@@ -378,9 +380,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withOutputType(EventOutputType.EVENT)
             .build();
 
-    String aggregateClause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause aggregateClause =
+        eventSubject.getAggregateClause(params);
 
-    assertEquals("count(ax.\"event\")", aggregateClause);
+    assertEquals("count(ax.\"event\")", aggregateClause.sql());
   }
 
   @Test
@@ -397,9 +400,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withOutputType(EventOutputType.ENROLLMENT)
             .build();
 
-    String aggregateClause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause aggregateClause =
+        eventSubject.getAggregateClause(params);
 
-    assertEquals("count(distinct ax.\"enrollment\")", aggregateClause);
+    assertEquals("count(distinct ax.\"enrollment\")", aggregateClause.sql());
   }
 
   @Test
@@ -418,9 +422,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             params.getLatestEndDate()))
         .thenReturn("select * from table");
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("avg(select * from table)"));
+    assertThat(clause.sql(), is("avg(select * from table)"));
   }
 
   @Test
@@ -442,9 +447,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             params.getLatestEndDate()))
         .thenReturn("select * from table");
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("(select * from table)"));
+    assertThat(clause.sql(), is("(select * from table)"));
   }
 
   @Test
@@ -464,9 +470,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             params.getLatestEndDate()))
         .thenReturn("select * from table");
 
-    String clause = eventSubject.getAggregateClause(params);
+    AbstractJdbcEventAnalyticsManager.AggregateClause clause =
+        eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("avg(select * from table)"));
+    assertThat(clause.sql(), is("avg(select * from table)"));
   }
 
   @Test
@@ -475,9 +482,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201701"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -524,9 +529,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201701")));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201701"));
 
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
@@ -563,9 +566,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel() {
     DimensionalObject periods =
         new BaseDimensionalObject(
-            PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            List.of(MonthlyPeriodType.getPeriodFromIsoString("201801")));
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201801"));
 
     DimensionalObject multipleOrgUnitsSameLevel =
         new BaseDimensionalObject(
@@ -706,7 +707,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private Builder defaultEventQueryParamsBuilder() {
     return new EventQueryParams.Builder()
-        .withPeriods(List.of(createPeriod("201801")), PeriodTypeEnum.MONTHLY.getName());
+        .withPeriods(createPeriodDimensions("201801"), PeriodTypeEnum.MONTHLY.getName());
   }
 
   @Test
@@ -902,8 +903,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetSelectClauseForAggregatedEnrollments() {
     // Given
-    Period period = new Period(THIS_YEAR);
-    period.setPeriodType(new YearlyPeriodType());
+    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
+    period.getPeriod().setPeriodType(new YearlyPeriodType());
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(createProgram('A'))
@@ -963,8 +964,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void testGetSelectClauseForQueryEnrollments() {
     // Given
-    Period period = new Period(THIS_YEAR);
-    period.setPeriodType(new YearlyPeriodType());
+    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(createProgram('A'))
@@ -978,6 +978,68 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertEquals(
         "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
         select);
+  }
+
+  @Test
+  void testRemoveAliases() {
+    // Given
+    List<String> columnsWithAliases = List.of("columnA as cA", "columnB", "columnC as cC", "");
+
+    // When
+    List<String> columnsWithNoAliases = eventSubject.removeAliases(columnsWithAliases);
+
+    // Then
+    assertEquals(columnsWithAliases.size(), columnsWithNoAliases.size());
+    assertTrue(columnsWithNoAliases.contains("columnA"));
+    assertTrue(columnsWithNoAliases.contains("columnB"));
+    assertTrue(columnsWithNoAliases.contains("columnC"));
+    assertTrue(columnsWithNoAliases.contains(""));
+  }
+
+  @Test
+  void testGetGroupByColumnNamesWithoutAliases() {
+    // Given
+    DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            PERIOD_DIM_ID, DimensionType.PERIOD, createPeriodDimensions("201901"));
+
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT,
+            "ouA",
+            List.of(createOrganisationUnit('A')));
+
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiA)
+            .withCoordinateFields(List.of(deA.getUid()))
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    // When
+    List<String> columns = eventSubject.getGroupByColumnNames(params, false);
+
+    // Then
+    assertThat(columns, hasSize(3));
+    assertThat(
+        columns,
+        containsInAnyOrder(
+            "ax.\"pe\"",
+            "ax.\"ou\"",
+            "'[' || round(ST_X(ST_Centroid(\""
+                + deA.getUid()
+                + "_geom"
+                + "\"))::numeric, 6) || ',' || round(ST_Y(ST_Centroid(\""
+                + deA.getUid()
+                + "_geom"
+                + "\"))::numeric, 6) || ']'"));
   }
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {
@@ -1007,12 +1069,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
       List<String> coordinateFields) {
     DataElement deA = createDataElement('A', TEXT, AggregationType.NONE);
-    Period peA = createPeriod("202201");
     QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
     Program program = createProgram('A');
 
     return new EventQueryParams.Builder()
-        .withPeriods(List.of(peA), PeriodTypeEnum.MONTHLY.getName())
+        .withPeriods(createPeriodDimensions("202201"), PeriodTypeEnum.MONTHLY.getName())
         .withOrganisationUnits(List.of(createOrganisationUnit('A')))
         .addItem(qiA)
         .withProgram(program)

@@ -39,7 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
@@ -60,13 +60,13 @@ public class GeoJsonImportJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfig, JobProgress progress) {
+  public void execute(JobEntry jobConfig, JobProgress progress) {
     progress.startingProcess("GeoJSON import started");
-    GeoJsonImportJobParams jobParams = (GeoJsonImportJobParams) jobConfig.getJobParameters();
+    GeoJsonImportJobParams jobParams = (GeoJsonImportJobParams) jobConfig.parameters();
 
     progress.startingStage("Loading file resource");
     FileResource data =
-        progress.runStage(() -> fileResourceService.getFileResource(jobConfig.getUid()));
+        progress.runStage(() -> fileResourceService.getFileResource(jobConfig.id().getValue()));
     progress.startingStage("Loading file content");
 
     try (InputStream input =
@@ -92,7 +92,7 @@ public class GeoJsonImportJob implements Job {
           count.getDeleted(),
           count.getIgnored());
 
-      notifier.addJobSummary(jobConfig, report, GeoJsonImportReport.class);
+      notifier.addJobSummary(jobConfig.toKey(), report, GeoJsonImportReport.class);
     } catch (IOException e) {
       progress.failedProcess(e);
     }

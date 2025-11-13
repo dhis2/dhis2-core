@@ -120,6 +120,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     orgUnit = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(orgUnit);
     trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setEnableChangeLog(true);
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     original = createTrackedEntity(orgUnit, trackedEntityType);
     duplicate = createTrackedEntity(orgUnit, trackedEntityType);
@@ -127,6 +128,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.save(duplicate);
     program = createProgram('A');
     program.setTrackedEntityType(trackedEntityType);
+    program.setEnableChangeLog(true);
     program1 = createProgram('B');
     program1.setTrackedEntityType(trackedEntityType);
     programService.addProgram(program);

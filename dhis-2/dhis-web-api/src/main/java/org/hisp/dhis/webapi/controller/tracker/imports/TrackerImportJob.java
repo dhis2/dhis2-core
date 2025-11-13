@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -66,13 +66,14 @@ public class TrackerImportJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("Tracker import started");
-    TrackerImportParams params = (TrackerImportParams) config.getJobParameters();
+    TrackerImportParams params = (TrackerImportParams) config.parameters();
     progress.startingStage("Loading file resource");
     FileResource data =
         progress.nonNullStagePostCondition(
-            progress.runStage(() -> fileResourceService.getExistingFileResource(config.getUid())));
+            progress.runStage(
+                () -> fileResourceService.getExistingFileResource(config.id().getValue())));
     progress.startingStage("Loading file content");
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
@@ -82,7 +83,7 @@ public class TrackerImportJob implements Job {
         progress.failedProcess("Import failed, no summary available");
         return;
       }
-      notifier.addJobSummary(config, report, ImportReport.class);
+      notifier.addJobSummary(config.toKey(), report, ImportReport.class);
 
       if (report.getValidationReport().hasErrors()) {
         report

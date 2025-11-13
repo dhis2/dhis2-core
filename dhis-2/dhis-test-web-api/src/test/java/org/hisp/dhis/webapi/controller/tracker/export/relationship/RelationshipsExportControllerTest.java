@@ -51,8 +51,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -70,10 +72,10 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
@@ -103,7 +105,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   private User importUser;
 
-  private Event relationship1To;
+  private TrackerEvent relationship1To;
   private Relationship relationship1;
   private TrackedEntity relationship1From;
   private Relationship relationship2;
@@ -442,30 +444,36 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
-    List<String> jsonAttributes =
+    Map<String, JsonAttribute> jsonAttributes =
         relationships.get(0).getTo().getEnrollment().getAttributes().stream()
-            .map(JsonAttribute::getAttribute)
-            .toList();
+            .collect(Collectors.toMap(JsonAttribute::getAttribute, Function.identity()));
 
-    Set<String> expectedAttributes =
+    List<Attribute> expectedEnrollmentAttributes =
         getEnrollment(UID.of(relationships.get(0).getTo().getEnrollment().getEnrollment()))
-            .getAttributes()
-            .stream()
-            .map(Attribute::getAttribute)
-            .map(MetadataIdentifier::getIdentifier)
-            .collect(Collectors.toSet());
-    Set<String> expectedTETAttributes =
+            .getAttributes();
+    List<Attribute> expectedTETAttributes =
         getTrackedEntity(UID.of(relationships.get(0).getTo().getEnrollment().getTrackedEntity()))
-            .getAttributes()
-            .stream()
-            .map(Attribute::getAttribute)
-            .map(MetadataIdentifier::getIdentifier)
-            .collect(Collectors.toSet());
+            .getAttributes();
 
-    assertContainsOnly(
-        Stream.concat(expectedAttributes.stream(), expectedTETAttributes.stream())
-            .collect(Collectors.toSet()),
-        jsonAttributes);
+    Map<String, Attribute> expectedAttributes =
+        Stream.concat(expectedEnrollmentAttributes.stream(), expectedTETAttributes.stream())
+            .distinct()
+            .collect(
+                Collectors.toMap(att -> att.getAttribute().getIdentifier(), Function.identity()));
+
+    assertContainsOnly(expectedAttributes.keySet(), jsonAttributes.keySet());
+
+    for (Attribute expectedAttribute : expectedAttributes.values()) {
+      String expectedValue = expectedAttribute.getValue();
+
+      JsonAttribute matchingJsonAttribute =
+          jsonAttributes.get(expectedAttribute.getAttribute().getIdentifier());
+
+      assertEquals(
+          expectedValue,
+          matchingJsonAttribute.getValue(),
+          "Value mismatch for attribute " + expectedAttribute);
+    }
   }
 
   @Test
@@ -942,14 +950,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         .toList();
   }
 
-  private Event getEvent(UID event) {
+  private TrackerEvent getEvent(UID event) {
     return trackerObjects.getEvents().stream()
         .filter(ev -> ev.getEvent().equals(event))
         .findFirst()
         .get();
   }
 
-  private List<Event> getEventsByEnrollment(UID enrollment) {
+  private List<TrackerEvent> getEventsByEnrollment(UID enrollment) {
     return trackerObjects.getEvents().stream()
         .filter(ev -> Objects.equals(ev.getEnrollment(), enrollment))
         .toList();

@@ -179,7 +179,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
     long attributeOptionComboId = Long.parseLong(parts[3]);
 
     DataSet dataSet = idObjectManager.get(DataSet.class, dataSetId);
-    Period period = idObjectManager.get(Period.class, periodId);
+    Period period = periodService.getPeriod(periodId);
     OrganisationUnit organisationUnit = idObjectManager.get(OrganisationUnit.class, orgUnitID);
     CategoryOptionCombo categoryOptionCombo =
         idObjectManager.get(CategoryOptionCombo.class, attributeOptionComboId);

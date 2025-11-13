@@ -226,6 +226,7 @@ public interface RelationshipItemMapper {
   @Mapping(target = "attribute")
   @Mapping(target = "created")
   @Mapping(target = "lastUpdated")
+  @Mapping(target = "value")
   TrackedEntityAttributeValue map(TrackedEntityAttributeValue attributeValue);
 
   @BeanMapping(ignoreByDefault = true)
@@ -262,7 +263,6 @@ public interface RelationshipItemMapper {
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "uid")
-  @Mapping(target = "enrollment", qualifiedByName = "mapEnrollmentForEvent")
   @Mapping(target = "programStage")
   @Mapping(target = "organisationUnit")
   @Mapping(target = "occurredDate")

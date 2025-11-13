@@ -67,7 +67,6 @@ class EventStatusPreProcessorTest {
     programStage.setUid("programStageUid");
     programStage.setProgram(program);
     TrackerPreheat preheat = new TrackerPreheat();
-    preheat.putEnrollmentsWithoutRegistration("programUid", enrollment);
     preheat.put(programStage);
     TrackerEvent event =
         TrackerEvent.builder()

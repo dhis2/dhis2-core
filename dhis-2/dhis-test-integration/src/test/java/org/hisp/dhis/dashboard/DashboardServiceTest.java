@@ -50,6 +50,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.embedded.EmbeddedDashboard;
 import org.hisp.dhis.dashboard.embedded.EmbeddedOptions;
 import org.hisp.dhis.dashboard.embedded.EmbeddedProvider;
+import org.hisp.dhis.dashboard.embedded.EmbeddedSecurity;
 import org.hisp.dhis.dashboard.embedded.FilterOptions;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -172,7 +173,8 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         new EmbeddedDashboard(
             EmbeddedProvider.SUPERSET,
             UUID_A,
-            new EmbeddedOptions(true, true, new FilterOptions(true, true))));
+            new EmbeddedOptions(true, true, new FilterOptions(true, true)),
+            new EmbeddedSecurity(true)));
   }
 
   @Test
@@ -189,12 +191,15 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, dashboardService.getDashboard(dCId).getItems().size());
 
     Dashboard rdC = dashboardService.getDashboard(dCId);
-    assertNotNull(rdC.getEmbedded());
-    assertEquals(EmbeddedProvider.SUPERSET, rdC.getEmbedded().getProvider());
-    assertEquals(UUID_A, rdC.getEmbedded().getId());
-    assertNotNull(rdC.getEmbedded().getOptions());
-    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
-    assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
+    EmbeddedDashboard reC = rdC.getEmbedded();
+    assertNotNull(reC);
+    assertEquals(EmbeddedProvider.SUPERSET, reC.getProvider());
+    assertEquals(UUID_A, reC.getId());
+    assertNotNull(reC.getOptions());
+    assertTrue(reC.getOptions().isHideChartControls());
+    assertTrue(reC.getOptions().isHideChartControls());
+    assertNotNull(reC.getSecurity());
+    assertTrue(reC.getSecurity().isRestrictOrgUnitHierarchy());
   }
 
   @Test

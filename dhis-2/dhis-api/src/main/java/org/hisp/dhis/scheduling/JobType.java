@@ -30,6 +30,7 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobType.Defaults.daily1am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.daily2am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.daily7am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.dailyRandomBetween3and5;
@@ -40,6 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
@@ -114,6 +116,7 @@ public enum JobType {
   System Jobs
   */
   HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
+  DATA_VALUE_TRIM(daily1am("D2datatrim8", "Data value trim")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
@@ -135,21 +138,25 @@ public enum JobType {
    * @param name for the {@link JobConfiguration} should it be created
    */
   public record Defaults(
-      @Nonnull String uid,
+      @Nonnull UID uid,
       @CheckForNull String cronExpression,
       @CheckForNull Integer delay,
       @Nonnull String name) {
 
     static Defaults every(int seconds, String uid, String name) {
-      return new Defaults(uid, null, seconds, name);
+      return new Defaults(UID.of(uid), null, seconds, name);
     }
 
     static Defaults daily2am(String uid, String name) {
-      return new Defaults(uid, "0 0 2 ? * *", null, name);
+      return new Defaults(UID.of(uid), "0 0 2 ? * *", null, name);
+    }
+
+    static Defaults daily1am(String uid, String name) {
+      return new Defaults(UID.of(uid), "0 0 1 ? * *", null, name);
     }
 
     static Defaults daily7am(String uid, String name) {
-      return new Defaults(uid, "0 0 7 ? * *", null, name);
+      return new Defaults(UID.of(uid), "0 0 7 ? * *", null, name);
     }
 
     /**
@@ -160,11 +167,13 @@ public enum JobType {
     static Defaults dailyRandomBetween3and5(String uid, String name) {
       ThreadLocalRandom rnd = ThreadLocalRandom.current();
       String cron = format("%d %d %d ? * *", rnd.nextInt(60), rnd.nextInt(60), rnd.nextInt(3, 6));
-      return new Defaults(uid, cron, null, name);
+      return new Defaults(UID.of(uid), cron, null, name);
     }
   }
 
   @CheckForNull private final Class<? extends JobParameters> jobParameters;
+
+  /** A job with defaults is a system job and gets spawned automatically if it does not yet exist */
   @CheckForNull private final Defaults defaults;
 
   JobType() {

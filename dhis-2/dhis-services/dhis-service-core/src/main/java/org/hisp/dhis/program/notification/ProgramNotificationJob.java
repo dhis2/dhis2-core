@@ -32,7 +32,7 @@ package org.hisp.dhis.program.notification;
 import java.util.Calendar;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class ProgramNotificationJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     // Today at 00:00:00
     Calendar calendar = Calendar.getInstance();
     calendar.set(Calendar.HOUR, 0);

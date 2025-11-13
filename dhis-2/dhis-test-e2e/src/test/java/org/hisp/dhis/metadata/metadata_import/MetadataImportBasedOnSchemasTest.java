@@ -86,7 +86,7 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
     schemasActions.validateObjectAgainstSchema(schema, firstObject).validate().statusCode(200);
   }
 
-  @Disabled("Disabled while investigating test failures")
+  @Disabled
   @ParameterizedTest(name = "POST to /{1}")
   @MethodSource("getSchemaEndpoints")
   public void postBasedOnSchema(String endpoint, String schema) {

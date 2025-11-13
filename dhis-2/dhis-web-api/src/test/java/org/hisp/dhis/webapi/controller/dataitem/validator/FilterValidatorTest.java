@@ -58,14 +58,12 @@ class FilterValidatorTest {
   @Test
   void testCheckNamesAndOperatorsWhenFilterHasInvalidFormat() {
     // Given
-    final Set<String> filters = new HashSet<>(singletonList("name:ilike:someName:bla:bla"));
+    final Set<String> filters = new HashSet<>(singletonList("name:ilike"));
     // When throws
     final IllegalQueryException thrown =
         assertThrows(IllegalQueryException.class, () -> checkNamesAndOperators(filters));
     // Then
-    assertThat(
-        thrown.getMessage(),
-        containsString("Unable to parse filter `name:ilike:someName:bla:bla`"));
+    assertThat(thrown.getMessage(), containsString("Unable to parse filter `name:ilike`"));
   }
 
   @Test
@@ -78,7 +76,7 @@ class FilterValidatorTest {
         assertThrows(IllegalQueryException.class, () -> checkNamesAndOperators(filters));
     // Then
     assertThat(
-        thrown.getMessage(), containsString("Unable to parse filter `dimensionItemType:ilike:`"));
+        thrown.getMessage(), containsString("Operator not supported: `dimensionItemType:ilike`"));
   }
 
   @Test
@@ -108,6 +106,22 @@ class FilterValidatorTest {
     // Given
     final Set<String> filters = new HashSet<>(singletonList("name:ilike:aWord"));
     // When
+    checkNamesAndOperators(filters);
+  }
+
+  @Test
+  void testCheckNamesAndOperatorsWhenFilterValueContainsColons() {
+    // Given - filter value contains colons (e.g., "someName:bla:bla")
+    final Set<String> filters = new HashSet<>(singletonList("name:ilike:someName:bla:bla"));
+    // When - should not throw exception
+    checkNamesAndOperators(filters);
+  }
+
+  @Test
+  void testCheckNamesAndOperatorsWhenFilterValueContainsMultipleColons() {
+    // Given - filter value contains multiple colons
+    final Set<String> filters = new HashSet<>(singletonList("displayName:ilike:healt:xxx"));
+    // When - should not throw exception
     checkNamesAndOperators(filters);
   }
 

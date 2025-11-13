@@ -40,7 +40,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,21 +101,17 @@ public class DefaultOptionService implements OptionService {
       if (option.getCode() == null) {
         throw new ConflictException(ErrorCode.E4000, "code");
       }
-      ErrorMessage error = validateOption(optionSet, option);
-      if (error != null) {
-        throw new ConflictException(error);
-      }
+      validateOption(optionSet, option);
     }
   }
 
   @Override
-  public ErrorMessage validateOption(OptionSet optionSet, Option option) {
+  public void validateOption(OptionSet optionSet, Option option) throws ConflictException {
     if (optionSet != null
         && optionSet.getValueType() == ValueType.MULTI_TEXT
         && option.getCode().contains(ValueType.MULTI_TEXT_SEPARATOR)) {
-      return new ErrorMessage(ErrorCode.E1118, optionSet.getUid(), option.getCode());
+      throw new ConflictException(ErrorCode.E1118, optionSet.getUid(), option.getCode());
     }
-    return null;
   }
 
   @Override

@@ -29,30 +29,39 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
-import static org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper.toDto;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportPipeline;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataSetValueQueryParams;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDtoMapper;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValuePostParams;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValuesDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,50 +72,127 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Document(
     entity = DataValue.class,
-    classifiers = {"team:platform", "purpose:data"})
+    classifiers = {"team:platform", "purpose:data-entry"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
 public class DataSetValueController {
-  private final DataValueService dataValueService;
+
+  private final DataExportPipeline dataExportPipeline;
 
   private final MinMaxDataElementService minMaxValueService;
 
-  private final DataSetService dataSetService;
+  private final DataEntryService dataEntryService;
 
   private final CompleteDataSetRegistrationService registrationService;
 
   private final DataValidator dataValidator;
 
   @GetMapping("/dataValues")
-  public DataValuesDto getDataValueSet(DataSetValueQueryParams params) {
+  public DataValuesDto getDataValueSet(DataSetValueQueryParams params) throws ConflictException {
     DataSet ds = dataValidator.getAndValidateDataSet(params.getDs());
     Period pe = dataValidator.getAndValidatePeriod(params.getPe());
     OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
-    CategoryOptionCombo ao =
+    CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
     DataExportParams exportParams =
-        new DataExportParams()
-            .setDataSets(Set.of(ds))
-            .setPeriods(Set.of(pe))
-            .setOrganisationUnits(Set.of(ou))
-            .setAttributeOptionCombos(Set.of(ao));
+        DataExportParams.builder()
+            .dataSet(Set.of(params.getDs()))
+            .period(Set.of(params.getPe()))
+            .orgUnit(Set.of(params.getOu()))
+            .attributeOptionCombo(Set.of(aoc.getUid()))
+            .build();
 
-    List<DataValue> dataValues = dataValueService.getDataValues(exportParams);
+    DataValueCategoryParams attribute = new DataValueCategoryParams();
+    attribute.setCombo(aoc.getCategoryCombo().getUid());
+    attribute.setOptions(
+        aoc.getCategoryOptions().stream().map(IdentifiableObject::getUid).collect(toSet()));
+
+    List<DataValuePostParams> dataValues =
+        dataExportPipeline.exportAsList(exportParams, dv -> toDto(dv, attribute));
 
     List<MinMaxDataElement> minMaxValues =
         minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
 
-    LockStatus lockStatus = dataSetService.getLockStatus(ds, pe, ou, ao);
+    // de is not relevant but required, so we use any of the set
+    UID de = UID.of(ds.getDataElements().iterator().next());
+    LockStatus lockStatus =
+        dataEntryService.getEntryStatus(
+            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(aoc), pe.getIsoDate()));
 
     CompleteDataSetRegistration registration =
-        registrationService.getCompleteDataSetRegistration(ds, pe, ou, ao);
+        registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
 
     return new DataValuesDto()
-        .setDataValues(mapToList(dataValues, DataValueDtoMapper::toDto))
-        .setMinMaxValues(mapToList(minMaxValues, DataValueDtoMapper::toDto))
+        .setDataValues(dataValues)
+        .setMinMaxValues(mapToList(minMaxValues, DataSetValueController::toDto))
         .setLockStatus(lockStatus)
         .setCompleteStatus(registration != null ? toDto(registration) : new CompleteStatusDto());
+  }
+
+  /**
+   * Converts a {@link DataValue} object to a {@link DataValuePostParams}.
+   *
+   * @param value the {@link DataValue}.
+   * @return a {@link DataValuePostParams}.
+   */
+  public static DataValuePostParams toDto(
+      DataExportValue value, DataValueCategoryParams attribute) {
+    return new DataValuePostParams()
+        .setDataElement(value.dataElement().getValue())
+        .setPeriod(value.period())
+        .setOrgUnit(value.orgUnit().getValue())
+        .setCategoryOptionCombo(value.categoryOptionCombo().getValue())
+        .setAttribute(attribute)
+        .setValue(value.value())
+        .setComment(value.comment())
+        .setFollowUp(value.isFollowUp())
+        .setStoredBy(value.storedBy())
+        .setCreated(value.created())
+        .setLastUpdated(value.lastUpdated());
+  }
+
+  /**
+   * Converts an attribute {@link CategoryOptionCombo} object to a {@link DataValueCategoryParams}.
+   *
+   * @param attribute the attribute {@link CategoryOptionCombo}.
+   * @return a {@link DataValueCategoryParams}.
+   */
+  public static DataValueCategoryParams toDto(CategoryOptionCombo attribute) {
+    return new DataValueCategoryParams()
+        .setCombo(attribute.getCategoryCombo().getUid())
+        .setOptions(mapToSet(attribute.getCategoryOptions(), CategoryOption::getUid));
+  }
+
+  /**
+   * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValue}.
+   *
+   * @param value the {@link MinMaxDataElement}.
+   * @return a {@link MinMaxValue}.
+   */
+  public static MinMaxValue toDto(MinMaxDataElement value) {
+    return new MinMaxValue(
+        UID.of(value.getDataElement().getUid()),
+        UID.of(value.getSource().getUid()),
+        UID.of(value.getOptionCombo().getUid()),
+        value.getMin(),
+        value.getMax(),
+        null);
+  }
+
+  /**
+   * Converts a {@link CompleteDataSetRegistration} to a {@link CompleteStatusDto}.
+   *
+   * @param registration the {@link CompleteDataSetRegistration}.
+   * @return a {@link CompleteStatusDto}.
+   */
+  public static CompleteStatusDto toDto(CompleteDataSetRegistration registration) {
+    return new CompleteStatusDto()
+        .setComplete(registration.getCompleted())
+        .setCreated(registration.getDate())
+        .setCreatedBy(registration.getStoredBy())
+        .setLastUpdated(registration.getLastUpdated())
+        .setLastUpdatedBy(registration.getLastUpdatedBy());
   }
 }

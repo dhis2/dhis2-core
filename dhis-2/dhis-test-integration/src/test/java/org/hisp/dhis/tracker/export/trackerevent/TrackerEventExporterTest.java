@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.export.trackerevent;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
@@ -39,6 +41,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -54,6 +57,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
@@ -61,6 +65,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams.TrackerEventOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -118,7 +123,17 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder =
-        TrackerEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+        TrackerEventOperationParams.builderForProgram(UID.of(programStage.getProgram().getUid()))
+            .orgUnit(orgUnit)
+            .orgUnitMode(SELECTED);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenWhenProgramIsWithoutRegistration() {
+    TrackerEventOperationParams params =
+        operationParamsBuilder.program(UID.of("iS7eutanDry")).build();
+
+    assertThrows(BadRequestException.class, () -> trackerEventService.findEvents(params));
   }
 
   @Test
@@ -325,7 +340,7 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     TrackerEventOperationParams params =
-        operationParamsBuilder
+        TrackerEventOperationParams.builderForProgram(UID.of("shPjYNifvMK"))
             .orgUnit(UID.of("uoNW0E3xXUy"))
             .orgUnitMode(SELECTED)
             .attributeCategoryCombo(UID.of("O4VaNks6tta"))
@@ -592,6 +607,52 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    TrackerEventOperationParamsBuilder operationParams =
+        TrackerEventOperationParams.builderForEvent((UID.of("D9PbzJY8bJM")));
+
+    updatePublicAccessSharing(program, DATA_READ);
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    TrackerEventOperationParamsBuilder operationParams =
+        TrackerEventOperationParams.builderForEvent((UID.of("D9PbzJY8bJM")));
+
+    updatePublicAccessSharing(program, READ);
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, DATA_READ);
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, READ);
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -609,5 +670,11 @@ class TrackerEventExporterTest extends PostgresIntegrationTestBase {
 
   private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
+  }
+
+  private void updatePublicAccessSharing(
+      IdentifiableObject identifiableObject, String publicAccess) {
+    identifiableObject.getSharing().setPublicAccess(publicAccess);
+    manager.save(identifiableObject);
   }
 }

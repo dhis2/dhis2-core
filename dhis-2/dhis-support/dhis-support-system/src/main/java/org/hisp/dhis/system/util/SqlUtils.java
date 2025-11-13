@@ -95,13 +95,7 @@ public class SqlUtils {
    *
    * @param value the value.
    * @return the single quoted relation.
-   * @deprecated this single quotes and escapes the values single quotes and backslashes which is
-   *     not correct in every context. Backslashes only need to be escaped in a like and in case <a
-   *     href="https://postgresqlco.nf/doc/en/param/standard_conforming_strings/">standard_conforming_strings</a>
-   *     is enabled. The latter is taken care of by the JDBC driver. Quoting single quotes is also
-   *     taken care of by the JDBC driver when using JDBC templates with SQL parameters.
    */
-  @Deprecated(forRemoval = true)
   public static String singleQuote(String value) {
     return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
@@ -112,13 +106,7 @@ public class SqlUtils {
    *
    * @param value the value to escape.
    * @return the escaped value.
-   * @deprecated this escapes single quotes and backslashes which is not correct in every context.
-   *     Backslashes only need to be escaped in a like and in case <a
-   *     href="https://postgresqlco.nf/doc/en/param/standard_conforming_strings/">standard_conforming_strings</a>
-   *     is enabled. The latter is taken care of by the JDBC driver. Quoting single quotes is also
-   *     taken care of by the JDBC driver when using JDBC templates with SQL parameters.
    */
-  @Deprecated(forRemoval = true)
   public static String escape(String value) {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
@@ -209,8 +197,9 @@ public class SqlUtils {
    * @return like predicate
    */
   public static String likeAny(String column, List<String> likeTargets) {
-    if (StringUtils.isBlank(column) || CollectionUtils.isEmpty(likeTargets))
+    if (StringUtils.isBlank(column) || CollectionUtils.isEmpty(likeTargets)) {
       throw new IllegalArgumentException("SQL multi like must have at least one target and column");
+    }
 
     return likeTargets.stream()
         .reduce(

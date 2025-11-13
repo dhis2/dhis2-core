@@ -31,14 +31,17 @@ package org.hisp.dhis.period;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.GenericStore;
+import javax.annotation.CheckForNull;
 
 /**
  * Defines the functionality for persisting Periods and PeriodTypes.
  *
  * @author Torgeir Lorange Ostby
  */
-public interface PeriodStore extends GenericStore<Period> {
+public interface PeriodStore {
+
+  void invalidateCache();
+
   // -------------------------------------------------------------------------
   // Period
   // -------------------------------------------------------------------------
@@ -50,25 +53,19 @@ public interface PeriodStore extends GenericStore<Period> {
    */
   void addPeriod(Period period);
 
-  /**
-   * Returns a Period.
-   *
-   * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
-   * @param periodType the PeriodType of the Period
-   * @return the Period matching the dates and periodtype, or null if no match.
-   */
-  Period getPeriod(Date startDate, Date endDate, PeriodType periodType);
+  @CheckForNull
+  Period get(long id);
+
+  List<Period> getAll();
 
   /**
    * Returns a Period.
    *
    * @param startDate the start date of the Period.
-   * @param endDate the end date of the Period.
    * @param periodType the PeriodType of the Period
    * @return the Period matching the dates and periodtype, or null if no match.
    */
-  Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType);
+  Period getPeriodFromDates(Date startDate, PeriodType periodType);
 
   /**
    * Returns all Periods with start date after or equal the specified start date and end date before
@@ -93,8 +90,6 @@ public interface PeriodStore extends GenericStore<Period> {
    */
   List<Period> getPeriodsBetweenDates(PeriodType periodType, Date startDate, Date endDate);
 
-  List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate);
-
   /**
    * Returns Periods where at least one its days is between the given start date and end date.
    *
@@ -103,14 +98,6 @@ public interface PeriodStore extends GenericStore<Period> {
    * @return Periods where at least one its days is between the given start date and end date.
    */
   List<Period> getIntersectingPeriods(Date startDate, Date endDate);
-
-  /**
-   * Returns all Periods with a given PeriodType.
-   *
-   * @param periodType the PeriodType of the Periods to return.
-   * @return all Periods with the given PeriodType, or an empty list if no Periods match.
-   */
-  List<Period> getPeriodsByPeriodType(PeriodType periodType);
 
   /**
    * Checks if the given period is associated with the current session and loads it if not. Null is
@@ -138,32 +125,8 @@ public interface PeriodStore extends GenericStore<Period> {
    * Adds a PeriodType.
    *
    * @param periodType the PeriodType to add.
-   * @return a generated unique id of the added PeriodType.
    */
-  int addPeriodType(PeriodType periodType);
-
-  /**
-   * Deletes a PeriodType.
-   *
-   * @param periodType the PeriodType to delete.
-   */
-  void deletePeriodType(PeriodType periodType);
-
-  /**
-   * Returns a PeriodType.
-   *
-   * @param id the id of the PeriodType to return.
-   * @return the PeriodType with the given id, or null if no match.
-   */
-  PeriodType getPeriodType(int id);
-
-  /**
-   * Returns the persisted instance of a given PeriodType.
-   *
-   * @param periodType the PeriodType class of the instance to return.
-   * @return the period type.
-   */
-  PeriodType getPeriodType(Class<? extends PeriodType> periodType);
+  void addPeriodType(PeriodType periodType);
 
   /**
    * Returns all PeriodTypes.
@@ -172,20 +135,9 @@ public interface PeriodStore extends GenericStore<Period> {
    */
   List<PeriodType> getAllPeriodTypes();
 
-  /**
-   * Checks if the given periodType is associated with the current session and loads it if not. Null
-   * is returned if the period does not exist.
-   *
-   * @param periodType the PeriodType.
-   * @return the Period.
-   */
-  PeriodType reloadPeriodType(PeriodType periodType);
-
   // -------------------------------------------------------------------------
   // RelativePeriods
   // -------------------------------------------------------------------------
-
-  Period insertIsoPeriodInStatelessSession(Period period);
 
   /**
    * Deletes a RelativePeriods instance.

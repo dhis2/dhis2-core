@@ -36,6 +36,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobKey;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
 
@@ -49,21 +50,38 @@ public interface Notifier {
     return notify(id, NotificationLevel.INFO, message, false);
   }
 
+  default Notifier notify(JobKey key, String message) {
+    return notify(key, NotificationLevel.INFO, message, false);
+  }
+
   default Notifier notify(JobConfiguration id, @Nonnull NotificationLevel level, String message) {
     return notify(id, level, message, false);
+  }
+
+  default Notifier notify(JobKey key, @Nonnull NotificationLevel level, String message) {
+    return notify(key, level, message, false);
   }
 
   default Notifier notify(JobConfiguration id, String message, boolean completed) {
     return notify(id, NotificationLevel.INFO, message, completed);
   }
 
+  default Notifier notify(JobKey key, String message, boolean completed) {
+    return notify(key, NotificationLevel.INFO, message, completed);
+  }
+
   default Notifier notify(
       JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed) {
-    return notify(id, level, message, completed, null, null);
+    return notify(id.toKey(), level, message, completed, null, null);
+  }
+
+  default Notifier notify(
+      JobKey key, @Nonnull NotificationLevel level, String message, boolean completed) {
+    return notify(key, level, message, completed, null, null);
   }
 
   Notifier notify(
-      JobConfiguration id,
+      JobKey key,
       @Nonnull NotificationLevel level,
       String message,
       boolean completed,
@@ -88,12 +106,20 @@ public interface Notifier {
   Map<String, Deque<Notification>> getNotificationsByJobType(
       JobType jobType, @CheckForNull Boolean gist);
 
-  default <T> Notifier addJobSummary(JobConfiguration id, T summary, Class<T> type) {
-    return addJobSummary(id, NotificationLevel.INFO, summary, type);
+  default <T> Notifier addJobSummary(JobConfiguration job, T summary, Class<T> type) {
+    return addJobSummary(job, NotificationLevel.INFO, summary, type);
   }
 
-  <T> Notifier addJobSummary(
-      JobConfiguration id, NotificationLevel level, T summary, Class<T> type);
+  default <T> Notifier addJobSummary(JobKey job, T summary, Class<T> type) {
+    return addJobSummary(job, NotificationLevel.INFO, summary, type);
+  }
+
+  default <T> Notifier addJobSummary(
+      JobConfiguration job, NotificationLevel level, T summary, Class<T> type) {
+    return addJobSummary(job == null ? null : job.toKey(), level, summary, type);
+  }
+
+  <T> Notifier addJobSummary(JobKey job, NotificationLevel level, T summary, Class<T> type);
 
   Map<String, JsonValue> getJobSummariesForJobType(JobType jobType);
 
@@ -172,11 +198,11 @@ public interface Notifier {
   /**
    * For backwards compatibility (not having to update all callers)
    *
-   * @param config the job to clear all data for
+   * @param key the job to clear all data for
    * @return itself for chaining
    */
-  default Notifier clear(@CheckForNull JobConfiguration config) {
-    if (config != null) clear(config.getJobType(), UID.of(config.getUid()));
+  default Notifier clear(@Nonnull JobKey key) {
+    clear(key.type(), key.id());
     return this;
   }
 }

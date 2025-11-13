@@ -51,7 +51,6 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -326,14 +325,6 @@ class DataIntegrityServiceTest {
     subject.getDataElementsWithoutGroups();
     verify(dataElementService).getDataElementsWithoutGroups();
     verifyNoMoreInteractions(dataElementService);
-  }
-
-  @Test
-  void testGetDataSetsNotAssignedToOrganisationUnits() {
-    clearInvocations(dataSetService);
-    subject.getDataSetsNotAssignedToOrganisationUnits();
-    verify(dataSetService).getDataSetsNotAssignedToOrganisationUnits();
-    verifyNoMoreInteractions(dataSetService);
   }
 
   @Test

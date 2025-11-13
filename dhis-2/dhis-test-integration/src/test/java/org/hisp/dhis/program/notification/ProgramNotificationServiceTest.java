@@ -49,7 +49,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -84,8 +83,6 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private EventStore eventStore;
 
   @Autowired
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")

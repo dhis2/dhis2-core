@@ -45,6 +45,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
 public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
@@ -56,7 +57,9 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @EnabledIf(value = "isPostgres", disabledReason = "subExpressions are only supported in Postgres")
   public void subExpressionIndicator() throws JSONException {
+
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()

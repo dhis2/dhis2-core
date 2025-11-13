@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,15 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataapproval.DataApproval;
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -60,10 +51,8 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,10 +84,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
 
   private OrganisationUnit unitF;
 
-  private CategoryCombo categoryCombo;
-
-  private CategoryOptionCombo attributeOptionCombo;
-
   private User superUser;
 
   @Autowired private DataSetService dataSetService;
@@ -108,12 +93,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PeriodService periodService;
-
-  @Autowired private DataApprovalService approvalService;
-
-  @Autowired private DataApprovalService dataApprovalService;
-
-  @Autowired private DataApprovalLevelService levelService;
 
   @Autowired private AclService aclService;
 
@@ -138,8 +117,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(unitD);
     organisationUnitService.addOrganisationUnit(unitE);
     organisationUnitService.addOrganisationUnit(unitF);
-    categoryCombo = categoryService.getDefaultCategoryCombo();
-    attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
     superUser =
         createAndAddUser(
@@ -154,22 +131,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     assertEquals("DataSet" + uniqueCharacter, dataSet.getName());
     assertEquals("DataSetShort" + uniqueCharacter, dataSet.getShortName());
     assertEquals(periodType, dataSet.getPeriodType());
-  }
-
-  private void approveData(DataSet dataSet, Period period, OrganisationUnit unit) {
-    DataApprovalLevel level = new DataApprovalLevel("Level A", unit.getLevel(), null);
-    levelService.addDataApprovalLevel(level);
-    DataApprovalWorkflow workflow =
-        new DataApprovalWorkflow(
-            "Workflow A", period.getPeriodType(), categoryCombo, newHashSet(level));
-    dataApprovalService.addWorkflow(workflow);
-    dataSet.assignWorkflow(workflow);
-    dataSet.addOrganisationUnit(unit);
-    dataSetService.updateDataSet(dataSet);
-    DataApproval approval =
-        new DataApproval(
-            level, workflow, period, unit, attributeOptionCombo, false, new Date(), superUser);
-    approvalService.approveData(newArrayList(approval));
   }
 
   // -------------------------------------------------------------------------
@@ -308,195 +269,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     assertEquals(unitA, lockException.getOrganisationUnit());
     assertEquals(period, lockException.getPeriod());
     assertEquals(dataSet, lockException.getDataSet());
-  }
-
-  @Test
-  @Disabled("TODO: fix this test 12098")
-  void testIsLockedDataElement() {
-    DataSet dataSetA = createDataSet('A', periodType);
-    DataSet dataSetB = createDataSet('B', periodType);
-    dataSetA.setExpiryDays(20);
-    dataSetA.setTimelyDays(15);
-    dataSetB.setExpiryDays(10);
-    dataSetB.setTimelyDays(15);
-    dataSetA.addDataSetElement(dataElementA);
-    dataSetB.addDataSetElement(dataElementA);
-    dataSetService.addDataSet(dataSetA);
-    dataSetService.addDataSet(dataSetB);
-    User user = getCurrentUser();
-    // ---------------------------------------------------------------------
-    // Expiry days
-    // ---------------------------------------------------------------------
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 1)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 5)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 15)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementB, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
-    assertEquals(
-        LockStatus.LOCKED,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
-    // ---------------------------------------------------------------------
-    // Lock exception
-    // ---------------------------------------------------------------------
-    LockException lockException = new LockException(period, unitA, dataSetA);
-    dataSetService.addLockException(lockException);
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 1)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 5)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 15)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementB, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
-    // ---------------------------------------------------------------------
-    // Approved
-    // ---------------------------------------------------------------------
-    approveData(dataSetA, period, unitA);
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 1)));
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 5)));
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 15)));
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataElementA, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataElementB, period, unitA, attributeOptionCombo, user, getDate(2000, 4, 25)));
-  }
-
-  @Test
-  @Disabled("TODO: fix this test 12098")
-  void testIsLockedDataSet() {
-    injectSecurityContextUser(superUser);
-
-    DataSet dataSetA = createDataSet('A', periodType);
-    DataSet dataSetB = createDataSet('B', periodType);
-    dataSetA.setExpiryDays(10);
-    dataSetA.setTimelyDays(15);
-    dataSetB.setExpiryDays(15);
-    dataSetB.setTimelyDays(15);
-    dataSetService.addDataSet(dataSetA);
-    dataSetService.addDataSet(dataSetB);
-    // ---------------------------------------------------------------------
-    // Expiry days
-    // ---------------------------------------------------------------------
-    UserDetails superUserDetails = UserDetails.fromUser(superUser);
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 1)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 5)));
-    assertEquals(
-        LockStatus.LOCKED,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 15)));
-    assertEquals(
-        LockStatus.LOCKED,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 10)));
-    // Test Expiry days with user has authority "ALL"
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
-    // ---------------------------------------------------------------------
-    // Lock exception
-    // ---------------------------------------------------------------------
-    LockException lockException = new LockException(period, unitA, dataSetA);
-    dataSetService.addLockException(lockException);
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 1)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 5)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 15)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 10)));
-    assertEquals(
-        LockStatus.LOCKED,
-        dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
-    // ---------------------------------------------------------------------
-    // Approved
-    // ---------------------------------------------------------------------
-    approveData(dataSetA, period, unitA);
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 1)));
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 5)));
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 15)));
-    assertEquals(
-        LockStatus.APPROVED,
-        dataSetService.getLockStatus(
-            dataSetA, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
-    assertEquals(
-        LockStatus.OPEN,
-        dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 10)));
-    assertEquals(
-        LockStatus.LOCKED,
-        dataSetService.getLockStatus(
-            dataSetB, period, unitA, attributeOptionCombo, superUserDetails, getDate(2000, 4, 25)));
   }
 
   @Test

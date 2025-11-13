@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
@@ -47,6 +48,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobRunErrors;
@@ -83,12 +85,14 @@ public class JobConfigurationController
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
+  @Maturity.Beta
   @RequiresAuthority(anyOf = F_JOB_LOG_READ)
   @GetMapping("/errors")
   public List<JobRunErrors> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
   }
 
+  @Maturity.Beta
   @GetMapping("{uid}/errors")
   public JobRunErrors getJobRunErrors(
       @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid)
@@ -99,15 +103,17 @@ public class JobConfigurationController
     return errors.isEmpty() ? JsonMixed.of("{}").as(JobRunErrors.class) : errors.get(0);
   }
 
+  @Maturity.Beta
   @GetMapping("/due")
-  public List<JobConfiguration> getDueJobConfigurations(
+  public List<JobEntry> getDueJobConfigurations(
       @RequestParam int seconds,
       @RequestParam(required = false, defaultValue = "false") boolean includeWaiting) {
     return jobConfigurationService.getDueJobConfigurations(seconds, includeWaiting);
   }
 
+  @Maturity.Beta
   @GetMapping("/stale")
-  public List<JobConfiguration> getStaleJobConfigurations(@RequestParam int seconds) {
+  public List<JobEntry> getStaleJobConfigurations(@RequestParam int seconds) {
     return jobConfigurationService.getStaleConfigurations(seconds);
   }
 
@@ -126,7 +132,7 @@ public class JobConfigurationController
   @PostMapping(
       value = "{uid}/execute",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public ObjectReport executeNow(@PathVariable("uid") String uid)
+  public ObjectReport executeNow(@PathVariable("uid") UID uid)
       throws NotFoundException, ConflictException {
 
     jobSchedulerService.executeNow(uid);
@@ -140,7 +146,7 @@ public class JobConfigurationController
   public void cancelExecution(@PathVariable("uid") UID uid)
       throws NotFoundException, ForbiddenException {
     checkExecutingUserOrAdmin(uid, false);
-    jobSchedulerService.requestCancel(uid.getValue());
+    jobSchedulerService.requestCancel(uid);
   }
 
   @PostMapping("{uid}/revert")
@@ -154,16 +160,18 @@ public class JobConfigurationController
   public Progress getProgress(@PathVariable("uid") UID uid)
       throws ForbiddenException, NotFoundException {
     checkExecutingUserOrAdmin(uid, true);
-    return jobSchedulerService.getProgress(uid.getValue());
+    return jobSchedulerService.getProgress(uid);
   }
 
+  @Maturity.Beta
   @GetMapping("{uid}/progress/errors")
   public List<JobProgress.Error> getErrors(@PathVariable("uid") UID uid)
       throws ForbiddenException, NotFoundException {
     checkExecutingUserOrAdmin(uid, true);
-    return jobSchedulerService.getErrors(uid.getValue());
+    return jobSchedulerService.getErrors(uid);
   }
 
+  @Maturity.Beta
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("clean")
   @ResponseStatus(HttpStatus.NO_CONTENT)

@@ -72,7 +72,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
       }
     }
 
-    for (org.hisp.dhis.tracker.imports.domain.Event ev : trackerObjects.getEvents()) {
+    for (org.hisp.dhis.tracker.imports.domain.TrackerEvent ev : trackerObjects.getEvents()) {
       TrackerEvent event = preheatedEvents.get(ev.getEvent());
       Enrollment enrollment =
           event == null ? preheatedEnrollments.get(ev.getEnrollment()) : event.getEnrollment();

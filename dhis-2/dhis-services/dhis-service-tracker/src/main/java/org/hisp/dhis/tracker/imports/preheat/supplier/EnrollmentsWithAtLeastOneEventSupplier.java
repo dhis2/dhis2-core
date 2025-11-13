@@ -54,8 +54,8 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
           + COLUMN
           + " from enrollment "
           + "where exists( select eventid "
-          + "from event "
-          + "where enrollment.enrollmentid = event.enrollmentid "
+          + "from trackerevent "
+          + "where enrollment.enrollmentid = trackerevent.enrollmentid "
           + "and enrollment.deleted = false) "
           + "and enrollmentid in (:ids)";
 

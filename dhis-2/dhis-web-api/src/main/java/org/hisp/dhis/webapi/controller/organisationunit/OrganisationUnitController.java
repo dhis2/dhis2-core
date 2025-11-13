@@ -164,6 +164,13 @@ public class OrganisationUnitController
 
     @OpenApi.Description(
         """
+      Limits result to organisation units for which the current user has data view privileges.
+      Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
+      """)
+    boolean withinDataViewUserHierarchy;
+
+    @OpenApi.Description(
+        """
       Limits result to organisation units for which the current user has search privileges.
       Can be combined with further `filter`s and/or one of the `level`/`maxLevel` limitations.
       """)
@@ -351,6 +358,15 @@ public class OrganisationUnitController
     if (maxLevel != null) specialFilters.add(le("level", maxLevel));
     Set<String> parents = null;
     if (params.isWithinUserHierarchy()) parents = getCurrentUserDetails().getUserOrgUnitIds();
+    if (params.isWithinDataViewUserHierarchy()) {
+      Set<String> dataViewIds = getCurrentUserDetails().getUserDataOrgUnitIds();
+      if (parents == null) {
+        parents = dataViewIds;
+      } else {
+        parents = new HashSet<>(parents);
+        parents.addAll(dataViewIds);
+      }
+    }
     if (params.isWithinUserSearchHierarchy()) {
       UserDetails currentUser = getCurrentUserDetails();
       Set<String> searchIds = currentUser.getUserSearchOrgUnitIds();

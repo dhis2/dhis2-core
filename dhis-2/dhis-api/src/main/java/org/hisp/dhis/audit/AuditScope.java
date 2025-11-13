@@ -35,5 +35,6 @@ package org.hisp.dhis.audit;
 public enum AuditScope {
   METADATA,
   AGGREGATE,
-  TRACKER
+  TRACKER,
+  API
 }

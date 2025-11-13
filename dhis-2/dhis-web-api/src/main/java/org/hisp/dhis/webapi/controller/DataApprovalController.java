@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -84,7 +85,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalDto;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalStatusDto;
 import org.hisp.dhis.webapi.webdomain.approval.ApprovalsDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -107,6 +107,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataApprovals")
+@RequiredArgsConstructor
 public class DataApprovalController {
 
   private static final String STATUS_PATH = "/status";
@@ -115,25 +116,25 @@ public class DataApprovalController {
 
   private static final String MULTIPLE_APPROVALS_PATH = "/multiple";
 
-  @Autowired private DataApprovalService dataApprovalService;
+  private final DataApprovalService dataApprovalService;
 
-  @Autowired private DataApprovalLevelService dataApprovalLevelService;
+  private final DataApprovalLevelService dataApprovalLevelService;
 
-  @Autowired private DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-  @Autowired private IdentifiableObjectManager objectManager;
+  private final IdentifiableObjectManager objectManager;
 
-  @Autowired private OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService userService;
+  private final UserService userService;
 
-  @Autowired private PeriodService periodService;
+  private final PeriodService periodService;
 
-  @Autowired private CategoryService categoryService;
+  private final CategoryService categoryService;
 
-  @Autowired private FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-  @Autowired private ContextService contextService;
+  private final ContextService contextService;
 
   // -------------------------------------------------------------------------
   // Get

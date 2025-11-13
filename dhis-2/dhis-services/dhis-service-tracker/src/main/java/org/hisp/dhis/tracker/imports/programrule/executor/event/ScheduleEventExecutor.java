@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
@@ -53,15 +54,18 @@ public class ScheduleEventExecutor implements RuleActionExecutor<Event> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    ProgramStage ps = bundle.getPreheat().getProgramStage(validationEffect.field().getValue());
-
-    return validateAndScheduleEvent(
-        validationEffect,
-        aclService.canWrite(bundle.getUser(), ps),
-        bundle,
-        event.getEnrollment(),
-        event.getAttributeOptionCombo(),
-        event.getProgram(),
-        event.getOrgUnit());
+    if (event instanceof TrackerEvent trackerEvent) {
+      ProgramStage ps = bundle.getPreheat().getProgramStage(validationEffect.field().getValue());
+      return validateAndScheduleEvent(
+          validationEffect,
+          aclService.canWrite(bundle.getUser(), ps),
+          bundle,
+          trackerEvent.getEnrollment(),
+          trackerEvent.getAttributeOptionCombo(),
+          trackerEvent.getProgram(),
+          trackerEvent.getOrgUnit());
+    } else {
+      return Optional.empty();
+    }
   }
 }

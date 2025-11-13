@@ -69,6 +69,13 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "eventQueryUsingCompletedDateTimeField",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&completedDate=202111&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR&relativePeriodDate=2025-09-20",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

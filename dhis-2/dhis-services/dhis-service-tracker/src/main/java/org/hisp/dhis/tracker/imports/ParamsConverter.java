@@ -33,7 +33,6 @@ import java.util.List;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -74,12 +73,9 @@ public class ParamsConverter {
   }
 
   private static List<TrackerEvent> buildTrackerEvents(
-      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+      List<TrackerEvent> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
     if (importStrategy.isUpdateOrDelete()) {
-      return events.stream()
-          .filter(e -> preheat.getSingleEvent(e.getUid()) == null)
-          .map(e -> (TrackerEvent) e)
-          .toList();
+      return events.stream().filter(e -> preheat.getSingleEvent(e.getUid()) == null).toList();
     }
     return events.stream()
         .filter(
@@ -90,12 +86,11 @@ public class ParamsConverter {
                   || (programStage != null && programStage.getProgram().isRegistration())
                   || (program == null && programStage == null);
             })
-        .map(e -> (TrackerEvent) e)
         .toList();
   }
 
   private static List<SingleEvent> buildSingleEvents(
-      List<Event> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
+      List<TrackerEvent> events, TrackerPreheat preheat, TrackerImportStrategy importStrategy) {
     if (importStrategy.isUpdateOrDelete()) {
       return events.stream()
           .filter(e -> preheat.getSingleEvent(e.getUid()) != null)

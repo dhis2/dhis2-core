@@ -90,7 +90,6 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
     TypedQuery<TrackedEntityTypeAttribute> query =
         entityManager.createQuery(

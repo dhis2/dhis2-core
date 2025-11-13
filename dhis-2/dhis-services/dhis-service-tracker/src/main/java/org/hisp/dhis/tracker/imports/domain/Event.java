@@ -58,8 +58,6 @@ public interface Event extends TrackerDto, Serializable {
 
   MetadataIdentifier getProgramStage();
 
-  UID getEnrollment();
-
   MetadataIdentifier getOrgUnit();
 
   Instant getOccurredAt();
@@ -90,8 +88,6 @@ public interface Event extends TrackerDto, Serializable {
         && this.getDataValues().isEmpty()
         && this.getOccurredAt() == null;
   }
-
-  void setEnrollment(UID of);
 
   void setStatus(EventStatus eventStatus);
 

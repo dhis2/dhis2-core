@@ -170,7 +170,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (programIdentifier != null) {
       try {
         program =
-            operationsParamsValidator.validateProgramAccess(
+            operationsParamsValidator.validateTrackerProgram(
                 programIdentifier, CurrentUserUtil.getCurrentUserDetails());
       } catch (BadRequestException e) {
         throw new NotFoundException(Program.class, programIdentifier.getValue());

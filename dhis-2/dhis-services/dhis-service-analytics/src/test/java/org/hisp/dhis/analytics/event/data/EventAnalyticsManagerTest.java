@@ -49,7 +49,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
-import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -88,8 +88,7 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -148,7 +147,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
+          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,"
           + "oucode,enrollmentstatus,eventstatus";
 
   @BeforeEach
@@ -199,7 +198,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,"
+            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,"
             + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -261,7 +260,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
+            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
             + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
@@ -594,7 +593,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withPeriods(List.of(createPeriod("202201")), PeriodTypeEnum.MONTHLY.getName())
+            .withPeriods(createPeriodDimensions("202201"), PeriodTypeEnum.MONTHLY.getName())
             .addDimension(
                 new BaseDimensionalObject(
                     "jkYhtGth12t",
@@ -637,7 +636,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     piA.setUid("CCKx3gllb2P");
 
     OrganisationUnit ouA = createOrganisationUnit('A');
-    Period peA = PeriodType.getPeriodFromIsoString("201501");
+    List<PeriodDimension> periods = createPeriodDimensions("201501");
 
     DataElement deA = createDataElement('A');
     deA.setUid("ZE4cgllb2P");
@@ -655,10 +654,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             .addFilter(
                 new BaseDimensionalObject(
                     ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
-            .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, getList(peA)))
-            .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, periods))
+            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, periods))
             .build();
 
     EventQueryParams.Builder eventQueryParamsBuilder =
@@ -708,9 +705,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     // Verify that the Measure criteria is applied to the query
     assertThat(sql.getValue().trim(), containsString("having"));
     assertThat(
-        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) > 10.0"));
+        sql.getValue().trim(),
+        containsString("round(count(ax.\"event\"), 10) > ('10.0')::numeric(38,10)"));
     assertThat(
-        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) < 20.0"));
+        sql.getValue().trim(),
+        containsString("round(count(ax.\"event\"), 10) < ('20.0')::numeric(38,10)"));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(

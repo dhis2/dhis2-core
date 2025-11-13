@@ -57,13 +57,17 @@ public class SqlExceptionUtils {
    */
   public static boolean relationDoesNotExist(SQLException ex) {
     if (ex != null) {
-      return Optional.of(ex)
+      return Optional.of(ex) // postgres
               .map(SQLException::getSQLState)
               .filter(PG_TABLE_NOT_EXISTING::equals)
               .isPresent()
-          || Optional.of(ex)
+          || Optional.of(ex) // doris
               .map(SQLException::getMessage)
               .filter(m -> m.contains("Table") && m.contains("does not exist in database"))
+              .isPresent()
+          || Optional.of(ex) // clickhouse
+              .map(SQLException::getMessage)
+              .filter(m -> m.contains("Unknown table expression identifier"))
               .isPresent();
     }
 

@@ -61,7 +61,6 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.query.Filters;
@@ -245,7 +244,6 @@ public class DefaultPreheatService implements PreheatService {
     handleAttributes(params.getObjects(), preheat);
     handleSharing(params, preheat);
 
-    periodStore.getAll().forEach(period -> preheat.getPeriodMap().put(period.getName(), period));
     periodStore
         .getAllPeriodTypes()
         .forEach(periodType -> preheat.getPeriodTypeMap().put(periodType.getName(), periodType));
@@ -957,20 +955,6 @@ public class DefaultPreheatService implements PreheatService {
 
   private IdentifiableObject getPersistedObject(
       Preheat preheat, PreheatIdentifier identifier, IdentifiableObject ref) {
-    if (ref instanceof Period) {
-      Period period = preheat.getPeriodMap().get(ref.getName());
-
-      if (period == null) {
-        period = periodService.reloadIsoPeriod(ref.getName());
-      }
-
-      if (period != null) {
-        preheat.getPeriodMap().put(period.getName(), period);
-      }
-
-      return period;
-    }
-
     return preheat.get(identifier, ref);
   }
 

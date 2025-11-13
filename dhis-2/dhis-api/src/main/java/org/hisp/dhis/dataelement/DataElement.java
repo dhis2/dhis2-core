@@ -30,13 +30,10 @@
 package org.hisp.dhis.dataelement;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionConstants.TEXTVALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.VALUE_COLUMN_NAME;
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -47,7 +44,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -72,9 +68,7 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
 import org.hisp.dhis.dataset.comparator.DataSetFrequencyComparator;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -292,20 +286,6 @@ public class DataElement extends BaseDimensionalItemObject
   }
 
   /**
-   * Returns the attribute category options combinations associated with the data sets of this data
-   * element.
-   */
-  public Set<CategoryOptionCombo> getDataSetCategoryOptionCombos() {
-    Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-    for (DataSet dataSet : getDataSets()) {
-      categoryOptionCombos.addAll(dataSet.getCategoryCombo().getOptionCombos());
-    }
-
-    return categoryOptionCombos;
-  }
-
-  /**
    * Returns the PeriodType of the DataElement, based on the PeriodType of the DataSet which the
    * DataElement is associated with. If this data element has multiple data sets, the data set with
    * the highest collection frequency is returned.
@@ -324,112 +304,9 @@ public class DataElement extends BaseDimensionalItemObject
     return getDataSets().stream().map(DataSet::getPeriodType).collect(Collectors.toSet());
   }
 
-  /**
-   * Indicates whether this data element requires approval of data. Returns true if only one of the
-   * data sets associated with this data element requires approval.
-   */
-  public boolean isApproveData() {
-    for (DataSet dataSet : getDataSets()) {
-      if (dataSet != null && dataSet.getWorkflow() != null) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Number of periods in the future to open for data capture, 0 means capture not allowed for
-   * current period. Based on the data sets of which this data element is a member.
-   */
-  public int getOpenFuturePeriods() {
-    int maxOpenPeriods = 0;
-
-    for (DataSet dataSet : getDataSets()) {
-      maxOpenPeriods = Math.max(maxOpenPeriods, dataSet.getOpenFuturePeriods());
-    }
-
-    return maxOpenPeriods;
-  }
-
-  /**
-   * Returns the latest period which is open for data input. Returns null if data element is not
-   * associated with any data sets.
-   *
-   * @return the latest period which is open for data input.
-   */
-  public Period getLatestOpenFuturePeriod() {
-    PeriodType periodType = getPeriodType();
-    return periodType == null ? null : periodType.getFuturePeriod(getOpenFuturePeriods());
-  }
-
-  /**
-   * Returns the frequency order for the PeriodType of this DataElement. If no PeriodType exists, 0
-   * is returned.
-   */
-  public int getFrequencyOrder() {
-    PeriodType periodType = getPeriodType();
-
-    return periodType != null ? periodType.getFrequencyOrder() : YearlyPeriodType.FREQUENCY_ORDER;
-  }
-
-  /**
-   * Tests whether a PeriodType can be defined for the DataElement, which requires that the
-   * DataElement is registered for DataSets with the same PeriodType.
-   */
-  public boolean periodTypeIsValid() {
-    PeriodType periodType = null;
-
-    for (DataSet dataSet : getDataSets()) {
-      if (periodType != null && !periodType.equals(dataSet.getPeriodType())) {
-        return false;
-      }
-
-      periodType = dataSet.getPeriodType();
-    }
-
-    return true;
-  }
-
   /** Tests whether more than one aggregation level exists for the DataElement. */
   public boolean hasAggregationLevels() {
     return isNotEmpty(aggregationLevels);
-  }
-
-  /**
-   * Returns the maximum number of expiry days from the data sets of this data element. Returns
-   * {@link DataSet#NO_EXPIRY} if any data set has no expiry.
-   */
-  public double getExpiryDays() {
-    double expiryDays = Double.MIN_VALUE;
-
-    for (DataSet dataSet : getDataSets()) {
-      if (dataSet.getExpiryDays() == NO_EXPIRY) {
-        return NO_EXPIRY;
-      }
-
-      if (dataSet.getExpiryDays() > expiryDays) {
-        expiryDays = dataSet.getExpiryDays();
-      }
-    }
-
-    return expiryDays == Double.MIN_VALUE ? NO_EXPIRY : expiryDays;
-  }
-
-  /**
-   * Indicates whether the given period is considered expired for the end date of the given date
-   * based on the expiry days of the data sets associated with this data element.
-   *
-   * @param period the period.
-   * @param now the date used as basis.
-   * @return true or false.
-   */
-  public boolean isExpired(Period period, Date now) {
-    double expiryDays = getExpiryDays();
-    if (expiryDays == DataSet.NO_EXPIRY) {
-      return false;
-    }
-    return !Period.isDateInTimeFrame(null, addDays(period.getEndDate(), expiryDays), now);
   }
 
   /**
@@ -617,22 +494,6 @@ public class DataElement extends BaseDimensionalItemObject
 
   public void setCommentOptionSet(OptionSet commentOptionSet) {
     this.commentOptionSet = commentOptionSet;
-  }
-
-  /**
-   * Checks if the combination of period and date is allowed for any of the dataSets associated with
-   * the dataElement
-   *
-   * @param period period to check
-   * @param date date to check
-   * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the
-   *     period and date.
-   */
-  public boolean isDataInputAllowedForPeriodAndDate(Period period, Date date) {
-
-    return isEmpty(dataSetElements)
-        || getDataSets().stream()
-            .anyMatch(dataSet -> dataSet.isDataInputPeriodAndDateAllowed(period, date));
   }
 
   @JsonProperty

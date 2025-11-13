@@ -70,14 +70,14 @@ class UserSupplierTest extends TestBase {
 
   private List<org.hisp.dhis.user.User> users;
 
-  private List<Event> events;
+  private List<TrackerEvent> events;
 
   @BeforeEach
   void setup() {
     User assignedUserA = user();
     User assignedUserB = user();
-    Event eventA = event(assignedUserA);
-    Event eventB = event(assignedUserB);
+    TrackerEvent eventA = event(assignedUserA);
+    TrackerEvent eventB = event(assignedUserB);
     events = List.of(eventA, eventB);
     users = List.of(map(assignedUserA), map(assignedUserB));
   }
@@ -127,7 +127,7 @@ class UserSupplierTest extends TestBase {
     return user;
   }
 
-  private Event event(User user) {
+  private TrackerEvent event(User user) {
     return TrackerEvent.builder().event(UID.generate()).assignedUser(user).build();
   }
 

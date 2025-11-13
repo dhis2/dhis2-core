@@ -121,12 +121,10 @@ public interface EventMapper {
       TrackerEvent event);
 
   @Mapping(target = "event", source = "uid")
-  @Mapping(target = "program", source = "enrollment.program")
+  @Mapping(target = "program", source = "programStage.program")
   @Mapping(target = "programStage", source = "programStage")
-  @Mapping(target = "enrollment", source = "enrollment.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit")
   @Mapping(target = "occurredAt", source = "occurredDate")
-  @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")

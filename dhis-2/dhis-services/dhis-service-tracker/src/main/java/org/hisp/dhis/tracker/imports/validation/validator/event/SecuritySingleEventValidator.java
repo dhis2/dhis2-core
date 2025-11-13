@@ -77,6 +77,7 @@ class SecuritySingleEventValidator
         strategy.isUpdateOrDelete()
             ? preheatEvent.getProgramStage()
             : bundle.getPreheat().getProgramStage(event.getProgramStage());
+
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
 
@@ -85,6 +86,11 @@ class SecuritySingleEventValidator
     checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo, bundle.getUser());
 
     if (strategy.isUpdate()) {
+      OrganisationUnit payloadOrgUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+      if (!preheatEvent.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
+        checkOrgUnitInCaptureScope(reporter, event, payloadOrgUnit, bundle.getUser());
+      }
+
       checkCompletablePermission(reporter, event, preheatEvent, bundle.getUser());
     }
   }

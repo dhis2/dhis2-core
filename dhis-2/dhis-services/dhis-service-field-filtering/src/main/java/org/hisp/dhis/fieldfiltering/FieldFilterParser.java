@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Stack;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  * FieldFilterParser parses <a href=
@@ -88,7 +89,7 @@ public class FieldFilterParser {
         for (; idx < fieldSplit.length; idx++) {
           token = fieldSplit[idx];
 
-          if ((containsAny(token, ":", "~", "|"))) {
+          if ((Strings.CS.containsAny(token, ":", "~", "|"))) {
             if (token.equals(":")) {
               idx++;
             }
@@ -198,11 +199,11 @@ public class FieldFilterParser {
   }
 
   private static boolean isBlockStart(String token) {
-    return token != null && containsAny(token, "[", "(");
+    return token != null && Strings.CS.containsAny(token, "[", "(");
   }
 
   private static boolean isBlockEnd(String token) {
-    return token != null && containsAny(token, "]", ")");
+    return token != null && Strings.CS.containsAny(token, "]", ")");
   }
 
   // please be aware that this also could mean both block start, and parameter
@@ -226,7 +227,8 @@ public class FieldFilterParser {
   }
 
   private static boolean isAlphanumericOrSpecial(String token) {
-    return isAlphanumeric(token) || containsAny(token, "*", ":", "{", "}", "~", "!", "|");
+    return isAlphanumeric(token)
+        || Strings.CS.containsAny(token, "*", ":", "{", "}", "~", "!", "|");
   }
 
   private static boolean isExclude(String token) {
@@ -245,7 +247,7 @@ public class FieldFilterParser {
   private static boolean isTransformer(String[] fieldSplit, int idx) {
     String token = fieldSplit[idx];
 
-    return containsAny(token, "~", "|")
+    return Strings.CS.containsAny(token, "~", "|")
         || (fieldSplit.length > 1
             && ":".equals(fieldSplit[idx])
             && ":".equals(fieldSplit[idx + 1]));

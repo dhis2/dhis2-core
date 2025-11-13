@@ -212,6 +212,11 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
+  public String getConnectionUrl() {
+    return getProperty(ConfigurationKey.CONNECTION_URL);
+  }
+
+  @Override
   public boolean isReadOnlyMode() {
     return isEnabled(ConfigurationKey.SYSTEM_READ_ONLY_MODE);
   }

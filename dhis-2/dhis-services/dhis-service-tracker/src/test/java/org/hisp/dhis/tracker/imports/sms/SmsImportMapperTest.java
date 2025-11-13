@@ -331,7 +331,7 @@ class SmsImportMapperTest extends TestBase {
   }
 
   @Test
-  void mapEventWithMandatoryFields() {
+  void mapTrackerEventWithMandatoryFields() {
     TrackerEventSmsSubmission input = new TrackerEventSmsSubmission();
     input.setEvent(CodeGenerator.generateUid());
     input.setOrgUnit(CodeGenerator.generateUid());
@@ -342,7 +342,7 @@ class SmsImportMapperTest extends TestBase {
 
     TrackerObjects actual = map(input, "francis");
 
-    Event expected =
+    TrackerEvent expected =
         TrackerEvent.builder()
             .event(UID.of(input.getEvent().getUid()))
             .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))
@@ -357,7 +357,7 @@ class SmsImportMapperTest extends TestBase {
   }
 
   @Test
-  void mapEventWithOptionalFields() {
+  void mapTrackerEventWithOptionalFields() {
     TrackerEventSmsSubmission input = new TrackerEventSmsSubmission();
     input.setEvent(CodeGenerator.generateUid());
     input.setOrgUnit(CodeGenerator.generateUid());
@@ -376,7 +376,7 @@ class SmsImportMapperTest extends TestBase {
 
     TrackerObjects actual = map(input, "francis");
 
-    Event expected =
+    TrackerEvent expected =
         TrackerEvent.builder()
             .event(UID.of(input.getEvent().getUid()))
             .orgUnit(MetadataIdentifier.ofUid(input.getOrgUnit().getUid()))

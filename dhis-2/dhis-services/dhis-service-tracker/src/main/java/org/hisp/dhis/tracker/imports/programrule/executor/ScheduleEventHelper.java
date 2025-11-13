@@ -71,7 +71,7 @@ public class ScheduleEventHelper {
     // check for existing event
     if (bundle
         .getPreheat()
-        .hasProgramStageWithEvents(
+        .hasProgramStageWithTrackerEvents(
             MetadataIdentifier.ofUid(programStage.getValue()), enrollment.getValue())) {
       return Optional.of(
           ProgramRuleIssue.warning(

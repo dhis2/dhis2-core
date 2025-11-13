@@ -1,0 +1,32 @@
+{
+  "scenarios": [
+    {
+      "fixtures": [
+        {
+          "onCreatePath": "/api/routes",
+          "onConflictPath": "/api/routes/I9dq7nltClD",
+          "resource": {
+            "id": "I9dq7nltClD",
+            "name": "perf-route",
+            "code": "perf-route",
+            "url": "https://dummyjson.com/products",
+            "sharing": {
+              "public": "--------"
+            }
+          }
+        }
+      ],
+      "query": "/api/routes/I9dq7nltClD/run",
+      "expectations": [
+        {
+          "release": "42.0",
+          "max": 2000,
+          "ninetyPercentile": 2000
+        }
+      ],
+      "version": {
+        "min": "42.0"
+      }
+    }
+  ]
+}
