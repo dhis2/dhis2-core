@@ -23,3 +23,6 @@ ALTER TABLE datastatistics
   ALTER COLUMN dashboards              TYPE bigint USING round(dashboards)::bigint,
   ALTER COLUMN indicators              TYPE bigint USING round(indicators)::bigint,
   ALTER COLUMN datavalues              TYPE bigint USING round(datavalues)::bigint;
+
+  CREATE INDEX IF NOT EXISTS idx_datastatisticsevent_ts
+      ON datastatisticsevent USING brin(timestamp);

@@ -31,7 +31,14 @@ package org.hisp.dhis.datastatistics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+
+@Getter
+@Setter
+@NoArgsConstructor
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataStatistics extends BaseIdentifiableObject {
@@ -57,8 +64,6 @@ public class DataStatistics extends BaseIdentifiableObject {
 
   @JsonProperty private Long activeUsers;
   @JsonProperty private Long users;
-
-  public DataStatistics() {}
 
   public DataStatistics(
       Number mapViews,
@@ -108,159 +113,6 @@ public class DataStatistics extends BaseIdentifiableObject {
     return n == null ? null : n.longValue();
   }
 
-  // ---- getters/setters as Long/Integer ----
-
-  public Long getMapViews() {
-    return mapViews;
-  }
-
-  public void setMapViews(Long v) {
-    this.mapViews = v;
-  }
-
-  public Long getVisualizationViews() {
-    return visualizationViews;
-  }
-
-  public void setVisualizationViews(Long v) {
-    this.visualizationViews = v;
-  }
-
-  public Long getEventReportViews() {
-    return eventReportViews;
-  }
-
-  public void setEventReportViews(Long v) {
-    this.eventReportViews = v;
-  }
-
-  public Long getEventChartViews() {
-    return eventChartViews;
-  }
-
-  public void setEventChartViews(Long v) {
-    this.eventChartViews = v;
-  }
-
-  public Long getEventVisualizationViews() {
-    return eventVisualizationViews;
-  }
-
-  public void setEventVisualizationViews(Long v) {
-    this.eventVisualizationViews = v;
-  }
-
-  public Long getDashboardViews() {
-    return dashboardViews;
-  }
-
-  public void setDashboardViews(Long v) {
-    this.dashboardViews = v;
-  }
-
-  public Long getPassiveDashboardViews() {
-    return passiveDashboardViews;
-  }
-
-  public void setPassiveDashboardViews(Long v) {
-    this.passiveDashboardViews = v;
-  }
-
-  public Long getDataSetReportViews() {
-    return dataSetReportViews;
-  }
-
-  public void setDataSetReportViews(Long v) {
-    this.dataSetReportViews = v;
-  }
-
-  public Long getTotalViews() {
-    return totalViews;
-  }
-
-  public void setTotalViews(Long v) {
-    this.totalViews = v;
-  }
-
-  public Long getSavedMaps() {
-    return savedMaps;
-  }
-
-  public void setSavedMaps(Long v) {
-    this.savedMaps = v;
-  }
-
-  public Long getSavedVisualizations() {
-    return savedVisualizations;
-  }
-
-  public void setSavedVisualizations(Long v) {
-    this.savedVisualizations = v;
-  }
-
-  public Long getSavedEventReports() {
-    return savedEventReports;
-  }
-
-  public void setSavedEventReports(Long v) {
-    this.savedEventReports = v;
-  }
-
-  public Long getSavedEventCharts() {
-    return savedEventCharts;
-  }
-
-  public void setSavedEventCharts(Long v) {
-    this.savedEventCharts = v;
-  }
-
-  public Long getSavedEventVisualizations() {
-    return savedEventVisualizations;
-  }
-
-  public void setSavedEventVisualizations(Long v) {
-    this.savedEventVisualizations = v;
-  }
-
-  public Long getSavedDashboards() {
-    return savedDashboards;
-  }
-
-  public void setSavedDashboards(Long v) {
-    this.savedDashboards = v;
-  }
-
-  public Long getSavedIndicators() {
-    return savedIndicators;
-  }
-
-  public void setSavedIndicators(Long v) {
-    this.savedIndicators = v;
-  }
-
-  public Long getSavedDataValues() {
-    return savedDataValues;
-  }
-
-  public void setSavedDataValues(Long v) {
-    this.savedDataValues = v;
-  }
-
-  public Long getActiveUsers() {
-    return activeUsers;
-  }
-
-  public void setActiveUsers(Long v) {
-    this.activeUsers = v;
-  }
-
-  public Long getUsers() {
-    return users;
-  }
-
-  public void setUsers(Long v) {
-    this.users = v;
-  }
 
   @Override
   public String toString() {

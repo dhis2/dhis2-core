@@ -49,6 +49,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
+ * @author Jason P. Pickering
  */
 @Slf4j
 @Repository("org.hisp.dhis.datastatistics.DataStatisticsStore")
@@ -84,68 +85,8 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
     return jdbcTemplate.query(
         sql,
         pss,
-        (rs, i) -> {
-
-          // period fields are nullable
-          Integer year = null;
-          Integer month = null;
-          Integer week = null;
-          Integer day = null;
-
-          switch (eventInterval) {
-            case YEAR -> year = getNullableInt(rs, "yr");
-            case MONTH -> {
-              year = getNullableInt(rs, "yr");
-              month = getNullableInt(rs, "mnt");
-            }
-            case WEEK -> {
-              year = getNullableInt(rs, "isoyear");
-              week = getNullableInt(rs, "wk");
-            }
-            case DAY -> {
-              year = getNullableInt(rs, "yr");
-              month = getNullableInt(rs, "mnt");
-              day = getNullableInt(rs, "day");
-            }
-          }
-
-          return new AggregatedStatistics(
-              year,
-              month,
-              week,
-              day,
-
-              // counts (BIGINT → Long)
-              rs.getLong("mapViews"),
-              rs.getLong("visualizationViews"),
-              rs.getLong("eventReportViews"),
-              rs.getLong("eventChartViews"),
-              rs.getLong("eventVisualizationViews"),
-              rs.getLong("dashboardViews"),
-              rs.getLong("passiveDashboardViews"),
-              rs.getLong("dataSetReportViews"),
-              rs.getLong("totalViews"),
-              rs.getDouble("averageViews"),
-              rs.getDouble("averageMapViews"),
-              rs.getDouble("averageVisualizationViews"),
-              rs.getDouble("averageEventReportViews"),
-              rs.getDouble("averageEventChartViews"),
-              rs.getDouble("averageEventVisualizationViews"),
-              rs.getDouble("averageDashboardViews"),
-              rs.getDouble("averagePassiveDashboardViews"),
-              rs.getLong("savedMaps"),
-              rs.getLong("savedVisualizations"),
-              rs.getLong("savedEventReports"),
-              rs.getLong("savedEventCharts"),
-              rs.getLong("savedEventVisualizations"),
-              rs.getLong("savedDashboards"),
-              rs.getLong("savedIndicators"),
-              rs.getLong("savedDataValues"),
-
-              // users (BIGINT → Long)
-              rs.getLong("activeUsers"),
-              rs.getLong("users"));
-        });
+        (rs, i) -> mapAggregatedStatistics(rs, eventInterval)
+    );
   }
 
   private static String byYearSql() {
@@ -278,6 +219,69 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
 
   private static Integer getNullableInt(ResultSet rs, String column) throws SQLException {
     int value = rs.getInt(column);
-    return rs.wasNull() ? null : value;
+    return rs.wasNull
+
+        () ? null : value;
   }
-}
+
+  private static AggregatedStatistics mapAggregatedStatistics(ResultSet rs, EventInterval interval)
+      throws SQLException {
+
+    Integer year = null;
+    Integer month = null;
+    Integer week = null;
+    Integer day = null;
+
+    switch (interval) {
+    case YEAR -> year = getNullableInt(rs, "yr");
+    case MONTH -> {
+      year = getNullableInt(rs, "yr");
+      month = getNullableInt(rs, "mnt");
+    }
+    case WEEK -> {
+      year = getNullableInt(rs, "isoyear");
+      week = getNullableInt(rs, "wk");
+    }
+    case DAY -> {
+      year = getNullableInt(rs, "yr");
+      month = getNullableInt(rs, "mnt");
+      day = getNullableInt(rs, "day");
+    }
+    }
+
+    return new AggregatedStatistics(
+        year,
+        month,
+        week,
+        day,
+        rs.getLong("mapViews"),
+        rs.getLong("visualizationViews"),
+        rs.getLong("eventReportViews"),
+        rs.getLong("eventChartViews"),
+        rs.getLong("eventVisualizationViews"),
+        rs.getLong("dashboardViews"),
+        rs.getLong("passiveDashboardViews"),
+        rs.getLong("dataSetReportViews"),
+        rs.getLong("totalViews"),
+        rs.getDouble("averageViews"),
+        rs.getDouble("averageMapViews"),
+        rs.getDouble("averageVisualizationViews"),
+        rs.getDouble("averageEventReportViews"),
+        rs.getDouble("averageEventChartViews"),
+        rs.getDouble("averageEventVisualizationViews"),
+        rs.getDouble("averageDashboardViews"),
+        rs.getDouble("averagePassiveDashboardViews"),
+        rs.getLong("savedMaps"),
+        rs.getLong("savedVisualizations"),
+        rs.getLong("savedEventReports"),
+        rs.getLong("savedEventCharts"),
+        rs.getLong("savedEventVisualizations"),
+        rs.getLong("savedDashboards"),
+        rs.getLong("savedIndicators"),
+        rs.getLong("savedDataValues"),
+        rs.getLong("activeUsers"),
+        rs.getLong("users")
+    );
+  }
+
+  }
