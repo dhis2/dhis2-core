@@ -48,11 +48,25 @@ fi
 
 CSV_FILE="$GATLING_DIR/simulation.csv"
 if [ ! -f "$CSV_FILE" ]; then
-    echo "Error: simulation.csv not found in $GATLING_DIR"
+    echo "simulation.csv not found in $GATLING_DIR"
+    echo "Converting Gatling binary log to CSV..."
     echo ""
-    echo "Convert the binary log first:"
-    echo "  glog --config src/test/resources/gatling.conf --scan-subdirs target/gatling"
-    exit 1
+
+    if ! command -v glog &> /dev/null; then
+        echo "Error: glog command not found"
+        echo "Install glog from: https://github.com/dhis2/gatling/releases"
+        exit 1
+    fi
+
+    glog --config src/test/resources/gatling.conf --scan-subdirs target/gatling
+
+    if [ ! -f "$CSV_FILE" ]; then
+        echo "Error: Failed to generate simulation.csv"
+        exit 1
+    fi
+
+    echo "✓ Generated simulation.csv"
+    echo ""
 fi
 
 # Extract test start/end time from Gatling CSV
