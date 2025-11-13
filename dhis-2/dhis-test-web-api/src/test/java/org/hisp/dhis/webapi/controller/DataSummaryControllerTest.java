@@ -225,25 +225,23 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     HttpResponse responseBeforeDelete = GET("/api/dataSummary");
     JsonMixed contentBeforeDelete = responseBeforeDelete.content();
     int dashboardCountBeforeDelete;
-    try
-    {
-        dashboardCountBeforeDelete =
-            Integer.parseInt(
-                contentBeforeDelete
-                    .get("objectCounts")
-                    .asMap(JsonValue.class)
-                    .get("dashboard")
-                    .toString());
-        }
-        catch (NumberFormatException e)
-        {
-        fail("Could not parse dashboard count as integer: "
-            + contentBeforeDelete
-                .get("objectCounts")
-                .asMap(JsonValue.class)
-                .get("dashboard")
-                .toString());
-        return;
+    try {
+      dashboardCountBeforeDelete =
+          Integer.parseInt(
+              contentBeforeDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dashboard")
+                  .toString());
+    } catch (NumberFormatException e) {
+      fail(
+          "Could not parse dashboard count as integer: "
+              + contentBeforeDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dashboard")
+                  .toString());
+      return;
     }
     // Confirm greater than zero
     assertTrue(dashboardCountBeforeDelete > 0, "Dashboard count should be greater than zero");
@@ -253,25 +251,23 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
     int dashboardCountAfterDelete;
-    try
-    {
-        dashboardCountAfterDelete =
-            Integer.parseInt(
-                contentAfterDelete
-                    .get("objectCounts")
-                    .asMap(JsonValue.class)
-                    .get("dashboard")
-                    .toString());
-        }
-        catch (NumberFormatException e)
-        {
-        fail("Could not parse dashboard count AFTER as integer: "
-            + contentAfterDelete
-                .get("objectCounts")
-                .asMap(JsonValue.class)
-                .get("dashboard")
-                .toString());
-        return;
+    try {
+      dashboardCountAfterDelete =
+          Integer.parseInt(
+              contentAfterDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dashboard")
+                  .toString());
+    } catch (NumberFormatException e) {
+      fail(
+          "Could not parse dashboard count AFTER as integer: "
+              + contentAfterDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dashboard")
+                  .toString());
+      return;
     }
     // Confirm the count has decreased by one
     assertEquals(
@@ -327,8 +323,9 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
       String raw = contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString();
       activeUsersOneHourAgoCountBefore = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
-      fail("Could not parse active users one hour ago count as integer: "
-          + contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+      fail(
+          "Could not parse active users one hour ago count as integer: "
+              + contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString());
       return;
     }
     int activeUsersOneWeekAgoCountBefore;
@@ -336,8 +333,9 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
       String raw = contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString();
       activeUsersOneWeekAgoCountBefore = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
-      fail("Could not parse active users one week ago count as integer: "
-          + contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString());
+      fail(
+          "Could not parse active users one week ago count as integer: "
+              + contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString());
       return;
     }
 
@@ -370,8 +368,9 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
       String raw = contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString();
       activeUsersOneHourAgoCountAfter = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
-      fail("Could not parse active users one hour ago count AFTER as integer: "
-          + contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+      fail(
+          "Could not parse active users one hour ago count AFTER as integer: "
+              + contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString());
       return;
     }
     // Confirm the count has increased by one
@@ -386,8 +385,9 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
       String raw = contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString();
       activeUsersOneWeekAgoCountAfter = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
-      fail("Could not parse active users one week ago count AFTER as integer: "
-          + contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
+      fail(
+          "Could not parse active users one week ago count AFTER as integer: "
+              + contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
       return;
     }
 

@@ -38,7 +38,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.joda.time.format.DateTimeFormatter;
