@@ -151,15 +151,15 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
             Map.of(), () -> dataStatisticsEventStore.getDataStatisticsEventCount(startDate, day));
 
     return new DataStatistics(
-        c(eventCountMap, DataStatisticsEventType.MAP_VIEW),
-        c(eventCountMap, DataStatisticsEventType.VISUALIZATION_VIEW),
-        c(eventCountMap, DataStatisticsEventType.EVENT_REPORT_VIEW),
-        c(eventCountMap, DataStatisticsEventType.EVENT_CHART_VIEW),
-        c(eventCountMap, DataStatisticsEventType.EVENT_VISUALIZATION_VIEW),
-        c(eventCountMap, DataStatisticsEventType.DASHBOARD_VIEW),
-        c(eventCountMap, DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW),
-        c(eventCountMap, DataStatisticsEventType.DATA_SET_REPORT_VIEW),
-        c(eventCountMap, DataStatisticsEventType.TOTAL_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.MAP_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.VISUALIZATION_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.EVENT_REPORT_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.EVENT_CHART_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.EVENT_VISUALIZATION_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.DASHBOARD_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.DATA_SET_REPORT_VIEW),
+        getOrZero(eventCountMap, DataStatisticsEventType.TOTAL_VIEW),
         savedMaps,
         savedVisualizations,
         savedEventReports,
@@ -168,7 +168,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
         savedDashboards,
         savedIndicators,
         savedDataValues,
-        (int) c(eventCountMap, DataStatisticsEventType.ACTIVE_USERS),
+        (int) getOrZero(eventCountMap, DataStatisticsEventType.ACTIVE_USERS),
         users);
   }
 
@@ -284,7 +284,8 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     return statistics;
   }
 
-  private static long c(Map<DataStatisticsEventType, Long> map, DataStatisticsEventType type) {
+  private static long getOrZero(
+      Map<DataStatisticsEventType, Long> map, DataStatisticsEventType type) {
     return map.getOrDefault(type, 0L);
   }
 

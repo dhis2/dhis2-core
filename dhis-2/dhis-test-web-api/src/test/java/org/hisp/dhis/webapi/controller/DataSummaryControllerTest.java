@@ -200,13 +200,25 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts after deleting the data element
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
-    int dataElementCountAfterDelete =
-        Integer.parseInt(
-            contentAfterDelete
-                .get("objectCounts")
-                .asMap(JsonValue.class)
-                .get("dataElement")
-                .toString());
+    int dataElementCountAfterDelete;
+    try {
+      dataElementCountAfterDelete =
+          Integer.parseInt(
+              contentAfterDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElement")
+                  .toString());
+    } catch (NumberFormatException e) {
+      fail(
+          "Could not parse data element count AFTER as integer: "
+              + contentAfterDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElement")
+                  .toString());
+      return;
+    }
     // Confirm the count has decreased by one
     assertEquals(
         dataElementCountBeforeDelete - 1,
@@ -283,13 +295,26 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts before deleting the data element group
     HttpResponse responseBeforeDelete = GET("/api/dataSummary");
     JsonMixed contentBeforeDelete = responseBeforeDelete.content();
-    int dataElementGroupCountBeforeDelete =
-        Integer.parseInt(
-            contentBeforeDelete
-                .get("objectCounts")
-                .asMap(JsonValue.class)
-                .get("dataElementGroup")
-                .toString());
+    int dataElementGroupCountBeforeDelete;
+    try {
+      dataElementGroupCountBeforeDelete =
+          Integer.parseInt(
+              contentBeforeDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElementGroup")
+                  .toString());
+    } catch (NumberFormatException e) {
+      fail(
+          "Could not parse data element group count as integer: "
+              + contentBeforeDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElementGroup")
+                  .toString());
+      return;
+    }
+
     // Confirm greater than zero
     assertTrue(
         dataElementGroupCountBeforeDelete > 0,
@@ -299,13 +324,25 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts after deleting the data element group
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
-    int dataElementGroupCountAfterDelete =
-        Integer.parseInt(
-            contentAfterDelete
-                .get("objectCounts")
-                .asMap(JsonValue.class)
-                .get("dataElementGroup")
-                .toString());
+    int dataElementGroupCountAfterDelete;
+    try {
+      dataElementGroupCountAfterDelete =
+          Integer.parseInt(
+              contentAfterDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElementGroup")
+                  .toString());
+    } catch (NumberFormatException e) {
+      fail(
+          "Could not parse data element group count AFTER as integer: "
+              + contentAfterDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElementGroup")
+                  .toString());
+      return;
+    }
     // Confirm the count has decreased by one
     assertEquals(
         dataElementGroupCountBeforeDelete - 1,
