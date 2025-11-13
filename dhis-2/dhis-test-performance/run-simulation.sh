@@ -558,9 +558,11 @@ generate_metadata() {
   {
     echo "# Reproduce this test run:"
     echo "#   git checkout $git_commit"
-    echo "#   set -a && source run-simulation.env && set +a && ./run-simulation.sh"
+    echo "#   set -o allexport && source run-simulation.env && set +o allexport && ./run-simulation.sh"
     echo "#"
-    echo "# Use COMMAND_IMMUTABLE for exact reproduction with pinned image digest"
+    echo "# For exact reproduction with pinned image digest:"
+    echo "#   git checkout $git_commit"
+    echo "#   set -o allexport && source run-simulation.env && DHIS2_IMAGE=$dhis2_image_immutable && set +o allexport && ./run-simulation.sh"
     echo ""
     echo "# Args"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
@@ -586,8 +588,6 @@ generate_metadata() {
     if [ -n "$dhis2_labels" ]; then
       echo "$dhis2_labels"
     fi
-    echo "COMMAND=DHIS2_IMAGE=$DHIS2_IMAGE DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_GENERATE:+ ANALYTICS_GENERATE=$ANALYTICS_GENERATE}${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
-    echo "COMMAND_IMMUTABLE=DHIS2_IMAGE=$dhis2_image_immutable DB_TYPE=$DB_TYPE DB_VERSION=$DB_VERSION DHIS2_USERNAME=$DHIS2_USERNAME DHIS2_PASSWORD=$DHIS2_PASSWORD SIMULATION_CLASS=$SIMULATION_CLASS${ANALYTICS_GENERATE:+ ANALYTICS_GENERATE=$ANALYTICS_GENERATE}${ANALYTICS_TIMEOUT:+ ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT}${HEALTHCHECK_TIMEOUT:+ HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT}${WARMUP:+ WARMUP=$WARMUP}${REPORT_SUFFIX:+ REPORT_SUFFIX=$REPORT_SUFFIX}${CAPTURE_SQL_LOGS:+ CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS}${PROF_ARGS:+ PROF_ARGS=\"$PROF_ARGS\"}${MVN_ARGS:+ MVN_ARGS=\"$MVN_ARGS\"} $0"
   } > "$simulation_run_file"
 
   echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
