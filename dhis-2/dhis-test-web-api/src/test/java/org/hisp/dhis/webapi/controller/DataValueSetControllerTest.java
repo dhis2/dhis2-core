@@ -38,12 +38,14 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -52,7 +54,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -60,7 +61,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Jan Bernitt
  */
-@Transactional
 class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired protected TransactionTemplate transactionTemplate;
@@ -248,33 +248,20 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
                 dsId)
             .content(HttpStatus.OK);
     assertTrue(ds.isObject());
-    assertEquals(1, ds.getArray("dataValues").size());
-    assertEquals(
-        "My data element",
-        ds.getArray("dataValues").getObject(0).getString("dataElement").string());
-    assertEquals("10", ds.getArray("dataValues").getObject(0).getString("value").string());
-    assertEquals(
-        "My Child Unit", ds.getArray("dataValues").getObject(0).getString("orgUnit").string());
-    assertEquals(
-        "default",
-        ds.getArray("dataValues").getObject(0).getString("categoryOptionCombo").string());
-    assertEquals(
-        "default",
-        ds.getArray("dataValues").getObject(0).getString("attributeOptionCombo").string());
-    assertEquals("admin", ds.getArray("dataValues").getObject(0).getString("storedBy").string());
+    JsonArray values = ds.getArray("dataValues");
+    assertEquals(1, values.size());
+    JsonObject dv0 = values.getObject(0);
+    assertEquals("My data element", dv0.getString("dataElement").string());
+    assertEquals("10", dv0.getString("value").string());
+    assertEquals("My Child Unit", ds.getString("orgUnit").string());
+    assertNull(
+        dv0.getString("categoryOptionCombo").string(), "default COC should given as undefined");
+    assertNull(
+        dv0.getString("attributeOptionCombo").string(), "default AOC should given as undefined");
+    assertEquals("admin", dv0.getString("storedBy").string());
     // Confirm that the created and lastUpdated fields are timestamp-ish
-    assertTrue(
-        ds.getArray("dataValues")
-            .getObject(0)
-            .getString("created")
-            .string()
-            .matches(timestampPattern));
-    assertTrue(
-        ds.getArray("dataValues")
-            .getObject(0)
-            .getString("lastUpdated")
-            .string()
-            .matches(timestampPattern));
+    assertTrue(dv0.getString("created").string().matches(timestampPattern));
+    assertTrue(dv0.getString("lastUpdated").string().matches(timestampPattern));
   }
 
   @Test
@@ -304,7 +291,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
     assertEquals(
-        String.format("User is not allowed to read data for data set: `%s`", dsId),
+        String.format("User is not allowed to read data for data set(s): `[%s]`", dsId),
         response.getMessage());
   }
 }
