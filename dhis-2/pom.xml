@@ -91,7 +91,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.4.0-SNAPSHOT</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.7.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -2169,6 +2169,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.jetbrains.kotlin:kotlin-stdlib</ignoredUnusedDeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->

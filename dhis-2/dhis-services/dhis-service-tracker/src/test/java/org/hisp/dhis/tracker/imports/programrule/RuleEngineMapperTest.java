@@ -38,7 +38,7 @@ import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import kotlinx.datetime.Instant;
+import kotlin.time.Instant;
 import kotlinx.datetime.LocalDate;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
@@ -271,11 +271,11 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
   }
 
   private void assertDates(java.time.Instant expected, Instant actual) {
-    assertEquals(expected.toEpochMilli(), actual.getValue$kotlinx_datetime().toEpochMilli());
+    assertEquals(expected.toEpochMilli(), actual.toEpochMilliseconds());
   }
 
   private void assertDates(Date expected, Instant actual) {
-    assertEquals(expected.getTime(), actual.getValue$kotlinx_datetime().toEpochMilli());
+    assertEquals(expected.getTime(), actual.toEpochMilliseconds());
   }
 
   private void assertDataValue(EventDataValue expectedDataValue, RuleDataValue actualDataValue) {
