@@ -30,6 +30,8 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -83,25 +85,27 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
         sql,
         pss,
         (rs, i) -> {
+
+          // period fields are nullable
           Integer year = null;
           Integer month = null;
           Integer week = null;
           Integer day = null;
 
           switch (eventInterval) {
-            case YEAR -> year = rs.wasNull() ? null : rs.getInt("yr");
+            case YEAR -> year = getNullableInt(rs, "yr");
             case MONTH -> {
-              year = rs.wasNull() ? null : rs.getInt("yr");
-              month = rs.wasNull() ? null : rs.getInt("mnt");
+              year = getNullableInt(rs, "yr");
+              month = getNullableInt(rs, "mnt");
             }
             case WEEK -> {
-              year = rs.wasNull() ? null : rs.getInt("isoyear");
-              week = rs.wasNull() ? null : rs.getInt("wk");
+              year = getNullableInt(rs, "isoyear");
+              week = getNullableInt(rs, "wk");
             }
             case DAY -> {
-              year = rs.wasNull() ? null : rs.getInt("yr");
-              month = rs.wasNull() ? null : rs.getInt("mnt");
-              day = rs.wasNull() ? null : rs.getInt("day");
+              year = getNullableInt(rs, "yr");
+              month = getNullableInt(rs, "mnt");
+              day = getNullableInt(rs, "day");
             }
           }
 
@@ -271,4 +275,9 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
         COALESCE(SUM(datavalues),0)::bigint              AS savedDataValues,
         COALESCE(MAX(users),0)::bigint                           AS users
         """;
+
+  private static Integer getNullableInt(ResultSet rs, String column) throws SQLException {
+    int value = rs.getInt(column);
+    return rs.wasNull() ? null : value;
+  }
 }
