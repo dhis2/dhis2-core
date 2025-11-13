@@ -148,9 +148,12 @@ public class DefaultDataExportService implements DataExportService {
     validateFilters(params);
     validateAccess(params);
 
+    List<UID> dataSets = params.getDataSets();
+    if (dataSets == null || dataSets.isEmpty()) return Stream.empty();
+
     // for each DS (and each DE or DEG given directly? ADX requires a DS in the header thou)
     List<DataExportGroup> groups = new ArrayList<>();
-    for (UID ds : params.getDataSets()) {
+    for (UID ds : dataSets) {
       DataExportParams dsParams =
           params.toBuilder()
               .dataSets(List.of(ds))
