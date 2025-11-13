@@ -32,12 +32,15 @@ package org.hisp.dhis.datastatistics;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,14 +69,20 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   private DateTimeFormatter fmt;
 
+  private ZoneId zone;
+  private Date dayStart;
+  private Date dayEnd;
+
   @BeforeAll
   void setUp() {
-    DateTime formatdate;
-    fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    formatdate = fmt.parseDateTime("2016-03-22");
-    Date now = formatdate.toDate();
+    zone = ZoneId.systemDefault();
+    LocalDate fixedDate = LocalDate.of(2016, 3, 22);
+    dayStart = toDate(fixedDate.atStartOfDay());
+    dayEnd = toDate(fixedDate.atTime(23, 59, 59, 999_000_000));
+
     dse1 = new DataStatisticsEvent();
-    dse2 = new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser");
+    dse2 =
+        new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, dayStart, "TestUser");
     DataStatistics ds =
         new DataStatistics(
             1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0, 13.0, 20.0, 14.0, 17.0,
@@ -83,31 +92,38 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testAddEvent() throws Exception {
+  void testAddEvent() {
     int id = dataStatisticsService.addEvent(dse1);
     assertNotEquals(0, id);
   }
 
   @Test
-  void testAddEventWithParams() throws Exception {
+  void testAddEventWithParams() {
     int id = dataStatisticsService.addEvent(dse2);
     assertNotEquals(0, id);
   }
 
   @Test
-  void testSaveSnapshot() throws Exception {
-    Calendar c = Calendar.getInstance();
-    DateTime formatdate;
-    fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
-    c.add(Calendar.DAY_OF_MONTH, -2);
-    formatdate = fmt.parseDateTime("2016-03-21");
-    Date startDate = formatdate.toDate();
+  void testSaveSnapshot() {
+    Date twoDaysBefore = addDays(dayStart, -2);
     dse1 =
-        new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser");
+        new DataStatisticsEvent(
+            DataStatisticsEventType.VISUALIZATION_VIEW, twoDaysBefore, "TestUser");
     dataStatisticsService.addEvent(dse1);
     dataStatisticsService.addEvent(dse2);
     long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
     assertTrue(snapId2 != 0);
     assertTrue(snapId1 != snapId2);
+  }
+
+  // --- Helpers ---
+
+  private Date addDays(Date base, int days) {
+    Instant instant = base.toInstant().plus(Duration.ofDays(days));
+    return Date.from(instant);
+  }
+
+  private Date toDate(LocalDateTime ldt) {
+    return Date.from(ldt.atZone(zone).toInstant());
   }
 }

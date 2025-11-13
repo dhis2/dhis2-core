@@ -29,13 +29,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Date;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
 class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
@@ -169,5 +172,179 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .forEach(
             key ->
                 assertTrue(key.matches("\\d{1,2}"), "Single event count keys should be integers"));
+  }
+
+  @Test
+  void canVerifyDataElementObjectCount() {
+    String dataElementId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'DataSummaryDE', 'shortName': 'DataSummaryDE', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    // Get object counts before deleting the data element
+    HttpResponse responseBeforeDelete = GET("/api/dataSummary");
+    JsonMixed contentBeforeDelete = responseBeforeDelete.content();
+    int dataElementCountBeforeDelete =
+        Integer.parseInt(
+            contentBeforeDelete
+                .get("objectCounts")
+                .asMap(JsonValue.class)
+                .get("dataElement")
+                .toString());
+    // Confirm greater than zero
+    assertTrue(dataElementCountBeforeDelete > 0, "Data element count should be greater than zero");
+    // Delete the data element
+    assertStatus(HttpStatus.OK, DELETE("/dataElements/" + dataElementId));
+    // Get object counts after deleting the data element
+    HttpResponse responseAfterDelete = GET("/api/dataSummary");
+    JsonMixed contentAfterDelete = responseAfterDelete.content();
+    int dataElementCountAfterDelete =
+        Integer.parseInt(
+            contentAfterDelete
+                .get("objectCounts")
+                .asMap(JsonValue.class)
+                .get("dataElement")
+                .toString());
+    // Confirm the count has decreased by one
+    assertEquals(
+        dataElementCountBeforeDelete - 1,
+        dataElementCountAfterDelete,
+        "Data element count should have decreased by one after deletion");
+  }
+
+  @Test
+  void canVerifyDashboardObjectCount() {
+    String dashboardId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dashboards", "{ 'name': 'DataSummaryDashboard', 'type': 'STANDARD_DASHBOARD' }"));
+    // Get object counts before deleting the dashboard
+    HttpResponse responseBeforeDelete = GET("/api/dataSummary");
+    JsonMixed contentBeforeDelete = responseBeforeDelete.content();
+    int dashboardCountBeforeDelete =
+        Integer.parseInt(
+            contentBeforeDelete
+                .get("objectCounts")
+                .asMap(JsonValue.class)
+                .get("dashboard")
+                .toString());
+    // Confirm greater than zero
+    assertTrue(dashboardCountBeforeDelete > 0, "Dashboard count should be greater than zero");
+    // Delete the dashboard
+    assertStatus(HttpStatus.OK, DELETE("/dashboards/" + dashboardId));
+    // Get object counts after deleting the dashboard
+    HttpResponse responseAfterDelete = GET("/api/dataSummary");
+    JsonMixed contentAfterDelete = responseAfterDelete.content();
+    int dashboardCountAfterDelete =
+        Integer.parseInt(
+            contentAfterDelete
+                .get("objectCounts")
+                .asMap(JsonValue.class)
+                .get("dashboard")
+                .toString());
+    // Confirm the count has decreased by one
+    assertEquals(
+        dashboardCountBeforeDelete - 1,
+        dashboardCountAfterDelete,
+        "Dashboard count should have decreased by one after deletion");
+  }
+
+  void canVerifyDataElementGroupObjectCount() {
+    String dataElementGroupId =
+        assertStatus(
+            HttpStatus.CREATED, POST("/dataElementGroups", "{ 'name': 'DataSummaryDEGroup' }"));
+    // Get object counts before deleting the data element group
+    HttpResponse responseBeforeDelete = GET("/api/dataSummary");
+    JsonMixed contentBeforeDelete = responseBeforeDelete.content();
+    int dataElementGroupCountBeforeDelete =
+        Integer.parseInt(
+            contentBeforeDelete
+                .get("objectCounts")
+                .asMap(JsonValue.class)
+                .get("dataElementGroup")
+                .toString());
+    // Confirm greater than zero
+    assertTrue(
+        dataElementGroupCountBeforeDelete > 0,
+        "Data element group count should be greater than zero");
+    // Delete the data element group
+    assertStatus(HttpStatus.OK, DELETE("/dataElementGroups/" + dataElementGroupId));
+    // Get object counts after deleting the data element group
+    HttpResponse responseAfterDelete = GET("/api/dataSummary");
+    JsonMixed contentAfterDelete = responseAfterDelete.content();
+    int dataElementGroupCountAfterDelete =
+        Integer.parseInt(
+            contentAfterDelete
+                .get("objectCounts")
+                .asMap(JsonValue.class)
+                .get("dataElementGroup")
+                .toString());
+    // Confirm the count has decreased by one
+    assertEquals(
+        dataElementGroupCountBeforeDelete - 1,
+        dataElementGroupCountAfterDelete,
+        "Data element group count should have decreased by one after deletion");
+  }
+
+  @Test
+  void canVerifyActiveUsersOneHourAgo() {
+    HttpResponse responseBefore = GET("/api/dataSummary");
+    JsonMixed contentBefore = responseBefore.content();
+    // Users over the last hour
+    int activeUsersOneHourAgoCountBefore =
+        Integer.parseInt(
+            contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+    int activeUsersOneWeekAgoCountBefore =
+        Integer.parseInt(
+            contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString());
+
+    // Confirm greater than or equal to zero
+    assertTrue(
+        activeUsersOneHourAgoCountBefore >= 0,
+        "Active users count one hour ago should be greater than or equal to zero");
+    assertTrue(
+        activeUsersOneWeekAgoCountBefore >= 0,
+        "Active users count one week ago should be greater than or equal to zero");
+
+    // Create a new user with the service layer and be sure to set the last login to five minutes
+    // ago
+    User a = makeUser("a");
+    // Five minutes ago
+    Date fiveMinutesAgo = new Date(System.currentTimeMillis() - 5 * 60 * 1000);
+    a.setLastLogin(fiveMinutesAgo);
+    userService.addUser(a);
+    // Add another user who was active 2 days ago
+    User b = makeUser("b");
+    Date twoDaysAgo = new Date(System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000);
+    b.setLastLogin(twoDaysAgo);
+    userService.addUser(b);
+
+    // Get object counts after creating a user
+    HttpResponse responseAfter = GET("/api/dataSummary");
+    JsonMixed contentAfter = responseAfter.content();
+    int activeUsersOneHourAgoCountAfter =
+        Integer.parseInt(
+            contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+    // Confirm the count has increased by one
+    assertEquals(
+        activeUsersOneHourAgoCountBefore + 1,
+        activeUsersOneHourAgoCountAfter,
+        "Active users count one hour ago should have increased by one after user login");
+
+    // Active users over the last week should have increased by two
+    int activeUsersOneWeekAgoCountAfter =
+        Integer.parseInt(
+            contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
+    assertEquals(
+        activeUsersOneWeekAgoCountBefore + 2,
+        activeUsersOneWeekAgoCountAfter,
+        "Active users count one week ago should have increased by two after user logins");
+
+    // Clean up - delete the user
+    userService.deleteUser(a);
+    userService.deleteUser(b);
   }
 }
