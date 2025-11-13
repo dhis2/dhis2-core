@@ -31,7 +31,6 @@ package org.hisp.dhis.datastatistics;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -106,7 +105,7 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     dataStatisticsService.addEvent(dse2);
     long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
     assertNotEquals(0, snapId2);
-    assertNotEquals(snapId1 , snapId2);
+    assertNotEquals(snapId1, snapId2);
   }
 
   // --- Helpers ---
