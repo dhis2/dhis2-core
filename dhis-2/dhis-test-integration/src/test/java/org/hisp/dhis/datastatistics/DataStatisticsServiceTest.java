@@ -30,7 +30,7 @@
 package org.hisp.dhis.datastatistics;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 import java.time.Duration;
 import java.time.Instant;
@@ -40,7 +40,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -65,19 +64,14 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   private DataStatisticsEvent dse2;
 
   private long snapId1;
-
-  private DateTimeFormatter fmt;
-
   private ZoneId zone;
   private Date dayStart;
-  private Date dayEnd;
 
   @BeforeAll
   void setUp() {
     zone = ZoneId.systemDefault();
     LocalDate fixedDate = LocalDate.of(2016, 3, 22);
     dayStart = toDate(fixedDate.atStartOfDay());
-    dayEnd = toDate(fixedDate.atTime(23, 59, 59, 999_000_000));
 
     dse1 = new DataStatisticsEvent();
     dse2 =
@@ -111,8 +105,8 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     dataStatisticsService.addEvent(dse1);
     dataStatisticsService.addEvent(dse2);
     long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
-    assertTrue(snapId2 != 0);
-    assertTrue(snapId1 != snapId2);
+    assertNotEquals(0, snapId2);
+    assertNotEquals(snapId1 , snapId2);
   }
 
   // --- Helpers ---
