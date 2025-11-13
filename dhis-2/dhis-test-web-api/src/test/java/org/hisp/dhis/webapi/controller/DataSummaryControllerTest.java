@@ -294,12 +294,24 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     HttpResponse responseBefore = GET("/api/dataSummary");
     JsonMixed contentBefore = responseBefore.content();
     // Users over the last hour
-    int activeUsersOneHourAgoCountBefore =
-        Integer.parseInt(
-            contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString());
-    int activeUsersOneWeekAgoCountBefore =
-        Integer.parseInt(
-            contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString());
+    int activeUsersOneHourAgoCountBefore;
+    try {
+      String raw = contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString();
+      activeUsersOneHourAgoCountBefore = Integer.parseInt(raw);
+    } catch (NumberFormatException e) {
+      fail("Could not parse active users one hour ago count as integer: "
+          + contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+      throw e;
+    }
+    int activeUsersOneWeekAgoCountBefore;
+    try {
+      String raw = contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString();
+      activeUsersOneWeekAgoCountBefore = Integer.parseInt(raw);
+    } catch (NumberFormatException e) {
+      fail("Could not parse active users one week ago count as integer: "
+          + contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString());
+      throw e;
+    }
 
     // Confirm greater than or equal to zero
     assertTrue(
@@ -325,9 +337,15 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts after creating a user
     HttpResponse responseAfter = GET("/api/dataSummary");
     JsonMixed contentAfter = responseAfter.content();
-    int activeUsersOneHourAgoCountAfter =
-        Integer.parseInt(
-            contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+    int activeUsersOneHourAgoCountAfter;
+    try {
+      String raw = contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString();
+      activeUsersOneHourAgoCountAfter = Integer.parseInt(raw);
+    } catch (NumberFormatException e) {
+      fail("Could not parse active users one hour ago count AFTER as integer: "
+          + contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+      throw e;
+    }
     // Confirm the count has increased by one
     assertEquals(
         activeUsersOneHourAgoCountBefore + 1,
@@ -335,9 +353,15 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         "Active users count one hour ago should have increased by one after user login");
 
     // Active users over the last week should have increased by two
-    int activeUsersOneWeekAgoCountAfter =
-        Integer.parseInt(
-            contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
+    int activeUsersOneWeekAgoCountAfter;
+    try {
+      String raw = contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString();
+      activeUsersOneWeekAgoCountAfter = Integer.parseInt(raw);
+    } catch (NumberFormatException e) {
+      fail("Could not parse active users one week ago count AFTER as integer: "
+          + contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
+      throw e;
+    }
     assertEquals(
         activeUsersOneWeekAgoCountBefore + 2,
         activeUsersOneWeekAgoCountAfter,
