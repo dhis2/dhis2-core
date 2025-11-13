@@ -30,8 +30,6 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 import jakarta.persistence.EntityManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -77,45 +75,33 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
 
     PreparedStatementSetter pss =
         ps -> {
-          ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime())); // inclusive
-          ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime())); // inclusive (per your <=)
+          ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
+          ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
         };
 
     return jdbcTemplate.query(
         sql,
         pss,
         (rs, i) -> {
-
-          // period fields are nullable
           Integer year = null;
           Integer month = null;
           Integer week = null;
           Integer day = null;
 
           switch (eventInterval) {
-            case YEAR -> {
-              year = rs.getInt("yr");
-              if (rs.wasNull()) year = null;
-            }
+            case YEAR -> year = rs.wasNull() ? null : rs.getInt("yr");
             case MONTH -> {
-              year = rs.getInt("yr");
-              if (rs.wasNull()) year = null;
-              month = rs.getInt("mnt");
-              if (rs.wasNull()) month = null;
+              year = rs.wasNull() ? null : rs.getInt("yr");
+              month = rs.wasNull() ? null : rs.getInt("mnt");
             }
             case WEEK -> {
-              year = rs.getInt("isoyear");
-              if (rs.wasNull()) year = null;
-              week = rs.getInt("wk");
-              if (rs.wasNull()) week = null;
+              year = rs.wasNull() ? null : rs.getInt("isoyear");
+              week = rs.wasNull() ? null : rs.getInt("wk");
             }
             case DAY -> {
-              year = rs.getInt("yr");
-              if (rs.wasNull()) year = null;
-              month = rs.getInt("mnt");
-              if (rs.wasNull()) month = null;
-              day = rs.getInt("day");
-              if (rs.wasNull()) day = null;
+              year = rs.wasNull() ? null : rs.getInt("yr");
+              month = rs.wasNull() ? null : rs.getInt("mnt");
+              day = rs.wasNull() ? null : rs.getInt("day");
             }
           }
 
@@ -135,8 +121,6 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
               rs.getLong("passiveDashboardViews"),
               rs.getLong("dataSetReportViews"),
               rs.getLong("totalViews"),
-
-              // averages (double precision → Double)
               rs.getDouble("averageViews"),
               rs.getDouble("averageMapViews"),
               rs.getDouble("averageVisualizationViews"),
@@ -145,8 +129,6 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
               rs.getDouble("averageEventVisualizationViews"),
               rs.getDouble("averageDashboardViews"),
               rs.getDouble("averagePassiveDashboardViews"),
-
-              // saved entities (BIGINT → Long)
               rs.getLong("savedMaps"),
               rs.getLong("savedVisualizations"),
               rs.getLong("savedEventReports"),
@@ -289,13 +271,4 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
         COALESCE(SUM(datavalues),0)::bigint              AS savedDataValues,
         COALESCE(MAX(users),0)::bigint                           AS users
         """;
-
-  private static boolean hasColumn(ResultSet rs, String name) {
-    try {
-      rs.findColumn(name);
-      return true;
-    } catch (SQLException e) {
-      return false;
-    }
-  }
 }
