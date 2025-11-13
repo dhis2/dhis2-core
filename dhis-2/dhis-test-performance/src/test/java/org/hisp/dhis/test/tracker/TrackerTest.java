@@ -43,18 +43,33 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.Assertion;
+import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TrackerTest extends Simulation {
 
+  private static final List<Map<String, Object>> userCredentials = new ArrayList<>();
+  private static FeederBuilder<Object> userFeeder;
+
   public TrackerTest() {
+    String instance = System.getProperty("instance", "http://localhost:8080");
     String eventProgram = System.getProperty("eventProgram", "VBqh0ynB2wv");
     String trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
 
@@ -64,13 +79,24 @@ public class TrackerTest extends Simulation {
     int duration = Integer.getInteger("duration", 600); // seconds (10 minutes)
     int rampDuration = Integer.getInteger("rampDuration", 300); // seconds (5 minutes)
 
+    // Provision users via DHIS2 API
+    String adminUser = System.getProperty("adminUser", "admin");
+    String adminPassword = System.getProperty("adminPassword", "district");
+    String replicaUser = System.getProperty("replicaUser", "tracker");
+    String replicaPassword = System.getProperty("replicaPassword", "Tracker123!");
+
+    try {
+      provisionUsers(instance, adminUser, adminPassword, replicaUser, replicaPassword, users);
+    } catch (Exception e) {
+      throw new RuntimeException("User provisioning failed", e);
+    }
+
     HttpProtocolBuilder httpProtocolBuilder =
-        http.baseUrl("http://localhost:8080")
+        http.baseUrl(instance)
             .acceptHeader("application/json")
-            .maxConnectionsPerHost(100)
             .userAgentHeader("Gatling/Performance Test")
-            .warmUp(
-                "http://localhost:8080/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
+            .disableFollowRedirect()
+            .warmUp(instance + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
             .disableCaching() // to repeat the same request without HTTP cache influence (304)
             .check(status().is(200)); // global check for all requests
 
@@ -92,6 +118,108 @@ public class TrackerTest extends Simulation {
                 .andThen(trackerScenario.scenario().injectOpen(injectionProfile)))
         .protocols(httpProtocolBuilder)
         .assertions(allAssertions);
+  }
+
+  /**
+   * Provisions test users by replicating a source user via DHIS2 API.
+   *
+   * @param baseUrl DHIS2 instance URL
+   * @param adminUser Admin username
+   * @param adminPassword Admin password
+   * @param replicaUser Source user to replicate
+   * @param replicaPassword Password for new users
+   * @param count Number of users to create
+   */
+  private void provisionUsers(
+      String baseUrl,
+      String adminUser,
+      String adminPassword,
+      String replicaUser,
+      String replicaPassword,
+      int count)
+      throws Exception {
+    System.out.println("Provisioning " + count + " test users...");
+
+    HttpClient client = HttpClient.newBuilder().build();
+    String auth =
+        Base64.getEncoder()
+            .encodeToString((adminUser + ":" + adminPassword).getBytes(StandardCharsets.UTF_8));
+
+    // Get source user ID
+    HttpRequest getUserRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create(baseUrl + "/api/users?filter=username:eq:" + replicaUser + "&fields=id"))
+            .header("Authorization", "Basic " + auth)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+
+    HttpResponse<String> getUserResponse =
+        client.send(getUserRequest, HttpResponse.BodyHandlers.ofString());
+
+    if (getUserResponse.statusCode() != 200) {
+      throw new RuntimeException(
+          "Failed to get source user: " + getUserResponse.statusCode() + " " + getUserResponse.body());
+    }
+
+    // Extract user ID using regex (simple JSON parsing)
+    Pattern pattern = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
+    Matcher matcher = pattern.matcher(getUserResponse.body());
+    if (!matcher.find()) {
+      throw new RuntimeException("Could not find source user '" + replicaUser + "'");
+    }
+    String userId = matcher.group(1);
+    System.out.println("Found source user '" + replicaUser + "' with ID: " + userId);
+
+    // Create replicas
+    for (int i = 1; i <= count; i++) {
+      String username = String.format("%s_user_%03d", replicaUser, i);
+      String requestBody =
+          String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, replicaPassword);
+
+      HttpRequest replicateRequest =
+          HttpRequest.newBuilder()
+              .uri(URI.create(baseUrl + "/api/users/" + userId + "/replica"))
+              .header("Authorization", "Basic " + auth)
+              .header("Content-Type", "application/json")
+              .header("Accept", "application/json")
+              .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+              .build();
+
+      HttpResponse<String> replicateResponse =
+          client.send(replicateRequest, HttpResponse.BodyHandlers.ofString());
+
+      if (replicateResponse.statusCode() == 201) {
+        // User successfully created
+        Map<String, Object> userCred = new HashMap<>();
+        userCred.put("username", username);
+        userCred.put("password", replicaPassword);
+        userCredentials.add(userCred);
+        System.out.println("  Created user " + i + "/" + count + ": " + username);
+      } else if (replicateResponse.statusCode() == 409
+          && replicateResponse.body().contains("Username already taken")) {
+        // User already exists - this is OK, add to credentials
+        Map<String, Object> userCred = new HashMap<>();
+        userCred.put("username", username);
+        userCred.put("password", replicaPassword);
+        userCredentials.add(userCred);
+        System.out.println("  User already exists " + i + "/" + count + ": " + username);
+      } else {
+        // Actual error - fail fast
+        throw new RuntimeException(
+            "Failed to create user "
+                + username
+                + ": HTTP "
+                + replicateResponse.statusCode()
+                + " - "
+                + replicateResponse.body());
+      }
+    }
+
+    // Initialize feeder with provisioned credentials
+    userFeeder = io.gatling.javaapi.core.CoreDsl.listFeeder(userCredentials).circular();
+
+    System.out.println("User provisioning complete! Total users: " + userCredentials.size());
   }
 
   /**
@@ -200,7 +328,9 @@ public class TrackerTest extends Simulation {
 
     ScenarioBuilder scenarioBuilder =
         scenario("Single Events")
+            .feed(userFeeder)
             .exec(login())
+            .exitHereIfFailed()
             .group("Get a list of single events")
                     .on(
                         exec(goToFirstPage.action())
@@ -211,6 +341,7 @@ public class TrackerTest extends Simulation {
                                     .check(jsonPath("$.events").exists())
                                     .check(jsonPath("$.events[0]").exists())
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                            .exitHereIfFailed()
                             .group("Get one single event")
                             .on(
                                 exec(getFirstEvent.action())
@@ -351,7 +482,9 @@ public class TrackerTest extends Simulation {
 
     ScenarioBuilder scenarioBuilder =
         scenario("Tracker Program")
+            .feed(userFeeder)
             .exec(login())
+            .exitHereIfFailed()
             .group("Get a list of TEs")
                     .on(
                         exec(notFoundTeByNameWithLikeOperator.action())
@@ -371,6 +504,7 @@ public class TrackerTest extends Simulation {
                                                     String.join(
                                                         ",", list.stream().distinct().toList()))
                                             .saveAs("trackedEntityUids")))
+                            .exitHereIfFailed()
                             .exec(getTrackedEntitiesForEvents.action())
                             .exec(
                                 getFirstPageOfTEs
@@ -380,6 +514,7 @@ public class TrackerTest extends Simulation {
                                     .check(
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
+                            .exitHereIfFailed()
                             .group("Go to single enrollment")
                             .on(
                                 exec(getFirstTrackedEntity
@@ -394,6 +529,7 @@ public class TrackerTest extends Simulation {
                                         .check(
                                             jsonPath("$.enrollments[0].events[0].event")
                                                 .saveAs("eventUid")))
+                                    .exitHereIfFailed()
                                     .exec(getFirstEnrollment.action())
                                     .exec(getRelationshipsForTrackedEntity.action())
                                     .group("Get one event")
@@ -422,7 +558,7 @@ public class TrackerTest extends Simulation {
     return http("Login")
         .post("/api/auth/login")
         .header("Content-Type", "application/json")
-        .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
+        .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
         .check(status().is(200));
   }
 
