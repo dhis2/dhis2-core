@@ -58,7 +58,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
-import org.hisp.dhis.datavalue.DataExportInputParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
@@ -450,15 +450,15 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------------
   // Supportive methods
   // --------------------------------------------------------------------------
-  private DataExportInputParams getCommonExportParams() {
-    return DataExportInputParams.builder()
+  private DataExportParams.Input getCommonExportParams() {
+    return DataExportParams.Input.builder()
         .orgUnit(Set.of(ouA.getUid()))
         .period(Set.of(pe202001.getIsoDate(), pe202002.getIsoDate()))
         .dataSet(Set.of(dsA.getUid(), dsB.getUid()))
         .build();
   }
 
-  private void testExport(String filePath, DataExportInputParams params) throws Exception {
+  private void testExport(String filePath, DataExportParams.Input params) throws Exception {
     addDataValues(
         new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
         new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"),

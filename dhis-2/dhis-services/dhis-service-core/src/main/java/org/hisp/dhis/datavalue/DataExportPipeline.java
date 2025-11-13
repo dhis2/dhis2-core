@@ -64,7 +64,7 @@ public class DataExportPipeline {
   private final DataExportService service;
 
   @Transactional(readOnly = true)
-  public <T> List<T> exportAsList(DataExportInputParams params, Function<DataExportValue, T> f)
+  public <T> List<T> exportAsList(DataExportParams.Input params, Function<DataExportValue, T> f)
       throws ConflictException {
     // it might appear silly to just have this bit of code in here
     // limiting what can be done with the Stream, but we have to process the stream
@@ -73,7 +73,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportToConsumer(DataExportInputParams params, Consumer<DataExportValue> f)
+  public void exportToConsumer(DataExportParams.Input params, Consumer<DataExportValue> f)
       throws ConflictException {
     // it might appear silly to just have this bit of code in here
     // limiting what can be done with the Stream, but we have to process the stream
@@ -82,13 +82,13 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJson(DataExportInputParams params, OutputStream out)
+  public void exportAsJson(DataExportParams.Input params, OutputStream out)
       throws ConflictException {
     exportAsJson(params, () -> out);
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJson(DataExportInputParams params, Supplier<OutputStream> out)
+  public void exportAsJson(DataExportParams.Input params, Supplier<OutputStream> out)
       throws ConflictException {
     DataExportGroup.Output group = service.exportGroup(params, false);
     try (OutputStream json = wrapWithCompression(params, out)) {
@@ -99,7 +99,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJsonSync(DataExportInputParams params, OutputStream out)
+  public void exportAsJsonSync(DataExportParams.Input params, OutputStream out)
       throws ConflictException {
     DataExportGroup.Output group = service.exportGroup(params, true);
     try (OutputStream json = wrapWithCompression(params, () -> out)) {
@@ -110,7 +110,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsCsv(DataExportInputParams params, Supplier<OutputStream> out)
+  public void exportAsCsv(DataExportParams.Input params, Supplier<OutputStream> out)
       throws ConflictException {
     DataExportGroup.Output group = service.exportGroup(params, false);
     try (OutputStream csv = wrapWithCompression(params, out)) {
@@ -121,7 +121,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsXml(DataExportInputParams params, Supplier<OutputStream> out)
+  public void exportAsXml(DataExportParams.Input params, Supplier<OutputStream> out)
       throws ConflictException {
     DataExportGroup.Output group = service.exportGroup(params, false);
     try (OutputStream xml = wrapWithCompression(params, out)) {
@@ -132,7 +132,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsXmlGroups(DataExportInputParams params, Supplier<OutputStream> out)
+  public void exportAsXmlGroups(DataExportParams.Input params, Supplier<OutputStream> out)
       throws ConflictException {
     // ADX special handling of decoding and encoding
     if (params.getInputUseCodeFallback() == null) params.setInputUseCodeFallback(true);
@@ -148,7 +148,7 @@ public class DataExportPipeline {
   }
 
   private static OutputStream wrapWithCompression(
-      DataExportInputParams params, Supplier<OutputStream> out) throws IOException {
+      DataExportParams.Input params, Supplier<OutputStream> out) throws IOException {
     return switch (params.getCompression()) {
       case NONE -> out.get();
       case GZIP -> new GZIPOutputStream(out.get());

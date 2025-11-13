@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
@@ -86,7 +85,7 @@ public class DataValueContextController {
             : Set.copyOf(Stream.of(params.getCp().split(";")).map(UID::of).toList());
     List<DataExportValue> dataValues =
         dataExportPipeline.exportAsList(
-            DataExportInputParams.builder()
+            DataExportParams.Input.builder()
                 .dataElement(Set.of(params.getDe()))
                 .period(periods)
                 .orgUnit(Set.of(params.getOu()))

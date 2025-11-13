@@ -53,7 +53,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
-import org.hisp.dhis.datavalue.DataExportInputParams;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -96,7 +96,7 @@ public class DataValueSetController {
   @OpenApi.Response(DataValueSet.class)
   @GetMapping
   public void getDataValueSet(
-      DataExportInputParams params, HttpServletRequest request, HttpServletResponse response)
+      DataExportParams.Input params, HttpServletRequest request, HttpServletResponse response)
       throws ConflictException {
     String format = params.getFormat();
     if (format == null) {
@@ -204,7 +204,7 @@ public class DataValueSetController {
    *     instead of receiving and showing the error response.
    */
   private Supplier<OutputStream> lazyOutputStream(
-      DataExportInputParams params, HttpServletResponse response)
+      DataExportParams.Input params, HttpServletResponse response)
       throws HttpMessageNotWritableException {
     return () -> {
       String contentType =

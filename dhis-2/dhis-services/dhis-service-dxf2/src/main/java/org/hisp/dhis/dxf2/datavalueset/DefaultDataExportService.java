@@ -57,7 +57,6 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportGroup;
-import org.hisp.dhis.datavalue.DataExportInputParams;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportParams.Order;
 import org.hisp.dhis.datavalue.DataExportService;
@@ -99,8 +98,8 @@ public class DefaultDataExportService implements DataExportService {
    *     the transaction closes the stream becomes invalid.
    */
   @Override
-  @Transactional(propagation = Propagation.MANDATORY)
-  public Stream<DataExportValue> exportValues(@Nonnull DataExportInputParams parameters)
+  @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
+  public Stream<DataExportValue> exportValues(@Nonnull DataExportParams.Input parameters)
       throws ConflictException {
     DataExportParams params = decodeParams(parameters);
     validateFilters(params);
@@ -109,9 +108,9 @@ public class DefaultDataExportService implements DataExportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public DataExportGroup.Output exportGroup(@Nonnull DataExportInputParams parameters, boolean sync)
-      throws ConflictException {
+  @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
+  public DataExportGroup.Output exportGroup(
+      @Nonnull DataExportParams.Input parameters, boolean sync) throws ConflictException {
     DataExportParams params = decodeParams(parameters);
     if (sync) {
       params =
@@ -141,7 +140,7 @@ public class DefaultDataExportService implements DataExportService {
 
   @Override
   @Transactional(readOnly = true)
-  public Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportInputParams parameters)
+  public Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportParams.Input parameters)
       throws ConflictException {
     DataExportParams params = decodeParams(parameters);
     validateFilters(params);
@@ -338,7 +337,7 @@ public class DefaultDataExportService implements DataExportService {
     return value == null || value.isEmpty() ? null : value;
   }
 
-  private DataExportParams decodeParams(DataExportInputParams params) {
+  private DataExportParams decodeParams(DataExportParams.Input params) {
     boolean codeFallback = Boolean.TRUE.equals(params.getInputUseCodeFallback());
     IdentifiableProperty anyIn = params.getInputIdScheme();
     IdentifiableProperty dsIn = params.getInputDataSetIdScheme();
