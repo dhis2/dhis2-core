@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -83,6 +84,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Document(
     entity = User.class,
     classifiers = {"team:platform", "purpose:support"})
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -133,12 +135,23 @@ public class ImpersonateUserController {
   }
 
   private void validateReq(HttpServletRequest request) throws ForbiddenException {
+    String remoteAddr = request.getRemoteAddr();
     boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
     if (!enabled) {
-      throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
+      log.error(
+          "Impersonation attempt when feature is disabled, from username: {}, IP address: {}",
+          getCurrentAuthentication().getName(),
+          remoteAddr);
+      throw new ForbiddenException(
+          "Forbidden, user not allowed to impersonate user, feature disabled");
     }
-    if (!hasAllowListedIp(request.getRemoteAddr())) {
-      throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
+    if (!hasAllowListedIp(remoteAddr, config)) {
+      log.error(
+          "Impersonation attempt from non allow-listed IP address: {}, username: {}",
+          remoteAddr,
+          getCurrentAuthentication().getName());
+      throw new ForbiddenException(
+          "Forbidden, user not allowed to impersonate user from IP: %s".formatted(remoteAddr));
     }
   }
 
@@ -271,7 +284,7 @@ public class ImpersonateUserController {
     return original;
   }
 
-  private boolean hasAllowListedIp(String remoteAddr) {
+  public static boolean hasAllowListedIp(String remoteAddr, DhisConfigurationProvider config) {
     String property = config.getProperty(ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS);
     for (String ip : property.split(",")) {
       if (ip.trim().equalsIgnoreCase(remoteAddr)) {

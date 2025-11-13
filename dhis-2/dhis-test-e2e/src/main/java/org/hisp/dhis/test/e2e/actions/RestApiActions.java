@@ -261,6 +261,26 @@ public class RestApiActions {
   }
 
   /**
+   * Sends PUT request.
+   *
+   * @param body Body of request
+   */
+  public ApiResponse put(String body) {
+    Response put = given().contentType(ContentType.JSON).body(body).when().put();
+    return new ApiResponse(put);
+  }
+
+  /**
+   * Sends PUT request.
+   *
+   * @param body Body of request
+   */
+  public ApiResponse put(String resourceId, Object body) {
+    Response put = given().contentType(ContentType.JSON).body(body).when().put(resourceId);
+    return new ApiResponse(put);
+  }
+
+  /**
    * Sends PUT request to specified resource with no body.
    *
    * @param resource resource
