@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
+import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -267,8 +268,13 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
 
     List<String> dataValues = new ArrayList<>();
     List<String> enrollmentAttValues = new ArrayList<>();
+    List<String> teiAttValues = new ArrayList<>();
     teis.getTrackedEntityInstances().forEach(
         tei -> {
+          tei.getAttributes().forEach(
+              att -> {
+                teiAttValues.add(att.getValue());
+              });
           tei.getEnrollments().forEach(
               enr -> {
                 enr.getAttributes().forEach(
@@ -288,6 +294,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
 
     assertContainsOnly(List.of(DATA_VALUE), dataValues);
     assertContainsOnly(List.of(ATT_VALUE), enrollmentAttValues);
+    assertContainsOnly(List.of(ATT_VALUE), teiAttValues);
   }
 
   private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance getTeiByUid(
