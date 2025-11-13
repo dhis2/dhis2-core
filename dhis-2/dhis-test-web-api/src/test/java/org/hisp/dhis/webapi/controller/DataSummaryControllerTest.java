@@ -224,13 +224,27 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts before deleting the dashboard
     HttpResponse responseBeforeDelete = GET("/api/dataSummary");
     JsonMixed contentBeforeDelete = responseBeforeDelete.content();
-    int dashboardCountBeforeDelete =
-        Integer.parseInt(
-            contentBeforeDelete
+    int dashboardCountBeforeDelete;
+    try
+    {
+        dashboardCountBeforeDelete =
+            Integer.parseInt(
+                contentBeforeDelete
+                    .get("objectCounts")
+                    .asMap(JsonValue.class)
+                    .get("dashboard")
+                    .toString());
+        }
+        catch (NumberFormatException e)
+        {
+        fail("Could not parse dashboard count as integer: "
+            + contentBeforeDelete
                 .get("objectCounts")
                 .asMap(JsonValue.class)
                 .get("dashboard")
                 .toString());
+        return;
+    }
     // Confirm greater than zero
     assertTrue(dashboardCountBeforeDelete > 0, "Dashboard count should be greater than zero");
     // Delete the dashboard
@@ -238,13 +252,27 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts after deleting the dashboard
     HttpResponse responseAfterDelete = GET("/api/dataSummary");
     JsonMixed contentAfterDelete = responseAfterDelete.content();
-    int dashboardCountAfterDelete =
-        Integer.parseInt(
-            contentAfterDelete
+    int dashboardCountAfterDelete;
+    try
+    {
+        dashboardCountAfterDelete =
+            Integer.parseInt(
+                contentAfterDelete
+                    .get("objectCounts")
+                    .asMap(JsonValue.class)
+                    .get("dashboard")
+                    .toString());
+        }
+        catch (NumberFormatException e)
+        {
+        fail("Could not parse dashboard count AFTER as integer: "
+            + contentAfterDelete
                 .get("objectCounts")
                 .asMap(JsonValue.class)
                 .get("dashboard")
                 .toString());
+        return;
+    }
     // Confirm the count has decreased by one
     assertEquals(
         dashboardCountBeforeDelete - 1,
@@ -362,6 +390,7 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
           + contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
       return;
     }
+
     assertEquals(
         activeUsersOneWeekAgoCountBefore + 2,
         activeUsersOneWeekAgoCountAfter,
