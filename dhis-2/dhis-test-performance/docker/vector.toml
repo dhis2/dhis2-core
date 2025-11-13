@@ -31,37 +31,47 @@ source = '''
   } else {
     # map the parsed fields to structured JSON matching the nginx tracker_log format
     .@timestamp = parsed[0]
-    .request_method = parsed[1]
-    .uri = parsed[2]
-    if parsed[3] != "" && parsed[3] != "-"  {
-      .query_string = parse_query_string!(parsed[3])
+    msec = to_float!(parsed[1])
+    .request_method = parsed[2]
+    .uri = parsed[3]
+    if parsed[4] != "" && parsed[4] != "-"  {
+      .query_string = parse_query_string!(parsed[4])
     }
-    .status = to_int!(parsed[4])
-    .request_completion = parsed[5]
-    .request_id = parsed[6]
+    .status = to_int!(parsed[5])
+    .request_completion = parsed[6]
+    .request_id = parsed[7]
 
     # no value is indicated by "-" in the nginx logs, only add fields with values
     # to make querying in ES easier and to not mess with the autodetected data type in its index
-    if parsed[7] != "-" {
-      .referer = parsed[7]
-    }
     if parsed[8] != "-" {
-      .user_agent = parsed[8]
+      .referer = parsed[8]
     }
-    .bytes_sent = to_int!(parsed[9])
-    .body_bytes_sent = to_int!(parsed[10])
-    .connection = to_int!(parsed[11])
-    .connection_requests = to_int!(parsed[12])
+    if parsed[9] != "-" {
+      .user_agent = parsed[9]
+    }
+    .bytes_sent = to_int!(parsed[10])
+    .body_bytes_sent = to_int!(parsed[11])
+    .connection = to_int!(parsed[12])
+    .connection_requests = to_int!(parsed[13])
     # time in seconds with a milliseconds resolution
-    .connection_time_ms = to_float!(parsed[13]) * 1000
-    .request_time_ms = to_float!(parsed[14]) * 1000
-    .upstream_connect_time_ms = to_float!(parsed[15]) * 1000
-    .upstream_header_time_ms = to_float!(parsed[16]) * 1000
-    .upstream_response_time_ms = to_float!(parsed[17]) * 1000
+    .connection_time_ms = to_float!(parsed[14]) * 1000
+    request_time_seconds = to_float!(parsed[15])
+    .request_time_ms = request_time_seconds * 1000
+    .upstream_connect_time_ms = to_float!(parsed[16]) * 1000
+    .upstream_header_time_ms = to_float!(parsed[17]) * 1000
+    .upstream_response_time_ms = to_float!(parsed[18]) * 1000
 
-    if parsed[18] != "-" {
-      .sessionid_hash = parsed[18]
+    if parsed[19] != "-" {
+      .sessionid_hash = parsed[19]
     }
+
+    # calculate request arrival time: msec - request_time = when request was received
+    # msec is float with millisecond precision, convert to milliseconds for timestamp
+    request_received_ms = to_int!((msec - request_time_seconds) * 1000)
+    response_sent_ms = to_int!(msec * 1000)
+    .request_received_at = from_unix_timestamp!(request_received_ms, unit: "milliseconds")
+    # also store response sent time for comparison
+    .response_sent_at = from_unix_timestamp!(response_sent_ms, unit: "milliseconds")
 
     # add common Elasticsearch metadata fields
     .type = "tracker_requests"
