@@ -507,7 +507,7 @@ public class ConfigurationController {
         p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.getName())));
 
     Configuration configuration = configurationService.getConfiguration();
-    configuration.getDataOutputPeriodTypes().addAll(periodTypesParsed);
+    configuration.setDataOutputPeriodTypes(periodTypesParsed);
     configurationService.setConfiguration(configuration);
   }
 
