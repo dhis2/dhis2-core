@@ -186,13 +186,25 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts before deleting the data element
     HttpResponse responseBeforeDelete = GET("/api/dataSummary");
     JsonMixed contentBeforeDelete = responseBeforeDelete.content();
-    int dataElementCountBeforeDelete =
-        Integer.parseInt(
-            contentBeforeDelete
-                .get("objectCounts")
-                .asMap(JsonValue.class)
-                .get("dataElement")
-                .toString());
+    int dataElementCountBeforeDelete;
+    try {
+      dataElementCountBeforeDelete =
+          Integer.parseInt(
+              contentBeforeDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElement")
+                  .toString());
+    } catch (NumberFormatException e) {
+      fail(
+          "Could not parse data element count as integer: "
+              + contentBeforeDelete
+                  .get("objectCounts")
+                  .asMap(JsonValue.class)
+                  .get("dataElement")
+                  .toString());
+      return;
+    }
     // Confirm greater than zero
     assertTrue(dataElementCountBeforeDelete > 0, "Data element count should be greater than zero");
     // Delete the data element
