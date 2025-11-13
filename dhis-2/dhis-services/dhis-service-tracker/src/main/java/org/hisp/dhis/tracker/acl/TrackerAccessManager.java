@@ -31,15 +31,13 @@ package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -47,38 +45,54 @@ import org.hisp.dhis.user.UserDetails;
  */
 public interface TrackerAccessManager {
   /**
-   * Check the data read permissions and ownership of a tracked entity given the programs for which
+   * Checks the data read permissions and ownership of a tracked entity given the programs for which
    * the user has metadata access to.
    *
    * @return No errors if a user has access to at least one program
    */
   List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
+  /**
+   * Checks the data write permissions to the TET of a given tracked entity.
+   *
+   * @return No errors if the user has write access to the TET.
+   */
+  List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  /**
+   * Checks the data write permissions to the TET and ownership of a tracked entity given the
+   * programs for which the user has metadata access to.
+   *
+   * @return No errors if a user has write access to the TET and access to at least one program
+   */
+  List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canCreate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
+  List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canUpdate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, Enrollment enrollment);
 
-  List<String> canDelete(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, Enrollment enrollment);
 
-  List<String> canRead(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canUpdate(UserDetails user, Enrollment enrollment);
+
+  List<String> canDelete(UserDetails user, Enrollment enrollment);
+
+  List<String> canRead(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, SingleEvent event);
 
-  List<String> canCreate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, SingleEvent event);
 
-  List<String> canUpdate(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, TrackerEvent event);
 
-  List<String> canUpdate(UserDetails user, SingleEvent event);
+  List<String> canUpdate(UserDetails user, TrackerEvent event);
 
-  List<String> canDelete(UserDetails user, TrackerEvent event, boolean skipOwnershipCheck);
+  List<String> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
-  List<String> canWrite(UserDetails user, Relationship relationship);
+  List<String> canCreate(UserDetails user, Relationship relationship);
 
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
 
@@ -90,8 +104,7 @@ public interface TrackerAccessManager {
    * @param dataElement DataElement of EventDataValue
    * @return Empty list if read access allowed, list of errors otherwise.
    */
-  List<String> canRead(
-      UserDetails user, TrackerEvent event, DataElement dataElement, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, TrackerEvent event, DataElement dataElement);
 
   /**
    * Checks the sharing read access to EventDataValue
@@ -102,30 +115,4 @@ public interface TrackerAccessManager {
    * @return Empty list if read access allowed, list of errors otherwise.
    */
   List<String> canRead(UserDetails user, SingleEvent event, DataElement dataElement);
-
-  /**
-   * Checks the sharing write access to EventDataValue
-   *
-   * @param user User validated for write access
-   * @param event Event under which the EventDataValue belongs
-   * @param dataElement DataElement of EventDataValue
-   * @return Empty list if write access allowed, list of errors otherwise.
-   */
-  List<String> canWrite(
-      UserDetails user, TrackerEvent event, DataElement dataElement, boolean skipOwnershipCheck);
-
-  List<String> canRead(UserDetails user, CategoryOptionCombo categoryOptionCombo);
-
-  List<String> canWrite(UserDetails user, CategoryOptionCombo categoryOptionCombo);
-
-  /**
-   * Checks if user has access to organisation unit under defined tracker program protection level
-   *
-   * @param user the user to check access for
-   * @param program program to check against protection level
-   * @param orgUnit the org unit to be checked under user's scope and program protection
-   * @return true if user has access to the org unit under the mentioned program context, otherwise
-   *     return false
-   */
-  boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit);
 }

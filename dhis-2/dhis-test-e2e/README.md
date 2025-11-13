@@ -73,6 +73,11 @@ pipelines so we can run a matrix of versions in an isolated fashion. When develo
 option 2. will be slow as you will need to not only recompile but also rebuild the test Docker
 image.
 
+##### Running analytics tests against Apache Doris
+
+If you want to run the analytics tests against an Apache Doris backend, you can do this easily with docker:
+
+
 ### Configuration
 
 The following show some test configurations you can adjust. All properties should be defined in

@@ -108,6 +108,19 @@ jobs:
     - name: Clean target directory
       run: mvn clean
 
+    - name: Validate environment configurations
+      run: |
+        # Validate env file doesn't contain COMMAND variable
+        # COMMAND=VAR1=val1 VAR2=val2 ./script.sh is executed by bash during 'source'
+        # because bash interprets it as: run ./script.sh with VAR1 and VAR2 set
+        if echo "${{ inputs.test_env }}" | grep -q '^COMMAND='; then
+          echo "Error: test_env contains COMMAND variable which causes accidental execution"
+          echo "Please remove the COMMAND variable from your env file"
+          exit 1
+        fi
+
+        echo "✓ Validation passed"
+
     - name: Run performance tests
       run: |
         # Write env to file
@@ -115,10 +128,10 @@ jobs:
         ${{ inputs.test_env }}
         ENV_EOF
 
-        # Source the env file (set -a exports all variables)
-        set -a
+        # Source the env file (allexport exports all variables to subprocesses)
+        set -o allexport
         source test.env
-        set +a
+        set +o allexport
 
         # Override workflow-specific settings
         export REPORT_SUFFIX="${{ inputs.test_name }}"
@@ -127,7 +140,7 @@ jobs:
 
     - name: Upload Gatling report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
         path: dhis-2/dhis-test-performance/target/gatling/
@@ -164,7 +177,6 @@ jobs:
         CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$RUN_ENV" | cut -d= -f2-)
         DB_TYPE=$(grep "^DB_TYPE=" "$RUN_ENV" | cut -d= -f2-)
         DB_VERSION=$(grep "^DB_VERSION=" "$RUN_ENV" | cut -d= -f2-)
-        COMMAND_IMMUTABLE=$(grep "^COMMAND_IMMUTABLE=" "$RUN_ENV" | cut -d= -f2-)
 
         echo "# 🚀 Performance Test Results: ${{ inputs.test_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -196,6 +208,18 @@ jobs:
         echo "* **DHIS2_BUILD_BRANCH**: \`$DHIS2_BRANCH\`" >> $GITHUB_STEP_SUMMARY
         echo "* **DHIS2_BUILD_REVISION**: \`$DHIS2_REVISION\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Image Digest**: \`${DHIS2_DIGEST#*@}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary>Complete test environment configuration</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "> **⚠️ Warning**: GitHub Actions removes quotes around arguments like \`MVN_ARGS\` and \`PROF_ARGS\`." >> $GITHUB_STEP_SUMMARY
+        echo "> You may need to manually re-add quotes when copying this configuration." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "${{ inputs.test_env }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
@@ -239,11 +263,15 @@ jobs:
 
         echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Download the artifacts (see 'Download Results' section above) to get the \`run-simulation.env\` file. If artifacts are no longer available, use the configuration from the 'Test Configuration' section." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo "### On GitHub" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/performance-tests.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download the artifacts and use the @ syntax to pass the file directly:" >> $GITHUB_STEP_SUMMARY
+        echo "**Method 1: Using generated run-simulation.env file (recommended for exact reproduction)**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Use the @ syntax to pass the downloaded env file directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
         echo "gh workflow run performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
@@ -252,13 +280,17 @@ jobs:
         echo "  --ref ${{ github.workflow_sha }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Method 2: Using input configuration from this run**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "See the 'Test Configuration' section above for the exact test_env value used." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### Locally" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Run this locally in the [https://github.com/dhis2/dhis2-core](https://github.com/dhis2/dhis2-core) repo in the \`dhis-2/dhis-test-performance\` directory:" >> $GITHUB_STEP_SUMMARY
+        echo "Run in the [https://github.com/dhis2/dhis2-core](https://github.com/dhis2/dhis2-core) repo in the \`dhis-2/dhis-test-performance\` directory:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo "git checkout $PERF_GIT_COMMIT && $COMMAND_IMMUTABLE" >> $GITHUB_STEP_SUMMARY
+        sed '/^$/q' "$RUN_ENV" | grep '^#' | sed 's/^# //' >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     - name: Check if Slack webhook is configured
