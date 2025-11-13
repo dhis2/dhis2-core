@@ -114,7 +114,6 @@ public class DefaultDataExportService implements DataExportService {
       throws ConflictException {
     DataExportParams params = decodeParams(parameters);
     if (sync) {
-      // TODO something to skip ACL params.setOrderForSync(true);
       params =
           params.toBuilder()
               .includeDeleted(true)
@@ -194,7 +193,6 @@ public class DefaultDataExportService implements DataExportService {
     }
 
     DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
-    ;
     boolean cocAsMap = Boolean.TRUE.equals(parameters.getUnfoldOptionCombos());
     List<DataExportGroup.Output> res = new ArrayList<>(groups.size());
     for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, cocAsMap));
@@ -393,9 +391,10 @@ public class DefaultDataExportService implements DataExportService {
         .build();
   }
 
+  @Nonnull
   private List<UID> decodeIds(
       IdCoder.ObjectType type, @CheckForNull IdentifiableProperty from, Collection<String> ids) {
-    if (ids == null || ids.isEmpty()) return null;
+    if (ids == null || ids.isEmpty()) return List.of();
     IdProperty p = IdProperty.of(from);
     if (p == IdProperty.UID) {
       if (from != null) return ids.stream().map(UID::of).toList();
@@ -410,8 +409,9 @@ public class DefaultDataExportService implements DataExportService {
     return idCoder.listDecodedIds(type, p, ids.stream());
   }
 
+  @Nonnull
   private List<Period> decodePeriods(Collection<String> isoPeriods) {
-    if (isoPeriods == null || isoPeriods.isEmpty()) return null;
+    if (isoPeriods == null || isoPeriods.isEmpty()) return List.of();
     return isoPeriods.stream().map(PeriodType::getPeriodFromIsoString).toList();
   }
 

@@ -167,7 +167,6 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
    * User has data read sharing access to cocA and coCB through category options. Verifies that only
    * data values for those attribute option combinations are returned.
    */
-  // @Disabled("TODO(DHIS2-17768 platform) fix")
   @Test
   void testExportAttributeOptionComboAccessLimitedUserA() throws Exception {
     // User

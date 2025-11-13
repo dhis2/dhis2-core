@@ -424,8 +424,8 @@ public final class QueryBuilder {
     int iSpace = line.lastIndexOf(' ', iOn - 1);
     String alias = line.substring(iSpace, iOn).trim();
     if (!erasedJoins.containsKey(alias)) return false;
-    Set<String> params = erasedJoins.get(alias);
-    return params.isEmpty() || erasedParams.containsAll(params);
+    Set<String> paramNames = erasedJoins.get(alias);
+    return paramNames.isEmpty() || erasedParams.containsAll(paramNames);
   }
 
   private boolean containsErasedClause(String line) {

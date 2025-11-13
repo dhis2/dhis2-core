@@ -186,9 +186,9 @@ public class DataExportInputParams {
   public String getFilename() {
     String comp =
         switch (getCompression()) {
-          default -> "";
           case GZIP -> ".gz";
           case ZIP -> ".zip";
+          default -> "";
         };
     String fmt = format == null ? ".json" : "." + format.replace('+', '.');
     String name = attachment == null ? "dataValues" : attachment;
