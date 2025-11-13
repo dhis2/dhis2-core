@@ -82,11 +82,7 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
           ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
         };
 
-    return jdbcTemplate.query(
-        sql,
-        pss,
-        (rs, i) -> mapAggregatedStatistics(rs, eventInterval)
-    );
+    return jdbcTemplate.query(sql, pss, (rs, i) -> mapAggregatedStatistics(rs, eventInterval));
   }
 
   private static String byYearSql() {
@@ -219,9 +215,7 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
 
   private static Integer getNullableInt(ResultSet rs, String column) throws SQLException {
     int value = rs.getInt(column);
-    return rs.wasNull
-
-        () ? null : value;
+    return rs.wasNull() ? null : value;
   }
 
   private static AggregatedStatistics mapAggregatedStatistics(ResultSet rs, EventInterval interval)
@@ -233,20 +227,20 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
     Integer day = null;
 
     switch (interval) {
-    case YEAR -> year = getNullableInt(rs, "yr");
-    case MONTH -> {
-      year = getNullableInt(rs, "yr");
-      month = getNullableInt(rs, "mnt");
-    }
-    case WEEK -> {
-      year = getNullableInt(rs, "isoyear");
-      week = getNullableInt(rs, "wk");
-    }
-    case DAY -> {
-      year = getNullableInt(rs, "yr");
-      month = getNullableInt(rs, "mnt");
-      day = getNullableInt(rs, "day");
-    }
+      case YEAR -> year = getNullableInt(rs, "yr");
+      case MONTH -> {
+        year = getNullableInt(rs, "yr");
+        month = getNullableInt(rs, "mnt");
+      }
+      case WEEK -> {
+        year = getNullableInt(rs, "isoyear");
+        week = getNullableInt(rs, "wk");
+      }
+      case DAY -> {
+        year = getNullableInt(rs, "yr");
+        month = getNullableInt(rs, "mnt");
+        day = getNullableInt(rs, "day");
+      }
     }
 
     return new AggregatedStatistics(
@@ -280,8 +274,6 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
         rs.getLong("savedIndicators"),
         rs.getLong("savedDataValues"),
         rs.getLong("activeUsers"),
-        rs.getLong("users")
-    );
+        rs.getLong("users"));
   }
-
-  }
+}

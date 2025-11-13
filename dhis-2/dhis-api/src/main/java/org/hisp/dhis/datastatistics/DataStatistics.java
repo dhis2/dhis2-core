@@ -39,7 +39,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 @Getter
 @Setter
 @NoArgsConstructor
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DataStatistics extends BaseIdentifiableObject {
 
@@ -112,7 +111,6 @@ public class DataStatistics extends BaseIdentifiableObject {
   private static Long toLong(Number n) {
     return n == null ? null : n.longValue();
   }
-
 
   @Override
   public String toString() {

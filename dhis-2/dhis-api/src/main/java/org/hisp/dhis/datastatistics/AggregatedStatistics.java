@@ -30,7 +30,6 @@
 package org.hisp.dhis.datastatistics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record AggregatedStatistics(
@@ -38,7 +37,6 @@ public record AggregatedStatistics(
     Integer month,
     Integer week,
     Integer day,
-
     long mapViews,
     long visualizationViews,
     long eventReportViews,
@@ -48,7 +46,6 @@ public record AggregatedStatistics(
     long passiveDashboardViews,
     long dataSetReportViews,
     long totalViews,
-
     double averageViews,
     double averageMapViews,
     double averageVisualizationViews,
@@ -57,7 +54,6 @@ public record AggregatedStatistics(
     double averageEventVisualizationViews,
     double averageDashboardViews,
     double averagePassiveDashboardViews,
-
     long savedMaps,
     long savedVisualizations,
     long savedEventReports,
@@ -66,7 +62,5 @@ public record AggregatedStatistics(
     long savedDashboards,
     long savedIndicators,
     long savedDataValues,
-
     long activeUsers,
-    long users
-) {}
+    long users) {}
