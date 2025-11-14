@@ -269,6 +269,41 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
+  void testRunRouteGivenEncodedAndUnencodedCharactersUrl() throws IOException {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
+
+    ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor =
+        ArgumentCaptor.forClass(HttpUriRequest.class);
+    when(mockHttpResponse.getAllHeaders()).thenReturn(new org.apache.http.Header[] {});
+    when(mockHttpResponse.getStatusLine())
+        .thenReturn(
+            new BasicStatusLine(
+                new ProtocolVersion("http", 1, 1), org.apache.http.HttpStatus.SC_OK, "ok"));
+    when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
+        .thenReturn(mockHttpResponse);
+
+    routeService.setHttpClient(mockHttpClient);
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields=code%2Ccreated");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MockHttpServletRequestBuilder mockHttpServletRequestBuilder =
+        MockMvcRequestBuilders.get(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run?clientQuery=[code%2Ccreated]");
+    MvcResult mvcResult = webRequestWithMvcResult(mockHttpServletRequestBuilder);
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    assertEquals(
+        "fields=code%2Ccreated&clientQuery=[code%2Ccreated]",
+        httpUriRequestArgumentCaptor.getValue().getURI().getQuery());
+  }
+
+  @Test
   void testRunRouteGivenMultipartBody() throws IOException, MessagingException {
     CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
     CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
