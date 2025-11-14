@@ -32,6 +32,7 @@ package org.hisp.dhis.datastatistics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -77,15 +78,13 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   private DataStatisticsEvent dse1;
 
   private DataStatisticsEvent dse2;
-
+  private Date dayStart;
   private long snapId1;
   private static final ZoneId ZONE = DefaultDataStatisticsService.SERVER_ZONE;
-  private Date dayStart;
   private List<Long> eventIds;
 
   @BeforeAll
-  void setUp() {
-
+  void setUp() throws IOException {
     LocalDate fixedDate = LocalDate.of(2016, 3, 22);
     dayStart = toDate(fixedDate.atStartOfDay());
 
@@ -177,22 +176,21 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
 
     assertAll(
-        () -> assertEquals(14L, summary.getEventCount().get(0).longValue()),
-        () -> assertEquals(15L, summary.getEventCount().get(1).longValue()),
-        () -> assertEquals(16L, summary.getEventCount().get(7).longValue()),
-        () -> assertEquals(17L, summary.getEventCount().get(30).longValue()),
-        () -> assertEquals(10L, summary.getTrackerEventCount().get(0).longValue()),
-        () -> assertEquals(10L, summary.getTrackerEventCount().get(1).longValue()),
-        () -> assertEquals(10L, summary.getTrackerEventCount().get(7).longValue()),
-        () -> assertEquals(10L, summary.getTrackerEventCount().get(30).longValue()),
-        () -> assertEquals(4L, summary.getSingleEventCount().get(0).longValue()),
-        () -> assertEquals(5L, summary.getSingleEventCount().get(1).longValue()),
-        () -> assertEquals(6L, summary.getSingleEventCount().get(7).longValue()),
-        () -> assertEquals(7L, summary.getSingleEventCount().get(30).longValue()),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(0).longValue()),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(1).longValue()),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(7).longValue()),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(30).longValue()));
+        () -> assertEquals(15L, summary.getEventCount().get(1)),
+        () -> assertEquals(16L, summary.getEventCount().get(7)),
+        () -> assertEquals(17L, summary.getEventCount().get(30)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(0)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(1)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(7)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(30)),
+        () -> assertEquals(4L, summary.getSingleEventCount().get(0)),
+        () -> assertEquals(5L, summary.getSingleEventCount().get(1)),
+        () -> assertEquals(6L, summary.getSingleEventCount().get(7)),
+        () -> assertEquals(7L, summary.getSingleEventCount().get(30)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(0)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(1)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(7)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(30)));
   }
 
   // --- Helpers ---
