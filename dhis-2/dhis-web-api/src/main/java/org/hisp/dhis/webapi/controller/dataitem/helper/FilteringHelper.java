@@ -209,7 +209,7 @@ public class FilteringHelper {
     if (CollectionUtils.isNotEmpty(filters)) {
       for (String filter : filters) {
         if (filterHasPrefix(filter, filterCombination.getCombination())) {
-          String[] array = filter.split(":");
+          String[] array = filter.split(":", 3);
           boolean hasValue = array.length == 3;
 
           if (hasValue) {
