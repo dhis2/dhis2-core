@@ -29,13 +29,18 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -44,6 +49,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -58,6 +64,10 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataStatisticsStore hibernateDataStatisticsStore;
 
+  @Autowired private JdbcTemplate jdbc;
+
+  @Autowired private TestSetup testSetup;
+
   private DataStatisticsEvent dse1;
 
   private DataStatisticsEvent dse2;
@@ -67,7 +77,7 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   private DateTimeFormatter fmt;
 
   @BeforeAll
-  void setUp() {
+  void setUp() throws IOException {
     DateTime formatdate;
     fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
     formatdate = fmt.parseDateTime("2016-03-22");
@@ -80,22 +90,42 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
             11.0, 10, 18);
     hibernateDataStatisticsStore.save(ds);
     snapId1 = ds.getId();
+
+    testSetup.importMetadata();
+    injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
+    testSetup.importTrackerData();
+    var eventIds =
+        jdbc.queryForList(
+            "select eventid from singleevent order by eventid asc limit 2", Long.class);
+
+    // backdate: 7 days
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '7 days' where eventid = ?",
+        eventIds.get(0));
+
+    // backdate: 30 days
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '30 days' where eventid = ?",
+        eventIds.get(1));
+
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Test
-  void testAddEvent() throws Exception {
+  void testAddEvent() {
     int id = dataStatisticsService.addEvent(dse1);
     assertNotEquals(0, id);
   }
 
   @Test
-  void testAddEventWithParams() throws Exception {
+  void testAddEventWithParams() {
     int id = dataStatisticsService.addEvent(dse2);
     assertNotEquals(0, id);
   }
 
   @Test
-  void testSaveSnapshot() throws Exception {
+  void testSaveSnapshot() {
     Calendar c = Calendar.getInstance();
     DateTime formatdate;
     fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
@@ -109,5 +139,27 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
     assertTrue(snapId2 != 0);
     assertTrue(snapId1 != snapId2);
+  }
+
+  @Test
+  void testGetSystemStatisticsSummary() {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+    assertAll(
+        () -> assertEquals(15, summary.getEventCount().get(0)),
+        () -> assertEquals(15, summary.getEventCount().get(1)),
+        () -> assertEquals(16, summary.getEventCount().get(7)),
+        () -> assertEquals(17, summary.getEventCount().get(30)),
+        () -> assertEquals(10, summary.getTrackerEventCount().get(0)),
+        () -> assertEquals(10, summary.getTrackerEventCount().get(1)),
+        () -> assertEquals(10, summary.getTrackerEventCount().get(7)),
+        () -> assertEquals(10, summary.getTrackerEventCount().get(30)),
+        () -> assertEquals(5, summary.getSingleEventCount().get(0)),
+        () -> assertEquals(5, summary.getSingleEventCount().get(1)),
+        () -> assertEquals(6, summary.getSingleEventCount().get(7)),
+        () -> assertEquals(7, summary.getSingleEventCount().get(30)),
+        () -> assertEquals(12, summary.getEnrollmentCount().get(0)),
+        () -> assertEquals(12, summary.getEnrollmentCount().get(1)),
+        () -> assertEquals(12, summary.getEnrollmentCount().get(7)),
+        () -> assertEquals(12, summary.getEnrollmentCount().get(30)));
   }
 }
