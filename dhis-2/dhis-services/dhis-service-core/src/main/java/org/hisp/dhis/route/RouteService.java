@@ -32,6 +32,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -388,7 +390,8 @@ public class RouteService {
 
   protected MultiValueMap<String, String> getQueryParams(HttpServletRequest request) {
     if (request.getQueryString() != null) {
-      return UriComponentsBuilder.fromUriString("?" + request.getQueryString())
+      return UriComponentsBuilder.fromUriString(
+              "?" + URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8))
           .build()
           .getQueryParams();
     } else {
