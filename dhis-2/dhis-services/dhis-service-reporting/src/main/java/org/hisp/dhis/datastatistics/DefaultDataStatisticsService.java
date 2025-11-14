@@ -106,12 +106,17 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     return dataStatisticsStore.getSnapshotsInInterval(eventInterval, startDate, endDate);
   }
 
+  /**
+   * Generates a snapshot of data statistics for a given day.
+   *
+   * @param day The date for which the snapshot is generated.
+   * @param progress The JobProgress object used to track the progress of the operation.
+   * @return A DataStatistics object containing the aggregated statistics for the specified day.
+   */
   private DataStatistics getDataStatisticsSnapshot(Date day, JobProgress progress) {
     Date startDate = getStartDate(day);
-    int days = getDays(startDate);
+    int daysElapsedSince = daysElapsedSince(startDate);
 
-    // when counting fails we use null so the count does not appear in the
-    // stats
     Integer errorValue = null;
     progress.startingStage("Counting maps", SKIP_STAGE);
     Integer savedMaps =
@@ -142,7 +147,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
             errorValue, () -> idObjectManager.getCountByCreated(Indicator.class, startDate));
     progress.startingStage("Counting data values", SKIP_STAGE);
     Integer savedDataValues =
-        progress.runStage(errorValue, () -> dataValueService.getDataValueCount(days));
+        progress.runStage(errorValue, () -> dataValueService.getDataValueCount(daysElapsedSince));
     progress.startingStage("Counting users", SKIP_STAGE);
     Integer users = progress.runStage(errorValue, () -> idObjectManager.getCount(User.class));
     progress.startingStage("Counting views", SKIP_STAGE);
@@ -195,6 +200,13 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     return dataStatisticsEventStore.getFavoriteStatistics(uid);
   }
 
+  /**
+   * Generates a summary of system statistics including object counts, active users, user
+   * invitations, data value counts, tracker event counts, single event counts, enrollment counts,
+   * and system information.
+   *
+   * @return A DataSummary object containing the system statistics summary.
+   */
   @Override
   public DataSummary getSystemStatisticsSummary() {
     DataSummary statistics = new DataSummary();
@@ -284,28 +296,70 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     return statistics;
   }
 
+  /*---------------------------------------------------------------------------
+     // Supportive methods
+     // -------------------------------------------------------------------------
+  */
+
+  /**
+   * Returns the value associated with the specified DataStatisticsEventType from the map, or zero
+   * if the type is not present in the map.
+   *
+   * @param map The map containing DataStatisticsEventType keys and their associated Long values.
+   * @param type The DataStatisticsEventType for which the value is to be retrieved.
+   * @return The Long value associated with the specified type, or zero if the type is
+   */
   private static long getOrZero(
       Map<DataStatisticsEventType, Long> map, DataStatisticsEventType type) {
     return map.getOrDefault(type, 0L);
   }
 
+  /**
+   * Returns the start of today as a Date object. Note that this method uses the server's default
+   * time zone to determine the start of the day. Note that this may not necessarily start at
+   * exactly 00:00 hours due to time zone differences.
+   *
+   * @return A Date object representing the start of today.
+   */
   private static Date startOfToday() {
-    return Date.from(LocalDate.now(SERVER_ZONE).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    ZonedDateTime startOfDay = LocalDate.now(SERVER_ZONE).atStartOfDay(SERVER_ZONE);
+    return Date.from(startOfDay.toInstant());
   }
 
+  /**
+   * Returns a Date object representing the date and time a specified number of days ago from the
+   * current date and time. Note that this method uses the server's default time zone. Due to time
+   * zone differences, the exact number of hours may vary.
+   *
+   * @param d Number of days ago
+   * @return A Date object representing the date and time d days ago.
+   */
   private static Date daysAgo(int d) {
     return Date.from(ZonedDateTime.now(SERVER_ZONE).minusDays(d).toInstant());
   }
 
+  /**
+   * Returns a Date object representing the date and time a specified number of hours ago from the
+   * current date and time. Note that this method uses the server's default time zone.
+   *
+   * @param h Number of hours ago
+   * @return A Date object representing the date and time h hours ago.
+   */
   private static Date hoursAgo(int h) {
     return Date.from(ZonedDateTime.now(SERVER_ZONE).minusHours(h).toInstant());
   }
 
+  /**
+   * Returns the start date which is one day before the given day.
+   *
+   * @param day The date for which the start date is to be calculated.
+   * @return A Date object representing the start date, which is one day before the given day.
+   */
   private Date getStartDate(Date day) {
     return Date.from(day.toInstant().atZone(SERVER_ZONE).minusDays(1).toInstant());
   }
 
-  private int getDays(Date startDate) {
+  private int daysElapsedSince(Date startDate) {
     LocalDate start = startDate.toInstant().atZone(SERVER_ZONE).toLocalDate();
     LocalDate today = LocalDate.now(SERVER_ZONE);
     return (int) ChronoUnit.DAYS.between(start, today);
