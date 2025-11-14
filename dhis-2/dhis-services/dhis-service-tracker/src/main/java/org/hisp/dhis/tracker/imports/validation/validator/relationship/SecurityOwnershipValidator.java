@@ -61,7 +61,7 @@ class SecurityOwnershipValidator implements Validator<Relationship> {
 
     if (strategy.isCreate()
         && (!trackerAccessManager
-            .canWrite(
+            .canCreate(
                 user, TrackerObjectsMapper.map(bundle.getPreheat(), relationship, bundle.getUser()))
             .isEmpty())) {
       reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());

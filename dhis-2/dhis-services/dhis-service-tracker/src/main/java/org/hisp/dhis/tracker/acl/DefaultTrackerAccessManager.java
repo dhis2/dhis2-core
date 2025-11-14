@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
@@ -52,6 +51,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,8 +70,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final TrackerProgramService trackerProgramService;
 
   @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, @CheckForNull TrackedEntity trackedEntity) {
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
+  public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
@@ -95,15 +96,34 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
   }
 
-  /**
-   * Check the data write permissions and ownership of a tracked entity given the programs for which
-   * the user has metadata access to.
-   *
-   * @return No errors if a user has access to at least one program
-   */
   @Override
-  @Transactional(readOnly = true)
-  public List<String> canWrite(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (user.isSuper() || trackedEntity == null) {
+      return List.of();
+    }
+
+    if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
+    }
+
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1001, user.getUid(), List.of(trackedEntityType.getUid())));
+    }
+
+    return errors;
+  }
+
+  @Override
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
+  public List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity) {
+    List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
@@ -111,22 +131,43 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
     if (!aclService.canDataWrite(user, trackedEntityType)) {
-      return List.of(
-          "User has no data write access to tracked entity type: " + trackedEntityType.getUid());
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1001, user.getUid(), List.of(trackedEntityType.getUid())));
     }
 
     List<Program> tetPrograms =
         trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
 
     if (tetPrograms.isEmpty()) {
-      return List.of("User has no access to any program");
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1323, user.getUid(), List.of(trackedEntityType.getUid())));
+    } else if (tetPrograms.stream().noneMatch(p -> canWrite(user, trackedEntity, p))) {
+      errors.add(
+          new ErrorMessage(ValidationCode.E1324, user.getUid(), List.of(trackedEntity.getUid())));
     }
 
-    if (tetPrograms.stream().anyMatch(p -> canWrite(user, trackedEntity, p))) {
+    return errors;
+  }
+
+  @Override
+  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
+  public List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity) {
+    if (user.isSuper() || trackedEntity == null) {
       return List.of();
-    } else {
-      return List.of(OWNERSHIP_ACCESS_DENIED);
     }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
+    }
+
+    errors.addAll(canUpdate(user, trackedEntity));
+
+    return errors;
   }
 
   /** Check Program data write access and Tracked Entity Program Ownership */
@@ -136,9 +177,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
+  public List<String> canRead(@Nonnull UserDetails user, Enrollment enrollment) {
     if (user.isSuper() || enrollment == null) {
       return List.of();
     }
@@ -155,8 +194,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
               + program.getTrackedEntityType().getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -164,9 +202,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
+  public List<String> canCreate(@Nonnull UserDetails user, Enrollment enrollment) {
     if (user.isSuper() || enrollment == null) {
       return List.of();
     }
@@ -190,8 +226,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
                   : null));
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -199,9 +234,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
+  public List<String> canUpdate(@Nonnull UserDetails user, Enrollment enrollment) {
     if (user.isSuper() || enrollment == null) {
       return List.of();
     }
@@ -218,8 +251,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
               + program.getTrackedEntityType().getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -227,25 +259,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(
-      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
-    return canUpdate(user, enrollment, skipOwnershipCheck);
+  public List<String> canDelete(@Nonnull UserDetails user, Enrollment enrollment) {
+    return canUpdate(user, enrollment);
   }
 
   @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
+  public List<String> canRead(@Nonnull UserDetails user, TrackerEvent event) {
     if (user.isSuper() || event == null) {
       return List.of();
     }
 
     ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
@@ -263,9 +287,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
               + program.getTrackedEntityType().getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(
-            user, event.getEnrollment().getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(
+        user, event.getEnrollment().getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -275,49 +298,29 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, SingleEvent event) {
-    if (user.isSuper() || event == null) {
+  public List<String> canRead(
+      @Nonnull UserDetails user, TrackerEvent event, DataElement dataElement) {
+    if (user.isSuper()) {
       return List.of();
     }
 
-    ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a single event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
-    Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
-    if (!aclService.canDataRead(user, program)) {
-      errors.add("User has no data read access to program: " + program.getUid());
+    errors.addAll(canRead(user, event));
+
+    if (!aclService.canRead(user, dataElement)) {
+      errors.add("User has no read access to data element: " + dataElement.getUid());
     }
-
-    OrganisationUnit ou = event.getOrganisationUnit();
-
-    if (!canAccess(user, program, ou)) {
-      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
-    }
-
-    errors.addAll(canRead(user, event.getAttributeOptionCombo()));
 
     return errors;
   }
 
   @Override
-  public List<String> canCreate(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
+  public List<String> canCreate(@Nonnull UserDetails user, TrackerEvent event) {
     if (user.isSuper() || event == null) {
       return List.of();
     }
 
     ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
@@ -333,8 +336,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       }
     }
 
-    canCreateOrDeleteWithRegistration(
-        errors, user, event, skipOwnershipCheck, programStage, program);
+    canCreateOrDeleteWithRegistration(errors, user, event, programStage, program);
 
     errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
 
@@ -342,18 +344,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(@Nonnull UserDetails user, TrackerEvent event) {
     if (user.isSuper() || event == null) {
       return List.of();
     }
 
     ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
@@ -365,9 +361,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       errors.add("User has no update access to organisation unit: " + ou.getUid());
     }
 
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(
-            user, event.getEnrollment().getTrackedEntity(), program)) {
+    if (!ownershipAccessManager.hasAccess(
+        user, event.getEnrollment().getTrackedEntity(), program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
@@ -377,17 +372,69 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(@Nonnull UserDetails user, SingleEvent event) {
+  public List<String> canDelete(@Nonnull UserDetails user, TrackerEvent event) {
+
     if (user.isSuper() || event == null) {
       return List.of();
     }
 
     ProgramStage programStage = event.getProgramStage();
 
-    // TODO(tracker) Why skip validations if null. Can a PS of a single event ever be null?
-    if (isNull(programStage)) {
+    Program program = programStage.getProgram();
+
+    List<String> errors = new ArrayList<>();
+
+    canCreateOrDeleteWithRegistration(errors, user, event, programStage, program);
+
+    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(@Nonnull UserDetails user, SingleEvent event) {
+    if (user.isSuper() || event == null) {
       return List.of();
     }
+    ProgramStage programStage = event.getProgramStage();
+
+    Program program = programStage.getProgram();
+    List<String> errors = new ArrayList<>();
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
+    }
+    OrganisationUnit ou = event.getOrganisationUnit();
+    if (!canAccess(user, program, ou)) {
+      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
+    }
+    errors.addAll(canRead(user, event.getAttributeOptionCombo()));
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(
+      @Nonnull UserDetails user, SingleEvent event, DataElement dataElement) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<String> errors = new ArrayList<>();
+    errors.addAll(canRead(user, event));
+
+    if (!aclService.canRead(user, dataElement)) {
+      errors.add("User has no read access to data element: " + dataElement.getUid());
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canCreate(@Nonnull UserDetails user, SingleEvent event) {
+    if (user.isSuper() || event == null) {
+      return List.of();
+    }
+
+    ProgramStage programStage = event.getProgramStage();
 
     Program program = programStage.getProgram();
     List<String> errors = new ArrayList<>();
@@ -401,68 +448,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(
-      @Nonnull UserDetails user, TrackerEvent event, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
-    if (user.isSuper() || event == null) {
-      return List.of();
-    }
-
-    ProgramStage programStage = event.getProgramStage();
-
-    // TODO(tracker) Why skip validations if null. Can a PS of a tracker event ever be null?
-    if (isNull(programStage)) {
-      return List.of();
-    }
-
-    Program program = programStage.getProgram();
-
-    List<String> errors = new ArrayList<>();
-
-    canCreateOrDeleteWithRegistration(
-        errors, user, event, skipOwnershipCheck, programStage, program);
-
-    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
-
-    return errors;
-  }
-
-  private void canCreateOrDeleteWithRegistration(
-      List<String> errors,
-      UserDetails user,
-      TrackerEvent event,
-      boolean skipOwnershipCheck,
-      ProgramStage programStage,
-      Program program) {
-    canManageWithRegistration(errors, user, programStage, program);
-
-    if (!skipOwnershipCheck
-        && !ownershipAccessManager.hasAccess(
-            user, event.getEnrollment().getTrackedEntity(), program)) {
-      errors.add(OWNERSHIP_ACCESS_DENIED);
-    }
-  }
-
-  private void canManageWithRegistration(
-      List<String> errors, UserDetails user, ProgramStage programStage, Program program) {
-    if (!aclService.canDataWrite(user, programStage)) {
-      errors.add("User has no data write access to program stage: " + programStage.getUid());
-    }
-
-    if (!aclService.canDataRead(user, program)) {
-      errors.add("User has no data read access to program: " + program.getUid());
-    }
-
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
-      errors.add(
-          "User has no data read access to tracked entity type: "
-              + program.getTrackedEntityType().getUid());
-    }
-  }
-
-  @Override
   public List<String> canRead(@Nonnull UserDetails user, Relationship relationship) {
-    // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || relationship == null) {
       return List.of();
     }
@@ -477,13 +463,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
 
     errors.addAll(canRead(user, from.getTrackedEntity()));
-    errors.addAll(canRead(user, from.getEnrollment(), false));
-    errors.addAll(canRead(user, from.getTrackerEvent(), false));
+    errors.addAll(canRead(user, from.getEnrollment()));
+    errors.addAll(canRead(user, from.getTrackerEvent()));
     errors.addAll(canRead(user, from.getSingleEvent()));
 
     errors.addAll(canRead(user, to.getTrackedEntity()));
-    errors.addAll(canRead(user, to.getEnrollment(), false));
-    errors.addAll(canRead(user, to.getTrackerEvent(), false));
+    errors.addAll(canRead(user, to.getEnrollment()));
+    errors.addAll(canRead(user, to.getTrackerEvent()));
     errors.addAll(canRead(user, to.getSingleEvent()));
 
     return errors;
@@ -491,8 +477,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> canWrite(@Nonnull UserDetails user, Relationship relationship) {
-    // always allow if user == null (internal process) or user is superuser
+  public List<String> canCreate(@Nonnull UserDetails user, Relationship relationship) {
     if (user.isSuper() || relationship == null) {
       return List.of();
     }
@@ -508,20 +493,26 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
     boolean isBidirectional = relationshipType.isBidirectional();
 
-    errors.addAll(canWrite(user, from.getTrackedEntity()));
-    errors.addAll(canUpdate(user, from.getEnrollment(), false));
-    errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
-    errors.addAll(canUpdate(user, from.getSingleEvent()));
+    errors.addAll(
+        canUpdate(user, from.getTrackedEntity()).stream()
+            .map(eo -> eo.validationCode().getMessage())
+            .toList());
+    errors.addAll(canUpdate(user, from.getEnrollment()));
+    errors.addAll(canUpdate(user, from.getTrackerEvent()));
+    errors.addAll(canCreate(user, from.getSingleEvent()));
 
     if (isBidirectional) {
-      errors.addAll(canWrite(user, to.getTrackedEntity()));
-      errors.addAll(canUpdate(user, to.getEnrollment(), false));
-      errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
-      errors.addAll(canUpdate(user, to.getSingleEvent()));
+      errors.addAll(
+          canUpdate(user, to.getTrackedEntity()).stream()
+              .map(eo -> eo.validationCode().getMessage())
+              .toList());
+      errors.addAll(canUpdate(user, to.getEnrollment()));
+      errors.addAll(canUpdate(user, to.getTrackerEvent()));
+      errors.addAll(canCreate(user, to.getSingleEvent()));
     } else {
       errors.addAll(canRead(user, to.getTrackedEntity()));
-      errors.addAll(canRead(user, to.getEnrollment(), false));
-      errors.addAll(canRead(user, to.getTrackerEvent(), false));
+      errors.addAll(canRead(user, to.getEnrollment()));
+      errors.addAll(canRead(user, to.getTrackerEvent()));
       errors.addAll(canRead(user, to.getSingleEvent()));
     }
     return errors;
@@ -541,115 +532,36 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem to = relationship.getTo();
     boolean isBidirectional = relationshipType.isBidirectional();
 
-    errors.addAll(canWrite(user, from.getTrackedEntity()));
-    errors.addAll(canUpdate(user, from.getEnrollment(), false));
-    errors.addAll(canUpdate(user, from.getTrackerEvent(), false));
-    errors.addAll(canUpdate(user, from.getSingleEvent()));
+    errors.addAll(
+        canUpdate(user, from.getTrackedEntity()).stream()
+            .map(eo -> eo.validationCode().getMessage())
+            .toList());
+    errors.addAll(canUpdate(user, from.getEnrollment()));
+    errors.addAll(canUpdate(user, from.getTrackerEvent()));
+    errors.addAll(canCreate(user, from.getSingleEvent()));
 
     if (isBidirectional) {
-      errors.addAll(canWrite(user, to.getTrackedEntity()));
-      errors.addAll(canUpdate(user, to.getEnrollment(), false));
-      errors.addAll(canUpdate(user, to.getTrackerEvent(), false));
-      errors.addAll(canUpdate(user, to.getSingleEvent()));
+      errors.addAll(
+          canUpdate(user, to.getTrackedEntity()).stream()
+              .map(eo -> eo.validationCode().getMessage())
+              .toList());
+      errors.addAll(canUpdate(user, to.getEnrollment()));
+      errors.addAll(canUpdate(user, to.getTrackerEvent()));
+      errors.addAll(canCreate(user, to.getSingleEvent()));
     }
     return errors;
   }
 
-  @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user,
-      TrackerEvent event,
-      DataElement dataElement,
-      boolean skipOwnershipCheck) {
-
-    if (user.isSuper()) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    errors.addAll(canRead(user, event, skipOwnershipCheck));
-
-    if (!aclService.canRead(user, dataElement)) {
-      errors.add("User has no read access to data element: " + dataElement.getUid());
-    }
-
-    return errors;
-  }
-
-  @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, SingleEvent event, DataElement dataElement) {
-
-    if (user.isSuper()) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    errors.addAll(canRead(user, event));
-
-    if (!aclService.canRead(user, dataElement)) {
-      errors.add("User has no read access to data element: " + dataElement.getUid());
-    }
-
-    return errors;
-  }
-
-  @Override
-  public List<String> canWrite(
-      @Nonnull UserDetails user,
-      TrackerEvent event,
-      DataElement dataElement,
-      boolean skipOwnershipCheck) {
-
-    if (user.isSuper()) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    errors.addAll(canUpdate(user, event, skipOwnershipCheck));
-
-    if (!aclService.canRead(user, dataElement)) {
-      errors.add("User has no read access to data element: " + dataElement.getUid());
-    }
-
-    return errors;
-  }
-
-  @Override
-  public List<String> canRead(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-
-    if (user.isSuper() || categoryOptionCombo == null) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataRead(user, categoryOption)) {
-        errors.add("User has no read access to category option: " + categoryOption.getUid());
-      }
-    }
-
-    return errors;
-  }
-
-  @Override
-  public List<String> canWrite(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-    if (user.isSuper() || categoryOptionCombo == null) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataWrite(user, categoryOption)) {
-        errors.add("User has no write access to category option: " + categoryOption.getUid());
-      }
-    }
-
-    return errors;
-  }
-
-  @Override
-  public boolean canAccess(@Nonnull UserDetails user, Program program, OrganisationUnit orgUnit) {
+  /**
+   * Checks if user has access to organisation unit under defined tracker program protection level
+   *
+   * @param user the user to check access for
+   * @param program program to check against protection level
+   * @param orgUnit the org unit to be checked under user's scope and program protection
+   * @return true if user has access to the org unit under the mentioned program context, otherwise
+   *     return false
+   */
+  boolean canAccess(@Nonnull UserDetails user, Program program, OrganisationUnit orgUnit) {
     if (orgUnit == null) {
       return false;
     }
@@ -665,7 +577,65 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
   }
 
-  private boolean isNull(ProgramStage programStage) {
-    return programStage == null || programStage.getProgram() == null;
+  private List<String> canRead(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper() || categoryOptionCombo == null) {
+      return List.of();
+    }
+
+    List<String> errors = new ArrayList<>();
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataRead(user, categoryOption)) {
+        errors.add("User has no read access to category option: " + categoryOption.getUid());
+      }
+    }
+
+    return errors;
+  }
+
+  private List<String> canWrite(
+      @Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper() || categoryOptionCombo == null) {
+      return List.of();
+    }
+
+    List<String> errors = new ArrayList<>();
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
+        errors.add("User has no write access to category option: " + categoryOption.getUid());
+      }
+    }
+
+    return errors;
+  }
+
+  private void canCreateOrDeleteWithRegistration(
+      List<String> errors,
+      UserDetails user,
+      TrackerEvent event,
+      ProgramStage programStage,
+      Program program) {
+    canManageWithRegistration(errors, user, programStage, program);
+
+    if (!ownershipAccessManager.hasAccess(
+        user, event.getEnrollment().getTrackedEntity(), program)) {
+      errors.add(OWNERSHIP_ACCESS_DENIED);
+    }
+  }
+
+  private void canManageWithRegistration(
+      List<String> errors, UserDetails user, ProgramStage programStage, Program program) {
+    if (!aclService.canDataWrite(user, programStage)) {
+      errors.add("User has no data write access to program stage: " + programStage.getUid());
+    }
+
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
+    }
+
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      errors.add(
+          "User has no data read access to tracked entity type: "
+              + program.getTrackedEntityType().getUid());
+    }
   }
 }

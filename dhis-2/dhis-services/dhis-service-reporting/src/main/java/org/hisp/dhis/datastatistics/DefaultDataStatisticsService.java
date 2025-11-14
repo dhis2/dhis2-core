@@ -263,11 +263,11 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     statistics.setTrackerEventCount(trackerEventCount);
 
     Map<Integer, Long> singleEventCount = new HashMap<>();
-    singleEventCount.put(0, singleEventCountUpdatedOneDayAgo);
+    singleEventCount.put(0, singleEventCountUpdatedToday);
     singleEventCount.put(1, singleEventCountUpdatedOneDayAgo);
     singleEventCount.put(7, singleEventCountUpdatedSevenDaysAgo);
     singleEventCount.put(30, singleEventCountUpdatedOneMonthAgo);
-    statistics.setEventCount(singleEventCount);
+    statistics.setSingleEventCount(singleEventCount);
 
     Map<Integer, Long> eventCount = new HashMap<>();
     eventCount.put(0, trackerEventCountUpdatedToday + singleEventCountUpdatedToday);
