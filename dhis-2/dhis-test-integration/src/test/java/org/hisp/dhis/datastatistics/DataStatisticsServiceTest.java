@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,30 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -58,6 +67,10 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataStatisticsStore hibernateDataStatisticsStore;
 
+  @Autowired private JdbcTemplate jdbc;
+
+  @Autowired private TestSetup testSetup;
+
   private DataStatisticsEvent dse1;
 
   private DataStatisticsEvent dse2;
@@ -65,6 +78,8 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   private long snapId1;
   private ZoneId zone;
   private Date dayStart;
+  private List<Long> eventIds;
+  private Long eventCount;
 
   @BeforeAll
   void setUp() {
@@ -77,10 +92,48 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
         new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, dayStart, "TestUser");
     DataStatistics ds =
         new DataStatistics(
-            1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0, 13.0, 20.0, 14.0, 17.0,
-            11.0, 10, 18);
+            1L, 2L, 4L, 5L, 3L, 6L, 7L, 8L, 11L, 10L, 12L, 11L, 13L, 20L, 14L, 17L, 11L, 10L, 18L);
     hibernateDataStatisticsStore.save(ds);
     snapId1 = ds.getId();
+
+    try {
+      testSetup.importMetadata();
+    } catch (IOException e) {
+      fail("Metadata import failed", e);
+    }
+    injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
+    try {
+      testSetup.importTrackerData();
+    } catch (IOException e) {
+      fail("Tracker import failed", e);
+    }
+    eventIds =
+        jdbc.queryForList(
+            "select eventid from singleevent order by eventid asc limit 3", long.class);
+
+    // Wait just a bit here to ensure we have millisecond difference
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+    // backdate: 7 days
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '7 days' where eventid = ?",
+        eventIds.get(0));
+
+    // backdate: 30 days
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '30 days' where eventid = ?",
+        eventIds.get(1));
+
+    // backdate: 2 hours. Should not be counted in hourly stats
+    jdbc.update(
+        "update singleevent set lastupdated = now() - interval '2 hours' where eventid = ?",
+        eventIds.get(2));
+
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Test
@@ -108,6 +161,35 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     assertNotEquals(snapId1, snapId2);
   }
 
+  @Test
+  void testGetSystemStatisticsSummary() {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+
+    assertAll(
+        () -> assertEquals(14L, summary.getEventCount().get(0).longValue()),
+        () -> assertEquals(15L, summary.getEventCount().get(1).longValue()),
+        () -> assertEquals(15L, summary.getEventCount().get(7).longValue()),
+        () -> assertEquals(16L, summary.getEventCount().get(30).longValue()),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(0).longValue()),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(1).longValue()),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(7).longValue()),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(30).longValue()),
+        // Should be missing three here
+        () -> assertEquals(4L, summary.getSingleEventCount().get(0).longValue()),
+        // Should be missing 2 here. One was updated thirty minutes ago
+        () -> assertEquals(5L, summary.getSingleEventCount().get(1).longValue()),
+        // Should be missing 1 here. Thirty minutes ago AND one day ago. Only the 7 and 30 day
+        // backdated remain
+        () -> assertEquals(5L, summary.getSingleEventCount().get(7).longValue()),
+        // Since we backdated one to 30 days ago but should not be present due to millisecond
+        // precision.
+        () -> assertEquals(6L, summary.getSingleEventCount().get(30).longValue()),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(0).longValue()),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(1).longValue()),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(7).longValue()),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(30).longValue()));
+  }
+
   // --- Helpers ---
 
   private Date addDays(Date base, int days) {
@@ -117,5 +199,12 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   private Date toDate(LocalDateTime ldt) {
     return Date.from(ldt.atZone(zone).toInstant());
+  }
+
+  @AfterAll
+  void tearDown() {
+    // Truncate affected tables
+    jdbc.execute("TRUNCATE TABLE datastatisticsevent CASCADE");
+    jdbc.execute("TRUNCATE TABLE datastatistics CASCADE");
   }
 }

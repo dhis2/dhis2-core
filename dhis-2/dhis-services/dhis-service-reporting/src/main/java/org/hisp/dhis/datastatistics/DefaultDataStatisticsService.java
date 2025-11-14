@@ -273,7 +273,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
                 7, (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, daysAgo(7))),
             Map.entry(
                 30, (long) idObjectManager.getCountByLastUpdated(SingleEvent.class, daysAgo(30))));
-    statistics.setEventCount(singleEventCount);
+    statistics.setSingleEventCount(Map.copyOf(singleEventCount));
 
     Map<Integer, Long> eventCount = new HashMap<>(trackerEventCount);
     singleEventCount.forEach((k, v) -> eventCount.merge(k, v, Long::sum));
@@ -289,7 +289,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
                 7, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(7))),
             Map.entry(
                 30, (long) idObjectManager.getCountByLastUpdated(Enrollment.class, daysAgo(30))));
-    statistics.setEnrollmentCount(enrollmentCount);
+    statistics.setEnrollmentCount(Map.copyOf(enrollmentCount));
 
     statistics.setSystem(getDhis2Info());
 
