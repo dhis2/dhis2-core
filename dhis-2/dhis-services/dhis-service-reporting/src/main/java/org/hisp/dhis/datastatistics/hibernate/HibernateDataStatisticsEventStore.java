@@ -168,7 +168,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
             + " limit ?;";
 
     PreparedStatementSetter pss =
-        (ps) -> {
+        ps -> {
           int i = 1;
 
           if (username != null) {

@@ -87,7 +87,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
   private final SystemService systemService;
 
-  private static final ZoneId SERVER_ZONE = ZoneId.systemDefault();
+  static final ZoneId SERVER_ZONE = ZoneId.systemDefault();
 
   // -------------------------------------------------------------------------
   // DataStatisticsService implementation

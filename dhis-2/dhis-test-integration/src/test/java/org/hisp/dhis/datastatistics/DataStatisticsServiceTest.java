@@ -30,16 +30,19 @@
 package org.hisp.dhis.datastatistics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.datasummary.DataSummary;
@@ -76,14 +79,13 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   private DataStatisticsEvent dse2;
 
   private long snapId1;
-  private ZoneId zone;
+  private static final ZoneId ZONE = DefaultDataStatisticsService.SERVER_ZONE;
   private Date dayStart;
   private List<Long> eventIds;
-  private Long eventCount;
 
   @BeforeAll
   void setUp() {
-    zone = ZoneId.systemDefault();
+
     LocalDate fixedDate = LocalDate.of(2016, 3, 22);
     dayStart = toDate(fixedDate.atStartOfDay());
 
@@ -110,26 +112,35 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     eventIds =
         jdbc.queryForList(
             "select eventid from singleevent order by eventid asc limit 3", long.class);
+    // Be sure we have at least three
+    assertTrue(eventIds.size() >= 3);
 
-    // Wait just a bit here to ensure we have millisecond difference
-    try {
-      Thread.sleep(10);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-    // backdate: 7 days
-    jdbc.update(
-        "update singleevent set lastupdated = now() - interval '7 days' where eventid = ?",
-        eventIds.get(0));
+    Instant base = Instant.now().atZone(ZONE).toInstant();
 
-    // backdate: 30 days
+    // Boundaries
+    Instant sevenDaysAgo = base.minus(7, ChronoUnit.DAYS);
+    Instant oneDayAgo = base.minus(1, ChronoUnit.DAYS);
+    Instant oneHourAgo = base.minus(1, ChronoUnit.HOURS);
+
+    // Avoid edge cases by subtracting extra minutes
+    Instant olderThanHour = oneHourAgo.minus(5, ChronoUnit.MINUTES);
+    Instant olderThanDay = oneDayAgo.minus(5, ChronoUnit.MINUTES);
+    Instant olderThanSevenDays = sevenDaysAgo.minus(5, ChronoUnit.MINUTES);
+
+    // Backdate the three events
     jdbc.update(
-        "update singleevent set lastupdated = now() - interval '30 days' where eventid = ?",
+        "update singleevent set lastupdated = ? where eventid = ?",
+        Timestamp.from(olderThanHour),
         eventIds.get(1));
 
-    // backdate: 2 hours. Should not be counted in hourly stats
     jdbc.update(
-        "update singleevent set lastupdated = now() - interval '2 hours' where eventid = ?",
+        "update singleevent set lastupdated = ? where eventid = ?",
+        Timestamp.from(olderThanDay),
+        eventIds.get(0));
+
+    jdbc.update(
+        "update singleevent set lastupdated = ? where eventid = ?",
+        Timestamp.from(olderThanSevenDays),
         eventIds.get(2));
 
     entityManager.flush();
@@ -168,22 +179,16 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
     assertAll(
         () -> assertEquals(14L, summary.getEventCount().get(0).longValue()),
         () -> assertEquals(15L, summary.getEventCount().get(1).longValue()),
-        () -> assertEquals(15L, summary.getEventCount().get(7).longValue()),
-        () -> assertEquals(16L, summary.getEventCount().get(30).longValue()),
+        () -> assertEquals(16L, summary.getEventCount().get(7).longValue()),
+        () -> assertEquals(17L, summary.getEventCount().get(30).longValue()),
         () -> assertEquals(10L, summary.getTrackerEventCount().get(0).longValue()),
         () -> assertEquals(10L, summary.getTrackerEventCount().get(1).longValue()),
         () -> assertEquals(10L, summary.getTrackerEventCount().get(7).longValue()),
         () -> assertEquals(10L, summary.getTrackerEventCount().get(30).longValue()),
-        // Should be missing three here
         () -> assertEquals(4L, summary.getSingleEventCount().get(0).longValue()),
-        // Should be missing 2 here. One was updated thirty minutes ago
         () -> assertEquals(5L, summary.getSingleEventCount().get(1).longValue()),
-        // Should be missing 1 here. Thirty minutes ago AND one day ago. Only the 7 and 30 day
-        // backdated remain
-        () -> assertEquals(5L, summary.getSingleEventCount().get(7).longValue()),
-        // Since we backdated one to 30 days ago but should not be present due to millisecond
-        // precision.
-        () -> assertEquals(6L, summary.getSingleEventCount().get(30).longValue()),
+        () -> assertEquals(6L, summary.getSingleEventCount().get(7).longValue()),
+        () -> assertEquals(7L, summary.getSingleEventCount().get(30).longValue()),
         () -> assertEquals(12L, summary.getEnrollmentCount().get(0).longValue()),
         () -> assertEquals(12L, summary.getEnrollmentCount().get(1).longValue()),
         () -> assertEquals(12L, summary.getEnrollmentCount().get(7).longValue()),
@@ -191,14 +196,13 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   // --- Helpers ---
-
   private Date addDays(Date base, int days) {
     Instant instant = base.toInstant().plus(Duration.ofDays(days));
     return Date.from(instant);
   }
 
   private Date toDate(LocalDateTime ldt) {
-    return Date.from(ldt.atZone(zone).toInstant());
+    return Date.from(ldt.atZone(ZONE).toInstant());
   }
 
   @AfterAll
