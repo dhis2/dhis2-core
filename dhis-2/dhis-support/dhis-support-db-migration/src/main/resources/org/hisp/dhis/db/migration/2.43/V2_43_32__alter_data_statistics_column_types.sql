@@ -27,4 +27,4 @@ ALTER TABLE datastatistics
   CREATE INDEX IF NOT EXISTS idx_datastatisticsevent_ts
       ON datastatisticsevent USING brin(timestamp);
 
-CREATE INDEX idx_datastatistics_created IF NOT EXISTS on datastatistics (created);
+CREATE INDEX IF NOT EXISTS  idx_datastatistics_created on datastatistics (created);
