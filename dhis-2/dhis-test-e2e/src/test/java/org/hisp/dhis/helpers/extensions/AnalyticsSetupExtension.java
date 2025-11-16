@@ -77,8 +77,16 @@ public class AnalyticsSetupExtension implements BeforeAllCallback {
       watcher.start();
 
       // Invoke the analytics table generation process.
+      String analyticsApiPath = "/analytics";
+      String queryParams = System.getProperty("analytics.api.query.params");
+
+      if (queryParams != null && !queryParams.isEmpty()) {
+        analyticsApiPath += "?" + queryParams;
+        logger.info("Appending analytics query parameters: {}", queryParams);
+      }
+
       ApiResponse response =
-          new ResourceTableActions().post("/analytics", new JsonObject()).validateStatus(200);
+          new ResourceTableActions().post(analyticsApiPath, new JsonObject()).validateStatus(200);
 
       String analyticsTaskId = response.extractString("response.id");
 
