@@ -31,6 +31,7 @@ package org.hisp.dhis.merge.dataelement;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -226,6 +227,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryOptionCombo(coc1);
 
     program = createProgram('q');
+    program.setEnableChangeLog(true);
     identifiableObjectManager.save(program);
 
     User user = userService.getUserByUsername("admin");
@@ -2898,6 +2900,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
+    stage.getSharing().setPublicAccess(READ_ONLY);
+    program.getProgramStages().add(stage);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -3005,6 +3009,8 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(trackedEntity, program, ou1);
     ProgramStage stage = createProgramStage('s', program);
+    stage.getSharing().setPublicAccess(READ_ONLY);
+    program.getProgramStages().add(stage);
     identifiableObjectManager.save(stage);
     TrackerEvent e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
@@ -3052,12 +3058,12 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
     trackerEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private void addEventChangeLog(SingleEvent event, DataElement dataElement, String currentValue) {
     singleEventChangeLogService.addEventChangeLog(
-        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
+        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {

@@ -39,7 +39,11 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
-/** Provider of {@link SqlBuilder} implementations. */
+/**
+ * Provider of {@link SqlBuilder} implementations.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 public class SqlBuilderProvider {
   private final SqlBuilder sqlBuilder;

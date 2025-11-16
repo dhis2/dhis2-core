@@ -117,9 +117,8 @@ class DefaultTrackerEventService implements TrackerEventService {
     Page<TrackerEvent> events;
     try {
       TrackerEventOperationParams operationParams =
-          TrackerEventOperationParams.builder()
+          TrackerEventOperationParams.builderForEvent(eventUid)
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-              .events(Set.of(eventUid))
               .filterByDataElement(dataElementUid)
               .build();
       events = findEvents(operationParams, PageParams.single());
@@ -137,8 +136,7 @@ class DefaultTrackerEventService implements TrackerEventService {
     }
     TrackerEvent event = events.getItems().get(0);
 
-    List<String> errors =
-        trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement, false);
+    List<String> errors = trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement);
     if (!errors.isEmpty()) {
       throw new NotFoundException(DataElement.class, dataElementUid.getValue());
     }
@@ -190,9 +188,8 @@ class DefaultTrackerEventService implements TrackerEventService {
     Page<TrackerEvent> events;
     try {
       TrackerEventOperationParams operationParams =
-          TrackerEventOperationParams.builder()
+          TrackerEventOperationParams.builderForEvent(eventUid)
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-              .events(Set.of(eventUid))
               .fields(fields)
               .idSchemeParams(idSchemeParams)
               .build();

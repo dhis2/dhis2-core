@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -116,8 +115,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   @BeforeEach
   void setUp() {
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
-
     owner = makeUser("owner");
 
     coc = categoryService.getDefaultCategoryOptionCombo();
@@ -135,6 +132,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     program.getOrganisationUnits().add(orgUnit);
     program.setUid("q04UBOqq3rp");
     program.setTrackedEntityType(trackedEntityType);
+    program.setEnableChangeLog(true);
     manager.save(program);
 
     dataElement = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
@@ -341,11 +339,13 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   @Test
   void shouldNotLogChangesWhenChangeLogConfigDisabled() {
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
-
     event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue);
     manager.update(event);
+
+    Program program = manager.get(Program.class, event.getProgramStage().getProgram().getUid());
+    program.setEnableChangeLog(false);
+    manager.update(program);
 
     updateDataValue("new value");
     updateDataValue("updated value");

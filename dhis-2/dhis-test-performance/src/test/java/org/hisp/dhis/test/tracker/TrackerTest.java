@@ -181,8 +181,8 @@ public class TrackerTest extends Simulation {
             + trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
-    String searchTEByAttributes =
-        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ines&filter=zDhUuAYrxNC:like:Bebea"
+    String searchTEByName =
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ines"
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
             + trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
@@ -214,19 +214,29 @@ public class TrackerTest extends Simulation {
     String eventUrl =
         "/api/tracker/events/#{eventUid}?fields=event,relationships[relationship,relationshipType,relationshipName,bidirectional,from[event[event,dataValues,occurredAt,scheduledAt,status,orgUnit,programStage,program]],to[event[event,dataValues,*,occurredAt,scheduledAt,status,orgUnit,programStage,program]]]";
 
-    Request notFoundTeByName =
-        new Request(notFoundTEByName, 200, "Not found TE by name", "Get a list of TEs");
-    Request notFoundTeByNationalId =
-        new Request(notFoundByNationalId, 10, "Not found TE by national id", "Get a list of TEs");
-    Request searchTeByAttributes =
-        new Request(searchTEByAttributes, 200, "Search TE by attributes", "Get a list of TEs");
-    Request searchTeByNationalId =
-        new Request(searchForTEByNationalId, 10, "Search TE by national id", "Get a list of TEs");
+    Request notFoundTeByNameWithLikeOperator =
+        new Request(
+            notFoundTEByName, 200, "Not found TE by name with like operator", "Get a list of TEs");
+    Request notFoundTeByNationalIdWithEqualOperator =
+        new Request(
+            notFoundByNationalId,
+            10,
+            "Not found TE by national id with eq operator",
+            "Get a list of TEs");
+    Request searchTeByNameWithLikeOperator =
+        new Request(
+            searchTEByName, 200, "Search TE by name with like operator", "Get a list of TEs");
+    Request searchTeByNationalIdWithEqualOperator =
+        new Request(
+            searchForTEByNationalId,
+            10,
+            "Search TE by national id with eq operator",
+            "Get a list of TEs");
     Request searchEventsByProgramStage =
         new Request(
-            searchEventByProgramStage, 100, "Search events by program stage", "Get a list of TEs");
+            searchEventByProgramStage, 25, "Search events by program stage", "Get a list of TEs");
     Request getTrackedEntitiesForEvents =
-        new Request(getTEsFromEvents, 200, "Get tracked entities for events", "Get a list of TEs");
+        new Request(getTEsFromEvents, 25, "Get tracked entities from events", "Get a list of TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
@@ -278,10 +288,10 @@ public class TrackerTest extends Simulation {
             .on(
                 group("Get a list of TEs")
                     .on(
-                        exec(notFoundTeByName.action())
-                            .exec(notFoundTeByNationalId.action())
-                            .exec(searchTeByAttributes.action())
-                            .exec(searchTeByNationalId.action())
+                        exec(notFoundTeByNameWithLikeOperator.action())
+                            .exec(notFoundTeByNationalIdWithEqualOperator.action())
+                            .exec(searchTeByNameWithLikeOperator.action())
+                            .exec(searchTeByNationalIdWithEqualOperator.action())
                             .exec(
                                 searchEventsByProgramStage
                                     .action()
@@ -320,10 +330,10 @@ public class TrackerTest extends Simulation {
     return new ScenarioWithRequests(
         scenarioBuilder,
         List.of(
-            notFoundTeByName,
-            notFoundTeByNationalId,
-            searchTeByAttributes,
-            searchTeByNationalId,
+            notFoundTeByNameWithLikeOperator,
+            notFoundTeByNationalIdWithEqualOperator,
+            searchTeByNameWithLikeOperator,
+            searchTeByNationalIdWithEqualOperator,
             searchEventsByProgramStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,

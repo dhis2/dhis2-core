@@ -37,7 +37,7 @@ jobs:
       # delete the next 2 steps once we are confident in the coverage setup
       - name: Tar jacoco coverage report to debug
         run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload jacoco coverage report to debug
         with:
           name: unit-test-coverage
@@ -49,7 +49,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: unit-test-surefire-reports
           path: |
@@ -70,7 +70,7 @@ jobs:
       - name: Run integration tests
         run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-test
         timeout-minutes: 30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload test logs on failure
         if: failure()
         with:
@@ -88,7 +88,7 @@ jobs:
       # delete the next 2 steps once we are confident in the coverage setup
       - name: Tar jacoco coverage report to debug
         run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload jacoco coverage report to debug
         with:
           name: integration-test-coverage
@@ -100,7 +100,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: integration-test-surefire-reports
           path: |
@@ -121,7 +121,7 @@ jobs:
       - name: Run integration h2 tests
         run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
         timeout-minutes: 30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload test logs on failure
         if: failure()
         with:
@@ -139,7 +139,7 @@ jobs:
       # delete the next 2 steps once we are confident in the coverage setup
       - name: Tar jacoco coverage report to debug
         run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         name: Upload jacoco coverage report to debug
         with:
           name: integration-h2-test-coverage
@@ -151,7 +151,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: integration-h2-test-surefire-reports
           path: |

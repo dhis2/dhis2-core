@@ -210,6 +210,8 @@ public class MeDto {
 
   @JsonProperty private String impersonation;
 
+  @JsonProperty private Boolean canImpersonate;
+
   @JsonProperty private List<ApiToken> patTokens;
 
   @JsonProperty private TwoFactorType twoFactorType;

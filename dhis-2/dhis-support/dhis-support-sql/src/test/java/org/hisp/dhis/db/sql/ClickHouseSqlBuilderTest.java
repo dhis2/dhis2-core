@@ -44,6 +44,9 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 class ClickHouseSqlBuilderTest {
   private final ClickHouseSqlBuilder sqlBuilder = new ClickHouseSqlBuilder("dhis2");
 

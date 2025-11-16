@@ -127,7 +127,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -197,7 +197,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -266,7 +266,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -335,7 +335,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -405,7 +405,7 @@ public class EventsAggregate9AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        5,
+        2,
         2); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name

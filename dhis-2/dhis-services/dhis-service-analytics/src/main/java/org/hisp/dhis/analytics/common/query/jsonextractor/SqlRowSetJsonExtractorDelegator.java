@@ -52,7 +52,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
@@ -306,9 +306,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
             && Objects.nonNull(event.getEventDataValues())
             && event.getEventDataValues().containsKey(dimensionIdentifier.getDimension().getUid());
     boolean isScheduled =
-        event != null
-            && StringUtils.equalsIgnoreCase(
-                event.getEventStatus(), EventStatus.SCHEDULE.toString());
+        event != null && Strings.CI.equals(event.getEventStatus(), EventStatus.SCHEDULE.toString());
 
     ValueStatus valueStatus = ValueStatus.SET;
 
