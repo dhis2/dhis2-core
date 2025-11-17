@@ -50,6 +50,7 @@ import org.testcontainers.utility.DockerImageName;
 public class TrackerReadOnlyDataSourceTestConfig {
 
   @Bean(destroyMethod = "stop")
+  @SuppressWarnings({"resource"})
   public PostgreSQLContainer<?> postgisContainer() {
     PostgreSQLContainer<?> container =
         new PostgreSQLContainer<>(
