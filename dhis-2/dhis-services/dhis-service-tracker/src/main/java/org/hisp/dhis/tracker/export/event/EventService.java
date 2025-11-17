@@ -136,7 +136,9 @@ public interface EventService {
    */
   @Nonnull
   List<Event> findEvents(
-      @Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue)
+      @Nonnull EventOperationParams params,
+      @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue,
+      @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**

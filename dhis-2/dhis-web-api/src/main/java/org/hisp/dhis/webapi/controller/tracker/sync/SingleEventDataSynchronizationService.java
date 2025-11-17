@@ -63,6 +63,7 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
@@ -128,7 +129,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     }
 
     EventSynchronizationContext context =
-        initializeSynchronizationContext(pageSize, progress, settings, programUid);
+        initializeContext(pageSize, progress, settings, programUid);
 
     if (context.hasNoObjectsToSynchronize()) {
       return endProcess(progress, PROCESS_NAME + " ended. No events to synchronize.");
@@ -141,16 +142,16 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         : failProcess(progress, PROCESS_NAME + " failed. Page-level synchronization errors.");
   }
 
-  private EventSynchronizationContext initializeSynchronizationContext(
+  private EventSynchronizationContext initializeContext(
       int pageSize, JobProgress progress, SystemSettings settings, String programUid) {
 
     return progress.runStage(
         new EventSynchronizationContext(null, pageSize),
         ctx -> "Events changed before " + ctx.getSkipChangedBefore() + " will not sync.",
-        () -> createSynchronizationContext(pageSize, settings, programUid));
+        () -> createContext(pageSize, settings, programUid));
   }
 
-  private EventSynchronizationContext createSynchronizationContext(
+  private EventSynchronizationContext createContext(
       int pageSize, SystemSettings settings, String programUid)
       throws ForbiddenException, BadRequestException {
 
@@ -199,13 +200,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         page -> format("Syncing page %d (size %d)", page, ctx.getPageSize()),
         page -> {
           try {
-            synchronizePage(
-                page,
-                ctx.getSkipChangedBefore(),
-                ctx.getSkipSyncPSDEs(),
-                settings,
-                ctx.getInstance(),
-                ctx.getStartTime());
+            synchronizePage(ctx, settings);
           } catch (Exception ex) {
             throw new RuntimeException(ex);
           }
@@ -214,14 +209,12 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     return !progress.isSkipCurrentStage();
   }
 
-  private void synchronizePage(
-      int page,
-      Date skipChangedBefore,
-      Map<String, Set<String>> skipSyncPSDEs,
-      SystemSettings settings,
-      SystemInstance instance,
-      Date syncStart)
+  private void synchronizePage(EventSynchronizationContext ctx, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
+    Date skipChangedBefore = ctx.getSkipChangedBefore();
+    Map<String, Set<String>> skipSyncPSDEs = ctx.getSkipSyncPSDEs();
+    SystemInstance instance = ctx.getInstance();
+    Date syncStart = ctx.getStartTime();
 
     List<Event> events =
         eventService.findEvents(
@@ -231,7 +224,8 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
                 .synchronizationQuery(true)
                 .includeDeleted(true)
                 .build(),
-            skipSyncPSDEs);
+            skipSyncPSDEs,
+            PageParams.of(ctx.getPages(), ctx.getPageSize(), false));
 
     Map<Boolean, List<Event>> partitioned =
         events.stream().collect(Collectors.partitioningBy(Event::isDeleted));

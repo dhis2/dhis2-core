@@ -273,10 +273,12 @@ class DefaultEventService implements EventService {
   @Override
   @Transactional(readOnly = true)
   public List<Event> findEvents(
-      @Nonnull EventOperationParams params, @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue)
+      @Nonnull EventOperationParams params,
+      @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue,
+      @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
-    return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue);
+    return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue, pageParams);
   }
 
   @Nonnull
