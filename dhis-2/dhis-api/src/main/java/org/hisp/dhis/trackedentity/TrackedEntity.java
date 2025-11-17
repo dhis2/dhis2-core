@@ -70,6 +70,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -87,7 +88,6 @@ import org.locationtech.jts.geom.Geometry;
     name = "updateTrackedEntitiesLastUpdated",
     query =
         "update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities")
-@JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
 public class TrackedEntity extends BaseTrackerObject
     implements IdentifiableObject, SoftDeletableEntity {
@@ -114,7 +114,7 @@ public class TrackedEntity extends BaseTrackerObject
   @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.EAGER)
   private Set<Enrollment> enrollments = new HashSet<>();
 
   @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
@@ -304,6 +304,11 @@ public class TrackedEntity extends BaseTrackerObject
     return Set.of();
   }
 
+  @Override
+  public void setAccess(Access access) {
+    // not supported
+  }
+
   /**
    * @param user
    * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
@@ -311,6 +316,11 @@ public class TrackedEntity extends BaseTrackerObject
    */
   @Override
   public void setUser(User user) {}
+
+  @Override
+  public Access getAccess() {
+    return null;
+  }
 
   @Override
   public void setTranslations(Set<Translation> translations) {
@@ -393,5 +403,15 @@ public class TrackedEntity extends BaseTrackerObject
   @Override
   public User getCreatedBy() {
     return null;
+  }
+
+  @Override
+  public String getHref() {
+    return "";
+  }
+
+  @Override
+  public void setHref(String link) {
+    // not supported
   }
 }
