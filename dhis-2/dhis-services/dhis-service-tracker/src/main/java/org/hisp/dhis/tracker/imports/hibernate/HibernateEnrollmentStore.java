@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.tracker.imports.hibernate;
 
 import jakarta.persistence.EntityManager;
 import javax.annotation.Nonnull;
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 
 // This class is annotated with @Component instead of @Repository because @Repository creates a
 // proxy that can't be used to inject the class.
-@Component("org.hisp.dhis.tracker.export.enrollment.HibernateEnrollmentStore")
+@Component("org.hisp.dhis.tracker.imports.hibernate.HibernateEnrollmentStore")
 class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment> {
 
   public HibernateEnrollmentStore(
