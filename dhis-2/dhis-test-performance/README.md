@@ -40,7 +40,7 @@ Access logs include request method, URI, query parameters, response time, and se
 This data is used to create realistic Gatling injection profiles based on actual usage patterns.
 
 DHIS2 is accessible directly on port 8080 (no logging) and via nginx on port 8081 (with logging).
-Login to Kibana with user `elastic` and password `changeme`. Logs are indexed in `tracker-local`.
+Login to Kibana with user `elastic` and password `elastic123`. Logs are indexed in `tracker-local`.
 
 See [DHIS2-20411.md](DHIS2-20411.md) for detailed logging documentation including how to clean
 data and troubleshoot issues.

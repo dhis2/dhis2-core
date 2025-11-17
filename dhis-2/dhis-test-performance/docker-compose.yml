@@ -104,7 +104,7 @@ services:
     image: timberio/vector:0.46.1-alpine
     command: ["-c", "/etc/vector/vector.toml"]
     environment:
-      - ELASTIC_PASSWORD=changeme
+      - ELASTIC_PASSWORD=elastic123
     volumes:
       - ./docker/vector.toml:/etc/vector/vector.toml:ro
       - type: volume
@@ -125,8 +125,8 @@ services:
       - certs:/usr/share/elasticsearch/config/certs
     user: "0"
     environment:
-      - ELASTIC_PASSWORD=changeme
-      - KIBANA_PASSWORD=changeme
+      - ELASTIC_PASSWORD=elastic123
+      - KIBANA_PASSWORD=elastic123
     command: >
       bash -c '
         if [ ! -f config/certs/ca.zip ]; then
@@ -155,7 +155,7 @@ services:
         echo "Waiting for Elasticsearch availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:changeme" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"changeme\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:elastic123" -H "Content-Type: application/json" https://es:9200/_security/user/kibana_system/_password -d "{\"password\":\"elastic123\"}" | grep -q "^{}"; do sleep 10; done;
         echo "All done!";
       '
     healthcheck:
@@ -180,7 +180,7 @@ services:
       - node.name=es
       - cluster.name=docker-cluster
       - cluster.initial_master_nodes=es
-      - ELASTIC_PASSWORD=changeme
+      - ELASTIC_PASSWORD=elastic123
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
@@ -225,7 +225,7 @@ services:
       - SERVERNAME=kibana
       - ELASTICSEARCH_HOSTS=https://es:9200
       - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=changeme
+      - ELASTICSEARCH_PASSWORD=elastic123
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
     mem_limit: 1073741824  # 1GB
     healthcheck:
@@ -248,7 +248,7 @@ services:
     volumes:
       - ./docker/kibana-dashboards:/dashboards
     environment:
-      - KIBANA_PASSWORD=changeme
+      - KIBANA_PASSWORD=elastic123
     command: >
       sh -c '
         echo "Waiting for Kibana to be ready..."

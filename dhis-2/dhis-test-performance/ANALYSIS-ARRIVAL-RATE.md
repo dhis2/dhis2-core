@@ -226,7 +226,7 @@ Check that:
 docker compose logs nginx | grep tracker
 
 # Check Elasticsearch index
-curl --insecure --user elastic:changeme https://localhost:9200/tracker-local/_count
+curl --insecure --user elastic:elastic123 https://localhost:9200/tracker-local/_count
 ```
 
 Make sure requests go through nginx (port 8081), not directly to DHIS2 (port 8080).

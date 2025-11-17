@@ -22,7 +22,7 @@ set -euo pipefail
 # Configuration
 ES_HOST="${ES_HOST:-https://localhost:9200}"
 ES_USER="${ES_USER:-elastic}"
-ES_PASS="${ES_PASS:-changeme}"
+ES_PASS="${ES_PASS:-elastic123}"
 INDEX="${INDEX:-tracker-local}"
 INTERVAL="${2:-1s}"
 

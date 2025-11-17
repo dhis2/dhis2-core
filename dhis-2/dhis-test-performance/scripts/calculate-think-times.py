@@ -45,8 +45,8 @@ def parse_args():
     )
     parser.add_argument(
         "--es-password",
-        default="changeme",
-        help="Elasticsearch password (default: changeme)",
+        default="elastic123",
+        help="Elasticsearch password (default: elastic123)",
     )
     parser.add_argument(
         "--source-index",

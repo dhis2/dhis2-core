@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 # Default values (can be overridden by environment variables)
 ES_URL="${ES_URL:-https://localhost:9200}"
 ES_USER="${ES_USER:-elastic}"
-ES_PASSWORD="${ES_PASSWORD:-changeme}"
+ES_PASSWORD="${ES_PASSWORD:-elastic123}"
 SOURCE_INDEX="${SOURCE_INDEX:-tracker-local}"
 DEST_INDEX="${DEST_INDEX:-tracker-think-times}"
 

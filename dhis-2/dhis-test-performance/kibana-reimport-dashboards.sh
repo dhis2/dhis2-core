@@ -4,7 +4,7 @@ set -e
 
 KIBANA_URL="${KIBANA_URL:-http://localhost:5601}"
 KIBANA_USER="${KIBANA_USER:-elastic}"
-KIBANA_PASSWORD="${KIBANA_PASSWORD:-changeme}"
+KIBANA_PASSWORD="${KIBANA_PASSWORD:-elastic123}"
 DASHBOARDS_DIR="docker/kibana-dashboards"
 
 echo "Reimporting dashboards from $DASHBOARDS_DIR..."
