@@ -67,8 +67,8 @@ source = '''
 
     # calculate request arrival time: msec - request_time = when request was received
     # msec is float with millisecond precision, convert to milliseconds for timestamp
-    request_received_ms = to_int!((msec - request_time_seconds) * 1000)
-    response_sent_ms = to_int!(msec * 1000)
+    request_received_ms = to_int((msec - request_time_seconds) * 1000)
+    response_sent_ms = to_int(msec * 1000)
     .request_received_at = from_unix_timestamp!(request_received_ms, unit: "milliseconds")
     # also store response sent time for comparison
     .response_sent_at = from_unix_timestamp!(response_sent_ms, unit: "milliseconds")
