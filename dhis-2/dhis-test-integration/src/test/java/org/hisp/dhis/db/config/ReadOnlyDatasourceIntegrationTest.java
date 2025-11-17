@@ -86,7 +86,7 @@ class ReadOnlyDatasourceIntegrationTest {
     assertNotSame(
         readOnlyDataSource,
         actualDataSource,
-        "Read-only DataSource should be distinct from the main DataSource when READ_ONLY_CONNECTION_URL is provided");
+        "Read-only DataSource should be distinct from the main DataSource when READ_REPLICA_CONNECTION_URL is provided");
 
     assertReadOnlyConnection(readOnlyNamedParameterJdbcTemplate.getJdbcTemplate().getDataSource());
     assertReadOnlyConnection(jdbcTemplate.getDataSource());
