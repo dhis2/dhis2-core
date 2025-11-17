@@ -78,6 +78,7 @@ services:
   nginx:
     profiles: [logging]
     image: nginx
+    cpus: 2
     ports:
       - "127.0.0.1:8081:80"
     volumes:
@@ -85,6 +86,17 @@ services:
       - nginx:/var/log/nginx
     depends_on:
       - web
+    # OS file descriptor limits: Each connection requires 1 file descriptor.
+    # In reverse proxy mode, each client request uses 2 connections:
+    #   1. client -> nginx
+    #   2. nginx -> upstream (web:8080)
+    # With worker_connections=4096 and cpus=2:
+    #   Theoretical max: 2 workers * 4096 connections * 2 (client+upstream) = 16,384 descriptors
+    #   Setting to 65,536 provides headroom for log files, keepalive pools, etc.
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
   # vector for parsing and ingesting nginx logs to Elasticsearch
   vector:

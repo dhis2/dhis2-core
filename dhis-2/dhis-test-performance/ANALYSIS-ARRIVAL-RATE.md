@@ -82,6 +82,10 @@ session ID changes (e.g., after logout/login), they will be counted as a new arr
 * **Timestamp accuracy**: Arrival times depend on nginx's `$msec` timestamp being accurate. System
 clock skew or time synchronization issues will affect results.
 * **Approximation**: HyperLogLog++ is an approximate counting algorithm.
+* **Visualization time range**: The arrival rate graph only displays time periods with actual data,
+not the full dashboard time filter range. This is because the derivative aggregation requires data
+points to calculate rate of change. Other graphs (Concurrent Sessions, Requests Per Second) show
+the full time range with zeros for empty periods.
 
 ### Elasticsearch Query
 
