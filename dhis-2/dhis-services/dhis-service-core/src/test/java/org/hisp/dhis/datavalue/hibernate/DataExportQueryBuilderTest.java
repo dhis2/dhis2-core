@@ -35,6 +35,7 @@ import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
@@ -50,9 +51,110 @@ import org.junit.jupiter.api.Test;
 class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
+  void testFilter_All() {
+    DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
+    assertSQL(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE 1=1
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of(),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_AllNotDeleted() {
+    DataExportParams params = DataExportParams.builder().build();
+    assertSQL(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
   void testFilter_Period() {
     DataExportParams params =
         DataExportParams.builder().periods(List.of(getPeriodFromIsoString("2020"))).build();
+    assertSQL(
+        """
+        WITH
+        pe_ids AS (
+          SELECT periodid
+          FROM period
+          WHERE iso = :pe
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN pe_ids ON dv.periodid = pe_ids.periodid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("pe", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_DataElement() {
+    DataExportParams params =
+        DataExportParams.builder().dataElements(List.of(UID.of("de123456789"))).build();
     assertSQL(
         """
         WITH
@@ -60,18 +162,136 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           SELECT dataelementid
           FROM (
                   (SELECT cast(NULL as bigint) AS dataelementid WHERE false)
+            UNION (SELECT de.dataelementid FROM dataelement de WHERE de.uid = :de )
           ) de_all
           WHERE dataelementid IS NOT NULL
-        ),
-        pe_ids AS (
-          SELECT periodid
-          FROM period
-          WHERE iso = :pe
-        ),
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN de_ids ON dv.dataelementid = de_ids.dataelementid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("de", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_DataElementGroup() {
+    DataExportParams params =
+        DataExportParams.builder().dataElementGroups(List.of(UID.of("deg23456789"))).build();
+    assertSQL(
+        """
+        WITH
+        de_ids AS (
+          SELECT dataelementid
+          FROM (
+                  (SELECT cast(NULL as bigint) AS dataelementid WHERE false)
+            UNION (SELECT degm.dataelementid FROM dataelementgroupmembers degm       JOIN dataelementgroup deg ON degm.dataelementgroupid = deg.dataelementgroupid WHERE deg.uid = ANY(:deg))
+          ) de_all
+          WHERE dataelementid IS NOT NULL
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN de_ids ON dv.dataelementid = de_ids.dataelementid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("deg", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_OrgUnit() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnits(List.of(UID.of("ou123456789"))).build();
+    assertSQL(
+        """
+        WITH
         ou_ids AS (
           SELECT organisationunitid
           FROM (
             (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+            UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = :ou )
+          ) ou_all
+          WHERE organisationunitid IS NOT NULL
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("ou", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_OrgUnitWithChildren() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .organisationUnits(List.of(UID.of("ou123456789"), UID.of("ou987654321")))
+            .includeDescendants(true)
+            .build();
+    assertSQL(
+        """
+        WITH
+        ou_ids AS (
+          SELECT organisationunitid
+          FROM (
+            (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+            UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
           ) ou_all
           WHERE organisationunitid IS NOT NULL
         ),
@@ -97,7 +317,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           dv.lastupdated,
           dv.deleted
         FROM datavalue dv
-        JOIN pe_ids ON dv.periodid = pe_ids.periodid
+        JOIN ou_with_descendants_ids ON dv.sourceid = ou_with_descendants_ids.organisationunitid
         JOIN dataelement de ON dv.dataelementid = de.dataelementid
         JOIN period pe ON dv.periodid = pe.periodid
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
@@ -105,6 +325,99 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("pe", "deleted"), createExportQuery(params, createSpyQuery(), SystemUser::new));
+        Set.of("ou", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_OrgUnitGroup() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnitGroups(List.of(UID.of("oug23456789"))).build();
+    assertSQL(
+        """
+        WITH
+        ou_ids AS (
+          SELECT organisationunitid
+          FROM (
+            (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+            UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND (1=1))
+          ) ou_all
+          WHERE organisationunitid IS NOT NULL
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("oug", "deleted"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_OrgUnitGroupWithChildren() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .organisationUnitGroups(List.of(UID.of("oug23456789"), UID.of("oug98765432")))
+            .includeDescendants(true)
+            .build();
+    assertSQL(
+        """
+        WITH
+        ou_ids AS (
+          SELECT organisationunitid
+          FROM (
+            (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+            UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND (1=1))
+          ) ou_all
+          WHERE organisationunitid IS NOT NULL
+        ),
+        ou_with_descendants_ids AS (
+          SELECT DISTINCT ou.organisationunitid
+          FROM organisationunit ou
+          LEFT JOIN organisationunit parent_ou ON (ou.path LIKE parent_ou.path || '%')
+          WHERE ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
+               OR parent_ou.organisationunitid IN (SELECT organisationunitid FROM ou_ids)
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN ou_with_descendants_ids ON dv.sourceid = ou_with_descendants_ids.organisationunitid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("oug", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 }

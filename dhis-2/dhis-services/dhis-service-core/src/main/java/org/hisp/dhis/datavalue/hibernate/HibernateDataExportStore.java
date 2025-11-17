@@ -33,13 +33,13 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
+import static org.hisp.dhis.security.acl.AclService.LIKE_READ_METADATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -124,13 +124,13 @@ public class HibernateDataExportStore implements DataExportStore {
   @Override
   public Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) {
     return createExportQuery(
-            params, NativeSQL.of(getSession()), CurrentUserUtil::getCurrentUserDetails)
+            params, NativeSQL.of(getSession()), CurrentUserUtil.getCurrentUserDetails())
         .stream()
         .map(DataExportValue::of);
   }
 
   static QueryBuilder createExportQuery(
-      DataExportParams params, SQL.QueryAPI api, Supplier<UserDetails> currentUser) {
+      DataExportParams params, SQL.QueryAPI api, UserDetails currentUser) {
     String sql =
         """
       WITH
@@ -164,7 +164,8 @@ public class HibernateDataExportStore implements DataExportStore {
           UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
           UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
                  JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
-                 WHERE oug.uid = ANY(:oug))
+                 JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid \
+                 WHERE oug.uid = ANY(:oug) AND (:ouAccess))
         ) ou_all
         WHERE organisationunitid IS NOT NULL
       ),
@@ -208,17 +209,20 @@ public class HibernateDataExportStore implements DataExportStore {
         -- access check below must be 1 line for erasure
         AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
           JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:access))""";
+          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))""";
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
-    String accessSql =
-        !(params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
-                || currentUser.get().isSuper()
-            ? null // explicit AOCs mean they are already sharing checked
-            : generateSQlQueryForSharingCheck(
-                "co.sharing", CurrentUserUtil.getCurrentUserDetails(), LIKE_READ_DATA);
+    String aocAclSql = null;
+    // explicit AOCs mean they are already sharing checked
+    if (params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty()) {
+      if (!currentUser.isSuper())
+        aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
+    }
+    String ouAclSql =
+        generateSQlQueryForSharingCheck("ou.sharing", currentUser, LIKE_READ_METADATA);
+
     boolean descendants = params.isIncludeDescendants();
     List<Order> orders = params.getOrders();
     if (orders == null || orders.isEmpty()) orders = List.of(Order.PE, Order.CREATED, Order.DE);
@@ -238,12 +242,13 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("aoc", params.getAttributeOptionCombos())
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setDynamicClause("access", accessSql)
+        .setDynamicClause("aocAccess", aocAclSql)
+        .setDynamicClause("ouAccess", ouAclSql)
         .eraseNullParameterLines()
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
-        .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
+        .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
         .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
         .setOffset(params.getOffset())
