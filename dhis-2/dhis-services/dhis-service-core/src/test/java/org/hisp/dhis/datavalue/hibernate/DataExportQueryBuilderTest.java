@@ -40,6 +40,7 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
 import org.hisp.dhis.sql.SQL;
 import org.hisp.dhis.user.SystemUser;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -77,7 +78,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE 1=1
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("super", "capture"),
+        Set.of(),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -108,7 +109,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("deleted", "super", "capture"),
+        Set.of("deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -147,7 +148,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("pe", "deleted", "super", "capture"),
+        Set.of("pe", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -189,7 +190,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("de", "deleted", "super", "capture"),
+        Set.of("de", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -231,7 +232,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("deg", "deleted", "super", "capture"),
+        Set.of("deg", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -273,7 +274,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("ou", "deleted", "super", "capture"),
+        Set.of("ou", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -325,8 +326,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("ou", "deleted", "super", "capture"),
-        createExportQuery(params, createSpyQuery(), new SystemUser()));
+        Set.of("ou", "deleted"), createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
   @Test
@@ -335,39 +335,39 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         DataExportParams.builder().organisationUnitGroups(List.of(UID.of("oug23456789"))).build();
     assertSQL(
         """
-      WITH
-      ou_ids AS (
-        SELECT organisationunitid
-        FROM (
-          (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
-          UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND (:super OR ou.uid = ANY(:capture)))
-        ) ou_all
-        WHERE organisationunitid IS NOT NULL
-      )
-      SELECT
-        de.uid AS deid,
-        pe.iso,
-        ou.uid AS ouid,
-        coc.uid AS cocid,
-        aoc.uid AS aocid,
-        de.valuetype,
-        dv.value,
-        dv.comment,
-        dv.followup,
-        dv.storedby,
-        dv.created,
-        dv.lastupdated,
-        dv.deleted
-      FROM datavalue dv
-      JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
-      JOIN dataelement de ON dv.dataelementid = de.dataelementid
-      JOIN period pe ON dv.periodid = pe.periodid
-      JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
-      JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      WHERE dv.deleted = :deleted
-      ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("oug", "deleted", "super", "capture"),
+        WITH
+        ou_ids AS (
+          SELECT organisationunitid
+          FROM (
+            (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+            UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            WHERE oug.uid = ANY(:ougSuper))
+          ) ou_all
+          WHERE organisationunitid IS NOT NULL
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("ougSuper", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 
@@ -385,7 +385,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           SELECT organisationunitid
           FROM (
             (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
-            UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND (:super OR ou.uid = ANY(:capture)))
+            UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            WHERE oug.uid = ANY(:ougSuper))
           ) ou_all
           WHERE organisationunitid IS NOT NULL
         ),
@@ -419,7 +419,51 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
-        Set.of("oug", "deleted", "super", "capture"),
+        Set.of("ougSuper", "deleted"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testFilter_OrgUnitGroup_NoSuper() {
+    DataExportParams params =
+        DataExportParams.builder().organisationUnitGroups(List.of(UID.of("oug23456789"))).build();
+    UserDetails currentUser = UserDetails.empty().userOrgUnitIds(Set.of("ou123456789")).build();
+    assertSQL(
+        """
+        WITH
+        ou_ids AS (
+          SELECT organisationunitid
+          FROM (
+            (SELECT cast(NULL as bigint) AS organisationunitid WHERE false)
+            UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND ou.uid = ANY(:capture))
+          ) ou_all
+          WHERE organisationunitid IS NOT NULL
+        )
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN ou_ids ON dv.sourceid = ou_ids.organisationunitid
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.deleted = :deleted
+          AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("oug", "capture", "deleted"),
+        createExportQuery(params, createSpyQuery(), currentUser));
   }
 }

@@ -163,8 +163,11 @@ public class HibernateDataExportStore implements DataExportStore {
           UNION (SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou))
           UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
                  JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
+                 WHERE oug.uid = ANY(:ougSuper))
+          UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
+                 JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
                  JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid \
-                 WHERE oug.uid = ANY(:oug) AND (:super OR ou.uid = ANY(:capture)))
+                 WHERE oug.uid = ANY(:oug) AND ou.uid = ANY(:capture))
         ) ou_all
         WHERE organisationunitid IS NOT NULL
       ),
@@ -214,15 +217,16 @@ public class HibernateDataExportStore implements DataExportStore {
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
     String aocAclSql = null;
+    boolean isSuper = currentUser.isSuper();
     // explicit AOCs mean they are already sharing checked
-    if (params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty()) {
-      if (!currentUser.isSuper())
-        aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
-    }
+    if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
+        && !isSuper)
+      aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
 
     boolean descendants = params.isIncludeDescendants();
     List<Order> orders = params.getOrders();
     if (orders == null || orders.isEmpty()) orders = List.of(Order.PE, Order.CREATED, Order.DE);
+
     return SQL.of(sql, api)
         .setParameter("ds", params.getDataSets())
         .setParameter("de", params.getDataElements())
@@ -233,7 +237,11 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("end", params.getEndDate())
         .setParameter("includedDate", params.getIncludedDate())
         .setParameter("ou", params.getOrganisationUnits())
-        .setParameter("oug", params.getOrganisationUnitGroups())
+        .setParameter("oug", isSuper ? List.of() : params.getOrganisationUnitGroups())
+        .setParameter(
+            "capture",
+            isSuper ? Stream.empty() : currentUser.getUserOrgUnitIds().stream().map(UID::of))
+        .setParameter("ougSuper", isSuper ? params.getOrganisationUnitGroups() : List.of())
         .setParameter("level", params.getOrgUnitLevel())
         .setParameter("coc", params.getCategoryOptionCombos())
         .setParameter("aoc", params.getAttributeOptionCombos())
@@ -242,8 +250,6 @@ public class HibernateDataExportStore implements DataExportStore {
         .setDynamicClause("aocAccess", aocAclSql)
         .eraseNullParameterLines()
         // keep params below even when null
-        .setParameter("super", currentUser.isSuper())
-        .setParameter("capture", currentUser.getUserOrgUnitIds(), identity())
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
