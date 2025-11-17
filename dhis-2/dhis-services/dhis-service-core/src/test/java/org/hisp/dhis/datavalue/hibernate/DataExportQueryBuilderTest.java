@@ -29,12 +29,13 @@
  */
 package org.hisp.dhis.datavalue.hibernate;
 
+import static org.hisp.dhis.datavalue.DataExportParams.Order.*;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
@@ -45,7 +46,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the SQL generation as performed by {@link
- * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, Supplier)}
+ * HibernateDataExportStore#createExportQuery(DataExportParams, SQL.QueryAPI, UserDetails)}
  *
  * @author Jan Bernitt
  */
@@ -465,5 +466,41 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("oug", "capture", "deleted"),
         createExportQuery(params, createSpyQuery(), currentUser));
+  }
+
+  @Test
+  void testFilter_LastUpdated() {
+    DataExportParams params =
+        DataExportParams.builder()
+            .lastUpdated(new Date())
+            .includeDeleted(true)
+            .orders(List.of(PE, CREATED, DE))
+            .build();
+    assertSQL(
+        """
+        SELECT
+          de.uid AS deid,
+          pe.iso,
+          ou.uid AS ouid,
+          coc.uid AS cocid,
+          aoc.uid AS aocid,
+          de.valuetype,
+          dv.value,
+          dv.comment,
+          dv.followup,
+          dv.storedby,
+          dv.created,
+          dv.lastupdated,
+          dv.deleted
+        FROM datavalue dv
+        JOIN dataelement de ON dv.dataelementid = de.dataelementid
+        JOIN period pe ON dv.periodid = pe.periodid
+        JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
+        JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        WHERE dv.lastupdated >= :lastUpdated
+        ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
+        Set.of("lastUpdated"),
+        createExportQuery(params, createSpyQuery(), new SystemUser()));
   }
 }

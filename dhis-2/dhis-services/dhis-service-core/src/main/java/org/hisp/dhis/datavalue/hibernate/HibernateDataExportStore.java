@@ -39,6 +39,7 @@ import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -227,6 +228,9 @@ public class HibernateDataExportStore implements DataExportStore {
     List<Order> orders = params.getOrders();
     if (orders == null || orders.isEmpty()) orders = List.of(Order.PE, Order.CREATED, Order.DE);
 
+    List<UID> oug = params.getOrganisationUnitGroups();
+    Set<String> ouCapture = currentUser.getUserOrgUnitIds();
+    if (oug == null || oug.isEmpty() || isSuper) ouCapture = Set.of();
     return SQL.of(sql, api)
         .setParameter("ds", params.getDataSets())
         .setParameter("de", params.getDataElements())
@@ -237,11 +241,9 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("end", params.getEndDate())
         .setParameter("includedDate", params.getIncludedDate())
         .setParameter("ou", params.getOrganisationUnits())
-        .setParameter("oug", isSuper ? List.of() : params.getOrganisationUnitGroups())
-        .setParameter(
-            "capture",
-            isSuper ? Stream.empty() : currentUser.getUserOrgUnitIds().stream().map(UID::of))
-        .setParameter("ougSuper", isSuper ? params.getOrganisationUnitGroups() : List.of())
+        .setParameter("oug", isSuper ? List.of() : oug)
+        .setParameter("capture", ouCapture, identity())
+        .setParameter("ougSuper", isSuper ? oug : List.of())
         .setParameter("level", params.getOrgUnitLevel())
         .setParameter("coc", params.getCategoryOptionCombos())
         .setParameter("aoc", params.getAttributeOptionCombos())
