@@ -47,11 +47,11 @@ public abstract class TrackerDataSynchronizationWithPaging
    *
    * @param pageSize number of records per page
    * @param progress job progress reporter
-   * @param programUid UID of the program whose tracker data should be synchronized
+   * @param programUid uid of the program whose tracker data should be synchronized
    * @return result of synchronization
    */
   public abstract SynchronizationResult synchronizeTrackerData(
-      int pageSize, JobProgress progress, UID programUid);
+      int pageSize, JobProgress progress, String programUid);
 
   /**
    * This method from {@link DataSynchronizationWithPaging} is not directly used here.

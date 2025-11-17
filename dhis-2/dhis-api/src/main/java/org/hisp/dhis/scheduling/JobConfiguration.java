@@ -64,6 +64,7 @@ import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
@@ -289,6 +290,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(value = SmsJobParameters.class, name = "SMS_SEND"),
         @JsonSubTypes.Type(value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC"),
         @JsonSubTypes.Type(value = DataSynchronizationJobParameters.class, name = "DATA_SYNC"),
+        @JsonSubTypes.Type(
+            value = SingleEventDataSynchronizationJobParameters.class,
+            name = "SINGLE_EVENT_DATA_SYNC_JOB"),
         @JsonSubTypes.Type(
             value = DisableInactiveUsersJobParameters.class,
             name = "DISABLE_INACTIVE_USERS"),

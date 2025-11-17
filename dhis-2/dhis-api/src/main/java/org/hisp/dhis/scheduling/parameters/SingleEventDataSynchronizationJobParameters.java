@@ -32,10 +32,13 @@ package org.hisp.dhis.scheduling.parameters;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.scheduling.JobParameters;
 
 /**
@@ -43,6 +46,7 @@ import org.hisp.dhis.scheduling.JobParameters;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 public class SingleEventDataSynchronizationJobParameters implements JobParameters {
   static final int PAGE_SIZE_MIN = 5;
 
@@ -50,7 +54,9 @@ public class SingleEventDataSynchronizationJobParameters implements JobParameter
 
   @JsonProperty private int pageSize = 60;
 
-  @JsonProperty private UID program;
+  @OpenApi.Property({UID.class, Program.class})
+  @JsonProperty(required = true)
+  private String program;
 
   @Override
   public Optional<ErrorReport> validate() {
