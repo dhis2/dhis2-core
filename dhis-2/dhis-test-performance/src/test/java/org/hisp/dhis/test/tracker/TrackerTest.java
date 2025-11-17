@@ -253,12 +253,55 @@ public class TrackerTest extends Simulation {
   /**
    * Returns the injection profile based on the specified test type.
    *
+   * <p><b>Profiles:</b>
+   *
+   * <ul>
+   *   <li><b>load</b> - Gradual ramp-up to sustained load <br>
+   *       Shape: ___/‾‾‾‾‾‾‾‾‾ <br>
+   *       Uses: users, duration (sustained), rampDuration (ramp-up) <br>
+   *       Default: 1min ramp → 5min sustained (6min total) <br>
+   *       Example: {@code -Dprofile=load -Dusers=50 -DrampDuration=60 -Dduration=300}
+   *   <li><b>stress</b> - Staircase pattern to find breaking point <br>
+   *       Shape: <br>
+   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+   *       #steps <br>
+   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
+   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
+   *       __/‾‾ <br>
+   *       Uses: users, duration (per step), rampDuration (between steps), steps <br>
+   *       Default: 10 steps × 30s with 10s ramps (6.5min total) <br>
+   *       Example: {@code -Dprofile=stress -Dusers=100 -Dsteps=10 -Dduration=30 -DrampDuration=10}
+   *   <li><b>spike</b> - Instant spike to test sudden load changes <br>
+   *       Shape: _____|‾|_____ <br>
+   *       Uses: users (spike magnitude), duration (total = baseline + recovery) <br>
+   *       Pattern: baseline at users/5 → spike to users → recovery at users/2 <br>
+   *       Ignores: rampDuration <br>
+   *       Default: 60s baseline → spike → 60s recovery (2min total) <br>
+   *       Example: {@code -Dprofile=spike -Dusers=200 -Dduration=120} creates 40 users/sec
+   *       baseline, 200 user spike, 100 users/sec recovery
+   *   <li><b>soak</b> - Extended duration to find memory leaks <br>
+   *       Shape: ___/‾‾‾‾‾‾‾‾‾ <br>
+   *       Uses: users, duration (sustained), rampDuration (ramp-up) <br>
+   *       Default: 2min ramp → 1hr sustained (62min total) <br>
+   *       Example: {@code -Dprofile=soak -Dusers=50 -DrampDuration=120 -Dduration=3600}
+   *   <li><b>capacity</b> - Continuous ramp to find maximum capacity <br>
+   *       Shape: <br>
+   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ <br>
+   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ <br>
+   *       &nbsp;&nbsp;&nbsp;&nbsp;/ <br>
+   *       __/ <br>
+   *       Uses: users (target capacity), rampDuration (continuous ramp time) <br>
+   *       Ignores: duration <br>
+   *       Default: 10min ramp from 0 to target <br>
+   *       Example: {@code -Dprofile=capacity -Dusers=300 -DrampDuration=600}
+   * </ul>
+   *
    * @param profile Profile type: load, stress, spike, soak, capacity
-   * @param users Number of users (semantics vary by profile)
-   * @param duration Main test duration in seconds
-   * @param rampDuration Ramp-up duration in seconds
+   * @param users Target users per second (meaning varies by profile)
+   * @param duration Duration in seconds (meaning varies by profile)
+   * @param rampDuration Ramp duration in seconds (meaning varies by profile)
    * @param steps Number of steps for stress profile
-   * @return OpenInjectionStep for the specified profile
+   * @return OpenInjectionStep array for the specified profile
    */
   private OpenInjectionStep[] getInjectionProfile(
       String profile, int users, int duration, int rampDuration, int steps) {
