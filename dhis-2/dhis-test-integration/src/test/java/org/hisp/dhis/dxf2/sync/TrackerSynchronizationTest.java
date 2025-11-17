@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -178,13 +178,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
     DataValue dataValueB = createDataValue(deB.getUid(), DATA_VALUE, false);
     Set<DataValue> dataValues = Set.of(dataValueA, dataValueB);
     Event event =
-        createEvent(
-            program,
-            programStage,
-            ou,
-            enrA,
-            tei.getTrackedEntityInstance(),
-            dataValues);
+        createEvent(program, programStage, ou, enrA, tei.getTrackedEntityInstance(), dataValues);
     eventService.addEvent(event, null, false);
   }
 
@@ -269,28 +263,33 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
     List<String> dataValues = new ArrayList<>();
     List<String> enrollmentAttValues = new ArrayList<>();
     List<String> teiAttValues = new ArrayList<>();
-    teis.getTrackedEntityInstances().forEach(
-        tei -> {
-          tei.getAttributes().forEach(
-              att -> {
-                teiAttValues.add(att.getValue());
-              });
-          tei.getEnrollments().forEach(
-              enr -> {
-                enr.getAttributes().forEach(
-                    att -> {
-                      enrollmentAttValues.add(att.getValue());
-                    });
-                enr.getEvents().forEach(
-                    ev -> {
-                      ev.getDataValues().forEach(
-                          dv -> {
-                            dataValues.add(dv.getValue());
-                          });
-                    });
-              });
-        }
-    );
+    teis.getTrackedEntityInstances()
+        .forEach(
+            tei -> {
+              tei.getAttributes()
+                  .forEach(
+                      att -> {
+                        teiAttValues.add(att.getValue());
+                      });
+              tei.getEnrollments()
+                  .forEach(
+                      enr -> {
+                        enr.getAttributes()
+                            .forEach(
+                                att -> {
+                                  enrollmentAttValues.add(att.getValue());
+                                });
+                        enr.getEvents()
+                            .forEach(
+                                ev -> {
+                                  ev.getDataValues()
+                                      .forEach(
+                                          dv -> {
+                                            dataValues.add(dv.getValue());
+                                          });
+                                });
+                      });
+            });
 
     assertContainsOnly(List.of(DATA_VALUE), dataValues);
     assertContainsOnly(List.of(ATT_VALUE), enrollmentAttValues);
@@ -312,12 +311,12 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
   }
 
   private Event createEvent(
-          Program program,
-          ProgramStage programStage,
-          OrganisationUnit orgUnit,
-          ProgramInstance pi,
-          String teiUid,
-          Set<DataValue> dataValues) {
+      Program program,
+      ProgramStage programStage,
+      OrganisationUnit orgUnit,
+      ProgramInstance pi,
+      String teiUid,
+      Set<DataValue> dataValues) {
     Event event = new Event();
     event.setStatus(EventStatus.ACTIVE);
     event.setProgram(program.getUid());
