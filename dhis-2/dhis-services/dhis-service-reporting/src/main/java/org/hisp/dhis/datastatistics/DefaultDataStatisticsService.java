@@ -189,6 +189,10 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     return saveDataStatistics(getDataStatisticsSnapshot(new Date(), progress));
   }
 
+  public long saveDataStatisticsSnapshotForDate(Date date, JobProgress progress) {
+    return saveDataStatistics(getDataStatisticsSnapshot(date, progress));
+  }
+
   @Override
   public List<FavoriteStatistics> getTopFavorites(
       DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username) {
@@ -219,15 +223,45 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
 
     statistics.setObjectCounts(objectCounts);
 
-    // Active users
-    Map<Integer, Integer> activeUsers =
+    // Logins
+    // Note that the source of active users and logins are different. This one is
+    // counting logins based on last login date stored in user table
+    Map<Integer, Integer> logins =
         Map.ofEntries(
             Map.entry(0, userService.getActiveUsersCount(hoursAgo(1))),
             Map.entry(1, userService.getActiveUsersCount(startOfToday())),
             Map.entry(2, userService.getActiveUsersCount(daysAgo(2))),
             Map.entry(7, userService.getActiveUsersCount(daysAgo(7))),
             Map.entry(30, userService.getActiveUsersCount(daysAgo(30))));
-    statistics.setActiveUsers(activeUsers);
+    statistics.setLogins(logins);
+
+    // Active users based on DataStatisticsEventStore
+    // This one is counting active users based on activity stored in data statistics event table
+    // Consider to include all of the event types, since we are already querying them
+    Date base = new Date();
+    Map<DataStatisticsEventType, Long> eventCountMapOneHour =
+        dataStatisticsEventStore.getDataStatisticsEventCount(hoursAgo(1), base);
+    Map<DataStatisticsEventType, Long> eventCountMapToday =
+        dataStatisticsEventStore.getDataStatisticsEventCount(startOfToday(), base);
+    Map<DataStatisticsEventType, Long> eventCountMapLast2Days =
+        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(2), base);
+    Map<DataStatisticsEventType, Long> eventCountMapLast7Days =
+        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(7), base);
+    Map<DataStatisticsEventType, Long> eventCountMapLast30Days =
+        dataStatisticsEventStore.getDataStatisticsEventCount(daysAgo(30), base);
+    Map<Integer, Integer> activeUsersMap =
+        Map.ofEntries(
+            Map.entry(
+                0, (int) getOrZero(eventCountMapOneHour, DataStatisticsEventType.ACTIVE_USERS)),
+            Map.entry(1, (int) getOrZero(eventCountMapToday, DataStatisticsEventType.ACTIVE_USERS)),
+            Map.entry(
+                2, (int) getOrZero(eventCountMapLast2Days, DataStatisticsEventType.ACTIVE_USERS)),
+            Map.entry(
+                7, (int) getOrZero(eventCountMapLast7Days, DataStatisticsEventType.ACTIVE_USERS)),
+            Map.entry(
+                30,
+                (int) getOrZero(eventCountMapLast30Days, DataStatisticsEventType.ACTIVE_USERS)));
+    statistics.setActiveUsers(activeUsersMap);
 
     // User invitations
     Map<String, Integer> userInvitations = new HashMap<>();

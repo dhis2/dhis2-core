@@ -30,74 +30,58 @@
 package org.hisp.dhis.datastatistics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Julie Hill Roa
  * @author Yrjan Fraschetti
  * @author Jason P. Pickering A record representing aggregated statistics for data usage and
  *     activity.
- * @param year The year of the statistics.
- * @param month The month of the statistics.
- * @param week The week of the statistics.
- * @param day The day of the statistics.
- * @param mapViews The total number of map views.
- * @param visualizationViews The total number of visualization views.
- * @param eventReportViews The total number of event report views.
- * @param eventChartViews The total number of event chart views.
- * @param eventVisualizationViews The total number of event visualization views.
- * @param dashboardViews The total number of dashboard views.
- * @param passiveDashboardViews The total number of passive dashboard views.
- * @param dataSetReportViews The total number of dataset report views.
- * @param totalViews The total number of all views combined.
- * @param averageViews The average number of views per user.
- * @param averageMapViews The average number of map views per user.
- * @param averageVisualizationViews The average number of visualization views per user.
- * @param averageEventReportViews The average number of event report views per user.
- * @param averageEventChartViews The average number of event chart views per user.
- * @param averageEventVisualizationViews The average number of event visualization views per user.
- * @param averageDashboardViews The average number of dashboard views per user.
- * @param averagePassiveDashboardViews The average number of passive dashboard views per user.
- * @param savedMaps The total number of saved maps.
- * @param savedVisualizations The total number of saved visualizations.
- * @param savedEventReports The total number of saved event reports.
- * @param savedEventCharts The total number of saved event charts.
- * @param savedEventVisualizations The total number of saved event visualizations.
- * @param savedDashboards The total number of saved dashboards.
- * @param savedIndicators The total number of saved indicators.
- * @param savedDataValues The total number of saved data values.
- * @param activeUsers The total number of active users.
- * @param users The total number of users.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record AggregatedStatistics(
-    Integer year,
-    Integer month,
-    Integer week,
-    Integer day,
-    long mapViews,
-    long visualizationViews,
-    long eventReportViews,
-    long eventChartViews,
-    long eventVisualizationViews,
-    long dashboardViews,
-    long passiveDashboardViews,
-    long dataSetReportViews,
-    long totalViews,
-    double averageViews,
-    double averageMapViews,
-    double averageVisualizationViews,
-    double averageEventReportViews,
-    double averageEventChartViews,
-    double averageEventVisualizationViews,
-    double averageDashboardViews,
-    double averagePassiveDashboardViews,
-    long savedMaps,
-    long savedVisualizations,
-    long savedEventReports,
-    long savedEventCharts,
-    long savedEventVisualizations,
-    long savedDashboards,
-    long savedIndicators,
-    long savedDataValues,
-    long activeUsers,
-    long users) {}
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class AggregatedStatistics {
+
+  @JsonProperty private Integer year;
+  @JsonProperty private Integer month;
+  @JsonProperty private Integer week;
+  @JsonProperty private Integer day;
+
+  @JsonProperty private Long mapViews;
+  @JsonProperty private Long visualizationViews;
+  @JsonProperty private Long eventReportViews;
+  @JsonProperty private Long eventChartViews;
+  @JsonProperty private Long eventVisualizationViews;
+  @JsonProperty private Long dashboardViews;
+  @JsonProperty private Long passiveDashboardViews;
+  @JsonProperty private Long dataSetReportViews;
+  @JsonProperty private Long totalViews;
+
+  @JsonProperty private Double averageViews;
+  @JsonProperty private Double averageMapViews;
+  @JsonProperty private Double averageVisualizationViews;
+  @JsonProperty private Double averageEventReportViews;
+  @JsonProperty private Double averageEventChartViews;
+  @JsonProperty private Double averageEventVisualizationViews;
+  @JsonProperty private Double averageDashboardViews;
+  @JsonProperty private Double averagePassiveDashboardViews;
+
+  @JsonProperty private Long savedMaps;
+  @JsonProperty private Long savedVisualizations;
+  @JsonProperty private Long savedEventReports;
+  @JsonProperty private Long savedEventCharts;
+  @JsonProperty private Long savedEventVisualizations;
+  @JsonProperty private Long savedDashboards;
+  @JsonProperty private Long savedIndicators;
+  @JsonProperty private Long savedDataValues;
+
+  @JsonProperty private Long activeUsers;
+  @JsonProperty private Long users;
+}

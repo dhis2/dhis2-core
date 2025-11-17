@@ -221,33 +221,13 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
   private static AggregatedStatistics mapAggregatedStatistics(ResultSet rs, EventInterval interval)
       throws SQLException {
 
-    Integer year = null;
-    Integer month = null;
-    Integer week = null;
-    Integer day = null;
-
-    switch (interval) {
-      case YEAR -> year = getNullableInt(rs, "yr");
-      case MONTH -> {
-        year = getNullableInt(rs, "yr");
-        month = getNullableInt(rs, "mnt");
-      }
-      case WEEK -> {
-        year = getNullableInt(rs, "isoyear");
-        week = getNullableInt(rs, "wk");
-      }
-      case DAY -> {
-        year = getNullableInt(rs, "yr");
-        month = getNullableInt(rs, "mnt");
-        day = getNullableInt(rs, "day");
-      }
-    }
+    Period p = mapPeriod(rs, interval);
 
     return new AggregatedStatistics(
-        year,
-        month,
-        week,
-        day,
+        p.year(),
+        p.month(),
+        p.week(),
+        p.day(),
         rs.getLong("mapViews"),
         rs.getLong("visualizationViews"),
         rs.getLong("eventReportViews"),
@@ -275,5 +255,33 @@ public class HibernateDataStatisticsStore extends HibernateIdentifiableObjectSto
         rs.getLong("savedDataValues"),
         rs.getLong("activeUsers"),
         rs.getLong("users"));
+  }
+
+  private record Period(Integer year, Integer month, Integer week, Integer day) {}
+
+  private static Period mapPeriod(ResultSet rs, EventInterval interval) throws SQLException {
+    Integer year = null;
+    Integer month = null;
+    Integer week = null;
+    Integer day = null;
+
+    switch (interval) {
+      case YEAR -> year = getNullableInt(rs, "yr");
+      case MONTH -> {
+        year = getNullableInt(rs, "yr");
+        month = getNullableInt(rs, "mnt");
+      }
+      case WEEK -> {
+        year = getNullableInt(rs, "isoyear");
+        week = getNullableInt(rs, "wk");
+      }
+      case DAY -> {
+        year = getNullableInt(rs, "yr");
+        month = getNullableInt(rs, "mnt");
+        day = getNullableInt(rs, "day");
+      }
+    }
+
+    return new Period(year, month, week, day);
   }
 }
