@@ -63,7 +63,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TrackerReadOnlyDataSourceTestConfig.class, DataSourceConfig.class})
-public class ReadOnlyDatasourceIntegrationTest {
+class ReadOnlyDatasourceIntegrationTest {
 
   @Autowired
   @Qualifier("trackerReadOnlyDataSource")
