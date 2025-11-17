@@ -212,6 +212,7 @@ class JdbcTrackerEventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
+  @Qualifier("readOnlyNamedParameterJdbcTemplate")
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   @Qualifier("dataValueJsonMapper")

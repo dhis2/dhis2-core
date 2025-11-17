@@ -42,6 +42,7 @@ import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
@@ -51,6 +52,7 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -71,9 +73,23 @@ public class DataSourceConfig {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
+  @Bean
+  public NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate(
+      @Qualifier("readOnlyDataSource") DataSource dataSource) {
+    return new NamedParameterJdbcTemplate(dataSource);
+  }
+
   @Primary
   @Bean
   public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate.setFetchSize(1000);
+    return jdbcTemplate;
+  }
+
+  @Bean
+  public JdbcTemplate primaryReadOnlyJdbcTemplate(
+      @Qualifier("readOnlyDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     return jdbcTemplate;
@@ -95,6 +111,34 @@ public class DataSourceConfig {
   @Bean("actualDataSource")
   public DataSource dataSource(DhisConfigurationProvider config) {
     return createLoggingDataSource(config, actualDataSource(config));
+  }
+
+  @Bean
+  public DataSource readOnlyDataSource(
+      DhisConfigurationProvider config, @Qualifier("actualDataSource") DataSource dataSource) {
+    if (StringUtils.isBlank(config.getProperty(ConfigurationKey.READ_ONLY_CONNECTION_URL))) {
+      return dataSource;
+    }
+
+    DbPoolConfig dbPoolConfig =
+        DbPoolConfig.builder()
+            .dhisConfig(config)
+            .jdbcUrl(config.getProperty(ConfigurationKey.READ_ONLY_CONNECTION_URL))
+            .username(config.getProperty(ConfigurationKey.CONNECTION_USERNAME))
+            .password(config.getProperty(ConfigurationKey.CONNECTION_PASSWORD))
+            .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))
+            .readOnly(true)
+            .build();
+
+    try {
+      return createLoggingDataSource(config, DatabasePoolUtils.createDbPool(dbPoolConfig));
+    } catch (PropertyVetoException | SQLException e) {
+      String message =
+          String.format(
+              "Connection test failed for read-only database pool, jdbcUrl: '%s', user: '%s'",
+              dbPoolConfig.getJdbcUrl(), dbPoolConfig.getUsername());
+      throw new IllegalStateException(message, e);
+    }
   }
 
   private DataSource actualDataSource(DhisConfigurationProvider config) {
