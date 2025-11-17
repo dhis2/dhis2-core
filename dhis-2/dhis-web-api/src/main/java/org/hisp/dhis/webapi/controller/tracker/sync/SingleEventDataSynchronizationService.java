@@ -44,6 +44,7 @@ import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -200,7 +201,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         page -> format("Syncing page %d (size %d)", page, ctx.getPageSize()),
         page -> {
           try {
-            synchronizePage(ctx, settings);
+            synchronizePage(page, ctx, settings);
           } catch (Exception ex) {
             throw new RuntimeException(ex);
           }
@@ -209,7 +210,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     return !progress.isSkipCurrentStage();
   }
 
-  private void synchronizePage(EventSynchronizationContext ctx, SystemSettings settings)
+  private void synchronizePage(int page, EventSynchronizationContext ctx, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = ctx.getSkipChangedBefore();
     Map<String, Set<String>> skipSyncPSDEs = ctx.getSkipSyncPSDEs();
@@ -225,7 +226,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
                 .includeDeleted(true)
                 .build(),
             skipSyncPSDEs,
-            PageParams.of(ctx.getPages(), ctx.getPageSize(), false));
+            PageParams.of(page, ctx.getPageSize(), false));
 
     Map<Boolean, List<Event>> partitioned =
         events.stream().collect(Collectors.partitioningBy(Event::isDeleted));
@@ -234,31 +235,30 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     List<Event> active = partitioned.get(false);
 
     if (!active.isEmpty()) {
-      syncEvents(active, instance, settings, syncStart, false);
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> dtoEvents =
+          events.stream().map(EVENT_MAPPER::map).toList();
+      syncEvents(dtoEvents, instance, settings, syncStart, false);
     }
 
     if (!deleted.isEmpty()) {
-      syncEvents(deleted, instance, settings, syncStart, true);
+      syncEvents(
+          deleted.stream().map(this::toMinimalEvent).toList(), instance, settings, syncStart, true);
     }
   }
 
   private void syncEvents(
-      List<Event> events,
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
       SystemSettings settings,
       Date syncTime,
       boolean isDelete) {
-
-    Set<org.hisp.dhis.webapi.controller.tracker.view.Event> dtoEvents =
-        events.stream().map(EVENT_MAPPER::map).collect(Collectors.toSet());
-
-    String url = instance.getUrl() + SyncEndpoint.TRACKER_IMPORT.getPath();
+    String url = instance.getUrl();
 
     if (isDelete) {
       url += "?importStrategy=DELETE";
     }
 
-    ImportSummary summary = sendTrackerRequest(dtoEvents, instance, settings, url);
+    ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
@@ -269,7 +269,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private ImportSummary sendTrackerRequest(
-      Set<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
       SystemInstance instance,
       SystemSettings settings,
       String url) {
@@ -293,11 +293,16 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
             url,
             settings.getSyncMaxAttempts());
 
-    return response.map(ImportSummary.class::cast).orElse(null);
+    ImportSummary summary = null;
+    if (response.isPresent()) {
+      summary = (ImportSummary) response.get();
+    }
+    return summary;
   }
 
-  private void updateEventsSyncTimestamp(List<Event> events, Date syncTime) {
-    List<String> uids = events.stream().map(Event::getUid).toList();
+  private void updateEventsSyncTimestamp(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
+    List<String> uids = events.stream().map(event -> event.getEvent().getValue()).toList();
     eventService.updateEventsSyncTimestamp(uids, syncTime);
   }
 
@@ -309,5 +314,12 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private SynchronizationResult failProcess(JobProgress progress, String msg) {
     progress.failedProcess(msg);
     return SynchronizationResult.failure(msg);
+  }
+
+  private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(Event ev) {
+    org.hisp.dhis.webapi.controller.tracker.view.Event e =
+        new org.hisp.dhis.webapi.controller.tracker.view.Event();
+    e.setEvent(UID.of(ev.getUid()));
+    return e;
   }
 }
