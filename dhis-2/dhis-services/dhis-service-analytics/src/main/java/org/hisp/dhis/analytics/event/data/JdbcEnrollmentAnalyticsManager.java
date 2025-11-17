@@ -29,10 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
@@ -44,12 +42,8 @@ import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitT
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
-import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
@@ -84,27 +78,20 @@ import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
 import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
 import org.hisp.dhis.analytics.util.sql.SqlWhereClauseExtractor;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -380,166 +367,41 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   @Override
   protected String getWhereClause(EventQueryParams params) {
-    String sql = "";
-    SqlHelper hlp = new SqlHelper();
+    return createWhereClauseBuilder(params)
+        .withPeriodCondition()
+        .withOrgUnitCondition()
+        .withCategoryCondition()
+        .withOrgUnitGroupSetCondition()
+        .withProgramStageCondition()
+        .withQueryItemsCondition()
+        .withFilterExpressionCondition()
+        .withEnrollmentStatusCondition()
+        .withCoordinatesCondition()
+        .withGeometryCondition()
+        .withCompletedCondition()
+        .withBboxCondition()
+        .build();
+  }
 
-    // ---------------------------------------------------------------------
-    // Periods
-    // ---------------------------------------------------------------------
-
-    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
-
-    if (StringUtils.isNotBlank(timeFieldSql)) {
-      sql += hlp.whereAnd() + " " + timeFieldSql;
-    }
-
-    // ---------------------------------------------------------------------
-    // Organisation units
-    // ---------------------------------------------------------------------
-
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
-      sql +=
-          hlp.whereAnd()
-              + " ou in ("
-              + getQuotedCommaDelimitedString(
-                  getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
-              + ") ";
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-      sql +=
-          hlp.whereAnd()
-              + " ou in ("
-              + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnitChildren()))
-              + ") ";
-    } else // Descendants
-    {
-      sql += hlp.whereAnd() + " (";
-
-      for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
-        OrganisationUnit unit = (OrganisationUnit) object;
-        sql +=
-            params
-                    .getOrgUnitField()
-                    .withSqlBuilder(sqlBuilder)
-                    .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
-                + " = '"
-                + unit.getUid()
-                + "' or ";
-      }
-
-      sql = removeLastOr(sql) + ") ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Categories (enrollments don't have attribute categories)
-    // ---------------------------------------------------------------------
-
-    List<DimensionalObject> dynamicDimensions =
-        params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.CATEGORY));
-
-    for (DimensionalObject dim : dynamicDimensions) {
-      if (!isAttributeCategory(dim)) {
-        String dimName = dim.getDimensionName();
-        String col =
-            params.isPiDisagDimension(dimName)
-                ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
-                : quoteAlias(dimName);
-
-        sql +=
-            "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
-      }
-    }
-
-    // ---------------------------------------------------------------------
-    // Organisation unit group sets
-    // ---------------------------------------------------------------------
-
-    dynamicDimensions =
-        params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
-
-    for (DimensionalObject dim : dynamicDimensions) {
-      if (!dim.isAllItems()) {
-        String col = quoteAlias(dim.getDimensionName());
-
-        sql +=
-            "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
-      }
-    }
-
-    // ---------------------------------------------------------------------
-    // Program stage
-    // ---------------------------------------------------------------------
-
-    if (params.hasProgramStage()) {
-      sql += "and ps = '" + params.getProgramStage().getUid() + "' ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-    if (!useExperimentalAnalyticsQueryEngine()) {
-      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
-    }
-
-    // ---------------------------------------------------------------------
-    // Filter expression
-    // ---------------------------------------------------------------------
-
-    if (params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter()) {
-      String filter =
-          programIndicatorService.getAnalyticsSql(
-              params.getProgramIndicator().getFilter(),
-              BOOLEAN,
-              params.getProgramIndicator(),
-              params.getEarliestStartDate(),
-              params.getLatestEndDate());
-
-      String sqlFilter = ExpressionUtils.asSql(filter);
-
-      sql += "and (" + sqlFilter + ") ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Various filters
-    // ---------------------------------------------------------------------
-
-    if (params.hasEnrollmentStatuses()) {
-      sql +=
-          "and enrollmentstatus in ("
-              + params.getEnrollmentStatus().stream()
-                  .map(p -> singleQuote(p.name()))
-                  .collect(joining(","))
-              + ") ";
-    }
-
-    if (params.isCoordinatesOnly()) {
-      sql += "and (longitude is not null and latitude is not null) ";
-    }
-
-    if (params.isGeometryOnly()) {
-      sql +=
-          "and "
-              + getCoalesce(
-                  params.getCoordinateFields(),
-                  FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue())
-              + IS_NOT_NULL;
-    }
-
-    if (params.isCompletedOnly()) {
-      sql += "and completeddate is not null ";
-    }
-
-    if (params.hasBbox()) {
-      sql +=
-          "and "
-              + getCoalesce(
-                  params.getCoordinateFields(),
-                  FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue())
-              + " && ST_MakeEnvelope("
-              + params.getBbox()
-              + ",4326) ";
-    }
-
-    return sql;
+  /**
+   * Creates a configured EnrollmentWhereClauseBuilder instance.
+   *
+   * @param params the query parameters
+   * @return a new builder instance
+   */
+  private EnrollmentWhereClauseBuilder createWhereClauseBuilder(EventQueryParams params) {
+    return new EnrollmentWhereClauseBuilder(
+        params,
+        timeFieldSqlRenderer,
+        sqlBuilder,
+        programIndicatorService,
+        piDisagQueryGenerator,
+        this::quoteAlias,
+        fields -> getCoalesce(fields, FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue()),
+        p ->
+            useExperimentalAnalyticsQueryEngine()
+                ? ""
+                : getQueryItemsAndFiltersWhereClause(p, new SqlHelper()));
   }
 
   private String addFiltersToWhereClause(EventQueryParams params) {
@@ -772,20 +634,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   protected String getColumn(QueryItem item) {
     return getColumn(item, "");
-  }
-
-  /**
-   * Is a category dimension an attribute category (rather than a disaggregation category)?
-   * Attribute categories are not included in enrollment tables, so category user dimension
-   * restrictions (which use attribute categories) do not apply.
-   */
-  private boolean isAttributeCategory(DimensionalObject categoryDim) {
-    return ((CategoryOption) categoryDim.getItems().get(0))
-            .getCategories()
-            .iterator()
-            .next()
-            .getDataDimensionType()
-        == ATTRIBUTE;
   }
 
   private String getExecutionDateFilter(Date startDate, Date endDate) {
