@@ -171,7 +171,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       return new EventSynchronizationContext(skipChangedBefore, pageSize);
     }
 
-    SystemInstance instance = SyncEndpoint.TRACKER_IMPORT.getInstance(settings);
+    SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
 
     Map<String, Set<String>> skipSyncPSDEs =
         programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
@@ -216,7 +216,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   private void synchronizePage(
       int page,
-      Date skipBefore,
+      Date skipChangedBefore,
       Map<String, Set<String>> skipSyncPSDEs,
       SystemSettings settings,
       SystemInstance instance,
@@ -227,7 +227,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         eventService.findEvents(
             EventOperationParams.builder()
                 .programType(ProgramType.WITHOUT_REGISTRATION)
-                .skipChangedBefore(skipBefore)
+                .skipChangedBefore(skipChangedBefore)
                 .synchronizationQuery(true)
                 .includeDeleted(true)
                 .build(),
