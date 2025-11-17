@@ -88,7 +88,8 @@ public final class QueryBuilder {
       Pattern.compile("([\n\t ]+)WHERE[\n\t ]+(?:1=1)?[\n\t ]+AND[\n\t ]+");
 
   private static final Pattern WITH_START = Pattern.compile("^\\s*[a-z_]{1,30}\\s+AS\\s*\\(\\s*$");
-  private static final Pattern WITH_END = Pattern.compile("^\\s*\\)\\s*,?\\s*$");
+  private static final Pattern WITH_END_COMMA = Pattern.compile("^\\s*\\)\\s*,\\s*$");
+  private static final Pattern WITH_END_SELECT = Pattern.compile("^\\s*\\)\\s*$");
   private static final Pattern WITH_END_COMMA_SELECT =
       Pattern.compile("\\)\\s*,(\\s*SELECT)", Pattern.DOTALL);
   private static final Pattern WITH_SELECT = Pattern.compile("WITH\\s+SELECT", Pattern.DOTALL);
@@ -401,7 +402,7 @@ public final class QueryBuilder {
             && !(lines.get(i).contains(alias) && WITH_START.matcher(lines.get(i)).matches())) i++;
         if (i < len) { // found start
           int s = i;
-          while (i < len && !WITH_END.matcher(lines.get(i)).matches()) i++;
+          while (i < len && !isWithEndLine(lines, i)) i++;
           if (i < len) { // found end
             sql =
                 Stream.concat(lines.subList(0, s).stream(), lines.subList(i + 1, len).stream())
@@ -417,6 +418,13 @@ public final class QueryBuilder {
     Matcher repairWithSelect = WITH_SELECT.matcher(sql);
     if (repairWithSelect.find()) return sql.replaceFirst("WITH", "");
     return sql;
+  }
+
+  private static boolean isWithEndLine(List<String> lines, int i) {
+    String line = lines.get(i);
+    if (WITH_END_COMMA.matcher(line).matches()) return true;
+    if (!WITH_END_SELECT.matcher(line).matches()) return false;
+    return i + 1 < lines.size() && lines.get(i + 1).contains("SELECT");
   }
 
   private boolean isErasedJoinOrphan(String sql, String alias) {

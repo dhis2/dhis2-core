@@ -33,7 +33,6 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
-import static org.hisp.dhis.security.acl.AclService.LIKE_READ_METADATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import jakarta.persistence.EntityManager;
@@ -165,7 +164,7 @@ public class HibernateDataExportStore implements DataExportStore {
           UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm \
                  JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid \
                  JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid \
-                 WHERE oug.uid = ANY(:oug) AND (:ouAccess))
+                 WHERE oug.uid = ANY(:oug) AND (:super OR ou.uid = ANY(:capture)))
         ) ou_all
         WHERE organisationunitid IS NOT NULL
       ),
@@ -220,8 +219,6 @@ public class HibernateDataExportStore implements DataExportStore {
       if (!currentUser.isSuper())
         aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
     }
-    String ouAclSql =
-        generateSQlQueryForSharingCheck("ou.sharing", currentUser, LIKE_READ_METADATA);
 
     boolean descendants = params.isIncludeDescendants();
     List<Order> orders = params.getOrders();
@@ -243,8 +240,10 @@ public class HibernateDataExportStore implements DataExportStore {
         .setParameter("lastUpdated", lastUpdated)
         .setParameter("deleted", params.isIncludeDeleted() ? null : false)
         .setDynamicClause("aocAccess", aocAclSql)
-        .setDynamicClause("ouAccess", ouAclSql)
         .eraseNullParameterLines()
+        // keep params below even when null
+        .setParameter("super", currentUser.isSuper())
+        .setParameter("capture", currentUser.getUserOrgUnitIds(), identity())
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
