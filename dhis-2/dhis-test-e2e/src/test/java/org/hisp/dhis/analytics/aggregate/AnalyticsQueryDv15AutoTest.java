@@ -122,21 +122,9 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
     // Then
     response
         .validate()
-        .statusCode(200)
-        .body("headers", hasSize(equalTo(0)))
-        .body("rows", hasSize(equalTo(0)))
-        .body("height", equalTo(0))
-        .body("width", equalTo(0))
-        .body("headerWidth", equalTo(0));
-
-    // Assert metaData.
-    String expectedMetaData =
-        "{\"items\":{\"cDw53Ej8rju\":{\"uid\":\"cDw53Ej8rju\",\"code\":\"OU_278371\",\"name\":\"Afro Arab Clinic\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"KjElpUc6jeX\":{\"uid\":\"KjElpUc6jeX\",\"name\":\"Expected Pregnancies\",\"dimensionItemType\":\"INDICATOR\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\",\"indicatorType\":{\"name\":\"Number (Factor 1)\",\"displayName\":\"Number (Factor 1)\",\"factor\":1,\"number\":true}},\"iPcreOldeV9\":{\"uid\":\"iPcreOldeV9\",\"code\":\"OU_278379\",\"name\":\"Benguema MI Room\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"dx\":{\"uid\":\"dx\",\"name\":\"Data\",\"dimensionType\":\"DATA_X\"},\"pe\":{\"uid\":\"pe\",\"name\":\"Period\",\"dimensionType\":\"PERIOD\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"Rp268JB6Ne4\":{\"uid\":\"Rp268JB6Ne4\",\"code\":\"OU_651071\",\"name\":\"Adonkia CHP\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"},\"jjtzkzrmG7s\":{\"uid\":\"jjtzkzrmG7s\",\"code\":\"OU_278384\",\"name\":\"Banana Island MCHP\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"dx\":[\"KjElpUc6jeX\"],\"pe\":[\"2021\"],\"ou\":[\"Rp268JB6Ne4\",\"cDw53Ej8rju\",\"jjtzkzrmG7s\",\"iPcreOldeV9\"],\"co\":[]}}";
-    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    assertEquals(expectedMetaData, actualMetaData, false);
-
-    // Assert headers.
-
-    // Assert rows.
+        .statusCode(409)
+        .body(
+            "message",
+            equalTo("Periods as filter not supported with Indicator with period offset"));
   }
 }

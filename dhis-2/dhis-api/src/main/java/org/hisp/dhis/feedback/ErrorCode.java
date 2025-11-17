@@ -497,6 +497,7 @@ public enum ErrorCode {
   E7149("Invalid measure filter operator: `{0}`"),
   E7150("No periods found for subexpression query"),
   E7151("Too many combinations of columns or rows."),
+  E7152("Periods as filter not supported with Indicator with period offset"),
   /* Analytics outliers */
 
   E7180(
