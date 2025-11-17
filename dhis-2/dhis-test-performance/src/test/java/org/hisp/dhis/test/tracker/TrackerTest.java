@@ -76,8 +76,29 @@ public class TrackerTest extends Simulation {
     // Injection profile configuration
     String profile = System.getProperty("profile", "load");
     int users = Integer.getInteger("users", 10);
-    int duration = Integer.getInteger("duration", 600); // seconds (10 minutes)
-    int rampDuration = Integer.getInteger("rampDuration", 300); // seconds (5 minutes)
+
+    // Set profile-aware defaults for duration and rampDuration
+    int defaultDuration =
+        switch (profile.toLowerCase()) {
+          case "load" -> 300; // 5 minutes sustained
+          case "stress" -> 30; // 30 seconds per step
+          case "spike" -> 120; // 2 minutes total
+          case "soak" -> 3600; // 1 hour sustained
+          default -> 300; // 5 minutes default
+        };
+
+    int defaultRampDuration =
+        switch (profile.toLowerCase()) {
+          case "load" -> 60; // 1 minute ramp-up
+          case "stress" -> 10; // 10 seconds between steps
+          case "soak" -> 120; // 2 minutes ramp-up
+          case "capacity" -> 600; // 10 minutes to find capacity
+          default -> 60; // 1 minute default
+        };
+
+    int duration = Integer.getInteger("duration", defaultDuration);
+    int rampDuration = Integer.getInteger("rampDuration", defaultRampDuration);
+    int steps = Integer.getInteger("steps", 10); // number of steps for stress profile
 
     // Provision users via DHIS2 API
     String adminUser = System.getProperty("adminUser", "admin");
@@ -96,7 +117,9 @@ public class TrackerTest extends Simulation {
             .acceptHeader("application/json")
             .userAgentHeader("Gatling/Performance Test")
             .disableFollowRedirect()
-            .warmUp(instance + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
+            .warmUp(
+                instance
+                    + "/api/ping") // https://docs.gatling.io/reference/script/http/protocol/#warmup
             .disableCaching() // to repeat the same request without HTTP cache influence (304)
             .check(status().is(200)); // global check for all requests
 
@@ -109,7 +132,8 @@ public class TrackerTest extends Simulation {
     allAssertions.addAll(eventScenario.requests().stream().map(Request::assertion).toList());
     allAssertions.addAll(trackerScenario.requests().stream().map(Request::assertion).toList());
 
-    OpenInjectionStep[] injectionProfile = getInjectionProfile(profile, users, duration, rampDuration);
+    OpenInjectionStep[] injectionProfile =
+        getInjectionProfile(profile, users, duration, rampDuration, steps);
 
     setUp(
             eventScenario
@@ -148,7 +172,8 @@ public class TrackerTest extends Simulation {
     // Get source user ID
     HttpRequest getUserRequest =
         HttpRequest.newBuilder()
-            .uri(URI.create(baseUrl + "/api/users?filter=username:eq:" + replicaUser + "&fields=id"))
+            .uri(
+                URI.create(baseUrl + "/api/users?filter=username:eq:" + replicaUser + "&fields=id"))
             .header("Authorization", "Basic " + auth)
             .header("Accept", "application/json")
             .GET()
@@ -159,7 +184,10 @@ public class TrackerTest extends Simulation {
 
     if (getUserResponse.statusCode() != 200) {
       throw new RuntimeException(
-          "Failed to get source user: " + getUserResponse.statusCode() + " " + getUserResponse.body());
+          "Failed to get source user: "
+              + getUserResponse.statusCode()
+              + " "
+              + getUserResponse.body());
     }
 
     // Extract user ID using regex (simple JSON parsing)
@@ -229,10 +257,11 @@ public class TrackerTest extends Simulation {
    * @param users Number of users (semantics vary by profile)
    * @param duration Main test duration in seconds
    * @param rampDuration Ramp-up duration in seconds
+   * @param steps Number of steps for stress profile
    * @return OpenInjectionStep for the specified profile
    */
   private OpenInjectionStep[] getInjectionProfile(
-      String profile, int users, int duration, int rampDuration) {
+      String profile, int users, int duration, int rampDuration, int steps) {
     return switch (profile.toLowerCase()) {
       case "load" ->
           // Load Testing: Gradual ramp-up → Sustained peak
@@ -243,33 +272,36 @@ public class TrackerTest extends Simulation {
 
       case "stress" ->
           // Stress Testing: Stepped progressive increases (staircase pattern)
+          // duration = time to hold each step, rampDuration = time to ramp between steps
           new OpenInjectionStep[] {
-            incrementUsersPerSec((double) users / 10)
-                .times(10)
-                .eachLevelLasting(Duration.ofSeconds(duration / 10))
-                .separatedByRampsLasting(Duration.ofSeconds(60))
-                .startingFrom((double) users / 10)
+            incrementUsersPerSec((double) users / steps)
+                .times(steps)
+                .eachLevelLasting(Duration.ofSeconds(duration))
+                .separatedByRampsLasting(Duration.ofSeconds(rampDuration))
+                .startingFrom((double) users / steps)
           };
 
       case "spike" ->
-          // Spike Testing: Baseline → Instant spike → Brief peak
+          // Spike Testing: Baseline → Instant spike → Recovery
+          // duration split evenly: baseline for duration/2, spike at midpoint, recovery for
+          // duration/2
           new OpenInjectionStep[] {
-            constantUsersPerSec((double) users / 5).during(Duration.ofSeconds(300)),
+            constantUsersPerSec((double) users / 5).during(Duration.ofSeconds(duration / 2)),
             atOnceUsers(users),
-            constantUsersPerSec((double) users / 2).during(Duration.ofSeconds(120))
+            constantUsersPerSec((double) users / 2).during(Duration.ofSeconds(duration / 2))
           };
 
       case "soak" ->
           // Soak Testing: Extended duration for memory leaks
           new OpenInjectionStep[] {
             rampUsersPerSec(1).to(users).during(Duration.ofSeconds(rampDuration)),
-            constantUsersPerSec(users).during(Duration.ofHours(4))
+            constantUsersPerSec(users).during(Duration.ofSeconds(duration))
           };
 
       case "capacity" ->
           // Capacity Testing: Continuous increase to breaking point
           new OpenInjectionStep[] {
-            rampUsersPerSec(0).to(users * 2).during(Duration.ofSeconds(duration))
+            rampUsersPerSec(0).to(users).during(Duration.ofSeconds(rampDuration))
           };
 
       default ->
@@ -332,20 +364,18 @@ public class TrackerTest extends Simulation {
             .exec(login())
             .exitHereIfFailed()
             .group("Get a list of single events")
-                    .on(
-                        exec(goToFirstPage.action())
-                            .exec(goToSecondPage.action())
-                            .exec(
-                                searchSingleEvents
-                                    .action()
-                                    .check(jsonPath("$.events").exists())
-                                    .check(jsonPath("$.events[0]").exists())
-                                    .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                            .exitHereIfFailed()
-                            .group("Get one single event")
-                            .on(
-                                exec(getFirstEvent.action())
-                                    .exec(getRelationshipsForFirstEvent.action())));
+            .on(
+                exec(goToFirstPage.action())
+                    .exec(goToSecondPage.action())
+                    .exec(
+                        searchSingleEvents
+                            .action()
+                            .check(jsonPath("$.events").exists())
+                            .check(jsonPath("$.events[0]").exists())
+                            .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                    .exitHereIfFailed()
+                    .group("Get one single event")
+                    .on(exec(getFirstEvent.action()).exec(getRelationshipsForFirstEvent.action())));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -486,56 +516,53 @@ public class TrackerTest extends Simulation {
             .exec(login())
             .exitHereIfFailed()
             .group("Get a list of TEs")
+            .on(
+                exec(notFoundTeByNameWithLikeOperator.action())
+                    .exec(notFoundTeByNationalIdWithEqualOperator.action())
+                    .exec(searchTeByNameWithLikeOperator.action())
+                    .exec(searchTeByNationalIdWithEqualOperator.action())
+                    .exec(
+                        searchEventsByProgramStage
+                            .action()
+                            .check(jsonPath("$.events").exists())
+                            .check(jsonPath("$.events[0]").exists())
+                            .check(
+                                jsonPath("$.events[*].trackedEntity")
+                                    .findAll()
+                                    .transform(
+                                        list -> String.join(",", list.stream().distinct().toList()))
+                                    .saveAs("trackedEntityUids")))
+                    .exitHereIfFailed()
+                    .exec(getTrackedEntitiesForEvents.action())
+                    .exec(
+                        getFirstPageOfTEs
+                            .action()
+                            .check(jsonPath("$.trackedEntities").exists())
+                            .check(jsonPath("$.trackedEntities[0]").exists())
+                            .check(
+                                jsonPath("$.trackedEntities[0].trackedEntity")
+                                    .saveAs("trackedEntityUid")))
+                    .exitHereIfFailed()
+                    .group("Go to single enrollment")
                     .on(
-                        exec(notFoundTeByNameWithLikeOperator.action())
-                            .exec(notFoundTeByNationalIdWithEqualOperator.action())
-                            .exec(searchTeByNameWithLikeOperator.action())
-                            .exec(searchTeByNationalIdWithEqualOperator.action())
-                            .exec(
-                                searchEventsByProgramStage
-                                    .action()
-                                    .check(jsonPath("$.events").exists())
-                                    .check(jsonPath("$.events[0]").exists())
-                                    .check(
-                                        jsonPath("$.events[*].trackedEntity")
-                                            .findAll()
-                                            .transform(
-                                                list ->
-                                                    String.join(
-                                                        ",", list.stream().distinct().toList()))
-                                            .saveAs("trackedEntityUids")))
+                        exec(getFirstTrackedEntity
+                                .action()
+                                .check(jsonPath("$.enrollments").exists())
+                                .check(jsonPath("$.enrollments[0]").exists())
+                                .check(
+                                    jsonPath("$.enrollments[0].enrollment").saveAs("enrollmentUid"))
+                                .check(jsonPath("$.enrollments[0].events").exists())
+                                .check(jsonPath("$.enrollments[0].events[0]").exists())
+                                .check(
+                                    jsonPath("$.enrollments[0].events[0].event")
+                                        .saveAs("eventUid")))
                             .exitHereIfFailed()
-                            .exec(getTrackedEntitiesForEvents.action())
-                            .exec(
-                                getFirstPageOfTEs
-                                    .action()
-                                    .check(jsonPath("$.trackedEntities").exists())
-                                    .check(jsonPath("$.trackedEntities[0]").exists())
-                                    .check(
-                                        jsonPath("$.trackedEntities[0].trackedEntity")
-                                            .saveAs("trackedEntityUid")))
-                            .exitHereIfFailed()
-                            .group("Go to single enrollment")
+                            .exec(getFirstEnrollment.action())
+                            .exec(getRelationshipsForTrackedEntity.action())
+                            .group("Get one event")
                             .on(
-                                exec(getFirstTrackedEntity
-                                        .action()
-                                        .check(jsonPath("$.enrollments").exists())
-                                        .check(jsonPath("$.enrollments[0]").exists())
-                                        .check(
-                                            jsonPath("$.enrollments[0].enrollment")
-                                                .saveAs("enrollmentUid"))
-                                        .check(jsonPath("$.enrollments[0].events").exists())
-                                        .check(jsonPath("$.enrollments[0].events[0]").exists())
-                                        .check(
-                                            jsonPath("$.enrollments[0].events[0].event")
-                                                .saveAs("eventUid")))
-                                    .exitHereIfFailed()
-                                    .exec(getFirstEnrollment.action())
-                                    .exec(getRelationshipsForTrackedEntity.action())
-                                    .group("Get one event")
-                                    .on(
-                                        exec(getFirstEventFromEnrollment.action())
-                                            .exec(getRelationshipsForEvent.action()))));
+                                exec(getFirstEventFromEnrollment.action())
+                                    .exec(getRelationshipsForEvent.action()))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
