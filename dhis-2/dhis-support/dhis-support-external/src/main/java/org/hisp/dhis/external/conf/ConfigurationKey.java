@@ -99,7 +99,7 @@ public enum ConfigurationKey {
   CONNECTION_URL("connection.url", "", false),
 
   /** Read only database connection URL. */
-  READ_ONLY_CONNECTION_URL("read.only.connection.url", "", false),
+  READ_REPLICA_CONNECTION_URL("read.replica.connection.url", "", false),
 
   /**
    * If present, overrides the connection.url value - useful when running Apache Doris in a

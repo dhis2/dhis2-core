@@ -116,14 +116,14 @@ public class DataSourceConfig {
   @Bean
   public DataSource readOnlyDataSource(
       DhisConfigurationProvider config, @Qualifier("actualDataSource") DataSource dataSource) {
-    if (StringUtils.isBlank(config.getProperty(ConfigurationKey.READ_ONLY_CONNECTION_URL))) {
+    if (StringUtils.isBlank(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))) {
       return dataSource;
     }
 
     DbPoolConfig dbPoolConfig =
         DbPoolConfig.builder()
             .dhisConfig(config)
-            .jdbcUrl(config.getProperty(ConfigurationKey.READ_ONLY_CONNECTION_URL))
+            .jdbcUrl(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))
             .username(config.getProperty(ConfigurationKey.CONNECTION_USERNAME))
             .password(config.getProperty(ConfigurationKey.CONNECTION_PASSWORD))
             .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))

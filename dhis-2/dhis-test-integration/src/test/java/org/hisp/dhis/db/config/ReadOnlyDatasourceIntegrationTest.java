@@ -98,13 +98,13 @@ class ReadOnlyDatasourceIntegrationTest {
         new DhisConfigurationProvider() {
           @Override
           public String getProperty(ConfigurationKey key) {
-            return key == ConfigurationKey.READ_ONLY_CONNECTION_URL ? "" : null;
+            return key == ConfigurationKey.READ_REPLICA_CONNECTION_URL ? "" : null;
           }
 
           @Override
           public Properties getProperties() {
             Properties props = new Properties();
-            props.setProperty(ConfigurationKey.READ_ONLY_CONNECTION_URL.name(), "");
+            props.setProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL.name(), "");
             return props;
           }
 

@@ -70,7 +70,7 @@ public class TrackerReadOnlyDataSourceTestConfig {
       @Override
       public String getProperty(ConfigurationKey key) {
         return switch (key) {
-          case READ_ONLY_CONNECTION_URL, CONNECTION_URL -> container.getJdbcUrl();
+          case READ_REPLICA_CONNECTION_URL, CONNECTION_URL -> container.getJdbcUrl();
           case CONNECTION_USERNAME -> container.getUsername();
           case CONNECTION_PASSWORD -> container.getPassword();
           case DB_POOL_TYPE -> "HIKARI";
@@ -90,7 +90,8 @@ public class TrackerReadOnlyDataSourceTestConfig {
       @Override
       public Properties getProperties() {
         Properties props = new Properties();
-        props.setProperty(ConfigurationKey.READ_ONLY_CONNECTION_URL.name(), container.getJdbcUrl());
+        props.setProperty(
+            ConfigurationKey.READ_REPLICA_CONNECTION_URL.name(), container.getJdbcUrl());
         props.setProperty(ConfigurationKey.CONNECTION_USERNAME.name(), container.getUsername());
         props.setProperty(ConfigurationKey.CONNECTION_PASSWORD.name(), container.getPassword());
         props.setProperty(ConfigurationKey.DB_POOL_TYPE.name(), "HIKARI");
