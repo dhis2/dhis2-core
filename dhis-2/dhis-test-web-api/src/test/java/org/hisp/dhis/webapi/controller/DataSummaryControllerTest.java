@@ -53,8 +53,11 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(
         content.contains("# HELP data_summary_active_users"), "Active users help text is missing");
     assertTrue(
-        content.lines().anyMatch(line -> line.startsWith("data_summary_active_user")),
-        "Active users metric is missing");
+        content
+            .lines()
+            .anyMatch(line -> line.matches("^data_summary_active_users\\{days=\"\\d+\"} \\d+")),
+        "Active users metric should have days label and integer value");
+
     assertTrue(
         content.contains("# HELP data_summary_object_counts"),
         "Object counts help text is missing");
@@ -72,9 +75,33 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(
         content.lines().anyMatch(line -> line.startsWith("data_summary_event_count")),
         "Event count metric is missing");
+    // Single event count
+    assertTrue(
+        content.contains("# HELP data_summary_single_event_count"),
+        "Single event count help text is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_single_event_count")),
+        "Single event count metric is missing");
+    // Tracker event count
+    assertTrue(
+        content.contains("# HELP data_summary_tracker_event_count"),
+        "Tracker event count help text is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_tracker_event_count")),
+        "Tracker event count metric is missing");
     assertTrue(
         content.lines().anyMatch(line -> line.startsWith("data_summary_enrollment_count")),
         "Enrollment count metric is missing");
+    // Logins
+    assertTrue(content.contains("# HELP data_summary_logins"), "Logins help text is missing");
+    assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_logins")),
+        "Logins metric is missing");
+    assertTrue(
+        content
+            .lines()
+            .anyMatch(line -> line.matches("^data_summary_logins\\{days=\"\\d+\"} \\d+")),
+        "Logins metric should have days label and integer value");
     assertTrue(
         content.contains("# HELP data_summary_build_info"), "Build info help text is missing");
     // data_summary_build_info should end with an integer representing the build time in seconds
@@ -114,6 +141,16 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .asMap(JsonValue.class)
         .keys()
         .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Active user keys should be integers"));
+    content
+        .get("logins")
+        .asMap(JsonValue.class)
+        .values()
+        .forEach(value -> assertTrue(value.isInteger(), "Login values should be integers"));
+    content
+        .get("logins")
+        .asMap(JsonValue.class)
+        .keys()
+        .forEach(key -> assertTrue(key.matches("\\d{1,2}"), "Login keys should be integers"));
     assertTrue(content.has("userInvitations"), "User invitations are missing");
     content
         .get("activeUsers")
@@ -363,37 +400,37 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void canVerifyActiveUsersOneHourAgo() {
+  void canVerifyLoginsOneHourAgo() {
     HttpResponse responseBefore = GET("/api/dataSummary");
     JsonMixed contentBefore = responseBefore.content();
     // Users over the last hour
-    int activeUsersOneHourAgoCountBefore;
+    int loginsOneHourAgoCountBefore;
     try {
-      String raw = contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString();
-      activeUsersOneHourAgoCountBefore = Integer.parseInt(raw);
+      String raw = contentBefore.get("logins").asMap(JsonValue.class).get("0").toString();
+      loginsOneHourAgoCountBefore = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
       fail(
           "Could not parse active users one hour ago count as integer: "
-              + contentBefore.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+              + contentBefore.get("logins").asMap(JsonValue.class).get("0").toString());
       return;
     }
-    int activeUsersOneWeekAgoCountBefore;
+    int loginsOneWeekAgoCountBefore;
     try {
-      String raw = contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString();
-      activeUsersOneWeekAgoCountBefore = Integer.parseInt(raw);
+      String raw = contentBefore.get("logins").asMap(JsonValue.class).get("2").toString();
+      loginsOneWeekAgoCountBefore = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
       fail(
           "Could not parse active users one week ago count as integer: "
-              + contentBefore.get("activeUsers").asMap(JsonValue.class).get("2").toString());
+              + contentBefore.get("logins").asMap(JsonValue.class).get("2").toString());
       return;
     }
 
     // Confirm greater than or equal to zero
     assertTrue(
-        activeUsersOneHourAgoCountBefore >= 0,
+        loginsOneHourAgoCountBefore >= 0,
         "Active users count one hour ago should be greater than or equal to zero");
     assertTrue(
-        activeUsersOneWeekAgoCountBefore >= 0,
+        loginsOneWeekAgoCountBefore >= 0,
         "Active users count one week ago should be greater than or equal to zero");
 
     // Create a new user with the service layer and be sure to set the last login to five minutes
@@ -412,38 +449,38 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
     // Get object counts after creating a user
     HttpResponse responseAfter = GET("/api/dataSummary");
     JsonMixed contentAfter = responseAfter.content();
-    int activeUsersOneHourAgoCountAfter;
+    int loginsOneHourAgoCountAfter;
     try {
-      String raw = contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString();
-      activeUsersOneHourAgoCountAfter = Integer.parseInt(raw);
+      String raw = contentAfter.get("logins").asMap(JsonValue.class).get("0").toString();
+      loginsOneHourAgoCountAfter = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
       fail(
-          "Could not parse active users one hour ago count AFTER as integer: "
-              + contentAfter.get("activeUsers").asMap(JsonValue.class).get("0").toString());
+          "Could not parse logins one hour ago count AFTER as integer: "
+              + contentAfter.get("logins").asMap(JsonValue.class).get("0").toString());
       return;
     }
     // Confirm the count has increased by one
     assertEquals(
-        activeUsersOneHourAgoCountBefore + 1,
-        activeUsersOneHourAgoCountAfter,
-        "Active users count one hour ago should have increased by one after user login");
+        loginsOneHourAgoCountBefore + 1,
+        loginsOneHourAgoCountAfter,
+        "Logins count one hour ago should have increased by one after user login");
 
-    // Active users over the last week should have increased by two
-    int activeUsersOneWeekAgoCountAfter;
+    // Logins over the last week should have increased by two
+    int loginsOneWeekAgoCountAfter;
     try {
-      String raw = contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString();
-      activeUsersOneWeekAgoCountAfter = Integer.parseInt(raw);
+      String raw = contentAfter.get("logins").asMap(JsonValue.class).get("7").toString();
+      loginsOneWeekAgoCountAfter = Integer.parseInt(raw);
     } catch (NumberFormatException e) {
       fail(
-          "Could not parse active users one week ago count AFTER as integer: "
-              + contentAfter.get("activeUsers").asMap(JsonValue.class).get("7").toString());
+          "Could not parse logins one week ago count AFTER as integer: "
+              + contentAfter.get("logins").asMap(JsonValue.class).get("7").toString());
       return;
     }
 
     assertEquals(
-        activeUsersOneWeekAgoCountBefore + 2,
-        activeUsersOneWeekAgoCountAfter,
-        "Active users count one week ago should have increased by two after user logins");
+        loginsOneWeekAgoCountBefore + 2,
+        loginsOneWeekAgoCountAfter,
+        "Logins count one week ago should have increased by two after user logins");
 
     // Clean up - delete the user
     userService.deleteUser(a);
