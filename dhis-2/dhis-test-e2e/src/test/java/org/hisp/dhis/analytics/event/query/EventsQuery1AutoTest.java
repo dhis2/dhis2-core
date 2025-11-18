@@ -53,36 +53,6 @@ import org.junit.jupiter.api.Test;
 public class EventsQuery1AutoTest extends AnalyticsApiTest {
   private final AnalyticsEventActions actions = new AnalyticsEventActions();
 
-
-    @Test
-    public void newParams() throws JSONException {
-
-        boolean expectPostgis = isPostgres();
-
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        //.add("stage=Zj7UnCAulEk")
-                        .add("displayProperty=NAME")
-                        .add("totalPages=false")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-//                        .add(
-//                                "dimension=pe:THIS_YEAR,ou:ImspTQPwCqd,Zj7UnCAulEk.eMyVanycQSC,Zj7UnCAulEk.qrur9Dvnyt5,Zj7UnCAulEk.oZg33kd9taw,Zj7UnCAulEk.fWIAEtYVEGk,Zj7UnCAulEk.msodh3rEMJa")
-                        .add(
-                                "dimension=ou:ImspTQPwCqd")
-
-                        .add("desc=eventdate,lastupdated")
-                        .add("eventDate=EPEcjy3FWmI.LAST_YEAR")
-                        .add("relativePeriodDate=2022-12-31");
-
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
-
-        response.prettyPrint();
-    }
-
   @Test
   public void queryCases5To15YearsThisYearcase() throws JSONException {
 
