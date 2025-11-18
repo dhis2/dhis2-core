@@ -351,7 +351,7 @@ public class DefaultDataExportService implements DataExportService {
     if (degIn == null) degIn = anyIn;
 
     List<UID> attributeOptionCombos = decodeIds(COC, anyIn, params.getAttributeOptionCombo());
-    if (attributeOptionCombos == null && params.getAttributeOptions() != null) {
+    if (attributeOptionCombos.isEmpty() && params.getAttributeOptions() != null) {
       UID aoc =
           store.getAttributeOptionCombo(
               params.getAttributeCombo(), params.getAttributeOptions().stream());

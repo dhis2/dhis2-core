@@ -44,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -293,5 +294,18 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(
         String.format("User is not allowed to read data for data set(s): `[%s]`", dsId),
         response.getMessage());
+  }
+
+  @Test
+  @DisplayName("Validation errors become CONFLICT HTTP responses")
+  void testGetDataValueSetJson_NoDataElementFilter() {
+    JsonWebMessage msg =
+        GET("/dataValueSets/?orgUnit={ou}&period=2022-01", "ou123456789")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E2001, msg.getErrorCode());
+    assertEquals(
+        "At least one data element, data set or data element group must be specified",
+        msg.getMessage());
   }
 }
