@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -109,12 +110,20 @@ public class HibernateConfig {
     return new HibernateDbmsManager(jdbcTemplate, entityManager, cacheManager);
   }
 
+  @Primary
   @Bean
   public EntityManager sharedEntityManager(EntityManagerFactory emf) {
     return SharedEntityManagerCreator.createSharedEntityManager(emf);
   }
 
+  @Bean
+  public EntityManager readOnlyEntityManager(
+      @Qualifier("readOnlyEntityManagerFactory") EntityManagerFactory emf) {
+    return SharedEntityManagerCreator.createSharedEntityManager(emf);
+  }
+
   // NOTE: this must stay in sync with H2TestConfig.entityManagerFactory
+  @Primary
   @Bean
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactory(
@@ -125,6 +134,25 @@ public class HibernateConfig {
     factory.setJpaVendorAdapter(adapter);
     factory.setDataSource(dataSource);
     factory.setPersistenceUnitName("dhis");
+    factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+    factory.setPackagesToScan("org.hisp.dhis");
+    factory.setMappingResources(loadResources());
+    factory.setJpaProperties(getAdditionalProperties(dhisConfig));
+    factory.afterPropertiesSet();
+    return factory.getObject();
+  }
+
+  @Bean
+  @DependsOn({"flyway"})
+  public EntityManagerFactory readOnlyEntityManagerFactory(
+      DhisConfigurationProvider dhisConfig,
+      @Qualifier("readOnlyDataSource") DataSource dataSource) {
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+    adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(adapter);
+    factory.setDataSource(dataSource);
+    factory.setPersistenceUnitName("dhis-read-only");
     factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setMappingResources(loadResources());

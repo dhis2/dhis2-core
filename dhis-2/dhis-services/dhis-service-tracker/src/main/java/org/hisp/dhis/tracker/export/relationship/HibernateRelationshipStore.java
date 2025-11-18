@@ -44,31 +44,39 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.Session;
+import org.hibernate.annotations.QueryHints;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.intellij.lang.annotations.Language;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 // This class is annotated with @Component instead of @Repository because @Repository creates a
 // proxy that can't be used to inject the class.
 @Component("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
-class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship> {
+@RequiredArgsConstructor
+class HibernateRelationshipStore {
+  // TODO Add a javadoc to explain why this store is still Hibernate and why should it be turned to
+  // JDBC eventually.
+
+  // TODO Add tests to verify the data source is read only when configured
+  @Qualifier("readOnlyEntityManager")
+  private final EntityManager entityManager;
 
   private static final org.hisp.dhis.tracker.export.Order DEFAULT_ORDER =
       new org.hisp.dhis.tracker.export.Order("id", SortDirection.DESC);
@@ -78,14 +86,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
    * org.hisp.dhis.relationship.Relationship}.
    */
   private static final Set<String> ORDERABLE_FIELDS = Set.of("created", "createdAtClient");
-
-  public HibernateRelationshipStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
-  }
 
   public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity, boolean includeDeleted) {
     @Language("hql")
@@ -255,7 +255,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private long countRelationships(RelationshipQueryParams queryParams) {
 
-    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
 
     Root<Relationship> root = criteriaQuery.from(Relationship.class);
@@ -285,7 +285,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   private CriteriaQuery<Relationship> criteriaQuery(RelationshipQueryParams queryParams) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
 
     Root<Relationship> root = criteriaQuery.from(Relationship.class);
@@ -393,5 +393,13 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
+  }
+
+  private <C> Query<C> getQuery(@Language("hql") String hql, Class<C> customClass) {
+    return entityManager
+        .unwrap(Session.class)
+        .createQuery(hql, customClass)
+        .setCacheable(false)
+        .setHint(QueryHints.CACHEABLE, false);
   }
 }

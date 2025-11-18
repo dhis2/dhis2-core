@@ -64,9 +64,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+// @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
@@ -323,8 +322,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
+    Program inaccessibleProgram = protectedProgram('Q', trackedEntityType, orgUnitB);
 
-    Program inaccessibleProgram = protectedProgram('P', trackedEntityType, orgUnitB);
     manager.save(inaccessibleProgram, false);
 
     TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB, trackedEntityType);
@@ -384,10 +383,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('Y');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('Z');
     manager.save(trackedEntityType, false);
 
-    Program program = createProgram('Y', new HashSet<>(), orgUnitA);
+    Program program = createProgram('Z', new HashSet<>(), orgUnitA);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
     program.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
