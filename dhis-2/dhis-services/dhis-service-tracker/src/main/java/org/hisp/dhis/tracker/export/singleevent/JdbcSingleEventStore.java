@@ -55,7 +55,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -199,12 +198,11 @@ class JdbcSingleEventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
+  @Qualifier("readOnlyNamedParameterJdbcTemplate")
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
-
-  private final IdentifiableObjectManager manager;
 
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
