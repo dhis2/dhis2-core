@@ -75,7 +75,8 @@ public class TrackerTest extends Simulation {
 
     // Injection profile configuration
     String profile = System.getProperty("profile", "load");
-    int users = Integer.getInteger("users", 10);
+    int users = Integer.getInteger("users", 4);
+    int provisionUsers = Integer.getInteger("provisionUsers", users);
 
     // Set profile-aware defaults for duration and rampDuration
     int defaultDuration =
@@ -107,7 +108,8 @@ public class TrackerTest extends Simulation {
     String replicaPassword = System.getProperty("replicaPassword", "Tracker123!");
 
     try {
-      provisionUsers(instance, adminUser, adminPassword, replicaUser, replicaPassword, users);
+      provisionUsers(
+          instance, adminUser, adminPassword, replicaUser, replicaPassword, provisionUsers);
     } catch (Exception e) {
       throw new RuntimeException("User provisioning failed", e);
     }
@@ -199,7 +201,9 @@ public class TrackerTest extends Simulation {
     String userId = matcher.group(1);
     System.out.println("Found source user '" + replicaUser + "' with ID: " + userId);
 
-    // Create replicas
+    // Create replicas with throttling to avoid hammering the system
+    int provisionDelay =
+        Integer.getInteger("provisionDelay", 100); // milliseconds between user creations
     for (int i = 1; i <= count; i++) {
       String username = String.format("%s_user_%03d", replicaUser, i);
       String requestBody =
@@ -242,12 +246,27 @@ public class TrackerTest extends Simulation {
                 + " - "
                 + replicateResponse.body());
       }
+
+      // Throttle user creation to avoid overwhelming the system
+      if (i < count && provisionDelay > 0) {
+        Thread.sleep(provisionDelay);
+      }
     }
 
     // Initialize feeder with provisioned credentials
+    // Use circular to reuse users across multiple VU executions
+    // As long as provisionUsers >= peak concurrent VUs, no concurrent sessions for same user
     userFeeder = io.gatling.javaapi.core.CoreDsl.listFeeder(userCredentials).circular();
 
     System.out.println("User provisioning complete! Total users: " + userCredentials.size());
+
+    // Wait for system to stabilize after user creation
+    int pauseAfterProvisioning = Integer.getInteger("pauseAfterProvisioning", 5); // seconds
+    if (pauseAfterProvisioning > 0) {
+      System.out.println("Waiting " + pauseAfterProvisioning + "s for system to stabilize...");
+      Thread.sleep(pauseAfterProvisioning * 1000L);
+      System.out.println("Starting test execution...");
+    }
   }
 
   /**
