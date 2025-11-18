@@ -2017,7 +2017,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     CteContext cteContext = getCteDefinitions(params);
 
     // 2. Generate any additional CTE filters that might be needed
-    generateFilterCTEs(params, cteContext);
+    if (cteContext.isEnrollmentAnalytics()) {
+      // Filter CTEs are only meaningful for Enrollment queries
+      generateFilterCTEs(params, cteContext);
+    }
 
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
@@ -2620,10 +2623,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param cteContext the {@link CteContext} object
    */
   private void generateFilterCTEs(EventQueryParams params, CteContext cteContext) {
-    // Filter CTEs are only meaningful for Enrollment queries
-    if (cteContext.isEventsAnalytics()) {
-      return;
-    }
     generateFilterCTEs(params, cteContext, false);
   }
 
