@@ -95,7 +95,6 @@ public class RecordingJobProgress implements JobProgress {
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
-  private final boolean logOnDebug;
   private final boolean skipRecording;
   private final String user;
 
@@ -578,16 +577,6 @@ public class RecordingJobProgress implements JobProgress {
   private void logDebug(Node source, String action, String message) {
     if (log.isDebugEnabled()) {
       log.debug(formatLogMessage(source, action, message));
-    }
-  }
-
-  private void logInfo(Node source, String action, String message) {
-    if (logOnDebug) {
-      if (log.isDebugEnabled()) {
-        log.debug(formatLogMessage(source, action, message));
-      }
-    } else if (log.isInfoEnabled()) {
-      log.info(formatLogMessage(source, action, message));
     }
   }
 
