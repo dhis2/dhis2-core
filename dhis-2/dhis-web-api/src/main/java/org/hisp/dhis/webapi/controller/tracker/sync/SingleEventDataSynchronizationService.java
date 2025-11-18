@@ -107,7 +107,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         SystemInstance instance,
         int pageSize,
         Map<String, Set<String>> skipSyncPSDEs) {
-
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
       this.skipSyncPSDEs = skipSyncPSDEs;
     }
@@ -120,7 +119,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   @Override
   public SynchronizationResult synchronizeTrackerData(
       int pageSize, JobProgress progress, String programUid) {
-
     progress.startingProcess("Starting " + PROCESS_NAME);
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
@@ -145,7 +143,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   private EventSynchronizationContext initializeContext(
       int pageSize, JobProgress progress, SystemSettings settings, String programUid) {
-
     return progress.runStage(
         new EventSynchronizationContext(null, pageSize),
         ctx -> "Events changed before " + ctx.getSkipChangedBefore() + " will not sync.",
@@ -155,7 +152,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private EventSynchronizationContext createContext(
       int pageSize, SystemSettings settings, String programUid)
       throws ForbiddenException, BadRequestException {
-
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
     Program program = programService.getProgram(programUid);
 
@@ -185,7 +181,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   private boolean executeSynchronizationWithPaging(
       EventSynchronizationContext ctx, JobProgress progress, SystemSettings settings) {
-
     progress.startingStage(
         format(
             "Found %d events. Remote: %s. Pages: %d (size %d)",
@@ -278,7 +273,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SystemInstance instance,
       SystemSettings settings,
       String url) {
-
     RequestCallback requestCallback =
         req -> {
           req.getHeaders().setContentType(MediaType.APPLICATION_JSON);
