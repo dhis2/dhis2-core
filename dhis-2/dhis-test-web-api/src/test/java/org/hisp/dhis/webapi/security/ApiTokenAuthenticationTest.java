@@ -33,7 +33,6 @@ import static org.hisp.dhis.http.HttpClientAdapter.ApiTokenHeader;
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.http.HttpStatus;
