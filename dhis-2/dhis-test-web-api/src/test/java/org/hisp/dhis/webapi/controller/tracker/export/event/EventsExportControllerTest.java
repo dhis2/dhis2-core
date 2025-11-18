@@ -200,6 +200,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     programStage.setProgramStageDataElements(
         Sets.newHashSet(programStageDataElement, programStageDataElementMultiText));
     manager.save(programStage, false);
+    program.getProgramStages().add(programStage);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());

@@ -91,6 +91,7 @@ class SecurityTrackerEventValidator
         bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
     OrganisationUnit ownerOrgUnit =
         getOwnerOrganisationUnit(bundle.getPreheat(), teUid, programStage.getProgram());
+    // TODO(tracker) Validate payload org unit in user scope
     boolean isCreatableInSearchScope =
         strategy.isCreate()
             ? trackerEvent.isCreatableInSearchScope()
