@@ -263,6 +263,11 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
           "Event sync failed (importStrategy=" + (isDelete ? "DELETE" : "CREATE_AND_UPDATE") + ")");
+    } else {
+      log.info(
+          "Event sync successful for importStrategy={}. Events count: {}",
+          isDelete ? "DELETE" : "CREATE_AND_UPDATE",
+          events.size());
     }
 
     updateEventsSyncTimestamp(events, syncTime);
