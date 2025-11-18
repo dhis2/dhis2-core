@@ -257,6 +257,13 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
 
+  /**
+   * Stage-period alternative query params for OR-based combination. Used when
+   * eventDate=stage.period syntax is present, creating multiple alternative queries that are
+   * combined with OR logic.
+   */
+  @Getter protected List<EventQueryParams> stagePeriodAlternatives = new ArrayList<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -332,6 +339,7 @@ public class EventQueryParams extends DataQueryParams {
     params.userOrgUnits = this.userOrgUnits;
     params.outputFormat = this.outputFormat;
     params.piDisagInfo = this.piDisagInfo;
+    params.stagePeriodAlternatives = new ArrayList<>(this.stagePeriodAlternatives);
     return params;
   }
 
@@ -948,6 +956,11 @@ public class EventQueryParams extends DataQueryParams {
   /** Returns true if multiple time dimensions are active (have date ranges or constraints). */
   public boolean hasMultipleTimeDimensions() {
     return getActiveTimeDimensions().size() > 1;
+  }
+
+  /** Returns true if stage-period alternatives are defined (for eventDate=stage.period syntax). */
+  public boolean hasStagePeriodAlternatives() {
+    return isNotEmpty(stagePeriodAlternatives);
   }
 
   /**
@@ -1650,6 +1663,13 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
       this.params.userOrgUnits = userOrgUnits;
+      return this;
+    }
+
+    public Builder withStagePeriodAlternatives(List<EventQueryParams> stagePeriodAlternatives) {
+      if (stagePeriodAlternatives != null) {
+        this.params.stagePeriodAlternatives = new ArrayList<>(stagePeriodAlternatives);
+      }
       return this;
     }
 

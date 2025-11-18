@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
@@ -217,6 +218,47 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     EventQueryParams eventQueryParams = builder.build();
+
+    // Handle stage-period combinations (eventDate=stage.period syntax)
+    if (request.hasStagePeriodCombinations()) {
+      List<org.hisp.dhis.common.StagePeriodCombination> combinations =
+          request.getStagePeriodCombinations();
+      List<EventQueryParams> alternatives = new ArrayList<>();
+
+      for (org.hisp.dhis.common.StagePeriodCombination combination : combinations) {
+        // Validate stage exists and belongs to program
+        ProgramStage stageForCombination =
+            programStageService.getProgramStage(combination.getStageUid());
+
+        if (stageForCombination == null) {
+          throwIllegalQueryEx(ErrorCode.E7130, combination.getStageUid());
+        }
+
+        if (!pr.getUid().equals(stageForCombination.getProgram().getUid())) {
+          throwIllegalQueryEx(ErrorCode.E7236, combination.getStageUid(), pr.getUid());
+        }
+
+        // Build alternative params for this stage-period combination
+        EventQueryParams alternativeParams =
+            buildStagePeriodAlternative(
+                eventQueryParams, combination, stageForCombination, request);
+        alternatives.add(alternativeParams);
+      }
+
+      // Set alternatives on the main params
+      builder = new EventQueryParams.Builder(eventQueryParams);
+      builder.withStagePeriodAlternatives(alternatives);
+      eventQueryParams = builder.build();
+    }
+
+    // Set skipPartitioning when stage-period alternatives exist
+    // The alternatives contain the period constraints and will be executed with OR logic
+    // The main params serves as a container, so we skip partition checks on it
+    if (eventQueryParams.hasStagePeriodAlternatives()) {
+      builder = new EventQueryParams.Builder(eventQueryParams);
+      builder.withSkipPartitioning(true);
+      eventQueryParams = builder.build();
+    }
 
     // Partitioning applies only when default period is specified
 
@@ -567,6 +609,49 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7223, value));
+  }
+
+  /**
+   * Builds an alternative EventQueryParams for a stage-period combination.
+   *
+   * @param baseParams the base EventQueryParams to copy from
+   * @param combination the stage-period combination
+   * @param programStage the program stage for this combination
+   * @param request the original request containing relative period date
+   * @return EventQueryParams with stage and period filters applied
+   */
+  private EventQueryParams buildStagePeriodAlternative(
+      EventQueryParams baseParams,
+      org.hisp.dhis.common.StagePeriodCombination combination,
+      ProgramStage programStage,
+      EventDataQueryRequest request) {
+
+    // Create a new builder from the base params
+    EventQueryParams.Builder builder = new EventQueryParams.Builder(baseParams);
+
+    // Set the program stage
+    builder.withProgramStage(programStage);
+
+    // Parse the period expression and add it as a dimension
+    DimensionalObject periodDimension =
+        dataQueryService.getDimension(
+            PERIOD_DIM_ID,
+            List.of(combination.getPeriod()),
+            request.getRelativePeriodDate(),
+            null,
+            true,
+            null,
+            IdScheme.UID);
+
+    if (periodDimension != null) {
+      // Remove any existing period dimension
+      builder.removeDimensionOrFilter(PERIOD_DIM_ID);
+
+      // Add the period dimension for this combination
+      builder.addDimension(periodDimension);
+    }
+
+    return builder.build();
   }
 
   @Getter

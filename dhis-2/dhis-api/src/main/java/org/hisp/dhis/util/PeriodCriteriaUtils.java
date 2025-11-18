@@ -77,8 +77,8 @@ public class PeriodCriteriaUtils {
   public static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
     return (criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
-        || !isBlank(criteria.getEventDate())
-        || !isBlank(criteria.getOccurredDate())
+        || hasStandardEventDate(criteria)
+        || hasStandardOccurredDate(criteria)
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
@@ -88,6 +88,28 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getCreatedDate())
         || !isBlank(criteria.getCompletedDate())
         || criteria.getRelativePeriodDate() != null;
+  }
+
+  /**
+   * Checks if eventDate is set with a standard period format (not stage.period format).
+   *
+   * @param criteria {@link EventsAnalyticsQueryCriteria} query criteria.
+   * @return true if eventDate is set and NOT in stage.period format
+   */
+  private static boolean hasStandardEventDate(EventsAnalyticsQueryCriteria criteria) {
+    return !isBlank(criteria.getEventDate())
+        && !StagePeriodParser.hasStagePeriodFormat(criteria.getEventDate());
+  }
+
+  /**
+   * Checks if occurredDate is set with a standard period format (not stage.period format).
+   *
+   * @param criteria {@link EventsAnalyticsQueryCriteria} query criteria.
+   * @return true if occurredDate is set and NOT in stage.period format
+   */
+  private static boolean hasStandardOccurredDate(EventsAnalyticsQueryCriteria criteria) {
+    return !isBlank(criteria.getOccurredDate())
+        && !StagePeriodParser.hasStagePeriodFormat(criteria.getOccurredDate());
   }
 
   /**

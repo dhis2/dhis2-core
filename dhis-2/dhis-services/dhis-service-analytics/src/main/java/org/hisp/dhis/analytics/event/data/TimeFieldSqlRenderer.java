@@ -77,6 +77,11 @@ public abstract class TimeFieldSqlRenderer {
    * @return the SQL statement
    */
   public String renderPeriodTimeFieldSql(EventQueryParams params) {
+    // Handle stage-period alternatives (eventDate=stage.period syntax)
+    if (params.hasStagePeriodAlternatives()) {
+      return renderStagePeriodAlternativesSql(params);
+    }
+
     StringBuilder sql = new StringBuilder();
 
     if (params.hasNonDefaultBoundaries()) {
@@ -93,6 +98,47 @@ public abstract class TimeFieldSqlRenderer {
     }
 
     return "(" + sql + ") ";
+  }
+
+  /**
+   * Renders SQL for stage-period alternatives (eventDate=stage.period syntax). Generates SQL with
+   * OR-combined conditions for each stage-period combination.
+   *
+   * @param params the {@link EventQueryParams} with stage-period alternatives
+   * @return SQL statement combining stage and period filters with OR logic
+   */
+  private String renderStagePeriodAlternativesSql(EventQueryParams params) {
+    List<String> alternativeConditions = new ArrayList<>();
+
+    for (EventQueryParams alternative : params.getStagePeriodAlternatives()) {
+      List<String> conditions = new ArrayList<>();
+
+      // Stage condition
+      if (alternative.hasProgramStage()) {
+        String stageCondition =
+            sqlBuilder.quoteAx("ps") + " = '" + alternative.getProgramStage().getUid() + "'";
+        conditions.add(stageCondition);
+      }
+
+      // Period condition
+      String periodCondition = renderPeriodTimeFieldSql(alternative);
+      if (!isEmpty(periodCondition)) {
+        conditions.add(periodCondition);
+      }
+
+      // Combine stage and period with AND
+      if (!conditions.isEmpty()) {
+        String combined = String.join(" AND ", conditions);
+        alternativeConditions.add("(" + combined + ")");
+      }
+    }
+
+    // Combine all alternatives with OR
+    if (alternativeConditions.isEmpty()) {
+      return "";
+    }
+
+    return "(" + String.join(" OR ", alternativeConditions) + ")";
   }
 
   /**

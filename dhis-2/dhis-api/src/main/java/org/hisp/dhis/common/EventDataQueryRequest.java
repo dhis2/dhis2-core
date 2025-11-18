@@ -32,11 +32,14 @@ package org.hisp.dhis.common;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
+import static org.hisp.dhis.analytics.TimeField.*;
 import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
 import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
 import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.feedback.ErrorCode.*;
 import static org.hisp.dhis.util.OrganisationUnitCriteriaUtils.getAnalyticsQueryCriteria;
+import static org.hisp.dhis.util.StagePeriodParser.*;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -161,6 +164,12 @@ public class EventDataQueryRequest {
   protected String userOrganisationUnitCriteria;
 
   /**
+   * Stage-period combinations for stage.period syntax support (e.g.,
+   * eventDate=stageUid.LAST_12_MONTHS)
+   */
+  private List<StagePeriodCombination> stagePeriodCombinations;
+
+  /**
    * Copies all properties of this request onto the given request.
    *
    * @param request the request to copy properties onto.
@@ -211,6 +220,8 @@ public class EventDataQueryRequest {
     queryRequest.outputIdScheme = outputIdScheme;
     queryRequest.rowContext = rowContext;
     queryRequest.userOrganisationUnitCriteria = userOrganisationUnitCriteria;
+    queryRequest.stagePeriodCombinations =
+        this.stagePeriodCombinations != null ? List.copyOf(this.stagePeriodCombinations) : null;
     return request;
   }
 
@@ -220,6 +231,10 @@ public class EventDataQueryRequest {
 
   public boolean hasStartEndDate() {
     return startDate != null && endDate != null;
+  }
+
+  public boolean hasStagePeriodCombinations() {
+    return stagePeriodCombinations != null && !stagePeriodCombinations.isEmpty();
   }
 
   /**
@@ -255,6 +270,9 @@ public class EventDataQueryRequest {
     public static final Pattern DIMENSION_OR_SEPARATOR = Pattern.compile("_OR_");
 
     public EventDataQueryRequestBuilder fromCriteria(EventsAnalyticsQueryCriteria criteria) {
+      // Handle stage.period syntax validation and parsing
+      List<StagePeriodCombination> stagePeriodCombs = handleStagePeriodSyntax(criteria);
+
       EventDataQueryRequestBuilder builder =
           aggregationType(criteria.getAggregationType())
               .aggregateData(criteria.isAggregateData())
@@ -337,7 +355,14 @@ public class EventDataQueryRequest {
         dimensions = new HashSet<>(criteria.getDimension());
       }
 
-      return builder.dimension(getGrouped(dimensions));
+      builder = builder.dimension(getGrouped(dimensions));
+
+      // Add stage-period combinations if present
+      if (stagePeriodCombs != null && !stagePeriodCombs.isEmpty()) {
+        builder = builder.stagePeriodCombinations(stagePeriodCombs);
+      }
+
+      return builder;
     }
 
     private static Set<String> splitDimension(String dimension) {
@@ -429,6 +454,47 @@ public class EventDataQueryRequest {
       }
 
       return groupedDimensions;
+    }
+
+    /**
+     * Handles the stage.period syntax in event date parameters.
+     *
+     * <p>Validates that stage= parameter is not used alongside eventDate=stage.period syntax,
+     * parses the combinations, and returns them.
+     *
+     * @param criteria the EventsAnalyticsQueryCriteria
+     * @return the list of parsed stage-period combinations, or null if none found
+     * @throws IllegalQueryException if validation fails
+     */
+    private List<StagePeriodCombination> handleStagePeriodSyntax(
+        EventsAnalyticsQueryCriteria criteria) {
+      if (!criteria.hasStagePeriodFormat()) {
+        return null; // No stage.period format detected
+      }
+
+      // Validation: stage= parameter cannot be used with eventDate=stage.period syntax
+      if (isNotBlank(criteria.getStage())) {
+        throw new IllegalQueryException(new org.hisp.dhis.feedback.ErrorMessage(E7241));
+      }
+
+      // Parse stage.period combinations
+      List<StagePeriodCombination> combinations = new java.util.ArrayList<>();
+
+      // Check eventDate parameter (deprecated but still supported)
+      if (isNotBlank(criteria.getEventDate())) {
+        combinations.addAll(parse(criteria.getEventDate(), EVENT_DATE));
+        // Clear the eventDate field to prevent CustomDateHelper from processing it
+        criteria.setEventDate(null);
+      }
+
+      // Check occurredDate parameter (preferred)
+      if (isNotBlank(criteria.getOccurredDate())) {
+        combinations.addAll(parse(criteria.getOccurredDate(), OCCURRED_DATE));
+        // Clear the occurredDate field to prevent CustomDateHelper from processing it
+        criteria.setOccurredDate(null);
+      }
+
+      return combinations.isEmpty() ? null : combinations;
     }
   }
 }

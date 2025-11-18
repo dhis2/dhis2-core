@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.util.StagePeriodParser;
 
 /**
  * This class contains all the criteria that can be used to execute a DHIS2 Events analytics query
@@ -273,4 +274,13 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
 
   /** flag to enable row context in grid response */
   private boolean rowContext;
+
+  /**
+   * Checks if the eventDate parameter use the stage.period format.
+   *
+   * @return true if stage.period format is detected
+   */
+  public boolean hasStagePeriodFormat() {
+    return (eventDate != null && StagePeriodParser.hasStagePeriodFormat(eventDate));
+  }
 }

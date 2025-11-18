@@ -102,7 +102,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {
       return new ErrorMessage(ErrorCode.E7204);
     }
-    if (!params.hasPeriods() && (params.getStartDate() == null || params.getEndDate() == null)) {
+    if (!params.hasPeriods()
+        && !params.hasStagePeriodAlternatives()
+        && (params.getStartDate() == null || params.getEndDate() == null)) {
       return new ErrorMessage(ErrorCode.E7205);
     }
     if (params.getStartDate() != null
