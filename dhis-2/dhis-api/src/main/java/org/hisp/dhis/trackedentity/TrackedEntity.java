@@ -114,8 +114,7 @@ public class TrackedEntity extends BaseTrackerObject
   @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-  @OneToMany
-  @JoinColumn(name = "trackedentityid")
+  @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
   private Set<Enrollment> enrollments = new HashSet<>();
 
   @OneToMany(mappedBy = "trackedEntity", fetch = FetchType.LAZY)
