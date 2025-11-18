@@ -109,6 +109,7 @@ public class MetadataHandler {
       // -----------------------------------------------------------------
       // Item order elements
       // -----------------------------------------------------------------
+
       Map<String, String> cocNameMap = getCocNameMap(params);
 
       Map<String, Object> dimensionItems = new HashMap<>();
