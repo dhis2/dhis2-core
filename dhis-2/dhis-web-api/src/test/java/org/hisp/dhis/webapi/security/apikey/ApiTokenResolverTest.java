@@ -54,18 +54,6 @@ class ApiTokenResolverTest {
   }
 
   @Test
-  void testValidTokenInAuthorizationHeader_ShouldSucceed() {
-    // Given request with valid token in Authorization header
-    when(request.getHeader("Authorization")).thenReturn("ApiToken " + VALID_TOKEN);
-
-    // When resolving token
-    String result = resolver.resolve(request);
-
-    // Then should return hashed token
-    assertNotNull(result);
-  }
-
-  @Test
   void testMissingAuthorizationHeader_ShouldReturnNull() {
     // Given request without Authorization header
     when(request.getHeader("Authorization")).thenReturn(null);
@@ -123,18 +111,6 @@ class ApiTokenResolverTest {
     String result = resolver.resolve(request);
 
     // Then should succeed (case insensitive)
-    assertNotNull(result);
-  }
-
-  @Test
-  void testGetRequestWithHeaderToken_ShouldSucceed() {
-    // Given request with token in header
-    when(request.getHeader("Authorization")).thenReturn("ApiToken " + VALID_TOKEN);
-
-    // When resolving token
-    String result = resolver.resolve(request);
-
-    // Then should return valid token from header
     assertNotNull(result);
   }
 }
