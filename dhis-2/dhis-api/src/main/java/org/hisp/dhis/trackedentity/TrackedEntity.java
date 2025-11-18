@@ -31,7 +31,6 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -61,7 +60,6 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseTrackerObject;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;

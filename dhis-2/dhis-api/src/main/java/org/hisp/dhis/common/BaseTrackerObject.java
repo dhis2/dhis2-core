@@ -30,29 +30,21 @@
 package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.persistence.Transient;
 import java.util.Date;
 import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Gist;
-import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.User;
 
 @MappedSuperclass
@@ -81,11 +73,11 @@ public class BaseTrackerObject {
   @Column(name = "storedby", length = 255)
   @Setter
   protected String storedBy;
-  
+
   // -------------------------------------------------------------------------------------------
   // Getters
   // -------------------------------------------------------------------------------------------
-  
+
   @PropertyRange(min = 11, max = 11)
   @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
   public String getUid() {
