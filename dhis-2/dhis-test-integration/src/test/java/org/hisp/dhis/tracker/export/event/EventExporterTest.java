@@ -47,6 +47,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
@@ -60,10 +61,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.user.User;
@@ -156,6 +160,38 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .map(RelationshipItem::getRelationship)
             .toList();
     assertContainsOnly(List.of("oLT07jKRu9e", "yZxjxJli9mO"), uids(relationships));
+  }
+
+  @Test
+  void shouldFetchEventsExcludingDataValuesMarkedSkipSync()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .programType(ProgramType.WITHOUT_REGISTRATION)
+            .program(UID.of("iS7eutanDry"))
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .build();
+
+    List<Event> events =
+        eventService.findEvents(
+            params, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")), PageParams.of(1, 10, false));
+
+    assertContainsOnly(
+        List.of(
+            "cadc5eGj0j7",
+            "lumVtWwwy0O",
+            "ck7DzdxqLqA",
+            "OTmjvJDn0Fu",
+            "kWjSezkXHVp",
+            "QRYjLTiJTrA"),
+        uids(events));
+
+    events.forEach(
+        event ->
+            Assertions.assertIsEmpty(
+                event.getEventDataValues(),
+                "Expected no data values for event: " + event.getUid()));
   }
 
   @Test
