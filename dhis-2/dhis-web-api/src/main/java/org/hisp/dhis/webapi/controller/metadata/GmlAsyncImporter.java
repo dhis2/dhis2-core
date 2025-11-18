@@ -78,11 +78,6 @@ public class GmlAsyncImporter extends SecurityContextRunnable
             params.setUser( manager.get( User.class, params.getUser().getUid() ) );
         }
 
-        if ( params.getOverrideUser() != null )
-        {
-            params.setOverrideUser( manager.get( User.class, params.getOverrideUser().getUid() ) );
-        }
-
         gmlImportService.importGml( inputStream, params );
     }
 

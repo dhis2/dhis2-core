@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -154,7 +155,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         apiToken.setKey( hashedKey );
 
         // Continue POST import as usual
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+        MetadataImportParams params = importService.getParamsFromMap( Collections.emptyMap() )
             .setImportReportMode( ImportReportMode.FULL ).setUser( user ).setImportStrategy( ImportStrategy.CREATE )
             .addObject( apiToken );
 

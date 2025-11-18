@@ -32,7 +32,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-surefire-reports
           path: |
@@ -62,7 +62,7 @@ jobs:
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-surefire-reports
           path: |
