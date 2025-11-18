@@ -38,6 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Lars Helge Overland
+ */
 class JdbcUtilsTest {
   @Test
   void testExtractHost() {

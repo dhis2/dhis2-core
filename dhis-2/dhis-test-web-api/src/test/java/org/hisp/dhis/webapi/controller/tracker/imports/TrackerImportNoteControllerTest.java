@@ -89,6 +89,9 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     manager.save(program, false);
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType
+        .getSharing()
+        .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
     manager.save(trackedEntityType);
 
     ProgramStage programStage = createProgramStage('A', program);
@@ -96,6 +99,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         .getSharing()
         .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
     manager.save(programStage, false);
+    program.getProgramStages().add(programStage);
 
     TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);

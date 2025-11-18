@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
@@ -48,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -238,7 +238,6 @@ class JdbcEventStore {
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, Event> eventsByUid;
     if (pageParams == null) {
@@ -504,7 +503,6 @@ class JdbcEventStore {
 
   private long getEventCount(EventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
@@ -818,13 +816,25 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    if (params.getProgram() != null) {
-      sqlParameters.addValue("programid", params.getProgram().getId());
+    if (params.hasEnrolledInProgram()) {
+      sqlParameters.addValue("programid", params.getEnrolledInProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programid",
+          params.getAccessiblePrograms().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessiblePrograms()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" p.programid in (")
+          .append(":programid")
+          .append(") ");
     }
 
-    if (params.getProgramStage() != null) {
+    if (params.hasProgramStage()) {
       sqlParameters.addValue("programstageid", params.getProgramStage().getId());
 
       fromBuilder
@@ -832,6 +842,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ps.programstageid = ")
           .append(":programstageid")
           .append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programstageid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleProgramStages()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programstageid in (")
+          .append(":programstageid")
+          .append(") ");
     }
 
     if (params.getEnrollmentStatus() != null) {
@@ -959,32 +981,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
     }
 
-    if (params.hasSecurityFilter()) {
-      sqlParameters.addValue(
-          "program_uid",
-          params.getAccessiblePrograms().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessiblePrograms()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (p.uid in (")
-          .append(":program_uid")
-          .append(")) ");
-
-      sqlParameters.addValue(
-          "programstage_uid",
-          params.getAccessibleProgramStages().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessibleProgramStages()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ps.uid in (")
-          .append(":programstage_uid")
-          .append(")) ");
-    }
-
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
       sqlParameters.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
 
@@ -1014,7 +1010,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String createAccessibleSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
-    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
+    if (isProgramRestricted(params.getEnrolledInProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, params, mapSqlParameterSource);
     }
 
@@ -1027,7 +1023,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       return createCaptureScopeQuery(
           user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
@@ -1048,7 +1044,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + (params.getOrgUnit().getHierarchyLevel() + 1)
             + " ) ";
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       return createCaptureScopeQuery(
           user,
           params,
@@ -1072,7 +1068,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + AND
             + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
       return createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
     }
@@ -1352,18 +1348,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } catch (IOException e) {
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
-    }
-  }
-
-  private void setAccessiblePrograms(UserDetails user, EventQueryParams params) {
-    if (isNotSuperUser(user)) {
-      params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
-
-      params.setAccessibleProgramStages(
-          manager.getDataReadAll(ProgramStage.class).stream()
-              .map(UID::of)
-              .collect(Collectors.toSet()));
     }
   }
 }

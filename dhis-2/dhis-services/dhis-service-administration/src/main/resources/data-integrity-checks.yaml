@@ -43,6 +43,7 @@ checks:
   - programs/tracker_geometry_invalid_srid.yaml
   - programs/program_stages_no_programs.yaml
   - programs/single_events_null_occurred_date.yaml
+  - programs/programs_inconsistent_tracked_entity_type.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
