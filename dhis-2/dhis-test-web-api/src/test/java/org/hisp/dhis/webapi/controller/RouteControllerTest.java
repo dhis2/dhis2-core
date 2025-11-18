@@ -699,6 +699,32 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testRunRouteGivenEncodedAndUnencodedCharactersUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields=code%2Ccreated");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?clientQuery=[code%2Ccreated]",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals(
+        "fields=code%2Ccreated&clientQuery=[code%2Ccreated]",
+        responseBody.get("queryString").as(JsonString.class).string());
+  }
+
+  @Test
   void testRunRouteGivenMultipartBody()
       throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
