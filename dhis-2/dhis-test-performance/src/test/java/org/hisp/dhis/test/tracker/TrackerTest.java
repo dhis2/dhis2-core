@@ -30,7 +30,6 @@
 package org.hisp.dhis.test.tracker;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
-import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
@@ -82,19 +81,19 @@ public class TrackerTest extends Simulation {
     int defaultDuration =
         switch (profile.toLowerCase()) {
           case "load" -> 300; // 5 minutes sustained
-          case "stress" -> 30; // 30 seconds per step
-          case "spike" -> 120; // 2 minutes total
-          case "soak" -> 3600; // 1 hour sustained
-          default -> 300; // 5 minutes default
+          case "capacity" -> 30; // 30 seconds per step
+          default ->
+              throw new IllegalArgumentException(
+                  "Unknown profile: " + profile + ". Valid options: load, capacity");
         };
 
     int defaultRampDuration =
         switch (profile.toLowerCase()) {
           case "load" -> 60; // 1 minute ramp-up
-          case "stress" -> 10; // 10 seconds between steps
-          case "soak" -> 120; // 2 minutes ramp-up
-          case "capacity" -> 600; // 10 minutes to find capacity
-          default -> 60; // 1 minute default
+          case "capacity" -> 10; // 10 seconds between steps
+          default ->
+              throw new IllegalArgumentException(
+                  "Unknown profile: " + profile + ". Valid options: load, capacity");
         };
 
     int duration = Integer.getInteger("duration", defaultDuration);
@@ -272,54 +271,36 @@ public class TrackerTest extends Simulation {
   /**
    * Returns the injection profile based on the specified test type.
    *
-   * <p><b>Profiles:</b>
+   * @see <a
+   *     href="https://docs.gatling.io/guides/optimize-scripts/writing-realistic-tests/#injection-profiles">Gatling
+   *     Injection Profiles</a>
+   *     <p><b>Profiles:</b>
+   *     <ul>
+   *       <li><b>load</b> - Gradual ramp-up to sustained load <br>
+   *           Shape: ___/‾‾‾‾‾‾‾‾‾ <br>
+   *           Uses: users, duration (sustained), rampDuration (ramp-up) <br>
+   *           Default: 1min ramp → 5min sustained (6min total) <br>
+   *           Example: {@code -Dprofile=load -Dusers=4 -DrampDuration=60 -Dduration=300}
+   *           <p>For soak testing, use load with longer duration: {@code -Dprofile=load -Dusers=4
+   *           -Dduration=3600}
+   *       <li><b>capacity</b> - Staircase pattern to find maximum sustainable users <br>
+   *           Shape: <br>
+   *           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+   *           #steps <br>
+   *           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
+   *           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
+   *           __/‾‾ <br>
+   *           Uses: users (target), duration (per step), rampDuration (between steps), steps <br>
+   *           Default: 10 steps × 30s with 10s ramps (6.5min total) <br>
+   *           Example: {@code -Dprofile=capacity -Dusers=10 -Dsteps=10 -Dduration=30
+   *           -DrampDuration=10}
+   *     </ul>
    *
-   * <ul>
-   *   <li><b>load</b> - Gradual ramp-up to sustained load <br>
-   *       Shape: ___/‾‾‾‾‾‾‾‾‾ <br>
-   *       Uses: users, duration (sustained), rampDuration (ramp-up) <br>
-   *       Default: 1min ramp → 5min sustained (6min total) <br>
-   *       Example: {@code -Dprofile=load -Dusers=50 -DrampDuration=60 -Dduration=300}
-   *   <li><b>stress</b> - Staircase pattern to find breaking point <br>
-   *       Shape: <br>
-   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
-   *       #steps <br>
-   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
-   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
-   *       __/‾‾ <br>
-   *       Uses: users, duration (per step), rampDuration (between steps), steps <br>
-   *       Default: 10 steps × 30s with 10s ramps (6.5min total) <br>
-   *       Example: {@code -Dprofile=stress -Dusers=100 -Dsteps=10 -Dduration=30 -DrampDuration=10}
-   *   <li><b>spike</b> - Instant spike to test sudden load changes <br>
-   *       Shape: _____|‾|_____ <br>
-   *       Uses: users (spike magnitude), duration (total = baseline + recovery) <br>
-   *       Pattern: baseline at users/5 → spike to users → recovery at users/2 <br>
-   *       Ignores: rampDuration <br>
-   *       Default: 60s baseline → spike → 60s recovery (2min total) <br>
-   *       Example: {@code -Dprofile=spike -Dusers=200 -Dduration=120} creates 40 users/sec
-   *       baseline, 200 user spike, 100 users/sec recovery
-   *   <li><b>soak</b> - Extended duration to find memory leaks <br>
-   *       Shape: ___/‾‾‾‾‾‾‾‾‾ <br>
-   *       Uses: users, duration (sustained), rampDuration (ramp-up) <br>
-   *       Default: 2min ramp → 1hr sustained (62min total) <br>
-   *       Example: {@code -Dprofile=soak -Dusers=50 -DrampDuration=120 -Dduration=3600}
-   *   <li><b>capacity</b> - Continuous ramp to find maximum capacity <br>
-   *       Shape: <br>
-   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ <br>
-   *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/ <br>
-   *       &nbsp;&nbsp;&nbsp;&nbsp;/ <br>
-   *       __/ <br>
-   *       Uses: users (target capacity), rampDuration (continuous ramp time) <br>
-   *       Ignores: duration <br>
-   *       Default: 10min ramp from 0 to target <br>
-   *       Example: {@code -Dprofile=capacity -Dusers=300 -DrampDuration=600}
-   * </ul>
-   *
-   * @param profile Profile type: load, stress, spike, soak, capacity
+   * @param profile Profile type: load, capacity
    * @param users Target users per second (meaning varies by profile)
    * @param duration Duration in seconds (meaning varies by profile)
    * @param rampDuration Ramp duration in seconds (meaning varies by profile)
-   * @param steps Number of steps for stress profile
+   * @param steps Number of steps for capacity profile
    * @return OpenInjectionStep array for the specified profile
    */
   private OpenInjectionStep[] getInjectionProfile(
@@ -332,8 +313,8 @@ public class TrackerTest extends Simulation {
             constantUsersPerSec(users).during(Duration.ofSeconds(duration))
           };
 
-      case "stress" ->
-          // Stress Testing: Stepped progressive increases (staircase pattern)
+      case "capacity" ->
+          // Capacity Testing: Stepped progressive increases (staircase pattern)
           // duration = time to hold each step, rampDuration = time to ramp between steps
           new OpenInjectionStep[] {
             incrementUsersPerSec((double) users / steps)
@@ -343,34 +324,9 @@ public class TrackerTest extends Simulation {
                 .startingFrom((double) users / steps)
           };
 
-      case "spike" ->
-          // Spike Testing: Baseline → Instant spike → Recovery
-          // duration split evenly: baseline for duration/2, spike at midpoint, recovery for
-          // duration/2
-          new OpenInjectionStep[] {
-            constantUsersPerSec((double) users / 5).during(Duration.ofSeconds(duration / 2)),
-            atOnceUsers(users),
-            constantUsersPerSec((double) users / 2).during(Duration.ofSeconds(duration / 2))
-          };
-
-      case "soak" ->
-          // Soak Testing: Extended duration for memory leaks
-          new OpenInjectionStep[] {
-            rampUsersPerSec(1).to(users).during(Duration.ofSeconds(rampDuration)),
-            constantUsersPerSec(users).during(Duration.ofSeconds(duration))
-          };
-
-      case "capacity" ->
-          // Capacity Testing: Continuous increase to breaking point
-          new OpenInjectionStep[] {
-            rampUsersPerSec(0).to(users).during(Duration.ofSeconds(rampDuration))
-          };
-
       default ->
           throw new IllegalArgumentException(
-              "Unknown profile: "
-                  + profile
-                  + ". Valid options: load, stress, spike, soak, capacity");
+              "Unknown profile: " + profile + ". Valid options: load, capacity");
     };
   }
 
