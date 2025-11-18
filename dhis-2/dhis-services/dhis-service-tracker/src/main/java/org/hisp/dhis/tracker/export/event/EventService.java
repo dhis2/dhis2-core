@@ -115,24 +115,23 @@ public interface EventService {
 
   /**
    * Retrieves a list of {@link Event} objects based on the provided query parameters and program
-   * stage data element synchronization configuration.
+   * stage data element synchronization settings.
    *
-   * <p>This method supports server-side filtering of events according to the given {@link
-   * EventOperationParams}, which may include parameters such as program type, last updated date,
-   * synchronization flag, and other operational filters. Additionally, it takes into account
-   * program stage data elements that have the "skip synchronization" setting enabled, allowing
-   * selective exclusion of event data values during synchronization processes.
+   * <p>This method applies server-side filtering as defined in {@link EventOperationParams},
+   * including criteria such as program type, date filters, synchronization flags, and other
+   * operational parameters. In addition, it respects program stage data elements marked with "skip
+   * synchronization", ensuring that matching data values are excluded from the returned events.
    *
-   * <p>The method is primarily used during event synchronization between DHIS2 instances, where
-   * only a subset of eligible events (and possibly filtered event data values) are fetched to be
-   * sent to a remote instance.
+   * <p>This method is primarily used during inter-instance synchronization, where only eligible
+   * events and optionally reduced event payloads are fetched for transmission to another DHIS2
+   * instance.
    *
-   * @param params an {@link EventOperationParams} instance defining filters and options to control
-   *     which events are retrieved (e.g., program type, org units, date ranges, sync flags).
-   * @param psdesWithSkipSyncTrue a mapping of program stage UIDs to their respective sets of data
-   *     element UIDs for which the "skip synchronization" property is enabled. Used to exclude
-   *     certain data values from the result set.
-   * @return a non-null list of {@link Event} objects that match the specified criteria.
+   * @param params an {@link EventOperationParams} instance defining filters used to select events
+   *     (e.g., program type, org units, date range, sync flags).
+   * @param psdesWithSkipSyncTrue a mapping of program stage UIDs to the sets of data element UIDs
+   *     configured with "skip synchronization". Used to omit their data values from the results.
+   * @param pageParams pagination details defining page number, page size, and paging behavior.
+   * @return a non-null list of {@link Event} objects matching the query and synchronization rules.
    */
   @Nonnull
   List<Event> findEvents(
