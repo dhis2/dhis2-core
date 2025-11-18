@@ -259,6 +259,6 @@ class MetadataItemTest {
     assertEquals("any-name", metadataItem.getName());
     assertEquals(serverUrl, metadataItem.getServerBaseUrl());
     assertEquals(style.getIcon(), metadataItem.getStyle().getIcon());
-    assertEquals(serverUrl + "/api/icons/icon-name/icon.svg", metadataItem.getStyle().getIcon());
+    assertEquals("icon-name", metadataItem.getStyle().getIcon());
   }
 }

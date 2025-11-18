@@ -78,6 +78,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -121,6 +122,8 @@ class EventOperationParamsMapperTest {
   @Mock private DataElementService dataElementService;
 
   @Mock private OperationsParamsValidator operationsParamsValidator;
+
+  @Mock private TrackerProgramService trackerProgramService;
 
   @InjectMocks private EventOperationParamsMapper mapper;
 

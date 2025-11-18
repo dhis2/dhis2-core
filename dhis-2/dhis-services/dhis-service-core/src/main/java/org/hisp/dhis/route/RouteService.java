@@ -32,6 +32,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -52,6 +54,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -138,15 +141,19 @@ public class RouteService {
 
   @PostConstruct
   public void postConstruct() {
+    httpClient =
+        HttpClientBuilder.create()
+            .setConnectionManager(newConnectionManager())
+            .disableCookieManagement()
+            .build();
+  }
+
+  protected HttpClientConnectionManager newConnectionManager() {
     PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
     connectionManager.setMaxTotal(MAX_TOTAL_HTTP_CONNECTIONS);
     connectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_HTTP_CONNECTION_PER_ROUTE);
 
-    httpClient =
-        HttpClientBuilder.create()
-            .setConnectionManager(connectionManager)
-            .disableCookieManagement()
-            .build();
+    return connectionManager;
   }
 
   /**
@@ -383,7 +390,8 @@ public class RouteService {
 
   protected MultiValueMap<String, String> getQueryParams(HttpServletRequest request) {
     if (request.getQueryString() != null) {
-      return UriComponentsBuilder.fromUriString("?" + request.getQueryString())
+      return UriComponentsBuilder.fromUriString(
+              "?" + URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8))
           .build()
           .getQueryParams();
     } else {
