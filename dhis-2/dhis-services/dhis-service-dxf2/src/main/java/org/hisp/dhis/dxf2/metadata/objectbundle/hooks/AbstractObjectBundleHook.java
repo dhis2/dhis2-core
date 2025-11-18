@@ -51,7 +51,8 @@ public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
 
   @Autowired protected PreheatService preheatService;
 
-  @PersistenceContext protected EntityManager entityManager;
+  @PersistenceContext(unitName = "entityManagerFactory")
+  protected EntityManager entityManager;
 
   @Autowired protected SchemaService schemaService;
 

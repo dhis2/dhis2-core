@@ -65,7 +65,7 @@ import org.springframework.test.context.ContextConfiguration;
 public abstract class IntegrationTestBase extends TestBase {
 
   @Getter private User adminUser;
-  public @PersistenceContext EntityManager entityManager;
+  public @PersistenceContext(unitName = "entityManagerFactory") EntityManager entityManager;
 
   protected final void injectAdminIntoSecurityContext() {
     injectSecurityContextUser(getAdminUser());

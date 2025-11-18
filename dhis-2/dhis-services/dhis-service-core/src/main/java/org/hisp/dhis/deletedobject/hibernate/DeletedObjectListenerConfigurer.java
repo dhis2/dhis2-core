@@ -39,7 +39,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DeletedObjectListenerConfigurer {
-  @PersistenceUnit private EntityManagerFactory emf;
+  @PersistenceUnit(unitName = "entityManagerFactory")
+  private EntityManagerFactory emf;
 
   private final DeletedObjectPostInsertEventListener insertEventListener;
 

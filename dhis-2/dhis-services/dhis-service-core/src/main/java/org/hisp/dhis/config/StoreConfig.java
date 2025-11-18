@@ -65,7 +65,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration("coreStoreConfig")
 public class StoreConfig {
 
-  @PersistenceContext private EntityManager entityManager;
+  @PersistenceContext(unitName = "entityManagerFactory")
+  private EntityManager entityManager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 

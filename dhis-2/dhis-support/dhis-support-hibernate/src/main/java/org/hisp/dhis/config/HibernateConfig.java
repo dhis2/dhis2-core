@@ -95,9 +95,9 @@ public class HibernateConfig {
   }
 
   @Bean
-  public DefaultHibernateCacheManager cacheManager(EntityManagerFactory emf) {
+  public DefaultHibernateCacheManager cacheManager(EntityManagerFactory entityManagerFactory) {
     DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-    cacheManager.setSessionFactory(emf.unwrap(SessionFactory.class));
+    cacheManager.setSessionFactory(entityManagerFactory.unwrap(SessionFactory.class));
 
     return cacheManager;
   }
@@ -112,14 +112,14 @@ public class HibernateConfig {
 
   @Primary
   @Bean
-  public EntityManager sharedEntityManager(EntityManagerFactory emf) {
-    return SharedEntityManagerCreator.createSharedEntityManager(emf);
+  public EntityManager sharedEntityManager(EntityManagerFactory entityManagerFactory) {
+    return SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
   }
 
   @Bean
   public EntityManager readOnlyEntityManager(
-      @Qualifier("readOnlyEntityManagerFactory") EntityManagerFactory emf) {
-    return SharedEntityManagerCreator.createSharedEntityManager(emf);
+      @Qualifier("readOnlyEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+    return SharedEntityManagerCreator.createSharedEntityManager(entityManagerFactory);
   }
 
   // NOTE: this must stay in sync with H2TestConfig.entityManagerFactory
