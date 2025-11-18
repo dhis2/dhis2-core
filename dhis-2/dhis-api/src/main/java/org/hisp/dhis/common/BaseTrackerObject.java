@@ -81,48 +81,23 @@ public class BaseTrackerObject {
   @Column(name = "storedby", length = 255)
   @Setter
   protected String storedBy;
-
-  // -------------------------------------------------------------------------------------------
-  // Transient fields
-  // -------------------------------------------------------------------------------------------
-
-  /**
-   * As part of the serializing process, this field can be set to indicate a link to this
-   * identifiable object (will be used on the web layer for navigating the REST API)
-   */
-  @Transient @Setter protected String href;
-
-  /** Access information for this object. Applies to current user. */
-  @Transient @Setter protected Access access;
-
+  
   // -------------------------------------------------------------------------------------------
   // Getters
   // -------------------------------------------------------------------------------------------
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  public String getHref() {
-    return href;
-  }
-
-  @JsonProperty(value = "id")
-  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  
   @PropertyRange(min = 11, max = 11)
   @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
   public String getUid() {
     return uid;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
   @Description("The date this object was created.")
   @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getCreated() {
     return created;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
   @Description("The date this object was last updated.")
   @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getLastUpdated() {
@@ -130,25 +105,11 @@ public class BaseTrackerObject {
   }
 
   @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getLastUpdatedBy() {
     return lastUpdatedBy;
   }
 
-  @Sortable(value = false)
-  @Gist(included = Include.FALSE)
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
-  public Access getAccess() {
-    return access;
-  }
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getStoredBy() {
     return storedBy;
   }
