@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.tracker.imports.hibernate;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
@@ -37,25 +37,28 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.SingleEventStore;
+import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Abyot Asalefew
+ */
 @Slf4j
-@Repository("org.hisp.dhis.program.SingleEventStore")
-public class HibernateSingleEventStore extends SoftDeleteHibernateObjectStore<SingleEvent>
-    implements SingleEventStore {
+@Repository("org.hisp.dhis.tracker.imports.hibernate.TrackerEventStore")
+public class HibernateTrackerEventStore extends SoftDeleteHibernateObjectStore<TrackerEvent>
+    implements TrackerEventStore {
 
-  public HibernateSingleEventStore(
+  public HibernateTrackerEventStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, SingleEvent.class, aclService, false);
+    super(entityManager, jdbcTemplate, publisher, TrackerEvent.class, aclService, false);
   }
 
   @Override
@@ -71,43 +74,43 @@ public class HibernateSingleEventStore extends SoftDeleteHibernateObjectStore<Si
 
     String sql =
         """
-            do
-            $$
-            declare
-              source_event record;
-              lastupdated_dv jsonb;
-              target_de varchar default '%s';
-            begin
+        do
+        $$
+        declare
+          source_event record;
+          lastupdated_dv jsonb;
+          target_de varchar default '%s';
+        begin
 
-              -- loop through each event that has a source DataElement in its event data values json
-              for source_event in
-                select eventid, eventdatavalues from singleevent, jsonb_each(eventdatavalues)
-                where key in (%s)
-                loop
+          -- loop through each event that has a source DataElement in its event data values json
+          for source_event in
+            select eventid, eventdatavalues from trackerevent, jsonb_each(eventdatavalues)
+            where key in (%s)
+            loop
 
-                -- get last updated data value for the event data value set (sources + target)
-                select value
-                  into lastupdated_dv
-                  from jsonb_each(source_event.eventdatavalues)
-                WHERE key IN (%s)
-                order by DATE(value ->> 'lastUpdated') desc
-                limit 1;
+            -- get last updated data value for the event data value set (sources + target)
+            select value
+              into lastupdated_dv
+              from jsonb_each(source_event.eventdatavalues)
+            WHERE key IN (%s)
+            order by DATE(value ->> 'lastUpdated') desc
+            limit 1;
 
-                -- use the last updated value as the new value for the target key
-                -- this will override any value for the target key if it is already present
-                update singleevent
-                set eventdatavalues = jsonb_set(eventdatavalues, '{%s}', lastupdated_dv)
-                where singleevent.eventid = source_event.eventid;
+            -- use the last updated value as the new value for the target key
+            -- this will override any value for the target key if it is already present
+            update trackerevent
+            set eventdatavalues = jsonb_set(eventdatavalues, '{%s}', lastupdated_dv)
+            where trackerevent.eventid = source_event.eventid;
 
-                -- remove all source key values as no longer needed
-                update singleevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
-                where singleevent.eventid = source_event.eventid;
+            -- remove all source key values as no longer needed
+            update trackerevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
+            where trackerevent.eventid = source_event.eventid;
 
-              end loop;
-            end;
-            $$
-            language plpgsql;
-            """
+          end loop;
+        end;
+        $$
+        language plpgsql;
+        """
             .formatted(
                 targetDataElement.getValue(),
                 sourceUidsInSingleQuotesString,
@@ -133,8 +136,8 @@ public class HibernateSingleEventStore extends SoftDeleteHibernateObjectStore<Si
 
     String sql =
         """
-            update singleevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
-            where eventdatavalues::jsonb ?| array[%s];"""
+        update trackerevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
+        where eventdatavalues::jsonb ?| array[%s];"""
             .formatted(sourceUidsString, sourceUidsInSingleQuotesString);
     log.debug("Event data values deleting SQL query to be used: \n{}", sql);
     jdbcTemplate.update(sql);
@@ -145,9 +148,9 @@ public class HibernateSingleEventStore extends SoftDeleteHibernateObjectStore<Si
     if (cocs.isEmpty()) return;
     String sql =
         """
-            update singleevent
-            set attributeoptioncomboid = %s
-            where attributeoptioncomboid in (%s)"""
+        update trackerevent
+        set attributeoptioncomboid = %s
+        where attributeoptioncomboid in (%s)"""
             .formatted(coc, cocs.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
     entityManager.createNativeQuery(sql).executeUpdate();
