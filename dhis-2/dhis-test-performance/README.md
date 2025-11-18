@@ -16,10 +16,11 @@ Run `./run-simulation.sh` for full usage including profiling and database option
 
 ## CI
 
-`./run-simulation.sh` is used in CI just like you do locally
+CI workflows use `./run-simulation.sh` the same way as local runs:
 
-* [`../../.github/workflows/run-performance-tests.yml`](../../.github/workflows/run-performance-tests.yml)
-to compare performance between baseline and candidate DHIS2 versions
+* [`performance-tests-scheduled.yml`](../../.github/workflows/performance-tests-scheduled.yml) - Daily scheduled tests
+* [`performance-tests.yml`](../../.github/workflows/performance-tests.yml) - Manual single test
+* [`performance-tests-compare.yml`](../../.github/workflows/performance-tests-compare.yml) - Manual baseline vs candidate comparison
 
 ## Results
 
@@ -74,8 +75,8 @@ Raw tests accept system properties via `MVN_ARGS`. Key parameters:
 * `scenario` - Path to scenario file
 * `query` - Optional: run only a specific query URL
 
-See [ConfigLoader.java](src/test/org/hisp/dhis/test/raw/ConfigLoader.java) for all options and
-defaults.
+See [ConfigLoader.java](src/test/java/org/hisp/dhis/test/raw/ConfigLoader.java) for all options
+and defaults.
 
 ### Scenario File Structure
 

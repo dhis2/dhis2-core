@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -49,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +57,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -90,7 +89,6 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -152,7 +150,8 @@ class JdbcTrackerEventStore {
   private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
   private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
   private static final String COLUMN_ORG_UNIT_ATTRIBUTE_VALUES = "orgunit_attributevalues";
-  private static final String COLUMN_TRACKEDENTITY_UID = "te_uid";
+  private static final String COLUMN_TRACKED_ENTITY_UID = "te_uid";
+  private static final String COLUMN_TRACKED_ENTITY_ORG_UNIT_UID = "te_org_unit_uid";
   private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
   private static final String COLUMN_ENROLLMENT_FOLLOWUP = "en_followup";
   private static final String COLUMN_EVENT_STATUS = "ev_status";
@@ -190,7 +189,7 @@ class JdbcTrackerEventStore {
           entry("enrollment.status", COLUMN_ENROLLMENT_STATUS),
           entry("enrollment.enrollmentDate", COLUMN_ENROLLMENT_DATE),
           entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
-          entry("enrollment.trackedEntity.uid", COLUMN_TRACKEDENTITY_UID),
+          entry("enrollment.trackedEntity.uid", COLUMN_TRACKED_ENTITY_UID),
           entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
           entry("enrollment.followUp", COLUMN_ENROLLMENT_FOLLOWUP),
           entry("status", COLUMN_EVENT_STATUS),
@@ -219,10 +218,6 @@ class JdbcTrackerEventStore {
   @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
-  private final UserService userService;
-
-  private final IdentifiableObjectManager manager;
-
   public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
@@ -235,7 +230,6 @@ class JdbcTrackerEventStore {
   private List<TrackerEvent> fetchEvents(
       TrackerEventQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, TrackerEvent> eventsByUid;
     if (pageParams == null) {
@@ -277,8 +271,18 @@ class JdbcTrackerEventStore {
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
 
+              OrganisationUnit orgUnit = new OrganisationUnit();
+              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
+              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
+              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
+              orgUnit.setAttributeValues(
+                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
+
               TrackedEntity te = new TrackedEntity();
-              te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
+              te.setUid(resultSet.getString(COLUMN_TRACKED_ENTITY_UID));
+              OrganisationUnit teOrgUnit = new OrganisationUnit();
+              teOrgUnit.setUid(resultSet.getString(COLUMN_TRACKED_ENTITY_ORG_UNIT_UID));
+              te.setOrganisationUnit(teOrgUnit);
               event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
 
               ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
@@ -294,13 +298,6 @@ class JdbcTrackerEventStore {
               enrollment.setUid(resultSet.getString(COLUMN_ENROLLMENT_UID));
               enrollment.setProgram(program);
               enrollment.setTrackedEntity(te);
-
-              OrganisationUnit orgUnit = new OrganisationUnit();
-              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
-              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
-              orgUnit.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
               event.setOrganisationUnit(orgUnit);
 
               ProgramStage ps = new ProgramStage();
@@ -309,6 +306,7 @@ class JdbcTrackerEventStore {
               ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
               ps.setAttributeValues(
                   AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
+              ps.setProgram(program);
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
               enrollment.setStatus(
@@ -501,7 +499,6 @@ class JdbcTrackerEventStore {
 
   private long getEventCount(TrackerEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
@@ -737,7 +734,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 + ", en.occurreddate as en_occurreddate, ")
         .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
-        .append(COLUMN_TRACKEDENTITY_UID)
+        .append(COLUMN_TRACKED_ENTITY_UID)
+        .append(", teou.uid as ")
+        .append(COLUMN_TRACKED_ENTITY_ORG_UNIT_UID)
         .append(getFromWhereClause(params, mapSqlParameterSource, user, hlp))
         .toString();
   }
@@ -785,7 +784,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
         .append("inner join organisationunit ou on (po.organisationunitid=ou.organisationunitid) ")
         .append(
-            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
+            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ")
+        .append(
+            "inner join organisationunit teou on (te.organisationunitid=teou.organisationunitid) ");
 
     fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
@@ -812,13 +813,25 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    if (params.getProgram() != null) {
-      sqlParameters.addValue("programid", params.getProgram().getId());
+    if (params.hasEnrolledInTrackerProgram()) {
+      sqlParameters.addValue("programid", params.getEnrolledInTrackerProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programid",
+          params.getAccessibleTrackerPrograms().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleTrackerPrograms()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" p.programid in (")
+          .append(":programid")
+          .append(") ");
     }
 
-    if (params.getProgramStage() != null) {
+    if (params.hasProgramStage()) {
       sqlParameters.addValue("programstageid", params.getProgramStage().getId());
 
       fromBuilder
@@ -826,6 +839,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ps.programstageid = ")
           .append(":programstageid")
           .append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programstageid",
+          params.getAccessibleTrackerProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleTrackerProgramStages()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programstageid in (")
+          .append(":programstageid")
+          .append(") ");
     }
 
     if (params.getEnrollmentStatus() != null) {
@@ -941,32 +966,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (!params.isIncludeDeleted()) {
       fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
-    }
-
-    if (params.hasSecurityFilter()) {
-      sqlParameters.addValue(
-          "program_uid",
-          params.getAccessiblePrograms().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessiblePrograms()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (p.uid in (")
-          .append(":program_uid")
-          .append(")) ");
-
-      sqlParameters.addValue(
-          "programstage_uid",
-          params.getAccessibleProgramStages().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessibleProgramStages()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ps.uid in (")
-          .append(":programstage_uid")
-          .append(")) ");
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
@@ -1181,18 +1180,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } catch (IOException e) {
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
-    }
-  }
-
-  private void setAccessiblePrograms(UserDetails user, TrackerEventQueryParams params) {
-    if (isNotSuperUser(user)) {
-      params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
-
-      params.setAccessibleProgramStages(
-          manager.getDataReadAll(ProgramStage.class).stream()
-              .map(UID::of)
-              .collect(Collectors.toSet()));
     }
   }
 }

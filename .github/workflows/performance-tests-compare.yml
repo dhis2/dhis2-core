@@ -13,7 +13,7 @@
 #
 # Basic example with required env vars:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env="DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest" \
@@ -22,7 +22,7 @@
 #
 # Analytics test with ANALYTICS_GENERATE for sierra-leone:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
@@ -37,7 +37,7 @@
 #
 # Analytics test with ANALYTICS_GENERATE for hmis:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
@@ -64,13 +64,13 @@
 # Download artifacts from a previous run and use the generated run-simulation.env files. You can
 # pass the files directly using @ syntax:
 #
-# gh workflow run run-performance-tests.yml \
+# gh workflow run performance-tests-compare.yml \
 #   --field perf_tests_git_ref="master" \
 #   --field baseline_env=@baseline-dir/run-simulation.env \
 #   --field candidate_env=@candidate-dir/run-simulation.env
 #
-name: Performance tests
-run-name: Performance test ${{ inputs.perf_tests_git_ref }}
+name: Performance tests compare
+run-name: Performance tests compare ${{ inputs.perf_tests_git_ref }}
 
 on:
   workflow_dispatch:
@@ -88,7 +88,7 @@ on:
           DHIS2_IMAGE=dhis2/core:2.42.1
           SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
           DB_TYPE=sierra-leone
-          DB_VERSION=2.42
+          DB_VERSION=2.42.1
           WARMUP=2
         required: true
         type: string
@@ -106,6 +106,7 @@ on:
 
 jobs:
   performance-tests:
+    if: github.repository == 'dhis2/dhis2-core'
     runs-on: perf
     timeout-minutes: 240
     defaults:
@@ -120,12 +121,6 @@ jobs:
         ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |
           dhis-2/dhis-test-performance
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v5
-      with:
-        java-version: '17'
-        distribution: 'temurin'
 
     # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
     - name: Cleanup containers
@@ -157,6 +152,20 @@ jobs:
           exit 1
         fi
 
+        # Validate env files don't contain COMMAND variable
+        # COMMAND=VAR1=val1 VAR2=val2 ./script.sh is executed by bash during 'source'
+        # because bash interprets it as: run ./script.sh with VAR1 and VAR2 set
+        if echo "${{ inputs.baseline_env }}" | grep -q '^COMMAND='; then
+          echo "Error: baseline_env contains COMMAND variable which causes accidental execution"
+          echo "Please remove the COMMAND variable from your env file"
+          exit 1
+        fi
+        if echo "${{ inputs.candidate_env }}" | grep -q '^COMMAND='; then
+          echo "Error: candidate_env contains COMMAND variable which causes accidental execution"
+          echo "Please remove the COMMAND variable from your env file"
+          exit 1
+        fi
+
         echo "✓ Validation passed"
         echo "  SIMULATION_CLASS: $BASELINE_SIM"
 
@@ -167,10 +176,10 @@ jobs:
         ${{ inputs.baseline_env }}
         ENV_EOF
 
-        # Source the env file (set -a exports all variables)
-        set -a
+        # Source the env file (allexport exports all variables to subprocesses)
+        set -o allexport
         source baseline.env
-        set +a
+        set +o allexport
 
         # Override/append workflow-specific settings
         # Skip baseline assertion failures to allow tightening performance thresholds based on candidate improvements
@@ -190,10 +199,10 @@ jobs:
         ${{ inputs.candidate_env }}
         ENV_EOF
 
-        # Source the env file (set -a exports all variables)
-        set -a
+        # Source the env file (allexport exports all variables to subprocesses)
+        set -o allexport
         source candidate.env
-        set +a
+        set +o allexport
 
         # Override workflow-specific settings
         export REPORT_SUFFIX="candidate"
@@ -202,9 +211,9 @@ jobs:
 
     - name: Upload Gatling report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
-        name: gatling-report-${{ github.run_id }}-${{ github.sha }}
+        name: gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }}
         path: dhis-2/dhis-test-performance/target/gatling/
 
     - name: Create job summary
@@ -321,22 +330,16 @@ jobs:
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Use GitHub CLI to download the performance test results:" >> $GITHUB_STEP_SUMMARY
+        echo "Download all results from all attempts:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Download this run's data:**" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Download latest run's data for current branch:**" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download \$(gh run list --workflow=\"Performance tests\" --branch=\"\$(git branch --show-current)\" --limit=1 --json databaseId --jq '.[0].databaseId')" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download --repo dhis2/dhis2-core ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Results are in \`gatling-report-${{ github.run_id }}-${{ github.sha }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "Results are in \`gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline warmup runs** (if WARMUP > 0): \`<simulation-class>-<timestamp>-baseline-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`<simulation-class>-<timestamp>-baseline/\`" >> $GITHUB_STEP_SUMMARY
@@ -366,44 +369,42 @@ jobs:
 
         echo "## 🔄 Reproduce this run" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Download the artifacts (see 'Download Results' section above) to get the \`run-simulation.env\` files. If artifacts are no longer available, use the configurations from the 'Test Configuration' section." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo "### On GitHub" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/run-performance-tests.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
+        echo "Either re-run this workflow from the [GitHub UI](https://github.com/dhis2/dhis2-core/actions/workflows/performance-tests-compare.yml) or use GitHub CLI:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Method 1: Using generated run-simulation.env files (recommended for exact reproduction)**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download the artifacts and use the @ syntax to pass files directly:" >> $GITHUB_STEP_SUMMARY
+        echo "Use the @ syntax to pass the downloaded env files directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo "gh workflow run run-performance-tests.yml \\" >> $GITHUB_STEP_SUMMARY
+        echo "gh workflow run performance-tests-compare.yml \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field perf_tests_git_ref=\"$PERF_GIT_COMMIT\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field baseline_env=@baseline-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
         echo "  --field candidate_env=@candidate-dir/run-simulation.env \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --ref $PERF_GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
+        echo "  --ref ${{ github.workflow_sha }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Method 2: Using input configurations from this run**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "See the 'Input Configurations' section above for the exact baseline_env and candidate_env values used." >> $GITHUB_STEP_SUMMARY
+        echo "See the 'Test Configuration' section above for the exact baseline_env and candidate_env values used." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### Locally" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Run this locally in the [https://github.com/dhis2/dhis2-core](https://github.com/dhis2/dhis2-core) repo in the \`dhis-2/dhis-test-performance\` directory:" >> $GITHUB_STEP_SUMMARY
+        echo "Run in the [https://github.com/dhis2/dhis2-core](https://github.com/dhis2/dhis2-core) repo in the \`dhis-2/dhis-test-performance\` directory:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Extract COMMAND_IMMUTABLE from baseline env
-        BASELINE_COMMAND_IMMUTABLE=$(grep "^COMMAND_IMMUTABLE=" "$BASELINE_ENV" | cut -d= -f2-)
         echo "**Baseline:**" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo "git checkout $PERF_GIT_COMMIT && $BASELINE_COMMAND_IMMUTABLE" >> $GITHUB_STEP_SUMMARY
+        sed '/^$/q' "$BASELINE_ENV" | grep '^#' | sed 's/^# //' >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Extract COMMAND_IMMUTABLE from candidate env
-        CANDIDATE_COMMAND_IMMUTABLE=$(grep "^COMMAND_IMMUTABLE=" "$CANDIDATE_ENV" | cut -d= -f2-)
         echo "**Candidate:**" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`sh" >> $GITHUB_STEP_SUMMARY
-        echo "git checkout $PERF_GIT_COMMIT && $CANDIDATE_COMMAND_IMMUTABLE" >> $GITHUB_STEP_SUMMARY
+        sed '/^$/q' "$CANDIDATE_ENV" | grep '^#' | sed 's/^# //' >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
