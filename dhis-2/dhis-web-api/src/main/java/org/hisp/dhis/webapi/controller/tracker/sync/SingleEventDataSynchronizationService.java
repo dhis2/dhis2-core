@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,9 +83,11 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @RequiredArgsConstructor
 public class SingleEventDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
-
-  private static final String PROCESS_NAME = "Event programs data synchronization";
+  private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
+
+  private static final String DELETE_IMPORT_STRATEGY = "DELETE";
+  private static final String CREATE_AND_UPDATE_IMPORT_STRATEGY = "CREATE_AND_UPDATE";
 
   private final EventService eventService;
   private final SystemSettingsService systemSettingsService;
@@ -95,10 +98,11 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
-    private final Map<String, Set<String>> skipSyncPSDEs;
+    private final Map<String, Set<String>> skipSyncProgramStageDataElements;
+    private final Program program;
 
-    public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize, Map.of());
+    public EventSynchronizationContext(Date skipChangedBefore, int pageSize, Program program) {
+      this(skipChangedBefore, 0, null, pageSize, Map.of(), program);
     }
 
     public EventSynchronizationContext(
@@ -106,9 +110,11 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         long objectsToSynchronize,
         SystemInstance instance,
         int pageSize,
-        Map<String, Set<String>> skipSyncPSDEs) {
+        Map<String, Set<String>> skipSyncProgramStageDataElements,
+        Program program) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
-      this.skipSyncPSDEs = skipSyncPSDEs;
+      this.skipSyncProgramStageDataElements = skipSyncProgramStageDataElements;
+      this.program = program;
     }
 
     public boolean hasNoObjectsToSynchronize() {
@@ -118,126 +124,162 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   @Override
   public SynchronizationResult synchronizeTrackerData(
-      int pageSize, JobProgress progress, String programUid) {
-    progress.startingProcess("Starting " + PROCESS_NAME);
+      int pageSize, JobProgress progress, @Nonnull String programUid) {
+    progress.startingProcess(PROCESS_NAME);
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
     if (!testServerAvailability(settings, restTemplate).isAvailable()) {
-      return failProcess(progress, PROCESS_NAME + " failed. Remote server unavailable.");
+      return failProcess(progress, "Remote server unavailable");
     }
 
     EventSynchronizationContext context =
         initializeContext(pageSize, progress, settings, programUid);
 
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, PROCESS_NAME + " ended. No events to synchronize.");
+      return endProcess(progress, "No events to synchronize");
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, settings);
 
     return success
-        ? endProcess(progress, PROCESS_NAME + " completed successfully.")
-        : failProcess(progress, PROCESS_NAME + " failed. Page-level synchronization errors.");
+        ? endProcess(progress, "Completed successfully")
+        : failProcess(progress, "Page-level synchronization failed");
   }
 
   private EventSynchronizationContext initializeContext(
       int pageSize, JobProgress progress, SystemSettings settings, String programUid) {
     return progress.runStage(
-        new EventSynchronizationContext(null, pageSize),
-        ctx -> "Events changed before " + ctx.getSkipChangedBefore() + " will not sync.",
+        new EventSynchronizationContext(null, pageSize, null),
+        ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
         () -> createContext(pageSize, settings, programUid));
   }
 
   private EventSynchronizationContext createContext(
       int pageSize, SystemSettings settings, String programUid)
       throws ForbiddenException, BadRequestException {
-    Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
+
     Program program = programService.getProgram(programUid);
+    Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
-    long count =
-        eventService.countEvents(
-            EventOperationParams.builder()
-                .programType(ProgramType.WITHOUT_REGISTRATION)
-                .program(program)
-                .skipChangedBefore(skipChangedBefore)
-                .includeDeleted(true)
-                .synchronizationQuery(true)
-                .build());
+    long eventCount = countEventsForSynchronization(program, skipChangedBefore);
 
-    if (count == 0) {
-      return new EventSynchronizationContext(skipChangedBefore, pageSize);
+    if (eventCount == 0) {
+      return new EventSynchronizationContext(skipChangedBefore, pageSize, program);
     }
 
     SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
-
-    Map<String, Set<String>> skipSyncPSDEs =
-        programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-            program);
+    Map<String, Set<String>> skipSyncProgramStageDataElements =
+        getSkipSyncProgramStageDataElements(program);
 
     return new EventSynchronizationContext(
-        skipChangedBefore, count, instance, pageSize, skipSyncPSDEs);
+        skipChangedBefore,
+        eventCount,
+        instance,
+        pageSize,
+        skipSyncProgramStageDataElements,
+        program);
+  }
+
+  private long countEventsForSynchronization(Program program, Date skipChangedBefore)
+      throws ForbiddenException, BadRequestException {
+    return eventService.countEvents(
+        EventOperationParams.builder()
+            .programType(ProgramType.WITHOUT_REGISTRATION)
+            .program(program)
+            .skipChangedBefore(skipChangedBefore)
+            .includeDeleted(true)
+            .synchronizationQuery(true)
+            .build());
+  }
+
+  private Map<String, Set<String>> getSkipSyncProgramStageDataElements(Program program) {
+    return programStageDataElementService
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue(program);
   }
 
   private boolean executeSynchronizationWithPaging(
-      EventSynchronizationContext ctx, JobProgress progress, SystemSettings settings) {
-    progress.startingStage(
+      EventSynchronizationContext context, JobProgress progress, SystemSettings settings) {
+
+    String stageDescription =
         format(
-            "Found %d events. Remote: %s. Pages: %d (size %d)",
-            ctx.getObjectsToSynchronize(),
-            ctx.getInstance().getUrl(),
-            ctx.getPages(),
-            ctx.getPageSize()),
-        ctx.getPages(),
-        SKIP_ITEM);
+            "Found %d single events. Remote: %s. Pages: %d (size %d)",
+            context.getObjectsToSynchronize(),
+            context.getInstance().getUrl(),
+            context.getPages(),
+            context.getPageSize());
+
+    progress.startingStage(stageDescription, context.getPages(), SKIP_ITEM);
 
     progress.runStage(
-        IntStream.range(1, ctx.getPages() + 1).boxed(),
-        page -> format("Syncing page %d (size %d)", page, ctx.getPageSize()),
-        page -> {
-          try {
-            synchronizePage(page, ctx, settings);
-          } catch (Exception ex) {
-            throw new RuntimeException(ex);
-          }
-        });
+        IntStream.range(1, context.getPages() + 1).boxed(),
+        page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
+        page -> synchronizePageSafely(page, context, settings));
 
     return !progress.isSkipCurrentStage();
   }
 
-  private void synchronizePage(int page, EventSynchronizationContext ctx, SystemSettings settings)
+  private void synchronizePageSafely(
+      int page, EventSynchronizationContext context, SystemSettings settings) {
+    try {
+      synchronizePage(page, context, settings);
+    } catch (Exception ex) {
+      log.error("Failed to synchronize page {}", page, ex);
+      throw new RuntimeException(
+          format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
+    }
+  }
+
+  private void synchronizePage(
+      int page, EventSynchronizationContext context, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
-    Date skipChangedBefore = ctx.getSkipChangedBefore();
-    Map<String, Set<String>> skipSyncPSDEs = ctx.getSkipSyncPSDEs();
-    SystemInstance instance = ctx.getInstance();
-    Date syncStart = ctx.getStartTime();
+    List<Event> events = fetchEventsForPage(page, context);
 
-    List<Event> events =
-        eventService.findEvents(
-            EventOperationParams.builder()
-                .programType(ProgramType.WITHOUT_REGISTRATION)
-                .skipChangedBefore(skipChangedBefore)
-                .synchronizationQuery(true)
-                .includeDeleted(true)
-                .build(),
-            skipSyncPSDEs,
-            PageParams.of(page, ctx.getPageSize(), false));
+    Map<Boolean, List<Event>> partitionedEvents = partitionEventsByDeletionStatus(events);
+    List<Event> deletedEvents = partitionedEvents.get(true);
+    List<Event> activeEvents = partitionedEvents.get(false);
 
-    Map<Boolean, List<Event>> partitioned =
-        events.stream().collect(Collectors.partitioningBy(Event::isDeleted));
+    syncEventsByDeletionStatus(activeEvents, deletedEvents, context, settings);
+  }
 
-    List<Event> deleted = partitioned.get(true);
-    List<Event> active = partitioned.get(false);
+  private List<Event> fetchEventsForPage(int page, EventSynchronizationContext context)
+      throws ForbiddenException, BadRequestException {
 
-    if (!active.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> dtoEvents =
-          events.stream().map(EVENT_MAPPER::map).toList();
-      syncEvents(dtoEvents, instance, settings, syncStart, false);
+    return eventService.findEvents(
+        EventOperationParams.builder()
+            .programType(ProgramType.WITHOUT_REGISTRATION)
+            .program(context.getProgram())
+            .skipChangedBefore(context.getSkipChangedBefore())
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .build(),
+        context.getSkipSyncProgramStageDataElements(),
+        PageParams.of(page, context.getPageSize(), false));
+  }
+
+  private Map<Boolean, List<Event>> partitionEventsByDeletionStatus(List<Event> events) {
+    return events.stream().collect(Collectors.partitioningBy(Event::isDeleted));
+  }
+
+  private void syncEventsByDeletionStatus(
+      List<Event> activeEvents,
+      List<Event> deletedEvents,
+      EventSynchronizationContext context,
+      SystemSettings settings) {
+
+    Date syncTime = context.getStartTime();
+    SystemInstance instance = context.getInstance();
+
+    if (!activeEvents.isEmpty()) {
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
+          activeEvents.stream().map(EVENT_MAPPER::map).toList();
+      syncEvents(activeEventDtos, instance, settings, syncTime, false);
     }
 
-    if (!deleted.isEmpty()) {
-      syncEvents(
-          deleted.stream().map(this::toMinimalEvent).toList(), instance, settings, syncStart, true);
+    if (!deletedEvents.isEmpty()) {
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
+          deletedEvents.stream().map(this::toMinimalEvent).toList();
+      syncEvents(deletedEventDtos, instance, settings, syncTime, true);
     }
   }
 
@@ -247,25 +289,27 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SystemSettings settings,
       Date syncTime,
       boolean isDelete) {
-    String url = instance.getUrl();
 
-    if (isDelete) {
-      url += "?importStrategy=DELETE";
-    }
+    String importStrategy = isDelete ? DELETE_IMPORT_STRATEGY : CREATE_AND_UPDATE_IMPORT_STRATEGY;
+    String url = buildSyncUrl(instance.getUrl(), isDelete);
 
     ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
-          "Event sync failed (importStrategy=" + (isDelete ? "DELETE" : "CREATE_AND_UPDATE") + ")");
-    } else {
-      log.info(
-          "Event sync successful for importStrategy={}. Events count: {}",
-          isDelete ? "DELETE" : "CREATE_AND_UPDATE",
-          events.size());
+          format("Single Event sync failed for importStrategy=%s", importStrategy));
     }
 
+    log.info(
+        "Single Event sync successful for importStrategy={}. Events count: {}",
+        importStrategy,
+        events.size());
+
     updateEventsSyncTimestamp(events, syncTime);
+  }
+
+  private String buildSyncUrl(String baseUrl, boolean isDelete) {
+    return isDelete ? baseUrl + "?importStrategy=" + DELETE_IMPORT_STRATEGY : baseUrl;
   }
 
   private ImportSummary sendTrackerRequest(
@@ -273,16 +317,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SystemInstance instance,
       SystemSettings settings,
       String url) {
-    RequestCallback requestCallback =
-        req -> {
-          req.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-          req.getHeaders()
-              .set(
-                  SyncUtils.HEADER_AUTHORIZATION,
-                  CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-
-          renderService.toJson(req.getBody(), Map.of("events", events));
-        };
+    RequestCallback requestCallback = createRequestCallback(events, instance);
 
     Optional<WebMessageResponse> response =
         runSyncRequest(
@@ -292,33 +327,46 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
             url,
             settings.getSyncMaxAttempts());
 
-    ImportSummary summary = null;
-    if (response.isPresent()) {
-      summary = (ImportSummary) response.get();
-    }
-    return summary;
+    return response.map(ImportSummary.class::cast).orElse(null);
+  }
+
+  private RequestCallback createRequestCallback(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, SystemInstance instance) {
+
+    return request -> {
+      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+      request
+          .getHeaders()
+          .set(
+              SyncUtils.HEADER_AUTHORIZATION,
+              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
+
+      renderService.toJson(request.getBody(), Map.of("events", events));
+    };
   }
 
   private void updateEventsSyncTimestamp(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
-    List<String> uids = events.stream().map(event -> event.getEvent().getValue()).toList();
-    eventService.updateEventsSyncTimestamp(uids, syncTime);
+    List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
+    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
-  private SynchronizationResult endProcess(JobProgress progress, String msg) {
-    progress.completedProcess(msg);
-    return SynchronizationResult.success(msg);
+  private SynchronizationResult endProcess(JobProgress progress, String message) {
+    String fullMessage = format("%s %s", PROCESS_NAME, message);
+    progress.completedProcess(fullMessage);
+    return SynchronizationResult.success(fullMessage);
   }
 
-  private SynchronizationResult failProcess(JobProgress progress, String msg) {
-    progress.failedProcess(msg);
-    return SynchronizationResult.failure(msg);
+  private SynchronizationResult failProcess(JobProgress progress, String reason) {
+    String fullMessage = format("%s failed. %s", PROCESS_NAME, reason);
+    progress.failedProcess(fullMessage);
+    return SynchronizationResult.failure(fullMessage);
   }
 
-  private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(Event ev) {
-    org.hisp.dhis.webapi.controller.tracker.view.Event e =
+  private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(Event event) {
+    org.hisp.dhis.webapi.controller.tracker.view.Event minimalEvent =
         new org.hisp.dhis.webapi.controller.tracker.view.Event();
-    e.setEvent(UID.of(ev.getUid()));
-    return e;
+    minimalEvent.setEvent(UID.of(event.getUid()));
+    return minimalEvent;
   }
 }

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
@@ -51,7 +52,7 @@ public abstract class TrackerDataSynchronizationWithPaging
    * @return result of synchronization
    */
   public abstract SynchronizationResult synchronizeTrackerData(
-      int pageSize, JobProgress progress, String programUid);
+      int pageSize, JobProgress progress, @Nonnull String programUid);
 
   /**
    * This method from {@link DataSynchronizationWithPaging} is not directly used here.
