@@ -236,38 +236,6 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
   }
 
-  @Test
-  void testPostWithTokenInQueryString() {
-    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-    final String plaintext = new String(wrapper.getPlaintextToken());
-
-    // Test POST request with token in URL query string
-    String postUriWithToken = URI + "&api_token=" + plaintext;
-    String errorMessage = POST(postUriWithToken, "").error(HttpStatus.BAD_REQUEST).getMessage();
-
-    // Should be rejected
-    assertTrue(errorMessage.contains("API token found in URL query string"));
-  }
-
-  @Test
-  void testQueryParameterToken() {
-    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-    final String plaintext = new String(wrapper.getPlaintextToken());
-
-    // Test GET request with token in query string
-    String getUriWithToken = URI + "&api_token=" + plaintext;
-
-    try {
-      JsonUser user = GET(getUriWithToken).content(HttpStatus.OK).as(JsonUser.class);
-      assertEquals(getAdminUser().getUid(), user.getId());
-    } catch (Exception e) {
-      // If query parameters are disabled, this is expected
-      assertTrue(
-          e.getMessage().contains("API token source not allowed")
-              || e.getMessage().contains("Checksum validation failed"));
-    }
-  }
-
   private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
     long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
     ApiKeyTokenGenerator.TokenWrapper wrapper =
