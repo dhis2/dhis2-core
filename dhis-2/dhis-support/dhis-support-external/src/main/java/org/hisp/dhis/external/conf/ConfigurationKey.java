@@ -98,7 +98,7 @@ public enum ConfigurationKey {
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
-  /** Read only database connection URL. */
+  /** Read replica database connection URL. */
   READ_REPLICA_CONNECTION_URL("read.replica.connection.url", "", false),
 
   /**
