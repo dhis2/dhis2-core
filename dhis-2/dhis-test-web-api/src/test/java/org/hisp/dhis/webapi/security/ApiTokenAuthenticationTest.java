@@ -31,7 +31,6 @@ import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersona
 import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
