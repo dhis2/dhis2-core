@@ -42,6 +42,7 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,20 @@ class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase
     dashboardA.setUid(BASE_UID);
     dashboardService.saveDashboard(dashboardA);
 
+    //Grab the snapshot for later use
+    JsonObject initialSummary = GET("/dataSummary").content();
+    //Active users over the past hour
+    JsonValue initialActiveUsers = initialSummary.getObject( "activeUsers" ).get( "0" );
+    //Should be zero
+    int initialAU;
+    try {
+      initialAU = Integer.parseInt( initialActiveUsers.toString() );
+    } catch ( NumberFormatException nfe ) {
+      fail( "Active users is not a number: " + initialActiveUsers.toString() );
+      return;
+    }
+    assertEquals( 0, initialAU, "Expected zero active users, but got " + initialAU );
+
     assertStatus(
         HttpStatus.CREATED,
         POST("/dataStatistics?eventType=DASHBOARD_VIEW&favorite=" + dashboardA.getUid()));
@@ -74,11 +89,13 @@ class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase
       v = Integer.parseInt(views);
     } catch (NumberFormatException nfe) {
       fail("Views is not a number: " + views);
+
     }
     assertTrue(v >= 1, "Expected at least one view, but got " + views);
 
     // Save the snapshot and verify we can query it
     assertStatus(HttpStatus.CREATED, POST("/dataStatistics/snapshot"));
+
 
     JsonArray stats =
         GET("/api/dataStatistics?startDate="
@@ -123,5 +140,18 @@ class DataStatisticsControllerTest extends PostgresControllerIntegrationTestBase
       fail("totalViews is not a number: " + totalViews);
     }
     assertTrue(tv >= dv, "Expected at least " + dv + " total views, but got " + totalViews);
+
+    //Active users should be at least one
+    JsonObject finalSummary = GET("/dataSummary").content();
+    JsonValue finalActiveUsers = finalSummary.getObject( "activeUsers" ).get( "0" );
+    int finalAU;
+    try {
+      finalAU = Integer.parseInt( finalActiveUsers.toString() );
+      assertTrue( finalAU >= 1, "Expected at least one active user, but got " + finalAU );
+    } catch ( NumberFormatException nfe )
+    {
+      fail( "Active users is not a number: " + finalActiveUsers.toString() );
+    }
+
   }
 }
