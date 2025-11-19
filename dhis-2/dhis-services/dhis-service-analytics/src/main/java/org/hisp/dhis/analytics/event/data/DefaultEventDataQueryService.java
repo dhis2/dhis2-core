@@ -220,6 +220,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     EventQueryParams eventQueryParams = builder.build();
 
     // Handle stage-period combinations (eventDate=stage.period syntax)
+    // Note: Post-build modification is necessary here because buildStagePeriodAlternative()
+    // requires a fully built EventQueryParams to copy configuration from. Each alternative
+    // is built from the base params, making it impossible to set alternatives during the
+    // initial builder chain. This is an acceptable architectural pattern for this use case.
     if (request.hasStagePeriodCombinations()) {
       List<org.hisp.dhis.common.StagePeriodCombination> combinations =
           request.getStagePeriodCombinations();
@@ -245,30 +249,29 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         alternatives.add(alternativeParams);
       }
 
-      // Set alternatives on the main params
-      builder = new EventQueryParams.Builder(eventQueryParams);
-      builder.withStagePeriodAlternatives(alternatives);
-      eventQueryParams = builder.build();
-    }
-
-    // Set skipPartitioning when stage-period alternatives exist
-    // The alternatives contain the period constraints and will be executed with OR logic
-    // The main params serves as a container, so we skip partition checks on it
-    if (eventQueryParams.hasStagePeriodAlternatives()) {
-      builder = new EventQueryParams.Builder(eventQueryParams);
-      builder.withSkipPartitioning(true);
-      eventQueryParams = builder.build();
+      // Set alternatives and skipPartitioning on the main params
+      // The alternatives contain the period constraints and will be executed with OR logic
+      // The main params serves as a container, so we skip partition checks on it
+      eventQueryParams =
+          new EventQueryParams.Builder(eventQueryParams)
+              .withStagePeriodAlternatives(alternatives)
+              .withSkipPartitioning(true)
+              .build();
     }
 
     // Partitioning applies only when default period is specified
 
     // Empty period dimension means default period
     // Only applies for non-aggregate event queries
+    // Skip if already set by stage-period alternatives
     if (hasPeriodDimension(eventQueryParams)
         && !hasDefaultPeriod(eventQueryParams)
-        && eventQueryParams.isComingFromQuery()) {
-      builder.withSkipPartitioning(true);
-      eventQueryParams = builder.build();
+        && eventQueryParams.isComingFromQuery()
+        && !eventQueryParams.hasStagePeriodAlternatives()) {
+      eventQueryParams =
+          new EventQueryParams.Builder(eventQueryParams)
+              .withSkipPartitioning(true)
+              .build();
     }
 
     return eventQueryParams;

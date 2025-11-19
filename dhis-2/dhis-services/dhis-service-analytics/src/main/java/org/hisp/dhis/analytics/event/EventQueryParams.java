@@ -47,6 +47,7 @@ import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
@@ -56,6 +57,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -1048,6 +1050,98 @@ public class EventQueryParams extends DataQueryParams {
     return programIndicator != null;
   }
 
+  /**
+   * Returns the latest end date from this query, including dates from stage-period alternatives.
+   *
+   * <p>When using eventDate=stage.period syntax, periods are stored in stagePeriodAlternatives.
+   * This override ensures that periods from all alternatives are considered when determining the
+   * latest end date.
+   *
+   * @return the latest end date
+   * @throws org.hisp.dhis.common.IllegalQueryException if no end date can be determined
+   */
+  @Override
+  public Date getLatestEndDate() {
+    // If using stage-period alternatives, get latest end date from all alternatives
+    if (hasStagePeriodAlternatives()) {
+      return Stream.concat(
+              // Include main params date
+              streamOfOrEmpty(getEndDate()),
+              // Include dates from all alternatives
+              stagePeriodAlternatives.stream()
+                  .flatMap(
+                      alt ->
+                          Stream.of(
+                                  streamOfOrEmpty(alt.getEndDate()),
+                                  alt.getAllPeriods().stream()
+                                      .map(PeriodDimension.class::cast)
+                                      .map(PeriodDimension::getEndDate),
+                                  alt.getTimeDateRanges().values().stream()
+                                      .flatMap(Collection::stream)
+                                      .map(DateRange::getEndDate))
+                              .flatMap(stream -> stream)))
+          .max(Date::compareTo)
+          .orElseThrow(
+              () -> new org.hisp.dhis.common.IllegalQueryException(
+                  org.hisp.dhis.feedback.ErrorCode.E7146, "end"));
+    }
+
+    // Default behavior for non-stage-period queries
+    return super.getLatestEndDate();
+  }
+
+  /**
+   * Returns the earliest start date from this query, including dates from stage-period
+   * alternatives.
+   *
+   * <p>When using eventDate=stage.period syntax, periods are stored in stagePeriodAlternatives.
+   * This override ensures that periods from all alternatives are considered when determining the
+   * earliest start date.
+   *
+   * @return the earliest start date
+   * @throws org.hisp.dhis.common.IllegalQueryException if no start date can be determined
+   */
+  @Override
+  public Date getEarliestStartDate() {
+    // If using stage-period alternatives, get earliest start date from all alternatives
+    if (hasStagePeriodAlternatives()) {
+      return Stream.concat(
+              // Include main params date
+              streamOfOrEmpty(getStartDate()),
+              // Include dates from all alternatives
+              stagePeriodAlternatives.stream()
+                  .flatMap(
+                      alt ->
+                          Stream.of(
+                                  streamOfOrEmpty(alt.getStartDate()),
+                                  alt.getAllPeriods().stream()
+                                      .map(PeriodDimension.class::cast)
+                                      .map(PeriodDimension::getStartDate),
+                                  alt.getTimeDateRanges().values().stream()
+                                      .flatMap(Collection::stream)
+                                      .map(DateRange::getStartDate))
+                              .flatMap(stream -> stream)))
+          .min(Date::compareTo)
+          .orElseThrow(
+              () -> new org.hisp.dhis.common.IllegalQueryException(
+                  org.hisp.dhis.feedback.ErrorCode.E7146, "start"));
+    }
+
+    // Default behavior for non-stage-period queries
+    return super.getEarliestStartDate();
+  }
+
+  /**
+   * Helper method to create a stream from a single value or an empty stream if null.
+   *
+   * @param value the value to convert to a stream
+   * @param <T> the type of the value
+   * @return a stream containing the value if non-null, otherwise an empty stream
+   */
+  private static <T> Stream<T> streamOfOrEmpty(T value) {
+    return Objects.nonNull(value) ? Stream.of(value) : Stream.empty();
+  }
+
   public boolean hasEventProgramIndicatorDimension() {
     return programIndicator != null
         && AnalyticsType.EVENT.equals(programIndicator.getAnalyticsType());
@@ -1628,8 +1722,9 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
-    public void withSkipPartitioning(boolean skipPartitioning) {
+    public Builder withSkipPartitioning(boolean skipPartitioning) {
       this.params.skipPartitioning = skipPartitioning;
+      return this;
     }
 
     public Builder withEnhancedConditions(boolean enhancedConditions) {
