@@ -31,6 +31,15 @@
 
             Please check https://logging.apache.org/log4j/2.x/manual/configuration.html
         -->
+
+        <!-- HikariCP connection pool monitoring -->
+        <Logger name="com.zaxxer.hikari" level="DEBUG" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="com.zaxxer.hikari.pool.HikariPool" level="DEBUG" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
         <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
 
         <Root level="WARN">
