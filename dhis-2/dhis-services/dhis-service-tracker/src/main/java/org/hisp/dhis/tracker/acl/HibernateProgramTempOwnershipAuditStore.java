@@ -27,49 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.tracker.acl;
 
 import jakarta.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTempOwner;
-import org.hisp.dhis.program.ProgramTempOwnerStore;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Repository("org.hisp.dhis.program.ProgramTempOwnerStore")
-public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner>
-    implements ProgramTempOwnerStore {
-  public HibernateProgramTempOwnerStore(
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.acl.ProgramTempOwnershipAuditStore")
+public class HibernateProgramTempOwnershipAuditStore
+    extends HibernateGenericStore<ProgramTempOwnershipAudit> {
+  public HibernateProgramTempOwnershipAuditStore(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, ProgramTempOwner.class, false);
+    super(entityManager, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
   }
 
-  // -------------------------------------------------------------------------
-  // ProgramTempOwnerStore implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
-    getSession().save(programTempOwner);
-  }
-
-  @Override
-  public int getValidTempOwnerCount(Program program, String trackedEntity, UserDetails user) {
-    final String sql =
-        """
-        select count(1) from programtempowner \
-        join trackedentity t on t.trackedentityid = programtempowner.trackedentityid \
-        where programid = ? \
-        and t.uid=? \
-        and userid=? \
-        and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0;""";
-    Object[] args = new Object[] {program.getId(), trackedEntity, user.getId()};
-    return jdbcTemplate.queryForObject(sql, Integer.class, args);
+  public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
+    getSession().save(programTempOwnershipAudit);
   }
 }

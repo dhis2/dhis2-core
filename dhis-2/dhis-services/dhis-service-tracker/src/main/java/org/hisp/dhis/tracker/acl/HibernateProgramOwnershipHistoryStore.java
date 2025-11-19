@@ -27,19 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.acl;
+
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public interface ProgramOwnershipHistoryStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@RequiredArgsConstructor
+@Component("org.hisp.dhis.tracker.acl.ProgramOwnershipHistoryStore")
+public class HibernateProgramOwnershipHistoryStore {
+  private final EntityManager entityManager;
 
-  String ID = ProgramOwnershipHistoryStore.class.getName();
-
-  /**
-   * Adds program ownership history record
-   *
-   * @param programOwnershipHistory the ownership history to add
-   */
-  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    entityManager.persist(programOwnershipHistory);
+  }
 }
