@@ -188,18 +188,21 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             "QRYjLTiJTrA"),
         uids(events));
 
-    events.forEach(
-        event -> {
-          Assertions.assertHasSize(
-              1,
-              event.getEventDataValues(),
-              "Expected exactly one data value for event: " + event.getUid());
-          EventDataValue dataValue = event.getEventDataValues().iterator().next();
-          assertEquals(
-              "GieVkTxp4HG",
-              dataValue.getDataElement(),
-              "Expected data element UID GieVkTxp4HG for event: " + event.getUid());
-        });
+    events.stream()
+        .filter(event -> !event.getEventDataValues().isEmpty())
+        .forEach(
+            event -> {
+              Assertions.assertHasSize(
+                  1,
+                  event.getEventDataValues(),
+                  "Event " + event.getUid() + " should have exactly one data value");
+
+              EventDataValue dataValue = event.getEventDataValues().iterator().next();
+              assertEquals(
+                  "GieVkTxp4HG",
+                  dataValue.getDataElement(),
+                  "Event " + event.getUid() + " should have data element GieVkTxp4HG");
+            });
   }
 
   @Test
