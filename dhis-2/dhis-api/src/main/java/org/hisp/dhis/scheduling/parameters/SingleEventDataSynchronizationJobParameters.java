@@ -34,6 +34,7 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -69,6 +70,10 @@ public class SingleEventDataSynchronizationJobParameters implements JobParameter
               PAGE_SIZE_MIN,
               PAGE_SIZE_MAX,
               pageSize));
+    }
+
+    if (StringUtils.isBlank(program)) {
+      return Optional.of(new ErrorReport(this.getClass(), ErrorCode.E4081));
     }
 
     return Optional.empty();

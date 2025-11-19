@@ -331,6 +331,7 @@ public enum ErrorCode {
   E4079(
       "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
   E4080("Program `{0}` category mapping `{1}` has an invalid option mapping `{1}`"),
+  E4081("Program is required for tracker data synchronization job"),
 
   /* SQL views */
   E4300("SQL query is null"),
