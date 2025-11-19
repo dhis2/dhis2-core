@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 
 /**
@@ -50,37 +50,25 @@ public final class ApiTokenResolver {
       Pattern.compile("^ApiToken (?<token>[a-z0-9-._~+/]+=*)$", Pattern.CASE_INSENSITIVE);
 
   public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
-
-  public static final String REQUEST_PARAMETER_NAME = "api_token";
-
   public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
 
-  private boolean allowFormEncodedBodyParameter = false;
-
-  private boolean allowUriQueryParameter = false;
-
   private String bearerTokenHeaderName = HttpHeaders.AUTHORIZATION;
-
-  private boolean isParameterTokenSupportedForRequest(HttpServletRequest request) {
-    return (this.allowFormEncodedBodyParameter && "POST".equals(request.getMethod()))
-        || (this.allowUriQueryParameter && "GET".equals(request.getMethod()));
-  }
 
   @CheckForNull
   public String resolve(HttpServletRequest request) {
     char[] headerToken = extractTokenFromHeader(request);
-    char[] parameterToken = extractTokenFromParameters(request);
 
-    if (validateHeaderToken(headerToken, parameterToken)) return hashToken(headerToken);
-
-    if (validateParameterToken(request, parameterToken)) return hashToken(parameterToken);
+    if (headerToken.length > 0) {
+      validateChecksum(headerToken);
+      return hashToken(headerToken);
+    }
 
     return null;
   }
 
   private char[] extractTokenFromHeader(HttpServletRequest request) {
     String authorization = request.getHeader(this.bearerTokenHeaderName);
-    if (!StringUtils.startsWithIgnoreCase(authorization, HEADER_TOKEN_KEY_PREFIX)) {
+    if (!Strings.CI.startsWith(authorization, HEADER_TOKEN_KEY_PREFIX)) {
       return new char[0];
     }
 
@@ -91,43 +79,6 @@ public final class ApiTokenResolver {
     }
 
     return matcher.group("token").toCharArray();
-  }
-
-  private static boolean validateHeaderToken(
-      char[] authorizationHeaderToken, char[] parameterToken) {
-    if (authorizationHeaderToken.length > 0) {
-      validateChecksum(authorizationHeaderToken);
-
-      if (parameterToken.length > 0) {
-        throw new ApiTokenAuthenticationException(
-            ApiTokenErrors.invalidRequest("Found multiple tokens in the request"));
-      }
-      return true;
-    }
-
-    return false;
-  }
-
-  private static char[] extractTokenFromParameters(HttpServletRequest request) {
-    String[] values = request.getParameterValues(REQUEST_PARAMETER_NAME);
-    if (values == null || values.length == 0) {
-      return new char[0];
-    }
-
-    if (values.length == 1) {
-      return values[0].toCharArray();
-    }
-
-    throw new ApiTokenAuthenticationException(
-        ApiTokenErrors.invalidRequest("Found multiple Api tokens in the request"));
-  }
-
-  private boolean validateParameterToken(HttpServletRequest request, char[] parameterToken) {
-    if (parameterToken.length > 0 && isParameterTokenSupportedForRequest(request)) {
-      validateChecksum(parameterToken);
-      return true;
-    }
-    return false;
   }
 
   private static void validateChecksum(char[] token) {
