@@ -41,7 +41,6 @@ import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;

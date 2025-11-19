@@ -48,7 +48,6 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.note.Note;
