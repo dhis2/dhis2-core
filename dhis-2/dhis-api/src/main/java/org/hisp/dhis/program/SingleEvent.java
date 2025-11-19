@@ -55,7 +55,7 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @NoArgsConstructor
-public class SingleEvent extends SoftDeletableObject implements SoftDeletableEntity {
+public class SingleEvent extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;

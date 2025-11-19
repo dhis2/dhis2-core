@@ -63,7 +63,7 @@ import org.locationtech.jts.geom.Geometry;
  */
 @Auditable(scope = AuditScope.TRACKER)
 @JacksonXmlRootElement(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
-public class Enrollment extends SoftDeletableObject implements SoftDeletableEntity {
+public class Enrollment extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;

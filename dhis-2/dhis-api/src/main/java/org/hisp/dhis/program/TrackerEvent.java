@@ -55,7 +55,7 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @NoArgsConstructor
-public class TrackerEvent extends SoftDeletableObject implements SoftDeletableEntity {
+public class TrackerEvent extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
