@@ -274,6 +274,20 @@ services:
         fi
       '
 
+  # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v2.53.5
+    command: --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+    depends_on:
+      web-healthcheck:
+        condition: service_healthy
+
 volumes:
   nginx:
     driver: local
@@ -282,5 +296,7 @@ volumes:
   es:
     driver: local
   kibana:
+    driver: local
+  prometheus:
     driver: local
 
