@@ -55,6 +55,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -177,7 +178,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         eventService.findEvents(
             params, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")), PageParams.of(1, 10, false));
 
-    assertContainsOnly(
+    Assertions.assertContainsOnly(
         List.of(
             "cadc5eGj0j7",
             "lumVtWwwy0O",
@@ -188,10 +189,17 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         uids(events));
 
     events.forEach(
-        event ->
-            Assertions.assertIsEmpty(
-                event.getEventDataValues(),
-                "Expected no data values for event: " + event.getUid()));
+        event -> {
+          Assertions.assertHasSize(
+              1,
+              event.getEventDataValues(),
+              "Expected exactly one data value for event: " + event.getUid());
+          EventDataValue dataValue = event.getEventDataValues().iterator().next();
+          assertEquals(
+              "GieVkTxp4HG",
+              dataValue.getDataElement(),
+              "Expected data element UID GieVkTxp4HG for event: " + event.getUid());
+        });
   }
 
   @Test

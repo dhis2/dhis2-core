@@ -902,6 +902,13 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "13"
+        },{
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "10",
+          "providedElsewhere": false
         }
       ],
       "geometry": {
@@ -953,6 +960,13 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "12"
+        },{
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "10",
+          "providedElsewhere": false
         }
       ]
     },
@@ -987,6 +1001,13 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "12"
+        },{
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "10",
+          "providedElsewhere": false
         }
       ]
     },
@@ -1021,6 +1042,14 @@
             "identifier": "GieVkTxp4HH"
           },
           "value": "12"
+        },
+        {
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "GieVkTxp4HG"
+          },
+          "value": "10",
+          "providedElsewhere": false
         }
       ]
     },
