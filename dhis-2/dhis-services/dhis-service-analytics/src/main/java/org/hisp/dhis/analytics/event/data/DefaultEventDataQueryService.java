@@ -220,10 +220,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     EventQueryParams eventQueryParams = builder.build();
 
     // Handle stage-period combinations (eventDate=stage.period syntax)
-    // Note: Post-build modification is necessary here because buildStagePeriodAlternative()
+    // TODO: Post-build modification is necessary here because buildStagePeriodAlternative()
     // requires a fully built EventQueryParams to copy configuration from. Each alternative
     // is built from the base params, making it impossible to set alternatives during the
-    // initial builder chain. This is an acceptable architectural pattern for this use case.
+    // initial builder chain. Can we do differently?
     if (request.hasStagePeriodCombinations()) {
       List<org.hisp.dhis.common.StagePeriodCombination> combinations =
           request.getStagePeriodCombinations();
@@ -269,9 +269,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         && eventQueryParams.isComingFromQuery()
         && !eventQueryParams.hasStagePeriodAlternatives()) {
       eventQueryParams =
-          new EventQueryParams.Builder(eventQueryParams)
-              .withSkipPartitioning(true)
-              .build();
+          new EventQueryParams.Builder(eventQueryParams).withSkipPartitioning(true).build();
     }
 
     return eventQueryParams;

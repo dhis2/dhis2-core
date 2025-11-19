@@ -43,7 +43,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.StagePeriodCombination;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link StagePeriodParser}. */
 class StagePeriodParserTest {
 
   @Test

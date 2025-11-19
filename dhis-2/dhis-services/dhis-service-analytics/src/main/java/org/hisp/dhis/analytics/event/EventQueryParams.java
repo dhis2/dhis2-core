@@ -1082,8 +1082,9 @@ public class EventQueryParams extends DataQueryParams {
                               .flatMap(stream -> stream)))
           .max(Date::compareTo)
           .orElseThrow(
-              () -> new org.hisp.dhis.common.IllegalQueryException(
-                  org.hisp.dhis.feedback.ErrorCode.E7146, "end"));
+              () ->
+                  new org.hisp.dhis.common.IllegalQueryException(
+                      org.hisp.dhis.feedback.ErrorCode.E7146, "end"));
     }
 
     // Default behavior for non-stage-period queries
@@ -1123,8 +1124,9 @@ public class EventQueryParams extends DataQueryParams {
                               .flatMap(stream -> stream)))
           .min(Date::compareTo)
           .orElseThrow(
-              () -> new org.hisp.dhis.common.IllegalQueryException(
-                  org.hisp.dhis.feedback.ErrorCode.E7146, "start"));
+              () ->
+                  new org.hisp.dhis.common.IllegalQueryException(
+                      org.hisp.dhis.feedback.ErrorCode.E7146, "start"));
     }
 
     // Default behavior for non-stage-period queries
