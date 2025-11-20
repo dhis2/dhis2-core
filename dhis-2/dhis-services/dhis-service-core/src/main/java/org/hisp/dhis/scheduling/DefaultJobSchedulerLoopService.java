@@ -38,8 +38,7 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Duration;
-import java.time.Instant;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -251,7 +250,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     try {
       action.run();
     } catch (Exception ex) {
-      log.error(format("Exception while running job %s post action: %s", phase, step), ex);
+      log.error( "Exception while running job {} post action: {}", phase, step, ex );
     }
   }
 
@@ -266,24 +265,16 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   private JobProgress startRecording(@Nonnull JobEntry job, @Nonnull Runnable observer) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
-    boolean nonVerboseLogging = isNonVerboseLogging(job, settings);
     NotificationLevel level =
-        job.type().isUsingNotifications() && !nonVerboseLogging
+        job.type().isUsingNotifications()
             ? settings.getNotifierLogLevel()
             : NotificationLevel.ERROR;
     JobProgress tracker = new NotifierJobProgress(notifier, job.toKey(), job.parameters(), level);
     RecordingJobProgress progress =
         new RecordingJobProgress(
-            messages, job.toKey(), tracker, true, observer, nonVerboseLogging, false);
+            messages, job.toKey(), tracker, true, observer,  false);
     recordingsById.put(job.id(), progress);
     return progress;
-  }
-
-  private static boolean isNonVerboseLogging(@Nonnull JobEntry job, SystemSettings settings) {
-    return job.schedulingType() != SchedulingType.ONCE_ASAP
-        && job.lastExecuted() != null
-        && Duration.between(job.lastExecuted().toInstant(), Instant.now()).getSeconds()
-            < settings.getJobsLogDebugBelowSeconds();
   }
 
   private void stopRecording(@Nonnull UID jobId) {

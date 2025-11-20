@@ -87,7 +87,7 @@ public class RecordingJobProgress implements JobProgress {
         notifier == null
             ? JobProgress.noop()
             : new NotifierJobProgress(notifier, job, params, NotificationLevel.DEBUG);
-    return new RecordingJobProgress(null, null, track, true, () -> {}, false, true);
+    return new RecordingJobProgress(null, null, track, true, () -> {}, true);
   }
 
   @CheckForNull private final MessageService messageService;
@@ -95,7 +95,6 @@ public class RecordingJobProgress implements JobProgress {
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
-  private final boolean logOnDebug;
   private final boolean skipRecording;
   private final String user;
 
@@ -112,7 +111,7 @@ public class RecordingJobProgress implements JobProgress {
   private int bucketed;
 
   public RecordingJobProgress(JobKey job) {
-    this(null, job, JobProgress.noop(), true, () -> {}, false, false);
+    this(null, job, JobProgress.noop(), true, () -> {}, false);
   }
 
   public RecordingJobProgress(
@@ -121,14 +120,12 @@ public class RecordingJobProgress implements JobProgress {
       JobProgress tracker,
       boolean abortOnFailure,
       Runnable observer,
-      boolean logOnDebug,
       boolean skipRecording) {
     this.messageService = messageService;
     this.job = job;
     this.tracker = tracker;
     this.abortOnFailure = abortOnFailure;
     this.observer = observer;
-    this.logOnDebug = logOnDebug;
     this.skipRecording = skipRecording;
     this.usingErrorNotification =
         messageService != null && job != null && job.type().isUsingErrorNotification();
