@@ -377,7 +377,7 @@ public class Period implements Serializable {
         int primary = p.charAt(5) - '0';
         char c4 = p.charAt(4);
         if (c4 == 'W') return new Input(WEEKLY, year, primary);
-        if (isDigit(c4)) return new Input(MONTHLY, year, primary);
+        if (isDigit(c4)) return new Input(MONTHLY, year, parseInt(p.substring(4, 6)));
         if (c4 == 'Q') return new Input(QUARTERLY, year, primary);
         if (c4 == 'S') return new Input(SIX_MONTHLY, year, primary);
         return null;
