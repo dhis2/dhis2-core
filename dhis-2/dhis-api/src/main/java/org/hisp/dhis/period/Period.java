@@ -403,7 +403,7 @@ public class Period implements Serializable {
         if (p.endsWith("July")) return new Input(FINANCIAL_JULY, year);
         if (p.indexOf("BiW") == 4) {
           if (!isDigit(p.charAt(7))) return null;
-          return new Input(BI_WEEKLY, year, p.charAt(4) - '0');
+          return new Input(BI_WEEKLY, year, p.charAt(7) - '0');
         }
         if (!isDigit(p.charAt(4))) return null;
         if (!isDigit(p.charAt(5))) return null;
@@ -434,7 +434,7 @@ public class Period implements Serializable {
           if (!isDigit(p.charAt(5))) return null;
           if (!isDigit(p.charAt(6))) return null;
           if (p.charAt(7) != '-') return null;
-          return new Input(DAILY, parseInt(p.substring(5, 7)), parseInt(p.substring(8, 10)));
+          return new Input(DAILY, year, parseInt(p.substring(5, 7)), parseInt(p.substring(8, 10)));
         }
         int primary = parseInt(p.substring(8, 10));
         if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primary);

@@ -74,10 +74,10 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
   }
 
   private static DateInterval parseInternal(Calendar calendar, Period.Input period) {
+    PeriodTypeEnum type = period.type();
+    int year = period.year();
 
-    PeriodTypeEnum dateUnitType = period.type();
-    if (PeriodTypeEnum.DAILY == dateUnitType) {
-      int year = period.year();
+    if (PeriodTypeEnum.DAILY == type) {
       int month = period.primaryInterval();
       int day = period.day();
 
@@ -85,18 +85,17 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       dateTimeUnit.setDayOfWeek(calendar.weekday(dateTimeUnit));
 
       return new DateInterval(dateTimeUnit, dateTimeUnit);
-    } else if (PeriodTypeEnum.WEEKLY == dateUnitType
-        || PeriodTypeEnum.WEEKLY_WEDNESDAY == dateUnitType
-        || PeriodTypeEnum.WEEKLY_THURSDAY == dateUnitType
-        || PeriodTypeEnum.WEEKLY_SATURDAY == dateUnitType
-        || PeriodTypeEnum.WEEKLY_SUNDAY == dateUnitType) {
+    } else if (PeriodTypeEnum.WEEKLY == type
+        || PeriodTypeEnum.WEEKLY_WEDNESDAY == type
+        || PeriodTypeEnum.WEEKLY_THURSDAY == type
+        || PeriodTypeEnum.WEEKLY_SATURDAY == type
+        || PeriodTypeEnum.WEEKLY_SUNDAY == type) {
       DateTimeUnit start;
       DateTimeUnit end;
-      int year = period.year();
       int week = period.primaryInterval();
 
       WeeklyAbstractPeriodType periodType =
-          (WeeklyAbstractPeriodType) PeriodType.getByNameIgnoreCase(dateUnitType.getName());
+          (WeeklyAbstractPeriodType) PeriodType.getByNameIgnoreCase(type.getName());
 
       if (periodType == null || week < 1 || week > calendar.weeksInYear(year)) {
         return null;
@@ -117,12 +116,11 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end = calendar.minusDays(end, 1);
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.BI_WEEKLY == dateUnitType) {
-      int year = period.year();
-      int week = period.primaryInterval();
+    } else if (PeriodTypeEnum.BI_WEEKLY == type) {
+      int week = period.primaryInterval() * 2 - 1;
 
       BiWeeklyPeriodType periodType =
-          (BiWeeklyPeriodType) PeriodType.getByNameIgnoreCase(dateUnitType.getName());
+          (BiWeeklyPeriodType) PeriodType.getByNameIgnoreCase(type.getName());
 
       if (periodType == null || week < 1 || week > calendar.weeksInYear(year)) {
         return null;
@@ -134,8 +132,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end = calendar.minusDays(end, 1);
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.MONTHLY == dateUnitType) {
-      int year = period.year();
+    } else if (PeriodTypeEnum.MONTHLY == type) {
       int month = period.primaryInterval();
 
       DateTimeUnit start = new DateTimeUnit(year, month, 1, calendar.isIso8601());
@@ -150,8 +147,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.BI_MONTHLY == dateUnitType) {
-      int year = period.year();
+    } else if (PeriodTypeEnum.BI_MONTHLY == type) {
       int month = period.primaryInterval();
 
       if (month < 1 || month > 6) {
@@ -167,8 +163,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.QUARTERLY == dateUnitType) {
-      int year = period.year();
+    } else if (PeriodTypeEnum.QUARTERLY == type) {
       int quarter = period.primaryInterval();
 
       // valid quarters are from 1 - 4
@@ -185,8 +180,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.QUARTERLY_NOV == dateUnitType) {
-      int year = period.year();
+    } else if (PeriodTypeEnum.QUARTERLY_NOV == type) {
       int quarter = period.primaryInterval();
 
       // valid quarters are from 1 - 4
@@ -222,8 +216,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.SIX_MONTHLY == dateUnitType) {
-      int year = period.primaryInterval();
+    } else if (PeriodTypeEnum.SIX_MONTHLY == type) {
       int semester = period.primaryInterval();
 
       // valid six-monthly are from 1 - 2
@@ -240,8 +233,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.SIX_MONTHLY_APRIL == dateUnitType) {
-      int year = period.year();
+    } else if (PeriodTypeEnum.SIX_MONTHLY_APRIL == type) {
       int semester = period.primaryInterval();
 
       // valid six-monthly are from 1 - 2
@@ -258,8 +250,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.SIX_MONTHLY_NOV == dateUnitType) {
-      int year = period.year();
+    } else if (PeriodTypeEnum.SIX_MONTHLY_NOV == type) {
       int semester = period.primaryInterval();
 
       // valid six-monthly are from 1 - 2
@@ -279,9 +270,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
 
       return new DateInterval(start, end);
 
-    } else if (PeriodTypeEnum.YEARLY == dateUnitType) {
-      int year = period.year();
-
+    } else if (PeriodTypeEnum.YEARLY == type) {
       DateTimeUnit start = new DateTimeUnit(year, 1, 1, calendar.isIso8601());
       DateTimeUnit end =
           new DateTimeUnit(
@@ -294,9 +283,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.FINANCIAL_APRIL == dateUnitType) {
-      int year = period.year();
-
+    } else if (PeriodTypeEnum.FINANCIAL_APRIL == type) {
       DateTimeUnit start = new DateTimeUnit(year, 4, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
@@ -306,9 +293,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.FINANCIAL_JULY == dateUnitType) {
-      int year = period.year();
-
+    } else if (PeriodTypeEnum.FINANCIAL_JULY == type) {
       DateTimeUnit start = new DateTimeUnit(year, 7, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
@@ -318,9 +303,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.FINANCIAL_SEP == dateUnitType) {
-      int year = period.year();
-
+    } else if (PeriodTypeEnum.FINANCIAL_SEP == type) {
       DateTimeUnit start = new DateTimeUnit(year, 9, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
@@ -330,9 +313,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.FINANCIAL_OCT == dateUnitType) {
-      int year = period.year();
-
+    } else if (PeriodTypeEnum.FINANCIAL_OCT == type) {
       DateTimeUnit start = new DateTimeUnit(year, 10, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
@@ -342,9 +323,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
-    } else if (PeriodTypeEnum.FINANCIAL_NOV == dateUnitType) {
-      int year = period.year();
-
+    } else if (PeriodTypeEnum.FINANCIAL_NOV == type) {
       DateTimeUnit start = new DateTimeUnit(year - 1, 11, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
