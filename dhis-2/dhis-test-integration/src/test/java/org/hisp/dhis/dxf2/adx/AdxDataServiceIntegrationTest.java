@@ -41,6 +41,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -449,23 +450,23 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
   // --------------------------------------------------------------------------
   // Supportive methods
   // --------------------------------------------------------------------------
-  private DataExportParams getCommonExportParams() {
-    return DataExportParams.builder()
+  private DataExportParams.Input getCommonExportParams() {
+    return DataExportParams.Input.builder()
         .orgUnit(Set.of(ouA.getUid()))
         .period(Set.of(pe202001.getIsoDate(), pe202002.getIsoDate()))
         .dataSet(Set.of(dsA.getUid(), dsB.getUid()))
         .build();
   }
 
-  private void testExport(String filePath, DataExportParams params) throws Exception {
+  private void testExport(String filePath, DataExportParams.Input params) throws Exception {
     addDataValues(
         new DataValue(deA, pe202001, ouA, cocFUnder5, cocDefault, "1"),
         new DataValue(deB, pe202002, ouA, cocDefault, cocDefault, "Some text"),
         new DataValue(deA, pe202001, ouB, cocMOver5, cocMcDonalds, "2"),
         new DataValue(deA, pe202001, ouB, cocFOver5, cocPepfar, "3"));
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    dataExportPipeline.exportAsXmlGroups(params, out);
-    String result = out.toString("UTF-8");
+    dataExportPipeline.exportAsXmlGroups(params, () -> out);
+    String result = out.toString(StandardCharsets.UTF_8);
     InputStream expectedStream = new ClassPathResource(filePath).getInputStream();
     String expected =
         new BufferedReader(new InputStreamReader(expectedStream))

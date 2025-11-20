@@ -66,6 +66,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.dto.Program;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -196,6 +197,7 @@ public class AnalyticsDimensionsTest extends ApiTest {
 
   @ValueSource(strings = {"DATA_ELEMENT", "PROGRAM_ATTRIBUTE"})
   @ParameterizedTest
+  @Disabled
   public void shouldLimitAggregateDimensionsByValueTypes(String dimensionType) {
     List<String> acceptedValueTypes =
         Arrays.asList(

@@ -73,7 +73,7 @@ public abstract class AbstractQueryBuilderTest {
       @Nonnull Set<String> expectedParams,
       QueryBuilder actual) {
     assertSQL(expectedSql, actual);
-    assertEquals(expectedParams, params.keySet());
+    assertEquals(expectedParams, params.keySet(), "parameters used are different");
   }
 
   protected final void assertSQL(

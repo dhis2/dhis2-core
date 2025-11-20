@@ -116,30 +116,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public Map<String, String> getIdMapping(
-      @Nonnull DecodeType type, @Nonnull IdProperty from, @Nonnull Stream<String> identifiers) {
-    String[] ids = identifiers.filter(Objects::nonNull).distinct().toArray(String[]::new);
-    if (ids.length == 0) return Map.of();
-    @Language("sql")
-    String sqlTemplate =
-        """
-      SELECT ${property}, t.uid
-      FROM ${table} t
-      JOIN unnest(:ids) AS input(id) ON ${property} = input.id
-      """;
-    String tableName =
-        switch (type) {
-          case DS -> "dataset";
-          case DE -> "dataelement";
-          case OU -> "organisationunit";
-          case COC -> "categoryoptioncombo";
-        };
-    String sql =
-        replace(sqlTemplate, Map.of("table", tableName, "property", columnName("t", from)));
-    return listAsStringsMap(sql, q -> q.setParameter("ids", ids));
-  }
-
-  @Override
   public List<String> getDataSetAocCategories(
       @Nonnull UID dataSet, @Nonnull IdProperty categories) {
     @Language("SQL")
@@ -149,6 +125,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       FROM dataset ds
       JOIN categorycombos_categories cc_c ON ds.categorycomboid = cc_c.categorycomboid
       JOIN category c ON cc_c.categoryid = c.categoryid
+      WHERE ds.uid = :ds
       ORDER BY sort_name
       """;
     String sql = replace(sqlTemplate, Map.of("c_id", columnName("c", categories)));
@@ -177,6 +154,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           FROM dataset ds
           JOIN categorycombos_optioncombos cc_coc ON ds.categorycomboid = cc_coc.categorycomboid
           JOIN categoryoptioncombos_categoryoptions coc_co ON cc_coc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+          WHERE ds.uid = :ds
           GROUP BY coc_co.categoryoptioncomboid
         ) co_coc
         JOIN categoryoptioncombo coc ON co_coc.categoryoptioncomboid = coc.categoryoptioncomboid""";
@@ -627,8 +605,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         """
       SELECT ds.uid
       FROM dataset ds
-      WHERE ds.uid = :ds AND NOT (%s);
-      """;
+      WHERE ds.uid = :ds AND NOT (%s)""";
     String ds = dataSet.getValue();
     return listAsStrings(sql.formatted(accessSql), q -> q.setParameter("ds", ds)).isEmpty();
   }
@@ -701,8 +678,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       JOIN categoryoptioncombos_categoryoptions aoc_co ON coc.categoryoptioncomboid = aoc_co.categoryoptioncomboid
       JOIN categoryoption co ON aoc_co.categoryoptionid = co.categoryoptionid
       WHERE coc.uid IN (:coc)
-      AND NOT (%s);
-      """;
+      AND NOT (%s)""";
     // ignore nulls (default COC) assuming that it does not have special user restrictions
     String[] coc =
         optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
@@ -1097,14 +1073,6 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
     Stream<Object[]> rows = query.stream();
     return rows.collect(toMap(row -> (String) row[0], row -> f.apply((String[]) row[1])));
-  }
-
-  @Nonnull
-  private Map<String, String> listAsStringsMap(
-      @Language("SQL") String sql, UnaryOperator<NativeQuery<Object[]>> setParameters) {
-    NativeQuery<Object[]> query = setParameters.apply(createNativeRawQuery(sql));
-    Stream<Object[]> rows = query.stream();
-    return rows.collect(toMap(row -> (String) row[0], row -> (String) row[1]));
   }
 
   @Nonnull
