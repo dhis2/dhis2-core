@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.relationship;
+package org.hisp.dhis.common;
 
-import java.util.List;
-import java.util.Set;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.SoftDeletableEntity;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.export.Order;
+public interface SoftDeletableEntity extends IdentifiableObject {
 
-@Getter
-@RequiredArgsConstructor
-class RelationshipQueryParams {
-  private final SoftDeletableEntity entity;
+  boolean isDeleted();
 
-  private final List<Order> order;
-
-  private final boolean includeDeleted;
-
-  private final Set<UID> relationships;
+  void setDeleted(boolean deleted);
 }
