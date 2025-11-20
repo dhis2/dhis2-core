@@ -27,34 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
-
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.ProgramTempOwnershipAudit;
-import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+package org.hisp.dhis.tracker.acl;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Repository("org.hisp.dhis.program.ProgramTempOwnershipAuditStore")
-public class HibernateProgramTempOwnershipAuditStore
-    extends HibernateGenericStore<ProgramTempOwnershipAudit>
-    implements ProgramTempOwnershipAuditStore {
-  public HibernateProgramTempOwnershipAuditStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
-  }
+public interface ProgramOwnershipHistoryService {
 
-  // -------------------------------------------------------------------------
-  // ProgramTempOwnershipAuditStore implementation
-  // -------------------------------------------------------------------------
+  String ID = ProgramOwnershipHistoryService.class.getName();
 
-  @Override
-  public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
-    getSession().save(programTempOwnershipAudit);
-  }
+  /**
+   * Adds program ownership history
+   *
+   * @param programOwnershipHistory the history to add
+   */
+  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
 }

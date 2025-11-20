@@ -78,7 +78,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
@@ -354,7 +353,7 @@ public class AuditController {
     List<Period> periods = new ArrayList<>();
 
     for (String pe : isoPeriods) {
-      Period period = PeriodType.getPeriodFromIsoString(pe);
+      Period period = Period.of(pe);
 
       if (period == null) {
         throw new WebMessageException(conflict("Illegal period identifier: " + pe));

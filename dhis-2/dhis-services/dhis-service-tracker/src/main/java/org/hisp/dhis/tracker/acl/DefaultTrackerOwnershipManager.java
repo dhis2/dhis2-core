@@ -49,13 +49,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramOwnershipHistory;
-import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTempOwner;
-import org.hisp.dhis.program.ProgramTempOwnerService;
-import org.hisp.dhis.program.ProgramTempOwnershipAudit;
-import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -74,8 +68,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-  private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
-  private final ProgramTempOwnerService programTempOwnerService;
+  private final HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
+  private final HibernateProgramTempOwnerStore programTempOwnerStore;
   private final TrackerProgramService trackerProgramService;
   private final OrganisationUnitService organisationUnitService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
@@ -88,8 +82,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       UserService userService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       CacheProvider cacheProvider,
-      ProgramTempOwnershipAuditService programTempOwnershipAuditService,
-      ProgramTempOwnerService programTempOwnerService,
+      HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore,
+      HibernateProgramTempOwnerStore programTempOwnerStore,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
       TrackerProgramService trackerProgramService,
@@ -99,9 +93,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-    this.programTempOwnershipAuditService = programTempOwnershipAuditService;
+    this.programTempOwnershipAuditStore = programTempOwnershipAuditStore;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
-    this.programTempOwnerService = programTempOwnerService;
+    this.programTempOwnerStore = programTempOwnerStore;
     this.programService = programService;
     this.trackerProgramService = trackerProgramService;
     this.organisationUnitService = organisationUnitService;
@@ -197,7 +191,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     validateUser(trackedEntity, program, user);
 
     if (trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      programTempOwnershipAuditService.addProgramTempOwnershipAudit(
+      programTempOwnershipAuditStore.addProgramTempOwnershipAudit(
           new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
     }
 
@@ -208,7 +202,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
             reason,
             userService.getUser(user.getUid()),
             TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS);
-    programTempOwnerService.addProgramTempOwner(programTempOwner);
+    programTempOwnerStore.addProgramTempOwner(programTempOwner);
     tempOwnerCache.invalidate(
         getTempOwnershipCacheKey(trackedEntity.getUid(), program.getUid(), user.getUid()));
   }
@@ -382,8 +376,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     return tempOwnerCache.get(
         getTempOwnershipCacheKey(trackedEntity.getUid(), program.getUid(), user.getUid()),
         s ->
-            (programTempOwnerService.getValidTempOwnerRecordCount(
-                    program, trackedEntity.getUid(), user)
+            (programTempOwnerStore.getValidTempOwnerCount(program, trackedEntity.getUid(), user)
                 > 0));
   }
 
@@ -395,8 +388,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     return tempOwnerCache.get(
         getTempOwnershipCacheKey(trackedEntityUid, program.getUid(), user.getUid()),
-        s ->
-            programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntityUid, user)
-                > 0);
+        s -> programTempOwnerStore.getValidTempOwnerCount(program, trackedEntityUid, user) > 0);
   }
 }

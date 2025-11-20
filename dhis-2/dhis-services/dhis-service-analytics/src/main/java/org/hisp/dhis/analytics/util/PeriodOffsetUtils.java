@@ -51,8 +51,8 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 
 /**
@@ -137,8 +137,7 @@ public final class PeriodOffsetUtils {
    */
   public static List<Object> getPeriodOffsetRow(List<Object> row, int periodIndex, int offset) {
     String isoPeriod = (String) row.get(periodIndex);
-    PeriodDimension shifted =
-        shiftPeriod(PeriodDimension.of(PeriodType.getPeriodFromIsoString(isoPeriod)), -offset);
+    PeriodDimension shifted = shiftPeriod(PeriodDimension.of(Period.of(isoPeriod)), -offset);
 
     List<Object> adjustedRow = new ArrayList<>(row);
     adjustedRow.set(periodIndex, shifted.getIsoDate());

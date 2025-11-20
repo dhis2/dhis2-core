@@ -732,7 +732,7 @@ public class DataApprovalController {
   }
 
   private Period getAndValidatePeriod(String pe) throws WebMessageException {
-    Period period = PeriodType.getPeriodFromIsoString(pe);
+    Period period = Period.of(pe);
 
     if (period == null) {
       throw new WebMessageException(conflict("Illegal period identifier: " + pe));

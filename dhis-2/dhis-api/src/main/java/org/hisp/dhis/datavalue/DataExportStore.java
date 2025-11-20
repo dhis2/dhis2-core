@@ -30,43 +30,32 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 
 /**
  * Support for bulk data value export.
  *
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
 public interface DataExportStore {
 
-  enum EncodeType {
-    DE,
-    OU,
-    COC
-  }
-
-  /**
-   * Fetches a mapping from the given UIDs for the given {@link EncodeType} to their identifier of
-   * the given {@link IdScheme}
-   *
-   * @param type what object (table)
-   * @param to unknown identifier and requested (result map value)
-   * @param ids known identifiers (result map key)
-   * @return a mapping from the known to the unknown identifier
+  /*
+  Decode support
    */
-  @Nonnull
-  Map<String, String> getIdMapping(
-      @Nonnull EncodeType type, @Nonnull IdProperty to, @Nonnull Stream<UID> ids);
+  @CheckForNull
+  UID getAttributeOptionCombo(
+      @CheckForNull UID categoryCombo, @Nonnull Stream<UID> categoryOptions);
+
+  /*
+  Export
+   */
 
   @CheckForNull
-  DataExportValue getDataValue(@Nonnull DataEntryKey key);
+  DataExportValue exportValue(@Nonnull DataEntryKey key);
 
   /**
    * Returns data values for the given data export parameters.
@@ -74,7 +63,31 @@ public interface DataExportStore {
    * @param params the data export parameters.
    * @return a list of data values.
    */
-  Stream<DataExportValue> getDataValues(DataExportStoreParams params);
+  @Nonnull
+  Stream<DataExportValue> exportValues(@Nonnull DataExportParams params);
+
+  /*
+  Validation support
+   */
+
+  /**
+   * @param dataSets scope of the check
+   * @return The UIDs of the given datasets that the current user does not have data read access to.
+   *     Meaning, if the current user has access to all given datasets an empty list should be
+   *     returned.
+   */
+  @Nonnull
+  List<String> getDataSetsNoDataReadAccess(@Nonnull Stream<UID> dataSets);
+
+  @Nonnull
+  List<String> getAocNoDataReadAccess(@Nonnull Stream<UID> attributeOptionCombos);
+
+  @Nonnull
+  List<String> getOrgUnitsNotInUserHierarchy(@Nonnull Stream<UID> orgUnits);
+
+  /*
+  Test support
+  */
 
   /**
    * Returns all DataValues.

@@ -9,7 +9,7 @@
   <properties>
     <rootDir>..</rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spotless.version>3.0.0</spotless.version>
+    <spotless.version>3.1.0</spotless.version>
     <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.5.1</maven-surefire-junit5-tree-reporter.version>
@@ -25,7 +25,7 @@
     <opencsv.version>5.12.0</opencsv.version>
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
-    <commons-lang3.version>3.19.0</commons-lang3.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
     <json-path.version>2.10.0</json-path.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>

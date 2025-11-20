@@ -56,7 +56,7 @@ import org.hisp.dhis.schema.annotation.Property;
 public class PeriodDimension extends BaseDimensionalItemObject {
 
   public static PeriodDimension of(String isoPeriod) {
-    return PeriodDimension.of(PeriodType.getPeriodFromIsoString(isoPeriod));
+    return PeriodDimension.of(Period.of(isoPeriod));
   }
 
   public static PeriodDimension of(Period period) {

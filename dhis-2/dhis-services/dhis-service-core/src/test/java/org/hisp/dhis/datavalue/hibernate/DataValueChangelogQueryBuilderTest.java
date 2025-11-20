@@ -30,7 +30,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataValueChangelogStore.createEntriesQuery;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.Period.of;
 
 import java.util.List;
 import java.util.Set;
@@ -204,8 +204,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByPeriods() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setPeriods(List.of(getPeriodFromIsoString("2021"), getPeriodFromIsoString("2022")));
+        new DataValueChangelogQueryParams().setPeriods(List.of(of("2021"), of("2022")));
     assertSQL(
         """
       SELECT *
@@ -220,7 +219,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
   @Test
   void testFilterByPeriods_Single() {
     DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams().setPeriods(List.of(getPeriodFromIsoString("2021")));
+        new DataValueChangelogQueryParams().setPeriods(List.of(of("2021")));
     assertSQL(
         """
       SELECT *
@@ -266,7 +265,7 @@ class DataValueChangelogQueryBuilderTest extends AbstractQueryBuilderTest {
         new DataValueChangelogQueryParams()
             .setTypes(List.of(DataValueChangelogType.UPDATE))
             .setDataSets(List.of(UID.of("ds123456789"), UID.of("ds987654321")))
-            .setPeriods(List.of(getPeriodFromIsoString("2022")));
+            .setPeriods(List.of(of("2022")));
     assertSQL(
         """
       SELECT *
