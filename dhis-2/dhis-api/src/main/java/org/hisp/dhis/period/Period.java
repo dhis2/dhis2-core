@@ -61,14 +61,25 @@ public class Period implements Serializable {
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
   /**
-   * Check if a date is within the date range as provided by a period.
+   * Returns a period based on the given date string in ISO format. Returns null if the date string
+   * cannot be parsed to a period.
    *
-   * @param start inclusive, null is open to any time before end
-   * @param end inclusive, null is open to any time after start
-   * @param checked the date checked, maybe null
-   * @return true, if the checked date is non-null and is between start and end date (ignoring time
-   *     both ends inclusive)
+   * @param isoPeriod the date string in ISO format.
+   * @return a period or null in case the given {@link String} was not a valid period
+   * @implNote This got moved from {@code PeriodType#getPeriodFromIsoString}
    */
+  @CheckForNull
+  public static Period of(String isoPeriod) {
+    if (isoPeriod == null) return null;
+    PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
+    try {
+      return type != null ? type.createPeriod(isoPeriod) : null;
+    } catch (Exception ex) {
+      // Do nothing and return null
+      return null;
+    }
+  }
+
   /**
    * Check if a date is within the date range as provided by a period.
    *

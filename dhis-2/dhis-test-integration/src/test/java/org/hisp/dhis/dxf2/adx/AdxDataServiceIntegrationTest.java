@@ -266,9 +266,9 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     idObjectManager.save(deA);
     idObjectManager.save(deB);
     // Period
-    pe202001 = PeriodType.getPeriodFromIsoString("202001");
-    pe202002 = PeriodType.getPeriodFromIsoString("202002");
-    pe2021Q1 = PeriodType.getPeriodFromIsoString("2021Q1");
+    pe202001 = Period.of("202001");
+    pe202002 = Period.of("202002");
+    pe2021Q1 = Period.of("2021Q1");
     periodService.addPeriod(pe202001);
     periodService.addPeriod(pe202002);
     periodService.addPeriod(pe2021Q1);

@@ -284,7 +284,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   private static String decodeIso(@CheckForNull String period) {
     if (period == null || period.isEmpty()) return null;
     // normalize the format to the ISO
-    return PeriodType.getPeriodFromIsoString(period).getIsoDate();
+    return Period.of(period).getIsoDate();
   }
 
   @Override
@@ -712,7 +712,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   // find the values entered outside their input period
                   .filter(
                       dv -> {
-                        Period p = PeriodType.getPeriodFromIsoString(dv.period());
+                        Period p = Period.of(dv.period());
                         // +1 because the period end date is start of day but should include that
                         // day
                         Date endOfEntryPeriod =
@@ -735,9 +735,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
           Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
           List<String> isoNotYetOpen =
-              isoPeriods.stream()
-                  .filter(iso -> PeriodType.getPeriodFromIsoString(iso).isAfter(latestOpen))
-                  .toList();
+              isoPeriods.stream().filter(iso -> Period.of(iso).isAfter(latestOpen)).toList();
           if (!isoNotYetOpen.isEmpty())
             throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
         }
@@ -808,7 +806,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   dv -> {
                     DateRange span = entrySpanByAoc.get(dv.attributeOptionCombo().getValue());
                     if (span == null) return null;
-                    Period p = PeriodType.getPeriodFromIsoString(dv.period());
+                    Period p = Period.of(dv.period());
                     Date start = p.getStartDate();
                     Date end = p.getEndDate();
                     if (span.includes(start) && span.includes(end)) return null;

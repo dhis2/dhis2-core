@@ -46,7 +46,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.writer.XMLWriter;
@@ -294,6 +294,6 @@ final class DataExportOutput {
 
   @Nonnull
   private static String toAdxPeriod(String isoPeriod) {
-    return AdxPeriod.serialize(PeriodType.getPeriodFromIsoString(isoPeriod));
+    return AdxPeriod.serialize(Period.of(isoPeriod));
   }
 }

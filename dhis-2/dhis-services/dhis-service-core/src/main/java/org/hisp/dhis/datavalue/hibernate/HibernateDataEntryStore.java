@@ -885,7 +885,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           .filter(not(res::containsKey))
           .forEach(
               iso -> {
-                Period p = PeriodType.getPeriodFromIsoString(iso);
+                Period p = Period.of(iso);
                 periodStore.reloadForceAddPeriod(p);
                 res.put(iso, p.getId());
               });
