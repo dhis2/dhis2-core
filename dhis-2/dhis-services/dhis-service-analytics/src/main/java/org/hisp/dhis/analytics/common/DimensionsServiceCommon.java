@@ -31,14 +31,18 @@ package org.hisp.dhis.analytics.common;
 
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.FILE_RESOURCE;
+import static org.hisp.dhis.common.ValueType.GEOJSON;
 import static org.hisp.dhis.common.ValueType.IMAGE;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
+import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.PERCENTAGE;
+import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.common.ValueType.TRACKER_ASSOCIATE;
 import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
@@ -75,12 +79,18 @@ public class DimensionsServiceCommon {
           BOOLEAN,
           TRUE_ONLY);
 
+  protected static final EnumSet<ValueType> ENROLLMENT_AGGREGATE_DISALLOWED_VALUE_TYPES =
+      EnumSet.of(
+          COORDINATE, FILE_RESOURCE, GEOJSON, IMAGE, MULTI_TEXT, REFERENCE, TRACKER_ASSOCIATE);
+
   private static final Map<OperationType, Predicate<ValueType>> OPERATION_FILTER =
       Map.of(
           OperationType.QUERY,
           not(QUERY_DISALLOWED_VALUE_TYPES::contains),
           OperationType.AGGREGATE,
-          AGGREGATE_ALLOWED_VALUE_TYPES::contains);
+          AGGREGATE_ALLOWED_VALUE_TYPES::contains,
+          OperationType.ENROLLMENT_AGGREGATE,
+          not(ENROLLMENT_AGGREGATE_DISALLOWED_VALUE_TYPES::contains));
 
   private static final Map<Class<?>, Function<PrefixedDimension, ValueType>>
       VALUE_TYPE_GETTERS_BY_CLASS =
@@ -93,7 +103,8 @@ public class DimensionsServiceCommon {
 
   public enum OperationType {
     QUERY,
-    AGGREGATE
+    AGGREGATE,
+    ENROLLMENT_AGGREGATE
   }
 
   public static List<PrefixedDimension> collectDimensions(
