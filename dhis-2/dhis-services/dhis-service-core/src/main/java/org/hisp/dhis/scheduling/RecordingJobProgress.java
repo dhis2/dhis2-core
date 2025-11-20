@@ -95,6 +95,7 @@ public class RecordingJobProgress implements JobProgress {
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
+  private final boolean logOnDebug;
   private final boolean skipRecording;
   private final String user;
 
