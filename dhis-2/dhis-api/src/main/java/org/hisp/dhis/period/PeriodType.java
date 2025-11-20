@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.calendar.CalendarService;
@@ -163,15 +162,6 @@ public abstract class PeriodType implements Serializable {
    */
   public static List<PeriodType> getAvailablePeriodTypes() {
     return PERIOD_TYPES;
-  }
-
-  /**
-   * Returns an immutable list of the names of all period types in their natural order.
-   *
-   * @return an immutable list of the names of all period types.
-   */
-  public static List<String> getAvailablePeriodTypeNames() {
-    return PERIOD_TYPES.stream().map(PeriodType::getName).collect(Collectors.toUnmodifiableList());
   }
 
   /**
@@ -481,27 +471,6 @@ public abstract class PeriodType implements Serializable {
   }
 
   /**
-   * Returns a period based on the given date string in ISO format. Returns null if the date string
-   * cannot be parsed to a period.
-   *
-   * @param isoPeriod the date string in ISO format.
-   * @return a period.
-   */
-  public static Period getPeriodFromIsoString(String isoPeriod) {
-    if (isoPeriod != null) {
-      PeriodType periodType = getPeriodTypeFromIsoString(isoPeriod);
-
-      try {
-        return periodType != null ? periodType.createPeriod(isoPeriod) : null;
-      } catch (Exception ex) {
-        // Do nothing and return null
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Returns a list of periods based on the given date string in ISO format.
    *
    * @param isoPeriods the date strings in ISO format.
@@ -511,7 +480,7 @@ public abstract class PeriodType implements Serializable {
     List<Period> periods = new ArrayList<>();
 
     for (String isoPeriod : isoPeriods) {
-      Period period = getPeriodFromIsoString(isoPeriod);
+      Period period = Period.of(isoPeriod);
 
       if (period != null) {
         periods.add(period);

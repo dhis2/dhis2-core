@@ -31,7 +31,7 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static org.hisp.dhis.datavalue.DataExportParams.Order.*;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.Period.of;
 
 import java.util.Date;
 import java.util.List;
@@ -116,8 +116,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
 
   @Test
   void testFilter_Period() {
-    DataExportParams params =
-        DataExportParams.builder().periods(List.of(getPeriodFromIsoString("2020"))).build();
+    DataExportParams params = DataExportParams.builder().periods(List.of(of("2020"))).build();
     assertSQL(
         """
         WITH

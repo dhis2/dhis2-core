@@ -49,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.preheat.PreheatService;
@@ -219,7 +218,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   private void addRawPeriods(DimensionalObject dimObject, Set<String> rawPeriods) {
     for (DimensionalItemObject item : dimObject.getItems()) {
       String period = item.getUid();
-      Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+      Period isoPeriod = Period.of(period);
 
       if (RelativePeriodEnum.contains(period) || isoPeriod != null) {
         rawPeriods.add(period);

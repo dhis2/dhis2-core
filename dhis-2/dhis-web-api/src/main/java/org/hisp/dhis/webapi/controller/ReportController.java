@@ -47,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
@@ -257,9 +256,7 @@ public class ReportController extends AbstractCrudController<Report, GetObjectLi
       date = date != null ? date : new DateTime().minusMonths(1).toDate();
 
       Period period =
-          isoPeriod != null
-              ? PeriodType.getPeriodFromIsoString(isoPeriod)
-              : new MonthlyPeriodType().createPeriod(date);
+          isoPeriod != null ? Period.of(isoPeriod) : new MonthlyPeriodType().createPeriod(date);
 
       String filename = CodecUtils.filenameEncode(report.getName()) + "." + type;
 

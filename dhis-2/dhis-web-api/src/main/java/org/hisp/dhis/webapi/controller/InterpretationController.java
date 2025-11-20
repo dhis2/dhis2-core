@@ -52,7 +52,6 @@ import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
@@ -233,7 +232,7 @@ public class InterpretationController
       return conflict("Data set does not exist or is not accessible: " + dataSetUid);
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
+    Period period = Period.of(isoPeriod);
 
     if (period == null) {
       return conflict("Period identifier not valid: " + isoPeriod);

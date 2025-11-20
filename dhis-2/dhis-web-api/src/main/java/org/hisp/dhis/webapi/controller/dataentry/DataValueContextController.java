@@ -48,7 +48,6 @@ import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,7 +74,7 @@ public class DataValueContextController {
     List<DataValueChangelogEntry> entries = dataValueChangelogService.getChangelogEntries(params);
 
     Set<String> periods =
-        periodService.getPeriods(PeriodType.getPeriodFromIsoString(params.getPe()), 13).stream()
+        periodService.getPeriods(Period.of(params.getPe()), 13).stream()
             .map(Period::getIsoDate)
             .collect(toSet());
 
