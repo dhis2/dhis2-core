@@ -91,7 +91,6 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.4.0-SNAPSHOT</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.7.1</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -426,11 +425,6 @@
         <groupId>org.hisp.dhis</groupId>
         <artifactId>json-tree</artifactId>
         <version>${dhis-json-tree.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jetbrains.kotlinx</groupId>
-        <artifactId>kotlinx-datetime-jvm</artifactId>
-        <version>${kotlinx-datetime.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
