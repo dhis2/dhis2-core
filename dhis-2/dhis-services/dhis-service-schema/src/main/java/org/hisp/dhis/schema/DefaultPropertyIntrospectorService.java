@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.schema.introspection.DisplayPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
@@ -66,7 +65,6 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
         new HibernatePropertyIntrospector(sessionFactory)
             .then(new JacksonPropertyIntrospector())
             .then(new TranslatablePropertyIntrospector())
-            .then(new DisplayPropertyIntrospector())
             .then(new PropertyPropertyIntrospector())
             .then(new GistPropertyIntrospector()));
   }

@@ -58,7 +58,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -202,10 +201,26 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (property == null)
       throw new IllegalArgumentException("No such property: " + order.getProperty());
 
-    // Check if this is a translatable property (display* properties)
-    if (property.getName().startsWith("display")
-        && property.isTranslatable()
-        && property.getTranslationKey() != null) {
+    // Handle display properties (displayName, displayFormName, displayEnrollmentDateLabel, etc.)
+    // These are virtual properties that map to base properties with @Translatable annotations
+    String propertyName = order.getProperty();
+    if (propertyName.startsWith("display")) {
+      // Get the base property (e.g., displayName -> name)
+      String basePropertyName = getBasePropertyName(propertyName);
+      Property baseProperty = schema.getProperty(basePropertyName);
+
+      if (baseProperty != null
+          && baseProperty.isTranslatable()
+          && baseProperty.getTranslationKey() != null) {
+        // Use translatable ordering for the base property
+        return getTranslatableOrderPredicate(builder, root, baseProperty, order);
+      }
+      // If not translatable, order by the base property normally
+      if (baseProperty != null) {
+        property = baseProperty;
+      }
+    } else if (property.isTranslatable() && property.getTranslationKey() != null) {
+      // Handle non-display translatable properties
       return getTranslatableOrderPredicate(builder, root, property, order);
     }
 

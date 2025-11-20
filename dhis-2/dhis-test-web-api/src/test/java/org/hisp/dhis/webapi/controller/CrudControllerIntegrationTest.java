@@ -37,9 +37,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -54,7 +56,9 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -680,5 +684,178 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
       DataElement dataElement = createDataElement(Character.forDigit(i, 36));
       dataElementService.addDataElement(dataElement);
     }
+  }
+
+  @Test
+  void testOrderUsersByDisplayNameAsc() {
+    // Create users with different display names
+    User userAlice = createAndAddUser("alice");
+    userAlice.setFirstName("Alice");
+    userAlice.setSurname("Smith");
+    userService.updateUser(userAlice);
+
+    org.hisp.dhis.user.User userZoe = createAndAddUser("zoe");
+    userZoe.setFirstName("Zoe");
+    userZoe.setSurname("Johnson");
+    userService.updateUser(userZoe);
+
+    org.hisp.dhis.user.User userBob = createAndAddUser("bob");
+    userBob.setFirstName("Bob");
+    userBob.setSurname("Wilson");
+    userService.updateUser(userBob);
+    
+    manager.flush();
+
+    // Query users ordered by displayName ascending
+    JsonList<JsonUser> users =
+        GET("/users?fields=displayName,id&order=displayName:ASC")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertTrue(users.size() >= 3, "Should have at least 3 users");
+
+    // Find the positions of our test users
+    Map<String, Integer> indexMap = new HashMap<>();
+    for (int i = 0; i < users.size(); i++) {
+      indexMap.put(users.get(i).getId(), i);
+    }
+
+    int aliceIndex = indexMap.get(userAlice.getUid());
+    int bobIndex = indexMap.get(userBob.getUid());
+    int zoeIndex = indexMap.get(userZoe.getUid());
+
+    assertTrue(aliceIndex < bobIndex, "Alice Smith should come before Bob Wilson in alphabetical order");
+    assertTrue(bobIndex < zoeIndex, "Bob Wilson should come before Zoe Johnson in alphabetical order");
+  }
+
+  @Test
+  void testOrderUsersByDisplayNameDesc() {
+    // Create users with different display names
+    org.hisp.dhis.user.User userAlice = createUserAndRole("Alice", "Smith", false, "alice2",
+        Set.of(), Set.of());
+    userService.addUser(userAlice);
+    assertEquals("Alice Smith", userAlice.getDisplayName());
+    
+    org.hisp.dhis.user.User userZoe = createUserAndRole("Zoe", "Johnson", false, "zoe2",
+        Set.of(), Set.of());
+    userService.addUser(userZoe);
+    org.hisp.dhis.user.User userBob = createUserAndRole("Bob", "Wilson", false, "bob2",
+        Set.of(), Set.of());
+    userService.addUser(userBob);
+
+    // Query users ordered by displayName descending
+    JsonList<JsonUser> users =
+        GET("/users?fields=displayName,id&order=displayName:DESC")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertTrue(users.size() >= 3, "Should have at least 3 users");
+
+    // Find the positions of our test users
+    Map<String, Integer> indexMap = new HashMap<>();
+    for (int i = 0; i < users.size(); i++) {
+      indexMap.put(users.get(i).getId(), i);
+    }
+
+    int aliceIndex = indexMap.get(userAlice.getUid());
+    int bobIndex = indexMap.get(userBob.getUid());
+    int zoeIndex = indexMap.get(userZoe.getUid());
+
+    assertTrue(zoeIndex < bobIndex, "Zoe Johnson should come before Bob Wilson in reverse alphabetical order");
+    assertTrue(bobIndex < aliceIndex, "Bob Wilson should come before Alice Smith in reverse alphabetical order");
+  }
+
+  @Test
+  void testDisplayNameFieldInResponse() {
+    // Create a user
+    User testUser = createAndAddUser("testuser");
+    testUser.setFirstName("Test");
+    testUser.setSurname("User");
+    userService.updateUser(testUser);
+    manager.flush();
+
+    // Query the user and verify displayName field is returned
+    JsonUser user =
+        GET("/users/{id}?fields=displayName,id", testUser.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonUser.class);
+
+    assertNotNull(user.getDisplayName());
+    assertEquals("Test User", user.getDisplayName());
+  }
+
+  @Test
+  @DisplayName("Should delete TrackedEntity successfully")
+  void testDeleteTrackedEntity() {
+    // Create a tracked entity type
+    String teTypeId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/trackedEntityTypes/", "{'name':'Test Tracked Entity Type'}"));
+
+    // Create an organisation unit
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'Test Org Unit', 'shortName':'TOU', 'openingDate': '2020-01-01'}"));
+
+    // Create a tracked entity
+    String teId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/trackedEntities/",
+                "{'trackedEntityType':'"
+                    + teTypeId
+                    + "', 'orgUnit':'"
+                    + orgUnitId
+                    + "'}"));
+
+    // Verify the tracked entity was created
+    GET("/trackedEntities/{id}", teId).content(HttpStatus.OK);
+
+    // Delete the tracked entity
+    DELETE("/trackedEntities/{id}", teId).content(HttpStatus.OK);
+
+    // Verify the tracked entity was deleted
+    GET("/trackedEntities/{id}", teId).content(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("Should not delete non-existent TrackedEntity")
+  void testDeleteNonExistentTrackedEntity() {
+    // Try to delete a non-existent tracked entity
+    DELETE("/trackedEntities/{id}", "nonExistentId").content(HttpStatus.NOT_FOUND);
+  }
+
+
+
+  private User createUserAndRole(String firstName, String lastName,
+      boolean superUserFlag,
+      String username,
+      Set<OrganisationUnit> organisationUnits,
+      Set<OrganisationUnit> dataViewOrganisationUnits,
+      String... auths) {
+    UserRole userRole = new UserRole();
+    userRole.setName("USER" + username);
+    userRole.setAutoFields();
+    userRole.getAuthorities().addAll(Arrays.asList(auths));
+    if (superUserFlag) {
+      userRole.getAuthorities().add("ALL");
+    }
+
+    User user = new User();
+    user.setUsername(username);
+    user.getUserRoles().add(userRole);
+    user.setFirstName(firstName);
+    user.setSurname(lastName);
+    user.setOrganisationUnits(organisationUnits);
+    user.setDataViewOrganisationUnits(dataViewOrganisationUnits);
+    user.setAutoFields();
+    user.setCreatedBy(user);
+
+    return user;
   }
 }

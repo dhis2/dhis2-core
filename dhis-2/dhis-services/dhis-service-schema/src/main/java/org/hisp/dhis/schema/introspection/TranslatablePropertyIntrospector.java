@@ -39,6 +39,11 @@ import org.hisp.dhis.system.util.AnnotationUtils;
  * A {@link PropertyIntrospector} that adds information to existing {@link Property} values if they
  * are annotated with {@link org.hisp.dhis.translation.Translatable}.
  *
+ * This introspector processes both:
+ * 1. Field-level translatable properties (e.g., name, shortName, description)
+ * 2. Method-level translatable properties via display methods (e.g., getDisplayName(),
+ *    getDisplayFormName(), getDisplayEnrollmentDateLabel())
+ *
  * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
  */
 public class TranslatablePropertyIntrospector implements PropertyIntrospector {
@@ -66,6 +71,19 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector {
         property.setTranslatable(true);
       }
     }
+
+    // Process display properties (virtual properties created from @Translatable annotated methods)
+    // These map to the actual persisted properties via their propertyName in the annotation
+    translatableFields.forEach(
+        (propertyName, translationKey) -> {
+          Property property = properties.get(propertyName);
+          if (property != null && property.isPersisted()) {
+            // Mark the base property as translatable so that display* virtual properties
+            // can be used for ordering and filtering via JpaCriteriaQueryEngine
+            property.setTranslatable(true);
+            property.setTranslationKey(translationKey);
+          }
+        });
   }
 
   /**
