@@ -45,14 +45,13 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -65,9 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
 
@@ -80,8 +76,6 @@ public class DefaultCompleteDataSetRegistrationService
   private final AggregateAccessManager accessManager;
 
   private final MessageService messageService;
-
-  private final PeriodStore periodStore;
 
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService
@@ -220,7 +214,7 @@ public class DefaultCompleteDataSetRegistrationService
     List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 
     if (!dataSet.getCompulsoryDataElementOperands().isEmpty()) {
-      DataExportStoreParams params = new DataExportStoreParams();
+      DeflatedDataValueParams params = new DeflatedDataValueParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
       params.setPeriods(Set.of(period));
       params.setAttributeOptionCombos(List.of(attributeOptionCombo));

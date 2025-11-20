@@ -29,11 +29,19 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +64,7 @@ public class DataExportPipeline {
   private final DataExportService service;
 
   @Transactional(readOnly = true)
-  public <T> List<T> exportAsList(DataExportParams params, Function<DataExportValue, T> f)
+  public <T> List<T> exportAsList(DataExportParams.Input params, Function<DataExportValue, T> f)
       throws ConflictException {
     // it might appear silly to just have this bit of code in here
     // limiting what can be done with the Stream, but we have to process the stream
@@ -65,7 +73,7 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportToConsumer(DataExportParams params, Consumer<DataExportValue> f)
+  public void exportToConsumer(DataExportParams.Input params, Consumer<DataExportValue> f)
       throws ConflictException {
     // it might appear silly to just have this bit of code in here
     // limiting what can be done with the Stream, but we have to process the stream
@@ -74,28 +82,83 @@ public class DataExportPipeline {
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJson(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toJson(service.exportGroup(params, false), out);
-  }
-
-  @Transactional(readOnly = true)
-  public void exportAsJsonSync(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toJson(service.exportGroup(params, true), out);
-  }
-
-  @Transactional(readOnly = true)
-  public void exportAsCsv(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toCsv(service.exportGroup(params, false), out);
-  }
-
-  @Transactional(readOnly = true)
-  public void exportAsXml(DataExportParams params, OutputStream out) throws ConflictException {
-    DataExportOutput.toXml(service.exportGroup(params, false), out);
-  }
-
-  @Transactional(readOnly = true)
-  public void exportAsXmlGroups(DataExportParams params, OutputStream out)
+  public void exportAsJson(DataExportParams.Input params, OutputStream out)
       throws ConflictException {
-    DataExportOutput.toXml(service.exportInGroups(params), out);
+    exportAsJson(params, () -> out);
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsJson(DataExportParams.Input params, Supplier<OutputStream> out)
+      throws ConflictException {
+    DataExportGroup.Output group = service.exportGroup(params, false);
+    try (OutputStream json = wrapWithCompression(params, out)) {
+      DataExportOutput.toJson(group, json);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsJsonSync(DataExportParams.Input params, OutputStream out)
+      throws ConflictException {
+    DataExportGroup.Output group = service.exportGroup(params, true);
+    try (OutputStream json = wrapWithCompression(params, () -> out)) {
+      DataExportOutput.toJson(group, json);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsCsv(DataExportParams.Input params, Supplier<OutputStream> out)
+      throws ConflictException {
+    DataExportGroup.Output group = service.exportGroup(params, false);
+    try (OutputStream csv = wrapWithCompression(params, out)) {
+      DataExportOutput.toCsv(group, csv);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsXml(DataExportParams.Input params, Supplier<OutputStream> out)
+      throws ConflictException {
+    DataExportGroup.Output group = service.exportGroup(params, false);
+    try (OutputStream xml = wrapWithCompression(params, out)) {
+      DataExportOutput.toXml(group, xml);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsXmlGroups(DataExportParams.Input params, Supplier<OutputStream> out)
+      throws ConflictException {
+    // ADX special handling of decoding and encoding
+    if (params.getInputUseCodeFallback() == null) params.setInputUseCodeFallback(true);
+    if (params.getUnfoldOptionCombos() == null) params.setUnfoldOptionCombos(true);
+    if (params.getIdScheme() == null) params.setIdScheme(IdScheme.CODE.name());
+
+    Stream<DataExportGroup.Output> groups = service.exportInGroups(params);
+    try (OutputStream xml = wrapWithCompression(params, out)) {
+      DataExportOutput.toXml(groups, xml);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
+
+  private static OutputStream wrapWithCompression(
+      DataExportParams.Input params, Supplier<OutputStream> out) throws IOException {
+    return switch (params.getCompression()) {
+      case NONE -> out.get();
+      case GZIP -> new GZIPOutputStream(out.get());
+      case ZIP -> {
+        ZipOutputStream res = new ZipOutputStream(out.get());
+        String filename = params.getFilename();
+        if (filename.endsWith(".zip")) filename = filename.substring(0, filename.length() - 4);
+        res.putNextEntry(new ZipEntry(filename));
+        yield res;
+      }
+    };
   }
 }

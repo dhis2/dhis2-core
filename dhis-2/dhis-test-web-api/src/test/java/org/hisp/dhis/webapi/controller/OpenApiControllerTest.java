@@ -86,6 +86,11 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertGreaterOrEqual(1, doc.getObject("components.securitySchemes").size());
     assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
     assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
+    assertEquals(
+        "#/components/schemas/TrackerTrackedEntity",
+        doc.getObject("components.schemas.Body.properties.trackedEntities.items")
+            .getString("$ref")
+            .string());
   }
 
   @Test

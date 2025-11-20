@@ -46,8 +46,8 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -135,7 +135,7 @@ class SubexpressionPeriodOffsetUtilsTest {
 
   private List<DimensionalItemObject> getPeriodList(String... isoPeriods) {
     return Arrays.stream(isoPeriods)
-        .map(PeriodType::getPeriodFromIsoString)
+        .map(Period::of)
         .map(PeriodDimension::of)
         .map(DimensionalItemObject.class::cast)
         .toList();

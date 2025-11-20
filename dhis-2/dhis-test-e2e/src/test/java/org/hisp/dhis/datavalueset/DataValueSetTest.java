@@ -98,7 +98,7 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.xml.zip\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
@@ -125,14 +125,14 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.adx.xml.zip\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
     // And when unzipping it has the expected values
     String xmlString =
         mapZipEntryToStringContent(zipPayload.body().asByteArray())
-            .get("dataValues_2024-01-01_2050-01-30.xml");
+            .get("dataValues_2024-01-01_2050-01-30.adx.xml");
 
     assertTrue(xmlString.contains("adx"), "unzipped value should contain 'adx'");
   }
@@ -151,7 +151,7 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.gz",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.xml.gz\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 

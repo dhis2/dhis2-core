@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -68,7 +69,7 @@ class RelationshipOperationParamsMapper {
           null, params.getOrder(), params.isIncludeDeleted(), params.getRelationships());
     }
 
-    SoftDeletableObject entity =
+    SoftDeletableEntity entity =
         switch (params.getType()) {
           case TRACKED_ENTITY ->
               getTrackedEntity(params.getIdentifier(), params.isIncludeDeleted());
@@ -101,7 +102,7 @@ class RelationshipOperationParamsMapper {
             .findEnrollment(enrollmentUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
     if (!trackerAccessManager
-        .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
+        .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment)
         .isEmpty()) {
       throw new ForbiddenException(Enrollment.class, enrollmentUid);
     }
@@ -113,7 +114,7 @@ class RelationshipOperationParamsMapper {
     Optional<TrackerEvent> event = relationshipStore.findEvent(eventUid, includeDeleted);
     if (event.isPresent()) {
       if (!trackerAccessManager
-          .canRead(CurrentUserUtil.getCurrentUserDetails(), event.get(), false)
+          .canRead(CurrentUserUtil.getCurrentUserDetails(), event.get())
           .isEmpty()) {
         throw new ForbiddenException(Event.class, eventUid);
       }

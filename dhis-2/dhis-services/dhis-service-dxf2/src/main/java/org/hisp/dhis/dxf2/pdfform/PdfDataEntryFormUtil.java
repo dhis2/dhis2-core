@@ -47,7 +47,6 @@ import java.util.Set;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -198,7 +197,7 @@ public class PdfDataEntryFormUtil {
           throw new InvalidIdentifierReferenceException(ERROR_EMPTY_ORG_UNIT);
         }
 
-        Period period = PeriodType.getPeriodFromIsoString(periodId);
+        Period period = Period.of(periodId);
 
         if (period == null) {
           throw new InvalidIdentifierReferenceException(ERROR_INVALID_PERIOD + periodId);
