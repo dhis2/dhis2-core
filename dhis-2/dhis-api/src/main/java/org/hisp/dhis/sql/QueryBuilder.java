@@ -37,12 +37,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -85,13 +87,20 @@ public final class QueryBuilder {
   private static final Pattern WHERE_AND =
       Pattern.compile("([\n\t ]+)WHERE[\n\t ]+(?:1=1)?[\n\t ]+AND[\n\t ]+");
 
+  private static final Pattern WITH_START = Pattern.compile("^\\s*[a-z_]{1,30}\\s+AS\\s*\\(\\s*$");
+  private static final Pattern WITH_END_COMMA = Pattern.compile("^\\s*\\)\\s*,\\s*$");
+  private static final Pattern WITH_END_SELECT = Pattern.compile("^\\s*\\)\\s*$");
+  private static final Pattern WITH_END_COMMA_SELECT =
+      Pattern.compile("\\)\\s*,(\\s*SELECT)", Pattern.DOTALL);
+  private static final Pattern WITH_SELECT = Pattern.compile("WITH\\s+SELECT", Pattern.DOTALL);
+
   private final String sql;
 
   private final SQL.QueryAPI api;
   private final Map<String, SQL.Param> params = new HashMap<>();
-  private final Map<String, Boolean> orders = new HashMap<>();
+  private final Map<String, Boolean> orders = new LinkedHashMap<>();
   private final Map<String, String> clauses = new HashMap<>();
-  private final Map<String, Set<String>> erasedJoins = new HashMap<>();
+  private final Map<String, Set<String>> erasedJoins = new LinkedHashMap<>();
   private final Set<String> erasedOrders = new HashSet<>();
   private final Set<String> erasedClause = new HashSet<>();
   private final Set<String> nullParams = new HashSet<>();
@@ -158,10 +167,17 @@ public final class QueryBuilder {
     return this;
   }
 
+  public <T extends Enum<T>> QueryBuilder setOrders(
+      @CheckForNull List<T> orders, @Nonnull Map<T, String> constToColumn) {
+    Map<String, String> propToColumn = new HashMap<>();
+    constToColumn.forEach((k, v) -> propToColumn.put(k.name(), v));
+    return setOrders(orders, Enum::name, e -> true, propToColumn);
+  }
+
   public <T> QueryBuilder setOrders(
       @CheckForNull List<T> orders,
-      @Nonnull Function<T, String> property,
-      @Nonnull Predicate<T> ascending,
+      @Nonnull Function<? super T, String> property,
+      @Nonnull Predicate<? super T> ascending,
       @Nonnull Map<String, String> propToColumn) {
     if (orders == null || orders.isEmpty() || propToColumn.isEmpty()) return this;
     for (T order : orders) {
@@ -202,13 +218,13 @@ public final class QueryBuilder {
     return this;
   }
 
-  public QueryBuilder setLimit(Integer limit) {
-    this.limit = limit;
+  public QueryBuilder setLimit(@CheckForNull Integer limit) {
+    this.limit = limit == null ? null : Math.abs(limit);
     return this;
   }
 
-  public QueryBuilder setOffset(Integer offset) {
-    this.offset = offset;
+  public QueryBuilder setOffset(@CheckForNull Integer offset) {
+    this.offset = offset == null ? null : Math.abs(offset);
     return this;
   }
 
@@ -250,6 +266,18 @@ public final class QueryBuilder {
    */
   public QueryBuilder eraseNullParameterJoinLine(String alias, String... nullParams) {
     erasedJoins.put(alias, Set.of(nullParams));
+    return this;
+  }
+
+  /**
+   * Erase a JOIN line based on a logic condition that is independent of named parameters.
+   *
+   * @param alias table name alias of the tabled joined
+   * @param condition when true, the join is erased
+   * @return this for chaining
+   */
+  public QueryBuilder eraseJoinLine(String alias, boolean condition) {
+    if (condition) erasedJoins.put(alias, Set.of());
     return this;
   }
 
@@ -320,12 +348,13 @@ public final class QueryBuilder {
     String sql = eraseNullParams(this.sql);
     sql = eraseNullClauses(sql);
     sql = eraseNullJoins(sql);
+    sql = eraseUnusedWith(sql);
     sql = eraseOrders(sql, forCount);
     sql = eraseComments(sql);
     sql = replaceDynamicClauses(sql);
     sql = simplifyWhere(sql);
     sql = simplifyIn(sql);
-    sql = addOrderBy(sql);
+    if (!forCount) sql = addOrderBy(sql);
     return forCount ? replaceSelect(sql) : sql;
   }
 
@@ -359,6 +388,50 @@ public final class QueryBuilder {
         .map(this::replaceComments)
         .filter(not(String::isBlank))
         .collect(joining("\n"));
+  }
+
+  private String eraseUnusedWith(String sql) {
+    if (erasedJoins.isEmpty()) return sql;
+    if (!sql.contains("WITH")) return sql;
+    for (String alias : erasedJoins.keySet()) {
+      if (isErasedJoin(alias) && isErasedJoinOrphan(sql, alias)) {
+        List<String> lines = sql.lines().toList();
+        int i = 0;
+        int len = lines.size();
+        while (i < len
+            && !(lines.get(i).contains(alias) && WITH_START.matcher(lines.get(i)).matches())) i++;
+        if (i < len) { // found start
+          int s = i;
+          while (i < len && !isWithEndLine(lines, i)) i++;
+          if (i < len) { // found end
+            sql =
+                Stream.concat(lines.subList(0, s).stream(), lines.subList(i + 1, len).stream())
+                    .collect(joining("\n"));
+          }
+        }
+      }
+    }
+    // erasure might have removed the last block, so we end with ), not ) => replace with )
+    Matcher repairComma = WITH_END_COMMA_SELECT.matcher(sql);
+    if (repairComma.find()) return sql.replace(repairComma.group(), ")\n" + repairComma.group(1));
+    // erasure of all blocks might cause WITH...SELECT => remove with
+    Matcher repairWithSelect = WITH_SELECT.matcher(sql);
+    if (repairWithSelect.find()) return sql.replaceFirst("WITH", "");
+    return sql;
+  }
+
+  private static boolean isWithEndLine(List<String> lines, int i) {
+    String line = lines.get(i);
+    if (WITH_END_COMMA.matcher(line).matches()) return true;
+    if (!WITH_END_SELECT.matcher(line).matches()) return false;
+    return i + 1 < lines.size() && lines.get(i + 1).contains("SELECT");
+  }
+
+  private boolean isErasedJoinOrphan(String sql, String alias) {
+    int i = sql.indexOf(alias);
+    if (i < 0) return false;
+    i = sql.indexOf(alias, i + 1);
+    return i < 0;
   }
 
   private String simplifyWhere(String sql) {
@@ -403,8 +476,13 @@ public final class QueryBuilder {
     if (iOn < 0) return false; // give up
     int iSpace = line.lastIndexOf(' ', iOn - 1);
     String alias = line.substring(iSpace, iOn).trim();
+    return isErasedJoin(alias);
+  }
+
+  private boolean isErasedJoin(String alias) {
     if (!erasedJoins.containsKey(alias)) return false;
-    return erasedParams.containsAll(erasedJoins.get(alias));
+    Set<String> paramNames = erasedJoins.get(alias);
+    return paramNames.isEmpty() || erasedParams.containsAll(paramNames);
   }
 
   private boolean containsErasedClause(String line) {

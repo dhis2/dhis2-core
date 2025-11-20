@@ -338,8 +338,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
                       .getAttributeOptionCombo(dataSet.getCategoryCombo(), options, IdScheme.UID)
                       .getUid());
 
-      DataExportParams params =
-          DataExportParams.builder()
+      DataExportParams.Input params =
+          DataExportParams.Input.builder()
               .dataElement(
                   dataSets.get(0).getDataElements().stream()
                       .map(DataElement::getUid)
