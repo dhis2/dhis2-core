@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerCompleted;
@@ -38,7 +37,6 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -250,7 +248,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     try {
       action.run();
     } catch (Exception ex) {
-      log.error( "Exception while running job {} post action: {}", phase, step, ex );
+      log.error("Exception while running job {} post action: {}", phase, step, ex);
     }
   }
 
@@ -271,8 +269,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
             : NotificationLevel.ERROR;
     JobProgress tracker = new NotifierJobProgress(notifier, job.toKey(), job.parameters(), level);
     RecordingJobProgress progress =
-        new RecordingJobProgress(
-            messages, job.toKey(), tracker, true, observer,  false);
+        new RecordingJobProgress(messages, job.toKey(), tracker, true, observer, false);
     recordingsById.put(job.id(), progress);
     return progress;
   }
