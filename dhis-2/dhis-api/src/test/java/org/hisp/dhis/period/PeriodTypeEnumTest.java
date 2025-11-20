@@ -43,26 +43,26 @@ class PeriodTypeEnumTest {
 
   @Test
   void testOfIsoPeriod() {
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011"), PeriodTypeEnum.YEARLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("201101"), PeriodTypeEnum.MONTHLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011-01"), PeriodTypeEnum.MONTHLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011W1"), PeriodTypeEnum.WEEKLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011W32"), PeriodTypeEnum.WEEKLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011BiW2"), PeriodTypeEnum.BI_WEEKLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011BiW12"), PeriodTypeEnum.BI_WEEKLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("20110101"), PeriodTypeEnum.DAILY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011-01-01"), PeriodTypeEnum.DAILY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011Q3"), PeriodTypeEnum.QUARTERLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011NovQ3"), PeriodTypeEnum.QUARTERLY_NOV);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("201101B"), PeriodTypeEnum.BI_MONTHLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011S1"), PeriodTypeEnum.SIX_MONTHLY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011AprilS1"), PeriodTypeEnum.SIX_MONTHLY_APRIL);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011NovS1"), PeriodTypeEnum.SIX_MONTHLY_NOV);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011April"), PeriodTypeEnum.FINANCIAL_APRIL);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011July"), PeriodTypeEnum.FINANCIAL_JULY);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011Sep"), PeriodTypeEnum.FINANCIAL_SEP);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011Oct"), PeriodTypeEnum.FINANCIAL_OCT);
-    assertEquals(PeriodTypeEnum.ofIsoPeriod("2011Nov"), PeriodTypeEnum.FINANCIAL_NOV);
+    assertEquals(PeriodTypeEnum.YEARLY, PeriodTypeEnum.ofIsoPeriod("2011"));
+    assertEquals(PeriodTypeEnum.MONTHLY, PeriodTypeEnum.ofIsoPeriod("201101"));
+    assertEquals(PeriodTypeEnum.MONTHLY, PeriodTypeEnum.ofIsoPeriod("2011-01"));
+    assertEquals(PeriodTypeEnum.WEEKLY, PeriodTypeEnum.ofIsoPeriod("2011W1"));
+    assertEquals(PeriodTypeEnum.WEEKLY, PeriodTypeEnum.ofIsoPeriod("2011W32"));
+    assertEquals(PeriodTypeEnum.BI_WEEKLY, PeriodTypeEnum.ofIsoPeriod("2011BiW2"));
+    assertEquals(PeriodTypeEnum.BI_WEEKLY, PeriodTypeEnum.ofIsoPeriod("2011BiW12"));
+    assertEquals(PeriodTypeEnum.DAILY, PeriodTypeEnum.ofIsoPeriod("20110101"));
+    assertEquals(PeriodTypeEnum.DAILY, PeriodTypeEnum.ofIsoPeriod("2011-01-01"));
+    assertEquals(PeriodTypeEnum.QUARTERLY, PeriodTypeEnum.ofIsoPeriod("2011Q3"));
+    assertEquals(PeriodTypeEnum.QUARTERLY_NOV, PeriodTypeEnum.ofIsoPeriod("2011NovQ3"));
+    assertEquals(PeriodTypeEnum.BI_MONTHLY, PeriodTypeEnum.ofIsoPeriod("201101B"));
+    assertEquals(PeriodTypeEnum.SIX_MONTHLY, PeriodTypeEnum.ofIsoPeriod("2011S1"));
+    assertEquals(PeriodTypeEnum.SIX_MONTHLY_APRIL, PeriodTypeEnum.ofIsoPeriod("2011AprilS1"));
+    assertEquals(PeriodTypeEnum.SIX_MONTHLY_NOV, PeriodTypeEnum.ofIsoPeriod("2011NovS1"));
+    assertEquals(PeriodTypeEnum.FINANCIAL_APRIL, PeriodTypeEnum.ofIsoPeriod("2011April"));
+    assertEquals(PeriodTypeEnum.FINANCIAL_JULY, PeriodTypeEnum.ofIsoPeriod("2011July"));
+    assertEquals(PeriodTypeEnum.FINANCIAL_SEP, PeriodTypeEnum.ofIsoPeriod("2011Sep"));
+    assertEquals(PeriodTypeEnum.FINANCIAL_OCT, PeriodTypeEnum.ofIsoPeriod("2011Oct"));
+    assertEquals(PeriodTypeEnum.FINANCIAL_NOV, PeriodTypeEnum.ofIsoPeriod("2011Nov"));
 
     assertNull(PeriodTypeEnum.ofIsoPeriod("201"));
     assertNull(PeriodTypeEnum.ofIsoPeriod("20111"));
