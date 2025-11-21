@@ -10,4 +10,5 @@ cd "$(dirname "$0")/.." || exit 1
 DHIS2_HOME=$(pwd)/demo-osiv java \
   -Dlog4j2.configurationFile=$(pwd)/demo-osiv/log4j2.xml \
   -Dcom.zaxxer.hikari.housekeeping.periodMs=5000 \
+  -Ddhis.skip.startup=true \
   -jar dhis-2/dhis-web-server/target/dhis.war
