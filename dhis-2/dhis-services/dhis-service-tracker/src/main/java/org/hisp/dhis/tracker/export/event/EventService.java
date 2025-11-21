@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -111,33 +110,6 @@ public interface EventService {
    */
   @Nonnull
   List<Event> findEvents(@Nonnull EventOperationParams params)
-      throws BadRequestException, ForbiddenException;
-
-  /**
-   * Retrieves a list of {@link Event} objects based on the provided query parameters and program
-   * stage data element synchronization settings.
-   *
-   * <p>This method applies server-side filtering as defined in {@link EventOperationParams},
-   * including criteria such as program type, date filters, synchronization flags, and other
-   * operational parameters. In addition, it respects program stage data elements marked with "skip
-   * synchronization", ensuring that matching data values are excluded from the returned events.
-   *
-   * <p>This method is primarily used during inter-instance synchronization, where only eligible
-   * events and optionally reduced event payloads are fetched for transmission to another DHIS2
-   * instance.
-   *
-   * @param params an {@link EventOperationParams} instance defining filters used to select events
-   *     (e.g., program type, org units, date range, sync flags).
-   * @param psdesWithSkipSyncTrue a mapping of program stage UIDs to the sets of data element UIDs
-   *     configured with "skip synchronization". Used to omit their data values from the results.
-   * @param pageParams pagination details defining page number, page size, and paging behavior.
-   * @return a non-null list of {@link Event} objects matching the query and synchronization rules.
-   */
-  @Nonnull
-  List<Event> findEvents(
-      @Nonnull EventOperationParams params,
-      @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue,
-      @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**

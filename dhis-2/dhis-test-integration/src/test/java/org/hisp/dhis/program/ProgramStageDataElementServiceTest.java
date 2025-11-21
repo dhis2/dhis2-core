@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -207,12 +208,10 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     assertTrue(result.containsKey(singleEvent.getUid()));
 
     Set<String> skipped = result.get(singleEvent.getUid());
-    assertNotNull(skipped);
-    assertEquals(2, skipped.size());
-    assertTrue(skipped.contains(stageDataElementC.getDataElement().getUid()));
-    assertTrue(skipped.contains(stageDataElementD.getDataElement().getUid()));
-
-    assertFalse(skipped.contains(stageDataElementA.getDataElement().getUid()));
-    assertFalse(skipped.contains(stageDataElementB.getDataElement().getUid()));
+    assertContainsOnly(
+        skipped,
+        List.of(
+            stageDataElementC.getDataElement().getUid(),
+            stageDataElementD.getDataElement().getUid()));
   }
 }

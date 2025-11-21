@@ -34,7 +34,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -88,7 +87,6 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   private final RelationshipService relationshipService;
-  private final EventOperationParamsMapper eventOperationParamsMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -267,18 +265,6 @@ class DefaultEventService implements EventService {
       }
     }
     return events;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public List<Event> findEvents(
-      @Nonnull EventOperationParams params,
-      @Nonnull Map<String, Set<String>> psdesWithSkipSyncTrue,
-      @Nonnull PageParams pageParams)
-      throws BadRequestException, ForbiddenException {
-    EventQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
-    return eventStore.getEvents(queryParams, psdesWithSkipSyncTrue, pageParams);
   }
 
   @Nonnull

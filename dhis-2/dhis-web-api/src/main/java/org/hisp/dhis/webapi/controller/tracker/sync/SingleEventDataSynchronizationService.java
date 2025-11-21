@@ -68,6 +68,7 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.mapstruct.factory.Mappers;
@@ -245,16 +246,18 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private List<Event> fetchEventsForPage(int page, EventSynchronizationContext context)
       throws ForbiddenException, BadRequestException {
 
-    return eventService.findEvents(
-        EventOperationParams.builder()
-            .programType(ProgramType.WITHOUT_REGISTRATION)
-            .program(context.getProgram())
-            .skipChangedBefore(context.getSkipChangedBefore())
-            .synchronizationQuery(true)
-            .includeDeleted(true)
-            .build(),
-        context.getSkipSyncProgramStageDataElements(),
-        PageParams.of(page, context.getPageSize(), false));
+    return eventService
+        .findEvents(
+            EventOperationParams.builder()
+                .programType(ProgramType.WITHOUT_REGISTRATION)
+                .program(context.getProgram())
+                .skipChangedBefore(context.getSkipChangedBefore())
+                .synchronizationQuery(true)
+                .includeDeleted(true)
+                .psdesWithSkipSyncTrue(context.getSkipSyncProgramStageDataElements())
+                .build(),
+            PageParams.of(page, context.getPageSize(), false))
+        .getItems();
   }
 
   private Map<Boolean, List<Event>> partitionEventsByDeletionStatus(List<Event> events) {
@@ -290,8 +293,9 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       Date syncTime,
       boolean isDelete) {
 
-    String importStrategy = isDelete ? DELETE_IMPORT_STRATEGY : CREATE_AND_UPDATE_IMPORT_STRATEGY;
-    String url = buildSyncUrl(instance.getUrl(), isDelete);
+    TrackerImportStrategy importStrategy =
+        isDelete ? TrackerImportStrategy.DELETE : TrackerImportStrategy.CREATE_AND_UPDATE;
+    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
 
     ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
 
@@ -306,10 +310,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         events.size());
 
     updateEventsSyncTimestamp(events, syncTime);
-  }
-
-  private String buildSyncUrl(String baseUrl, boolean isDelete) {
-    return isDelete ? baseUrl + "?importStrategy=" + DELETE_IMPORT_STRATEGY : baseUrl;
   }
 
   private ImportSummary sendTrackerRequest(

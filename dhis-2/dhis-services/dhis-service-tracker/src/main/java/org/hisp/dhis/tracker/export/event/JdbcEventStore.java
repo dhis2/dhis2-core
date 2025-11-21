@@ -238,18 +238,6 @@ class JdbcEventStore {
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
-  public List<Event> getEvents(
-      EventQueryParams queryParams,
-      Map<String, Set<String>> psdesWithSkipSyncTrue,
-      PageParams pageParams) {
-    if (queryParams.isSynchronizationQuery()
-        && psdesWithSkipSyncTrue != null
-        && !psdesWithSkipSyncTrue.isEmpty()) {
-      queryParams = queryParams.withSkipSyncFiltering(psdesWithSkipSyncTrue);
-    }
-    return fetchEvents(queryParams, pageParams);
-  }
-
   public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
     if (eventUids.isEmpty()) {
       return;

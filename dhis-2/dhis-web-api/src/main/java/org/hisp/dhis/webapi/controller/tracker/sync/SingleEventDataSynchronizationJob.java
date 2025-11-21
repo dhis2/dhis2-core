@@ -48,7 +48,7 @@ public class SingleEventDataSynchronizationJob implements Job {
 
   @Override
   public JobType getJobType() {
-    return JobType.SINGLE_EVENT_DATA_SYNC_JOB;
+    return JobType.SINGLE_EVENT_DATA_SYNC;
   }
 
   @Override
