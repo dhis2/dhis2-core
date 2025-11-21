@@ -17,9 +17,19 @@
     <Loggers>
         <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
 
-        <!-- HikariCP DEBUG logging for connection pool stats (Housekeeper logs every 30s) -->
+        <!-- HikariCP DEBUG logging for connection pool stats (Housekeeper logs every 5s with demo config) -->
         <Logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" additivity="true"/>
         <Logger name="com.zaxxer.hikari.pool.HikariPool" level="DEBUG" additivity="true"/>
+
+        <!-- CspFilter DEBUG to show when DB connection is acquired -->
+        <Logger name="org.hisp.dhis.webapi.filter.CspFilter" level="DEBUG" additivity="true"/>
+
+        <!-- OSIV demo controllers -->
+        <Logger name="org.hisp.dhis.webapi.controller.OsivHibernateController" level="DEBUG" additivity="true"/>
+
+        <!-- Job scheduler logging to see background DB activity -->
+        <Logger name="org.hisp.dhis.scheduling.JobScheduler" level="DEBUG" additivity="true"/>
+        <Logger name="org.hisp.dhis.scheduling.DefaultJobSchedulerLoopService" level="DEBUG" additivity="true"/>
 
         <Root level="WARN">
             <AppenderRef ref="console"/>

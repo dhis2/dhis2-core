@@ -40,6 +40,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -47,6 +48,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public class CspFilter extends OncePerRequestFilter {
   public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
 
@@ -84,6 +86,7 @@ public class CspFilter extends OncePerRequestFilter {
   }
 
   private void setFrameAncestorsCspRule(HttpServletResponse res) {
+    log.debug("CspFilter: fetching CORS whitelist from DB (triggers OSIV connection acquisition)");
     Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
     if (!corsWhitelist.isEmpty()) {
       String corsAllowedOrigins = String.join(" ", corsWhitelist);

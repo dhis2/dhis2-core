@@ -1,0 +1,37 @@
+# OSIV Demo - PostgreSQL with query logging enabled
+#
+# Usage:
+#   cd demo-osiv && docker compose up -d db
+#   tail -f $(docker volume inspect demo-osiv_pgdata --format '{{.Mountpoint}}')/log/postgresql.log
+
+services:
+  db:
+    image: ghcr.io/baosystems/postgis:16-3.4
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_USER: &postgres_user dhis
+      POSTGRES_DB: &postgres_db dhis
+      POSTGRES_PASSWORD: &postgres_password dhis
+      PGUSER: *postgres_user
+      PGDATABASE: *postgres_db
+      PGPASSWORD: *postgres_password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'psql --quiet --host=127.0.0.1 --port=5432 -v application_name=docker-healthcheck --command "SELECT ''ok''" > /dev/null',
+        ]
+      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:5432:5432"
+
+volumes:
+  pgdata:
+    driver: local
+

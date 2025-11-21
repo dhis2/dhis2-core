@@ -21,8 +21,8 @@ show_pg_activity() {
     echo ""
     echo -e "${CYAN}[$TIMESTAMP]${NC} pg_stat_activity:"
 
-    # Show detailed connection info
-    docker exec "$DB_CONTAINER" psql -U dhis -d dhis -c "
+    # Show detailed connection info (set application_name to identify monitor)
+    docker exec "$DB_CONTAINER" psql -U dhis -d dhis -c "SET application_name = 'osiv-demo-monitor';" -c "
         SELECT
             pid,
             application_name as app_name,
@@ -34,7 +34,7 @@ show_pg_activity() {
         FROM pg_stat_activity
         WHERE datname='dhis'
           AND state IS NOT NULL
-          AND application_name <> 'psql'
+          AND application_name NOT IN ('psql', 'osiv-demo-monitor', 'docker-healthcheck')
         ORDER BY
             CASE WHEN application_name LIKE 'demo-%' THEN 0 ELSE 1 END,
             backend_start
@@ -50,8 +50,9 @@ echo "Monitoring PostgreSQL pg_stat_activity every ${POLL_INTERVAL}s"
 echo "Press Ctrl+C to stop"
 echo ""
 echo -e "${YELLOW}Legend:${NC}"
-echo "  - 'demo-SLOW1/SLOW2' = Connections held by demo requests (OSIV)"
-echo "  - 'PostgreSQL JDBC Driver' = Idle connections in pool"
+echo "  - 'demo-*' = Connections tagged by demo requests (OSIV)"
+echo "  - 'PostgreSQL JDBC Driver' = HikariCP pool connections"
+echo "  - 'osiv-demo-monitor' = This monitor script (excluded from filtering)"
 echo "  - state=idle = Connection open but not executing query"
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
