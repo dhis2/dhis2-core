@@ -1,0 +1,4 @@
+# DHIS2 runtime files
+logs/
+files/
+apps/

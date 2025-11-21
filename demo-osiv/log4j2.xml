@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="10">
+    <Properties>
+        <Property name="layout">%-5level %c [%t] %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${layout}" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
+
+        <!-- HikariCP DEBUG logging for connection pool stats (Housekeeper logs every 30s) -->
+        <Logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" additivity="true"/>
+        <Logger name="com.zaxxer.hikari.pool.HikariPool" level="DEBUG" additivity="true"/>
+
+        <Root level="WARN">
+            <AppenderRef ref="console"/>
+        </Root>
+    </Loggers>
+</Configuration>
