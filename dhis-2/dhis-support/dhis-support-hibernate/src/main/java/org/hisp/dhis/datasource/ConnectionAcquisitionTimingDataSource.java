@@ -27,52 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.datasource;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.datasource.DelegatingDataSource;
 
 /**
- * OpenEntityManagerInViewFilter with URL exclusion support.
+ * DataSource wrapper that logs the time taken to acquire a connection from the pool. This helps
+ * identify connection pool contention issues where threads wait for available connections.
  *
- * <p>URLs matching the excludePatterns will bypass OSIV, allowing requests to complete without
- * holding a database connection for the entire request duration.
- *
- * <p>Configure via init parameter "excludePatterns" with comma-separated URL prefixes.
+ * <p>Enable DEBUG logging for this class to see acquisition times.
  */
-public class ExcludableOpenEntityManagerInViewFilter extends OpenEntityManagerInViewFilter {
+@Slf4j
+public class ConnectionAcquisitionTimingDataSource extends DelegatingDataSource {
 
-  private List<String> excludePatterns = Collections.emptyList();
-
-  @Override
-  protected void initFilterBean() throws ServletException {
-    super.initFilterBean();
-    String patterns = getFilterConfig().getInitParameter("excludePatterns");
-    if (patterns != null && !patterns.isBlank()) {
-      excludePatterns = Arrays.asList(patterns.split(","));
-    }
+  public ConnectionAcquisitionTimingDataSource(DataSource targetDataSource) {
+    super(targetDataSource);
   }
 
   @Override
-  protected boolean shouldNotFilter(HttpServletRequest request) {
-    String path = request.getRequestURI();
-    for (String pattern : excludePatterns) {
-      String trimmed = pattern.trim();
-      if (trimmed.endsWith("*")) {
-        // Prefix match: "/api/debug/noOsiv/*" matches "/api/debug/noOsiv/sleep"
-        String prefix = trimmed.substring(0, trimmed.length() - 1);
-        if (path.startsWith(prefix)) {
-          return true;
-        }
-      } else if (path.equals(trimmed)) {
-        // Exact match
-        return true;
-      }
-    }
-    return false;
+  public Connection getConnection() throws SQLException {
+    long startNanos = System.nanoTime();
+    Connection connection = super.getConnection();
+    logAcquisitionTime(startNanos);
+    return connection;
+  }
+
+  @Override
+  public Connection getConnection(String username, String password) throws SQLException {
+    long startNanos = System.nanoTime();
+    Connection connection = super.getConnection(username, password);
+    logAcquisitionTime(startNanos);
+    return connection;
+  }
+
+  private void logAcquisitionTime(long startNanos) {
+    long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000;
+    log.debug("Connection acquired in {}ms", elapsedMs);
   }
 }

@@ -42,9 +42,9 @@ import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
+import org.hisp.dhis.webapi.filter.ExcludableOpenEntityManagerInViewFilter;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
-import org.hisp.dhis.webapi.filter.ExcludableOpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
@@ -128,8 +128,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     openSessionInViewFilter.setInitParameter(
         "entityManagerFactoryBeanName", "entityManagerFactory");
     // Exclude /api/debug/noOsiv/* from OSIV - these endpoints demonstrate behavior without OSIV
-    openSessionInViewFilter.setInitParameter(
-        "excludePatterns", "/api/debug/noOsiv/*");
+    openSessionInViewFilter.setInitParameter("excludePatterns", "/api/debug/noOsiv/*");
     openSessionInViewFilter.addMappingForUrlPatterns(
         EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*");
     openSessionInViewFilter.addMappingForServletNames(

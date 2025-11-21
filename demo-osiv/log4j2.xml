@@ -21,6 +21,9 @@
         <Logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" additivity="true"/>
         <Logger name="com.zaxxer.hikari.pool.HikariPool" level="DEBUG" additivity="true"/>
 
+        <!-- Connection acquisition timing -->
+        <Logger name="org.hisp.dhis.datasource.ConnectionAcquisitionTimingDataSource" level="DEBUG" additivity="true"/>
+
         <!-- CspFilter DEBUG to show when DB connection is acquired -->
         <Logger name="org.hisp.dhis.webapi.filter.CspFilter" level="DEBUG" additivity="true"/>
 
