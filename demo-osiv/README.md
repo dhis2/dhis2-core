@@ -29,7 +29,9 @@ With slow endpoints, this wastes DB connections even when no DB work is happenin
 
 3. **Start DHIS2** with small pool and HikariCP logging:
    ```bash
-   DHIS2_HOME=$(pwd)/demo-osiv JAVA_OPTS="-Dlog4j2.configurationFile=$(pwd)/demo-osiv/log4j2.xml" ./dhis-2/run-api.sh -s
+   DHIS2_HOME=$(pwd)/demo-osiv java \
+     -Dlog4j2.configurationFile=$(pwd)/demo-osiv/log4j2.xml \
+     -jar dhis-2/dhis-web-server/target/dhis.war
    ```
 
 ## Running the Demo

@@ -2,12 +2,16 @@
 <Configuration status="WARN" monitorInterval="10">
     <Properties>
         <Property name="layout">%-5level %c [%t] %msg%n</Property>
+        <Property name="logDir">${sys:user.dir}/demo-osiv/logs</Property>
     </Properties>
 
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="${layout}" />
         </Console>
+        <File name="file" fileName="${logDir}/dhis.log" append="false">
+            <PatternLayout pattern="${layout}" />
+        </File>
     </Appenders>
 
     <Loggers>
@@ -19,6 +23,7 @@
 
         <Root level="WARN">
             <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
         </Root>
     </Loggers>
 </Configuration>

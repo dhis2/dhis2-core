@@ -2,7 +2,7 @@
 # OSIV Demo - Connection Monitor (run in Terminal 2)
 #
 # This script monitors PostgreSQL connections and HikariCP timeout errors.
-# Run osiv-demo-requests.sh in another terminal to generate requests.
+# Run requests.sh in another terminal to generate requests.
 
 DB_CONTAINER="${DB_CONTAINER:-core-dhis2-20411-db-1}"
 DHIS2_LOG="${DHIS2_LOG:-$HOME/code/dhis2/core-DHIS2-20411/demo-osiv/logs/dhis.log}"
