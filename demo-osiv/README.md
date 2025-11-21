@@ -7,9 +7,40 @@ when the endpoint does no database work.
 
 OSIV binds the Hibernate session (and thus the DB connection) to the HTTP request lifecycle:
 
-1. Connection acquired when first DB call happens (in CspFilter when it calls getCorsWhitelist)
-2. Connection held for entire request duration
-3. Connection released only when response is sent
+```
+HTTP Request: GET /api/debug/osiv/sleep?sleepMs=30000
+                │
+                ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│  OSIV Filter (wraps entire request)                                      │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                                                                    │  │
+│  │  ┌─────────────┐    ┌──────────────┐    ┌───────────────────────┐  │  │
+│  │  │ CspFilter   │───▶│@Transactional│───▶│ HikariCP              │  │  │
+│  │  │             │    │isCorsWhite-  │    │ borrows connection    │  │  │
+│  │  │             │    │listed()      │    │ from pool             │  │  │
+│  │  └─────────────┘    └──────────────┘    └───────────────────────┘  │  │
+│  │         │                  │                       │               │  │
+│  │         │                  ▼                       │               │  │
+│  │         │           Transaction COMMITS            │               │  │
+│  │         │           (but connection NOT returned)  │               │  │
+│  │         │                                          │               │  │
+│  │         ▼                                          │               │  │
+│  │  ┌───────────────────────────────────────────┐     │               │  │
+│  │  │        OsivSleepController                │     │               │  │
+│  │  │        Thread.sleep(30000)                │◀────┘               │  │
+│  │  │        (NO database work!)                │   Connection held   │  │
+│  │  │                                           │   but idle          │  │
+│  │  └───────────────────────────────────────────┘                     │  │
+│  │                                                                    │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                                                                          │
+│  Finally: OSIV closes Session → Connection returned to pool              │
+└──────────────────────────────────────────────────────────────────────────┘
+                │
+                ▼
+         HTTP Response
+```
 
 With slow endpoints, this wastes DB connections even when no DB work is happening.
 

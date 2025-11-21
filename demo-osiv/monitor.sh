@@ -4,8 +4,8 @@
 # This script monitors PostgreSQL connections and HikariCP timeout errors.
 # Run requests.sh in another terminal to generate requests.
 
-DB_CONTAINER="${DB_CONTAINER:-core-dhis2-20411-db-1}"
-DHIS2_LOG="${DHIS2_LOG:-$HOME/code/dhis2/core-DHIS2-20411/demo-osiv/logs/dhis.log}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DHIS2_LOG="${DHIS2_LOG:-$SCRIPT_DIR/logs/dhis.log}"
 POLL_INTERVAL="${POLL_INTERVAL:-3}"
 
 RED='\033[0;31m'
@@ -22,7 +22,7 @@ show_pg_activity() {
     echo -e "${CYAN}[$TIMESTAMP]${NC} pg_stat_activity:"
 
     # Show detailed connection info (set application_name to identify monitor)
-    docker exec "$DB_CONTAINER" psql -U dhis -d dhis -c "SET application_name = 'osiv-demo-monitor';" -c "
+    docker compose -f "$SCRIPT_DIR/docker-compose.yml" exec -T db psql -U dhis -d dhis -c "SET application_name = 'osiv-demo-monitor';" -c "
         SELECT
             pid,
             application_name as app_name,
