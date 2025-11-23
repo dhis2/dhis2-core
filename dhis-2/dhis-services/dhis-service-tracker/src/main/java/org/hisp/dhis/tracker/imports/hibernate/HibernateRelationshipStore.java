@@ -27,45 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deletedobject.hibernate;
+package org.hisp.dhis.tracker.imports.hibernate;
 
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceUnit;
-import javax.annotation.PostConstruct;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-@Component
-public class DeletedObjectListenerConfigurer {
-  @PersistenceUnit(unitName = "entityManagerFactory")
-  private EntityManagerFactory emf;
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.imports.hibernate.HibernateRelationshipStore")
+class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship> {
 
-  private final DeletedObjectPostInsertEventListener insertEventListener;
-
-  private final DeletedObjectPostDeleteEventListener deleteEventListener;
-
-  public DeletedObjectListenerConfigurer(
-      DeletedObjectPostInsertEventListener insertEventListener,
-      DeletedObjectPostDeleteEventListener deleteEventListener) {
-    this.deleteEventListener = deleteEventListener;
-    this.insertEventListener = insertEventListener;
-  }
-
-  @PostConstruct
-  protected void init() {
-    SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
-
-    EventListenerRegistry registry =
-        sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
-
-    registry
-        .getEventListenerGroup(EventType.POST_COMMIT_INSERT)
-        .appendListener(insertEventListener);
-
-    registry
-        .getEventListenerGroup(EventType.POST_COMMIT_DELETE)
-        .appendListener(deleteEventListener);
+  public HibernateRelationshipStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 }
