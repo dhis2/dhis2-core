@@ -54,7 +54,6 @@ echo "  3. Pool exhausted! Only 2 connections available."
 echo "  4. /api/me: needs DB but can't get connection → waits/times out"
 echo ""
 
-# Capture current log size to only analyze new entries
 DHIS2_LOG_SIZE=0
 if [[ -f "$DHIS2_LOG" ]]; then
     DHIS2_LOG_SIZE=$(wc -c < "$DHIS2_LOG")
@@ -143,7 +142,6 @@ ELAPSED_2=$((END_2 - START_2))
 echo -e "${GREEN}  → SLOW1 completed after ${ELAPSED_1}s${NC}"
 echo -e "${GREEN}  → SLOW2 completed after ${ELAPSED_2}s${NC}"
 
-# Wait for logs to flush
 sleep 2
 
 echo ""
@@ -157,7 +155,6 @@ if [[ ! -f "$DHIS2_LOG" ]]; then
     exit 1
 fi
 
-# Extract connection logs for all three requests
 CONN_LOGS=$(tail -c +$((DHIS2_LOG_SIZE + 1)) "$DHIS2_LOG" | grep -E "request_id=($REQUEST_ID_1|$REQUEST_ID_2|$REQUEST_ID_3) CONN_")
 
 if [[ -z "$CONN_LOGS" ]]; then
@@ -169,7 +166,6 @@ if [[ -z "$CONN_LOGS" ]]; then
     exit 1
 fi
 
-# Analyze each request
 for REQ_ID in "$REQUEST_ID_1" "$REQUEST_ID_2" "$REQUEST_ID_3"; do
     REQ_LOGS=$(echo "$CONN_LOGS" | grep "request_id=$REQ_ID")
 
@@ -177,7 +173,6 @@ for REQ_ID in "$REQUEST_ID_1" "$REQUEST_ID_2" "$REQUEST_ID_3"; do
         continue
     fi
 
-    # Determine request name
     if [[ "$REQ_ID" == "$REQUEST_ID_1" ]]; then
         REQ_NAME="SLOW1"
         REQ_COLOR="$YELLOW"
@@ -192,7 +187,6 @@ for REQ_ID in "$REQUEST_ID_1" "$REQUEST_ID_2" "$REQUEST_ID_3"; do
     echo -e "${REQ_COLOR}Request: $REQ_NAME (request_id=$REQ_ID)${NC}"
     echo "──────────────────────────────────────────────────────────────"
 
-    # Count acquisitions
     CONN_COUNT=$(echo "$REQ_LOGS" | grep -c "CONN_ACQUIRED")
 
     if [[ $CONN_COUNT -eq 0 ]]; then
@@ -204,7 +198,6 @@ for REQ_ID in "$REQUEST_ID_1" "$REQUEST_ID_2" "$REQUEST_ID_3"; do
     echo "  Connections acquired: $CONN_COUNT"
     echo ""
 
-    # Show connection details
     printf "  %-3s %-35s %-12s %-12s\n" "#" "Thread" "Wait (ms)" "Held (ms)"
     echo "  ────────────────────────────────────────────────────────────"
 
@@ -215,7 +208,6 @@ for REQ_ID in "$REQUEST_ID_1" "$REQUEST_ID_2" "$REQUEST_ID_3"; do
             THREAD=$(echo "$line" | sed -n 's/.*\[\([^]]*\)\].*/\1/p' | cut -c1-35)
             WAIT_MS=$(echo "$line" | grep -oP 'wait_ms=\K[0-9]+')
 
-            # Find corresponding release
             RELEASE_LINE=$(echo "$REQ_LOGS" | grep "CONN_RELEASED" | grep "\[$THREAD" | head -1)
             if [[ -n "$RELEASE_LINE" ]]; then
                 HELD_MS=$(echo "$RELEASE_LINE" | grep -oP 'held_ms=\K[0-9]+')
@@ -227,7 +219,6 @@ for REQ_ID in "$REQUEST_ID_1" "$REQUEST_ID_2" "$REQUEST_ID_3"; do
         done <<< "$ACQUIRED_LINES"
     fi
 
-    # Highlight OSIV connection (main HTTP thread)
     OSIV_LINE=$(echo "$REQ_LOGS" | grep "CONN_RELEASED" | grep "http-nio" | head -1)
     if [[ -n "$OSIV_LINE" ]]; then
         OSIV_WAIT=$(echo "$OSIV_LINE" | grep -oP 'wait_ms=\K[0-9]+')
@@ -247,17 +238,14 @@ echo ""
 echo -e "${CYAN}[Step 5] Checking for connection timeout errors...${NC}"
 echo ""
 
-# Check for timeout errors for /api/me request
-# Use grep on full log with request_id to ensure we find it
 TIMEOUT_ERROR=$(grep "request_id=$REQUEST_ID_3" "$DHIS2_LOG" 2>/dev/null | grep "Connection is not available, request timed out")
 
 if [[ -n "$TIMEOUT_ERROR" ]]; then
     echo -e "${RED}✓ Connection timeout error found:${NC}"
     echo ""
-    # Print the full error line without modification for clarity
     echo "$TIMEOUT_ERROR"
     echo ""
-    echo -e "${YELLOW}→ /api/me waited 30s for connection, HikariCP timeout (pool exhausted: active=2, idle=0, waiting=0)${NC}"
+    echo -e "${YELLOW}→ /api/me waited 30s for connection (HikariCP timeout)${NC}"
 else
     echo -e "${GREEN}No timeout errors found (request may have succeeded)${NC}"
 fi
@@ -268,7 +256,6 @@ echo ""
 echo -e "${CYAN}[Step 6] Analyzing HikariCP pool stats...${NC}"
 echo ""
 
-# Extract HikariCP logs
 HIKARI_LOGS=$(tail -c +$((DHIS2_LOG_SIZE + 1)) "$DHIS2_LOG" | grep "HikariPool" | grep -E "(total=|active=)")
 
 if [[ -n "$HIKARI_LOGS" ]]; then
