@@ -820,7 +820,8 @@ public non-sealed interface SystemSettings extends Settings {
    *     delimited by comma. Default is empty string which means all redirect urls are allowed.
    */
   default String getDeviceEnrollmentRedirectAllowlist() {
-    return asString("deviceEnrollmentRedirectAllowlist", "");
+    return asString(
+        "deviceEnrollmentRedirectAllowlist", "dhis2oauth://oauth,dhis2oauth:\\/\\/oauth");
   }
 
   /**
