@@ -71,7 +71,7 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @Transactional(readOnly = true)
   public Period getPeriod(String isoPeriod) {
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
+    Period period = Period.of(isoPeriod);
     return period == null ? null : periodStore.reloadPeriod(period);
   }
 
@@ -171,13 +171,13 @@ public class DefaultPeriodService implements PeriodService {
   @Override
   @IndirectTransactional
   public Period reloadIsoPeriodInStatelessSession(String isoPeriod) {
-    return reloadPeriod(PeriodType.getPeriodFromIsoString(isoPeriod));
+    return reloadPeriod(Period.of(isoPeriod));
   }
 
   @Override
   @IndirectTransactional
   public Period reloadIsoPeriod(String isoPeriod) {
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
+    Period period = Period.of(isoPeriod);
 
     return period != null ? reloadPeriod(period) : null;
   }

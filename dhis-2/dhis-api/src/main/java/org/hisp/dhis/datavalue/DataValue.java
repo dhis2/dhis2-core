@@ -369,6 +369,7 @@ public class DataValue implements Serializable {
         UID.of(source),
         UID.of(categoryOptionCombo),
         UID.of(attributeOptionCombo),
+        dataElement.getValueType(),
         value,
         comment,
         followup,

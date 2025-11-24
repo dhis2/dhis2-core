@@ -31,7 +31,7 @@ package org.hisp.dhis.expression.dataitem;
 
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.calendar.DateTimeUnit.fromJdkDate;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.Period.of;
 
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
@@ -91,7 +91,7 @@ public class ItemYearlyPeriodCount extends ItemPeriodBase {
   private double testLastPeriodInYear(Period period, int count) {
     String isoDate = period.getIsoDate();
     String testIsoString = isoDate.replaceAll("\\d+$", valueOf(count));
-    Period testPeriod = getPeriodFromIsoString(testIsoString);
+    Period testPeriod = of(testIsoString);
     DateTimeUnit testEndDate = fromJdkDate(testPeriod.getEndDate());
 
     if (testEndDate.getMonth() == DECEMBER && testEndDate.getDay() < 28) {

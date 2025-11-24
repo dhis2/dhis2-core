@@ -54,7 +54,6 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -322,7 +321,7 @@ public class VisualizationDataController {
       throw new WebMessageException(conflict("Category option combo does not exist: " + cp));
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(pe);
+    Period period = Period.of(pe);
 
     if (period == null) {
       throw new WebMessageException(conflict("Period does not exist: " + pe));

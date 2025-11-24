@@ -27,19 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.acl;
+
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public interface ProgramOwnershipHistoryStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.acl.ProgramTempOwnerStore")
+public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner> {
+  public HibernateProgramTempOwnerStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, ProgramTempOwner.class, false);
+  }
 
-  String ID = ProgramOwnershipHistoryStore.class.getName();
+  public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
+    getSession().save(programTempOwner);
+  }
 
-  /**
-   * Adds program ownership history record
-   *
-   * @param programOwnershipHistory the ownership history to add
-   */
-  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
+  public int getValidTempOwnerCount(Program program, String trackedEntity, UserDetails user) {
+    final String sql =
+        """
+        select count(1) from programtempowner \
+        join trackedentity t on t.trackedentityid = programtempowner.trackedentityid \
+        where programid = ? \
+        and t.uid=? \
+        and userid=? \
+        and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0;""";
+    Object[] args = new Object[] {program.getId(), trackedEntity, user.getId()};
+    return jdbcTemplate.queryForObject(sql, Integer.class, args);
+  }
 }

@@ -254,13 +254,13 @@ class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
       IdentifiableObject owner, String pattern) {
     try {
       TextPattern textPattern = TextPatternParser.parse(pattern);
-      textPattern.setOwnerObject(Objects.fromClass(owner.getClass()));
+      textPattern.setOwnerObject(Objects.TRACKEDENTITYATTRIBUTE);
       textPattern.setOwnerUid(owner.getUid());
       TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
       trackedEntityAttribute.setTextPattern(textPattern);
       trackedEntityAttribute.setGenerated(true);
       return trackedEntityAttribute;
-    } catch (TextPatternParsingException | IllegalAccessException e) {
+    } catch (TextPatternParsingException e) {
       e.printStackTrace();
     }
     return null;

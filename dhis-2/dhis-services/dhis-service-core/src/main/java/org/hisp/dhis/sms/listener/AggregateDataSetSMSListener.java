@@ -51,7 +51,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -114,7 +113,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(dsid));
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(per);
+    Period period = Period.of(per);
     if (period == null) {
       throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(per));
     }
