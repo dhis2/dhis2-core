@@ -100,7 +100,7 @@ class SchedulingTest extends ApiTest {
           systemActions.waitUntilTaskCompleted("AGGREGATE_DATA_EXCHANGE", jobId, 24);
       apiResponse
           .validate()
-          .body("level[0]", equalTo("INFO"))
+          .body("level[0]", equalTo("DEBUG"))
           .body("message[0]", equalTo(""))
           .body("completed[0]", equalTo(true));
     } else {
