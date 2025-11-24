@@ -345,7 +345,7 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
+  private List<Period> getPeriods(List<String> isoPeriods) {
     if (isoPeriods == null) {
       return new ArrayList<>();
     }
