@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="10">
     <Properties>
-        <Property name="layout">%-5level %c [%t] %msg%n</Property>
+        <Property name="layout">%-5level %c [%t] request_id=%X{xRequestID} %msg%n</Property>
         <Property name="logDir">${sys:user.dir}/demo-osiv/logs</Property>
     </Properties>
 

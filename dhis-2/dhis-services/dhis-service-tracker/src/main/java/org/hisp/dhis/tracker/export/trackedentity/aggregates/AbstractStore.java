@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import static org.hisp.dhis.tracker.export.RequestIdSqlHelper.withRequestIdComment;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -83,7 +85,9 @@ abstract class AbstractStore {
 
     Multimap<String, T> multimap = ArrayListMultimap.create();
 
-    idPartitions.forEach(partition -> multimap.putAll(fetchPartitioned(sql, handler, partition)));
+    String sqlWithComment = withRequestIdComment(sql);
+    idPartitions.forEach(
+        partition -> multimap.putAll(fetchPartitioned(sqlWithComment, handler, partition)));
     return multimap;
   }
 

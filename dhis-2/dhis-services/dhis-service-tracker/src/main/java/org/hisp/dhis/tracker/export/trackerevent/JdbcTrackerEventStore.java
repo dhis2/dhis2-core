@@ -36,6 +36,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.RequestIdSqlHelper.withRequestIdComment;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -249,7 +250,7 @@ class JdbcTrackerEventStore {
         queryParams.getIdSchemeParams().getDataElementIdScheme();
 
     return jdbcTemplate.query(
-        sql,
+        withRequestIdComment(sql),
         sqlParameters,
         resultSet -> {
           Set<String> notes = new HashSet<>();
@@ -514,7 +515,7 @@ class JdbcTrackerEventStore {
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
     RowCountHandler rowCountHandler = new RowCountHandler();
-    jdbcTemplate.query(sql, sqlParameters, rowCountHandler);
+    jdbcTemplate.query(withRequestIdComment(sql), sqlParameters, rowCountHandler);
     return rowCountHandler.getCount();
   }
 

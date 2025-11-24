@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.RequestIdSqlHelper.withRequestIdComment;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -109,7 +110,7 @@ class JdbcTrackedEntityStore {
     validateMaxTeLimit(params);
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    String sql = getQuery(params, null, sqlParameters);
+    String sql = withRequestIdComment(getQuery(params, null, sqlParameters));
     SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
 
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
@@ -132,7 +133,7 @@ class JdbcTrackedEntityStore {
     validateMaxTeLimit(params);
 
     MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    String sql = getQuery(params, pageParams, sqlParameters);
+    String sql = withRequestIdComment(getQuery(params, pageParams, sqlParameters));
     SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
 
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
@@ -168,7 +169,7 @@ class JdbcTrackedEntityStore {
     }
 
     final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-    String sql = getCountQuery(params, sqlParameters);
+    String sql = withRequestIdComment(getCountQuery(params, sqlParameters));
     return namedParameterJdbcTemplate.queryForObject(sql, sqlParameters, Long.class);
   }
 

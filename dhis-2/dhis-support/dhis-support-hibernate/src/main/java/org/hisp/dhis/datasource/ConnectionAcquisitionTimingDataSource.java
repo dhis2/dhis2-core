@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.datasource;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -36,10 +40,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 
 /**
- * DataSource wrapper that logs the time taken to acquire a connection from the pool. This helps
- * identify connection pool contention issues where threads wait for available connections.
+ * DataSource wrapper that logs the time taken to acquire a connection from the pool and the
+ * duration the connection was held before being released. This helps identify connection pool
+ * contention issues where threads wait for available connections, as well as long-lived connections
+ * that may contribute to pool exhaustion.
  *
- * <p>Enable DEBUG logging for this class to see acquisition times.
+ * <p>Enable DEBUG logging for this class to see acquisition times, release times, and hold
+ * durations.
  */
 @Slf4j
 public class ConnectionAcquisitionTimingDataSource extends DelegatingDataSource {
@@ -52,20 +59,50 @@ public class ConnectionAcquisitionTimingDataSource extends DelegatingDataSource 
   public Connection getConnection() throws SQLException {
     long startNanos = System.nanoTime();
     Connection connection = super.getConnection();
-    logAcquisitionTime(startNanos);
-    return connection;
+    long acquisitionMs = (System.nanoTime() - startNanos) / 1_000_000;
+    return wrapConnection(connection, acquisitionMs);
   }
 
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
     long startNanos = System.nanoTime();
     Connection connection = super.getConnection(username, password);
-    logAcquisitionTime(startNanos);
-    return connection;
+    long acquisitionMs = (System.nanoTime() - startNanos) / 1_000_000;
+    return wrapConnection(connection, acquisitionMs);
   }
 
-  private void logAcquisitionTime(long startNanos) {
-    long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000;
-    log.debug("Connection acquired in {}ms", elapsedMs);
+  private Connection wrapConnection(Connection connection, long acquisitionMs) {
+    log.debug("CONN_ACQUIRED wait_ms={}", acquisitionMs);
+    return (Connection)
+        Proxy.newProxyInstance(
+            Connection.class.getClassLoader(),
+            new Class<?>[] {Connection.class},
+            new ConnectionTimingHandler(connection, acquisitionMs));
+  }
+
+  private static class ConnectionTimingHandler implements InvocationHandler {
+    private final Connection delegate;
+    private final long acquisitionMs;
+    private final long acquiredAtNanos;
+
+    public ConnectionTimingHandler(Connection delegate, long acquisitionMs) {
+      this.delegate = delegate;
+      this.acquisitionMs = acquisitionMs;
+      this.acquiredAtNanos = System.nanoTime();
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      if ("close".equals(method.getName())) {
+        long heldMs = (System.nanoTime() - acquiredAtNanos) / 1_000_000;
+        log.debug("CONN_RELEASED wait_ms={} held_ms={}", acquisitionMs, heldMs);
+      }
+
+      try {
+        return method.invoke(delegate, args);
+      } catch (InvocationTargetException e) {
+        throw e.getCause();
+      }
+    }
   }
 }

@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.RequestIdSqlHelper.withRequestIdComment;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -111,7 +112,7 @@ class JdbcEnrollmentStore {
     }
 
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    String sql = getQuery(enrollmentParams, sqlParams);
+    String sql = withRequestIdComment(getQuery(enrollmentParams, sqlParams));
     return jdbcTemplate.query(
         sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
   }
@@ -326,13 +327,15 @@ class JdbcEnrollmentStore {
 
     List<Enrollment> enrollments =
         jdbcTemplate.query(
-            sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
+            withRequestIdComment(sql),
+            sqlParams,
+            new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
     return new Page<>(enrollments, pageParams, () -> countEnrollments(enrollmentParams));
   }
 
   private long countEnrollments(EnrollmentQueryParams params) {
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
-    String sql = getCountQuery(params, sqlParams);
+    String sql = withRequestIdComment(getCountQuery(params, sqlParams));
     Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
     return count != null ? count : 0L;
   }

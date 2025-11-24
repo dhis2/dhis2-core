@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.withMdc;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Multimap;
@@ -144,7 +145,7 @@ public class TrackedEntityAggregate {
      * Async Fetch TrackedEntities by id
      */
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
+        supplyAsync(withMdc(() -> trackedEntityStore.getTrackedEntities(ids)), getPool());
 
     /*
      * Async fetch TrackedEntity Attributes by TrackedEntity id
