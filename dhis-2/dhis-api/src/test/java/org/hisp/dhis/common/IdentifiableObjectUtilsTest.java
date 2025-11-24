@@ -43,7 +43,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -137,90 +137,69 @@ class IdentifiableObjectUtilsTest {
     QuarterlyPeriodType quarterly = new QuarterlyPeriodType();
     YearlyPeriodType yearly = new YearlyPeriodType();
     assertEquals(
-        PeriodType.getPeriodFromIsoString("2017W10"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("20170308"), weekly, calendar));
+        Period.of("2017W10"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("20170308"), weekly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("2017W9"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("20170301"), weekly, calendar));
+        Period.of("2017W9"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("20170301"), weekly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201702"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017W8"), monthly, calendar));
+        Period.of("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017W8"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201703"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017W9"), monthly, calendar));
+        Period.of("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017W9"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201705"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017W21"), monthly, calendar));
+        Period.of("201705"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017W21"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201706"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017W22"), monthly, calendar));
+        Period.of("201706"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017W22"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201708"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017W35"), monthly, calendar));
+        Period.of("201708"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017W35"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201702"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017WedW8"), monthly, calendar));
+        Period.of("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017WedW8"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201703"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017WedW9"), monthly, calendar));
+        Period.of("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017WedW9"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201702"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017ThuW8"), monthly, calendar));
+        Period.of("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017ThuW8"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201703"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017ThuW10"), monthly, calendar));
+        Period.of("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017ThuW10"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201702"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017SatW7"), monthly, calendar));
+        Period.of("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017SatW7"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201703"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017SatW10"), monthly, calendar));
+        Period.of("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017SatW10"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201702"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017SunW7"), monthly, calendar));
+        Period.of("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017SunW7"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201703"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017SunW9"), monthly, calendar));
+        Period.of("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017SunW9"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201702"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017SunW7"), monthly, calendar));
+        Period.of("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017SunW7"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("201703"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017SunW9"), monthly, calendar));
+        Period.of("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017SunW9"), monthly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("2017Q1"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("201703"), quarterly, calendar));
+        Period.of("2017Q1"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("201703"), quarterly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("2017Q2"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("201704"), quarterly, calendar));
+        Period.of("2017Q2"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("201704"), quarterly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("2016"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2016Q4"), yearly, calendar));
+        Period.of("2016"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2016Q4"), yearly, calendar));
     assertEquals(
-        PeriodType.getPeriodFromIsoString("2017"),
-        IdentifiableObjectUtils.getPeriodByPeriodType(
-            PeriodType.getPeriodFromIsoString("2017Q1"), yearly, calendar));
-    assertNull(PeriodType.getPeriodFromIsoString("u3847847"));
+        Period.of("2017"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017Q1"), yearly, calendar));
+    assertNull(Period.of("u3847847"));
   }
 
   @Test

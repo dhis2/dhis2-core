@@ -65,8 +65,8 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.user.SystemUser;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +91,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             // PERIOD
-            .withPeriod(PeriodDimension.of(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withPeriod(PeriodDimension.of(Period.of("2017W10")))
             // DATA ELEMENTS
             .withDataElements(List.of(createDataElement('A', new CategoryCombo())))
             .withIgnoreLimit(true)
@@ -192,7 +192,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             // PERIOD
-            .withPeriod(PeriodDimension.of(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withPeriod(PeriodDimension.of(Period.of("2017W10")))
             // DATA ELEMENTS
             .withDataElements(List.of(createDataElement('A', new CategoryCombo())))
             .withIgnoreLimit(true)

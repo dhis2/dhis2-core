@@ -99,6 +99,6 @@ public final class FollowupValue {
 
   @JsonIgnore
   Period getPeAsPeriod() {
-    return peType == null ? null : PeriodType.getPeriodFromIsoString(getPe());
+    return peType == null ? null : Period.of(getPe());
   }
 }

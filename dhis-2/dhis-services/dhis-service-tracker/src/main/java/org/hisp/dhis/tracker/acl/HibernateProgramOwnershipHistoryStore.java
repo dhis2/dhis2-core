@@ -27,21 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+package org.hisp.dhis.tracker.acl;
 
-import java.util.Comparator;
-import org.hisp.dhis.program.ProgramStageSection;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Chau Thu Tran
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class ProgramStageSectionSortOrderComparator implements Comparator<ProgramStageSection> {
-  @Override
-  public int compare(ProgramStageSection object0, ProgramStageSection object1) {
-    if (object0.getSortOrder() == null) {
-      return object1.getSortOrder() != null ? -1 : 0;
-    }
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@RequiredArgsConstructor
+@Component("org.hisp.dhis.tracker.acl.ProgramOwnershipHistoryStore")
+public class HibernateProgramOwnershipHistoryStore {
+  private final EntityManager entityManager;
 
-    return object0.getSortOrder().compareTo(object1.getSortOrder());
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    entityManager.persist(programOwnershipHistory);
   }
 }

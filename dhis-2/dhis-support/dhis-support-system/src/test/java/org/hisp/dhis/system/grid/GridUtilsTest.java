@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -68,7 +67,7 @@ class GridUtilsTest {
     PeriodDimension period1 = PeriodDimension.of("202010");
     PeriodDimension period2 = PeriodDimension.of("202011");
     PeriodDimension period3 = PeriodDimension.of("202012");
-    List<DimensionalItemObject> periods = Lists.newArrayList(period1, period2, period3);
+    List<DimensionalItemObject> periods = List.of(period1, period2, period3);
     List<Object> row = new ArrayList<>(3);
     // dimension
     row.add(CodeGenerator.generateUid());

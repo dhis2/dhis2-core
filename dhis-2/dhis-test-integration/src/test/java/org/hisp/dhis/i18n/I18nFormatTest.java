@@ -32,7 +32,7 @@ package org.hisp.dhis.i18n;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.stream.Stream;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -43,7 +43,7 @@ class I18nFormatTest {
   @MethodSource("providePeriodData")
   void testFormatPeriod(String period, String expected) {
     I18nFormat i18nFormat = new I18nFormat();
-    assertEquals(expected, i18nFormat.formatPeriod(PeriodType.getPeriodFromIsoString(period)));
+    assertEquals(expected, i18nFormat.formatPeriod(Period.of(period)));
   }
 
   private static Stream<Arguments> providePeriodData() {

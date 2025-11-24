@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -616,7 +617,8 @@ public class DataApprovalController {
       throws WebMessageException {
     Set<DataApprovalWorkflow> workflows =
         getAndValidateWorkflows(approvals.getDs(), approvals.getWf());
-    List<Period> periods = PeriodType.getPeriodsFromIsoStrings(approvals.getPe());
+    List<Period> periods =
+        approvals.getPe().stream().map(Period::of).filter(Objects::nonNull).toList();
     periods = periodService.reloadPeriods(periods);
 
     if (periods.isEmpty()) {
@@ -732,7 +734,7 @@ public class DataApprovalController {
   }
 
   private Period getAndValidatePeriod(String pe) throws WebMessageException {
-    Period period = PeriodType.getPeriodFromIsoString(pe);
+    Period period = Period.of(pe);
 
     if (period == null) {
       throw new WebMessageException(conflict("Illegal period identifier: " + pe));

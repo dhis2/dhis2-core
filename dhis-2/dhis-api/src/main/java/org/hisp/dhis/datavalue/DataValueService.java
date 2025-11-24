@@ -64,7 +64,7 @@ public interface DataValueService {
    * @param params the data export parameters.
    * @return a list of deflated data values.
    */
-  List<DeflatedDataValue> getDeflatedDataValues(DataExportStoreParams params);
+  List<DeflatedDataValue> getDeflatedDataValues(DeflatedDataValueParams params);
 
   /**
    * Gets the number of DataValues persisted since the given number of days.

@@ -29,6 +29,29 @@
  */
 package org.hisp.dhis.period;
 
+import static java.lang.Integer.parseInt;
+import static java.util.Objects.requireNonNull;
+import static org.hisp.dhis.period.PeriodTypeEnum.BI_MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.BI_WEEKLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_APRIL;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_JULY;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_NOV;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_OCT;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_SEP;
+import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.QUARTERLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.QUARTERLY_NOV;
+import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY_APRIL;
+import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY_NOV;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_SATURDAY;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_SUNDAY;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_THURSDAY;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_WEDNESDAY;
+import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -61,14 +84,25 @@ public class Period implements Serializable {
   public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 
   /**
-   * Check if a date is within the date range as provided by a period.
+   * Returns a period based on the given date string in ISO format. Returns null if the date string
+   * cannot be parsed to a period.
    *
-   * @param start inclusive, null is open to any time before end
-   * @param end inclusive, null is open to any time after start
-   * @param checked the date checked, maybe null
-   * @return true, if the checked date is non-null and is between start and end date (ignoring time
-   *     both ends inclusive)
+   * @param isoPeriod the date string in ISO format.
+   * @return a period or null in case the given {@link String} was not a valid period
+   * @implNote This got moved from {@code PeriodType#getPeriodFromIsoString}
    */
+  @CheckForNull
+  public static Period of(String isoPeriod) {
+    if (isoPeriod == null) return null;
+    PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
+    try {
+      return type != null ? type.createPeriod(isoPeriod) : null;
+    } catch (Exception ex) {
+      // Do nothing and return null
+      return null;
+    }
+  }
+
   /**
    * Check if a date is within the date range as provided by a period.
    *
@@ -268,5 +302,156 @@ public class Period implements Serializable {
   @Property(PropertyType.TEXT)
   public PeriodType getPeriodType() {
     return periodType;
+  }
+
+  /**
+   * A {@link Period} in its raw components based on what a user might have entered. This means, the
+   * numbers are numerically valid but not necessarily semantically within a calendar system.
+   *
+   * @param type of the period entered
+   * @param year year component
+   * @param primaryInterval the 1st level interval within a year (for all but yearly types)
+   * @param day day component (only for {@link PeriodTypeEnum#DAILY})
+   */
+  public record Input(
+      @Nonnull PeriodTypeEnum type, int year, Integer primaryInterval, Integer day) {
+
+    public Input {
+      requireNonNull(type);
+    }
+
+    private Input(@Nonnull PeriodTypeEnum type, int year) {
+      this(type, year, null, null);
+    }
+
+    private Input(@Nonnull PeriodTypeEnum type, int year, int secondary) {
+      this(type, year, secondary, null);
+    }
+
+    /**
+     * Parses a given ISO period {@link String} into its type and number components.
+     *
+     * <pre>
+     * Daily: ~~~~~~~~ (8) or ~~~~-~~-~~ (10)
+     * Weekly: ~~~~W~ (6) or ~~~~W~~ (7)
+     * Weekly Wednesday: ~~~~WedW~ (9) or ~~~~WedW~~ (10)
+     * Weekly Thursday: ~~~~ThuW~ (9) or ~~~~ThuW~~ (10)
+     * Weekly Saturday: ~~~~SatW~ (9) or ~~~~SatW~~ (10)
+     * Weekly Sunday: ~~~~SunW~ (9) or ~~~~SunW~~ (10)
+     * Bi-weekly: ~~~~BiW~ (8) or ~~~~BiW~~ (9)
+     * Monthly: ~~~~~~ (6) or ~~~~-~~ (7)
+     * Bi-monthly: ~~~~~~B (7)
+     * Quarterly: ~~~~Q~ (6)
+     * Quarterly November: ~~~~NovQ~ (9)
+     * Six-monthly: ~~~~S~ (6)
+     * Six-monthly April: ~~~~AprilS~ (11)
+     * Six-monthly November: ~~~~NovS~ (9)
+     * Yearly: ~~~~ (4)
+     * Yearly April: ~~~~April (9)
+     * Yearly July: ~~~~July (8)
+     * Yearly September: ~~~~Sep (7)
+     * Yearly October: ~~~~Oct (7)
+     * Yearly November: ~~~~Nov (7)
+     * </pre>
+     *
+     * @param isoPeriod an ISO string
+     * @return the period for the given string or null if it does not match any of the expected
+     *     patterns
+     */
+    @CheckForNull
+    public static Period.Input of(String isoPeriod) {
+      String p = isoPeriod;
+      if (p == null || p.isEmpty()) return null;
+      int len = p.length();
+      if (len < 4 || len > 11) return null;
+      if (!isDigit(p.charAt(0))) return null;
+      if (!isDigit(p.charAt(1))) return null;
+      if (!isDigit(p.charAt(2))) return null;
+      if (!isDigit(p.charAt(3))) return null;
+      int year = parseInt(p.substring(0, 4));
+      if (len == 4) {
+        return new Input(YEARLY, year);
+      }
+      if (len == 6) {
+        if (!isDigit(p.charAt(5))) return null;
+        int primary = p.charAt(5) - '0';
+        char c4 = p.charAt(4);
+        if (c4 == 'W') return new Input(WEEKLY, year, primary);
+        if (isDigit(c4)) return new Input(MONTHLY, year, parseInt(p.substring(4, 6)));
+        if (c4 == 'Q') return new Input(QUARTERLY, year, primary);
+        if (c4 == 'S') return new Input(SIX_MONTHLY, year, primary);
+        return null;
+      }
+      if (len == 7) {
+        if (p.endsWith("Sep")) return new Input(FINANCIAL_SEP, year);
+        if (p.endsWith("Oct")) return new Input(FINANCIAL_OCT, year);
+        if (p.endsWith("Nov")) return new Input(FINANCIAL_NOV, year);
+        if (p.endsWith("B")) {
+          if (!isDigit(p.charAt(4))) return null;
+          if (!isDigit(p.charAt(5))) return null;
+          return new Input(BI_MONTHLY, year, parseInt(p.substring(4, 6)));
+        }
+        if (!isDigit(p.charAt(5))) return null;
+        if (!isDigit(p.charAt(6))) return null;
+        char c4 = p.charAt(4);
+        int primary = parseInt(p.substring(5, 7));
+        if (c4 == 'W') return new Input(WEEKLY, year, primary);
+        if (c4 == '-') return new Input(MONTHLY, year, primary);
+        return null;
+      }
+      if (len == 8) {
+        if (p.endsWith("July")) return new Input(FINANCIAL_JULY, year);
+        if (p.indexOf("BiW") == 4) {
+          if (!isDigit(p.charAt(7))) return null;
+          return new Input(BI_WEEKLY, year, p.charAt(7) - '0');
+        }
+        if (!isDigit(p.charAt(4))) return null;
+        if (!isDigit(p.charAt(5))) return null;
+        if (!isDigit(p.charAt(6))) return null;
+        if (!isDigit(p.charAt(7))) return null;
+        return new Input(DAILY, year, parseInt(p.substring(4, 6)), parseInt(p.substring(6, 8)));
+      }
+      if (len == 9) {
+        if (p.endsWith("April")) return new Input(FINANCIAL_APRIL, year);
+        if (!isDigit(p.charAt(8))) return null;
+        if (p.indexOf("NovQ") == 4) return new Input(QUARTERLY_NOV, year, p.charAt(8) - '0');
+        if (p.indexOf("BiW") == 4) {
+          if (!isDigit(p.charAt(7))) return null;
+          return new Input(BI_WEEKLY, year, Integer.parseInt(p.substring(7, 9)));
+        }
+        int primeary = p.charAt(8) - '0';
+        if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primeary);
+        if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primeary);
+        if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primeary);
+        if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primeary);
+        if (p.indexOf("NovS") == 4) return new Input(SIX_MONTHLY_NOV, year, primeary);
+        return null;
+      }
+      if (len == 10) {
+        if (!isDigit(p.charAt(8))) return null;
+        if (!isDigit(p.charAt(9))) return null;
+        if (p.charAt(4) == '-') {
+          if (!isDigit(p.charAt(5))) return null;
+          if (!isDigit(p.charAt(6))) return null;
+          if (p.charAt(7) != '-') return null;
+          return new Input(DAILY, year, parseInt(p.substring(5, 7)), parseInt(p.substring(8, 10)));
+        }
+        int primary = parseInt(p.substring(8, 10));
+        if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primary);
+        if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primary);
+        if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primary);
+        if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primary);
+        return null;
+      }
+      if (len == 11) {
+        if (!isDigit(p.charAt(10))) return null;
+        if (p.indexOf("AprilS") == 4) return new Input(SIX_MONTHLY_APRIL, year, p.charAt(10) - '0');
+      }
+      return null;
+    }
+
+    private static boolean isDigit(char c) {
+      return c >= '0' && c <= '9';
+    }
   }
 }

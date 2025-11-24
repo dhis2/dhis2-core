@@ -35,7 +35,7 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapOf;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.Period.of;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -225,9 +225,9 @@ class PredictionDisaggregatorTest extends TestBase {
 
   // Periods
 
-  private final Period per1 = getPeriodFromIsoString("202201");
+  private final Period per1 = of("202201");
 
-  private final Period per2 = getPeriodFromIsoString("202202");
+  private final Period per2 = of("202202");
 
   // Context values before disaggregating
 

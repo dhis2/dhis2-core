@@ -141,9 +141,9 @@ public enum ErrorCode {
   E2007("Organisation unit children cannot be included for organisation unit groups"),
   E2008("At least one organisation unit must be specified when children are included"),
   E2009("Limit cannot be less than zero: `{0}`"),
-  E2010("User is not allowed to read data for data set: `{0}`"),
-  E2011("User is not allowed to read data for attribute option combo: `{0}`"),
-  E2012("User is not allowed to view org unit: `{0}`"),
+  E2010("User is not allowed to read data for data set(s): `${ds:{0}}`"),
+  E2011("User is not allowed to read data for attribute option combo(s): `${aoc:{0}}`"),
+  E2012("User is not allowed to view org unit(s): `${ou:{0}}`"),
   E2013("At least one data set must be specified"),
   E2014("Unable to parse filter `{0}`"),
   E2015("Unable to parse order param: `{0}`"),
@@ -677,6 +677,18 @@ public enum ErrorCode {
   E8127(
       "Value #${index:{0}} category combo ${combo:{1}} has no option combo for options: `${options:{2}}`"),
   E8128("Value #${indexes:{0}} all affect the same data value: `${key:{1}}`"),
+
+  /* Data export - data encoding */
+  E8200(
+      "Export as ${schema:{0}} not possible as the property is undefined for data set: `${id:{1}}`"),
+  E8201(
+      "Export as ${schema:{0}} not possible as the property is undefined for data element(s): `${ids:{1}}`"),
+  E8202(
+      "Export as ${schema:{0}} not possible as the property is undefined for org unit(s): `${ids:{1}}`"),
+  E8203(
+      "Export as ${schema:{0}} not possible as the property is undefined for category option combo(s): `${ids:{1}}`"),
+  E8204(
+      "Export as category ${schema:{0}} and category options ${schema:{1}} not possible as the property is undefined for at least one of them linked to category option combo(s): `${ids:{1}}`"),
   ;
 
   private final String message;

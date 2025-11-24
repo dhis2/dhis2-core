@@ -193,5 +193,5 @@ public interface DataEntryService {
   LockStatus getEntryStatus(@CheckForNull UID dataSet, @Nonnull DataEntryKey key)
       throws ConflictException;
 
-  Set<UID> getNotReadableOptionCombos(Collection<UID> optionCombos);
+  Set<UID> getNotReadableCategoryOptions(Collection<UID> optionCombos);
 }

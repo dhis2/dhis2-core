@@ -93,10 +93,10 @@ class PeriodTypeTest {
   @Test
   void testGetPeriodTypePeriods() {
     Calendar calendar = PeriodType.getCalendar();
-    Period jan2018 = PeriodType.getPeriodFromIsoString("201801");
-    Period q12018 = PeriodType.getPeriodFromIsoString("2018Q1");
-    Period y2018 = PeriodType.getPeriodFromIsoString("2018");
-    Period fyApril2018 = PeriodType.getPeriodFromIsoString("2018April");
+    Period jan2018 = Period.of("201801");
+    Period q12018 = Period.of("2018Q1");
+    Period y2018 = Period.of("2018");
+    Period fyApril2018 = Period.of("2018April");
     int inxMonthly = PeriodType.PERIOD_TYPES.indexOf(new MonthlyPeriodType());
     int inxQuarterly = PeriodType.PERIOD_TYPES.indexOf(new QuarterlyPeriodType());
     int inxYearly = PeriodType.PERIOD_TYPES.indexOf(new YearlyPeriodType());
@@ -131,8 +131,8 @@ class PeriodTypeTest {
 
   @Test
   void testGetShiftedPeriod() {
-    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period sep2022 = PeriodType.getPeriodFromIsoString("202209");
+    Period aug2022 = Period.of("202208");
+    Period sep2022 = Period.of("202209");
     PeriodType monthly = aug2022.getPeriodType();
 
     assertEquals(aug2022, monthly.getShiftedPeriod(aug2022, 0));
@@ -142,8 +142,8 @@ class PeriodTypeTest {
 
   @Test
   void testGetNextPeriod() {
-    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period sep2022 = PeriodType.getPeriodFromIsoString("202209");
+    Period aug2022 = Period.of("202208");
+    Period sep2022 = Period.of("202209");
     PeriodType monthly = aug2022.getPeriodType();
 
     assertEquals(sep2022, monthly.getNextPeriod(aug2022));
@@ -153,8 +153,8 @@ class PeriodTypeTest {
 
   @Test
   void testGetPreviousPeriod() {
-    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period sep2022 = PeriodType.getPeriodFromIsoString("202209");
+    Period aug2022 = Period.of("202208");
+    Period sep2022 = Period.of("202209");
     PeriodType monthly = aug2022.getPeriodType();
 
     assertEquals(aug2022, monthly.getPreviousPeriod(sep2022));

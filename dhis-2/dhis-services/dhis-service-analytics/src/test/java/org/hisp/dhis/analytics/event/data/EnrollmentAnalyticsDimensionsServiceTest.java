@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
-import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
+import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.enrollmentAggregateDisallowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -106,7 +106,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
   }
 
   @Test
-  void testAggregateOnlyContainsAllowedValueTypes() {
+  void testAggregateDoesntContainDisallowedValueTypes() {
     // Prepare program with stages having all value type data elements
     Program program = mock(Program.class);
     when(programService.getProgram("anUid")).thenReturn(program);
@@ -125,16 +125,18 @@ class EnrollmentAnalyticsDimensionsServiceTest {
             .map(PrefixedDimension::getItem)
             .toList();
 
+    // Verify that disallowed value types (COORDINATE, FILE_RESOURCE, GEOJSON, IMAGE,
+    // MULTI_TEXT, REFERENCE, TRACKER_ASSOCIATE) are NOT returned
     assertTrue(
         analyticsDimensions.stream()
             .filter(b -> b instanceof ProgramStageDataElement)
             .map(psde -> ((ProgramStageDataElement) psde).getDataElement().getValueType())
-            .allMatch(aggregateAllowedValueTypesPredicate()));
+            .noneMatch(enrollmentAggregateDisallowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
             .filter(b -> b instanceof TrackedEntityAttribute)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
-            .allMatch(aggregateAllowedValueTypesPredicate()));
+            .noneMatch(enrollmentAggregateDisallowedValueTypesPredicate()));
   }
 
   @Test
