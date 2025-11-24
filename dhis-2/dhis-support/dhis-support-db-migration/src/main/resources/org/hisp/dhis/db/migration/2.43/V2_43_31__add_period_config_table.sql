@@ -13,6 +13,7 @@ alter table configuration_dataoutputperiodtype add constraint fk_configuration_d
 alter table configuration_dataoutputperiodtype add constraint fk_configuration_dataoutputperiodtype_configurationid
     foreign key (configurationid) references configuration(configurationid);
 
+alter table configuration_dataoutputperiodtype add constraint uk_configuration_dataoutputperiodtype unique (configurationid, periodtypeid);
 
 -- Migrate required data into the new table.
 do
