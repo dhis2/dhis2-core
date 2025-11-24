@@ -1042,7 +1042,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     StringBuilder caseStatement = new StringBuilder("CASE ");
 
     int caseCounter = 0;
-    for (Map.Entry<String, Set<String>> entry : params.getPsdesWithSkipSyncTrue().entrySet()) {
+    for (Map.Entry<String, Set<String>> entry :
+        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
       String programStageUid = entry.getKey();
       Set<String> dataElementUids = entry.getValue();
 
