@@ -49,7 +49,6 @@ import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolv
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrailingSlashInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -250,7 +249,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    // DEMO: RequestInfoInterceptor removed - replaced by RequestInfoFilter for early execution
+    // registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
