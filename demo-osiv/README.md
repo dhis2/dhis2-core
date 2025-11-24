@@ -1,9 +1,15 @@
 # OSIV (Open Session in View) Anti-Pattern Demo
 
-This demo shows how OSIV keeps database connections open for the entire HTTP request duration, even
-when the endpoint does no database work.
+This demo shows how OSIV and the tracker `/trackedEntities` aggregate pattern impact database
+connection pool usage. The demo uses `connection.pool.max_size = 2` to make connection exhaustion
+immediately visible - with only 2 connections available, threads must wait for connections, forcing
+the N+1 queries to execute more sequentially rather than in parallel. This makes it easier to see
+how OSIV keeps connections open for entire request duration, and how the N+1 aggregate pattern
+attempts to execute hundreds of queries in parallel.
 
-## Problem
+## OSIV Demo
+
+### Problem
 
 OSIV binds the Hibernate session (and thus the DB connection) to the HTTP request lifecycle:
 
@@ -44,7 +50,7 @@ HTTP Request: GET /api/debug/osiv/sleep?sleepMs=30000
 
 With slow endpoints, this wastes DB connections even when no DB work is happening.
 
-## Endpoints
+### Endpoints
 
 | Endpoint | OSIV | Description |
 |----------|------|-------------|
@@ -52,7 +58,7 @@ With slow endpoints, this wastes DB connections even when no DB work is happenin
 | `/api/debug/hibernate/sleep` | Yes | Tags the OSIV-held connection, visible in pg_stat_activity |
 | `/api/debug/noOsiv/sleep` | **No** | Exempt from OSIV - no connection held |
 
-## Running the Demo
+### Running the Demo
 
 **Terminal 1 - Start PostgreSQL and build:**
 
@@ -87,9 +93,9 @@ curl -u admin:district "http://localhost:8080/api/debug/noOsiv/sleep?sleepMs=300
 curl -u admin:district "http://localhost:8080/api/debug/hibernate/sleep?sleepMs=30000&requestId=SLOW1"
 ```
 
-## What You'll See
+### What You'll See
 
-### With OSIV (`/api/debug/osiv/sleep`)
+#### With OSIV (`/api/debug/osiv/sleep`)
 
 HikariCP logs show `active` connections increasing during the sleep:
 
@@ -97,7 +103,7 @@ HikariCP logs show `active` connections increasing during the sleep:
 Pool stats (total=2, active=1, idle=1, waiting=0)
 ```
 
-### Without OSIV (`/api/debug/noOsiv/sleep`)
+#### Without OSIV (`/api/debug/noOsiv/sleep`)
 
 HikariCP logs show no active connections during the sleep:
 
@@ -105,7 +111,7 @@ HikariCP logs show no active connections during the sleep:
 Pool stats (total=2, active=0, idle=2, waiting=0)
 ```
 
-### Pool Exhaustion Test
+#### Pool Exhaustion Test
 
 Start 2 slow requests with a pool size of 2:
 
@@ -127,7 +133,7 @@ Connection is not available, request timed out after 30000ms
 (total=2, active=2, idle=0, waiting=1)
 ```
 
-## Key Files
+### Key Files
 
 * `OsivSleepController.java` - Pure sleep endpoint (with OSIV)
 * `OsivHibernateController.java` - Tags connection via Hibernate session
@@ -135,9 +141,8 @@ Connection is not available, request timed out after 30000ms
 * `ExcludableOpenEntityManagerInViewFilter.java` - OSIV filter with URL exclusion
 * `CspFilter.java` - First DB call happens here (getCorsWhitelist)
 * `dhis.conf` - Config with `connection.pool.max_size = 2`
-* `start.sh` - Start script with HikariCP 5s housekeeping
 
-## Tracker /trackedEntities
+## /trackedEntities Demo
 
 The tracker API demonstrates severe connection pool pressure caused primarily by **N+1 query
 patterns in the aggregate layer**, not OSIV. While OSIV holds one connection idle for the request
@@ -146,7 +151,22 @@ events, attempting to execute hundreds of queries in parallel and overwhelming t
 
 ### Connection Scaling with Result Size
 
-Using the analysis script `./analyze-request.sh`:
+The analysis below is based on the request used by `./analyze-trackedentities-request.sh`:
+
+```bash
+curl -u admin:district \
+  'http://localhost:8080/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:grace&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=50&orgUnitMode=ACCESSIBLE'
+```
+
+**Fields requested**: `attributes,enrollments,trackedEntity,orgUnit`
+
+This explicitly requests:
+* `trackedEntity` - TE metadata (1 connection, batched for all TEs)
+* `attributes` - TE attributes (1 connection, batched for all TEs)
+* `enrollments` - Enrollments (N connections, 1 per TE - **N+1 pattern**)
+* `enrollments.events` - Events (N×M connections, 1 per enrollment - **N+1 pattern**)
+
+Using the analysis script `./analyze-trackedentities-request.sh martha` with different `PAGE_SIZE`:
 
 | PAGE_SIZE | Tracked Entities | Connections | SQL Queries | Total Time | Conn/TE Ratio |
 |-----------|------------------|-------------|-------------|------------|---------------|
@@ -171,79 +191,39 @@ process ~20 TEs in parallel at a time, with remaining work waiting for connectio
 by earlier stages. This serializes what was designed as parallel processing, increasing request
 duration while blocking other incoming requests.
 
-### Query Chain Per Tracked Entity
+### Explaining the behavior
 
-The aggregate pattern fetches related data for each tracked entity through a series of queries.
+The aggregate pattern fetches TE data through a mix of sync and async code each acquiring DB
+connections from the DB connection pool:
 
-**Phase 1: Batched queries** (done once for all TEs):
+| Data | Async? | Connections (Scales With) | Controlled By `fields=` | Included in default fields? | Code Location |
+|-----------|--------|---------------------------|------------------------|----------------------------|---------------|
+| TE IDs | No | 1 (batched) | N/A (runs always) | Yes | `DefaultTrackedEntityService:224` |
+| TE core data (uid, created, orgUnit, type, etc.) | Yes | 1 (batched) | `trackedEntity` | Yes | `TrackedEntityAggregate:178` |
+| TE attributes | Yes | 1 (batched) | `attributes` | Yes (via `*`) | `TrackedEntityAggregate:184` |
+| Program owners | Yes | 1 (batched) | `programOwners` | No | `TrackedEntityAggregate:169` |
+| Enrollments | Yes | N (per TE) | `enrollments` | No | `EnrollmentAggregate:68-78` |
+| Events | Yes | N×M (per enrollment) | `enrollments.events` | No | `DefaultEnrollmentService:183-192` |
 
-1. Fetch all tracked entities by ID (`TrackedEntityAggregate` - 1 query total)
-2. Fetch all attributes for those TEs (`TrackedEntityAggregate` - 1 query total)
+All async queries in the aggregate are kicked off concurrently via `allOf(trackedEntitiesAsync,
+attributesAsync, enrollmentsAsync)` at `TrackedEntityAggregate`.
 
-**Phase 2: Per-entity queries** (scales with result size):
-
-3. ❌ Fetch enrollments **for each TE** (`EnrollmentAggregate` - N queries)
-4. ❌ Fetch events **for each enrollment** (`DefaultEnrollmentService` - N×M queries)
-
-With typical TB program data where each TE has 1-2 enrollments, and each enrollment has events,
-this produces approximately 4 connection acquisitions per tracked entity:
-
-* 1 for TE data (amortized across all TEs)
-* 1 for attributes (amortized across all TEs)
-* 1 per TE for enrollments
-* 1-2 per TE for events (one per enrollment)
-
-### Root Cause: N+1 Query Pattern in Aggregate Layer
-
-The connection explosion happens in phases 2 above - the aggregate pattern issues **one query per
-tracked entity** for enrollments, and **one query per enrollment** for events, instead of batching
-these queries like it does for TEs and attributes.
-
-**N+1 Enrollment Fetching** (`EnrollmentAggregate.java:68-78`):
-
-```java
-ids.forEach(id -> {
-    EnrollmentOperationParams params = EnrollmentOperationParams.builder()
-        .trackedEntity(UID.of(id.uid()))
-        .build();
-    result.putAll(id.uid(), enrollmentService.findEnrollments(params));  // ← One query per TE!
-});
-```
-
-**N+1 Event Fetching** (`DefaultEnrollmentService.java:183-192`):
-
-```java
-private Set<TrackerEvent> getEvents(Enrollment enrollment, ...) {
-    TrackerEventOperationParams eventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program))
-            .enrollments(Set.of(UID.of(enrollment)))  // ← Single enrollment!
-            .build();
-    return Set.copyOf(trackerEventService.findEvents(eventOperationParams));  // ← One query per enrollment!
-}
-```
-
-These queries are designed to run in parallel using async operations, but with limited connection
-pool size, they compete for connections which can force more sequential execution.
-
-### Why This Demo Uses Pool Size = 2
-
-This demo intentionally sets `connection.pool.max_size = 2` to make the problem immediately
-visible. With only 2 connections available, threads must wait for connections, forcing the N+1
-queries to execute more sequentially rather than in parallel.
+We observe ~4 connections/TE above because the program/TEs we fetch have only 1 EN with no events.
+So the NxM does not even show but would make matters worse even quicker.
 
 In production with the default 80 connections, the same N+1 queries **attempt to execute in
 parallel**, creating massive concurrent connection usage. A single request for 100 TEs would try to
 acquire **405 connections concurrently** if the pool were large enough. With the standard
 80-connection pool, this means:
 
-* **A single request for 100 TEs** needs 405 connection acquisitions
+* **A single request for 100 TEs** needs >=400 connection acquisitions
 * Multiple concurrent requests immediately exhaust the 80-connection pool
-* Threads block waiting for available connections (30s default timeout)
+* Threads block waiting for available connections (30s default hikari timeout)
 * Performance degrades dramatically under load as threads compete for connections
 
 The N+1 aggregate pattern is the core issue - it would require an impractically large connection
 pool to handle even moderate concurrent traffic. OSIV's contribution (holding 1 connection idle) is
-minor compared to the 404 other connections needed per request.
+minor compared to the >=400 other connections needed per request.
 
 ### OSIV's Minor Role
 
@@ -253,36 +233,9 @@ minor issue compared to the N+1 aggregate pattern:
 * Request for 100 TEs takes 1,901ms
 * OSIV: Main thread holds **1 connection** idle for 1,901ms
 * N+1 Pattern: **404 additional connections** acquired/released by worker threads
-* Total: 405 connections acquired - OSIV accounts for only 0.25% of the problem
 
 The real bottleneck is the aggregate pattern attempting to fetch enrollments and events with
 hundreds of parallel queries. Fixing OSIV alone would barely impact this endpoint's performance.
-
-### Testing
-
-```sh
-# Test with 1 TE (uses 5 connections)
-./analyze-request.sh grace
-
-# Test with 218+ TEs, default 50 returned (uses 205 connections)
-./analyze-request.sh martha
-
-# Test with more results
-PAGE_SIZE=100 ./analyze-request.sh martha  # Uses 405 connections!
-```
-
-The script shows:
-
-* Request timing (curl total time)
-* Connection acquisitions with wait/held times per thread
-* SQL query count and timings from PostgreSQL logs
-
-### Key Files
-
-* `analyze-request.sh` - Analyzes a single tracker request with connection/query metrics
-* `EnrollmentAggregate.java:68-78` - N+1 enrollment fetching
-* `DefaultEnrollmentService.java:183-192` - N+1 event fetching per enrollment
-* `TrackedEntitiesExportController.java:155-180` - Entry point for tracker export
 
 ## Why Do We Use OSIV?
 
