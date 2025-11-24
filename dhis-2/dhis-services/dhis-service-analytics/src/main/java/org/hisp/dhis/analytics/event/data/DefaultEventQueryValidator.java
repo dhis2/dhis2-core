@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -102,7 +103,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {
       return new ErrorMessage(ErrorCode.E7204);
     }
-    if (!params.hasPeriods() && (params.getStartDate() == null || params.getEndDate() == null)) {
+    if (!params.hasPeriods()
+        && (params.getStartDate() == null || params.getEndDate() == null)
+        && !hasEventDateItem(params)) {
       return new ErrorMessage(ErrorCode.E7205);
     }
     if (params.getStartDate() != null
@@ -153,6 +156,12 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
 
     // TODO validate coordinate field
     return null;
+  }
+
+  private boolean hasEventDateItem(EventQueryParams params) {
+    return params.getItems().stream()
+        .anyMatch(
+            item -> EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId()));
   }
 
   /**
