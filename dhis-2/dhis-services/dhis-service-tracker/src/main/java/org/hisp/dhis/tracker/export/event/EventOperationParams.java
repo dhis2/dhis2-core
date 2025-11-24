@@ -117,7 +117,7 @@ public class EventOperationParams {
 
   private boolean includeRelationships;
 
-  private Map<String, Set<String>> psdesWithSkipSyncTrue;
+  private Map<String, Set<String>> skipSyncDataElementsByProgramStage;
 
   /**
    * Events can be ordered by field names (given as {@link String}), data element (given as {@link
@@ -194,9 +194,9 @@ public class EventOperationParams {
       return this;
     }
 
-    public EventOperationParamsBuilder withSkipSyncFiltering(
-        Map<String, Set<String>> psdesWithSkipSyncTrue) {
-      this.psdesWithSkipSyncTrue = psdesWithSkipSyncTrue;
+    public EventOperationParamsBuilder withSkipSyncDataElements(
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
       return this;
     }
 

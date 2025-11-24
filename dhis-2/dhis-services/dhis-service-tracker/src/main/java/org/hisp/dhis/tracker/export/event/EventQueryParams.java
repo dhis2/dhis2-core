@@ -132,7 +132,7 @@ class EventQueryParams {
 
   @Getter private boolean synchronizationQuery;
 
-  @Getter private Map<String, Set<String>> psdesWithSkipSyncTrue;
+  @Getter private Map<String, Set<String>> skipSyncDataElementsByProgramStage;
 
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
@@ -212,8 +212,9 @@ class EventQueryParams {
     return this;
   }
 
-  public EventQueryParams withSkipSyncFiltering(Map<String, Set<String>> psdesWithSkipSyncTrue) {
-    this.psdesWithSkipSyncTrue = psdesWithSkipSyncTrue;
+  public EventQueryParams withSkipSyncDataElements(
+      Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
     return this;
   }
 

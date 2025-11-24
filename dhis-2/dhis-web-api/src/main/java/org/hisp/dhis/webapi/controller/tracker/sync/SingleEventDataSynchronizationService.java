@@ -99,7 +99,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
-    private final Map<String, Set<String>> skipSyncProgramStageDataElements;
+    private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
     private final Program program;
 
     public EventSynchronizationContext(Date skipChangedBefore, int pageSize, Program program) {
@@ -111,10 +111,10 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         long objectsToSynchronize,
         SystemInstance instance,
         int pageSize,
-        Map<String, Set<String>> skipSyncProgramStageDataElements,
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage,
         Program program) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
-      this.skipSyncProgramStageDataElements = skipSyncProgramStageDataElements;
+      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
       this.program = program;
     }
 
@@ -254,7 +254,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
                 .skipChangedBefore(context.getSkipChangedBefore())
                 .synchronizationQuery(true)
                 .includeDeleted(true)
-                .psdesWithSkipSyncTrue(context.getSkipSyncProgramStageDataElements())
+                .withSkipSyncDataElements(context.getSkipSyncDataElementsByProgramStage())
                 .build(),
             PageParams.of(page, context.getPageSize(), false))
         .getItems();

@@ -185,7 +185,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .program(UID.of("iS7eutanDry"))
             .synchronizationQuery(true)
             .includeDeleted(true)
-            .psdesWithSkipSyncTrue(Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
+            .withSkipSyncDataElements(Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
             .build();
 
     Page<Event> events = eventService.findEvents(params, PageParams.of(1, 10, false));
