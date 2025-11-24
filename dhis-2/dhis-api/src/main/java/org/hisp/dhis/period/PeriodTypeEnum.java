@@ -57,4 +57,9 @@ public enum PeriodTypeEnum {
   YEARLY("Yearly");
 
   @Getter private final String name;
+
+  public static PeriodTypeEnum ofIsoPeriod(String isoPeriod) {
+    Period.Input input = Period.Input.of(isoPeriod);
+    return input == null ? null : input.type();
+  }
 }
