@@ -1033,8 +1033,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String getFilteredEventDataValuesSelect(
       EventQueryParams params, MapSqlParameterSource sqlParameters) {
     if (!params.isSynchronizationQuery()
-        || params.getPsdesWithSkipSyncTrue() == null
-        || params.getPsdesWithSkipSyncTrue().isEmpty()) {
+        || params.getSkipSyncDataElementsByProgramStage() == null
+        || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
 
       return "ev.eventdatavalues";
     }
