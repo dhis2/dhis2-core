@@ -235,10 +235,10 @@ echo "  • Connections acquired: $CONN_COUNT"
 echo "  • SQL queries: $SQL_COUNT"
 echo "  • Entities returned: ${STAT_TES} TE, ${STAT_EN} EN, ${STAT_EV} EV (${STAT_TOTAL} total)"
 
-# Calculate connections per entity
-if [[ -n "$CONN_COUNT" ]] && [[ "$STAT_TOTAL" -gt 0 ]]; then
-    CONN_PER_ENTITY=$(echo "scale=2; $CONN_COUNT / $STAT_TOTAL" | bc)
-    echo "  • Connections per entity: ${CONN_PER_ENTITY} (${CONN_COUNT} connections / ${STAT_TOTAL} entities)"
+# Calculate connections per TE
+if [[ -n "$CONN_COUNT" ]] && [[ "$STAT_TES" -gt 0 ]]; then
+    CONN_PER_TE=$(echo "scale=2; $CONN_COUNT / $STAT_TES" | bc)
+    echo "  • Connections per TE: ${CONN_PER_TE} (~2 base + ~1 per TE for EN + ~1 per EN for EV)"
 fi
 
 echo ""
