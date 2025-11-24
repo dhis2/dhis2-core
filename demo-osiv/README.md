@@ -151,45 +151,23 @@ events, attempting to execute hundreds of queries in parallel and overwhelming t
 
 ### Connection Scaling with Result Size
 
-The analysis below is based on the request used by `./analyze-trackedentities-request.sh`:
+The analysis below is based the analysis script `./analyze-trackedentities-request.sh martha` making
 
 ```bash
 curl -u admin:district \
-  'http://localhost:8080/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:grace&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=50&orgUnitMode=ACCESSIBLE'
+  'http://localhost:8080/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:martha&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=50&orgUnitMode=ACCESSIBLE'
 ```
+
+with different `PAGE_SIZE`s to get different amount of TEs:
 
 **Fields requested**: `attributes,enrollments,trackedEntity,orgUnit`
 
-This explicitly requests:
-* `trackedEntity` - TE metadata (1 connection, batched for all TEs)
-* `attributes` - TE attributes (1 connection, batched for all TEs)
-* `enrollments` - Enrollments (N connections, 1 per TE - **N+1 pattern**)
-* `enrollments.events` - Events (N×M connections, 1 per enrollment - **N+1 pattern**)
-
-Using the analysis script `./analyze-trackedentities-request.sh martha` with different `PAGE_SIZE`:
-
-| PAGE_SIZE | Tracked Entities | Connections | SQL Queries | Total Time | Conn/TE Ratio |
-|-----------|------------------|-------------|-------------|------------|---------------|
-| 5         | 5                | 25          | 51          | 490ms      | 5.0           |
-| 25        | 25               | 105         | 231         | 855ms      | 4.2           |
-| 50        | 50               | 205         | 456         | 1226ms     | 4.1           |
-| 100       | 100              | 405         | 956         | 1901ms     | 4.05          |
-
-Approximately **4 database connections per tracked entity**. At default pool size (80 connections),
-the pool can only handle **~20 TEs being processed concurrently** across all requests. This could be
-1 request with 20 TEs, 4 requests with 5 TEs each, or 20 requests with 1 TE each.
-
-This obviously oversimplifies that there are always other things happening like other requests,
-jobs, ... that also hold onto DB connections.
-
-**This assumes requests complete quickly (under 1 second).** As request duration increases,
-connections are held longer, and new requests pile up waiting for available connections.
-
-A single request needing more connections than the pool size will experience self-contention. For
-example, a request for 50 TEs needs ~200 connections but only 80 exist. The request can only
-process ~20 TEs in parallel at a time, with remaining work waiting for connections to be released
-by earlier stages. This serializes what was designed as parallel processing, increasing request
-duration while blocking other incoming requests.
+| TEs | Connections | Connections/TEs | SQL Queries | Total Time |
+|-----|-------------|-----------------|-------------|------------|
+| 5   | 25          | 5.0             | 51          | 490ms      |
+| 25  | 105         | 4.2             | 231         | 855ms      |
+| 50  | 205         | 4.1             | 456         | 1226ms     |
+| 100 | 405         | 4.05            | 956         | 1901ms     |
 
 ### Explaining the behavior
 
@@ -211,31 +189,23 @@ attributesAsync, enrollmentsAsync)` at `TrackedEntityAggregate`.
 We observe ~4 connections/TE above because the program/TEs we fetch have only 1 EN with no events.
 So the NxM does not even show but would make matters worse even quicker.
 
-In production with the default 80 connections, the same N+1 queries **attempt to execute in
-parallel**, creating massive concurrent connection usage. A single request for 100 TEs would try to
-acquire **405 connections concurrently** if the pool were large enough. With the standard
-80-connection pool, this means:
+### Production Impact
 
-* **A single request for 100 TEs** needs >=400 connection acquisitions
-* Multiple concurrent requests immediately exhaust the 80-connection pool
-* Threads block waiting for available connections (30s default hikari timeout)
-* Performance degrades dramatically under load as threads compete for connections
+With the fields used in this analysis (`attributes,enrollments,trackedEntity,orgUnit`), we observe
+**~4 connections per TE**. At the default pool size (80 connections), the system can only handle
+**~20 TEs being processed concurrently across all requests** - for example, one request fetching 20
+TEs, or four concurrent requests each fetching 5 TEs.
 
-The N+1 aggregate pattern is the core issue - it would require an impractically large connection
-pool to handle even moderate concurrent traffic. OSIV's contribution (holding 1 connection idle) is
-minor compared to the >=400 other connections needed per request.
+This is the **theoretical maximum throughput** for this specific field/data combination. Real-world
+throughput is likely lower because:
+* TEs with more enrollments and events require more connections (N×M does not even show in the
+example)
+* Other requests and system operations like our background jobs also hold connections
+* Requests exceeding the pool size experience self-contention, serializing parallel work and
+increasing duration
 
-### OSIV's Minor Role
-
-While OSIV does hold the main HTTP thread's connection for the entire request duration, this is a
-minor issue compared to the N+1 aggregate pattern:
-
-* Request for 100 TEs takes 1,901ms
-* OSIV: Main thread holds **1 connection** idle for 1,901ms
-* N+1 Pattern: **404 additional connections** acquired/released by worker threads
-
-The real bottleneck is the aggregate pattern attempting to fetch enrollments and events with
-hundreds of parallel queries. Fixing OSIV alone would barely impact this endpoint's performance.
+The N+1 aggregate pattern is the core bottleneck. OSIV's contribution (holding 1 idle connection
+per request) is minor compared to the N+1 pattern requiring hundreds of connections per request.
 
 ## Why Do We Use OSIV?
 
