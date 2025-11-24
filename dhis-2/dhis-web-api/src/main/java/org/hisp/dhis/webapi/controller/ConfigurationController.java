@@ -34,6 +34,7 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E1101;
 import static org.hisp.dhis.period.PeriodTypeEnum.TWO_YEARLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.YEARLY;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -505,6 +506,9 @@ public class ConfigurationController {
 
     periodTypes.forEach(
         p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.getName())));
+
+    // Always add yearly, as it's mandatory for partition checks.
+    periodTypesParsed.add(periodService.getPeriodTypeByName(YEARLY.getName()));
 
     Configuration configuration = configurationService.getConfiguration();
     configuration.setDataOutputPeriodTypes(periodTypesParsed);

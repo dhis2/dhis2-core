@@ -228,5 +228,6 @@ class ConfigurationControllerTest extends PostgresControllerIntegrationTestBase 
     JsonArray response =
         GET("/configuration/dataOutputPeriodTypes").content(HttpStatus.OK).as(JsonArray.class);
     assertEquals("Monthly", response.get(0).asObject().getString("name").string());
+    assertEquals("Yearly", response.get(1).asObject().getString("name").string());
   }
 }
