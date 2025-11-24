@@ -353,13 +353,7 @@ public class AuditController {
     List<Period> periods = new ArrayList<>();
 
     for (String pe : isoPeriods) {
-      Period period = Period.of(pe);
-
-      if (period == null) {
-        throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-      }
-
-      periods.add(period);
+      periods.add(Period.of(pe));
     }
 
     return periods;

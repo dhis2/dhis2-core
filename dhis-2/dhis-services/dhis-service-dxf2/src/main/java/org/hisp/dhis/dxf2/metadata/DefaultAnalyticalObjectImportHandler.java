@@ -218,7 +218,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
   private void addRawPeriods(DimensionalObject dimObject, Set<String> rawPeriods) {
     for (DimensionalItemObject item : dimObject.getItems()) {
       String period = item.getUid();
-      Period isoPeriod = Period.of(period);
+      Period isoPeriod = Period.ofNullable(period);
 
       if (RelativePeriodEnum.contains(period) || isoPeriod != null) {
         rawPeriods.add(period);

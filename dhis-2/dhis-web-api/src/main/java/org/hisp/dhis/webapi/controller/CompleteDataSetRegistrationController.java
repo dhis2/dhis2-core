@@ -191,10 +191,6 @@ public class CompleteDataSetRegistrationController {
 
     Period period = Period.of(pe);
 
-    if (period == null) {
-      throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-    }
-
     OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
 
     if (organisationUnit == null) {
