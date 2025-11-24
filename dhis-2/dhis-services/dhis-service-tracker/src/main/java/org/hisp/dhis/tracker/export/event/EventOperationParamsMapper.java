@@ -119,10 +119,10 @@ class EventOperationParamsMapper {
 
     List<Program> accessiblePrograms = getPrograms(program);
 
-    if (queryParams.isSynchronizationQuery()
-        && queryParams.getPsdesWithSkipSyncTrue() != null
-        && !queryParams.getPsdesWithSkipSyncTrue().isEmpty()) {
-      queryParams = queryParams.withSkipSyncFiltering(queryParams.getPsdesWithSkipSyncTrue());
+    if (operationParams.isSynchronizationQuery()
+        && operationParams.getPsdesWithSkipSyncTrue() != null
+        && !operationParams.getPsdesWithSkipSyncTrue().isEmpty()) {
+      queryParams = queryParams.withSkipSyncFiltering(operationParams.getPsdesWithSkipSyncTrue());
     }
 
     return queryParams
