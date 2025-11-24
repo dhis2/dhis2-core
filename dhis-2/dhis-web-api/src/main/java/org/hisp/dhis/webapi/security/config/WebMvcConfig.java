@@ -246,6 +246,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new UserContextInterceptor());
+    // DEMO: RequestInfoInterceptor removed - replaced by RequestInfoFilter for early execution
+    // registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
