@@ -54,8 +54,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class RelationshipOperationParamsMapper {
-
-  private final HibernateRelationshipStore relationshipStore;
+  private final JdbcRelationshipStore jdbcRelationshipStore;
   private final TrackerAccessManager trackerAccessManager;
 
   public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
@@ -84,7 +83,7 @@ class RelationshipOperationParamsMapper {
   private TrackedEntity getTrackedEntity(UID trackedEntityUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
-        relationshipStore
+        jdbcRelationshipStore
             .findTrackedEntity(trackedEntityUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(TrackedEntity.class, trackedEntityUid));
     if (!trackerAccessManager
@@ -98,7 +97,7 @@ class RelationshipOperationParamsMapper {
   private Enrollment getEnrollment(UID enrollmentUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     Enrollment enrollment =
-        relationshipStore
+        jdbcRelationshipStore
             .findEnrollment(enrollmentUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
     if (!trackerAccessManager
@@ -111,7 +110,7 @@ class RelationshipOperationParamsMapper {
 
   private SoftDeletableObject getEvent(UID eventUid, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    Optional<TrackerEvent> event = relationshipStore.findEvent(eventUid, includeDeleted);
+    Optional<TrackerEvent> event = jdbcRelationshipStore.findTrackerEvent(eventUid, includeDeleted);
     if (event.isPresent()) {
       if (!trackerAccessManager
           .canRead(CurrentUserUtil.getCurrentUserDetails(), event.get())
@@ -121,7 +120,8 @@ class RelationshipOperationParamsMapper {
       return event.get();
     }
 
-    Optional<SingleEvent> singleEvent = relationshipStore.findSingleEvent(eventUid, includeDeleted);
+    Optional<SingleEvent> singleEvent =
+        jdbcRelationshipStore.findSingleEvent(eventUid, includeDeleted);
     if (singleEvent.isPresent()) {
       if (!trackerAccessManager
           .canRead(CurrentUserUtil.getCurrentUserDetails(), singleEvent.get())

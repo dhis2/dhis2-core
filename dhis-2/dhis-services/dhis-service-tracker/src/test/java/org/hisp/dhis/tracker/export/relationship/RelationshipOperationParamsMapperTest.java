@@ -70,6 +70,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Mock private HibernateRelationshipStore relationshipStore;
 
+  @Mock private JdbcRelationshipStore jdbcRelationshipStore;
+
   @Mock private TrackerAccessManager trackerAccessManager;
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;
@@ -101,7 +103,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   @Test
   void shouldMapTrackedEntityWhenATrackedEntityIsPassed()
       throws NotFoundException, ForbiddenException {
-    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
+    when(jdbcRelationshipStore.findTrackedEntity(TE_UID, false))
+        .thenReturn(Optional.of(trackedEntity));
     RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
     RelationshipQueryParams queryParams = mapper.map(params);
@@ -113,7 +116,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   @Test
   void shouldMapTrackedEntityWhenASoftDeletedTrackedEntityIsPassedAndIncludeDeletedIsTrue()
       throws NotFoundException, ForbiddenException {
-    when(relationshipStore.findTrackedEntity(TE_UID, true)).thenReturn(Optional.of(trackedEntity));
+    when(jdbcRelationshipStore.findTrackedEntity(TE_UID, true))
+        .thenReturn(Optional.of(trackedEntity));
     RelationshipOperationParams params =
         RelationshipOperationParams.builder(trackedEntity).includeDeleted(true).build();
 
@@ -125,7 +129,7 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldThrowNotFoundExceptionWhenATrackedEntityIsNotPresent() {
-    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.empty());
+    when(jdbcRelationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.empty());
     RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
     assertThrows(NotFoundException.class, () -> mapper.map(params));
@@ -133,7 +137,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldThrowForbiddenExceptionWhenATrackedEntityIsNotAccessible() {
-    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
+    when(jdbcRelationshipStore.findTrackedEntity(TE_UID, false))
+        .thenReturn(Optional.of(trackedEntity));
     when(trackerAccessManager.canRead(user, trackedEntity)).thenReturn(List.of("error"));
     RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
@@ -224,7 +229,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
 
   @Test
   void shouldMapOrderInGivenOrder() throws ForbiddenException, NotFoundException {
-    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
+    when(jdbcRelationshipStore.findTrackedEntity(TE_UID, false))
+        .thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(trackedEntity)
@@ -239,7 +245,8 @@ class RelationshipOperationParamsMapperTest extends TestBase {
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
       throws ForbiddenException, NotFoundException {
-    when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
+    when(jdbcRelationshipStore.findTrackedEntity(TE_UID, false))
+        .thenReturn(Optional.of(trackedEntity));
 
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(trackedEntity).build();

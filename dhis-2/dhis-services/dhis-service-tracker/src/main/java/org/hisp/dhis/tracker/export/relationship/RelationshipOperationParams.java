@@ -37,10 +37,10 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
@@ -66,7 +66,7 @@ public class RelationshipOperationParams {
     return new RelationshipOperationParamsBuilder().relationships(relationships);
   }
 
-  public static RelationshipOperationParamsBuilder builder(@Nonnull TrackerEvent event) {
+  public static RelationshipOperationParamsBuilder builder(@Nonnull SoftDeletableObject event) {
     return new RelationshipOperationParamsBuilder()
         .identifier(UID.of(event))
         .type(TrackerType.EVENT);

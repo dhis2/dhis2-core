@@ -127,8 +127,6 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private JdbcTrackedEntityStore trackedEntityStore;
-
   @Mock private OperationsParamsValidator paramsValidator;
 
   @Mock private SystemSettingsService systemSettingsService;

@@ -620,6 +620,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             TrackerObjects.builder()
                 .trackedEntities(List.of(getTrackedEntity(UID.of("guVNoAerxWo"))))
                 .build()));
+    manager.flush();
 
     GET("/tracker/relationships?trackedEntity={te}&includeDeleted=false", "guVNoAerxWo")
         .error(NOT_FOUND);
@@ -668,6 +669,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
                 .enrollments(List.of(getEnrollment(UID.of("ipBifypAQTo"))))
                 .build()));
 
+    manager.flush();
+
     GET("/tracker/relationships?enrollment={en}&includeDeleted=false", "ipBifypAQTo")
         .error(NOT_FOUND);
   }
@@ -709,6 +712,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         trackerImportService.importTracker(
             TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
             TrackerObjects.builder().events(List.of(getEvent(UID.of("LCSfHnurnNB")))).build()));
+
+    manager.flush();
 
     GET("/tracker/relationships?event={ev}&includeDeleted=false", "LCSfHnurnNB").error(NOT_FOUND);
   }
@@ -916,6 +921,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
 
     manager.save(trackedEntityType, false);
+    manager.flush();
 
     switchContextToUser(user);
 
