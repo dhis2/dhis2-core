@@ -155,31 +155,62 @@ Using the analysis script `./analyze-request.sh`:
 | 50        | 50               | 205         | 456         | 1226ms     | 4.1           |
 | 100       | 100              | 405         | 956         | 1901ms     | 4.05          |
 
-**Key Finding:** Approximately **4 database connections per tracked entity** with near-perfect
-linear scaling. At default pool size (80 connections), only **~20 concurrent requests** returning
-50 TEs each would exhaust the pool.
+Approximately **4 database connections per tracked entity**. At default pool size (80 connections),
+the pool can only handle **~20 TEs being processed concurrently** across all requests. This could be
+1 request with 20 TEs, 4 requests with 5 TEs each, or 20 requests with 1 TE each.
+
+This obviously oversimplifies that there are always other things happening like other requests,
+jobs, ... that also hold onto DB connections.
+
+**This assumes requests complete quickly (under 1 second).** As request duration increases,
+connections are held longer, and new requests pile up waiting for available connections.
+
+A single request needing more connections than the pool size will experience self-contention. For
+example, a request for 50 TEs needs ~200 connections but only 80 exist. The request can only
+process ~20 TEs in parallel at a time, with remaining work waiting for connections to be released
+by earlier stages. This serializes what was designed as parallel processing, increasing request
+duration while blocking other incoming requests.
+
+### Query Chain Per Tracked Entity
+
+The aggregate pattern fetches related data for each tracked entity through a series of queries.
+
+**Phase 1: Batched queries** (done once for all TEs):
+
+1. Fetch all tracked entities by ID (`TrackedEntityAggregate` - 1 query total)
+2. Fetch all attributes for those TEs (`TrackedEntityAggregate` - 1 query total)
+
+**Phase 2: Per-entity queries** (scales with result size):
+
+3. ❌ Fetch enrollments **for each TE** (`EnrollmentAggregate` - N queries)
+4. ❌ Fetch events **for each enrollment** (`DefaultEnrollmentService` - N×M queries)
+
+With typical TB program data where each TE has 1-2 enrollments, and each enrollment has events,
+this produces approximately 4 connection acquisitions per tracked entity:
+
+* 1 for TE data (amortized across all TEs)
+* 1 for attributes (amortized across all TEs)
+* 1 per TE for enrollments
+* 1-2 per TE for events (one per enrollment)
 
 ### Root Cause: N+1 Query Pattern in Aggregate Layer
 
-The connection explosion happens because the aggregate pattern issues **one query per tracked
-entity** for enrollments, and **one query per enrollment** for events. These queries are designed
-to run in parallel (using async operations), but with limited connection pool size, they compete
-for connections and can force sequential execution:
+The connection explosion happens in phases 2 above - the aggregate pattern issues **one query per
+tracked entity** for enrollments, and **one query per enrollment** for events, instead of batching
+these queries like it does for TEs and attributes.
 
-**1. N+1 Enrollment Fetching** (`EnrollmentAggregate.java:68-78`):
+**N+1 Enrollment Fetching** (`EnrollmentAggregate.java:68-78`):
 
 ```java
 ids.forEach(id -> {
     EnrollmentOperationParams params = EnrollmentOperationParams.builder()
         .trackedEntity(UID.of(id.uid()))
         .build();
-    result.putAll(id.uid(), enrollmentService.findEnrollments(params));  // ← N+1!
+    result.putAll(id.uid(), enrollmentService.findEnrollments(params));  // ← One query per TE!
 });
 ```
 
-**This calls `enrollmentService.findEnrollments()` once per tracked entity** instead of batching.
-
-**2. N+1 Event Fetching** (`DefaultEnrollmentService.java:183-192`):
+**N+1 Event Fetching** (`DefaultEnrollmentService.java:183-192`):
 
 ```java
 private Set<TrackerEvent> getEvents(Enrollment enrollment, ...) {
@@ -187,23 +218,12 @@ private Set<TrackerEvent> getEvents(Enrollment enrollment, ...) {
         TrackerEventOperationParams.builderForProgram(UID.of(program))
             .enrollments(Set.of(UID.of(enrollment)))  // ← Single enrollment!
             .build();
-    return Set.copyOf(trackerEventService.findEvents(eventOperationParams));  // ← N+1!
+    return Set.copyOf(trackerEventService.findEvents(eventOperationParams));  // ← One query per enrollment!
 }
 ```
 
-**This calls `trackerEventService.findEvents()` once per enrollment** instead of batching.
-
-### Query Chain Per Tracked Entity
-
-For each tracked entity:
-
-1. ✅ 1 query for tracked entity data (batched in `TrackedEntityAggregate`)
-2. ✅ 1 query for attributes (batched in `TrackedEntityAggregate`)
-3. ❌ **1 query per TE** for enrollments (`EnrollmentAggregate`)
-4. ❌ **1 query per enrollment** for events (`DefaultEnrollmentService`)
-
-With typical TB program data (1-2 enrollments per TE), this produces approximately 4 connection
-acquisitions per tracked entity.
+These queries are designed to run in parallel using async operations, but with limited connection
+pool size, they compete for connections which can force more sequential execution.
 
 ### Why This Demo Uses Pool Size = 2
 

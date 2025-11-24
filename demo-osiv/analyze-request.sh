@@ -76,10 +76,36 @@ if [[ -z "$TE_COUNT" || "$TE_COUNT" == "null" || "$TE_COUNT" == "0" ]]; then
     exit 1
 fi
 
+# Calculate entity statistics
+ENTITY_STATS=$(echo "$RESPONSE_BODY" | jq -r '
+def stats:
+  {
+    tes: (.trackedEntities | length),
+    enrollments: ([.trackedEntities[].enrollments | length] | add // 0),
+    events: ([.trackedEntities[].enrollments[].events | length] | add // 0)
+  } | . + {entities: (.tes + .enrollments + .events)};
+
+stats | "\(.tes) \(.enrollments) \(.events) \(.entities)"
+' 2>/dev/null)
+
+read STAT_TES STAT_EN STAT_EV STAT_TOTAL <<< "$ENTITY_STATS"
+
 echo -e "${GREEN}✓ Request completed${NC}"
 echo "  HTTP Status: $HTTP_CODE"
 echo -e "  Total Time: ${YELLOW}${CURL_TIME_MS}ms${NC}"
-echo "  Tracked Entities: $TE_COUNT"
+echo "  Entities: ${STAT_TES} TE, ${STAT_EN} EN, ${STAT_EV} EV (${STAT_TOTAL} total)"
+echo ""
+
+# Show per-TE breakdown
+echo -e "${CYAN}Entity Breakdown:${NC}"
+printf "%-15s %3s %3s\n" "TE_ID" "EN" "EV"
+echo "─────────────────────────"
+echo "$RESPONSE_BODY" | jq -r '
+.trackedEntities[] |
+  "\(.trackedEntity) \(.enrollments | length) \([.enrollments[].events | length] | add // 0)"
+' 2>/dev/null | while read te_id en_count ev_count; do
+    printf "%-15s %3s %3s\n" "$te_id" "$en_count" "$ev_count"
+done
 echo ""
 
 # Wait a moment for logs to flush
@@ -207,5 +233,13 @@ if [[ -n "$OSIV_TIME" ]]; then
 fi
 echo "  • Connections acquired: $CONN_COUNT"
 echo "  • SQL queries: $SQL_COUNT"
+echo "  • Entities returned: ${STAT_TES} TE, ${STAT_EN} EN, ${STAT_EV} EV (${STAT_TOTAL} total)"
+
+# Calculate connections per entity
+if [[ -n "$CONN_COUNT" ]] && [[ "$STAT_TOTAL" -gt 0 ]]; then
+    CONN_PER_ENTITY=$(echo "scale=2; $CONN_COUNT / $STAT_TOTAL" | bc)
+    echo "  • Connections per entity: ${CONN_PER_ENTITY} (${CONN_COUNT} connections / ${STAT_TOTAL} entities)"
+fi
+
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
