@@ -38,8 +38,6 @@ import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import kotlinx.datetime.Instant;
-import kotlinx.datetime.LocalDate;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -55,6 +53,8 @@ import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleInstant;
+import org.hisp.dhis.rules.models.RuleLocalDate;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -270,12 +270,12 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     assertDataValue(event.getDataValues().iterator().next(), ruleEvent.getDataValues().get(0));
   }
 
-  private void assertDates(java.time.Instant expected, Instant actual) {
-    assertEquals(expected.toEpochMilli(), actual.getValue$kotlinx_datetime().toEpochMilli());
+  private void assertDates(java.time.Instant expected, RuleInstant actual) {
+    assertEquals(expected.toEpochMilli(), actual.getMillis());
   }
 
-  private void assertDates(Date expected, Instant actual) {
-    assertEquals(expected.getTime(), actual.getValue$kotlinx_datetime().toEpochMilli());
+  private void assertDates(Date expected, RuleInstant actual) {
+    assertEquals(expected.getTime(), actual.getMillis());
   }
 
   private void assertDataValue(EventDataValue expectedDataValue, RuleDataValue actualDataValue) {
@@ -313,11 +313,11 @@ class RuleEngineRuleEngineMapperTest extends TestBase {
     assertEquals(SAMPLE_VALUE_A, ruleEnrollment.getAttributeValues().get(0).getValue());
   }
 
-  private void assertDates(java.time.Instant expected, LocalDate actual) {
+  private void assertDates(java.time.Instant expected, RuleLocalDate actual) {
     assertEquals(DateUtils.toMediumDate(DateUtils.fromInstant(expected)), actual.toString());
   }
 
-  private void assertDates(Date expected, LocalDate actual) {
+  private void assertDates(Date expected, RuleLocalDate actual) {
     assertEquals(DateUtils.toMediumDate(expected), actual.toString());
   }
 

@@ -58,10 +58,6 @@
       <artifactId>rule-engine-jvm</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jetbrains.kotlinx</groupId>
-      <artifactId>kotlinx-datetime-jvm</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.github.dhis2</groupId>
       <artifactId>sms-compression</artifactId>
     </dependency>
