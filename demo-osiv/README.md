@@ -284,6 +284,86 @@ The script shows:
 * `DefaultEnrollmentService.java:183-192` - N+1 event fetching per enrollment
 * `TrackedEntitiesExportController.java:155-180` - Entry point for tracker export
 
+## Why Do We Use OSIV?
+
+Despite being an anti-pattern, DHIS2 deliberately uses OSIV for several architectural reasons:
+
+### 1. Legacy Architecture with Complex Domain Models
+
+DHIS2 has a large, mature codebase with deeply nested Hibernate entities containing many
+lazy-loaded relationships. Without OSIV, accessing these relationships outside service
+transactions causes `LazyInitializationException`.
+
+Git history shows multiple fixes for lazy initialization issues (2021-2023), requiring workarounds
+like `HibernateProxyUtils.unproxy()` in cached entities. This demonstrates the pervasive dependency
+on lazy loading throughout the codebase.
+
+### 2. REST API Serialization Requirements
+
+The REST API directly serializes Hibernate entities to JSON. Jackson needs to traverse object
+graphs (relationships, collections) **after** service methods return. OSIV keeps the session open so
+lazy relationships can be loaded during JSON serialization.
+
+Configured in `DhisWebApiWebAppInitializer.java` to apply to all URLs (`/*`):
+
+```java
+FilterRegistration.Dynamic openSessionInViewFilter =
+    context.addFilter("openSessionInViewFilter", ExcludableOpenEntityManagerInViewFilter.class);
+openSessionInViewFilter.addMappingForUrlPatterns(
+    EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*");
+```
+
+### 3. Async Response Streaming Support
+
+Recent changes (May 2025) explicitly added `DispatcherType.ASYNC` to support streaming large
+result sets. The OSIV filter keeps connections open for async responses, closing them only when the
+streamed response completes.
+
+This is critical for endpoints that stream data back to clients progressively.
+
+### 4. Filter Chain Dependencies
+
+The first database access happens in `CspFilter.getCorsWhitelist()` **before** controllers execute.
+OSIV ensures this connection stays open for the entire request, avoiding multiple connection
+acquisitions throughout the request lifecycle.
+
+### 5. The Tracker Aggregate Pattern
+
+The tracker export API uses an "aggregate" pattern that progressively fetches related data:
+
+* `EnrollmentAggregate.java:68-78` - Issues one query per tracked entity for enrollments
+* `DefaultEnrollmentService.java:183-192` - Issues one query per enrollment for events
+
+This N+1 pattern relies on OSIV to execute all queries within the same HTTP request context.
+
+### Known Trade-offs
+
+The team is fully aware OSIV is problematic:
+
+* **Connection Pool Exhaustion**: Connections held for entire request duration cause timeouts under
+  load
+* **Scalability Issues**: Pool exhaustion even with reasonable pool sizes (80 connections)
+* **Hidden Database Operations**: Lazy loading triggers unexpected queries in view/serialization
+  layer
+
+### Why It Hasn't Been Removed
+
+Removing OSIV would require a massive refactoring effort:
+
+* Introduce DTO layer instead of exposing entities directly
+* Add explicit fetch strategies (JOIN FETCH, EntityGraphs) throughout codebase
+* Ensure all data loaded within service transaction boundaries
+* Fix hundreds of potential `LazyInitializationException` issues
+
+### Migration Strategy
+
+DHIS2 has implemented `ExcludableOpenEntityManagerInViewFilter` allowing selective opt-out via URL
+patterns. This provides a path for **incremental migration** endpoint-by-endpoint rather than a
+risky big-bang rewrite.
+
+Endpoints can be excluded from OSIV by adding them to the `excludePatterns` configuration (e.g.,
+`/api/debug/noOsiv/*`).
+
 ## References
 
 * [The Open Session In View Anti-Pattern](https://vladmihalcea.com/the-open-session-in-view-anti-pattern/)
