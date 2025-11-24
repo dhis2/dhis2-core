@@ -93,7 +93,13 @@ class AsyncUtils {
 
   /**
    * Wraps a Function to propagate the MDC context from the calling thread to the async thread. This
-   * is useful for parallelStream().map() operations that spawn work on ForkJoinPool.commonPool(),
+   * is useful for:
+   *
+   * <ul>
+   *   <li>parallelStream().map() operations that spawn work on ForkJoinPool.commonPool()
+   *   <li>CompletableFuture.thenApplyAsync() operations that execute on a different thread
+   * </ul>
+   *
    * ensuring that log statements and SQL comments include the request ID.
    *
    * @param function The Function to wrap

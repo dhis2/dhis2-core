@@ -39,8 +39,6 @@ fi
 
 # Make the request
 echo -e "${CYAN}[Step 1] Making tracker API request...${NC}"
-echo "  Endpoint: /api/tracker/trackedEntities"
-echo "  Filter: w75KJ2mc4zz:like:joh"
 echo ""
 
 RESPONSE=$(curl -s -w "\n__CURL_TIMING__\ntime_total:%{time_total}\nhttp_code:%{http_code}\n" \
@@ -49,27 +47,27 @@ RESPONSE=$(curl -s -w "\n__CURL_TIMING__\ntime_total:%{time_total}\nhttp_code:%{
     "$BASE_URL/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:joh&fields=attributes,enrollments,trackedEntity,orgUnit&program=$TRACKER_PROGRAM&page=1&pageSize=5&orgUnitMode=ACCESSIBLE")
 
 # Extract timing info
-CURL_TIME=$(echo "$RESPONSE" | grep "^time_total:" | cut -d: -f2)
+CURL_TIME_SEC=$(echo "$RESPONSE" | grep "^time_total:" | cut -d: -f2)
+CURL_TIME_MS=$(echo "$CURL_TIME_SEC * 1000" | bc | cut -d. -f1)
 HTTP_CODE=$(echo "$RESPONSE" | grep "^http_code:" | cut -d: -f2)
 
 # Extract response body (before timing markers)
 RESPONSE_BODY=$(echo "$RESPONSE" | sed '/^__CURL_TIMING__$/,$d')
 
+# Parse JSON and count tracked entities
+TE_COUNT=$(echo "$RESPONSE_BODY" | jq -r '.trackedEntities // [] | length' 2>/dev/null)
+if [[ -z "$TE_COUNT" || "$TE_COUNT" == "null" || "$TE_COUNT" == "0" ]]; then
+    echo -e "${RED}✗ Failed to parse response or no tracked entities found${NC}"
+    echo "  HTTP Status: $HTTP_CODE"
+    echo "  Response:"
+    echo "$RESPONSE_BODY" | head -20 | sed 's/^/    /'
+    exit 1
+fi
+
 echo -e "${GREEN}✓ Request completed${NC}"
 echo "  HTTP Status: $HTTP_CODE"
-echo "  Total Time: ${YELLOW}${CURL_TIME}s${NC}"
-echo ""
-
-# Show response preview
-RESPONSE_LINES=$(echo "$RESPONSE_BODY" | wc -l)
-if [[ $RESPONSE_LINES -gt 10 ]]; then
-    echo "  Response preview (first 10 lines):"
-    echo "$RESPONSE_BODY" | head -10 | sed 's/^/    /'
-    echo "    ..."
-else
-    echo "  Response:"
-    echo "$RESPONSE_BODY" | sed 's/^/    /'
-fi
+echo -e "  Total Time: ${YELLOW}${CURL_TIME_MS}ms${NC}"
+echo "  Tracked Entities: $TE_COUNT"
 echo ""
 
 # Wait a moment for logs to flush
@@ -98,11 +96,12 @@ if [[ -f "$DHIS2_LOG" ]]; then
 
         # Show connection details
         echo "Connection Timings:"
-        echo "─────────────────────────────────────────────────────────"
-        printf "%-35s %-12s %-12s\n" "Thread" "Wait (ms)" "Held (ms)"
-        echo "─────────────────────────────────────────────────────────"
+        echo "──────────────────────────────────────────────────────────────"
+        printf "%-3s %-35s %-12s %-12s\n" "#" "Thread" "Wait (ms)" "Held (ms)"
+        echo "──────────────────────────────────────────────────────────────"
 
         # Parse acquired connections
+        INDEX=1
         echo "$CONN_LOGS" | grep "CONN_ACQUIRED" | while read line; do
             THREAD=$(echo "$line" | sed -n 's/.*\[\([^]]*\)\].*/\1/p')
             WAIT_MS=$(echo "$line" | grep -oP 'wait_ms=\K[0-9]+')
@@ -111,17 +110,18 @@ if [[ -f "$DHIS2_LOG" ]]; then
             RELEASE_LINE=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep "\[$THREAD\]" | head -1)
             if [[ -n "$RELEASE_LINE" ]]; then
                 HELD_MS=$(echo "$RELEASE_LINE" | grep -oP 'held_ms=\K[0-9]+')
-                printf "%-35s %-12s %-12s\n" "$THREAD" "$WAIT_MS" "$HELD_MS"
+                printf "%-3s %-35s %-12s %-12s\n" "$INDEX" "$THREAD" "$WAIT_MS" "$HELD_MS"
             else
-                printf "%-35s %-12s %-12s\n" "$THREAD" "$WAIT_MS" "(not released)"
+                printf "%-3s %-35s %-12s %-12s\n" "$INDEX" "$THREAD" "$WAIT_MS" "(not released)"
             fi
+            INDEX=$((INDEX + 1))
         done
 
         # Highlight main thread (OSIV connection)
-        echo "─────────────────────────────────────────────────────────"
-        MAIN_THREAD_HELD=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep "http-nio" | head -1 | grep -oP 'held_ms=\K[0-9]+')
-        if [[ -n "$MAIN_THREAD_HELD" ]]; then
-            echo -e "${YELLOW}Note: Main HTTP thread held connection for ${MAIN_THREAD_HELD}ms (OSIV)${NC}"
+        echo "──────────────────────────────────────────────────────────────"
+        OSIV_TIME=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep "http-nio" | head -1 | grep -oP 'held_ms=\K[0-9]+')
+        if [[ -n "$OSIV_TIME" ]]; then
+            echo -e "${YELLOW}Note: Main HTTP thread held connection for ${OSIV_TIME}ms (OSIV - entire request duration: ${CURL_TIME_MS}ms)${NC}"
         fi
     fi
 else
@@ -189,7 +189,10 @@ echo -e "${BLUE}═════════════════════�
 echo -e "${GREEN}Analysis complete!${NC}"
 echo ""
 echo "Summary for request_id=$REQUEST_ID:"
-echo "  • Curl total time: ${CURL_TIME}s"
+echo "  • Curl total time: ${CURL_TIME_MS}ms"
+if [[ -n "$OSIV_TIME" ]]; then
+    echo "  • OSIV connection held: ${OSIV_TIME}ms"
+fi
 echo "  • Connections acquired: $CONN_COUNT"
 echo "  • SQL queries: $SQL_COUNT"
 echo ""

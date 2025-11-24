@@ -190,34 +190,39 @@ public class TrackedEntityAggregate {
     /*
      * Execute all queries and merge the results
      *
-     * DHIS2-20484: withMdcFunction wraps parallelStream map to propagate request ID from the
-     * TRACKER-TE-FETCH thread to ForkJoinPool.commonPool worker threads, enabling SQL query
-     * correlation in logs. Without this, parallelStream operations spawn threads with empty
-     * request_id.
+     * DHIS2-20484: withMdcFunction wraps both thenApplyAsync and parallelStream map operations to
+     * propagate request ID through the async execution chain:
+     * 1. HTTP thread -> TRACKER-TE-FETCH thread (via thenApplyAsync with withMdcFunction)
+     * 2. TRACKER-TE-FETCH thread -> ForkJoinPool.commonPool workers (via parallelStream with
+     *    withMdcFunction)
+     * This enables SQL query correlation in logs. Without this, both operations spawn threads with
+     * empty request_id.
      */
     return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync)
         .thenApplyAsync(
-            fn -> {
-              Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
+            withMdcFunction(
+                fn -> {
+                  Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
 
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-              Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
-              Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              // DHIS2-20484: withMdcFunction ensures ForkJoinPool.commonPool workers inherit
-              // request_id
-              return trackedEntities.keySet().parallelStream()
-                  .map(
-                      withMdcFunction(
-                          uid -> {
-                            TrackedEntity te = trackedEntities.get(uid);
-                            te.setTrackedEntityAttributeValues(
-                                filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
-                            te.setEnrollments(new HashSet<>(enrollments.get(uid)));
-                            te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                            return te;
-                          }))
-                  .toList();
-            },
+                  Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
+                  Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
+                  Multimap<String, TrackedEntityProgramOwner> programOwners =
+                      programOwnersAsync.join();
+                  // DHIS2-20484: withMdcFunction ensures ForkJoinPool.commonPool workers inherit
+                  // request_id
+                  return trackedEntities.keySet().parallelStream()
+                      .map(
+                          withMdcFunction(
+                              uid -> {
+                                TrackedEntity te = trackedEntities.get(uid);
+                                te.setTrackedEntityAttributeValues(
+                                    filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
+                                te.setEnrollments(new HashSet<>(enrollments.get(uid)));
+                                te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+                                return te;
+                              }))
+                      .toList();
+                }),
             getPool())
         .join();
   }
