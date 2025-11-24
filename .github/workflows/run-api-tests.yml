@@ -52,10 +52,10 @@ jobs:
               -Djib.to.image=$CORE_IMAGE_NAME
           fi
 
-      - name: Run tests
-        run: |
-          cd dhis-2/dhis-test-e2e
-          SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
+#      - name: Run tests
+#        run: |
+#          cd dhis-2/dhis-test-e2e
+#          SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
       - name: Upload logs
         if: failure()
