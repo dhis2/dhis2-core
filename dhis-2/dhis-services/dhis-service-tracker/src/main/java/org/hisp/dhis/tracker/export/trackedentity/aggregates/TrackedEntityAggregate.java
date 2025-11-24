@@ -33,6 +33,7 @@ import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.withMdc;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.withMdcFunction;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Multimap;
@@ -92,7 +93,37 @@ public class TrackedEntityAggregate {
   }
 
   /**
-   * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
+   * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters.
+   *
+   * <p>Thread and DB Connection Flow:
+   *
+   * <p><b>Phase 1: Parallel Async Fetch</b>
+   *
+   * <pre>
+   * http-nio-8080-exec-1 (request_id=123, holds OSIV connection)
+   *   ├─> Spawns 4 async queries on TRACKER-TE-FETCH pool:
+   *       ├─> TRACKER-TE-FETCH-0 (request_id=123) - fetch tracked entities
+   *       ├─> TRACKER-TE-FETCH-1 (request_id=123) - fetch attributes
+   *       ├─> TRACKER-TE-FETCH-2 (request_id=123) - fetch enrollments
+   *       └─> TRACKER-TE-FETCH-3 (request_id=123) - fetch program owners
+   * </pre>
+   *
+   * Each async query acquires a connection from the pool, executes its query, and releases it.
+   *
+   * <p><b>Phase 2: Parallel Merge</b>
+   *
+   * <pre>
+   * TRACKER-TE-FETCH thread (from getPool(), request_id=123)
+   *   └─> trackedEntities.keySet().parallelStream()
+   *       └─> Spawns N ForkJoinPool.commonPool workers (N = number of tracked entities)
+   *           ├─> ForkJoinPool.commonPool-worker-1 (request_id=123, via withMdcFunction)
+   *           ├─> ForkJoinPool.commonPool-worker-2 (request_id=123, via withMdcFunction)
+   *           └─> ForkJoinPool.commonPool-worker-N (request_id=123, via withMdcFunction)
+   * </pre>
+   *
+   * The parallelStream() uses ForkJoinPool.commonPool() to process N tracked entities in parallel,
+   * where N is the result set size. Each worker merges attributes, enrollments, and program owners
+   * for one tracked entity.
    */
   public List<TrackedEntity> find(
       List<TrackedEntityIdentifiers> identifiers,
@@ -158,6 +189,11 @@ public class TrackedEntityAggregate {
 
     /*
      * Execute all queries and merge the results
+     *
+     * DHIS2-20484: withMdcFunction wraps parallelStream map to propagate request ID from the
+     * TRACKER-TE-FETCH thread to ForkJoinPool.commonPool worker threads, enabling SQL query
+     * correlation in logs. Without this, parallelStream operations spawn threads with empty
+     * request_id.
      */
     return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync)
         .thenApplyAsync(
@@ -167,16 +203,19 @@ public class TrackedEntityAggregate {
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
               Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
+              // DHIS2-20484: withMdcFunction ensures ForkJoinPool.commonPool workers inherit
+              // request_id
               return trackedEntities.keySet().parallelStream()
                   .map(
-                      uid -> {
-                        TrackedEntity te = trackedEntities.get(uid);
-                        te.setTrackedEntityAttributeValues(
-                            filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
-                        te.setEnrollments(new HashSet<>(enrollments.get(uid)));
-                        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                        return te;
-                      })
+                      withMdcFunction(
+                          uid -> {
+                            TrackedEntity te = trackedEntities.get(uid);
+                            te.setTrackedEntityAttributeValues(
+                                filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
+                            te.setEnrollments(new HashSet<>(enrollments.get(uid)));
+                            te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+                            return te;
+                          }))
                   .toList();
             },
             getPool())

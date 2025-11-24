@@ -32,6 +32,7 @@ package org.hisp.dhis.external.config;
 import static org.hisp.dhis.external.conf.ConfigurationKey.META_DATA_SYNC_RETRY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC;
 
+import java.util.concurrent.Executor;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.external.location.LocationManager;
@@ -39,6 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Luciano Fiandesio
@@ -60,5 +62,34 @@ public class ServiceConfig {
   @Bean
   public ConfigurationPropertyFactoryBean initialInterval() {
     return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC);
+  }
+
+  /**
+   * Default async executor for @Async methods. Uses Spring Boot defaults with MDC propagation.
+   *
+   * <p>DHIS2-20484: Uses MdcTaskDecorator to propagate MDC context from parent thread to async
+   * execution threads, enabling SQL query correlation in logs. Without this, @Async methods would
+   * execute on SimpleAsyncTaskExecutor threads without request_id context.
+   *
+   * <p>Configuration matches Spring Boot auto-configuration defaults:
+   *
+   * <ul>
+   *   <li>Core pool size: 8 (Spring Boot default)
+   *   <li>Max pool size: Integer.MAX_VALUE (unbounded)
+   *   <li>Queue capacity: Integer.MAX_VALUE (unbounded)
+   *   <li>Keep alive: 60 seconds (default)
+   * </ul>
+   */
+  @Bean(name = "taskExecutor")
+  public Executor taskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(8); // Spring Boot default
+    executor.setMaxPoolSize(Integer.MAX_VALUE); // Spring Boot default (unbounded)
+    executor.setQueueCapacity(Integer.MAX_VALUE); // Spring Boot default (unbounded)
+    executor.setKeepAliveSeconds(60); // Spring Boot default
+    executor.setThreadNamePrefix("Async-");
+    executor.setTaskDecorator(new MdcTaskDecorator());
+    executor.initialize();
+    return executor;
   }
 }

@@ -36,6 +36,7 @@ import com.google.common.collect.Multimap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.slf4j.MDC;
 
@@ -80,6 +81,33 @@ class AsyncUtils {
           MDC.setContextMap(contextMap);
         }
         return supplier.get();
+      } finally {
+        if (previous != null) {
+          MDC.setContextMap(previous);
+        } else {
+          MDC.clear();
+        }
+      }
+    };
+  }
+
+  /**
+   * Wraps a Function to propagate the MDC context from the calling thread to the async thread. This
+   * is useful for parallelStream().map() operations that spawn work on ForkJoinPool.commonPool(),
+   * ensuring that log statements and SQL comments include the request ID.
+   *
+   * @param function The Function to wrap
+   * @return A Function that propagates MDC context
+   */
+  static <T, R> Function<T, R> withMdcFunction(Function<T, R> function) {
+    Map<String, String> contextMap = MDC.getCopyOfContextMap();
+    return input -> {
+      Map<String, String> previous = MDC.getCopyOfContextMap();
+      try {
+        if (contextMap != null) {
+          MDC.setContextMap(contextMap);
+        }
+        return function.apply(input);
       } finally {
         if (previous != null) {
           MDC.setContextMap(previous);
