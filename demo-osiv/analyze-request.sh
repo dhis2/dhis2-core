@@ -6,12 +6,23 @@
 # - Curl timing (total request time)
 # - All connection acquisitions (wait_ms, held_ms per connection)
 # - SQL query count and timings from PostgreSQL logs
+#
+# Usage:
+#   ./analyze-request.sh [search_term]
+#
+# Examples:
+#   ./analyze-request.sh          # Default: search for "grace" (returns 1 TE)
+#   ./analyze-request.sh martha   # Search for "martha" (returns 218+ TEs)
+#
+# Environment variables:
+#   PAGE_SIZE=50                  # Number of results per page (default: 50)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 AUTH="${AUTH:-admin:district}"
-TRACKER_PROGRAM="${TRACKER_PROGRAM:-ur1Edk5Oe2n}"
 DHIS2_LOG="${DHIS2_LOG:-$SCRIPT_DIR/logs/dhis.log}"
+SEARCH_TERM="${1:-grace}"
+PAGE_SIZE="${PAGE_SIZE:-50}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -29,6 +40,7 @@ echo -e "${BLUE}  OSIV Demo - Complete Request Analysis${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${CYAN}Request ID: ${YELLOW}$REQUEST_ID${NC}"
+echo -e "${CYAN}Search Term: ${YELLOW}$SEARCH_TERM${NC}"
 echo ""
 
 # Capture current log size to only analyze new entries
@@ -44,7 +56,7 @@ echo ""
 RESPONSE=$(curl -s -w "\n__CURL_TIMING__\ntime_total:%{time_total}\nhttp_code:%{http_code}\n" \
     -u "$AUTH" \
     -H "X-Request-ID: $REQUEST_ID" \
-    "$BASE_URL/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:joh&fields=attributes,enrollments,trackedEntity,orgUnit&program=$TRACKER_PROGRAM&page=1&pageSize=5&orgUnitMode=ACCESSIBLE")
+    "$BASE_URL/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:${SEARCH_TERM}&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=${PAGE_SIZE}&orgUnitMode=ACCESSIBLE")
 
 # Extract timing info
 CURL_TIME_SEC=$(echo "$RESPONSE" | grep "^time_total:" | cut -d: -f2)
