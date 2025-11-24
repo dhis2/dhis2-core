@@ -92,6 +92,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DateField;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -99,6 +103,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -498,10 +503,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
     String[] split = dimensionString.split(DIMENSION_NAME_SEP);
 
-    if (split.length % 2 != 1) {
-      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
-    }
-
     QueryItem queryItem;
     if (Objects.isNull(program)) {
       // support for querying program attributes by uid without passing the program
@@ -513,22 +514,110 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       queryItem = queryItemLocator.getQueryItemFromDimension(split[0], program, type);
     }
 
-    if (split.length > 1) // Filters specified
-    {
-      for (int i = 1; i < split.length; i += 2) {
-        QueryOperator operator = QueryOperator.fromString(split[i]);
-        QueryFilter filter = new QueryFilter(operator, split[i + 1]);
-        // FE uses HH.MM time format instead of HH:MM. This is not
-        // compatible with db table/cell values
-        modifyFilterWhenTimeQueryItem(queryItem, filter);
-        queryItem.addFilter(filter);
+    if (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.getValueType() == ValueType.DATE) {
+      // Handle EVENT_DATE specific filters
+      if (split.length == 2) {
+        parseAndAddEventDateFilters(queryItem, split[1]);
+      } else if (split.length > 2) {
+        // Fallback to generic filter parsing if more than one filter is provided.
+        // This allows for explicit operator:value filters like EVENT_DATE:GT:2025-01-01
+        addGenericFiltersToQueryItem(queryItem, split, 1);
+      } else {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
+    } else if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.hasProgramStage()) {
+      // Handle stage.ou specific filters
+      if (split.length == 2) {
+        queryItem.addFilter(new QueryFilter(QueryOperator.IN, split[1]));
+      } else if (split.length > 2) {
+        addGenericFiltersToQueryItem(queryItem, split, 1);
+      } else {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
+    } else {
+      // Existing validation for other dimension types
+      if (split.length % 2 != 1) {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
+
+      if (split.length > 1) // Filters specified
+      {
+        addGenericFiltersToQueryItem(queryItem, split, 1);
       }
     }
 
     return queryItem;
   }
 
+  private void addGenericFiltersToQueryItem(QueryItem queryItem, String[] split, int startIndex) {
+    for (int i = startIndex; i < split.length; i += 2) {
+      QueryOperator operator = QueryOperator.fromString(split[i]);
+      QueryFilter filter = new QueryFilter(operator, split[i + 1]);
+      // FE uses HH.MM time format instead of HH:MM. This is not
+      // compatible with db table/cell values
+      modifyFilterWhenTimeQueryItem(queryItem, filter);
+      queryItem.addFilter(filter);
+    }
+  }
+
+  private void parseAndAddEventDateFilters(QueryItem queryItem, String filterString) {
+    Date now = new Date();
+
+    // Handle relative periods (e.g., THIS_MONTH)
+    if (RelativePeriodEnum.contains(filterString)) {
+      RelativePeriodEnum relativePeriodEnum = RelativePeriodEnum.valueOf(filterString);
+      List<Period> periods =
+          RelativePeriods.getRelativePeriodsFromEnum(
+                  relativePeriodEnum, DateField.withDefaults().withDate(now), null, false, null)
+              .stream()
+              .map(org.hisp.dhis.period.PeriodDimension::getPeriod)
+              .toList();
+
+      if (!periods.isEmpty()) {
+        Date startDate = periods.get(0).getStartDate();
+        Date endDate = periods.get(periods.size() - 1).getEndDate();
+        queryItem.addFilter(new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(startDate)));
+        queryItem.addFilter(new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(endDate)));
+      }
+    } else if (filterString.matches("\\d{4}(0[1-9]|1[0-2])")) {
+      // Handle ISO periods (e.g., 202501)
+      Period period = Period.of(filterString);
+      if (period != null) {
+        queryItem.addFilter(
+            new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(period.getStartDate())));
+        queryItem.addFilter(
+            new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(period.getEndDate())));
+      }
+    } else if (filterString.matches("\\d{4}-\\d{2}-\\d{2}_\\d{4}-\\d{2}-\\d{2}")) {
+      // Handle date ranges (e.g., 2025-01-01_2025-01-31)
+      String[] dates = filterString.split("_");
+      if (dates.length == 2) {
+        queryItem.addFilter(new QueryFilter(QueryOperator.GE, dates[0]));
+        queryItem.addFilter(new QueryFilter(QueryOperator.LE, dates[1]));
+      }
+    } else {
+      // Fallback to standard operator:value parsing for explicit filters (e.g., GT:2025-01-01)
+      String[] parts = filterString.split(":");
+      if (parts.length == 2) {
+        QueryOperator operator = QueryOperator.fromString(parts[0]);
+        QueryFilter filter = new QueryFilter(operator, parts[1]);
+        modifyFilterWhenTimeQueryItem(queryItem, filter);
+        queryItem.addFilter(filter);
+      } else {
+        throwIllegalQueryEx(ErrorCode.E7222, filterString);
+      }
+    }
+  }
+
   private static void modifyFilterWhenTimeQueryItem(QueryItem queryItem, QueryFilter filter) {
+    if (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.getValueType() == ValueType.DATE) {
+      // No modification needed for EVENT_DATE filters.
+      return;
+    }
+
     if (queryItem.getItem() instanceof DataElement
         && ((DataElement) queryItem.getItem()).getValueType() == ValueType.TIME) {
       filter.setFilter(filter.getFilter().replace(".", ":"));

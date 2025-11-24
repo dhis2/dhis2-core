@@ -44,9 +44,11 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IdScheme;
@@ -105,12 +107,55 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
                     .orElseGet(
                         () ->
                             getProgramIndicator(dimension, program, legendSet)
-                                // if not DE, TEA or PI, we try to get as dynamic dimension
                                 .orElseGet(
                                     () ->
-                                        getDynamicDimension(dimension)
-                                            .orElseThrow(
-                                                illegalQueryExSupplier(E7224, dimension)))));
+                                        getEventDate(dimension, program, legendSet)
+                                            .orElseGet(
+                                                () ->
+                                                    getProgramStageOrgUnit(
+                                                            dimension, program, legendSet)
+                                                        // if not DE, TEA or PI, we try to get as
+                                                        // dynamic dimension
+                                                        .orElseGet(
+                                                            () ->
+                                                                getDynamicDimension(dimension)
+                                                                    .orElseThrow(
+                                                                        illegalQueryExSupplier(
+                                                                            E7224, dimension)))))));
+  }
+
+  private Optional<QueryItem> getProgramStageOrgUnit(
+      String dimension, Program program, LegendSet legendSet) {
+    if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(getSecondElement(dimension))) {
+      ProgramStage programStage = getProgramStageOrFail(dimension);
+
+      if (programStage != null) {
+        BaseDimensionalItemObject item =
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+        QueryItem qi =
+            new QueryItem(
+                item, program, legendSet, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+        qi.setProgramStage(programStage);
+        return Optional.of(qi);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<QueryItem> getEventDate(String dimension, Program program, LegendSet legendSet) {
+    if ("EVENT_DATE".equals(getSecondElement(dimension))) {
+      ProgramStage programStage = getProgramStageOrFail(dimension);
+
+      if (programStage != null) {
+        BaseDimensionalItemObject item =
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+        QueryItem qi =
+            new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null);
+        qi.setProgramStage(programStage);
+        return Optional.of(qi);
+      }
+    }
+    return Optional.empty();
   }
 
   /**
