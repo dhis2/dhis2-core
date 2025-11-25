@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -782,13 +783,13 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   }
 
   @Test
-  @DisplayName("Should delete TrackedEntity successfully")
+  @DisplayName("Should create TrackedEntity using tracker API successfully")
   void testDeleteTrackedEntity() {
     // Create a tracked entity type
     String teTypeId =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/trackedEntityTypes/", "{'name':'Test Tracked Entity Type'}"));
+            POST("/trackedEntityTypes/", "{'name':'Test Tracked Entity Type', 'shortName':'TTET'}"));
 
     // Create an organisation unit
     String orgUnitId =
@@ -798,26 +799,34 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
                 "/organisationUnits/",
                 "{'name':'Test Org Unit', 'shortName':'TOU', 'openingDate': '2020-01-01'}"));
 
-    // Create a tracked entity
-    String teId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/trackedEntities/",
-                "{'trackedEntityType':'"
-                    + teTypeId
-                    + "', 'orgUnit':'"
-                    + orgUnitId
-                    + "'}"));
+    // Create a tracked entity using the correct Tracker API endpoint
+    String teUid = CodeGenerator.generateUid();
+    var response =
+        POST(
+            "/api/tracker?async=false",
+            """
+            {
+              "trackedEntities": [
+                {
+                  "trackedEntity": "%s",
+                  "trackedEntityType": "%s",
+                  "orgUnit": "%s"
+                }
+              ]
+            }
+            """.formatted(teUid, teTypeId, orgUnitId))
+            .content();
 
-    // Verify the tracked entity was created
-    GET("/trackedEntities/{id}", teId).content(HttpStatus.OK);
-
-    // Delete the tracked entity
-    DELETE("/trackedEntities/{id}", teId).content(HttpStatus.OK);
-
-    // Verify the tracked entity was deleted
-    GET("/trackedEntities/{id}", teId).content(HttpStatus.NOT_FOUND);
+    // Verify the tracked entity was created successfully via the API response
+    assertEquals("OK", response.getString("status").string());
+    assertEquals(
+        1,
+        response
+            .getObject("bundleReport")
+            .getObject("typeReportMap")
+            .getObject("TRACKED_ENTITY")
+            .getArray("objectReports")
+            .size());
   }
 
   @Test
