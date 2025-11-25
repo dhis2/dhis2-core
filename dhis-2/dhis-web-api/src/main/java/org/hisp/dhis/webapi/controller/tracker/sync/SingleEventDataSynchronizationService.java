@@ -265,20 +265,20 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       List<Event> deletedEvents,
       EventSynchronizationContext context,
       SystemSettings settings) {
-
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
     if (!activeEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
           activeEvents.stream().map(EVENT_MAPPER::map).toList();
-      syncEvents(activeEventDtos, instance, settings, syncTime, false);
+      syncEvents(
+          activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
     }
 
     if (!deletedEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
           deletedEvents.stream().map(this::toMinimalEvent).toList();
-      syncEvents(deletedEventDtos, instance, settings, syncTime, true);
+      syncEvents(deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
   }
 
@@ -287,10 +287,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SystemInstance instance,
       SystemSettings settings,
       Date syncTime,
-      boolean isDelete) {
-
-    TrackerImportStrategy importStrategy =
-        isDelete ? TrackerImportStrategy.DELETE : TrackerImportStrategy.CREATE_AND_UPDATE;
+      TrackerImportStrategy importStrategy) {
     String url = instance.getUrl() + "?importStrategy=" + importStrategy;
 
     ImportSummary summary = sendTrackerRequest(events, instance, settings, url);

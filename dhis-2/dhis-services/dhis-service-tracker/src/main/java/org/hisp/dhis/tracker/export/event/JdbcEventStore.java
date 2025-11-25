@@ -703,7 +703,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(", ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
             .append(", ")
-            .append(getFilteredEventDataValuesSelect(params, mapSqlParameterSource))
+            .append(getEventDataValuesProjectionForSelectClause(params, mapSqlParameterSource))
             .append(" as ")
             .append(COLUMN_EVENT_DATAVALUES)
             .append(", ev.completedby as ")
@@ -1030,7 +1030,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
    * event synchronization.
    */
-  private String getFilteredEventDataValuesSelect(
+  private String getEventDataValuesProjectionForSelectClause(
       EventQueryParams params, MapSqlParameterSource sqlParameters) {
     if (!params.isSynchronizationQuery()
         || params.getSkipSyncDataElementsByProgramStage() == null
