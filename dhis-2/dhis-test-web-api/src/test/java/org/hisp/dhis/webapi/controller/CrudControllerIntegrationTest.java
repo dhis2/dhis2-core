@@ -768,12 +768,9 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @Test
   void testDisplayNameFieldInResponse() {
     // Create a user
-    User testUser = createAndAddUser("testuser");
-    testUser.setFirstName("Test");
-    testUser.setSurname("User");
-    userService.updateUser(testUser);
-    manager.flush();
-
+    User testUser = createUserAndRole("Test", "User", false, "testuser",
+        Set.of(), Set.of());
+    userService.addUser(testUser);
     // Query the user and verify displayName field is returned
     JsonUser user =
         GET("/users/{id}?fields=displayName,id", testUser.getUid())
