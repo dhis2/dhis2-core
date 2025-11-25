@@ -156,7 +156,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private EventSynchronizationContext createContext(
       int pageSize, SystemSettings settings, String programUid)
       throws ForbiddenException, BadRequestException {
-
     Program program = programService.getProgram(programUid);
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
@@ -197,7 +196,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   private boolean executeSynchronizationWithPaging(
       EventSynchronizationContext context, JobProgress progress, SystemSettings settings) {
-
     String stageDescription =
         format(
             "Found %d single events. Remote: %s. Pages: %d (size %d)",
@@ -241,7 +239,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   private List<Event> fetchEventsForPage(int page, EventSynchronizationContext context)
       throws ForbiddenException, BadRequestException {
-
     return eventService
         .findEvents(
             EventOperationParams.builder()
@@ -325,7 +322,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
   private RequestCallback createRequestCallback(
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, SystemInstance instance) {
-
     return request -> {
       request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
       request
