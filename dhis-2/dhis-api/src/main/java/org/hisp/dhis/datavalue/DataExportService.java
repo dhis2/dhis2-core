@@ -59,11 +59,48 @@ public interface DataExportService {
   @CheckForNull
   DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException;
 
-  Stream<DataExportValue> exportValues(@Nonnull DataExportParams params) throws ConflictException;
-
-  DataExportGroup.Output exportGroup(@Nonnull DataExportParams params, boolean sync)
+  /**
+   * Export matching values as a single {@link Stream}.
+   *
+   * @param params what values to export
+   * @return a {@link Stream} of the requested values, sorting depends on the requested orders
+   * @throws ConflictException in case params are incomplete, contradictory or request access to
+   *     data the current user cannot access
+   * @implNote callers have to make sure to consume the stream within the transaction boundaries.
+   *     That implies that they already must have opened a transaction before calling this method.
+   */
+  Stream<DataExportValue> exportValues(@Nonnull DataExportParams.Input params)
       throws ConflictException;
 
-  Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportParams params)
+  /**
+   * Export matching values as a single group.
+   *
+   * @param params what values to export
+   * @param sync true, to use special sync mode which skips validation and forces a specific order
+   *     (never expose in AP)
+   * @return all matching values in a group (in contrast to {@link
+   *     #exportValues(DataExportParams.Input)} groups apply ID encoding)
+   * @throws ConflictException in case params are incomplete, contradictory or request access to
+   *     data the current user cannot access
+   * @implNote callers have to make sure to consume the {@link DataExportGroup.Output#values()}
+   *     stream within the transaction boundaries. That implies that they already must have opened a
+   *     transaction before calling this method.
+   */
+  DataExportGroup.Output exportGroup(@Nonnull DataExportParams.Input params, boolean sync)
+      throws ConflictException;
+
+  /**
+   * Export values automatically grouped into groups with the same DS, org unit, period and AOC.
+   *
+   * <p>This requires to define one or more {@link DataExportParams.Input#getDataSets()}, otherwise
+   * nothing is returned.
+   *
+   * @param params what values to export
+   * @return A stream of the groups in no particular order. Each group shares a common value for the
+   *     DS, OU, PE and AOC.
+   * @throws ConflictException in case params are incomplete, contradictory or request access to
+   *     data the current user cannot access
+   */
+  Stream<DataExportGroup.Output> exportInGroups(@Nonnull DataExportParams.Input params)
       throws ConflictException;
 }

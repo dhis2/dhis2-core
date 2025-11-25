@@ -52,6 +52,7 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Component;
 
@@ -78,76 +79,228 @@ public class DefaultQueryValidator implements QueryValidator {
 
   @Override
   public ErrorMessage validateForErrorMessage(DataQueryParams params) {
-    ErrorMessage error = null;
-
     if (params == null) {
       throw new IllegalQueryException(ErrorCode.E7100);
     }
 
+    ErrorMessage error;
+
+    // Validate data dimensions
+    error = validateDataDimensions(params);
+    if (error != null) {
+      return error;
+    }
+
+    // Validate periods
+    error = validatePeriods(params);
+    if (error != null) {
+      return error;
+    }
+
+    // Validate indicators and filters
+    error = validateIndicatorsAndFilters(params);
+    if (error != null) {
+      return error;
+    }
+
+    // Validate dimensions consistency
+    error = validateDimensionsConsistency(params);
+    if (error != null) {
+      return error;
+    }
+
+    // Validate data elements
+    error = validateDataElements(params);
+    if (error != null) {
+      return error;
+    }
+
+    error = validateIndicators(params);
+    if (error != null) {
+      return error;
+    }
+
+    // Validate output format requirements
+    error = validateOutputFormat(params);
+    if (error != null) {
+      return error;
+    }
+
+    return null;
+  }
+
+  /**
+   * Validates data dimension requirements.
+   *
+   * @param params the {@link DataQueryParams} to validate
+   * @return an {@link ErrorMessage} if validation fails, null otherwise
+   */
+  private ErrorMessage validateDataDimensions(DataQueryParams params) {
+    if (params.isSkipDataDimensionValidation()) {
+      return null;
+    }
+
+    if (params.getDimensions().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7101);
+    }
+
+    if (!params.isSkipData()
+        && params.getDataDimensionAndFilterOptions().isEmpty()
+        && params.getAllDataElementGroups().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7102);
+    }
+
+    if (!params.getDimensionsAsFilters().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7103, getDimensions(params.getDimensionsAsFilters()));
+    }
+
+    return null;
+  }
+
+  /**
+   * Validates period-related requirements.
+   *
+   * @param params the {@link DataQueryParams} to validate
+   * @return an {@link ErrorMessage} if validation fails, null otherwise
+   */
+  private ErrorMessage validatePeriods(DataQueryParams params) {
+    if (!params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate()) {
+      return new ErrorMessage(ErrorCode.E7104);
+    }
+
+    if (params.hasPeriods() && params.hasStartEndDate()) {
+      return new ErrorMessage(ErrorCode.E7105);
+    }
+
+    if (params.hasStartEndDate() && params.startDateAfterEndDate()) {
+      return new ErrorMessage(ErrorCode.E7106);
+    }
+
+    if (params.hasStartEndDate() && !params.getReportingRates().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7107);
+    }
+
+    return null;
+  }
+
+  /**
+   * Validates indicators and filter requirements.
+   *
+   * @param params the {@link DataQueryParams} to validate
+   * @return an {@link ErrorMessage} if validation fails, null otherwise
+   */
+  private ErrorMessage validateIndicatorsAndFilters(DataQueryParams params) {
+    if ((!params.getFilterIndicators().isEmpty()
+            || !params.getFilterProgramIndicators().isEmpty()
+            || !params.getFilterExpressionDimensionItems().isEmpty())
+        && params.getFilterOptions(DATA_X_DIM_ID).size() > 1) {
+      return new ErrorMessage(ErrorCode.E7108);
+    }
+
+    if (!params.getFilterReportingRates().isEmpty()
+        && params.getFilterOptions(DATA_X_DIM_ID).size() > 1) {
+      return new ErrorMessage(ErrorCode.E7109);
+    }
+
+    if (params.getFilters().contains(new BaseDimensionalObject(CATEGORYOPTIONCOMBO_DIM_ID))) {
+      return new ErrorMessage(ErrorCode.E7110);
+    }
+
+    return null;
+  }
+
+  /**
+   * Validates dimension consistency requirements.
+   *
+   * @param params the {@link DataQueryParams} to validate
+   * @return an {@link ErrorMessage} if validation fails, null otherwise
+   */
+  private ErrorMessage validateDimensionsConsistency(DataQueryParams params) {
+    if (!params.getDuplicateDimensions().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7111, getDimensions(params.getDuplicateDimensions()));
+    }
+
+    if (!params.getAllReportingRates().isEmpty()
+        && !params.containsOnlyDimensionsAndFilters(COMPLETENESS_DIMENSION_TYPES)) {
+      return new ErrorMessage(ErrorCode.E7112, COMPLETENESS_DIMENSION_TYPES);
+    }
+
+    if (params.hasDimensionOrFilter(CATEGORYOPTIONCOMBO_DIM_ID)
+        && params.getAllDataElements().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7113);
+    }
+
+    if (params.hasDimensionOrFilter(CATEGORYOPTIONCOMBO_DIM_ID)
+        && (params.getAllDataElements().size() != params.getAllDataDimensionItems().size())) {
+      return new ErrorMessage(ErrorCode.E7114);
+    }
+
+    return null;
+  }
+
+  /**
+   * Validates data element requirements.
+   *
+   * @param params the {@link DataQueryParams} to validate
+   * @return an {@link ErrorMessage} if validation fails, null otherwise
+   */
+  private ErrorMessage validateDataElements(DataQueryParams params) {
     List<DimensionalItemObject> dataElements =
         Lists.newArrayList(params.getDataElementsOperandsProgramDataElements());
     List<DataElement> nonAggDataElements =
         FilterUtils.inverseFilter(
             asTypedList(dataElements), AggregatableDataElementFilter.INSTANCE);
 
-    if (!params.isSkipDataDimensionValidation()) {
-      if (params.getDimensions().isEmpty()) {
-        error = new ErrorMessage(ErrorCode.E7101);
-      } else if (!params.isSkipData()
-          && params.getDataDimensionAndFilterOptions().isEmpty()
-          && params.getAllDataElementGroups().isEmpty()) {
-        error = new ErrorMessage(ErrorCode.E7102);
-      } else if (!params.getDimensionsAsFilters().isEmpty()) {
-        error = new ErrorMessage(ErrorCode.E7103, getDimensions(params.getDimensionsAsFilters()));
-      }
+    if (!nonAggDataElements.isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7115, getUids(nonAggDataElements));
     }
 
-    if (!params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate()) {
-      error = new ErrorMessage(ErrorCode.E7104);
-    } else if (params.hasPeriods() && params.hasStartEndDate()) {
-      error = new ErrorMessage(ErrorCode.E7105);
-    } else if (params.hasStartEndDate() && params.startDateAfterEndDate()) {
-      error = new ErrorMessage(ErrorCode.E7106);
-    } else if (params.hasStartEndDate() && !params.getReportingRates().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E7107);
-    } else if ((!params.getFilterIndicators().isEmpty()
-            || !params.getFilterProgramIndicators().isEmpty()
-            || !params.getFilterExpressionDimensionItems().isEmpty())
-        && params.getFilterOptions(DATA_X_DIM_ID).size() > 1) {
-      error = new ErrorMessage(ErrorCode.E7108);
-    } else if (!params.getFilterReportingRates().isEmpty()
-        && params.getFilterOptions(DATA_X_DIM_ID).size() > 1) {
-      error = new ErrorMessage(ErrorCode.E7109);
-    } else if (params
-        .getFilters()
-        .contains(new BaseDimensionalObject(CATEGORYOPTIONCOMBO_DIM_ID))) {
-      error = new ErrorMessage(ErrorCode.E7110);
-    } else if (!params.getDuplicateDimensions().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E7111, getDimensions(params.getDuplicateDimensions()));
-    } else if (!params.getAllReportingRates().isEmpty()
-        && !params.containsOnlyDimensionsAndFilters(COMPLETENESS_DIMENSION_TYPES)) {
-      error = new ErrorMessage(ErrorCode.E7112, COMPLETENESS_DIMENSION_TYPES);
-    } else if (params.hasDimensionOrFilter(CATEGORYOPTIONCOMBO_DIM_ID)
-        && params.getAllDataElements().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E7113);
-    } else if (params.hasDimensionOrFilter(CATEGORYOPTIONCOMBO_DIM_ID)
-        && (params.getAllDataElements().size() != params.getAllDataDimensionItems().size())) {
-      error = new ErrorMessage(ErrorCode.E7114);
-    } else if (!nonAggDataElements.isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E7115, getUids(nonAggDataElements));
-    } else if (!params.getSkipTotalDataElements().isEmpty()) {
-      error = new ErrorMessage(ErrorCode.E7134);
-    } else if (params.isOutputFormat(OutputFormat.DATA_VALUE_SET)) {
-      if (!params.hasDimension(DATA_X_DIM_ID)) {
-        error = new ErrorMessage(ErrorCode.E7117);
-      } else if (!params.hasDimension(PERIOD_DIM_ID)) {
-        error = new ErrorMessage(ErrorCode.E7118);
-      } else if (!params.hasDimension(ORGUNIT_DIM_ID)) {
-        error = new ErrorMessage(ErrorCode.E7119);
-      }
+    if (!params.getSkipTotalDataElements().isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7134);
     }
 
-    return error;
+    return null;
+  }
+
+  private ErrorMessage validateIndicators(DataQueryParams params) {
+    List<DimensionalItemObject> indicators = params.getAllIndicators();
+    if (indicators.isEmpty()) return null;
+
+    boolean hasPeriodOffset =
+        indicators.stream().anyMatch(i -> ((Indicator) i).numeratorContainsPeriodOffset());
+    boolean hasPeriodAsFilter = params.hasFilter(PERIOD_DIM_ID);
+    if (hasPeriodOffset && hasPeriodAsFilter) {
+      // Indicators having a numerator that uses ".periodOffset" are only supported
+      // if the period dimension is not used as filter
+      return new ErrorMessage(ErrorCode.E7152);
+    }
+    return null;
+  }
+
+  /**
+   * Validates output format-specific requirements.
+   *
+   * @param params the {@link DataQueryParams} to validate
+   * @return an {@link ErrorMessage} if validation fails, null otherwise
+   */
+  private ErrorMessage validateOutputFormat(DataQueryParams params) {
+    if (!params.isOutputFormat(OutputFormat.DATA_VALUE_SET)) {
+      return null;
+    }
+
+    if (!params.hasDimension(DATA_X_DIM_ID)) {
+      return new ErrorMessage(ErrorCode.E7117);
+    }
+
+    if (!params.hasDimension(PERIOD_DIM_ID)) {
+      return new ErrorMessage(ErrorCode.E7118);
+    }
+
+    if (!params.hasDimension(ORGUNIT_DIM_ID)) {
+      return new ErrorMessage(ErrorCode.E7119);
+    }
+
+    return null;
   }
 
   @Override

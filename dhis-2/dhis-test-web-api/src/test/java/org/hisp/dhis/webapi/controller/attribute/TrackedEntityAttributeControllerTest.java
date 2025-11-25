@@ -57,7 +57,7 @@ class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBa
 
     TextPattern textPattern = TextPatternParser.parse(pattern);
 
-    textPattern.setOwnerObject(Objects.fromClass(trackedEntityAttribute.getClass()));
+    textPattern.setOwnerObject(Objects.TRACKEDENTITYATTRIBUTE);
     textPattern.setOwnerUid(trackedEntityAttribute.getUid());
 
     trackedEntityAttribute.setTextPattern(textPattern);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.tracker.imports.hibernate;
 
 import jakarta.persistence.EntityManager;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTempOwner;
-import org.hisp.dhis.program.ProgramTempOwnerStore;
-import org.hisp.dhis.user.UserDetails;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/**
- * @author Ameen Mohamed <ameen@dhis2.org>
- */
-@Repository("org.hisp.dhis.program.ProgramTempOwnerStore")
-public class HibernateProgramTempOwnerStore extends HibernateGenericStore<ProgramTempOwner>
-    implements ProgramTempOwnerStore {
-  public HibernateProgramTempOwnerStore(
-      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
-    super(entityManager, jdbcTemplate, publisher, ProgramTempOwner.class, false);
-  }
-
-  // -------------------------------------------------------------------------
-  // ProgramTempOwnerStore implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
-    getSession().save(programTempOwner);
-  }
-
-  @Override
-  public int getValidTempOwnerCount(Program program, String trackedEntity, UserDetails user) {
-    final String sql =
-        """
-        select count(1) from programtempowner \
-        join trackedentity t on t.trackedentityid = programtempowner.trackedentityid \
-        where programid = ? \
-        and t.uid=? \
-        and userid=? \
-        and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0;""";
-    Object[] args = new Object[] {program.getId(), trackedEntity, user.getId()};
-    return jdbcTemplate.queryForObject(sql, Integer.class, args);
+@Slf4j
+@Repository("org.hisp.dhis.tracker.imports.hibernate.HibernateTrackedEntityStore")
+public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity> {
+  public HibernateTrackedEntityStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
   }
 }

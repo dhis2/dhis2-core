@@ -27,19 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.imports.hibernate;
 
-/**
- * @author Ameen Mohamed <ameen@dhis2.org>
- */
-public interface ProgramTempOwnershipAuditStore {
+import jakarta.persistence.EntityManager;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
-  String ID = ProgramTempOwnershipAuditStore.class.getName();
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.imports.hibernate.HibernateEnrollmentStore")
+class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment> {
 
-  /**
-   * Adds program temp ownership audit
-   *
-   * @param programTempOwnershipAudit the audit to add
-   */
-  void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit);
+  public HibernateEnrollmentStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
+  }
+
+  @Override
+  public void delete(@Nonnull Enrollment enrollment) {
+    enrollment.setStatus(EnrollmentStatus.CANCELLED);
+    super.delete(enrollment);
+  }
 }

@@ -27,27 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.acl;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.program.ProgramOwnershipHistoryService")
-@Transactional
-public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService {
-  private final ProgramOwnershipHistoryStore programOwnershipHistoryStore;
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.acl.ProgramTempOwnershipAuditStore")
+public class HibernateProgramTempOwnershipAuditStore
+    extends HibernateGenericStore<ProgramTempOwnershipAudit> {
+  public HibernateProgramTempOwnershipAuditStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
+  }
 
-  // -------------------------------------------------------------------------
-  // ProgramOwnershipHistoryService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
-    programOwnershipHistoryStore.addProgramOwnershipHistory(programOwnershipHistory);
+  public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
+    getSession().save(programTempOwnershipAudit);
   }
 }

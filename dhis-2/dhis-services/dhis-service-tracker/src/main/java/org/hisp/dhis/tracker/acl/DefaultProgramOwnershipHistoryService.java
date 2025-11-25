@@ -27,19 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.acl;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public interface ProgramOwnershipHistoryService {
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.tracker.acl.ProgramOwnershipHistoryService")
+@Transactional
+public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService {
+  private final HibernateProgramOwnershipHistoryStore programOwnershipHistoryStore;
 
-  String ID = ProgramOwnershipHistoryService.class.getName();
+  // -------------------------------------------------------------------------
+  // ProgramOwnershipHistoryService implementation
+  // -------------------------------------------------------------------------
 
-  /**
-   * Adds program ownership history
-   *
-   * @param programOwnershipHistory the history to add
-   */
-  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
+  @Override
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    programOwnershipHistoryStore.addProgramOwnershipHistory(programOwnershipHistory);
+  }
 }

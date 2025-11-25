@@ -63,17 +63,6 @@ public class MetadataImportParams implements JobParameters {
   @JsonProperty
   private UID user;
 
-  /**
-   * How should the user property be handled, by default it is left as is. You can override this to
-   * use current user, or a selected user instead (not yet supported).
-   */
-  @JsonProperty private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
-
-  /** UID of the User to use for override, can be current or a selected user. */
-  @OpenApi.Property({UID.class, User.class})
-  @JsonProperty
-  private UID overrideUser;
-
   /** Should import be imported or just validated. */
   @JsonProperty private ObjectBundleMode importMode = ObjectBundleMode.COMMIT;
 
