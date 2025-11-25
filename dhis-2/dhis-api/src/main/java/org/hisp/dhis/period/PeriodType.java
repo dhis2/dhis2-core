@@ -38,7 +38,6 @@ import java.sql.ResultSet;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -51,7 +50,6 @@ import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.DateUnitPeriodTypeParser;
-import org.hisp.dhis.calendar.DateUnitType;
 import org.hisp.dhis.calendar.PeriodTypeParser;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -463,31 +461,8 @@ public abstract class PeriodType implements Serializable {
    * @return the PeriodType or null if unrecognized
    */
   public static PeriodType getPeriodTypeFromIsoString(String isoPeriod) {
-    return DateUnitType.find(isoPeriod)
-        .map(DateUnitType.DateUnitTypeWithPattern::getDateUnitType)
-        .map(DateUnitType::getName)
-        .map(PERIOD_TYPE_MAP::get)
-        .orElse(null);
-  }
-
-  /**
-   * Returns a list of periods based on the given date string in ISO format.
-   *
-   * @param isoPeriods the date strings in ISO format.
-   * @return a period.
-   */
-  public static List<Period> getPeriodsFromIsoStrings(Collection<String> isoPeriods) {
-    List<Period> periods = new ArrayList<>();
-
-    for (String isoPeriod : isoPeriods) {
-      Period period = Period.of(isoPeriod);
-
-      if (period != null) {
-        periods.add(period);
-      }
-    }
-
-    return periods;
+    PeriodTypeEnum type = PeriodTypeEnum.ofIsoPeriod(isoPeriod);
+    return type == null ? null : PERIOD_TYPE_ENUM_MAP.get(type);
   }
 
   /**
