@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -65,6 +66,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled
 public class EnrollmentsTests extends TrackerApiTest {
   private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 

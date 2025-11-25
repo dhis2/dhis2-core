@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
 import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,6 +63,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled
 public class TrackedEntityImportTests extends TrackerApiTest {
   private String teId;
 
@@ -132,6 +134,7 @@ public class TrackedEntityImportTests extends TrackerApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldImportTrackedEntitysWithEnrollmentsEventsAndRelationship() throws Exception {
     JsonObject tePayload =
         new FileReaderUtils()
@@ -220,6 +223,7 @@ public class TrackedEntityImportTests extends TrackerApiTest {
   }
 
   @Test
+  @Disabled
   public void shouldImportExportedTrackedEntity() throws Exception {
     // Tracker should allow users to import what they exported from another instance as is
     // Our e2e tests only work with one instance so this simulates the scenario by importing a

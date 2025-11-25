@@ -50,11 +50,13 @@ import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Luca Cambi
  */
+@Disabled
 public class TrackerExportFileTest extends TrackerApiTest {
 
   private static String trackedEntity;

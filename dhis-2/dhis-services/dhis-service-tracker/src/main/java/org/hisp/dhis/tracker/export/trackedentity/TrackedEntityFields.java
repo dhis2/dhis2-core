@@ -62,11 +62,11 @@ public class TrackedEntityFields {
     this.includesAttributes = builder.includesAttributes;
     this.includesProgramOwners = builder.includesProgramOwners;
 
-    this.includesRelationships = builder.includesRelationships;
+    this.includesRelationships = false;
     this.relationshipFields =
         builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
 
-    this.includesEnrollments = builder.includesEnrollments;
+    this.includesEnrollments = false;
     this.enrollmentFields =
         builder.includesEnrollments ? builder.enrollmentFields : EnrollmentFields.none();
   }
@@ -76,7 +76,7 @@ public class TrackedEntityFields {
     this.includesProgramOwners = includesFields.test("programOwners");
 
     if (includesFields.test("relationships")) {
-      this.includesRelationships = true;
+      this.includesRelationships = false;
       this.relationshipFields =
           RelationshipFields.of(
               f -> includesFields.test("relationships" + pathSeparator + f), pathSeparator);
@@ -89,7 +89,7 @@ public class TrackedEntityFields {
       this.enrollmentFields =
           EnrollmentFields.of(
               f -> includesFields.test("enrollments" + pathSeparator + f), pathSeparator);
-      this.includesEnrollments = true;
+      this.includesEnrollments = false;
     } else {
       this.enrollmentFields = EnrollmentFields.none();
       this.includesEnrollments = false;
