@@ -87,9 +87,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
 
-  private static final String DELETE_IMPORT_STRATEGY = "DELETE";
-  private static final String CREATE_AND_UPDATE_IMPORT_STRATEGY = "CREATE_AND_UPDATE";
-
   private final EventService eventService;
   private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
@@ -186,7 +183,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       throws ForbiddenException, BadRequestException {
     return eventService.countEvents(
         EventOperationParams.builder()
-            .programType(ProgramType.WITHOUT_REGISTRATION)
             .program(program)
             .skipChangedBefore(skipChangedBefore)
             .includeDeleted(true)
