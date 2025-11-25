@@ -39,7 +39,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -130,10 +130,10 @@ public class FollowupValueManager {
       return emptyList();
     }
     if (request.getStartDate() == null && request.getPe() != null) {
-      request.setStartDate(PeriodType.getPeriodFromIsoString(request.getPe()).getStartDate());
+      request.setStartDate(Period.of(request.getPe()).getStartDate());
     }
     if (request.getEndDate() == null && request.getPe() != null) {
-      request.setEndDate(PeriodType.getPeriodFromIsoString(request.getPe()).getEndDate());
+      request.setEndDate(Period.of(request.getPe()).getEndDate());
     }
 
     TypedQuery<FollowupValue> query =

@@ -43,7 +43,7 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.Period.of;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
@@ -989,7 +989,7 @@ class SchemeIdResponseMapperTest {
   }
 
   private PeriodDimension stubPeriod() {
-    PeriodDimension period = PeriodDimension.of(getPeriodFromIsoString("202010"));
+    PeriodDimension period = PeriodDimension.of(of("202010"));
     period.setUid("pe");
     period.setName("October 2020");
 

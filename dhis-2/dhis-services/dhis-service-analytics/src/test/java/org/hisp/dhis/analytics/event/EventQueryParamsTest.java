@@ -315,15 +315,13 @@ class EventQueryParamsTest extends TestBase {
   @Test
   void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithDateField() {
     // Given
-    PeriodDimension weeklyPeriod =
-        PeriodDimension.of(WeeklyPeriodType.getPeriodFromIsoString("2023W5"));
+    PeriodDimension weeklyPeriod = PeriodDimension.of(Period.of("2023W5"));
     weeklyPeriod.setDateField(SCHEDULED_DATE.name());
 
     PeriodDimension monthlyPeriod = PeriodDimension.of("202303");
     monthlyPeriod.setDateField(SCHEDULED_DATE.name());
 
-    PeriodDimension dailyPeriod =
-        PeriodDimension.of(DailyPeriodType.getPeriodFromIsoString("20230105"));
+    PeriodDimension dailyPeriod = PeriodDimension.of(Period.of("20230105"));
     dailyPeriod.setDateField(SCHEDULED_DATE.name());
 
     List<PeriodDimension> periods = List.of(weeklyPeriod, monthlyPeriod, dailyPeriod);
@@ -345,11 +343,9 @@ class EventQueryParamsTest extends TestBase {
   @Test
   void testReplacePeriodsWithDatesWithDifferentPeriodTypesWithoutDateField() {
     // Given
-    PeriodDimension weeklyPeriod =
-        PeriodDimension.of(WeeklyPeriodType.getPeriodFromIsoString("2023W5"));
+    PeriodDimension weeklyPeriod = PeriodDimension.of(Period.of("2023W5"));
     PeriodDimension monthlyPeriod = PeriodDimension.of("202303");
-    PeriodDimension dailyPeriod =
-        PeriodDimension.of(DailyPeriodType.getPeriodFromIsoString("20230105"));
+    PeriodDimension dailyPeriod = PeriodDimension.of(Period.of("20230105"));
 
     List<PeriodDimension> periods = List.of(weeklyPeriod, monthlyPeriod, dailyPeriod);
 
@@ -370,13 +366,13 @@ class EventQueryParamsTest extends TestBase {
   @Test
   void testHasContinuousRangeDateRangeIsFalseWithDateField() {
     // Given
-    Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString("2023W5");
+    Period weeklyPeriod = Period.of("2023W5");
     DateRange weeklyRange = new DateRange(weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate());
 
-    Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString("202303");
+    Period monthlyPeriod = Period.of("202303");
     DateRange monthlyRange = new DateRange(monthlyPeriod.getStartDate(), weeklyPeriod.getEndDate());
 
-    Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString("20230105");
+    Period dailyPeriod = Period.of("20230105");
     DateRange dailyRange = new DateRange(dailyPeriod.getStartDate(), weeklyPeriod.getEndDate());
 
     EventQueryParams params = new EventQueryParams.Builder().build();
@@ -392,13 +388,13 @@ class EventQueryParamsTest extends TestBase {
   @Test
   void testHasContinuousRangeDateRangeIsFalse() {
     // Given
-    Period weeklyPeriod = WeeklyPeriodType.getPeriodFromIsoString("2023W5");
+    Period weeklyPeriod = Period.of("2023W5");
     DateRange weeklyRange = new DateRange(weeklyPeriod.getStartDate(), weeklyPeriod.getEndDate());
 
-    Period monthlyPeriod = MonthlyPeriodType.getPeriodFromIsoString("202303");
+    Period monthlyPeriod = Period.of("202303");
     DateRange monthlyRange = new DateRange(monthlyPeriod.getStartDate(), weeklyPeriod.getEndDate());
 
-    Period dailyPeriod = DailyPeriodType.getPeriodFromIsoString("20230105");
+    Period dailyPeriod = Period.of("20230105");
     DateRange dailyRange = new DateRange(dailyPeriod.getStartDate(), weeklyPeriod.getEndDate());
 
     EventQueryParams params = new EventQueryParams.Builder().build();
@@ -414,13 +410,13 @@ class EventQueryParamsTest extends TestBase {
   @Test
   void testHasContinuousRangeDateRangeIsTrue() {
     // Given
-    Period jan = WeeklyPeriodType.getPeriodFromIsoString("202301");
+    Period jan = Period.of("202301");
     DateRange janRange = new DateRange(jan.getStartDate(), jan.getEndDate());
 
-    Period feb = MonthlyPeriodType.getPeriodFromIsoString("202302");
+    Period feb = Period.of("202302");
     DateRange febRange = new DateRange(feb.getStartDate(), feb.getEndDate());
 
-    Period mar = DailyPeriodType.getPeriodFromIsoString("20230103");
+    Period mar = Period.of("20230103");
     DateRange marRange = new DateRange(mar.getStartDate(), mar.getEndDate());
 
     EventQueryParams params = new EventQueryParams.Builder().build();

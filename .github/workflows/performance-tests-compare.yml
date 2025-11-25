@@ -116,7 +116,7 @@ jobs:
     steps:
     - name: Checkout performance tests
       id: checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         ref: ${{ inputs.perf_tests_git_ref }}
         sparse-checkout: |

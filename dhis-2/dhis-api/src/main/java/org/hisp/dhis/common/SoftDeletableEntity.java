@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.calendar;
+package org.hisp.dhis.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+public interface SoftDeletableEntity extends IdentifiableObject {
 
-import org.hisp.dhis.period.PeriodTypeEnum;
-import org.junit.jupiter.api.Test;
+  boolean isDeleted();
 
-class DateUnitTypeTest {
-  @Test
-  void testGetName() {
-    assertEquals(PeriodTypeEnum.MONTHLY.getName(), DateUnitType.MONTHLY.getName());
-    assertEquals(PeriodTypeEnum.QUARTERLY.getName(), DateUnitType.QUARTERLY.getName());
-    assertEquals(PeriodTypeEnum.YEARLY.getName(), DateUnitType.YEARLY.getName());
-  }
+  void setDeleted(boolean deleted);
 }
