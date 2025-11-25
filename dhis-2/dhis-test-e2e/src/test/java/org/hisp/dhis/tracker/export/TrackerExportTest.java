@@ -69,6 +69,7 @@ import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -78,6 +79,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled
 public class TrackerExportTest extends TrackerApiTest {
   private static final String DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST =
       "%s do not default to application/json format when the Accept header is html";

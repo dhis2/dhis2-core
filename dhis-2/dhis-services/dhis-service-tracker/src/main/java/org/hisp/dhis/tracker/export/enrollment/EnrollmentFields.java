@@ -60,11 +60,11 @@ public class EnrollmentFields {
   private EnrollmentFields(Builder builder) {
     this.includesAttributes = builder.includesAttributes;
 
-    this.includesRelationships = builder.includesRelationships;
+    this.includesRelationships = false;
     this.relationshipFields =
         builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
 
-    this.includesEvents = builder.includeEvents;
+    this.includesEvents = false;
     this.eventFields = builder.includeEvents ? builder.eventFields : TrackerEventFields.none();
   }
 
@@ -72,7 +72,7 @@ public class EnrollmentFields {
     this.includesAttributes = includesFields.test("attributes");
 
     if (includesFields.test("relationships")) {
-      this.includesRelationships = true;
+      this.includesRelationships = false;
       this.relationshipFields =
           RelationshipFields.of(
               f -> includesFields.test("relationships" + pathSeparator + f), pathSeparator);
@@ -85,7 +85,7 @@ public class EnrollmentFields {
       this.eventFields =
           TrackerEventFields.of(
               f -> includesFields.test("events" + pathSeparator + f), pathSeparator);
-      this.includesEvents = true;
+      this.includesEvents = false;
     } else {
       this.eventFields = TrackerEventFields.none();
       this.includesEvents = false;

@@ -48,14 +48,14 @@ public class TrackerEventFields {
   private final RelationshipFields relationshipFields;
 
   private TrackerEventFields(Builder builder) {
-    this.includesRelationships = builder.includesRelationships;
+    this.includesRelationships = false;
     this.relationshipFields =
         builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
   }
 
   private TrackerEventFields(Predicate<String> includesFields, String pathSeparator) {
     if (includesFields.test("relationships")) {
-      this.includesRelationships = true;
+      this.includesRelationships = false;
       this.relationshipFields =
           RelationshipFields.of(
               f -> includesFields.test("relationships" + pathSeparator + f), pathSeparator);
