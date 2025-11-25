@@ -61,6 +61,7 @@ public class DefaultRelationshipService implements RelationshipService {
       Mappers.getMapper(RelationshipItemMapper.class);
   private final TrackerAccessManager trackerAccessManager;
   private final HibernateRelationshipStore relationshipStore;
+  private final JdbcRelationshipStore jdbcRelationshipStore;
   private final RelationshipOperationParamsMapper mapper;
 
   @Nonnull
