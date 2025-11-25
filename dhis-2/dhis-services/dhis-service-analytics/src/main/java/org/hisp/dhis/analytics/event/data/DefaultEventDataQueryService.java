@@ -281,7 +281,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           if (groupableItem != null) {
             params.addFilter((DimensionalObject) groupableItem);
           } else {
-            groupableItem = getQueryItem(dim, pr, request.getOutputType());
+            groupableItem =
+                getQueryItem(dim, pr, request.getOutputType(), request.getRelativePeriodDate());
             params.addItemFilter((QueryItem) groupableItem);
           }
 
@@ -313,7 +314,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           if (groupableItem != null) {
             params.addDimension((DimensionalObject) groupableItem);
           } else {
-            groupableItem = getQueryItem(dim, pr, request.getOutputType());
+            groupableItem =
+                getQueryItem(dim, pr, request.getOutputType(), request.getRelativePeriodDate());
             params.addItem((QueryItem) groupableItem);
           }
 
@@ -357,7 +359,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 dimension.getDimension(),
                 dimension.getFilter(),
                 object.getProgram(),
-                object.getOutputType()));
+                object.getOutputType(),
+                date));
       }
     }
 
@@ -380,7 +383,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 filter.getDimension(),
                 filter.getFilter(),
                 object.getProgram(),
-                object.getOutputType()));
+                object.getOutputType(),
+                date));
       }
     }
 
@@ -491,16 +495,25 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   }
 
   private QueryItem getQueryItem(
-      String dimension, String filter, Program program, EventOutputType type) {
+      String dimension,
+      String filter,
+      Program program,
+      EventOutputType type,
+      Date relativePeriodDate) {
     if (filter != null) {
       dimension += DIMENSION_NAME_SEP + filter;
     }
 
-    return getQueryItem(dimension, program, type);
+    return getQueryItem(dimension, program, type, relativePeriodDate);
   }
 
   @Override
   public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
+    return getQueryItem(dimensionString, program, type, null);
+  }
+
+  private QueryItem getQueryItem(
+      String dimensionString, Program program, EventOutputType type, Date relativePeriodDate) {
     String[] split = dimensionString.split(DIMENSION_NAME_SEP);
 
     QueryItem queryItem;
@@ -518,7 +531,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         && queryItem.getValueType() == ValueType.DATE) {
       // Handle EVENT_DATE specific filters
       if (split.length == 2) {
-        parseAndAddEventDateFilters(queryItem, split[1]);
+        parseAndAddEventDateFilters(queryItem, split[1], relativePeriodDate);
       } else if (split.length > 2) {
         // Fallback to generic filter parsing if more than one filter is provided.
         // This allows for explicit operator:value filters like EVENT_DATE:GT:2025-01-01
@@ -562,14 +575,18 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
-  private void parseAndAddEventDateFilters(QueryItem queryItem, String filterString) {
+  private void parseAndAddEventDateFilters(
+      QueryItem queryItem, String filterString, Date relativePeriodDate) {
+    // Use relativePeriodDate if provided, otherwise fall back to current date
+    Date referenceDate = relativePeriodDate != null ? relativePeriodDate : new Date();
+
     // Handle relative periods (e.g., THIS_MONTH, LAST_YEAR)
     if (RelativePeriodEnum.contains(filterString)) {
       RelativePeriodEnum relativePeriodEnum = RelativePeriodEnum.valueOf(filterString);
       List<Period> periods =
           RelativePeriods.getRelativePeriodsFromEnum(
                   relativePeriodEnum,
-                  DateField.withDefaults().withDate(new Date()),
+                  DateField.withDefaults().withDate(referenceDate),
                   null,
                   false,
                   null)
@@ -641,7 +658,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return new QueryItem(
           new BaseDimensionalItemObject(translateItemIfNecessary(item, endpointItem)));
     }
-    return getQueryItem(item, program, type);
+    return getQueryItem(item, program, type, null);
   }
 
   private DimensionalItemObject getValueDimension(String value) {
