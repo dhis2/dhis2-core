@@ -61,7 +61,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
       // Given
       QueryParamsBuilder params =
               new QueryParamsBuilder()
-                      //.add("stage=Zj7UnCAulEk")
                       .add("displayProperty=NAME")
                       .add("outputType=EVENT")
                       .add("pageSize=100")
@@ -85,7 +84,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         // Given
         QueryParamsBuilder params =
                 new QueryParamsBuilder()
-                        //.add("stage=Zj7UnCAulEk")
                         .add("displayProperty=NAME")
                         .add("outputType=EVENT")
                         .add("pageSize=100")
@@ -97,8 +95,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
         // where:
-        // (((ax."occurreddate" >= '2024-11-01' and ax."occurreddate" < '2025-11-01'))) <- error
-        // and ax."uidlevel1" in ('ImspTQPwCqd')
         // and (ax."occurreddate" >= '2021-01-01' and ax."occurreddate" <= '2021-12-31' and ax."ps" = 'Zj7UnCAulEk')
 
     }
@@ -111,7 +107,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         // Given
         QueryParamsBuilder params =
                 new QueryParamsBuilder()
-                        //.add("stage=Zj7UnCAulEk")
                         .add("displayProperty=NAME")
                         .add("outputType=EVENT")
                         .add("pageSize=100")
@@ -121,6 +116,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
         // When
         ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+
+        // where:
+        // (ax."occurreddate" >= '2021-03-01' and ax."occurreddate" <= '2021-05-31' and ax."ps" = 'Zj7UnCAulEk')
     }
 
     @Test
@@ -141,6 +139,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
         // When
         ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+
+        // where:
+        // (ax."occurreddate" > '2023-05-01' and ax."ps" = 'Zj7UnCAulEk')
     }
 
     @Test
@@ -161,14 +162,34 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
         // When
         ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+
+        // where:
+        // (ax."occurreddate" <= '2023-05-01' and ax."ps" = 'Zj7UnCAulEk')
     }
 
+    @Test
+    public void stageAndEventDateMultipleStages() throws JSONException {
 
-  private void dumpHeaders(List<Map<String, Object>> actualHeaders) {
-    // Utility method to help debug test failures
-    for (int i = 0; i < actualHeaders.size(); i++) {
-      Map<String, Object> header = actualHeaders.get(i);
-      System.out.println(i + ": " + header.get("name") + " (" + header.get("type") + ")");
+        boolean expectPostgis = isPostgres();
+
+        // Given
+        QueryParamsBuilder params =
+                new QueryParamsBuilder()
+                        .add("displayProperty=NAME")
+                        .add("outputType=EVENT")
+                        .add("pageSize=100")
+                        .add("page=1")
+                        .add("dimension=ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR")
+                        .add("dimension=jdRD35YwbRH.EVENT_DATE:2023")
+                        .add("desc=eventdate,lastupdated");
+
+        // When
+        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+        // where:
+        // (ax."occurreddate" >= '2025-01-01' and ax."occurreddate" <= '2025-12-31' and ax."ps" = 'ZkbAXlQUYJG')
+        // and
+        // (ax."occurreddate" >= '2023-01-01' and ax."occurreddate" <= '2023-12-31' and ax."ps" = 'jdRD35YwbRH')
     }
-  }
+
 }
