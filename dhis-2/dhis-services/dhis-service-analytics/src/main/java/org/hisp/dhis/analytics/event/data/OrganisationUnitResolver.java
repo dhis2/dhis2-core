@@ -146,6 +146,24 @@ public class OrganisationUnitResolver {
   }
 
   /**
+   * Resolves organisation units from a QueryItem's filters and returns them grouped by level. This
+   * is useful for generating proper uidlevelX WHERE clauses for stage.ou dimensions.
+   *
+   * @param params the event query parameters
+   * @param item the query item containing org unit filters
+   * @return a map of level to list of organisation units at that level
+   */
+  public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
+      EventQueryParams params, QueryItem item) {
+    List<String> orgUnitUids = resolveOrgUnis(params, item);
+    if (orgUnitUids.isEmpty()) {
+      return Map.of();
+    }
+    return organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
+        .collect(Collectors.groupingBy(OrganisationUnit::getLevel));
+  }
+
+  /**
    * This method loads an OU dimension {@link DimensionalItemObject} based on the given dimension
    * identifier. It returns an instance of {@link BaseDimensionalItemObject}, {@link
    * OrganisationUnitGroup} and {@link OrganisationUnit}, depending on the identifier.
