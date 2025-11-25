@@ -220,10 +220,13 @@ public class TrackerTest extends Simulation {
     } else {
       List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
       populationBuilder =
-          eventScenario
-              .scenario()
-              .injectOpen(injectionProfile)
-              .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+//          eventScenario
+//              .scenario()
+//              .injectOpen(injectionProfile)
+//              .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+        trackerScenario
+                .scenario()
+                .injectOpen(injectionProfile);
     }
 
     HttpProtocolBuilder httpProtocolBuilder =
