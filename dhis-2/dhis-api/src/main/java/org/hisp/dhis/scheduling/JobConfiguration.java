@@ -292,7 +292,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(value = DataSynchronizationJobParameters.class, name = "DATA_SYNC"),
         @JsonSubTypes.Type(
             value = SingleEventDataSynchronizationJobParameters.class,
-            name = "SINGLE_EVENT_DATA_SYNC_JOB"),
+            name = "SINGLE_EVENT_DATA_SYNC"),
         @JsonSubTypes.Type(
             value = DisableInactiveUsersJobParameters.class,
             name = "DISABLE_INACTIVE_USERS"),
