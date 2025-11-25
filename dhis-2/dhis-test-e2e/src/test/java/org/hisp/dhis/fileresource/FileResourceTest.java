@@ -85,7 +85,6 @@ class FileResourceTest extends ApiTest {
                 "name": "doc1",
                 "type": "UPLOAD_FILE",
                 "attachment": false,
-                "external": false,
                 "url": "%s"
               }
               """
