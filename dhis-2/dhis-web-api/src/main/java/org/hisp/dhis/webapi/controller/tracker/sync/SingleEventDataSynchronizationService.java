@@ -127,8 +127,9 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
-    if (!testServerAvailability(settings, restTemplate).isAvailable()) {
-      return failProcess(progress, "Remote server unavailable");
+    SynchronizationResult validationResult = validatePreconditions(settings, programUid, progress);
+    if (validationResult != null) {
+      return validationResult;
     }
 
     EventSynchronizationContext context =
@@ -151,6 +152,25 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         new EventSynchronizationContext(null, pageSize, null),
         ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
         () -> createContext(pageSize, settings, programUid));
+  }
+
+  private SynchronizationResult validatePreconditions(
+      SystemSettings settings, String programUid, JobProgress progress) {
+    if (!testServerAvailability(settings, restTemplate).isAvailable()) {
+      return failProcess(progress, "Remote server unavailable");
+    }
+
+    Program program = programService.getProgram(programUid);
+    if (program == null) {
+      return failProcess(progress, "Program %s not found".formatted(programUid));
+    }
+
+    if (program.getProgramType() != ProgramType.WITHOUT_REGISTRATION) {
+      return failProcess(
+          progress, "Program %s must be of type WITHOUT_REGISTRATION".formatted(programUid));
+    }
+
+    return null;
   }
 
   private EventSynchronizationContext createContext(
