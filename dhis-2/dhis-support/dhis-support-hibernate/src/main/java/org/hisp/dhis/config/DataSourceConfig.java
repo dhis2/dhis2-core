@@ -30,6 +30,7 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -110,8 +111,8 @@ public class DataSourceConfig {
 
   @Primary
   @Bean("actualDataSource")
-  public DataSource dataSource(DhisConfigurationProvider config) {
-    DataSource ds = createLoggingDataSource(config, actualDataSource(config));
+  public DataSource dataSource(DhisConfigurationProvider config, MeterRegistry meterRegistry) {
+    DataSource ds = createLoggingDataSource(config, actualDataSource(config, meterRegistry));
     return new ConnectionAcquisitionTimingDataSource(ds);
   }
 
@@ -143,7 +144,8 @@ public class DataSourceConfig {
     }
   }
 
-  private DataSource actualDataSource(DhisConfigurationProvider config) {
+  private DataSource actualDataSource(
+      DhisConfigurationProvider config, MeterRegistry meterRegistry) {
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
@@ -152,7 +154,7 @@ public class DataSourceConfig {
         DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(
