@@ -22,6 +22,13 @@ Access:
 
 * DHIS2: [http://localhost:8080](http://localhost:8080) (admin/district)
 * Prometheus: [http://localhost:9090](http://localhost:9090)
+  * [HikariCP Metrics](http://localhost:9090/graph?g0.expr=hikaricp_connections_active%7Bpool%3D~%22.*%22%7D%20%2F%20hikaricp_connections_max%7Bpool%3D~%22.*%22%7D%20*%20100&g0.tab=0&g0.display_mode=lines&g0.range_input=1h&g1.expr=rate(hikaricp_connections_acquire_seconds_count%7Bpool%3D~%22.*%22%7D%5B5m%5D)&g1.tab=0&g1.display_mode=lines&g1.range_input=1h&g2.expr=rate(hikaricp_connections_acquire_seconds_sum%7Bpool%3D~%22.*%22%7D%5B5m%5D)%20%2F%20rate(hikaricp_connections_acquire_seconds_count%7Bpool%3D~%22.*%22%7D%5B5m%5D)%20*%201000&g2.tab=0&g2.display_mode=lines&g2.range_input=1h&g3.expr=hikaricp_connections_acquire_seconds_max%7Bpool%3D~%22.*%22%7D%20*%201000&g3.tab=0&g3.display_mode=lines&g3.range_input=1h&g4.expr=rate(hikaricp_connections_usage_seconds_sum%7Bpool%3D~%22.*%22%7D%5B5m%5D)%20%2F%20rate(hikaricp_connections_usage_seconds_count%7Bpool%3D~%22.*%22%7D%5B5m%5D)%20*%201000&g4.tab=0&g4.display_mode=lines&g4.range_input=1h&g5.expr=hikaricp_connections_usage_seconds_max%7Bpool%3D~%22.*%22%7D%20*%201000&g5.tab=0&g5.display_mode=lines&g5.range_input=1h):
+    1. Pool utilization %
+    2. Acquisition rate (throughput)
+    3. Acquisition time - Average (ms)
+    4. Acquisition time - Max (ms)
+    5. Usage time - Average (ms)
+    6. Usage time - Max (ms)
 
 ## OSIV Demo
 
