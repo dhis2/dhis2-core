@@ -563,14 +563,16 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   }
 
   private void parseAndAddEventDateFilters(QueryItem queryItem, String filterString) {
-    Date now = new Date();
-
-    // Handle relative periods (e.g., THIS_MONTH)
+    // Handle relative periods (e.g., THIS_MONTH, LAST_YEAR)
     if (RelativePeriodEnum.contains(filterString)) {
       RelativePeriodEnum relativePeriodEnum = RelativePeriodEnum.valueOf(filterString);
       List<Period> periods =
           RelativePeriods.getRelativePeriodsFromEnum(
-                  relativePeriodEnum, DateField.withDefaults().withDate(now), null, false, null)
+                  relativePeriodEnum,
+                  DateField.withDefaults().withDate(new Date()),
+                  null,
+                  false,
+                  null)
               .stream()
               .map(org.hisp.dhis.period.PeriodDimension::getPeriod)
               .toList();
@@ -581,34 +583,40 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         queryItem.addFilter(new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(startDate)));
         queryItem.addFilter(new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(endDate)));
       }
-    } else if (filterString.matches("\\d{4}(0[1-9]|1[0-2])")) {
-      // Handle ISO periods (e.g., 202501)
-      Period period = Period.of(filterString);
-      if (period != null) {
-        queryItem.addFilter(
-            new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(period.getStartDate())));
-        queryItem.addFilter(
-            new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(period.getEndDate())));
-      }
-    } else if (filterString.matches("\\d{4}-\\d{2}-\\d{2}_\\d{4}-\\d{2}-\\d{2}")) {
-      // Handle date ranges (e.g., 2025-01-01_2025-01-31)
+      return;
+    }
+
+    // Handle date ranges (e.g., 2025-01-01_2025-01-31)
+    if (filterString.matches("\\d{4}-\\d{2}-\\d{2}_\\d{4}-\\d{2}-\\d{2}")) {
       String[] dates = filterString.split("_");
       if (dates.length == 2) {
         queryItem.addFilter(new QueryFilter(QueryOperator.GE, dates[0]));
         queryItem.addFilter(new QueryFilter(QueryOperator.LE, dates[1]));
       }
-    } else {
-      // Fallback to standard operator:value parsing for explicit filters (e.g., GT:2025-01-01)
-      String[] parts = filterString.split(":");
-      if (parts.length == 2) {
-        QueryOperator operator = QueryOperator.fromString(parts[0]);
-        QueryFilter filter = new QueryFilter(operator, parts[1]);
-        modifyFilterWhenTimeQueryItem(queryItem, filter);
-        queryItem.addFilter(filter);
-      } else {
-        throwIllegalQueryEx(ErrorCode.E7222, filterString);
-      }
+      return;
     }
+
+    // Handle ISO periods using Period.of() - supports ALL period types
+    // (yearly, quarterly, monthly, weekly, daily, six-monthly, financial, etc.)
+    Period period = Period.of(filterString);
+    if (period != null) {
+      queryItem.addFilter(
+          new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(period.getStartDate())));
+      queryItem.addFilter(
+          new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(period.getEndDate())));
+      return;
+    }
+
+    // Fallback to explicit operator:value parsing (e.g., GT:2025-01-01)
+    String[] parts = filterString.split(":");
+    if (parts.length == 2) {
+      QueryOperator operator = QueryOperator.fromString(parts[0]);
+      QueryFilter filter = new QueryFilter(operator, parts[1]);
+      queryItem.addFilter(filter);
+      return;
+    }
+
+    throwIllegalQueryEx(ErrorCode.E7222, filterString);
   }
 
   private static void modifyFilterWhenTimeQueryItem(QueryItem queryItem, QueryFilter filter) {
