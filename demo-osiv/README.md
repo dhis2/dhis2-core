@@ -7,6 +7,22 @@ the N+1 queries to execute more sequentially rather than in parallel. This makes
 how OSIV keeps connections open for entire request duration, and how the N+1 aggregate pattern
 attempts to execute hundreds of queries in parallel.
 
+## Quick Start
+
+```sh
+# Start PostgreSQL and Prometheus
+cd demo-osiv && docker compose up --detach && cd ..
+
+# Build and start DHIS2
+./demo-osiv/build.sh
+./demo-osiv/start.sh
+```
+
+Access:
+
+* DHIS2: [http://localhost:8080](http://localhost:8080) (admin/district)
+* Prometheus: [http://localhost:9090](http://localhost:9090)
+
 ## OSIV Demo
 
 ### Problem

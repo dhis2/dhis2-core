@@ -44,8 +44,18 @@ services:
     volumes:
       - db-dump:/opt/dump
 
+  prometheus:
+    image: prom/prometheus:v2.53.5
+    command: --config.file=/etc/prometheus/prometheus.yml
+    network_mode: host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+
 volumes:
   pgdata:
     driver: local
   db-dump: {}
+  prometheus:
+    driver: local
 

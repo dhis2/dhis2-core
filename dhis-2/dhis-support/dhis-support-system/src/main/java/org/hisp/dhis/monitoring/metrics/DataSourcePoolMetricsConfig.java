@@ -101,13 +101,21 @@ public class DataSourcePoolMetricsConfig {
   public Collection<PoolMetadataProvider> dataSourceMetadataProvider() {
     return List.of(
         dataSource -> {
-          if (dataSource instanceof ComboPooledDataSource comboPooledDataSource) {
+          DataSource actualDataSource = dataSource;
+          // Unwrap DelegatingDataSource to get the actual connection pool
+          if (dataSource
+              instanceof
+              org.springframework.jdbc.datasource.DelegatingDataSource delegatingDataSource) {
+            actualDataSource = delegatingDataSource.getTargetDataSource();
+          }
+
+          if (actualDataSource instanceof ComboPooledDataSource comboPooledDataSource) {
             return new C3p0MetadataProvider(comboPooledDataSource);
-          } else if (dataSource instanceof HikariDataSource hikariDataSource) {
+          } else if (actualDataSource instanceof HikariDataSource hikariDataSource) {
             return new HikariMetadataProvider(hikariDataSource);
           } else {
             throw new IllegalArgumentException(
-                "Unsupported DataSource type: " + dataSource.getClass().getName());
+                "Unsupported DataSource type: " + actualDataSource.getClass().getName());
           }
         });
   }
