@@ -54,11 +54,11 @@
 
     <property name="likes" />
 
-    <set name="likedBy" table="intepretation_likedby">
+    <set name="likedBy" table="interpretation_likedby">
       <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_likedby_interpretationid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userid"
-        foreign-key="fk_intepretation_likedby_userid" />
+        foreign-key="fk_interpretation_likedby_userid" />
     </set>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_interpretation_userid" />
