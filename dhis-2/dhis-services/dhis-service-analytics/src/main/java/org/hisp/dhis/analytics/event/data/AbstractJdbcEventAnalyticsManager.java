@@ -266,7 +266,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private final DhisConfigurationProvider config;
 
-  private final OrganisationUnitResolver organisationUnitResolver;
+  protected final OrganisationUnitResolver organisationUnitResolver;
 
   protected final ColumnMapper columnMapper;
 
@@ -1594,6 +1594,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /** Converts given queryItem into SQL joining its filters using AND. */
   private String toSql(QueryItem queryItem, EventQueryParams params) {
+    // Special handling for stage.ou dimension - use uidlevelX instead of ou
+    if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.hasProgramStage()) {
+      return getStageOuWhereClause(queryItem, params);
+    }
+
     String sql =
         queryItem.getFilters().stream()
             .map(filter -> toSql(queryItem, filter, params))
@@ -1610,6 +1616,45 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return sql;
+  }
+
+  /**
+   * Generates a WHERE clause for stage.ou dimension using proper uidlevelX columns based on
+   * organisation unit levels.
+   */
+  private String getStageOuWhereClause(QueryItem item, EventQueryParams params) {
+    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
+        organisationUnitResolver.resolveOrgUnitsGroupedByLevel(params, item);
+
+    if (orgUnitsByLevel.isEmpty()) {
+      return "";
+    }
+
+    String ouConditions =
+        orgUnitsByLevel.entrySet().stream()
+            .map(
+                entry -> {
+                  String col =
+                      params
+                          .getOrgUnitField()
+                          .withSqlBuilder(sqlBuilder)
+                          .getOrgUnitLevelCol(entry.getKey(), getAnalyticsType());
+                  String uids =
+                      entry.getValue().stream()
+                          .filter(ou -> StringUtils.isNotEmpty(ou.getUid()))
+                          .map(ou -> "'" + ou.getUid() + "'")
+                          .collect(joining(","));
+                  return col + " in (" + uids + ")";
+                })
+            .collect(joining(" and "));
+
+    return "("
+        + ouConditions
+        + " and "
+        + quoteAlias("ps")
+        + " = '"
+        + item.getProgramStage().getUid()
+        + "')";
   }
 
   /** Returns PSID.ITEM_ID of given queryItem. */

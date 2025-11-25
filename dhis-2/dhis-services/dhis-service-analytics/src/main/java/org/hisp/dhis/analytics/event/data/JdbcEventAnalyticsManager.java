@@ -547,35 +547,39 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     OrgUnitField orgUnitField = params.getOrgUnitField();
 
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
-      String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
+    // Skip regular OU clause if stage.ou QueryItems cover all org units (avoid duplicates)
+    if (!shouldSkipRegularOuClause(params)) {
+      if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+        String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
 
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + orgUnitCol
-              + OPEN_IN
-              + sqlBuilder.singleQuotedCommaDelimited(
-                  getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
-              + ") ";
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-      String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
+        sql +=
+            hlp.whereAnd()
+                + " "
+                + orgUnitCol
+                + OPEN_IN
+                + sqlBuilder.singleQuotedCommaDelimited(
+                    getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
+                + ") ";
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+        String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
 
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + orgUnitCol
-              + OPEN_IN
-              + sqlBuilder.singleQuotedCommaDelimited(getUids(params.getOrganisationUnitChildren()))
-              + ") ";
-    } else // Descendants
-    {
-      String sqlSnippet =
-          getOrgUnitDescendantsClause(
-              orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
+        sql +=
+            hlp.whereAnd()
+                + " "
+                + orgUnitCol
+                + OPEN_IN
+                + sqlBuilder.singleQuotedCommaDelimited(
+                    getUids(params.getOrganisationUnitChildren()))
+                + ") ";
+      } else // Descendants
+      {
+        String sqlSnippet =
+            getOrgUnitDescendantsClause(
+                orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
 
-      if (isNotEmpty(sqlSnippet)) {
-        sql += hlp.whereAnd() + " " + sqlSnippet;
+        if (isNotEmpty(sqlSnippet)) {
+          sql += hlp.whereAnd() + " " + sqlSnippet;
+        }
       }
     }
 
@@ -814,6 +818,38 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .filter(unit -> isNotEmpty(unit.getUid()))
         .map(unit -> "'" + unit.getUid() + "'")
         .collect(joining(",", orgUnit + OPEN_IN, ") "));
+  }
+
+  /**
+   * Check if all org units in ORGUNIT_DIM_ID are fully covered by stage.ou QueryItems. If so, skip
+   * the regular OU clause to avoid duplicates.
+   *
+   * @param params the {@link EventQueryParams}
+   * @return true if the regular OU clause should be skipped
+   */
+  private boolean shouldSkipRegularOuClause(EventQueryParams params) {
+    // Get org unit UIDs from stage.ou QueryItems
+    Set<String> stageOuUids =
+        params.getItems().stream()
+            .filter(
+                item ->
+                    EventAnalyticsColumnName.OU_COLUMN_NAME.equals(item.getItemId())
+                        && item.hasProgramStage())
+            .flatMap(item -> organisationUnitResolver.resolveOrgUnis(params, item).stream())
+            .collect(Collectors.toSet());
+
+    if (stageOuUids.isEmpty()) {
+      return false; // No stage.ou items, use regular OU clause
+    }
+
+    // Get org unit UIDs from ORGUNIT_DIM_ID
+    Set<String> regularOuUids =
+        params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
+            .map(DimensionalItemObject::getUid)
+            .collect(Collectors.toSet());
+
+    // Skip if all regular OU UIDs are covered by stage.ou
+    return stageOuUids.containsAll(regularOuUids);
   }
 
   /**

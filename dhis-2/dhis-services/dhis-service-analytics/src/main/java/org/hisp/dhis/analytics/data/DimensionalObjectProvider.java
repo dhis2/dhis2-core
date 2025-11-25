@@ -438,11 +438,32 @@ public class DimensionalObjectProvider {
    */
   public List<String> getOrgUnitDimensionUid(
       List<String> items, List<OrganisationUnit> userOrgUnits) {
-    return getOrgUnitDimensionItems(
-            items, userOrgUnits, IdScheme.UID, new ArrayList<>(), new ArrayList<>())
-        .stream()
-        .map(DimensionalItemObject::getUid)
-        .toList();
+    List<Integer> levels = new ArrayList<>();
+    List<OrganisationUnitGroup> groups = new ArrayList<>();
+
+    List<DimensionalItemObject> ous =
+        getOrgUnitDimensionItems(items, userOrgUnits, IdScheme.UID, levels, groups);
+
+    List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
+
+    // Also fetch org units at specified levels and groups (like getOrgUnitDimension does)
+    List<OrganisationUnit> ousList = asTypedList(ous);
+
+    if (!levels.isEmpty()) {
+      result.addAll(
+          organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList).stream()
+              .map(OrganisationUnit::getUid)
+              .toList());
+    }
+
+    if (!groups.isEmpty()) {
+      result.addAll(
+          organisationUnitService.getOrganisationUnits(groups, ousList).stream()
+              .map(OrganisationUnit::getUid)
+              .toList());
+    }
+
+    return result.stream().distinct().toList();
   }
 
   /**
