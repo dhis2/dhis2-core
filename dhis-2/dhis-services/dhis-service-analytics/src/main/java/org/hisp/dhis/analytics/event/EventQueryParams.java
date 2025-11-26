@@ -84,7 +84,9 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -105,6 +107,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
@@ -661,6 +664,49 @@ public class EventQueryParams extends DataQueryParams {
       ranges.sort(Comparator.comparing(DateRange::getStartDate));
     }
     removeDimensionOrFilter(PERIOD_DIM_ID);
+
+    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
+    extractDatesFromStageDateItems();
+  }
+
+  /**
+   * Extracts start/end dates from stage-scoped date QueryItems (e.g., stageId.EVENT_DATE:201910 or
+   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as GE/LE filters.
+   * This is needed for partition selection.
+   */
+  private void extractDatesFromStageDateItems() {
+    for (QueryItem item : items) {
+      if (item.hasProgramStage() && isStageDateItem(item)) {
+        Date start = null;
+        Date end = null;
+
+        for (QueryFilter filter : item.getFilters()) {
+          Date filterDate = DateUtils.parseDate(filter.getFilter());
+          if (filterDate != null) {
+            if (filter.getOperator() == QueryOperator.GE) {
+              start = filterDate;
+            } else if (filter.getOperator() == QueryOperator.LE) {
+              end = filterDate;
+            }
+          }
+        }
+
+        if (start != null || end != null) {
+          setDates(start, end);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if the QueryItem is a stage date item (EVENT_DATE or SCHEDULED_DATE).
+   *
+   * @param item the QueryItem to check
+   * @return true if the item is a stage date item
+   */
+  private boolean isStageDateItem(QueryItem item) {
+    String itemId = item.getItemId();
+    return "occurreddate".equals(itemId) || "scheduleddate".equals(itemId);
   }
 
   /**

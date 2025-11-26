@@ -539,6 +539,18 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       } else {
         throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
       }
+    } else if (EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.getValueType() == ValueType.DATE) {
+      // Handle SCHEDULED_DATE specific filters - same logic as EVENT_DATE
+      if (split.length == 2) {
+        parseAndAddEventDateFilters(queryItem, split[1], relativePeriodDate);
+      } else if (split.length > 2) {
+        // Fallback to generic filter parsing if more than one filter is provided.
+        // This allows for explicit operator:value filters like SCHEDULED_DATE:GT:2025-01-01
+        addGenericFiltersToQueryItem(queryItem, split, 1);
+      } else {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
     } else if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())
         && queryItem.hasProgramStage()) {
       // Handle stage.ou specific filters
