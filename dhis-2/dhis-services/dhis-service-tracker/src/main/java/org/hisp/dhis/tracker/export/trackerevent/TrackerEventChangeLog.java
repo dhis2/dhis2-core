@@ -49,7 +49,6 @@ import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.user.User;
 
 @Entity
 @Table(name = "trackereventchangelog")
@@ -92,16 +91,8 @@ public class TrackerEventChangeLog {
   @Column(name = "created", nullable = false)
   private Date created;
 
-  @Column(name = "createdby")
-  private String createdByUsername;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "createdby",
-      insertable = false,
-      updatable = false,
-      referencedColumnName = "username")
-  private User createdBy;
+  @Column(name = "createdBy")
+  private String createdBy;
 
   public TrackerEventChangeLog(
       TrackerEvent event,
@@ -111,9 +102,9 @@ public class TrackerEventChangeLog {
       String currentValue,
       ChangeLogType changeLogType,
       Date created,
-      String createdByUsername) {
+      String createdBy) {
     this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
-    this.createdByUsername = createdByUsername;
+    this.createdBy = createdBy;
   }
 
   private TrackerEventChangeLog(

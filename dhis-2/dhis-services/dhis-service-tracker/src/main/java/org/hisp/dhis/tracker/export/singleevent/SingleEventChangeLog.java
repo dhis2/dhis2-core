@@ -49,7 +49,6 @@ import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.user.User;
 
 @Entity
 @Table(name = "singleeventchangelog")
@@ -93,15 +92,7 @@ public class SingleEventChangeLog {
   private Date created;
 
   @Column(name = "createdby")
-  private String createdByUsername;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "createdby",
-      insertable = false,
-      updatable = false,
-      referencedColumnName = "username")
-  private User createdBy;
+  private String createdBy;
 
   public SingleEventChangeLog(
       SingleEvent event,
@@ -111,9 +102,9 @@ public class SingleEventChangeLog {
       String currentValue,
       ChangeLogType changeLogType,
       Date created,
-      String createdByUsername) {
+      String createdBy) {
     this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
-    this.createdByUsername = createdByUsername;
+    this.createdBy = createdBy;
   }
 
   private SingleEventChangeLog(

@@ -63,7 +63,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 public class PotentialDuplicate implements IdentifiableObject {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(name = "potentialduplicate_sequence")
+  @SequenceGenerator(name = "potentialduplicatesequence")
   @Column(name = "potentialduplicateid")
   private long id;
 
@@ -220,44 +220,44 @@ public class PotentialDuplicate implements IdentifiableObject {
     // not supported
   }
 
-  /** TrackedEntity does not support sharing */
+  /** PotentialDuplicate does not support sharing */
   @Override
   public boolean hasSharing() {
     return false;
   }
 
-  /** TrackedEntity does not support sharing */
+  /** PotentialDuplicate does not support sharing */
   @Override
   public void setOwner(String owner) {
     // not supported
   }
 
-  /** TrackedEntity does not support AttributeValues */
+  /** PotentialDuplicate does not support AttributeValues */
   @Override
   public AttributeValues getAttributeValues() {
     return AttributeValues.empty();
   }
 
-  /** TrackedEntity does not support AttributeValues */
+  /** PotentialDuplicate does not support AttributeValues */
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
     // not supported
   }
 
-  /** TrackedEntity does not support AttributeValues */
+  /** PotentialDuplicate does not support AttributeValues */
   @Override
   public void addAttributeValue(String attributeUid, String value) {
     // not supported
   }
 
-  /** TrackedEntity does not support AttributeValues */
+  /** PotentialDuplicate does not support AttributeValues */
   @Override
   public void removeAttributeValue(String attributeId) {
     // not supported
   }
 
   /**
-   * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
+   * @deprecated PotentialDuplicate does not support createdBy, use storeBy instead.
    */
   @Override
   public User getUser() {
@@ -265,7 +265,7 @@ public class PotentialDuplicate implements IdentifiableObject {
   }
 
   /**
-   * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
+   * @deprecated PotentialDuplicate does not support createdBy, use storeBy instead.
    */
   @Override
   public void setCreatedBy(User createdBy) {
@@ -273,7 +273,7 @@ public class PotentialDuplicate implements IdentifiableObject {
   }
 
   /**
-   * @deprecated TrackedEntity does not support createdBy, use storeBy instead.
+   * @deprecated PotentialDuplicate does not support createdBy, use storeBy instead.
    */
   @Override
   public User getCreatedBy() {
