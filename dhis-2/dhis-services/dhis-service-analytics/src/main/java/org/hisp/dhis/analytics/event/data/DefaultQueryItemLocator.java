@@ -115,19 +115,27 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
                                                     getScheduledDate(dimension, program, legendSet)
                                                         .orElseGet(
                                                             () ->
-                                                                getProgramStageOrgUnit(
+                                                                getEventStatus(
                                                                         dimension, program,
                                                                         legendSet)
-                                                                    // if not DE, TEA or PI, we try
-                                                                    // to get as dynamic dimension
                                                                     .orElseGet(
                                                                         () ->
-                                                                            getDynamicDimension(
-                                                                                    dimension)
-                                                                                .orElseThrow(
-                                                                                    illegalQueryExSupplier(
-                                                                                        E7224,
-                                                                                        dimension))))))));
+                                                                            getProgramStageOrgUnit(
+                                                                                    dimension,
+                                                                                    program,
+                                                                                    legendSet)
+                                                                                // if not DE, TEA or
+                                                                                // PI, we try to get
+                                                                                // as dynamic
+                                                                                // dimension
+                                                                                .orElseGet(
+                                                                                    () ->
+                                                                                        getDynamicDimension(
+                                                                                                dimension)
+                                                                                            .orElseThrow(
+                                                                                                illegalQueryExSupplier(
+                                                                                                    E7224,
+                                                                                                    dimension)))))))));
   }
 
   private Optional<QueryItem> getProgramStageOrgUnit(
@@ -174,6 +182,23 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
             new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
         QueryItem qi =
             new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null);
+        qi.setProgramStage(programStage);
+        return Optional.of(qi);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<QueryItem> getEventStatus(
+      String dimension, Program program, LegendSet legendSet) {
+    if ("EVENT_STATUS".equals(getSecondElement(dimension))) {
+      ProgramStage programStage = getProgramStageOrFail(dimension);
+
+      if (programStage != null) {
+        BaseDimensionalItemObject item =
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+        QueryItem qi =
+            new QueryItem(item, program, legendSet, ValueType.TEXT, AggregationType.NONE, null);
         qi.setProgramStage(programStage);
         return Optional.of(qi);
       }

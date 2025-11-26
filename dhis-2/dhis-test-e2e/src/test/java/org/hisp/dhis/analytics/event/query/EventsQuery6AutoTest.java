@@ -329,5 +329,28 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         // and (ax."scheduleddate" >= '2019-10-01' and ax."scheduleddate" <= '2019-10-31' and ax."ps" = 'ZkbAXlQUYJG')
     }
 
+    @Test
+    public void stageAndStatus() throws JSONException {
+
+        boolean expectPostgis = isPostgres();
+
+        // Given
+        QueryParamsBuilder params =
+                new QueryParamsBuilder()
+                        .add("displayProperty=NAME")
+                        .add("outputType=EVENT")
+                        .add("pageSize=100")
+                        .add("page=1")
+                        .add("dimension=pe:THIS_YEAR")
+                        .add("dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE")
+                        .add("desc=eventdate,lastupdated");
+
+        // When
+        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+        // where:
+        // (ax."eventstatus" in ('ACTIVE') and ax."ps" = 'ZkbAXlQUYJG')
+    }
+
 
 }
