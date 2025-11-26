@@ -40,6 +40,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -243,7 +244,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private Stream<String> aliases(Filter filter, Query<?> query) {
     if (filter.isVirtual()) return Stream.empty();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    return path == null ? Stream.empty() : Stream.of(path.getAlias());
+    if (path == null || path.getAlias() == null) return Stream.empty();
+    return Arrays.stream(path.getAlias());
   }
 
   private <Y> Predicate buildFilter(

@@ -118,7 +118,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     return path != null
         && path.isPersisted()
-        && !path.haveAlias()
         && !Attribute.ObjectType.isValidType(path.getPath());
   }
 }
