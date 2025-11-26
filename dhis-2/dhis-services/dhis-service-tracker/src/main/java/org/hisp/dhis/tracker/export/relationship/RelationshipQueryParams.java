@@ -33,14 +33,14 @@ import java.util.List;
 import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @RequiredArgsConstructor
 class RelationshipQueryParams {
-  private final SoftDeletableObject entity;
+  private final SoftDeletableEntity entity;
 
   private final List<Order> order;
 

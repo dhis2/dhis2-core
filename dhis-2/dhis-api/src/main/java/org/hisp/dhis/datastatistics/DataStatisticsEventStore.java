@@ -47,7 +47,7 @@ public interface DataStatisticsEventStore extends GenericStore<DataStatisticsEve
    * @param endDate the end date.
    * @return a map between DataStatisticsEventTypes and counts.
    */
-  Map<DataStatisticsEventType, Double> getDataStatisticsEventCount(Date startDate, Date endDate);
+  Map<DataStatisticsEventType, Long> getDataStatisticsEventCount(Date startDate, Date endDate);
 
   /**
    * Returns top favorites by views

@@ -847,6 +847,7 @@ public class DateUtils {
    * @return a Duration object, or null if the duration string is invalid.
    */
   public static Duration getDuration(String duration) {
+    if (duration == null || duration.isEmpty()) return null;
     Matcher matcher = DURATION_PATTERN.matcher(duration);
 
     if (!matcher.find()) {

@@ -539,12 +539,12 @@ public class Api {
     }
 
     /**
-     * A {@link #isUniversal()} object is of the same structure for input and output whereas a
-     * non-universal object is different for input and output due to the use of references to other
+     * A {@link #isBidirectional()} object is of the same structure for input and output whereas a
+     * unidirectional object is different for input and output due to the use of references to other
      * identifiable objects.
      *
-     * <p>All schemata start out universal and when properties get added via {@link
-     * #addProperty(Property)} they might become non-universal.
+     * <p>All schemata start out bidirectional and when properties get added via {@link
+     * #addProperty(Property)} they might become unidirectional.
      */
     Maybe<Direction> direction = new Maybe<>();
 
@@ -562,7 +562,7 @@ public class Api {
       return sharedName.isPresent();
     }
 
-    public boolean isUniversal() {
+    public boolean isBidirectional() {
       return !direction.isPresent();
     }
 
@@ -597,21 +597,24 @@ public class Api {
     }
 
     Api.Schema addProperty(Property property) {
-      if (isSingleton())
+      if (isSingleton()) {
         throw new IllegalStateException("Cannot change a schema once it is marked as singleton");
+      }
       properties.add(property);
       Schema schema = property.getType();
       if (!direction.isPresent()
-          && (isNonUniversal(schema)
+          && (isUnidirectional(schema)
               || schema.getType() == Type.ARRAY
-                  && isNonUniversal(schema.getProperties().get(0).getType()))) {
+                  && isUnidirectional(schema.getProperties().get(0).getType()))) {
         direction.setValue(Direction.OUT);
       }
       return this;
     }
 
-    private static boolean isNonUniversal(Schema schema) {
-      return !schema.isUniversal() || schema.getType() == Type.OBJECT && schema.isIdentifiable();
+    private static boolean isUnidirectional(Schema schema) {
+      return !schema.isBidirectional()
+          || (schema.getType() == Type.OBJECT
+              && IdentifiableObject.class.isAssignableFrom(schema.getRawType()));
     }
 
     Api.Schema withElements(Schema componentType) {

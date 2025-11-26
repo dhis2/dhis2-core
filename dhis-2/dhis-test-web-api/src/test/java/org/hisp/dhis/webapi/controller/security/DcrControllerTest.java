@@ -281,6 +281,8 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
                 keyPair
                     .jwkSet())); // Inline JWKS , note jwks_uri is also set but should be ignored,
     // validation will fail if not set, only jwks is used
+    // NOTE: Scope is defined here BUT this is only because we use client_credentials grant
+    // when using /authorize first in the real world, you define scope in there.
   }
 
   private String createClientAndIat() {

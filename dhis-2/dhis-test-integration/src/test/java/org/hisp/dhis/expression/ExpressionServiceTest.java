@@ -101,7 +101,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -261,9 +260,9 @@ class ExpressionServiceTest extends PostgresIntegrationTestBase {
           "orgUnitGrpA", 1000000,
           "orgUnitGrpB", 2000000);
 
-  private static final Period samplePeriod1 = PeriodType.getPeriodFromIsoString("20200101");
+  private static final Period samplePeriod1 = Period.of("20200101");
 
-  private static final Period samplePeriod2 = PeriodType.getPeriodFromIsoString("20200102");
+  private static final Period samplePeriod2 = Period.of("20200102");
 
   private static final List<Period> TEST_SAMPLE_PERIODS =
       Lists.newArrayList(samplePeriod1, samplePeriod2);

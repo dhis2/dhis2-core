@@ -143,7 +143,7 @@ public class JobScheduler implements Runnable, JobRunner {
     try {
       service.createHousekeepingJob(new SystemUser());
     } catch (Exception ex) {
-      log.error("Unable to create house-keeping job: " + ex.getMessage(), ex);
+      log.error("Unable to create house-keeping job: {}", ex.getMessage(), ex);
     }
   }
 
@@ -219,9 +219,9 @@ public class JobScheduler implements Runnable, JobRunner {
     UID jobId = config.id();
     if (!service.tryRun(jobId)) {
       log.debug(
-          String.format(
-              "Could not start job %s although it should run %s",
-              jobId, start.atZone(ZoneId.systemDefault())));
+          "Could not start job {} although it should run {}",
+          jobId,
+          start.atZone(ZoneId.systemDefault()));
       return;
     }
     log.debug("Running job %s");

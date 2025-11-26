@@ -210,16 +210,17 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
         new DataValue(deB, peA, ouB, cocA, cocA, "1"),
         new DataValue(deB, peA, ouB, cocB, cocB, "1"));
 
-    dataSetService.updateDataSet(dsA);
-    dataSetService.updateDataSet(dsB);
-
     user = makeUser("A");
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.addUser(user);
-    injectSecurityContextUser(user);
 
     enableDataSharing(user, dsA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(user, dsB, AccessStringHelper.DATA_READ_WRITE);
+
+    dataSetService.updateDataSet(dsA);
+    dataSetService.updateDataSet(dsB);
+
+    injectSecurityContextUser(user);
   }
 
   // -------------------------------------------------------------------------
@@ -228,8 +229,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportBasic() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouA.getUid()))
             .period(Set.of(peA.getIsoDate()))
@@ -247,8 +248,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportBasic_FilterAoc() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataElement(Set.of(deA.getUid()))
             .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
             .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
@@ -266,8 +267,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportBasic_FilterMultiAoc() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataElement(Set.of(deA.getUid()))
             .orgUnit(Set.of(ouA.getUid(), ouB.getUid()))
             .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
@@ -284,8 +285,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportBasic_FromUrlParamsWithDataElementIds() throws Exception {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataElement(Set.of(deA.getCode(), deB.getCode()))
             .inputDataElementIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouA.getCode()))
@@ -307,8 +308,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportBasic_FromUrlParamsWithCodes() throws Exception {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(singleton(dsA.getCode()))
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouA.getCode()))
@@ -331,8 +332,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportAttributeOptionCombo() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouB.getUid()))
             .period(Set.of(peA.getIsoDate()))
@@ -349,8 +350,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportAttributeOptionCombo_FromUrlParamsWithCodes() throws Exception {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(singleton(dsA.getCode()))
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .orgUnit(singleton(ouB.getCode()))
@@ -377,8 +378,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportOrgUnitChildren() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouA.getUid()))
             .children(true)
@@ -394,8 +395,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportOutputSingleDataValueSetIdSchemeCode() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsB.getUid()))
             .orgUnit(Set.of(ouA.getUid()))
             .period(Set.of(peB.getIsoDate()))
@@ -419,8 +420,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportOutputSingleDataValueSetIdSchemeCode_FromUrlParamsWithCodes() throws Exception {
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .orgUnitIdScheme(IdentifiableProperty.CODE.name())
             .dataElementIdScheme(IdentifiableProperty.CODE.name())
             .dataSetIdScheme(IdentifiableProperty.CODE.name())
@@ -449,8 +450,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   void testExportOutputIdSchemeAttribute() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsB.getUid()))
             .orgUnit(Set.of(ouA.getUid()))
             .period(Set.of(peB.getIsoDate()))
@@ -475,7 +476,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   void testExportLastUpdated() throws Exception {
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params = DataExportParams.builder().lastUpdated(lastUpdated).build();
+    DataExportParams.Input params =
+        DataExportParams.Input.builder().lastUpdated(lastUpdated).build();
     dataExportPipeline.exportAsJsonSync(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
     assertNotNull(dvs);
@@ -492,7 +494,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
     addDataValues(dvA, dvB);
     Date lastUpdated = getDate(1970, 1, 1);
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params = DataExportParams.builder().lastUpdated(lastUpdated).build();
+    DataExportParams.Input params =
+        DataExportParams.Input.builder().lastUpdated(lastUpdated).build();
     dataExportPipeline.exportAsJsonSync(params, out);
     JsonObject json = JsonMixed.of(out.toString(StandardCharsets.UTF_8));
     assertEquals(14, json.getArray("dataValues").size());
@@ -510,8 +513,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testMissingDataSetElementGroup() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .orgUnit(Set.of(ouB.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .build();
@@ -523,8 +526,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testMissingPeriodStartEndDate() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouA.getUid()))
             .build();
@@ -536,8 +539,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testPeriodAndStartEndDate() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouB.getUid()))
             .period(Set.of(peA.getIsoDate()))
@@ -552,8 +555,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testStartDateAfterEndDate() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouB.getUid()))
             .startDate(getDate(2019, 3, 1))
@@ -567,8 +570,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testMissingOrgUnit() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate()))
             .build();
@@ -580,8 +583,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testAtLestOneOrgUnitWithChildren() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
             .orgUnitGroup(Set.of(ogA.getUid()))
@@ -595,8 +598,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testLimitLimitNotLessThanZero() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .period(Set.of(peA.getIsoDate(), peB.getIsoDate()))
             .orgUnit(Set.of(ouB.getUid()))
@@ -610,8 +613,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testAccessOutsideOrgUnitHierarchy() {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    DataExportParams params =
-        DataExportParams.builder()
+    DataExportParams.Input params =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(dsA.getUid()))
             .orgUnit(Set.of(ouC.getUid()))
             .period(Set.of(peA.getIsoDate()))

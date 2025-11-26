@@ -70,6 +70,12 @@ public class DbPoolConfig {
 
   private ConfigKeyMapper mapper;
 
+  /**
+   * Whether this data source should be treated as read-only. This flag is advisory. The read-only
+   * behavior will not be enforced.
+   */
+  boolean readOnly;
+
   public ConfigKeyMapper getMapper() {
     return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
   }

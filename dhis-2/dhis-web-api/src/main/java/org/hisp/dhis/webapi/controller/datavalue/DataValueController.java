@@ -263,7 +263,7 @@ public class DataValueController {
     if (dataValue == null) throw new NotFoundException("Data value does not exist");
 
     Set<UID> notReadable =
-        dataEntryService.getNotReadableOptionCombos(
+        dataEntryService.getNotReadableCategoryOptions(
             List.of(dataValue.categoryOptionCombo(), dataValue.attributeOptionCombo()));
     if (!notReadable.isEmpty())
       throw new ForbiddenException(

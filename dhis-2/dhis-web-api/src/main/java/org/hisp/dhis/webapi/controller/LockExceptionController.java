@@ -59,7 +59,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -191,7 +190,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
     DataSet dataSet = dataSetService.getDataSet(ds);
 
-    Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(pe));
+    Period period = periodService.reloadPeriod(Period.of(pe));
 
     if (dataSet == null || period == null) {
       return conflict(" DataSet or Period is invalid");
@@ -257,7 +256,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       throws WebMessageException, ForbiddenException {
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
-    Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
+    Period period = periodService.reloadPeriod(Period.of(periodId));
     OrganisationUnit organisationUnit =
         organisationUnitService.getOrganisationUnit(organisationUnitId);
 

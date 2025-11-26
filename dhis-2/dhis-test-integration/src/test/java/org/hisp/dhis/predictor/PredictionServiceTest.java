@@ -357,7 +357,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       OrganisationUnit source,
       Period period) {
     DataExportValue value =
-        dataExportStore.getDataValue(
+        dataExportStore.exportValue(
             new DataEntryKey(dataElement, period, source, combo, attributeOptionCombo));
     return value == null ? null : value.value();
   }
