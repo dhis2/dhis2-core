@@ -74,6 +74,12 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
       // where:
       // (ax."occurreddate" >= '2022-01-01' and ax."occurreddate" <= '2022-12-31' and ax."ps" = 'Zj7UnCAulEk')
+
+      // metadata
+//      "items": {
+//          "Zj7UnCAulEk.dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAREVENT_DATE": {
+//              "name": "Report date, name of the stage"
+//          },
   }
 
     @Test
@@ -351,6 +357,4 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         // where:
         // (ax."eventstatus" in ('ACTIVE') and ax."ps" = 'ZkbAXlQUYJG')
     }
-
-
 }
