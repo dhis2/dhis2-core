@@ -566,7 +566,7 @@ public class DefaultDimensionService implements DimensionService {
 
           for (String period : uids) {
             if (!RelativePeriodEnum.contains(period)) {
-              Period isoPeriod = Period.of(period);
+              Period isoPeriod = Period.ofNullable(period);
 
               if (isoPeriod != null) {
                 periods.add(PeriodDimension.of(isoPeriod));

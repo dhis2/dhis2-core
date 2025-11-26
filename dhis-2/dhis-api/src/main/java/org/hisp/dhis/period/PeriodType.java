@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.calendar.CalendarService;
@@ -459,10 +460,13 @@ public abstract class PeriodType implements Serializable {
    *
    * @param isoPeriod String formatted period (2011, 201101, 2011W34, 2011Q1 etc
    * @return the PeriodType or null if unrecognized
+   * @throws IllegalArgumentException if the given ISO period is formally invalid. This does not
+   *     detect semantically invalid periods, like for example a quarterly period for a 5th quarter,
+   *     but it would detect a two digit quarter.
    */
+  @Nonnull
   public static PeriodType getPeriodTypeFromIsoString(String isoPeriod) {
-    PeriodTypeEnum type = PeriodTypeEnum.ofIsoPeriod(isoPeriod);
-    return type == null ? null : PERIOD_TYPE_ENUM_MAP.get(type);
+    return PERIOD_TYPE_ENUM_MAP.get(PeriodTypeEnum.ofIsoPeriod(isoPeriod));
   }
 
   /**
