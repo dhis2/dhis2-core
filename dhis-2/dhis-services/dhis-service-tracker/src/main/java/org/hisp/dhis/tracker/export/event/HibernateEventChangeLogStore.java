@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.export.Order;
 
 public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObject> {
   private static final String COLUMN_CHANGELOG_CREATED = "ecl.created";
-  private static final String COLUMN_CHANGELOG_USER = "ecl.createdByUsername";
+  private static final String COLUMN_CHANGELOG_USER = "ecl.createdBy";
   private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "d.uid";
   private static final String COLUMN_CHANGELOG_FIELD = "ecl.eventField";
   private static final String ORDER_CHANGE_EXPRESSION =
@@ -113,14 +113,14 @@ public abstract class HibernateEventChangeLogStore<T, S extends SoftDeletableObj
             ecl.currentValue, \
             ecl.changeLogType, \
             ecl.created, \
-            ecl.createdByUsername, \
+            ecl.createdBy, \
             u.firstName, \
             u.surname, \
             u.uid \
         from %s ecl \
         join ecl.event e \
         left join ecl.dataElement d \
-        left join ecl.createdBy u \
+        left join User u on u.username = ecl.createdBy \
         where e.uid = :eventUid
         """,
             getTableName());
