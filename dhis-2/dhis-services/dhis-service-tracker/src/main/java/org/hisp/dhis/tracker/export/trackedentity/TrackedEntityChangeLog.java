@@ -29,6 +29,19 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,30 +52,64 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.User;
 
+@Entity
+@Table(name = "trackedentitychangelog")
 @NoArgsConstructor
 @Getter
 @Setter
 public class TrackedEntityChangeLog {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @SequenceGenerator(name = "trackedentitychangelog_sequence")
+  @Column(name = "trackedentitychangelogid")
   private long id;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "trackedentityid",
+      foreignKey = @ForeignKey(name = "fk_trackedentitychangelog_trackedentityid"),
+      nullable = false)
   private TrackedEntity trackedEntity;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "trackedentityattributeid",
+      foreignKey = @ForeignKey(name = "fk_trackedentitychangelog_trackedentityattributeid"))
   private TrackedEntityAttribute trackedEntityAttribute;
 
+  @Column(name = "previousvalue", length = 50000)
   private String previousValue;
 
+  @Column(name = "currentvalue", length = 50000)
   private String currentValue;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "changelogtype", length = 100, nullable = false)
   private ChangeLogType changeLogType;
 
+  @Column(name = "created", nullable = false)
   private Date created;
 
+  @Column(name = "createdby")
   private String createdByUsername;
 
-  private UserInfoSnapshot createdBy;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "createdby",
+      insertable = false,
+      updatable = false,
+      referencedColumnName = "username")
+  private User createdBy;
 
   @Getter(AccessLevel.NONE)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "trackedentityattributeid",
+      insertable = false,
+      updatable = false,
+      referencedColumnName = "trackedentityattributeid")
   private ProgramTrackedEntityAttribute programAttribute;
 
   public TrackedEntityChangeLog(
@@ -88,7 +135,12 @@ public class TrackedEntityChangeLog {
       UserInfoSnapshot createdBy) {
     this(
         trackedEntity, trackedEntityAttribute, previousValue, currentValue, changeLogType, created);
-    this.createdBy = createdBy;
+    User user = new User();
+    user.setUid(createdBy.getUid());
+    user.setUsername(createdBy.getUsername());
+    user.setFirstName(createdBy.getFirstName());
+    user.setSurname(createdBy.getSurname());
+    this.createdBy = user;
   }
 
   private TrackedEntityChangeLog(
