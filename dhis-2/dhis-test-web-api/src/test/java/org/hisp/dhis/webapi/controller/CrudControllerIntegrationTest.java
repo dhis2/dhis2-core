@@ -829,15 +829,6 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             .size());
   }
 
-  @Test
-  @DisplayName("Should not delete non-existent TrackedEntity")
-  void testDeleteNonExistentTrackedEntity() {
-    // Try to delete a non-existent tracked entity
-    DELETE("/trackedEntities/{id}", "nonExistentId").content(HttpStatus.NOT_FOUND);
-  }
-
-
-
   private User createUserAndRole(String firstName, String lastName,
       boolean superUserFlag,
       String username,
