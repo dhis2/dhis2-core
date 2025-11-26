@@ -55,6 +55,9 @@ public class AnalyticsTableUpdateParams {
   /** Indicates whether to skip update of resource tables. */
   boolean skipResourceTables;
 
+  /** Indicates whether to refresh the period resource table before analytics table update. */
+  private boolean refreshPeriodResourceTable;
+
   /** Analytics table types to skip. */
   private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
@@ -135,6 +138,7 @@ public class AnalyticsTableUpdateParams {
     return MoreObjects.toStringHelper(this)
         .add("last years", lastYears)
         .add("skip resource tables", skipResourceTables)
+        .add("refresh period resource table", refreshPeriodResourceTable)
         .add("skip table types", skipTableTypes)
         .add("skip programs", skipPrograms)
         .add("start time", DateUtils.getLongDateString(startTime))
@@ -210,6 +214,7 @@ public class AnalyticsTableUpdateParams {
 
     public Builder withLatestPartition() {
       this.params.lastYears = AnalyticsTablePartition.LATEST_PARTITION;
+      this.params.refreshPeriodResourceTable = true;
       return this;
     }
 
