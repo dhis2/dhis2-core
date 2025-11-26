@@ -160,6 +160,10 @@ class JwtBearerTokenTest extends ControllerWithJwtTokenAuthTestBase {
         GET("/me", JwtTokenHeader("NOT_A_JWT_TOKEN")));
   }
 
+  /**
+   * This error happens when using ephemeral signing keys, so for example when you restart the
+   * server, the access tokens issued before the restart will no longer be valid.
+   */
   @Test
   void testExpiredToken() {
     dhis2JwtAuthenticationManagerResolver.setJwtDecoder(null);
