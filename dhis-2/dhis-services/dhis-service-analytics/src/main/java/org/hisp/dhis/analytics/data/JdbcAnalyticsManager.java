@@ -241,7 +241,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         Assert.notNull(periodKey, String.format("Period key cannot be null, key: '%s'", key));
 
         List<DimensionalItemObject> periods =
-            dataPeriodAggregationPeriodMap.get(PeriodDimension.of(Period.of(periodKey)));
+            dataPeriodAggregationPeriodMap.get(PeriodDimension.of(Period.ofNullable(periodKey)));
 
         Assert.notNull(
             periods,

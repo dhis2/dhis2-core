@@ -1168,7 +1168,7 @@ public final class AnalyticsUtils {
   public static boolean hasPeriod(List<Object> row, int periodIndex) {
     return periodIndex < row.size()
         && row.get(periodIndex) instanceof String
-        && Period.of((String) row.get(periodIndex)) != null;
+        && Period.ofNullable((String) row.get(periodIndex)) != null;
   }
 
   /**
