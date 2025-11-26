@@ -75,6 +75,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JpaCriteriaQueryEngine implements QueryEngine {
 
+  private static final String DISPLAY_PREFIX = "display";
+
   private final SchemaService schemaService;
   private final List<IdentifiableObjectStore<?>> hibernateGenericStores;
   private final QueryCacheManager queryCacheManager;
@@ -197,40 +199,80 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getOrderPredicate(
       CriteriaBuilder builder, Root<T> root, Schema schema, @Nonnull Order order) {
 
-    Property property = schema.getProperty(order.getProperty());
-    if (property == null)
-      throw new IllegalArgumentException("No such property: " + order.getProperty());
+    Property property = resolveProperty(schema, order.getProperty());
 
-    // Handle display properties (displayName, displayFormName, displayEnrollmentDateLabel, etc.)
-    // These are virtual properties that map to base properties with @Translatable annotations
-    String propertyName = order.getProperty();
-    if (propertyName.startsWith("display")) {
-      // Get the base property (e.g., displayName -> name)
-      String basePropertyName = getBasePropertyName(propertyName);
-      Property baseProperty = schema.getProperty(basePropertyName);
-
-      if (baseProperty != null
-          && baseProperty.isTranslatable()
-          && baseProperty.getTranslationKey() != null) {
-        // Use translatable ordering for the base property
-        return getTranslatableOrderPredicate(builder, root, baseProperty, order);
-      }
-      // If not translatable, order by the base property normally
-      if (baseProperty != null) {
-        property = baseProperty;
-      }
-    } else if (property.isTranslatable() && property.getTranslationKey() != null) {
-      // Handle non-display translatable properties
-      return getTranslatableOrderPredicate(builder, root, property, order);
+    // Try to handle as display or translatable property
+    jakarta.persistence.criteria.Order translatableOrder =
+        tryGetTranslatableOrder(builder, root, schema, property, order);
+    if (translatableOrder != null) {
+      return translatableOrder;
     }
 
-    String name = property.getFieldName();
+    // Fall back to regular property ordering
+    return getRegularOrder(builder, root, property, order);
+  }
+
+  private Property resolveProperty(Schema schema, String propertyName) {
+    Property property = schema.getProperty(propertyName);
+    if (property == null)
+      throw new IllegalArgumentException("No such property: " + propertyName);
+    return property;
+  }
+
+  private <T extends IdentifiableObject> jakarta.persistence.criteria.Order tryGetTranslatableOrder(
+      CriteriaBuilder builder,
+      Root<T> root,
+      Schema schema,
+      Property property,
+      Order order) {
+    String propertyName = order.getProperty();
+
+    if (propertyName.startsWith(DISPLAY_PREFIX)) {
+      return handleDisplayProperty(builder, root, schema, property, order);
+    }
+
+    if (isTranslatable(property)) {
+      return getTranslatableOrderJsonBPredicate(builder, root, property, order);
+    }
+
+    return null;
+  }
+
+  private <T extends IdentifiableObject> jakarta.persistence.criteria.Order handleDisplayProperty(
+      CriteriaBuilder builder,
+      Root<T> root,
+      Schema schema,
+      Property property,
+      Order order) {
+    String basePropertyName = getBasePropertyName(order.getProperty());
+    Property baseProperty = schema.getProperty(basePropertyName);
+
+    if (baseProperty != null && isTranslatable(baseProperty)) {
+      return getTranslatableOrderJsonBPredicate(builder, root, baseProperty, order);
+    }
+
+    if (baseProperty != null) {
+      return getRegularOrder(builder, root, baseProperty, order);
+    }
+
+    return getRegularOrder(builder, root, property, order);
+  }
+
+  private boolean isTranslatable(Property property) {
+    return property.isTranslatable() && property.getTranslationKey() != null;
+  }
+
+  private <T extends IdentifiableObject> jakarta.persistence.criteria.Order getRegularOrder(
+      CriteriaBuilder builder, Root<T> root, Property property, Order order) {
+    String fieldName = property.getFieldName();
+
     if (order.isIgnoreCase() && isPropertyTypeText(property)) {
       return order.isAscending()
-          ? builder.asc(builder.lower(root.get(name)))
-          : builder.desc(builder.lower(root.get(name)));
+          ? builder.asc(builder.lower(root.get(fieldName)))
+          : builder.desc(builder.lower(root.get(fieldName)));
     }
-    return order.isAscending() ? builder.asc(root.get(name)) : builder.desc(root.get(name));
+
+    return order.isAscending() ? builder.asc(root.get(fieldName)) : builder.desc(root.get(fieldName));
   }
 
   /**
@@ -246,7 +288,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * @return an order predicate that sorts by the translated value
    */
   private <T extends IdentifiableObject>
-      jakarta.persistence.criteria.Order getTranslatableOrderPredicate(
+      jakarta.persistence.criteria.Order getTranslatableOrderJsonBPredicate(
           CriteriaBuilder builder, Root<T> root, Property property, Order order) {
 
     String translationKey = property.getTranslationKey();
@@ -273,18 +315,18 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   /**
-   * Maps display property names to their base property names.
+   * Maps display property names to their base property names by removing the "display" prefix.
    *
    * @param displayPropertyName the display property name (e.g., "displayName")
    * @return the base property name (e.g., "name")
    */
   private String getBasePropertyName(String displayPropertyName) {
-    return switch (displayPropertyName) {
-      case "displayName" -> "name";
-      case "displayDescription" -> "description";
-      case "displayShortName" -> "shortName";
-      default -> displayPropertyName;
-    };
+    if (displayPropertyName.startsWith(DISPLAY_PREFIX)
+        && displayPropertyName.length() > DISPLAY_PREFIX.length()) {
+      String basePropertyName = displayPropertyName.substring(DISPLAY_PREFIX.length());
+      return basePropertyName.substring(0, 1).toLowerCase() + basePropertyName.substring(1);
+    }
+    return displayPropertyName;
   }
 
   private void initStoreMap() {
@@ -335,7 +377,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (!filter.isVirtual()) {
       String filterPath = filter.getPath();
       // Map display properties to their base properties
-      if (filterPath.startsWith("display")) {
+      if (filterPath.startsWith(DISPLAY_PREFIX)) {
         filterPath = getBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
       }

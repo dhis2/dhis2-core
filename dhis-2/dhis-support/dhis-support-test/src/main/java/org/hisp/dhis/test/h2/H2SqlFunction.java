@@ -206,11 +206,10 @@ public class H2SqlFunction {
         if (elementProperty != null
             && elementLocale != null
             && elementProperty.equals(property)
-            && elementLocale.equals(locale)) {
-          if (obj.has("value")) {
+            && elementLocale.equals(locale) && obj.has("value")) {
             return obj.get("value").getAsString();
           }
-        }
+
       }
 
       return null;

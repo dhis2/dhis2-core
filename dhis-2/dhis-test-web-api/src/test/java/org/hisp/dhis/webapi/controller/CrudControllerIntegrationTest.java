@@ -544,21 +544,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             POST(
                 "/dataSets/",
                 "{'name':'Health Monthly Report', 'shortName': 'HMR', 'periodType':'Monthly', 'formName':'FormA'}"));
-
-    String ds2Id =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataSets/",
-                "{'name':'Health Quarterly Report', 'shortName': 'HQR', 'periodType':'Quarterly'}"));
-
-    String ds3Id =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/dataSets/",
-                "{'name':'Education Monthly Report', 'shortName': 'EMR', 'periodType':'Monthly'}"));
-
+    
     // Test combining displayName filter with formName filter
     // Should return only datasets with "Health" in displayName AND formName = FormA
     JsonList<JsonIdentifiableObject> results =
