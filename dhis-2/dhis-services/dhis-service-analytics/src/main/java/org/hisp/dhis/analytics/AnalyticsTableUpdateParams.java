@@ -92,6 +92,10 @@ public class AnalyticsTableUpdateParams {
     return skipResourceTables;
   }
 
+  public boolean isRefreshPeriodResourceTable() {
+    return refreshPeriodResourceTable;
+  }
+
   public Set<AnalyticsTableType> getSkipTableTypes() {
     return skipTableTypes;
   }
