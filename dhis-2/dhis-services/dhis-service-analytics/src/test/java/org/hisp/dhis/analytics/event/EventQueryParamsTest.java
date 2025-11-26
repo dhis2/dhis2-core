@@ -44,11 +44,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -639,5 +644,56 @@ class EventQueryParamsTest extends TestBase {
     // When
     // Then
     assertEquals(expected, params.isAggregatedEnrollments());
+  }
+
+  @Test
+  void testStageDateItemQueryItem_OccurredDate() {
+    // Test that a QueryItem for occurreddate is created correctly
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+    qi.addFilter(new QueryFilter(QueryOperator.GE, "2019-01-01"));
+    qi.addFilter(new QueryFilter(QueryOperator.LE, "2019-12-31"));
+
+    assertEquals(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, qi.getItemId());
+    assertEquals(ValueType.DATE, qi.getValueType());
+    assertEquals(psA, qi.getProgramStage());
+    assertEquals(2, qi.getFilters().size());
+  }
+
+  @Test
+  void testStageDateItemQueryItem_ScheduledDate() {
+    // Test that a QueryItem for scheduleddate is created correctly
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+    qi.addFilter(new QueryFilter(QueryOperator.GE, "2020-01-01"));
+    qi.addFilter(new QueryFilter(QueryOperator.LE, "2020-06-30"));
+
+    assertEquals(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, qi.getItemId());
+    assertEquals(ValueType.DATE, qi.getValueType());
+    assertEquals(psA, qi.getProgramStage());
+    assertEquals(2, qi.getFilters().size());
+  }
+
+  @Test
+  void testStageDateItemIdentification() {
+    // Test that stage date items are identifiable by their itemId
+    BaseDimensionalItemObject occurredDateItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    BaseDimensionalItemObject scheduledDateItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    BaseDimensionalItemObject otherItem = new BaseDimensionalItemObject("someOtherItem");
+
+    QueryItem qiOccurred = new QueryItem(occurredDateItem);
+    QueryItem qiScheduled = new QueryItem(scheduledDateItem);
+    QueryItem qiOther = new QueryItem(otherItem);
+
+    // Test the logic by checking getItemId matches expected column names
+    assertEquals(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, qiOccurred.getItemId());
+    assertEquals(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, qiScheduled.getItemId());
+    assertNotEquals(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, qiOther.getItemId());
   }
 }
