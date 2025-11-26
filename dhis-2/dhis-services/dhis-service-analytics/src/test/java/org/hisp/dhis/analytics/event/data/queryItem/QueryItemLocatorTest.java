@@ -56,11 +56,13 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.legend.LegendSet;
@@ -413,6 +415,96 @@ class QueryItemLocatorTest {
     assertThat(queryItem.getProgramStage(), is(nullValue()));
     assertThat(queryItem.getLegendSet(), is(nullValue()));
     assertThat(queryItem.getRelationshipType(), is(relationshipType));
+  }
+
+  @Test
+  void verifyDimensionReturnsEventDateQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "EVENT_DATE",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDimensionReturnsScheduledDateQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "SCHEDULED_DATE",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDimensionReturnsEventStatusQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "EVENT_STATUS",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.TEXT));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDimensionReturnsProgramStageOrgUnitQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "ou",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OU_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.ORGANISATION_UNIT));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyEventDateWithoutProgramStageThrows() {
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension("EVENT_DATE", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
+
+  @Test
+  void verifyScheduledDateWithoutProgramStageThrows() {
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension(
+                "SCHEDULED_DATE", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
   }
 
   private RelationshipType createRelationshipType() {

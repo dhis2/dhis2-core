@@ -41,6 +41,8 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -425,6 +427,42 @@ class EventQueryValidatorTest extends TestBase {
     ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
 
     assertEquals(ErrorCode.E7212, error.getErrorCode());
+  }
+
+  @Test
+  void validateSuccessWithStageDateItem_OccurredDate() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi)
+            .build();
+
+    // Should not throw - stage date item provides period context
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+    assertNull(error);
+  }
+
+  @Test
+  void validateSuccessWithStageDateItem_ScheduledDate() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi)
+            .build();
+
+    // Should not throw - stage date item provides period context
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+    assertNull(error);
   }
 
   /**
