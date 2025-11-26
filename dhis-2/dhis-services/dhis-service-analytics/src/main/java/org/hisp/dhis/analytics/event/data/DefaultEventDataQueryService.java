@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
@@ -551,6 +552,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       } else {
         throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
       }
+    } else if (EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.hasProgramStage()) {
+      // Handle stage.EVENT_STATUS specific filters (e.g., ACTIVE;COMPLETED)
+      if (split.length == 2) {
+        parseAndAddEventStatusFilters(queryItem, split[1]);
+      } else {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
     } else if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())
         && queryItem.hasProgramStage()) {
       // Handle stage.ou specific filters
@@ -646,6 +655,30 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     throwIllegalQueryEx(ErrorCode.E7222, filterString);
+  }
+
+  private static final Set<String> VALID_STAGE_EVENT_STATUSES =
+      Set.of("ACTIVE", "COMPLETED", "SCHEDULE");
+
+  private void parseAndAddEventStatusFilters(QueryItem queryItem, String filterString) {
+    // Parse semicolon-separated status values (e.g., "ACTIVE;COMPLETED")
+    String[] statuses = filterString.split(OPTION_SEP);
+
+    List<String> validStatuses = new ArrayList<>();
+    for (String status : statuses) {
+      String trimmedStatus = status.trim().toUpperCase();
+      if (!VALID_STAGE_EVENT_STATUSES.contains(trimmedStatus)) {
+        throwIllegalQueryEx(ErrorCode.E7222, filterString);
+      }
+      validStatuses.add(trimmedStatus);
+    }
+
+    if (validStatuses.isEmpty()) {
+      throwIllegalQueryEx(ErrorCode.E7222, filterString);
+    }
+
+    // Add IN filter with the valid statuses
+    queryItem.addFilter(new QueryFilter(QueryOperator.IN, String.join(OPTION_SEP, validStatuses)));
   }
 
   private static void modifyFilterWhenTimeQueryItem(QueryItem queryItem, QueryFilter filter) {
