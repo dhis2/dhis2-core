@@ -15,6 +15,6 @@ scrape_configs:
     basic_auth:
       username: 'admin'
       password: 'district'
-    # Add custom request ID header for tracking
-    headers:
-      X-Request-ID: 'prometheus-scraper'
+    http_headers:
+      X-Request-ID:
+        values: ['prometheus-scraper']
