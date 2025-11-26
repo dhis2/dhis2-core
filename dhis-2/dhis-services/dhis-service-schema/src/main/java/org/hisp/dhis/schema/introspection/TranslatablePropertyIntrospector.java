@@ -39,10 +39,9 @@ import org.hisp.dhis.system.util.AnnotationUtils;
  * A {@link PropertyIntrospector} that adds information to existing {@link Property} values if they
  * are annotated with {@link org.hisp.dhis.translation.Translatable}.
  *
- * This introspector processes both:
- * 1. Field-level translatable properties (e.g., name, shortName, description)
- * 2. Method-level translatable properties via display methods (e.g., getDisplayName(),
- *    getDisplayFormName(), getDisplayEnrollmentDateLabel())
+ * <p>This introspector processes both: 1. Field-level translatable properties (e.g., name,
+ * shortName, description) 2. Method-level translatable properties via display methods (e.g.,
+ * getDisplayName(), getDisplayFormName(), getDisplayEnrollmentDateLabel())
  *
  * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
  */

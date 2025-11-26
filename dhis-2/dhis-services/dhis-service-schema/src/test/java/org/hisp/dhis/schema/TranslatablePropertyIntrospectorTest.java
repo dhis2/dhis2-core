@@ -146,10 +146,10 @@ class TranslatablePropertyIntrospectorTest {
   }
 
   /**
-   * Tests that display properties (virtual properties created from @Translatable annotated
-   * methods) are correctly marked as translatable. For example, DataElement has a
-   * getDisplayName() method annotated with @Translatable(propertyName = "name", key = "NAME").
-   * This should mark the "name" property as translatable with the key "NAME".
+   * Tests that display properties (virtual properties created from @Translatable annotated methods)
+   * are correctly marked as translatable. For example, DataElement has a getDisplayName() method
+   * annotated with @Translatable(propertyName = "name", key = "NAME"). This should mark the "name"
+   * property as translatable with the key "NAME".
    */
   @Test
   void testDisplayPropertiesAreTranslatable() {

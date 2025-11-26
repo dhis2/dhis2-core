@@ -704,7 +704,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     userBob.setFirstName("Bob");
     userBob.setSurname("Wilson");
     userService.updateUser(userBob);
-    
+
     manager.flush();
 
     // Query users ordered by displayName ascending
@@ -725,23 +725,25 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     int bobIndex = indexMap.get(userBob.getUid());
     int zoeIndex = indexMap.get(userZoe.getUid());
 
-    assertTrue(aliceIndex < bobIndex, "Alice Smith should come before Bob Wilson in alphabetical order");
-    assertTrue(bobIndex < zoeIndex, "Bob Wilson should come before Zoe Johnson in alphabetical order");
+    assertTrue(
+        aliceIndex < bobIndex, "Alice Smith should come before Bob Wilson in alphabetical order");
+    assertTrue(
+        bobIndex < zoeIndex, "Bob Wilson should come before Zoe Johnson in alphabetical order");
   }
 
   @Test
   void testOrderUsersByDisplayNameDesc() {
     // Create users with different display names
-    org.hisp.dhis.user.User userAlice = createUserAndRole("Alice", "Smith", false, "alice2",
-        Set.of(), Set.of());
+    org.hisp.dhis.user.User userAlice =
+        createUserAndRole("Alice", "Smith", false, "alice2", Set.of(), Set.of());
     userService.addUser(userAlice);
     assertEquals("Alice Smith", userAlice.getDisplayName());
-    
-    org.hisp.dhis.user.User userZoe = createUserAndRole("Zoe", "Johnson", false, "zoe2",
-        Set.of(), Set.of());
+
+    org.hisp.dhis.user.User userZoe =
+        createUserAndRole("Zoe", "Johnson", false, "zoe2", Set.of(), Set.of());
     userService.addUser(userZoe);
-    org.hisp.dhis.user.User userBob = createUserAndRole("Bob", "Wilson", false, "bob2",
-        Set.of(), Set.of());
+    org.hisp.dhis.user.User userBob =
+        createUserAndRole("Bob", "Wilson", false, "bob2", Set.of(), Set.of());
     userService.addUser(userBob);
 
     // Query users ordered by displayName descending
@@ -762,15 +764,18 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     int bobIndex = indexMap.get(userBob.getUid());
     int zoeIndex = indexMap.get(userZoe.getUid());
 
-    assertTrue(zoeIndex < bobIndex, "Zoe Johnson should come before Bob Wilson in reverse alphabetical order");
-    assertTrue(bobIndex < aliceIndex, "Bob Wilson should come before Alice Smith in reverse alphabetical order");
+    assertTrue(
+        zoeIndex < bobIndex,
+        "Zoe Johnson should come before Bob Wilson in reverse alphabetical order");
+    assertTrue(
+        bobIndex < aliceIndex,
+        "Bob Wilson should come before Alice Smith in reverse alphabetical order");
   }
 
   @Test
   void testDisplayNameFieldInResponse() {
     // Create a user
-    User testUser = createUserAndRole("Test", "User", false, "testuser",
-        Set.of(), Set.of());
+    User testUser = createUserAndRole("Test", "User", false, "testuser", Set.of(), Set.of());
     userService.addUser(testUser);
     // Query the user and verify displayName field is returned
     JsonUser user =
@@ -789,7 +794,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     String teTypeId =
         assertStatus(
             HttpStatus.CREATED,
-            POST("/trackedEntityTypes/", "{'name':'Test Tracked Entity Type', 'shortName':'TTET'}"));
+            POST(
+                "/trackedEntityTypes/", "{'name':'Test Tracked Entity Type', 'shortName':'TTET'}"));
 
     // Create an organisation unit
     String orgUnitId =
@@ -803,8 +809,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     String teUid = CodeGenerator.generateUid();
     var response =
         POST(
-            "/api/tracker?async=false",
-            """
+                "/api/tracker?async=false",
+                """
             {
               "trackedEntities": [
                 {
@@ -814,7 +820,8 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
                 }
               ]
             }
-            """.formatted(teUid, teTypeId, orgUnitId))
+            """
+                    .formatted(teUid, teTypeId, orgUnitId))
             .content();
 
     // Verify the tracked entity was created successfully via the API response
@@ -829,7 +836,9 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             .size());
   }
 
-  private User createUserAndRole(String firstName, String lastName,
+  private User createUserAndRole(
+      String firstName,
+      String lastName,
       boolean superUserFlag,
       String username,
       Set<OrganisationUnit> organisationUnits,
