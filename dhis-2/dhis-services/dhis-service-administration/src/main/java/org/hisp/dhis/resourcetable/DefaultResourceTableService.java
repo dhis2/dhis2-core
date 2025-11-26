@@ -307,8 +307,8 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   @Transactional
   public void updatePeriodResourceTable() {
-    Logged logged = analyticsTableSettings.getTableLogged();
-    ResourceTable table = new PeriodResourceTable(logged, periodService.getAllPeriods());
+    String tableType = analyticsTableSettings.getTableType();
+    ResourceTable table = new PeriodResourceTable(periodService.getAllPeriods(), tableType);
     resourceTableStore.generateResourceTable(table);
   }
 }
