@@ -30,6 +30,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
+import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
@@ -100,42 +102,20 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
 
     LegendSet legendSet = getLegendSet(dimension);
 
-    return getDataElement(dimension, program, legendSet, type)
-        .orElseGet(
-            () ->
-                getTrackedEntityAttribute(dimension, program, legendSet)
-                    .orElseGet(
-                        () ->
-                            getProgramIndicator(dimension, program, legendSet)
-                                .orElseGet(
-                                    () ->
-                                        getEventDate(dimension, program, legendSet)
-                                            .orElseGet(
-                                                () ->
-                                                    getScheduledDate(dimension, program, legendSet)
-                                                        .orElseGet(
-                                                            () ->
-                                                                getEventStatus(
-                                                                        dimension, program,
-                                                                        legendSet)
-                                                                    .orElseGet(
-                                                                        () ->
-                                                                            getProgramStageOrgUnit(
-                                                                                    dimension,
-                                                                                    program,
-                                                                                    legendSet)
-                                                                                // if not DE, TEA or
-                                                                                // PI, we try to get
-                                                                                // as dynamic
-                                                                                // dimension
-                                                                                .orElseGet(
-                                                                                    () ->
-                                                                                        getDynamicDimension(
-                                                                                                dimension)
-                                                                                            .orElseThrow(
-                                                                                                illegalQueryExSupplier(
-                                                                                                    E7224,
-                                                                                                    dimension)))))))));
+    // Try each resolver in order until one returns a QueryItem.
+    return Stream.<Supplier<Optional<QueryItem>>>of(
+            () -> getDataElement(dimension, program, legendSet, type),
+            () -> getTrackedEntityAttribute(dimension, program, legendSet),
+            () -> getProgramIndicator(dimension, program, legendSet),
+            () -> getEventDate(dimension, program, legendSet),
+            () -> getScheduledDate(dimension, program, legendSet),
+            () -> getEventStatus(dimension, program, legendSet),
+            () -> getProgramStageOrgUnit(dimension, program, legendSet),
+            () -> getDynamicDimension(dimension))
+        .map(Supplier::get)
+        .flatMap(Optional::stream)
+        .findFirst()
+        .orElseThrow(illegalQueryExSupplier(E7224, dimension));
   }
 
   private Optional<QueryItem> getProgramStageOrgUnit(
@@ -157,7 +137,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
   }
 
   private Optional<QueryItem> getEventDate(String dimension, Program program, LegendSet legendSet) {
-    if ("EVENT_DATE".equals(getSecondElement(dimension))) {
+    if (EVENT_DATE.name().equals(getSecondElement(dimension))) {
       ProgramStage programStage = getProgramStageOrFail(dimension);
 
       if (programStage != null) {
@@ -174,7 +154,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
 
   private Optional<QueryItem> getScheduledDate(
       String dimension, Program program, LegendSet legendSet) {
-    if ("SCHEDULED_DATE".equals(getSecondElement(dimension))) {
+    if (SCHEDULED_DATE.name().equals(getSecondElement(dimension))) {
       ProgramStage programStage = getProgramStageOrFail(dimension);
 
       if (programStage != null) {
@@ -191,6 +171,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
 
   private Optional<QueryItem> getEventStatus(
       String dimension, Program program, LegendSet legendSet) {
+    // TODO could we use a constant?
     if ("EVENT_STATUS".equals(getSecondElement(dimension))) {
       ProgramStage programStage = getProgramStageOrFail(dimension);
 
