@@ -112,16 +112,22 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
                                         getEventDate(dimension, program, legendSet)
                                             .orElseGet(
                                                 () ->
-                                                    getProgramStageOrgUnit(
-                                                            dimension, program, legendSet)
-                                                        // if not DE, TEA or PI, we try to get as
-                                                        // dynamic dimension
+                                                    getScheduledDate(dimension, program, legendSet)
                                                         .orElseGet(
                                                             () ->
-                                                                getDynamicDimension(dimension)
-                                                                    .orElseThrow(
-                                                                        illegalQueryExSupplier(
-                                                                            E7224, dimension)))))));
+                                                                getProgramStageOrgUnit(
+                                                                        dimension, program,
+                                                                        legendSet)
+                                                                    // if not DE, TEA or PI, we try
+                                                                    // to get as dynamic dimension
+                                                                    .orElseGet(
+                                                                        () ->
+                                                                            getDynamicDimension(
+                                                                                    dimension)
+                                                                                .orElseThrow(
+                                                                                    illegalQueryExSupplier(
+                                                                                        E7224,
+                                                                                        dimension))))))));
   }
 
   private Optional<QueryItem> getProgramStageOrgUnit(
@@ -149,6 +155,23 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
       if (programStage != null) {
         BaseDimensionalItemObject item =
             new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+        QueryItem qi =
+            new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null);
+        qi.setProgramStage(programStage);
+        return Optional.of(qi);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<QueryItem> getScheduledDate(
+      String dimension, Program program, LegendSet legendSet) {
+    if ("SCHEDULED_DATE".equals(getSecondElement(dimension))) {
+      ProgramStage programStage = getProgramStageOrFail(dimension);
+
+      if (programStage != null) {
+        BaseDimensionalItemObject item =
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
         QueryItem qi =
             new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null);
         qi.setProgramStage(programStage);
