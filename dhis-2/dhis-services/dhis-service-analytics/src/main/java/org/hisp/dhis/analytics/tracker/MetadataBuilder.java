@@ -35,10 +35,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 
-/**
- * A fluent builder for constructing metadata maps. Provides a clean API for adding metadata entries
- * with optional conditional logic.
- */
+/** A fluent builder for constructing metadata maps. */
 class MetadataBuilder {
 
   private final Map<String, Object> metadata;
@@ -88,7 +85,7 @@ class MetadataBuilder {
   /**
    * Builds and returns the metadata map.
    *
-   * @return an unmodifiable view of the metadata map.
+   * @return a view of the metadata map.
    */
   Map<String, Object> build() {
     return metadata;
