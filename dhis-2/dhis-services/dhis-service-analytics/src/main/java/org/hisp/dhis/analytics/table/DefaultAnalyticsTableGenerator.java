@@ -98,6 +98,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       generateResourceTablesInternal(progress);
     }
 
+    if (params.isRefreshPeriodResourceTable() && params.isLatestUpdate()) {
+      log.info("Refreshing period resource table with new periods");
+      resourceTableService.updatePeriodResourceTable();
+    }
+
     Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
 
     for (AnalyticsTableService service : analyticsTableServices) {
