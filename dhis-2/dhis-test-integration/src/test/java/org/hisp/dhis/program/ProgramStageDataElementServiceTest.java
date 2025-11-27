@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,6 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -63,25 +66,32 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramStageService programStageService;
 
   private OrganisationUnit organisationUnit;
+  private Program programWithOutReg;
 
   private ProgramStage stageA;
 
   private ProgramStage stageB;
+  private ProgramStage singleEvent;
 
   private DataElement dataElementA;
-
   private DataElement dataElementB;
+  private DataElement dataElementC;
+  private DataElement dataElementD;
 
   private ProgramStageDataElement stageDataElementA;
-
   private ProgramStageDataElement stageDataElementB;
+  private ProgramStageDataElement stageDataElementC;
+  private ProgramStageDataElement stageDataElementD;
 
   @BeforeEach
   void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     Program program = createProgram('A', new HashSet<>(), organisationUnit);
+    programWithOutReg = createProgram('B', new HashSet<>(), organisationUnit);
+    programWithOutReg.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     programService.addProgram(program);
+    programService.addProgram(programWithOutReg);
     stageA = new ProgramStage("A", program);
     stageA.setSortOrder(1);
     stageA.setUid("StageA");
@@ -89,15 +99,28 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     stageB = new ProgramStage("B", program);
     stageB.setSortOrder(2);
     programStageService.saveProgramStage(stageB);
+
+    singleEvent = new ProgramStage("D", programWithOutReg);
+    singleEvent.setSortOrder(1);
+    programStageService.saveProgramStage(singleEvent);
+
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(stageA);
     programStages.add(stageB);
     program.setProgramStages(programStages);
     programService.updateProgram(program);
+
+    programWithOutReg.getProgramStages().add(singleEvent);
+    programService.updateProgram(programWithOutReg);
+
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
+    dataElementC = createDataElement('C');
+    dataElementD = createDataElement('D');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
+    dataElementService.addDataElement(dataElementC);
+    dataElementService.addDataElement(dataElementD);
     stageDataElementA = new ProgramStageDataElement(stageA, dataElementA, false, 1);
     stageDataElementB = new ProgramStageDataElement(stageA, dataElementB, false, 2);
   }
@@ -163,5 +186,32 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     programStageService.updateProgramStage(stageA);
     assertThrows(
         DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement(dataElementA));
+  }
+
+  @Test
+  void testGetProgramStageDataElementsWithSyncFiltering() {
+    stageDataElementC = new ProgramStageDataElement(singleEvent, dataElementC, false, 3);
+    stageDataElementD = new ProgramStageDataElement(singleEvent, dataElementD, false, 4);
+    stageDataElementC.setSkipSynchronization(true);
+    stageDataElementD.setSkipSynchronization(true);
+
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementB);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementC);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementD);
+
+    Map<String, Set<String>> result =
+        programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+            programWithOutReg);
+
+    assertNotNull(result);
+    assertTrue(result.containsKey(singleEvent.getUid()));
+
+    Set<String> skipped = result.get(singleEvent.getUid());
+    assertContainsOnly(
+        skipped,
+        List.of(
+            stageDataElementC.getDataElement().getUid(),
+            stageDataElementD.getDataElement().getUid()));
   }
 }

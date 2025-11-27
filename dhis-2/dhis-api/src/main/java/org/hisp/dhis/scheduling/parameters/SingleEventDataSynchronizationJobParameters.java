@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
 import lombok.Getter;
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
- * @author Jan Bernitt (refactoring to interface and state class)
+ * @author Zubair Asghar
  */
-public interface DataSynchronizationWithPaging {
-  @Getter
-  class PagedDataSynchronisationContext
-      extends DataSynchronizationWithoutPaging.DataSynchronizationContext {
-    private final int pages;
+@Getter
+@Setter
+@NoArgsConstructor
+public class SingleEventDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-    private final int pageSize;
+  static final int PAGE_SIZE_MAX = 200;
 
-    public PagedDataSynchronisationContext(
-        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
-      super(skipChangedBefore, objectsToSynchronize, instance);
-      this.pageSize = pageSize;
-      this.pages =
-          (int) (objectsToSynchronize / pageSize)
-              + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
+  @JsonProperty private int pageSize = 60;
+
+  @OpenApi.Property({UID.class, Program.class})
+  @JsonProperty(required = true)
+  private String program;
+
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
     }
-  }
 
-  SynchronizationResult synchronizeData(final int pageSize, JobProgress progress);
+    return Optional.empty();
+  }
 }

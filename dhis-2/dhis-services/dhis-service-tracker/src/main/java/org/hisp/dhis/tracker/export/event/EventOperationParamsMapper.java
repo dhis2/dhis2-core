@@ -119,9 +119,18 @@ class EventOperationParamsMapper {
 
     List<Program> accessiblePrograms = getPrograms(program);
 
+    if (operationParams.isSynchronizationQuery()
+        && operationParams.getSkipSyncDataElementsByProgramStage() != null
+        && !operationParams.getSkipSyncDataElementsByProgramStage().isEmpty()) {
+      queryParams =
+          queryParams.withSkipSyncDataElements(
+              operationParams.getSkipSyncDataElementsByProgramStage());
+    }
+
     return queryParams
         .setEnrolledInProgram(program)
         .setAccessiblePrograms(getPrograms(program))
+        .setProgramType(operationParams.getProgramType())
         .setProgramStage(programStage)
         .setAccessibleProgramStages(
             getProgramStages(program != null ? List.of(program) : accessiblePrograms, programStage))
@@ -138,7 +147,9 @@ class EventOperationParamsMapper {
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())
+        .setSkipChangedBefore(operationParams.getSkipChangedBefore())
         .setScheduledEndDate(operationParams.getScheduledBefore())
+        .setSynchronizationQuery(operationParams.isSynchronizationQuery())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
         .setUpdatedAtEndDate(operationParams.getUpdatedBefore())
         .setUpdatedAtDuration(operationParams.getUpdatedWithin())
