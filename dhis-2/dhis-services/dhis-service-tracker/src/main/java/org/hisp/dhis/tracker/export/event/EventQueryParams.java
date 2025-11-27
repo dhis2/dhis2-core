@@ -126,7 +126,13 @@ class EventQueryParams {
 
   @Getter private Date enrollmentOccurredAfter;
 
+  @Getter private Date skipChangedBefore;
+
   @Getter private CategoryOptionCombo categoryOptionCombo;
+
+  @Getter private boolean synchronizationQuery;
+
+  @Getter private Map<String, Set<String>> skipSyncDataElementsByProgramStage;
 
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
@@ -206,6 +212,12 @@ class EventQueryParams {
     return this;
   }
 
+  public EventQueryParams withSkipSyncDataElements(
+      Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+    return this;
+  }
+
   public EventQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
     return this;
@@ -228,6 +240,11 @@ class EventQueryParams {
 
   public EventQueryParams setFollowUp(Boolean followUp) {
     this.followUp = followUp;
+    return this;
+  }
+
+  public EventQueryParams setSynchronizationQuery(Boolean synchronizationQuery) {
+    this.synchronizationQuery = synchronizationQuery;
     return this;
   }
 
@@ -274,6 +291,11 @@ class EventQueryParams {
 
   public EventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
     this.updatedAtStartDate = updatedAtStartDate;
+    return this;
+  }
+
+  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
+    this.skipChangedBefore = skipChangedBefore;
     return this;
   }
 
