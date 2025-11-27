@@ -164,7 +164,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         useExperimentalAnalyticsQueryEngine()
             ? buildAnalyticsQuery(params, maxLimit)
             : getAggregatedEnrollmentsSql(params, maxLimit);
-    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -835,7 +834,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
                 item ->
                     EventAnalyticsColumnName.OU_COLUMN_NAME.equals(item.getItemId())
                         && item.hasProgramStage())
-            .flatMap(item -> organisationUnitResolver.resolveOrgUnis(params, item).stream())
+            .flatMap(item -> organisationUnitResolver.resolveOrgUnits(params, item).stream())
             .collect(Collectors.toSet());
 
     if (stageOuUids.isEmpty()) {

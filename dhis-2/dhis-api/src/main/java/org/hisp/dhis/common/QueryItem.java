@@ -86,7 +86,7 @@ public class QueryItem implements GroupableItem {
 
   private RelationshipType relationshipType;
 
-  private AnalyticsCustomHeader headerHint;
+  private AnalyticsCustomHeader customHeader;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -485,12 +485,12 @@ public class QueryItem implements GroupableItem {
     return hasRepeatableStageParams() ? repeatableStageParams.getIndex() : 0;
   }
 
-  public QueryItem withCustomHeader(AnalyticsCustomHeader headerHint) {
-    this.headerHint = headerHint;
+  public QueryItem withCustomHeader(AnalyticsCustomHeader customHeader) {
+    this.customHeader = customHeader;
     return this;
   }
 
   public boolean hasCustomHeader() {
-    return headerHint != null;
+    return customHeader != null;
   }
 }

@@ -136,7 +136,7 @@ public class OrganisationUnitResolver {
    * @param item the query item
    * @return the list of organisation unit dimension uids
    */
-  public List<String> resolveOrgUnis(EventQueryParams params, QueryItem item) {
+  public List<String> resolveOrgUnits(EventQueryParams params, QueryItem item) {
     return item.getFilters().stream()
         .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
         .map(s -> s.split(DimensionConstants.OPTION_SEP))
@@ -155,7 +155,7 @@ public class OrganisationUnitResolver {
    */
   public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
       EventQueryParams params, QueryItem item) {
-    List<String> orgUnitUids = resolveOrgUnis(params, item);
+    List<String> orgUnitUids = resolveOrgUnits(params, item);
     if (orgUnitUids.isEmpty()) {
       return Map.of();
     }

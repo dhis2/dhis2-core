@@ -418,7 +418,7 @@ public class MetadataItemsHandler {
       DisplayProperty displayProperty) {
     if (item.hasCustomHeader()) {
       metadataItemMap.put(
-          item.getHeaderHint().key(), new MetadataItem(item.getHeaderHint().value()));
+          item.getCustomHeader().key(), new MetadataItem(item.getCustomHeader().value()));
     } else {
 
       MetadataItem metadataItem =
@@ -509,7 +509,7 @@ public class MetadataItemsHandler {
       QueryItem item, EventQueryParams params, Optional<Map<String, List<Option>>> itemOptions) {
 
     if (item.getValueType().isOrganisationUnit()) {
-      return organisationUnitResolver.resolveOrgUnis(params, item);
+      return organisationUnitResolver.resolveOrgUnits(params, item);
     }
 
     if (item.hasOptionSet()) {

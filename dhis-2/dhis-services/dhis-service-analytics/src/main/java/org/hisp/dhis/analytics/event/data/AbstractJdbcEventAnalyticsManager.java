@@ -2834,24 +2834,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     Set<QueryItem> processedItems = new HashSet<>();
-
     // Build CTE conditions
     return buildCteConditions(params, cteContext, processedItems);
-    // Condition cteConditions = buildCteConditions(params, cteContext, processedItems);
-
-    // Get non-CTE conditions
-    //    String nonCteWhereClause =
-    //        getQueryItemsAndFiltersWhereClause(params, processedItems, new SqlHelper())
-    //            .replace("where", "");
-    //
-    //    // Combine conditions
-    //    if (!nonCteWhereClause.isEmpty()) {
-    //      return cteConditions != null
-    //          ? Condition.and(cteConditions, Condition.raw(nonCteWhereClause))
-    //          : Condition.raw(nonCteWhereClause);
-    //    }
-
-    // return cteConditions;
   }
 
   /**
