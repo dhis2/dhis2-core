@@ -107,6 +107,16 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       }
     }
 
+    if (params.isRefreshPeriodResourceTable() && params.isLatestUpdate()) {
+      log.info("Refreshing period resource table with new periods");
+      resourceTableService.updatePeriodResourceTable();
+
+      if (settings.isAnalyticsDatabase()) {
+        log.info("Replicating period resource table in analytics database");
+        resourceTableService.replicateAnalyticsResourceTables();
+      }
+    }
+
     if (!params.isLatestUpdate() && settings.isAnalyticsDatabase()) {
       if (!skipTypes.containsAll(Set.of(EVENT, ENROLLMENT, TRACKED_ENTITY_INSTANCE))) {
         log.info("Replicating tracked entity attribute value table");
