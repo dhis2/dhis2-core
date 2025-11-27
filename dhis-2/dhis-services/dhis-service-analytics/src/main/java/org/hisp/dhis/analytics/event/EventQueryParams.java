@@ -36,6 +36,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -74,6 +76,7 @@ import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -709,7 +712,8 @@ public class EventQueryParams extends DataQueryParams {
    */
   private boolean isStageDateItem(QueryItem item) {
     String itemId = item.getItemId();
-    return "occurreddate".equals(itemId) || "scheduleddate".equals(itemId);
+      return OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+              || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
   }
 
   /**
