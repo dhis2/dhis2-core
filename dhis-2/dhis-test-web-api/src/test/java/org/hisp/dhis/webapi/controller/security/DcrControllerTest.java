@@ -341,7 +341,6 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
                 .param("grant_type", "client_credentials")
                 .param("client_assertion", clientAssertion)
                 .param("scope", "openid profile username"))
-
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.access_token").exists())
         .andExpect(jsonPath("$.token_type").value("Bearer"))
