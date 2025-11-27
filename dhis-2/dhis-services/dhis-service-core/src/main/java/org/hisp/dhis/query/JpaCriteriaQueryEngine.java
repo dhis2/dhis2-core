@@ -214,17 +214,12 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   private Property resolveProperty(Schema schema, String propertyName) {
     Property property = schema.getProperty(propertyName);
-    if (property == null)
-      throw new IllegalArgumentException("No such property: " + propertyName);
+    if (property == null) throw new IllegalArgumentException("No such property: " + propertyName);
     return property;
   }
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order tryGetTranslatableOrder(
-      CriteriaBuilder builder,
-      Root<T> root,
-      Schema schema,
-      Property property,
-      Order order) {
+      CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
     String propertyName = order.getProperty();
 
     if (propertyName.startsWith(DISPLAY_PREFIX)) {
@@ -239,11 +234,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private <T extends IdentifiableObject> jakarta.persistence.criteria.Order handleDisplayProperty(
-      CriteriaBuilder builder,
-      Root<T> root,
-      Schema schema,
-      Property property,
-      Order order) {
+      CriteriaBuilder builder, Root<T> root, Schema schema, Property property, Order order) {
     String basePropertyName = getBasePropertyName(order.getProperty());
     Property baseProperty = schema.getProperty(basePropertyName);
 
@@ -272,7 +263,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
           : builder.desc(builder.lower(root.get(fieldName)));
     }
 
-    return order.isAscending() ? builder.asc(root.get(fieldName)) : builder.desc(root.get(fieldName));
+    return order.isAscending()
+        ? builder.asc(root.get(fieldName))
+        : builder.desc(root.get(fieldName));
   }
 
   /**

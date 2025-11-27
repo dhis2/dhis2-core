@@ -544,7 +544,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             POST(
                 "/dataSets/",
                 "{'name':'Health Monthly Report', 'shortName': 'HMR', 'periodType':'Monthly', 'formName':'FormA'}"));
-    
+
     // Test combining displayName filter with formName filter
     // Should return only datasets with "Health" in displayName AND formName = FormA
     JsonList<JsonIdentifiableObject> results =
