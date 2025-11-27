@@ -29,19 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.query;
 
-import static org.hisp.dhis.analytics.ValidationHelper.setRowData;
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
-import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
-import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
-
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -56,309 +45,316 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
   @Test
   public void stageAndEventDateThisYear() throws JSONException {
 
-      boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-      // Given
-      QueryParamsBuilder params =
-              new QueryParamsBuilder()
-                      .add("displayProperty=NAME")
-                      .add("outputType=EVENT")
-                      .add("pageSize=100")
-                      .add("page=1")
-                      .add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
-                      //.add("dimension=pe:THIS_YEAR")
-                      .add("desc=eventdate,lastupdated")
-                      .add("relativePeriodDate=2022-12-31");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
+            // .add("dimension=pe:THIS_YEAR")
+            .add("desc=eventdate,lastupdated")
+            .add("relativePeriodDate=2022-12-31");
 
-      // When
-      ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
-      String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    // When
+    ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
 
-      System.out.println(actualMetaData);
-      // where:
-      // (ax."occurreddate" >= '2022-01-01' and ax."occurreddate" <= '2022-12-31' and ax."ps" = 'Zj7UnCAulEk')
+    System.out.println(actualMetaData);
+    // where:
+    // (ax."occurreddate" >= '2022-01-01' and ax."occurreddate" <= '2022-12-31' and ax."ps" =
+    // 'Zj7UnCAulEk')
 
-      // metadata
-//      "items": {
-//          "Zj7UnCAulEk.dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAREVENT_DATE": {
-//              "name": "Report date, name of the stage"
-//          },
+    // metadata
+    //      "items": {
+    //          "Zj7UnCAulEk.dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAREVENT_DATE": {
+    //              "name": "Report date, name of the stage"
+    //          },
 
   }
 
-    @Test
-    public void stageAndEventDateSpecificYear() throws JSONException {
+  @Test
+  public void stageAndEventDateSpecificYear() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=Zj7UnCAulEk.EVENT_DATE:2021")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=Zj7UnCAulEk.EVENT_DATE:2021")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
-        // where:
-        // and (ax."occurreddate" >= '2021-01-01' and ax."occurreddate" <= '2021-12-31' and ax."ps" = 'Zj7UnCAulEk')
+    // where:
+    // and (ax."occurreddate" >= '2021-01-01' and ax."occurreddate" <= '2021-12-31' and ax."ps" =
+    // 'Zj7UnCAulEk')
 
-    }
+  }
 
-    @Test
-    public void stageAndEventDateRange() throws JSONException {
+  @Test
+  public void stageAndEventDateRange() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=Zj7UnCAulEk.EVENT_DATE:2021-03-01_2021-05-31")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=Zj7UnCAulEk.EVENT_DATE:2021-03-01_2021-05-31")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
-        // where:
-        // (ax."occurreddate" >= '2021-03-01' and ax."occurreddate" <= '2021-05-31' and ax."ps" = 'Zj7UnCAulEk')
-    }
+    // where:
+    // (ax."occurreddate" >= '2021-03-01' and ax."occurreddate" <= '2021-05-31' and ax."ps" =
+    // 'Zj7UnCAulEk')
+  }
 
-    @Test
-    public void stageAndEventGreaterThan() throws JSONException {
+  @Test
+  public void stageAndEventGreaterThan() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        //.add("stage=Zj7UnCAulEk")
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=Zj7UnCAulEk.EVENT_DATE:GT:2023-05-01")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            // .add("stage=Zj7UnCAulEk")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=Zj7UnCAulEk.EVENT_DATE:GT:2023-05-01")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
-        // where:
-        // (ax."occurreddate" > '2023-05-01' and ax."ps" = 'Zj7UnCAulEk')
-    }
+    // where:
+    // (ax."occurreddate" > '2023-05-01' and ax."ps" = 'Zj7UnCAulEk')
+  }
 
-    @Test
-    public void stageAndEventLowerThan() throws JSONException {
+  @Test
+  public void stageAndEventLowerThan() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        //.add("stage=Zj7UnCAulEk")
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=Zj7UnCAulEk.EVENT_DATE:LE:2023-05-01")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            // .add("stage=Zj7UnCAulEk")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=Zj7UnCAulEk.EVENT_DATE:LE:2023-05-01")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
-        // where:
-        // (ax."occurreddate" <= '2023-05-01' and ax."ps" = 'Zj7UnCAulEk')
-    }
+    // where:
+    // (ax."occurreddate" <= '2023-05-01' and ax."ps" = 'Zj7UnCAulEk')
+  }
 
-    @Test
-    public void stageAndEventDateMultipleStages() throws JSONException {
+  @Test
+  public void stageAndEventDateMultipleStages() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR")
-                        .add("dimension=jdRD35YwbRH.EVENT_DATE:2023")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR")
+            .add("dimension=jdRD35YwbRH.EVENT_DATE:2023")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // (ax."occurreddate" >= '2025-01-01' and ax."occurreddate" <= '2025-12-31' and ax."ps" = 'ZkbAXlQUYJG')
-        // and
-        // (ax."occurreddate" >= '2023-01-01' and ax."occurreddate" <= '2023-12-31' and ax."ps" = 'jdRD35YwbRH')
-    }
+    // where:
+    // (ax."occurreddate" >= '2025-01-01' and ax."occurreddate" <= '2025-12-31' and ax."ps" =
+    // 'ZkbAXlQUYJG')
+    // and
+    // (ax."occurreddate" >= '2023-01-01' and ax."occurreddate" <= '2023-12-31' and ax."ps" =
+    // 'jdRD35YwbRH')
+  }
 
-    @Test
-    public void stageAndInvalidOu() throws JSONException {
+  @Test
+  public void stageAndInvalidOu() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=ZkbAXlQUYJG.ou:THIS_YEAR") // TODO this should fail
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.ou:THIS_YEAR") // TODO this should fail
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
-    }
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+  }
 
-    @Test
-    public void stageAndSimpleOu() throws JSONException {
+  @Test
+  public void stageAndSimpleOu() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=ZkbAXlQUYJG.ou:ImspTQPwCqd")
-                        .add("dimension=pe:THIS_YEAR")
-                        //.add("dimension=ou:ImspTQPwCqd")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.ou:ImspTQPwCqd")
+            .add("dimension=pe:THIS_YEAR")
+            // .add("dimension=ou:ImspTQPwCqd")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // (ax."uidlevel1" in ('ImspTQPwCqd') and ax."ps" = 'ZkbAXlQUYJG')
-    }
+    // where:
+    // (ax."uidlevel1" in ('ImspTQPwCqd') and ax."ps" = 'ZkbAXlQUYJG')
+  }
 
-    @Test
-    public void stageAndOuUserOrgUnit() throws JSONException {
+  @Test
+  public void stageAndOuUserOrgUnit() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        //.add("dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT")
-                        .add("dimension=pe:THIS_YEAR")
-                        .add("dimension=ou:USER_ORGUNIT")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            // .add("dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT")
+            .add("dimension=pe:THIS_YEAR")
+            .add("dimension=ou:USER_ORGUNIT")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // (ax."uidlevel1" in ('ImspTQPwCqd') and ax."ps" = 'ZkbAXlQUYJG')
-    }
+    // where:
+    // (ax."uidlevel1" in ('ImspTQPwCqd') and ax."ps" = 'ZkbAXlQUYJG')
+  }
 
-    @Test
-    public void stageAndOuUserLevel() throws JSONException {
+  @Test
+  public void stageAndOuUserLevel() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=ZkbAXlQUYJG.ou:LEVEL-3")
-                        .add("dimension=pe:THIS_YEAR")
-                        //.add("dimension=ou:LEVEL-3")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.ou:LEVEL-3")
+            .add("dimension=pe:THIS_YEAR")
+            // .add("dimension=ou:LEVEL-3")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // and (ax."uidlevel3" in ('EYt6ThQDagn', 'DNRAeXT9IwS', ...)
-        //		and ax."ps" = 'ZkbAXlQUYJG')
-    }
+    // where:
+    // and (ax."uidlevel3" in ('EYt6ThQDagn', 'DNRAeXT9IwS', ...)
+    //		and ax."ps" = 'ZkbAXlQUYJG')
+  }
 
-    @Test
-    public void stageAndOuMultipleOus() throws JSONException {
+  @Test
+  public void stageAndOuMultipleOus() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=ZkbAXlQUYJG.ou:WjO2puYKysP;eIQbndfxQMb")
-                        .add("dimension=pe:THIS_YEAR")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.ou:WjO2puYKysP;eIQbndfxQMb")
+            .add("dimension=pe:THIS_YEAR")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // and ax."uidlevel1" in ('ImspTQPwCqd') and (ax."uidlevel2" in ('eIQbndfxQMb') and ax."uidlevel4" in ('WjO2puYKysP') and ax."ps" = 'ZkbAXlQUYJG')
-    }
+    // where:
+    // and ax."uidlevel1" in ('ImspTQPwCqd') and (ax."uidlevel2" in ('eIQbndfxQMb') and
+    // ax."uidlevel4" in ('WjO2puYKysP') and ax."ps" = 'ZkbAXlQUYJG')
+  }
 
-    @Test
-    public void stageAndScheduledDate() throws JSONException {
+  @Test
+  public void stageAndScheduledDate() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=ZkbAXlQUYJG.SCHEDULED_DATE:201910")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.SCHEDULED_DATE:201910")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // and (ax."scheduleddate" >= '2019-10-01' and ax."scheduleddate" <= '2019-10-31' and ax."ps" = 'ZkbAXlQUYJG')
-    }
+    // where:
+    // and (ax."scheduleddate" >= '2019-10-01' and ax."scheduleddate" <= '2019-10-31' and ax."ps" =
+    // 'ZkbAXlQUYJG')
+  }
 
-    @Test
-    public void stageAndStatus() throws JSONException {
+  @Test
+  public void stageAndStatus() throws JSONException {
 
-        boolean expectPostgis = isPostgres();
+    boolean expectPostgis = isPostgres();
 
-        // Given
-        QueryParamsBuilder params =
-                new QueryParamsBuilder()
-                        .add("displayProperty=NAME")
-                        .add("outputType=EVENT")
-                        .add("pageSize=100")
-                        .add("page=1")
-                        .add("dimension=pe:THIS_YEAR")
-                        .add("dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE")
-                        .add("desc=eventdate,lastupdated");
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=pe:THIS_YEAR")
+            .add("dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE")
+            .add("desc=eventdate,lastupdated");
 
-        // When
-        ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
-        // where:
-        // (ax."eventstatus" in ('ACTIVE') and ax."ps" = 'ZkbAXlQUYJG')
-    }
+    // where:
+    // (ax."eventstatus" in ('ACTIVE') and ax."ps" = 'ZkbAXlQUYJG')
+  }
 }
