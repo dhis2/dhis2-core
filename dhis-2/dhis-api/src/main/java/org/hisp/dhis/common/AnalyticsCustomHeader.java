@@ -44,14 +44,31 @@ import org.hisp.dhis.program.ProgramStage;
 public record AnalyticsCustomHeader(String key, String value) {
 
   public static AnalyticsCustomHeader forEventDate(ProgramStage programStage) {
-    String programStageName =
-        firstNonNull(programStage.getProgramStageLabel(), programStage.getName());
-    String dateName =
+    String label =
         firstNonNull(
             programStage.getExecutionDateLabel(),
             EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    return create(programStage, "EVENT_DATE", label);
+  }
+
+  public static AnalyticsCustomHeader forScheduledDate(ProgramStage programStage) {
+    String label =
+        firstNonNull(
+            programStage.getDisplayDueDateLabel(),
+            EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    return create(programStage, "SCHEDULED_DATE", label);
+  }
+
+  public static AnalyticsCustomHeader forEventStatus(ProgramStage programStage) {
+    return create(programStage, "EVENT_STATUS", "Event status");
+  }
+
+  private static AnalyticsCustomHeader create(
+      ProgramStage programStage, String keySuffix, String label) {
+    String programStageName =
+        firstNonNull(programStage.getProgramStageLabel(), programStage.getName());
     return new AnalyticsCustomHeader(
-        "%s.%s".formatted(programStage.getUid(), "EVENT_DATE"),
-        "%s, %s".formatted(dateName, programStageName));
+        "%s.%s".formatted(programStage.getUid(), keySuffix),
+        "%s, %s".formatted(label, programStageName));
   }
 }
