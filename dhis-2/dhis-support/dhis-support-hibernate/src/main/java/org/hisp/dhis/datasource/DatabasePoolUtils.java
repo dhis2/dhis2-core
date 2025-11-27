@@ -79,6 +79,8 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -165,9 +167,10 @@ public final class DatabasePoolUtils {
    * must be passed using the {@code PoolConfig#driverClassName} property.
    *
    * @param config the {@link DbPoolConfig}.
+   * @param meterRegistry the {@link MeterRegistry} for HikariCP metrics (optional).
    * @return a {@link DataSource}.
    */
-  public static DataSource createDbPool(DbPoolConfig config)
+  public static DataSource createDbPool(DbPoolConfig config, MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
@@ -191,7 +194,9 @@ public final class DatabasePoolUtils {
 
     final DataSource dataSource =
         switch (dbPoolType) {
-          case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+          case HIKARI ->
+              createHikariDbPool(
+                  username, password, driverClassName, jdbcUrl, config, meterRegistry);
           case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           default ->
@@ -221,7 +226,8 @@ public final class DatabasePoolUtils {
       String password,
       String driverClassName,
       String jdbcUrl,
-      DbPoolConfig config) {
+      DbPoolConfig config,
+      MeterRegistry meterRegistry) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -294,6 +300,11 @@ public final class DatabasePoolUtils {
     ds.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
     ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
     ds.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
+
+    if (meterRegistry != null) {
+      log.info("Enabling HikariCP Micrometer metrics for pool: {}", hc.getPoolName());
+      ds.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
+    }
 
     return ds;
   }

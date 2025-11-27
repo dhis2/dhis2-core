@@ -85,6 +85,13 @@
       <artifactId>HikariCP</artifactId>
     </dependency>
 
+    <!-- Micrometer for HikariCP metrics -->
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+
     <!-- Jasypt -->
 
     <dependency>
