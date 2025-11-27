@@ -43,14 +43,6 @@ public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStag
   @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "compulsory")
-  @Mapping(target = "allowProvidedElsewhere")
-  @Mapping(target = "sortOrder")
-  @Mapping(target = "displayInReports")
-  @Mapping(target = "allowFutureDate")
-  @Mapping(target = "renderOptionsAsRadio")
-  @Mapping(target = "renderType")
-  @Mapping(target = "skipSynchronization")
-  @Mapping(target = "skipAnalytics")
   @Mapping(target = "dataElement")
   ProgramStageDataElement map(ProgramStageDataElement programStageDataElement);
 }
