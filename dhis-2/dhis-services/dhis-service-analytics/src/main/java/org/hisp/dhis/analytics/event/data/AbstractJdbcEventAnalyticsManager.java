@@ -1605,7 +1605,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(filter -> toSql(queryItem, filter, params))
             .collect(joining(AND));
 
-    if (queryItem.hasProgramStage()) {
+    // For enrollment analytics, skip adding the ps condition here because:
+    // - The getColumn() method in JdbcEnrollmentAnalyticsManager generates a subselect
+    //    that already includes the ps = '...' condition
+    // - The getWhereClause() in JdbcEnrollmentAnalyticsManager adds the ps condition at query level
+    if (queryItem.hasProgramStage() && params.getEndpointItem() != ENROLLMENT) {
       return "("
           + sql
           + " and "
