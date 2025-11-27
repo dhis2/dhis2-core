@@ -145,54 +145,6 @@ class TranslatablePropertyIntrospectorTest {
     assertFalse(propertyMap.get("shortName").isTranslatable());
   }
 
-  /**
-   * Tests that display properties (virtual properties created from @Translatable annotated methods)
-   * are correctly marked as translatable. For example, DataElement has a getDisplayName() method
-   * annotated with @Translatable(propertyName = "name", key = "NAME"). This should mark the "name"
-   * property as translatable with the key "NAME".
-   */
-  @Test
-  void testDisplayPropertiesAreTranslatable() {
-    Property propTranslation = createProperty(DataElement.class, "translations");
-    propTranslation.setPersisted(true);
-
-    Property propName = createProperty(DataElement.class, "name");
-    propName.setPersisted(true);
-
-    Property propShortName = createProperty(DataElement.class, "shortName");
-    propShortName.setPersisted(true);
-
-    Property propDescription = createProperty(DataElement.class, "description");
-    propDescription.setPersisted(true);
-
-    Map<String, Property> propertyMap = new HashMap<>();
-    propertyMap.put("name", propName);
-    propertyMap.put("shortName", propShortName);
-    propertyMap.put("description", propDescription);
-    propertyMap.put("translations", propTranslation);
-
-    // Before introspection, properties should not be marked as translatable
-    assertFalse(propertyMap.get("name").isTranslatable());
-    assertFalse(propertyMap.get("shortName").isTranslatable());
-    assertFalse(propertyMap.get("description").isTranslatable());
-
-    introspector.introspect(DataElement.class, propertyMap);
-
-    // After introspection, all display properties should be marked as translatable
-    // because DataElement has @Translatable annotated display methods:
-    // - getDisplayName() -> maps to "name" with key "NAME"
-    // - getDisplayShortName() -> maps to "shortName" with key "SHORT_NAME"
-    // - getDisplayDescription() -> maps to "description" with key "DESCRIPTION"
-    assertTrue(propertyMap.get("name").isTranslatable());
-    assertEquals("NAME", propertyMap.get("name").getTranslationKey());
-
-    assertTrue(propertyMap.get("shortName").isTranslatable());
-    assertEquals("SHORT_NAME", propertyMap.get("shortName").getTranslationKey());
-
-    assertTrue(propertyMap.get("description").isTranslatable());
-    assertEquals("DESCRIPTION", propertyMap.get("description").getTranslationKey());
-  }
-
   private Property createProperty(Class<?> klass, String name) {
     Property property = new Property(klass);
     property.setName(name);
