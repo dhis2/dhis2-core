@@ -839,7 +839,8 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
-      when(organisationUnitResolver.resolveOrgUnis(any(), any()))
+      when(organisationUnitResolver.resolveOrgUnits(
+              any(EventQueryParams.class), any(QueryItem.class)))
           .thenReturn(List.of(orgUnitA.getUid()));
       when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
           .thenReturn(Map.of());
@@ -848,7 +849,8 @@ class MetadataItemsHandlerTest {
       metadataItemsHandler.addMetadata(grid, params, List.of());
 
       // Then
-      verify(organisationUnitResolver).resolveOrgUnis(any(), any());
+      verify(organisationUnitResolver)
+          .resolveOrgUnits(any(EventQueryParams.class), any(QueryItem.class));
     }
   }
 

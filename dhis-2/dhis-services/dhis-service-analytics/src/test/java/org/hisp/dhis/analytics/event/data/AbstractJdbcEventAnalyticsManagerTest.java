@@ -64,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -930,7 +931,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
-    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
@@ -955,7 +957,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
-    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
@@ -1065,7 +1068,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndDate(new Date())
             .build();
 
-    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("ouA;ouB");
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("ouA;ouB");
 
     String sql = eventSubject.toSql(queryItem, filter, params).trim();
 
