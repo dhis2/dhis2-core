@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.http.server.PathContainer;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.util.pattern.PathPattern;
@@ -75,14 +76,13 @@ public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerI
 
   private static final PathPatternParser PARSER = new PathPatternParser();
   private static final List<PathPattern> EXCLUDE_PATTERNS =
-      List.of(
-          PARSER.parse("/api/tracker/**"),
-          PARSER.parse("/api/ping"),
-          PARSER.parse("/api/metrics"),
-          PARSER.parse("/api/system/ping"));
+      Stream.of("/api/tracker/**", "/api/ping", "/api/metrics", "/api/system/ping")
+          .map(PARSER::parse)
+          .toList();
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
+    // Strip context path to get application-relative path for pattern matching
     String path = request.getRequestURI().substring(request.getContextPath().length());
     PathContainer pathContainer = PathContainer.parsePath(path);
 
