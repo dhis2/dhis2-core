@@ -66,12 +66,15 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
                       .add("pageSize=100")
                       .add("page=1")
                       .add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
+                      //.add("dimension=pe:THIS_YEAR")
                       .add("desc=eventdate,lastupdated")
                       .add("relativePeriodDate=2022-12-31");
 
       // When
       ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+      String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
 
+      System.out.println(actualMetaData);
       // where:
       // (ax."occurreddate" >= '2022-01-01' and ax."occurreddate" <= '2022-12-31' and ax."ps" = 'Zj7UnCAulEk')
 
@@ -80,6 +83,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 //          "Zj7UnCAulEk.dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAREVENT_DATE": {
 //              "name": "Report date, name of the stage"
 //          },
+
   }
 
     @Test

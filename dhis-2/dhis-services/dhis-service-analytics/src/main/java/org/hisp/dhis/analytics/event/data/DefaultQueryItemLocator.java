@@ -40,6 +40,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7224;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -52,6 +53,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -103,7 +105,8 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     LegendSet legendSet = getLegendSet(dimension);
 
     // Try each resolver in order until one returns a QueryItem.
-    return Stream.<Supplier<Optional<QueryItem>>>of(
+    List<Supplier<Optional<QueryItem>>> resolvers =
+        List.of(
             () -> getDataElement(dimension, program, legendSet, type),
             () -> getTrackedEntityAttribute(dimension, program, legendSet),
             () -> getProgramIndicator(dimension, program, legendSet),
@@ -111,11 +114,16 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
             () -> getScheduledDate(dimension, program, legendSet),
             () -> getEventStatus(dimension, program, legendSet),
             () -> getProgramStageOrgUnit(dimension, program, legendSet),
-            () -> getDynamicDimension(dimension))
-        .map(Supplier::get)
-        .flatMap(Optional::stream)
-        .findFirst()
-        .orElseThrow(illegalQueryExSupplier(E7224, dimension));
+            () -> getDynamicDimension(dimension));
+
+    for (Supplier<Optional<QueryItem>> resolver : resolvers) {
+      Optional<QueryItem> result = resolver.get();
+      if (result.isPresent()) {
+        return result.get();
+      }
+    }
+
+    throw illegalQueryExSupplier(E7224, dimension).get();
   }
 
   private Optional<QueryItem> getProgramStageOrgUnit(
@@ -144,7 +152,8 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
         BaseDimensionalItemObject item =
             new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
         QueryItem qi =
-            new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null);
+            new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null)
+                .withCustomHeader(AnalyticsCustomHeader.forEventDate(programStage));
         qi.setProgramStage(programStage);
         return Optional.of(qi);
       }

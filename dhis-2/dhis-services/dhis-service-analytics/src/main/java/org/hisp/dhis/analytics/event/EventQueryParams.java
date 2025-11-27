@@ -86,7 +86,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -671,8 +670,8 @@ public class EventQueryParams extends DataQueryParams {
 
   /**
    * Extracts start/end dates from stage-scoped date QueryItems (e.g., stageId.EVENT_DATE:201910 or
-   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as GE/LE filters.
-   * This is needed for partition selection.
+   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as comparison
+   * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
    */
   private void extractDatesFromStageDateItems() {
     for (QueryItem item : items) {
@@ -683,10 +682,14 @@ public class EventQueryParams extends DataQueryParams {
         for (QueryFilter filter : item.getFilters()) {
           Date filterDate = DateUtils.parseDate(filter.getFilter());
           if (filterDate != null) {
-            if (filter.getOperator() == QueryOperator.GE) {
-              start = filterDate;
-            } else if (filter.getOperator() == QueryOperator.LE) {
-              end = filterDate;
+            switch (filter.getOperator()) {
+              case GE, GT -> start = filterDate;
+              case LE, LT -> end = filterDate;
+              case EQ -> {
+                start = filterDate;
+                end = filterDate;
+              }
+              default -> {}
             }
           }
         }

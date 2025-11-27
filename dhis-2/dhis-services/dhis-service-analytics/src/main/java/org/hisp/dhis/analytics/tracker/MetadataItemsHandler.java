@@ -416,15 +416,20 @@ public class MetadataItemsHandler {
       QueryItem item,
       boolean includeDetails,
       DisplayProperty displayProperty) {
-    MetadataItem metadataItem =
-        new MetadataItem(
-            item.getItem().getDisplayProperty(displayProperty),
-            includeDetails ? item.getItem() : null);
+    if (item.hasCustomHeader()) {
+      metadataItemMap.put(
+          item.getHeaderHint().key(), new MetadataItem(item.getHeaderHint().value()));
+    } else {
 
-    metadataItemMap.put(getItemIdWithProgramStageIdPrefix(item), metadataItem);
+      MetadataItem metadataItem =
+          new MetadataItem(
+              item.getItem().getDisplayProperty(displayProperty),
+              includeDetails ? item.getItem() : null);
 
-    // Done for backwards compatibility.
-    metadataItemMap.put(item.getItemId(), metadataItem);
+      metadataItemMap.put(getItemIdWithProgramStageIdPrefix(item), metadataItem);
+      // Done for backwards compatibility.
+      metadataItemMap.put(item.getItemId(), metadataItem);
+    }
   }
 
   /**
