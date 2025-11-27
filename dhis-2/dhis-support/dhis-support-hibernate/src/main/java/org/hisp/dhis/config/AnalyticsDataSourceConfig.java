@@ -35,6 +35,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -80,18 +81,19 @@ public class AnalyticsDataSourceConfig {
    * created based on the configuration.
    *
    * @param actualDataSource the actual DataSource
+   * @param meterRegistry the MeterRegistry for metrics
    * @return a DataSource
    */
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
-      @Qualifier("actualDataSource") DataSource actualDataSource) {
+      @Qualifier("actualDataSource") DataSource actualDataSource, MeterRegistry meterRegistry) {
     if (config.isAnalyticsDatabaseConfigured()) {
       log.info(
           "Analytics database detected: '{}', connection URL: '{}'",
           config.getProperty(ANALYTICS_DATABASE),
           config.getProperty(ANALYTICS_CONNECTION_URL));
 
-      return getAnalyticsDataSource();
+      return getAnalyticsDataSource(meterRegistry);
     } else {
       log.info(
           "Analytics database connection URL not specified with key: '{}'",
@@ -159,9 +161,10 @@ public class AnalyticsDataSourceConfig {
   /**
    * Returns a data source for the analytics database.
    *
+   * @param meterRegistry the MeterRegistry for metrics
    * @return a {@link DataSource}.
    */
-  private DataSource getAnalyticsDataSource() {
+  private DataSource getAnalyticsDataSource(MeterRegistry meterRegistry) {
     final String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
     final String driverClassName = getDriverClassName();
     final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
@@ -175,7 +178,7 @@ public class AnalyticsDataSourceConfig {
             .build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException ex) {
       String message =
           TextUtils.format(

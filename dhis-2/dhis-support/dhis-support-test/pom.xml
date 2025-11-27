@@ -189,5 +189,9 @@
       <groupId>net.ttddyy</groupId>
       <artifactId>datasource-proxy</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
   </dependencies>
 </project>

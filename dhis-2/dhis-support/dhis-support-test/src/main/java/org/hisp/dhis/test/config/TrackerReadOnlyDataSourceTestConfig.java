@@ -30,6 +30,8 @@
 package org.hisp.dhis.test.config;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -169,6 +171,11 @@ public class TrackerReadOnlyDataSourceTestConfig {
         return Map.of();
       }
     };
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return new SimpleMeterRegistry();
   }
 
   @Bean
