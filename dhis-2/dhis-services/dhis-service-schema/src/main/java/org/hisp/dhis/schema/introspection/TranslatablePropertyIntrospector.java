@@ -70,19 +70,6 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector {
         property.setTranslatable(true);
       }
     }
-
-    // Process display properties (virtual properties created from @Translatable annotated methods)
-    // These map to the actual persisted properties via their propertyName in the annotation
-    translatableFields.forEach(
-        (propertyName, translationKey) -> {
-          Property property = properties.get(propertyName);
-          if (property != null && property.isPersisted()) {
-            // Mark the base property as translatable so that display* virtual properties
-            // can be used for ordering and filtering via JpaCriteriaQueryEngine
-            property.setTranslatable(true);
-            property.setTranslationKey(translationKey);
-          }
-        });
   }
 
   /**
