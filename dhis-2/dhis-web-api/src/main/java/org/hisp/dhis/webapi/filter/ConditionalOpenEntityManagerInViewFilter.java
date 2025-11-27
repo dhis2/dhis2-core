@@ -74,22 +74,23 @@ import org.springframework.web.util.pattern.PathPatternParser;
 public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerInViewFilter {
 
   private static final PathPatternParser PARSER = new PathPatternParser();
-  private final List<PathPattern> excludePatterns;
-
-  public ConditionalOpenEntityManagerInViewFilter() {
-    this.excludePatterns =
-        List.of(
-            PARSER.parse("/api/ping"),
-            PARSER.parse("/api/metrics"),
-            PARSER.parse("/api/tracker/**"),
-            PARSER.parse("/api/system/ping"));
-  }
+  private static final List<PathPattern> EXCLUDE_PATTERNS =
+      List.of(
+          PARSER.parse("/api/tracker/**"),
+          PARSER.parse("/api/ping"),
+          PARSER.parse("/api/metrics"),
+          PARSER.parse("/api/system/ping"));
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI().substring(request.getContextPath().length());
     PathContainer pathContainer = PathContainer.parsePath(path);
 
-    return excludePatterns.stream().anyMatch(pattern -> pattern.matches(pathContainer));
+    for (PathPattern pattern : EXCLUDE_PATTERNS) {
+      if (pattern.matches(pathContainer)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

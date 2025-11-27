@@ -46,11 +46,6 @@ public interface ProgramStageSectionMapper extends PreheatMapper<ProgramStageSec
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "name")
-  @Mapping(target = "description")
-  @Mapping(target = "sortOrder")
-  @Mapping(target = "style")
-  @Mapping(target = "formName")
-  @Mapping(target = "renderType")
   @Mapping(target = "dataElements")
   @Mapping(target = "programIndicators", qualifiedByName = "programIndicators")
   ProgramStageSection map(ProgramStageSection programStageSection);
