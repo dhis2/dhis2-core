@@ -77,9 +77,24 @@ class RouteServiceTest {
         routeService.createRequestUrl(
             UriComponentsBuilder.fromUriString(
                 "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits"),
-            Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]")));
+            Map.of("filter", List.of("id:in:[Rp268JB6Ne4,cDw53Ej8rju]")),
+            Map.of());
     assertEquals(
         "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?filter=id:in:[Rp268JB6Ne4,cDw53Ej8rju]",
+        upstreamUrl);
+  }
+
+  @Test
+  void testCreateRequestUrlReplacesPlaceholders() {
+    RouteService routeService = new RouteService(null, null, null, null, null, null);
+    String upstreamUrl =
+        routeService.createRequestUrl(
+            UriComponentsBuilder.fromUriString(
+                "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?q={foo}"),
+            Map.of("filter", List.of("id:eq:cDw53Ej8rju")),
+            Map.of("foo", "bar"));
+    assertEquals(
+        "https://play.im.dhis2.org/stable-2-42-1/api/organisationUnits?q=bar&filter=id:eq:cDw53Ej8rju",
         upstreamUrl);
   }
 
@@ -125,7 +140,10 @@ class RouteServiceTest {
     "*.org,stub.com,false",
     "192.168.*.*,192.168.0.1,true",
     "*.org,stub.org,true",
-    ",stub,false"
+    ",stub,false",
+    "*,{stub}.org,false",
+    "*,stub.org/{foo},true",
+    "*,stub.org?q={foo},true",
   })
   void testValidateRoute(String routeRemoteServersAllowed, String routeUrl, boolean isValid)
       throws ConflictException {
