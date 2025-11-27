@@ -170,7 +170,8 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
         BaseDimensionalItemObject item =
             new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
         QueryItem qi =
-            new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null);
+            new QueryItem(item, program, legendSet, ValueType.DATE, AggregationType.NONE, null)
+                .withCustomHeader(AnalyticsCustomHeader.forScheduledDate(programStage));
         qi.setProgramStage(programStage);
         return Optional.of(qi);
       }
@@ -188,7 +189,8 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
         BaseDimensionalItemObject item =
             new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
         QueryItem qi =
-            new QueryItem(item, program, legendSet, ValueType.TEXT, AggregationType.NONE, null);
+            new QueryItem(item, program, legendSet, ValueType.TEXT, AggregationType.NONE, null)
+                .withCustomHeader(AnalyticsCustomHeader.forEventStatus(programStage));
         qi.setProgramStage(programStage);
         return Optional.of(qi);
       }

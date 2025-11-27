@@ -76,7 +76,6 @@ import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -712,8 +711,7 @@ public class EventQueryParams extends DataQueryParams {
    */
   private boolean isStageDateItem(QueryItem item) {
     String itemId = item.getItemId();
-      return OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-              || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId) || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
   }
 
   /**
