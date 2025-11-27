@@ -200,7 +200,7 @@ class OAuth2Test extends BaseE2ETest {
     String accessToken = getAccessToken(code);
 
     String actualIssuerUri = null;
-    String expectedIssuerUri = "http://web:8080";
+    String expectedIssuerUri = "http://web:8080/";
 
     // 6. Decode the access_token
     try {

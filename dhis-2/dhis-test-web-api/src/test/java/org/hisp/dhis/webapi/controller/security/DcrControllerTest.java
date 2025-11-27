@@ -308,7 +308,8 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
   }
 
   private String callTokenEndpoint(KeyPair keyPair, String clientId) throws Exception {
-    String tokenEndpoint = authorizationServerSettings.getIssuer() + "/oauth2/token";
+    // This is the server base URL with trailing slash!!!
+    String serverBaseUrlWithTrailingSlash = authorizationServerSettings.getIssuer();
 
     JwsHeader assertionHeader =
         JwsHeader.with(SignatureAlgorithm.RS256).keyId(keyPair.rsaKey().getKeyID()).build();
@@ -320,7 +321,7 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
         JwtClaimsSet.builder()
             .issuer(clientId)
             .subject(clientId)
-            .audience(List.of(tokenEndpoint))
+            .audience(List.of(serverBaseUrlWithTrailingSlash))
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
             .build();
@@ -341,9 +342,9 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
                 .param("client_assertion", clientAssertion)
                 .param("scope", "openid profile username"))
 
-//        .andExpect(status().isOk())
-//        .andExpect(jsonPath("$.access_token").exists())
-//        .andExpect(jsonPath("$.token_type").value("Bearer"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.access_token").exists())
+        .andExpect(jsonPath("$.token_type").value("Bearer"))
         .andReturn()
         .getResponse()
         .getContentAsString();
