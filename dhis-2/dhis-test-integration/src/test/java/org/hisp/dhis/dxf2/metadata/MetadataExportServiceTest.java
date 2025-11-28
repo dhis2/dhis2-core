@@ -312,7 +312,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     JsonNode access = dashboardItem.get("access");
     assertNotNull(access, "Access should exist");
     assertTrue(access.get("manage").asBoolean(), "Access manage should be true");
-    assertTrue(access.get("externalize").asBoolean(), "Access externalize should be true");
     assertTrue(access.get("write").asBoolean(), "Access write should be true");
     assertTrue(access.get("read").asBoolean(), "Access read should be true");
     assertTrue(access.get("update").asBoolean(), "Access update should be true");

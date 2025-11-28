@@ -37,7 +37,6 @@ public enum AuthorityType {
   DATA_CREATE,
   CREATE_PUBLIC,
   CREATE_PRIVATE,
-  EXTERNALIZEXX,
   READ,
   DATA_READ,
   UPDATE,
