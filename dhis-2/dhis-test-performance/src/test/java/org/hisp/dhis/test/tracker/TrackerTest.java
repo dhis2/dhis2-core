@@ -154,7 +154,17 @@ public class TrackerTest extends Simulation {
   private record Request(
       String url, EnumMap<Profile, Integer> p90Thresholds, String name, String... groups) {
     HttpRequestActionBuilder action() {
-      return http(name).get(url).header("X-Request-ID", "#{requestId}");
+      return http(name)
+          .get(url)
+          .header(
+              "X-Request-ID",
+              session -> {
+                // Generate unique request ID per HTTP request
+                String sessionId = session.getString("sessionId");
+                int counter = session.getInt("requestCounter");
+                session.set("requestCounter", counter + 1);
+                return sessionId + "-" + String.format("%02d", counter);
+              });
     }
 
     Optional<Assertion> assertion(Profile profile) {
@@ -219,11 +229,8 @@ public class TrackerTest extends Simulation {
               .andThen(trackerScenario.scenario().injectClosed(closedInjection));
     } else {
       List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
-      populationBuilder =
-          trackerScenario
-              .scenario()
-              .injectOpen(injectionProfile);
-              // .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+      populationBuilder = trackerScenario.scenario().injectOpen(injectionProfile);
+      // .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
     }
 
     HttpProtocolBuilder httpProtocolBuilder =
@@ -422,22 +429,28 @@ public class TrackerTest extends Simulation {
   }
 
   private io.gatling.javaapi.core.ChainBuilder login() {
-    return exec(
-            session -> {
-              // Generate unique request ID for this user session (all requests from this login)
-              String username = session.getString("username");
-              String userNum = username.substring(username.lastIndexOf('_') + 1);
-              String paddedNum = String.format("%05d", Integer.parseInt(userNum));
-              String randomSuffix =
-                  java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
-              String requestId = "g-" + paddedNum + "-" + randomSuffix;
-              return session.set("requestId", requestId);
-            })
+    return exec(session -> {
+          // Generate session ID with g-{userNum} prefix for this user session
+          String username = session.getString("username");
+          String userNum = username.substring(username.lastIndexOf('_') + 1);
+          String paddedNum = String.format("%05d", Integer.parseInt(userNum));
+          String randomSuffix =
+              java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
+          String sessionId = "g-" + paddedNum + "-" + randomSuffix;
+          return session.set("sessionId", sessionId).set("requestCounter", 1);
+        })
         .exec(
             http("Login")
                 .post("/api/auth/login")
                 .header("Content-Type", "application/json")
-                .header("X-Request-ID", "#{requestId}")
+                .header(
+                    "X-Request-ID",
+                    session -> {
+                      String sessionId = session.getString("sessionId");
+                      int counter = session.getInt("requestCounter");
+                      session.set("requestCounter", counter + 1);
+                      return sessionId + "-" + String.format("%02d", counter);
+                    })
                 .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
                 .check(status().is(200)));
   }
