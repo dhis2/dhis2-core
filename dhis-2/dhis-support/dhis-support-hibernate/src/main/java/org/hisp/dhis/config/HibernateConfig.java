@@ -183,6 +183,11 @@ public class HibernateConfig {
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
 
+    // Inject request ID as SQL comment for correlation with logs
+    properties.put(
+        AvailableSettings.STATEMENT_INSPECTOR,
+        "org.hisp.dhis.hibernate.RequestIdSqlCommentInspector");
+
     return properties;
   }
 }
