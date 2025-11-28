@@ -138,6 +138,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHand
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.ColumnUtils;
@@ -265,7 +266,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private final DhisConfigurationProvider config;
 
-  private final OrganisationUnitResolver organisationUnitResolver;
+  protected final OrganisationUnitResolver organisationUnitResolver;
 
   protected final ColumnMapper columnMapper;
 
@@ -622,8 +623,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   /**
    * Eligibility of enrollment request for grid row context
    *
-   * @param params
-   * @param queryItem
    * @return true when eligible for row context
    */
   protected boolean rowContextAllowedAndNeeded(EventQueryParams params, QueryItem queryItem) {
@@ -693,6 +692,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
       EventQueryParams params, QueryItem queryItem) {
+    if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())) {
+      return ColumnAndAlias.ofColumn(quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME));
+    }
+
     return rowContextAllowedAndNeeded(params, queryItem)
         ? ColumnAndAlias.ofColumnAndAlias(
                 getColumn(queryItem, OU_NAME_COL_POSTFIX),
@@ -1222,7 +1225,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   /**
    * Template method that generates a SQL query for retrieving aggregated enrollments.
    *
-   * @param params the {@link List<GridHeader>} to drive the query generation.
+   * @param headers the {@link List<GridHeader>} to drive the query generation.
    * @param params the {@link EventQueryParams} to drive the query generation.
    * @return a SQL query.
    */
@@ -1234,10 +1237,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
 
-    String headerColumns = getHeaderColumns(headers, sql).stream().collect(joining(","));
-    String periodColumns = getPeriodColumns(params).stream().collect(joining(","));
-    String orgUnitLevels = getOrgUnitLevelColumns(params).stream().collect(joining(","));
-    String orgUnitColumns = orgUnitLevels;
+    String headerColumns = String.join(",", getHeaderColumns(headers, sql));
+    String periodColumns = String.join(",", getPeriodColumns(params));
+    String orgUnitColumns = String.join(",", getOrgUnitLevelColumns(params));
 
     if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
       orgUnitColumns = ORGUNIT_DIM_ID;
@@ -1545,7 +1547,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected String getItemsSqlForEnhancedConditions(EventQueryParams params, SqlHelper hlp) {
     Map<UUID, String> sqlConditionByGroup = getUuidConditionMap(params);
 
-    if (sqlConditionByGroup.values().isEmpty()) {
+    if (sqlConditionByGroup.isEmpty()) {
       return EMPTY;
     }
 
@@ -1553,15 +1555,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   protected Map<UUID, String> getUuidConditionMap(EventQueryParams params) {
-    Map<UUID, String> sqlConditionByGroup =
-        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
-            .filter(QueryItem::hasFilter)
-            .collect(
-                groupingBy(
-                    QueryItem::getGroupUUID,
-                    mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
-
-    return sqlConditionByGroup;
+    return Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+        .filter(QueryItem::hasFilter)
+        .collect(
+            groupingBy(
+                QueryItem::getGroupUUID,
+                mapping(queryItem -> toSql(queryItem, params), OR_JOINER)));
   }
 
   /**
@@ -1595,9 +1594,71 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   /** Converts given queryItem into SQL joining its filters using AND. */
   private String toSql(QueryItem queryItem, EventQueryParams params) {
-    return queryItem.getFilters().stream()
-        .map(filter -> toSql(queryItem, filter, params))
-        .collect(joining(AND));
+    // Special handling for stage.ou dimension - use uidlevelX instead of ou
+    if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())
+        && queryItem.hasProgramStage()) {
+      return getStageOuWhereClause(queryItem, params);
+    }
+
+    String sql =
+        queryItem.getFilters().stream()
+            .map(filter -> toSql(queryItem, filter, params))
+            .collect(joining(AND));
+
+    // For enrollment analytics, skip adding the ps condition here because:
+    // - The getColumn() method in JdbcEnrollmentAnalyticsManager generates a subselect
+    //    that already includes the ps = '...' condition
+    // - The getWhereClause() in JdbcEnrollmentAnalyticsManager adds the ps condition at query level
+    if (queryItem.hasProgramStage() && params.getEndpointItem() != ENROLLMENT) {
+      return "("
+          + sql
+          + " and "
+          + quoteAlias("ps")
+          + " = '"
+          + queryItem.getProgramStage().getUid()
+          + "')";
+    }
+
+    return sql;
+  }
+
+  /**
+   * Generates a WHERE clause for stage.ou dimension using proper uidlevelX columns based on
+   * organisation unit levels.
+   */
+  private String getStageOuWhereClause(QueryItem item, EventQueryParams params) {
+    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
+        organisationUnitResolver.resolveOrgUnitsGroupedByLevel(params, item);
+
+    if (orgUnitsByLevel.isEmpty()) {
+      return "";
+    }
+
+    String ouConditions =
+        orgUnitsByLevel.entrySet().stream()
+            .map(
+                entry -> {
+                  String col =
+                      params
+                          .getOrgUnitField()
+                          .withSqlBuilder(sqlBuilder)
+                          .getOrgUnitLevelCol(entry.getKey(), getAnalyticsType());
+                  String uids =
+                      entry.getValue().stream()
+                          .filter(ou -> StringUtils.isNotEmpty(ou.getUid()))
+                          .map(ou -> "'" + ou.getUid() + "'")
+                          .collect(joining(","));
+                  return col + " in (" + uids + ")";
+                })
+            .collect(joining(" and "));
+
+    return "("
+        + ouConditions
+        + " and "
+        + quoteAlias("ps")
+        + " = '"
+        + item.getProgramStage().getUid()
+        + "')";
   }
 
   /** Returns PSID.ITEM_ID of given queryItem. */
@@ -2752,7 +2813,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (!hasFunction && !hasPrefix) {
       column = "ax." + column;
-    } else if (hasFunction && functionColumn.length() > 0 && !hasPrefix) {
+    } else if (hasFunction && !functionColumn.isEmpty() && !hasPrefix) {
       column = column.replace(functionColumn, "ax." + functionColumn);
     }
 
@@ -2777,23 +2838,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     Set<QueryItem> processedItems = new HashSet<>();
-
     // Build CTE conditions
-    Condition cteConditions = buildCteConditions(params, cteContext, processedItems);
-
-    // Get non-CTE conditions
-    String nonCteWhereClause =
-        getQueryItemsAndFiltersWhereClause(params, processedItems, new SqlHelper())
-            .replace("where", "");
-
-    // Combine conditions
-    if (!nonCteWhereClause.isEmpty()) {
-      return cteConditions != null
-          ? Condition.and(cteConditions, Condition.raw(nonCteWhereClause))
-          : Condition.raw(nonCteWhereClause);
-    }
-
-    return cteConditions;
+    return buildCteConditions(params, cteContext, processedItems);
   }
 
   /**

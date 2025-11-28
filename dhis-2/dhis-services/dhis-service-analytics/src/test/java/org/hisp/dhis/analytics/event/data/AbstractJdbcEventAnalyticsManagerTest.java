@@ -58,11 +58,13 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,6 +89,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -113,6 +116,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -927,7 +931,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
     when(queryItem.getItemName()).thenReturn("anyItem");
     when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
-    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
@@ -952,7 +957,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .withEndpointAction(AGGREGATE)
             .withEndpointItem(ENROLLMENT)
             .build();
-    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("A;B;C");
 
     // When
     String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
@@ -1040,6 +1046,110 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
                 + deA.getUid()
                 + "_geom"
                 + "\"))::numeric, 6) || ']'"));
+  }
+
+  @Test
+  void testToSqlWithProgramStageOrgUnit() {
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("stageUidABC");
+
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+    QueryItem queryItem = new QueryItem(item);
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.ORGANISATION_UNIT);
+
+    QueryFilter filter = new QueryFilter(IN, "ouA;ouB");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
+            .build();
+
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("ouA;ouB");
+
+    String sql = eventSubject.toSql(queryItem, filter, params).trim();
+
+    // toSql(QueryItem, QueryFilter, EventQueryParams) generates the individual filter clause
+    assertThat(sql, containsString("in ('ouA','ouB')"));
+  }
+
+  @Test
+  void testToSqlWithEventDateFilter() {
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("stageUidABC");
+
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem queryItem = new QueryItem(item);
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.DATE);
+
+    QueryFilter filter = new QueryFilter(QueryOperator.GE, "2019-01-01");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
+            .build();
+
+    String sql = eventSubject.toSql(queryItem, filter, params).trim();
+
+    assertThat(sql, containsString("occurreddate"));
+  }
+
+  @Test
+  void testToSqlWithScheduledDateFilter() {
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("stageUidXYZ");
+
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem queryItem = new QueryItem(item);
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.DATE);
+
+    QueryFilter filter = new QueryFilter(QueryOperator.LE, "2020-12-31");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
+            .build();
+
+    String sql = eventSubject.toSql(queryItem, filter, params).trim();
+
+    assertThat(sql, containsString("scheduleddate"));
+  }
+
+  @Test
+  void testToSqlWithEventStatusFilter() {
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("stageUidDEF");
+
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem queryItem = new QueryItem(item);
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.TEXT);
+
+    QueryFilter filter = new QueryFilter(IN, "ACTIVE;COMPLETED");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
+            .build();
+
+    String sql = eventSubject.toSql(queryItem, filter, params).trim();
+
+    assertThat(sql, containsString("in ('ACTIVE','COMPLETED')"));
   }
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {

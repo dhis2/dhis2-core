@@ -36,6 +36,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -84,6 +86,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
@@ -105,6 +108,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
@@ -661,6 +665,53 @@ public class EventQueryParams extends DataQueryParams {
       ranges.sort(Comparator.comparing(DateRange::getStartDate));
     }
     removeDimensionOrFilter(PERIOD_DIM_ID);
+
+    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
+    extractDatesFromStageDateItems();
+  }
+
+  /**
+   * Extracts start/end dates from stage-scoped date QueryItems (e.g., stageId.EVENT_DATE:201910 or
+   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as comparison
+   * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
+   */
+  private void extractDatesFromStageDateItems() {
+    for (QueryItem item : items) {
+      if (item.hasProgramStage() && isStageDateItem(item)) {
+        Date start = null;
+        Date end = null;
+
+        for (QueryFilter filter : item.getFilters()) {
+          Date filterDate = DateUtils.parseDate(filter.getFilter());
+          if (filterDate != null) {
+            switch (filter.getOperator()) {
+              case GE, GT -> start = filterDate;
+              case LE, LT -> end = filterDate;
+              case EQ -> {
+                start = filterDate;
+                end = filterDate;
+              }
+              default -> {}
+            }
+          }
+        }
+
+        if (start != null || end != null) {
+          setDates(start, end);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if the QueryItem is a stage date item (EVENT_DATE or SCHEDULED_DATE).
+   *
+   * @param item the QueryItem to check
+   * @return true if the item is a stage date item
+   */
+  private boolean isStageDateItem(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId) || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
   }
 
   /**

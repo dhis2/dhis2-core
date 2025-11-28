@@ -136,13 +136,31 @@ public class OrganisationUnitResolver {
    * @param item the query item
    * @return the list of organisation unit dimension uids
    */
-  public List<String> resolveOrgUnis(EventQueryParams params, QueryItem item) {
+  public List<String> resolveOrgUnits(EventQueryParams params, QueryItem item) {
     return item.getFilters().stream()
         .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
         .map(s -> s.split(DimensionConstants.OPTION_SEP))
         .flatMap(Arrays::stream)
         .distinct()
         .toList();
+  }
+
+  /**
+   * Resolves organisation units from a QueryItem's filters and returns them grouped by level. This
+   * is useful for generating proper uidlevelX WHERE clauses for stage.ou dimensions.
+   *
+   * @param params the event query parameters
+   * @param item the query item containing org unit filters
+   * @return a map of level to list of organisation units at that level
+   */
+  public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
+      EventQueryParams params, QueryItem item) {
+    List<String> orgUnitUids = resolveOrgUnits(params, item);
+    if (orgUnitUids.isEmpty()) {
+      return Map.of();
+    }
+    return organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
+        .collect(Collectors.groupingBy(OrganisationUnit::getLevel));
   }
 
   /**
