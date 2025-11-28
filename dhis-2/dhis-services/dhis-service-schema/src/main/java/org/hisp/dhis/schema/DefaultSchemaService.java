@@ -103,7 +103,6 @@ import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExpressionSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExternalMapLayerSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
@@ -293,7 +292,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new ValidationNotificationTemplateSchemaDescriptor());
     register(new PushAnalysisSchemaDescriptor());
     register(new ProgramIndicatorGroupSchemaDescriptor());
-    register(new ExternalFileResourceSchemaDescriptor());
     register(new OptionGroupSchemaDescriptor());
     register(new OptionGroupSetSchemaDescriptor());
     register(new DataInputPeriodSchemaDescriptor());

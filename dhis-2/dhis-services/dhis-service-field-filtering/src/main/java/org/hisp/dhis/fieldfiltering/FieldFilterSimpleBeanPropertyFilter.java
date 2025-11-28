@@ -95,7 +95,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             ctx.getFullPath(),
             "user",
             "publicAccess",
-            "externalAccess",
             "userGroupAccesses",
             "userAccesses",
             "sharing")) {

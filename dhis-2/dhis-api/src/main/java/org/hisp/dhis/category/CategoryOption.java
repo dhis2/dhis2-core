@@ -638,10 +638,6 @@ public class CategoryOption extends BaseMetadataObject
   // Sharing helpers
   // -------------------------------------------------------------------------
 
-  public void setExternalAccess(boolean externalAccess) {
-    getSharing().setExternal(externalAccess);
-  }
-
   public void setPublicAccess(String access) {
     getSharing().setPublicAccess(access);
   }

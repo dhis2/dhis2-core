@@ -42,8 +42,6 @@ import org.hisp.dhis.common.EmbeddedObject;
 public class Access implements EmbeddedObject {
   private boolean manage;
 
-  private boolean externalize;
-
   private boolean write;
 
   private boolean read;
@@ -58,7 +56,6 @@ public class Access implements EmbeddedObject {
 
   public Access(boolean value) {
     this.manage = value;
-    this.externalize = value;
     this.write = value;
     this.read = value;
     this.update = value;
@@ -73,17 +70,6 @@ public class Access implements EmbeddedObject {
 
   public Access setManage(boolean manage) {
     this.manage = manage;
-    return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(localName = "externalize", namespace = DxfNamespaces.DXF_2_0)
-  public boolean isExternalize() {
-    return externalize;
-  }
-
-  public Access setExternalize(boolean externalize) {
-    this.externalize = externalize;
     return this;
   }
 
@@ -147,8 +133,6 @@ public class Access implements EmbeddedObject {
     return "Access{"
         + "manage="
         + manage
-        + ", externalize="
-        + externalize
         + ", write="
         + write
         + ", read="

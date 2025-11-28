@@ -99,7 +99,6 @@ class DefaultFieldFilterServiceTest {
     addProperty(propertyMap, attribute, "publicAccess");
     addProperty(propertyMap, attribute, "userGroupAccesses");
     addProperty(propertyMap, attribute, "userAccesses");
-    addProperty(propertyMap, attribute, "externalAccess");
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
@@ -122,7 +121,6 @@ class DefaultFieldFilterServiceTest {
     Assertions.assertFalse(names.contains("publicAccess"));
     Assertions.assertFalse(names.contains("userGroupAccesses"));
     Assertions.assertFalse(names.contains("userAccesses"));
-    Assertions.assertFalse(names.contains("externalAccess"));
   }
 
   @Test
@@ -137,7 +135,6 @@ class DefaultFieldFilterServiceTest {
     addProperty(propertyMap, attribute, "publicAccess");
     addProperty(propertyMap, attribute, "userGroupAccesses");
     addProperty(propertyMap, attribute, "userAccesses");
-    addProperty(propertyMap, attribute, "externalAccess");
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
@@ -164,7 +161,6 @@ class DefaultFieldFilterServiceTest {
     Assertions.assertFalse(names.contains("publicAccess"));
     Assertions.assertFalse(names.contains("userGroupAccesses"));
     Assertions.assertFalse(names.contains("userAccesses"));
-    Assertions.assertFalse(names.contains("externalAccess"));
   }
 
   private static Set<String> extractNodeNames(Collection<Node> nodes) {

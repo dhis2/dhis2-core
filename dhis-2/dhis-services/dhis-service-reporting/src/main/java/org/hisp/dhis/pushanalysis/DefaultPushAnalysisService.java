@@ -58,8 +58,6 @@ import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -101,8 +99,6 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
   private final SystemSettingsProvider settingsProvider;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
-
-  private final ExternalFileResourceService externalFileResourceService;
 
   private final FileResourceService fileResourceService;
 
@@ -431,16 +427,19 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
    * @return access token of the external file resource
    */
   private String saveFileResource(FileResource fileResource, byte[] bytes) {
-    ExternalFileResource externalFileResource = new ExternalFileResource();
-
-    externalFileResource.setExpires(null);
-
-    fileResource.setAssigned(true);
-
-    String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, bytes);
-
-    externalFileResource.setFileResource(fileResourceService.getFileResource(fileResourceUid));
-
-    return externalFileResourceService.saveExternalFileResource(externalFileResource);
+    // TODO: MAS what to do here?
+    //    ExternalFileResource externalFileResource = new ExternalFileResource();
+    //
+    //    externalFileResource.setExpires(null);
+    //
+    //    fileResource.setAssigned(true);
+    //
+    //    String fileResourceUid = fileResourceService.asyncSaveFileResource(fileResource, bytes);
+    //
+    //
+    // externalFileResource.setFileResource(fileResourceService.getFileResource(fileResourceUid));
+    //
+    //    return externalFileResourceService.saveExternalFileResource(externalFileResource);
+    return "";
   }
 }

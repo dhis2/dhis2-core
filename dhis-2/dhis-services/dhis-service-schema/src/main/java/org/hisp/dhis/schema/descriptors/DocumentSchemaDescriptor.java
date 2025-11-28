@@ -56,7 +56,6 @@ public class DocumentSchemaDescriptor implements SchemaDescriptor {
         new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_DOCUMENT_PUBLIC_ADD")));
     schema.add(
         new Authority(AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_DOCUMENT_PRIVATE_ADD")));
-    schema.add(new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_DOCUMENT_EXTERNAL")));
     schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_DOCUMENT_DELETE")));
 
     return schema;

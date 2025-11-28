@@ -58,8 +58,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
             .content()
             .getObject(0);
     assertTrue(groups.has("id", "sharing"));
-    assertTrue(
-        groups.getObject("sharing").has("owner", "external", "users", "userGroups", "public"));
+    assertTrue(groups.getObject("sharing").has("owner", "users", "userGroups", "public"));
   }
 
   @Test
@@ -187,9 +186,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     assertEquals(1, groups.size());
     JsonObject group = groups.getObject(0);
     JsonObject access = group.getObject("access");
-    assertTrue(access.has("manage", "externalize", "write", "read", "update", "delete"));
+    assertTrue(access.has("manage", "write", "read", "update", "delete"));
     assertTrue(access.getBoolean("manage").booleanValue());
-    assertTrue(access.getBoolean("externalize").booleanValue());
     assertTrue(access.getBoolean("write").booleanValue());
     assertTrue(access.getBoolean("read").booleanValue());
     assertTrue(access.getBoolean("update").booleanValue());

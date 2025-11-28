@@ -52,8 +52,6 @@ public class EventReportSchemaDescriptor implements SchemaDescriptor {
 
     schema.add(
         new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_EVENTREPORT_PUBLIC_ADD")));
-    schema.add(
-        new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_EVENTREPORT_EXTERNAL")));
 
     return schema;
   }

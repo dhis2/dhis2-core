@@ -58,7 +58,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class ReflectionUtils {
   private static final Set<String> SHARING_PROPS =
-      Set.of("publicAccess", "externalAccess", "userGroupAccesses", "userAccesses", "sharing");
+      Set.of("publicAccess", "userGroupAccesses", "userAccesses", "sharing");
 
   /**
    * Invokes method getId() for this object and returns the return value. An int return type is
