@@ -32,6 +32,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.withMdc;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.withMdcFunction;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Multimap;
@@ -144,7 +146,7 @@ public class TrackedEntityAggregate {
      * Async Fetch TrackedEntities by id
      */
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
+        supplyAsync(withMdc(() -> trackedEntityStore.getTrackedEntities(ids)), getPool());
 
     /*
      * Async fetch TrackedEntity Attributes by TrackedEntity id
@@ -157,27 +159,39 @@ public class TrackedEntityAggregate {
 
     /*
      * Execute all queries and merge the results
+     *
+     * withMdcFunction wraps both thenApplyAsync and parallelStream map operations to
+     * propagate request ID through the async execution chain:
+     * 1. HTTP thread -> TRACKER-TE-FETCH thread (via thenApplyAsync with withMdcFunction)
+     * 2. TRACKER-TE-FETCH thread -> ForkJoinPool.commonPool workers (via parallelStream with
+     *    withMdcFunction)
+     * This enables connection logging correlation. Without this, both operations spawn threads with
+     * empty request_id.
      */
     return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync)
         .thenApplyAsync(
-            fn -> {
-              Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
+            withMdcFunction(
+                fn -> {
+                  Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
 
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-              Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
-              Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              return trackedEntities.keySet().parallelStream()
-                  .map(
-                      uid -> {
-                        TrackedEntity te = trackedEntities.get(uid);
-                        te.setTrackedEntityAttributeValues(
-                            filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
-                        te.setEnrollments(new HashSet<>(enrollments.get(uid)));
-                        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                        return te;
-                      })
-                  .toList();
-            },
+                  Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
+                  Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
+                  Multimap<String, TrackedEntityProgramOwner> programOwners =
+                      programOwnersAsync.join();
+                  // withMdcFunction ensures ForkJoinPool.commonPool workers inherit request_id
+                  return trackedEntities.keySet().parallelStream()
+                      .map(
+                          withMdcFunction(
+                              uid -> {
+                                TrackedEntity te = trackedEntities.get(uid);
+                                te.setTrackedEntityAttributeValues(
+                                    filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
+                                te.setEnrollments(new HashSet<>(enrollments.get(uid)));
+                                te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+                                return te;
+                              }))
+                      .toList();
+                }),
             getPool())
         .join();
   }
