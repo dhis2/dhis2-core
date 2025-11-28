@@ -1,0 +1,61 @@
+# OSIV Demo - PostgreSQL with query logging enabled and Sierra Leone demo data
+#
+# Usage:
+#   cd demo-osiv && docker compose up -d db
+#   tail -f $(docker volume inspect demo-osiv_pgdata --format '{{.Mountpoint}}')/log/postgresql.log
+
+services:
+  db:
+    image: ghcr.io/baosystems/postgis:16-3.4
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - db-dump:/docker-entrypoint-initdb.d/
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    environment:
+      POSTGRES_USER: &postgres_user dhis
+      POSTGRES_DB: &postgres_db dhis
+      POSTGRES_PASSWORD: &postgres_password dhis
+      PGUSER: *postgres_user
+      PGDATABASE: *postgres_db
+      PGPASSWORD: *postgres_password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'psql --quiet --host=127.0.0.1 --port=5432 -v application_name=docker-healthcheck --command "SELECT ''ok''" > /dev/null',
+        ]
+      start_period: 120s
+      interval: 60s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:5432:5432"
+    depends_on:
+      db-dump:
+        condition: service_completed_successfully
+
+  db-dump:
+    image: busybox
+    command: sh -c '[ -f dump.sql.gz ] && echo "dump.sql.gz exists" || wget --output-document dump.sql.gz $$DHIS2_DB_DUMP_URL'
+    environment:
+      DHIS2_DB_DUMP_URL: "${DHIS2_DB_DUMP_URL:-https://databases.dhis2.org/sierra-leone/dev/dhis2-db-sierra-leone.sql.gz}"
+    working_dir: /opt/dump
+    volumes:
+      - db-dump:/opt/dump
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command: --config.file=/etc/prometheus/prometheus.yml
+    network_mode: host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+
+volumes:
+  pgdata:
+    driver: local
+  db-dump: {}
+  prometheus:
+    driver: local
+

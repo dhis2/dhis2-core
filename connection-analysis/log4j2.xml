@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="10">
+    <Properties>
+        <Property name="layout">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level %c [%t] request_id=%X{xRequestID} %msg%n</Property>
+        <Property name="logDir">${sys:user.dir}/connection-analysis/logs</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${layout}" />
+        </Console>
+        <File name="file" fileName="${logDir}/dhis.log" append="false">
+            <PatternLayout pattern="${layout}" />
+        </File>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
+
+        <!-- HikariCP DEBUG logging for connection pool stats (Housekeeper logs every 5s with demo config) -->
+        <Logger name="com.zaxxer.hikari.HikariConfig" level="DEBUG" additivity="true"/>
+        <Logger name="com.zaxxer.hikari.pool.HikariPool" level="DEBUG" additivity="true"/>
+
+        <!-- Connection acquisition timing -->
+        <Logger name="org.hisp.dhis.datasource.ConnectionAcquisitionTimingDataSource" level="DEBUG" additivity="true"/>
+
+        <!-- CspFilter DEBUG to show when DB connection is acquired -->
+        <Logger name="org.hisp.dhis.webapi.filter.CspFilter" level="DEBUG" additivity="true"/>
+
+
+        <!-- Job scheduler logging to see background DB activity -->
+        <Logger name="org.hisp.dhis.scheduling.JobScheduler" level="DEBUG" additivity="true"/>
+        <Logger name="org.hisp.dhis.scheduling.DefaultJobSchedulerLoopService" level="DEBUG" additivity="true"/>
+
+        <Root level="WARN">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Root>
+    </Loggers>
+</Configuration>

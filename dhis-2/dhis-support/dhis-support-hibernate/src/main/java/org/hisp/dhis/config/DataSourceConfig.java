@@ -48,6 +48,7 @@ import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.datasource.ConnectionAcquisitionTimingDataSource;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
@@ -111,7 +112,8 @@ public class DataSourceConfig {
   @Primary
   @Bean("actualDataSource")
   public DataSource dataSource(DhisConfigurationProvider config, MeterRegistry meterRegistry) {
-    return createLoggingDataSource(config, actualDataSource(config, meterRegistry));
+    DataSource ds = createLoggingDataSource(config, actualDataSource(config, meterRegistry));
+    return new ConnectionAcquisitionTimingDataSource(ds);
   }
 
   @Bean

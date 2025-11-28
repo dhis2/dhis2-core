@@ -13,6 +13,13 @@
   <Loggers>
     <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
     <Logger name="org.hisp.dhis.webapi.mvc" level="WARN" additivity="false"/>
+
+    <!-- Connection acquisition timing for performance analysis -->
+    <Logger name="org.hisp.dhis.datasource.ConnectionAcquisitionTimingDataSource" level="DEBUG" additivity="true"/>
+
+    <!-- Reduce authentication logging noise -->
+    <Logger name="org.hisp.dhis.security.AuthenticationLoggerListener" level="WARN" additivity="false"/>
+
     <Logger
       name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy"
       level="ERROR" additivity="false"/>
