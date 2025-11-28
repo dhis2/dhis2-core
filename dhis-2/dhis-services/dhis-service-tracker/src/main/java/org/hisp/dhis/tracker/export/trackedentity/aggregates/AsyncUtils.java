@@ -33,9 +33,12 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import org.slf4j.MDC;
 
 /**
  * @author Luciano Fiandesio
@@ -57,7 +60,67 @@ class AsyncUtils {
   static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
       boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
     return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
+        ? supplyAsync(withMdc(supplier), executor)
+        : supplyAsync(withMdc(ArrayListMultimap::create), executor));
+  }
+
+  /**
+   * Wraps a Supplier to propagate the MDC context from the calling thread to the async thread. This
+   * ensures that log statements in async operations include the same contextual information (e.g.,
+   * sessionId, request_id) as the parent HTTP request.
+   *
+   * @param supplier The Supplier to wrap
+   * @return A Supplier that propagates MDC context
+   */
+  static <T> Supplier<T> withMdc(Supplier<T> supplier) {
+    Map<String, String> contextMap = MDC.getCopyOfContextMap();
+    return () -> {
+      Map<String, String> previous = MDC.getCopyOfContextMap();
+      try {
+        if (contextMap != null) {
+          MDC.setContextMap(contextMap);
+        }
+        return supplier.get();
+      } finally {
+        if (previous != null) {
+          MDC.setContextMap(previous);
+        } else {
+          MDC.clear();
+        }
+      }
+    };
+  }
+
+  /**
+   * Wraps a Function to propagate the MDC context from the calling thread to the async thread. This
+   * is useful for:
+   *
+   * <ul>
+   *   <li>parallelStream().map() operations that spawn work on ForkJoinPool.commonPool()
+   *   <li>CompletableFuture.thenApplyAsync() operations that execute on a different thread
+   * </ul>
+   *
+   * ensuring that log statements include the request ID.
+   *
+   * @param function The Function to wrap
+   * @return A Function that propagates MDC context
+   */
+  static <T, R> Function<T, R> withMdcFunction(Function<T, R> function) {
+    Map<String, String> contextMap = MDC.getCopyOfContextMap();
+    return input -> {
+      Map<String, String> previous = MDC.getCopyOfContextMap();
+      try {
+        if (contextMap != null) {
+          MDC.setContextMap(contextMap);
+        }
+        return function.apply(input);
+      } finally {
+        if (previous != null) {
+          MDC.setContextMap(previous);
+        } else {
+          MDC.clear();
+        }
+      }
+    };
   }
 }
