@@ -37,8 +37,6 @@ public class Sharing_ {
 
   public static final String OWNER = "owner";
 
-  public static final String EXTERNAL = "external";
-
   public static final String USERS = "users";
 
   public static final String USER_GROUPS = "userGroups";

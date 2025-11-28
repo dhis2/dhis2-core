@@ -287,26 +287,6 @@ public interface AclService {
   <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass);
 
   /**
-   * Can user make this object external? (read with no login)
-   *
-   * @param userDetails to check against
-   * @param object Object to check
-   * @return Result of test
-   */
-  <T extends IdentifiableObject> boolean canMakeExternal(UserDetails userDetails, T object);
-
-  /**
-   * Checks if a user can create an external instance of a certain class.
-   *
-   * @param <T>
-   * @param userDetails to check against
-   * @param klass the class
-   * @return Result of test
-   */
-  <T extends IdentifiableObject> boolean canMakeClassExternal(
-      UserDetails userDetails, Class<T> klass);
-
-  /**
    * Is the default for this type to be private?
    *
    * @param klass Type to check

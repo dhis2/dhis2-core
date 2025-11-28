@@ -81,10 +81,6 @@ public class DataGenerator {
             new JsonPrimitive(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(date));
       }
       case BOOLEAN -> {
-        if (property.getName().equalsIgnoreCase("external")) {
-          jsonElement = new JsonPrimitive(true);
-          break;
-        }
         jsonElement = new JsonPrimitive(String.valueOf(faker.bool().bool()));
       }
       case CONSTANT -> jsonElement = generateConstantValue(property);

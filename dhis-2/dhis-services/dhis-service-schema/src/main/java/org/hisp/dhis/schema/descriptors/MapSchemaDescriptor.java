@@ -54,7 +54,6 @@ public class MapSchemaDescriptor implements SchemaDescriptor {
     schema.setImplicitPrivateAuthority(true);
 
     schema.add(new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_MAP_PUBLIC_ADD")));
-    schema.add(new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_MAP_EXTERNAL")));
 
     return schema;
   }

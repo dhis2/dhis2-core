@@ -58,8 +58,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
             .content()
             .getObject(0);
     assertTrue(groups.has("id", "sharing"));
-    assertTrue(
-        groups.getObject("sharing").has("owner", "external", "users", "userGroups", "public"));
+    assertTrue(groups.getObject("sharing").has("owner", "users", "userGroups", "public"));
   }
 
   @Test

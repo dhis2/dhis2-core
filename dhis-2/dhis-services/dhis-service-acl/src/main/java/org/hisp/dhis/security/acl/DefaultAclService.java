@@ -445,25 +445,6 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> boolean canMakeExternal(UserDetails userDetails, T object) {
-    return canMakeClassExternal(userDetails, HibernateProxyUtils.getRealClass(object));
-  }
-
-  @Override
-  public <T extends IdentifiableObject> boolean canMakeClassExternal(
-      UserDetails userDetails, Class<T> klass) {
-    Schema schema = schemaService.getSchema(klass);
-
-    return !(schema == null || !schema.isShareable())
-        && ((!schema.getAuthorityByType(AuthorityType.EXTERNALIZE).isEmpty()
-                && haveOverrideAuthority(userDetails))
-            || haveAuthority(
-                userDetails.getAllAuthorities(),
-                schema.getAuthorityByType(AuthorityType.EXTERNALIZE)));
-  }
-
-  @Override
   public <T extends IdentifiableObject> boolean defaultPrivate(Class<T> klass) {
     Schema schema = schemaService.getSchema(klass);
     return schema != null && schema.isDefaultPrivate();
@@ -517,7 +498,6 @@ public class DefaultAclService implements AclService {
 
     Access access = new Access();
     access.setManage(canManage(userDetails, object, objType));
-    access.setExternalize(canMakeClassExternal(userDetails, objType));
     access.setWrite(canWrite(userDetails, object, objType));
     access.setRead(canRead(userDetails, object, objType));
     access.setUpdate(canUpdate(userDetails, object, objType));
@@ -549,7 +529,6 @@ public class DefaultAclService implements AclService {
 
     Sharing sharing = object.getSharing();
     sharing.setPublicAccess(AccessStringHelper.DEFAULT);
-    sharing.setExternal(false);
 
     if (object.getSharing().getOwner() == null) {
       sharing.setOwner(userDetails.getUid());
@@ -571,7 +550,6 @@ public class DefaultAclService implements AclService {
     Sharing sharing = object.getSharing();
     sharing.setOwner(userDetails.getUid());
     sharing.setPublicAccess(AccessStringHelper.DEFAULT);
-    sharing.setExternal(false);
     sharing.resetUserAccesses();
     sharing.resetUserGroupAccesses();
   }
@@ -628,12 +606,6 @@ public class DefaultAclService implements AclService {
 
     boolean canMakePublic = canMakePublic(userDetails, object);
     boolean canMakePrivate = canMakePrivate(userDetails, object);
-    boolean canMakeExternal = canMakeExternal(userDetails, object);
-
-    if (object.getSharing().isExternal() && !canMakeExternal) {
-      errorReports.add(
-          new ErrorReport(object.getClass(), ErrorCode.E3006, userDetails, object.getClass()));
-    }
 
     errorReports.addAll(verifyImplicitSharing(userDetails, object));
 
@@ -715,19 +687,11 @@ public class DefaultAclService implements AclService {
       @Nonnull UserDetails userDetails, IdentifiableObject object, Class<T> objType) {
     boolean canMakePublic = canMakeClassPublic(userDetails, objType);
     boolean canMakePrivate = canMakeClassPrivate(userDetails, objType);
-    boolean canMakeExternal = canMakeClassExternal(userDetails, objType);
-
     if (AccessStringHelper.DEFAULT.equals(object.getSharing().getPublicAccess())) {
-      if (!(canMakePublic || canMakePrivate)) {
-        return false;
-      }
+      return canMakePublic || canMakePrivate;
     } else {
-      if (!canMakePublic) {
-        return false;
-      }
+      return canMakePublic;
     }
-
-    return !object.getSharing().isExternal() || canMakeExternal;
   }
 
   /**

@@ -277,22 +277,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     Visualization visualization = new Visualization();
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
     assertFalse(aclService.verifySharing(visualization, user).isEmpty());
-  }
-
-  @Test
-  void testVerifyEventVisualizationCantExternalize() {
-    // Given
-    User user = createAndAddRandomUser("F_EVENT_VISUALIZATION_PUBLIC_ADD");
-    EventVisualization eventVisualization = new EventVisualization();
-    eventVisualization.setAutoFields();
-    eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    eventVisualization.setExternalAccess(true);
-    eventVisualization.setType(EventVisualizationType.COLUMN);
-    // Then
-    assertFalse(aclService.verifySharing(eventVisualization, user).isEmpty());
   }
 
   @Test
@@ -301,12 +287,10 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     Visualization visualization = new Visualization();
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
     assertFalse(aclService.verifySharing(visualization, user).isEmpty());
     aclService.resetSharing(visualization, user);
     assertTrue(AccessStringHelper.DEFAULT.equals(visualization.getPublicAccess()));
-    assertFalse(visualization.getSharing().isExternal());
     assertTrue(visualization.getSharing().getUsers().isEmpty());
     assertTrue(visualization.getSharing().getUserGroups().isEmpty());
   }
@@ -318,14 +302,12 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     EventVisualization eventVisualization = new EventVisualization();
     eventVisualization.setAutoFields();
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    eventVisualization.setExternalAccess(true);
     eventVisualization.setType(EventVisualizationType.COLUMN);
     assertFalse(aclService.verifySharing(eventVisualization, user).isEmpty());
     // When
     aclService.resetSharing(eventVisualization, user);
     // Then
     assertEquals(AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess());
-    assertFalse(eventVisualization.getSharing().isExternal());
     assertTrue(eventVisualization.getSharing().getUsers().isEmpty());
     assertTrue(eventVisualization.getSharing().getUserGroups().isEmpty());
   }
@@ -336,12 +318,10 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     Visualization visualization = new Visualization();
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
     assertFalse(aclService.verifySharing(visualization, user).isEmpty());
     aclService.resetSharing(visualization, user);
     assertTrue(AccessStringHelper.READ_WRITE.equals(visualization.getPublicAccess()));
-    assertFalse(visualization.getSharing().isExternal());
     assertTrue(visualization.getSharing().getUsers().isEmpty());
     assertTrue(visualization.getSharing().getUserGroups().isEmpty());
   }
@@ -353,14 +333,12 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     EventVisualization eventVisualization = new EventVisualization();
     eventVisualization.setAutoFields();
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
-    eventVisualization.setExternalAccess(true);
     eventVisualization.setType(EventVisualizationType.COLUMN);
     assertFalse(aclService.verifySharing(eventVisualization, user).isEmpty());
     // When
     aclService.resetSharing(eventVisualization, user);
     // Then
     assertEquals(AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess());
-    assertFalse(eventVisualization.getSharing().isExternal());
     assertTrue(eventVisualization.getSharing().getUsers().isEmpty());
     assertTrue(eventVisualization.getSharing().getUserGroups().isEmpty());
   }
@@ -775,7 +753,6 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     visualization.getSharing().setOwner(adminUser);
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.READ);
-    visualization.setExternalAccess(true);
     visualization.setType(VisualizationType.COLUMN);
     manager.save(visualization);
     injectSecurityContextUser(userNoAuthorities);
@@ -797,7 +774,6 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     visualization.setCreatedBy(user1);
     visualization.getSharing().setOwner(user1);
     visualization.setAutoFields();
-    visualization.setExternalAccess(false);
     visualization.setType(VisualizationType.COLUMN);
     manager.save(visualization);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -820,7 +796,6 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     visualization.setCreatedBy(user1);
     visualization.getSharing().setOwner(user1);
     visualization.setAutoFields();
-    visualization.setExternalAccess(false);
     visualization.setType(VisualizationType.COLUMN);
     manager.save(visualization);
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);

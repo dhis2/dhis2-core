@@ -46,10 +46,6 @@ public interface JsonSharing extends JsonObject {
     return get("public", JsonAccess.class);
   }
 
-  default boolean isExternal() {
-    return getBoolean("external").booleanValue();
-  }
-
   default JsonMap<JsonObjectAccess> getUsers() {
     return getMap("users", JsonObjectAccess.class);
   }
