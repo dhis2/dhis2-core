@@ -2,7 +2,7 @@
 <Configuration status="WARN" monitorInterval="10">
     <Properties>
         <Property name="layout">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level %c [%t] request_id=%X{xRequestID} %msg%n</Property>
-        <Property name="logDir">${sys:user.dir}/connection-analysis/logs</Property>
+        <Property name="logDir">${env:DHIS2_HOME}/logs</Property>
     </Properties>
 
     <Appenders>
