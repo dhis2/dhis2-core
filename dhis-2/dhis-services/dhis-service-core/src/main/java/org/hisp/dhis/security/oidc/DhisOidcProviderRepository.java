@@ -100,12 +100,22 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
   }
 
   public DhisOidcClientRegistration findByIssuerUri(String issuerUri) {
+    String normalizedInput =
+        issuerUri == null
+            ? ""
+            : issuerUri.endsWith("/") ? issuerUri.substring(0, issuerUri.length() - 1) : issuerUri;
     return registrationHashMap.values().stream()
         .filter(
-            c ->
-                MoreObjects.firstNonNull(
-                        c.getClientRegistration().getProviderDetails().getIssuerUri(), "")
-                    .equals(issuerUri))
+            c -> {
+              String providerIssuer =
+                  MoreObjects.firstNonNull(
+                      c.getClientRegistration().getProviderDetails().getIssuerUri(), "");
+              String normalizedProviderIssuer =
+                  providerIssuer.endsWith("/") && providerIssuer.length() > 1
+                      ? providerIssuer.substring(0, providerIssuer.length() - 1)
+                      : providerIssuer;
+              return normalizedProviderIssuer.equals(normalizedInput);
+            })
         .findAny()
         .orElse(null);
   }
