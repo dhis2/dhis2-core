@@ -154,7 +154,7 @@ public class TrackerTest extends Simulation {
   private record Request(
       String url, EnumMap<Profile, Integer> p90Thresholds, String name, String... groups) {
     HttpRequestActionBuilder action() {
-      return http(name).get(url);
+      return http(name).get(url).header("X-Request-ID", "#{requestId}");
     }
 
     Optional<Assertion> assertion(Profile profile) {
@@ -286,7 +286,7 @@ public class TrackerTest extends Simulation {
     // Throttle user creation to avoid overwhelming the system
     int provisionDelayMs = Integer.getInteger("provisionDelayMs", 100);
     for (int i = 1; i <= this.provisionUsers; i++) {
-      String username = "%s_user_%03d".formatted(this.replicaUser, i);
+      String username = "%s_%03d".formatted(this.replicaUser, i);
       String requestBody =
           """
           {"username":"%s","password":"%s"}
@@ -421,12 +421,25 @@ public class TrackerTest extends Simulation {
             getRelationshipsForFirstEvent));
   }
 
-  private HttpRequestActionBuilder login() {
-    return http("Login")
-        .post("/api/auth/login")
-        .header("Content-Type", "application/json")
-        .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
-        .check(status().is(200));
+  private io.gatling.javaapi.core.ChainBuilder login() {
+    return exec(
+            session -> {
+              // Generate unique request ID for this user session (all requests from this login)
+              String username = session.getString("username");
+              String userNum = username.substring(username.lastIndexOf('_') + 1);
+              String paddedNum = String.format("%05d", Integer.parseInt(userNum));
+              String randomSuffix =
+                  java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
+              String requestId = "g-" + paddedNum + "-" + randomSuffix;
+              return session.set("requestId", requestId);
+            })
+        .exec(
+            http("Login")
+                .post("/api/auth/login")
+                .header("Content-Type", "application/json")
+                .header("X-Request-ID", "#{requestId}")
+                .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
+                .check(status().is(200)));
   }
 
   private ScenarioWithRequests trackerProgramScenario() {
