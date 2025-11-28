@@ -76,7 +76,12 @@ public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerI
 
   private static final PathPatternParser PARSER = new PathPatternParser();
   private static final List<PathPattern> EXCLUDE_PATTERNS =
-      Stream.of("/api/tracker/**", "/api/ping", "/api/metrics", "/api/system/ping", "/api/potentialDuplicates")
+      Stream.of(
+              "/api/tracker/**",
+              "/api/ping",
+              "/api/metrics",
+              "/api/system/ping",
+              "/api/potentialDuplicates")
           .map(PARSER::parse)
           .toList();
 

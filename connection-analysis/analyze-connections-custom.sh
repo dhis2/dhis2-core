@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Note: Not using pipefail because this script uses many pipelines with head/tail
-# which can cause SIGPIPE and fail unnecessarily
-set -eu
+set -euo pipefail
 
 # Script to analyze Hikari connection acquisition times from DHIS2 logs
 # Extracts CONN_RELEASED logs within a time range and generates analysis
@@ -37,7 +35,7 @@ END_EPOCH=$(date -d "$END_TIME" +%s)
 
 # Output files
 RAW_CSV="$OUTPUT_DIR/connection-raw.csv"
-STATS_TXT="$OUTPUT_DIR/connection-stats.md"
+STATS_TXT="$OUTPUT_DIR/connection-stats.txt"
 PER_REQUEST_CSV="$OUTPUT_DIR/per-request-breakdown.csv"
 
 # Extract CONN_RELEASED logs within time range
@@ -46,31 +44,38 @@ echo "Extracting CONN_RELEASED logs from $LOG_FILE..."
 # Create raw CSV header
 echo "timestamp,request_id,thread,wait_ms,held_ms" > "$RAW_CSV"
 
-# Parse logs and filter by timestamp using rg with regex for time range (much faster)
+# Parse logs and filter by timestamp
 # Log format: 2025-11-25T12:43:30.123+01:00 DEBUG org.hisp.dhis.datasource.ConnectionAcquisitionTimingDataSource [http-nio-8080-exec-17] request_id=abc-123 CONN_RELEASED wait_ms=0 held_ms=866
+grep "CONN_RELEASED" "$LOG_FILE" | while IFS= read -r line; do
+  # Extract timestamp (first field)
+  timestamp=$(echo "$line" | cut -d' ' -f1)
 
-# Extract date and hour for regex filtering (approximation to narrow down results)
-START_DATE=$(date -d "$START_TIME" +"%Y-%m-%d")
-START_HOUR=$(date -d "$START_TIME" +"%H")
+  # Convert to epoch for comparison
+  log_epoch=$(date -d "$timestamp" +%s 2>/dev/null || echo "0")
 
-# Use rg to filter by date/hour first (fast), then filter precisely with perl
-rg "${START_DATE}T${START_HOUR}:.*CONN_RELEASED" "$LOG_FILE" --no-heading --no-line-number | perl -ne '
-  # Extract fields directly without date conversion
-  /^(\S+)/ or next;
-  $timestamp = $1;
+  # Skip if outside time range
+  if [ "$log_epoch" -lt "$START_EPOCH" ] || [ "$log_epoch" -gt "$END_EPOCH" ]; then
+    continue
+  fi
 
-  /request_id=(\S+)/ or next;
-  $request_id = $1;
+  # Extract request_id
+  request_id=$(echo "$line" | grep -oP 'request_id=\K[^ ]+' || echo "")
 
-  # Skip empty request_id
-  next if ($request_id eq "");
+  # Skip if no request_id (shouldn't happen with our changes)
+  if [ -z "$request_id" ]; then
+    continue
+  fi
 
-  /\[([^\]]+)\]/ and $thread = $1;
-  /wait_ms=(\d+)/ and $wait_ms = $1;
-  /held_ms=(\d+)/ and $held_ms = $1;
+  # Extract thread name
+  thread=$(echo "$line" | grep -oP '\[.*?\]' | tr -d '[]')
 
-  print "$timestamp,$request_id,$thread,$wait_ms,$held_ms\n";
-' >> "$RAW_CSV"
+  # Extract wait_ms and held_ms
+  wait_ms=$(echo "$line" | grep -oP 'wait_ms=\K[0-9]+' || echo "0")
+  held_ms=$(echo "$line" | grep -oP 'held_ms=\K[0-9]+' || echo "0")
+
+  # Write to CSV
+  echo "$timestamp,$request_id,$thread,$wait_ms,$held_ms" >> "$RAW_CSV"
+done
 
 # Count lines (excluding header)
 RAW_COUNT=$(($(wc -l < "$RAW_CSV") - 1))
@@ -132,67 +137,30 @@ HELD_P90=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL
 HELD_P99=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.99){print; exit}')
 HELD_MAX=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | tail -1)
 
-# Write statistics file as markdown
+# Write statistics file
 cat > "$STATS_TXT" <<EOF
-# Connection Acquisition Statistics
+===== Connection Acquisition Statistics =====
 
-## Test Information
+Total connections: $TOTAL_CONNECTIONS
+Unique requests: $UNIQUE_REQUESTS
 
-* **Time Range**: $START_TIME to $END_TIME
-* **Log File**: $LOG_FILE
-* **Analysis Date**: $(date -Iseconds)
+Wait Time (ms):
+  Total: $TOTAL_WAIT
+  Mean: $MEAN_WAIT
+  P50: $WAIT_P50
+  P90: $WAIT_P90
+  P99: $WAIT_P99
+  Max: $WAIT_MAX
 
-## Summary
-
-* **Unique request IDs**: $UNIQUE_REQUESTS (each ID may make multiple HTTP requests)
-* **Total connections**: $TOTAL_CONNECTIONS
-* **Avg connections per request ID**: $(awk "BEGIN {printf \"%.2f\", $TOTAL_CONNECTIONS / $UNIQUE_REQUESTS}")
-
-## Wait Time (ms)
-
-Connection pool wait time - time spent waiting to acquire a connection from the pool.
-
-* **Total**: $TOTAL_WAIT
-* **Mean**: $MEAN_WAIT
-* **P50**: $WAIT_P50
-* **P90**: $WAIT_P90
-* **P99**: $WAIT_P99
-* **Max**: $WAIT_MAX
+Held Time (ms):
+  Total: $TOTAL_HELD
+  Mean: $MEAN_HELD
+  P50: $HELD_P50
+  P90: $HELD_P90
+  P99: $HELD_P99
+  Max: $HELD_MAX
 
 EOF
-
-# Add worst 10 by wait time (sort by wait, then by held as tiebreaker)
-echo "### Worst 10 Connections by Wait Time" >> "$STATS_TXT"
-echo "" >> "$STATS_TXT"
-echo '```sh' >> "$STATS_TXT"
-tail -n +2 "$RAW_CSV" | sort -t',' -k4,4rn -k5,5rn | head -10 | \
-  awk -F',' '{printf "%-35s  wait: %5d ms  held: %5d ms  [%s]\n", $2, $4, $5, $3}' >> "$STATS_TXT"
-echo '```' >> "$STATS_TXT"
-echo "" >> "$STATS_TXT"
-
-# Held time section
-cat >> "$STATS_TXT" <<EOF
-## Held Time (ms)
-
-Connection held time - time the connection was held before being released.
-
-* **Total**: $TOTAL_HELD
-* **Mean**: $MEAN_HELD
-* **P50**: $HELD_P50
-* **P90**: $HELD_P90
-* **P99**: $HELD_P99
-* **Max**: $HELD_MAX
-
-EOF
-
-# Add worst 10 by held time (sort by held, then by wait as tiebreaker)
-echo "### Worst 10 Connections by Held Time" >> "$STATS_TXT"
-echo "" >> "$STATS_TXT"
-echo '```sh' >> "$STATS_TXT"
-tail -n +2 "$RAW_CSV" | sort -t',' -k5,5rn -k4,4rn | head -10 | \
-  awk -F',' '{printf "%-35s  wait: %5d ms  held: %5d ms  [%s]\n", $2, $4, $5, $3}' >> "$STATS_TXT"
-echo '```' >> "$STATS_TXT"
-echo "" >> "$STATS_TXT"
 
 # Create per-request CSV with header and sorted data
 echo "request_id,connection_count,total_wait_ms,total_held_ms,avg_wait_ms,avg_held_ms" > "$PER_REQUEST_CSV"
@@ -206,12 +174,8 @@ if [ -f /tmp/per_request.csv ]; then
   rm /tmp/per_request.csv
 fi
 
-# Display statistics (moved here after file is complete)
-echo ""
-echo "Statistics written to: $STATS_TXT"
-echo "Displaying summary..."
-echo ""
-cat "$STATS_TXT" | head -50
+# Display statistics
+cat "$STATS_TXT"
 
 # Show top 10 requests by wait time
 echo "Top 10 Requests by Total Wait Time:"

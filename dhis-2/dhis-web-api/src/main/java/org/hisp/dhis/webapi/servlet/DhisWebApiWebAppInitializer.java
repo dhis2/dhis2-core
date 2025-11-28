@@ -129,11 +129,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
         .addMappingForUrlPatterns(null, false, "/api/*");
 
-    // DEMO: Add RequestInfoFilter before OSIV so X-Request-ID is available for connection logging
-    context
-        .addFilter("requestInfoFilter", new DelegatingFilterProxy("requestInfoFilter"))
-        .addMappingForUrlPatterns(null, false, "/*");
-
     FilterRegistration.Dynamic openSessionInViewFilter =
         context.addFilter(
             "openSessionInViewFilter", ConditionalOpenEntityManagerInViewFilter.class);

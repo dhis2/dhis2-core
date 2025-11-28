@@ -43,8 +43,7 @@ import org.mapstruct.factory.Mappers;
       TrackedEntityTypeMapper.class,
       AttributeValuesMapper.class,
       SharingMapper.class,
-      ProgramStageDataElementMapper.class,
-      ProgramStageSectionMapper.class
+      ProgramStageDataElementMapper.class
     })
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
@@ -60,7 +59,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "repeatable")
   @Mapping(target = "referral")
   @Mapping(target = "programStageDataElements")
-  @Mapping(target = "programStageSections")
   @Mapping(target = "enableUserAssignment")
   @Mapping(target = "validationStrategy")
   @Mapping(target = "featureType")
