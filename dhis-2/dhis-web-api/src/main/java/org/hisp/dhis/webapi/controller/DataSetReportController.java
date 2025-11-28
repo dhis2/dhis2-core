@@ -192,15 +192,11 @@ public class DataSetReportController {
     return dataSet;
   }
 
-  private List<Period> getAndValidatePeriods(List<String> pe) throws WebMessageException {
+  private List<Period> getAndValidatePeriods(List<String> pe) {
     List<Period> periods = new ArrayList<>();
 
     for (String p : pe) {
       Period period = Period.of(p);
-
-      if (period == null) {
-        throw new WebMessageException(conflict("Period does not exist: " + pe));
-      }
 
       periods.add(periodService.reloadPeriod(period));
     }

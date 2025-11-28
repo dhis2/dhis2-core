@@ -916,7 +916,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         .filter(
             iso -> {
               PeriodType actual = PeriodType.getPeriodTypeFromIsoString(iso);
-              return actual == null || !expected.equals(actual.getName());
+              return !expected.equals(actual.getName());
             })
         .toList();
   }

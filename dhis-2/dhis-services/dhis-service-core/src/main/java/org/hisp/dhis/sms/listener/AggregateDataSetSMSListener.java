@@ -113,7 +113,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(dsid));
     }
 
-    Period period = Period.of(per);
+    Period period = Period.ofNullable(per);
     if (period == null) {
       throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(per));
     }

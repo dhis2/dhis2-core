@@ -30,7 +30,7 @@
 package org.hisp.dhis.period;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import org.junit.jupiter.api.Test;
 
@@ -64,12 +64,27 @@ class PeriodTypeEnumTest {
     assertEquals(PeriodTypeEnum.FINANCIAL_OCT, PeriodTypeEnum.ofIsoPeriod("2011Oct"));
     assertEquals(PeriodTypeEnum.FINANCIAL_NOV, PeriodTypeEnum.ofIsoPeriod("2011Nov"));
 
-    assertNull(PeriodTypeEnum.ofIsoPeriod("201"));
-    assertNull(PeriodTypeEnum.ofIsoPeriod("20111"));
-    assertNull(PeriodTypeEnum.ofIsoPeriod("201W2"));
-    assertNull(PeriodTypeEnum.ofIsoPeriod("2011Q12"));
-    assertNull(PeriodTypeEnum.ofIsoPeriod("2011W234"));
-    assertNull(PeriodTypeEnum.ofIsoPeriod("201er2345566"));
-    assertNull(PeriodTypeEnum.ofIsoPeriod("2011Q10"));
+    assertIllegal("201", "Period must be have between 4 and 11 characters but got: `201`");
+    assertIllegal(
+        "20111",
+        "Invalid Period `20111`, expected one of [AprilS] at index 4 for a ISO period of length 5 but found: `1`");
+    assertIllegal("201W2", "Invalid Period `201W2`, expected a digit at position 3 but found: `W`");
+    assertIllegal(
+        "2011Q12",
+        "Invalid Period `2011Q12`, expected one of [W, -] at index 4 for a ISO period of length 7 but found: `Q12`");
+    assertIllegal(
+        "2011W234", "Invalid Period `2011W234`, expected a digit at position 4 but found: `W`");
+    assertIllegal(
+        "201er2345566", "Period must be have between 4 and 11 characters but got: `201er2345566`");
+    assertIllegal(
+        "2011Q10",
+        "Invalid Period `2011Q10`, expected one of [W, -] at index 4 for a ISO period of length 7 but found: `Q10`");
+  }
+
+  private void assertIllegal(String period, String expectedMsg) {
+    IllegalArgumentException ex =
+        assertThrowsExactly(
+            IllegalArgumentException.class, () -> PeriodTypeEnum.ofIsoPeriod(period));
+    assertEquals(expectedMsg, ex.getMessage());
   }
 }
