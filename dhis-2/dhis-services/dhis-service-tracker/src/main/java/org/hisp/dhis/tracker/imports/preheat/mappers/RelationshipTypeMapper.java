@@ -60,11 +60,13 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> 
   @Mapping(target = "sharing")
   RelationshipType map(RelationshipType relationshipType);
 
+  @BeanMapping(ignoreByDefault = true)
   @Named("constraintMapper")
   @Mapping(target = "id")
   @Mapping(target = "relationshipEntity")
   @Mapping(target = "trackedEntityType")
   @Mapping(target = "program")
   @Mapping(target = "programStage")
+  @Mapping(target = "trackerDataView")
   RelationshipConstraint mapConstraint(RelationshipConstraint constraint);
 }

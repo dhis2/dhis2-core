@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipTypeMapper;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
@@ -185,7 +186,8 @@ public class DefaultRelationshipService implements RelationshipService {
     result.setDeleted(relationship.isDeleted());
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
-    result.setRelationshipType(relationship.getRelationshipType());
+    result.setRelationshipType(
+        RelationshipTypeMapper.INSTANCE.map(relationship.getRelationshipType()));
     result.setFrom(
         RELATIONSHIP_ITEM_MAPPER.mapRelationshipItemWithoutRelationship(
             fields.getFromFields(), relationship.getFrom()));

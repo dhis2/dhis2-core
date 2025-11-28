@@ -105,11 +105,13 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
       List<? extends IdentifiableObject> objects;
 
       if (TrackerIdScheme.ATTRIBUTE.equals(idScheme)) {
-        objects =
-            manager.getAllByAttributeAndValues(
-                (Class<? extends IdentifiableObject>) schema.getKlass(),
-                UID.of(idSchemeParam.getAttributeUid()),
-                ids);
+        List<IdentifiableObject> fetchedObjects =
+            (List<IdentifiableObject>)
+                manager.getAllByAttributeAndValues(
+                    (Class<? extends IdentifiableObject>) schema.getKlass(),
+                    UID.of(idSchemeParam.getAttributeUid()),
+                    ids);
+        objects = map(fetchedObjects, mapper);
       } else {
         objects = cacheAwareFetch(schema, idSchemeParam, ids, mapper);
       }
