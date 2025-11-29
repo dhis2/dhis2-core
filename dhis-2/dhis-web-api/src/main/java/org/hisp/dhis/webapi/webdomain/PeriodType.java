@@ -40,13 +40,15 @@ import org.hisp.dhis.common.DxfNamespaces;
 @Data
 @JacksonXmlRootElement(localName = "periodType", namespace = DxfNamespaces.DXF_2_0)
 public class PeriodType {
-  private final String name;
+  private String name;
 
-  private final String isoDuration;
+  private String isoDuration;
 
-  private final String isoFormat;
+  private String isoFormat;
 
-  private final int frequencyOrder;
+  private int frequencyOrder;
+
+  public PeriodType() {}
 
   public PeriodType(org.hisp.dhis.period.PeriodType periodType) {
     this.name = periodType.getName();
