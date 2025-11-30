@@ -286,7 +286,6 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     String translationKey = property.getTranslationKey();
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-    String localeStr = locale != null ? locale.toString() : "en";
 
     Expression<String> translatedValue =
         builder.function(
@@ -294,7 +293,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             String.class,
             root.get("translations"),
             builder.literal(translationKey),
-            builder.literal(localeStr));
+            builder.literal(locale.toString()));
 
     String basePropertyName = getBasePropertyName(property.getName());
     Expression<String> baseValue = root.get(basePropertyName);
