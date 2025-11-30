@@ -82,6 +82,12 @@ class SingleEventQueryParams {
 
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
+  @Getter private Date skipChangedBefore;
+
+  @Getter private boolean synchronizationQuery;
+
+  @Getter private Map<String, Set<String>> skipSyncDataElementsByProgramStage;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
    * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
@@ -136,6 +142,12 @@ class SingleEventQueryParams {
     return this.hasDataElementFilter;
   }
 
+  public SingleEventQueryParams withSkipSyncDataElements(
+      Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+    return this;
+  }
+
   public SingleEventQueryParams setProgram(Program program) {
     this.program = program;
     return this;
@@ -148,6 +160,16 @@ class SingleEventQueryParams {
 
   public SingleEventQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
     this.orgUnitMode = orgUnitMode;
+    return this;
+  }
+
+  public SingleEventQueryParams setSynchronizationQuery(Boolean synchronizationQuery) {
+    this.synchronizationQuery = synchronizationQuery;
+    return this;
+  }
+
+  public SingleEventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
+    this.skipChangedBefore = skipChangedBefore;
     return this;
   }
 

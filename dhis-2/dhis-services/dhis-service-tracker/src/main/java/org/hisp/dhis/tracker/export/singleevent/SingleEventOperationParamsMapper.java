@@ -98,6 +98,14 @@ class SingleEventOperationParamsMapper {
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
+    if (operationParams.isSynchronizationQuery()
+        && operationParams.getSkipSyncDataElementsByProgramStage() != null
+        && !operationParams.getSkipSyncDataElementsByProgramStage().isEmpty()) {
+      queryParams =
+          queryParams.withSkipSyncDataElements(
+              operationParams.getSkipSyncDataElementsByProgramStage());
+    }
+
     return queryParams
         .setProgram(program)
         .setOrgUnit(orgUnit)

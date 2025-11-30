@@ -91,6 +91,13 @@ public class SingleEventOperationParams {
 
   private boolean includeRelationships;
 
+  private boolean synchronizationQuery;
+
+  private Map<String, Set<String>> skipSyncDataElementsByProgramStage = new HashMap<>();
+
+  /** Indicates a point in the time used to decide the data that should not be synchronized */
+  private Date skipChangedBefore;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data element (given as {@link
    * UID}) and tracked entity attribute (given as {@link UID}). It is crucial for the order values
@@ -179,6 +186,12 @@ public class SingleEventOperationParams {
     public SingleEventOperationParamsBuilder filterByDataElement(@Nonnull UID dataElement) {
       this.dataElementFilters.putIfAbsent(
           dataElement, List.of(new QueryFilter(QueryOperator.NNULL)));
+      return this;
+    }
+
+    public SingleEventOperationParamsBuilder withSkipSyncDataElements(
+        @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
       return this;
     }
   }
