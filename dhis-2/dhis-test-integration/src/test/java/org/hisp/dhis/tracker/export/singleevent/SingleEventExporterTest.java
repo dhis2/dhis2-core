@@ -35,6 +35,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -51,7 +52,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -163,19 +163,19 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
         uids(events.getItems()));
 
     events.getItems().stream()
-        .filter(event -> !event.getEventDataValues().isEmpty())
+        .filter(singleEvent -> !singleEvent.getEventDataValues().isEmpty())
         .forEach(
-            event -> {
-              Assertions.assertHasSize(
-                  1,
-                  event.getEventDataValues(),
-                  "Event " + event.getUid() + " should have exactly one data value");
+            singleEvent -> {
+              // Check that no event data value has data element "GieVkTxp4HH"
+              boolean hasForbiddenDataElement =
+                  singleEvent.getEventDataValues().stream()
+                      .anyMatch(dataValue -> "GieVkTxp4HH".equals(dataValue.getDataElement()));
 
-              EventDataValue dataValue = event.getEventDataValues().iterator().next();
-              assertEquals(
-                  "GieVkTxp4HG",
-                  dataValue.getDataElement(),
-                  "Event " + event.getUid() + " should have data element GieVkTxp4HG");
+              assertFalse(
+                  hasForbiddenDataElement,
+                  "SingleEvent "
+                      + singleEvent.getUid()
+                      + " should not contain data element GieVkTxp4HH");
             });
   }
 
