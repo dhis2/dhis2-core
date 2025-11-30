@@ -63,6 +63,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.profile.AsyncProfiler;
 import org.openjdk.jmh.results.Result;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -107,11 +108,12 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
 
     @Param({
       "*", // serialize all so we can compare field filtering to pure Jackson serialization
-      "event", // serialize only a single String field so we reduce the actual data Jackson has to
-      // write and so our field filtering is what should dominate
-      "*,!relationships", // default fields of /tracker/events
-      "*,event~rename(foo)", // transformation with all fields
-      "event~rename(foo)" // transformation with single field
+      //      "event", // serialize only a single String field so we reduce the actual data Jackson
+      // has to
+      //      // write and so our field filtering is what should dominate
+      //      "*,!relationships", // default fields of /tracker/events
+      //      "*,event~rename(foo)", // transformation with all fields
+      //      "event~rename(foo)" // transformation with single field
     })
     public String fields;
 
@@ -194,9 +196,9 @@ public class FieldFilterSerializationBenchmarkTest extends H2ControllerIntegrati
             .measurementTime(TimeValue.seconds(5))
             .resultFormat(ResultFormatType.CSV)
             .result("jmh-result.csv")
-            //            .addProfiler(AsyncProfiler.class,
-            //
-            // "libPath=linux-x64/libasyncProfiler.so;event=cpu;output=jfr,flamegraph;dir=target/profiler-output") // to profile: download and fix .so path https://github.com/async-profiler/async-profiler/
+            .addProfiler(
+                AsyncProfiler.class,
+                "libPath=/usr/local/lib/libasyncProfiler.so;event=cpu;output=jfr,flamegraph;dir=target/profiler-output")
             .build();
 
     // add the events/s to the benchmark results to see the effect of the eventCount on the event

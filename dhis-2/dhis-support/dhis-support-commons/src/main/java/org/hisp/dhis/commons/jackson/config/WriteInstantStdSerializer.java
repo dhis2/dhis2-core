@@ -29,21 +29,28 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
+import static org.hisp.dhis.util.DateUtils.ISO8601_NO_TZ_PATTERN;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import java.time.Instant;
-import org.hisp.dhis.util.DateUtils;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class WriteInstantStdSerializer extends StdSerializer<Instant> {
+  private final DateTimeFormatter formatter;
+
   public WriteInstantStdSerializer() {
     super(Instant.class);
+    this.formatter =
+        DateTimeFormatter.ofPattern(ISO8601_NO_TZ_PATTERN).withZone(ZoneId.systemDefault());
   }
 
   @Override
   public void serialize(Instant value, JsonGenerator gen, SerializerProvider provider)
       throws IOException {
-    gen.writeString(DateUtils.toIso8601NoTz(DateUtils.fromInstant(value)));
+    gen.writeString(formatter.format(value));
   }
 }

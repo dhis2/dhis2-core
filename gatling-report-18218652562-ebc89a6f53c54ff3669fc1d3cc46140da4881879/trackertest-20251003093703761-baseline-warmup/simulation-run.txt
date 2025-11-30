@@ -1,0 +1,16 @@
+RUN_DIR=target/gatling/trackertest-20251003093703761-baseline-warmup
+COMMAND=DHIS2_IMAGE=dhis2/core:2.42.2 DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz DHIS2_DB_IMAGE_SUFFIX=sierra-leone-2.42.2 SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest MVN_ARGS= -Dgatling.failOnError=false PROF_ARGS=-e cpu HEALTHCHECK_TIMEOUT=300 WARMUP=2 REPORT_SUFFIX=baseline ./run-simulation.sh
+SCRIPT_NAME=./run-simulation.sh
+SCRIPT_ARGS=target/gatling/trackertest-20251003093703761-baseline-warmup true
+DHIS2_IMAGE=dhis2/core:2.42.2
+DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.42.2/dhis2-db-sierra-leone.sql.gz
+DHIS2_DB_IMAGE_SUFFIX=sierra-leone-2.42.2
+SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+MVN_ARGS= -Dgatling.failOnError=false
+PROF_ARGS=-e cpu
+HEALTHCHECK_TIMEOUT=300
+WARMUP=true
+REPORT_SUFFIX=baseline
+GIT_BRANCH=DHIS2-20175
+GIT_COMMIT=ebc89a6f53c54ff3669fc1d3cc46140da4881879
+GIT_DIRTY=$([ -n "$(git status --porcelain 2>/dev/null)" ] && echo 'true' || echo 'false')
