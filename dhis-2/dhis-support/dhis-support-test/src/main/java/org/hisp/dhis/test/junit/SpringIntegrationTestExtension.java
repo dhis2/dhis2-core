@@ -174,7 +174,8 @@ public class SpringIntegrationTestExtension
   }
 
   private void bindSession(ExtensionContext context) throws IllegalAccessException {
-    EntityManagerFactory entityManagerFactory = getBean(context, EntityManagerFactory.class);
+    EntityManagerFactory entityManagerFactory =
+        getBean(context, EntityManagerFactory.class, "entityManagerFactory");
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
 
@@ -226,7 +227,8 @@ public class SpringIntegrationTestExtension
   }
 
   protected void unbindSession(ExtensionContext context) {
-    EntityManagerFactory sessionFactory = getBean(context, EntityManagerFactory.class);
+    EntityManagerFactory sessionFactory =
+        getBean(context, EntityManagerFactory.class, "entityManagerFactory");
     EntityManagerHolder entityManagerHolder =
         (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
     EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());

@@ -60,9 +60,9 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
   private final PropertyIntrospector introspector;
 
   @Autowired
-  public DefaultPropertyIntrospectorService(EntityManagerFactory sessionFactory) {
+  public DefaultPropertyIntrospectorService(EntityManagerFactory entityManagerFactory) {
     this(
-        new HibernatePropertyIntrospector(sessionFactory)
+        new HibernatePropertyIntrospector(entityManagerFactory)
             .then(new JacksonPropertyIntrospector())
             .then(new TranslatablePropertyIntrospector())
             .then(new PropertyPropertyIntrospector())

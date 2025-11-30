@@ -66,7 +66,7 @@ public class HibernateListenerConfigurer implements ApplicationContextAware {
     this.applicationContext = applicationContext;
   }
 
-  @Nonnull private final EntityManagerFactory emf;
+  @Nonnull private final EntityManagerFactory entityManagerFactory;
 
   @Nonnull private final PostInsertAuditListener postInsertAuditListener;
 
@@ -90,7 +90,7 @@ public class HibernateListenerConfigurer implements ApplicationContextAware {
       return;
     }
 
-    SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
+    SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap(SessionFactoryImpl.class);
 
     EventListenerRegistry registry =
         sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
