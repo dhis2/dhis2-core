@@ -50,7 +50,6 @@ import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolv
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
@@ -147,7 +146,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
@@ -199,7 +197,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
   }
 

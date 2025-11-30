@@ -102,6 +102,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
+    // RequestInfoFilter must run first to capture X-Request-ID for logging/MDC before any other
+    // filters (especially Spring Security authentication logs)
+    context
+        .addFilter("requestInfoFilter", new DelegatingFilterProxy("requestInfoFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
     context
         .addFilter(
             "SpringSessionRepositoryFilter",

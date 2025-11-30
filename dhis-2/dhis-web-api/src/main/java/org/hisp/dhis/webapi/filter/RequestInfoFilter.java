@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.interceptor;
+package org.hisp.dhis.webapi.filter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.common.RequestInfo;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * Maintains the information contained in {@code X-Request-ID} header as an information that is
- * available in the request context.
- *
- * @author Jan Bernitt
- */
-@Component
+/** Filter that captures the X-Request-ID header early in the request lifecycle. */
+@Component("requestInfoFilter")
 @RequiredArgsConstructor
-public final class RequestInfoInterceptor implements HandlerInterceptor {
+public class RequestInfoFilter extends OncePerRequestFilter {
 
   private final DefaultRequestInfoService requestInfoService;
 
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-      throws Exception {
-    requestInfoService.setCurrentInfo(
-        RequestInfo.builder().headerXRequestID(request.getHeader("X-Request-ID")).build());
-    return true;
-  }
-
-  @Override
-  public void postHandle(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Object handler,
-      ModelAndView modelAndView)
-      throws Exception {
-    requestInfoService.setCurrentInfo(null);
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    try {
+      requestInfoService.setCurrentInfo(
+          RequestInfo.builder().headerXRequestID(request.getHeader("X-Request-ID")).build());
+      filterChain.doFilter(request, response);
+    } finally {
+      requestInfoService.setCurrentInfo(null);
+    }
   }
 }

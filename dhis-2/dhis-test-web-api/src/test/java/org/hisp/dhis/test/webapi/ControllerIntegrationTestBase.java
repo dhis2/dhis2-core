@@ -54,6 +54,7 @@ import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.filter.ApiVersionFilter;
+import org.hisp.dhis.webapi.filter.RequestInfoFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -99,6 +100,8 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
   @Autowired private ApiVersionFilter apiVersionFilter;
 
+  @Autowired private RequestInfoFilter requestInfoFilter;
+
   @Autowired protected WebApplicationContext webApplicationContext;
 
   @Autowired private RenderService _renderService;
@@ -123,8 +126,13 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
   void setup() {
     renderService = _renderService;
 
+    // Filters must be explicitly added to MockMvc (not auto-discovered like in production see
+    // DhisWebApiWebAppInitializer.setupServlets()).
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilter(
+                requestInfoFilter) // RequestInfoFilter must run first to capture X-Request-ID for
+            // logging/MDC
             .addFilter(apiVersionFilter)
             .build();
 
