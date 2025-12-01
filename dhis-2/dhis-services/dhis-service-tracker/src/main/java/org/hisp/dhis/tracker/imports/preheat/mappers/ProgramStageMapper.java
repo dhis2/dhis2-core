@@ -59,7 +59,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "repeatable")
   @Mapping(target = "referral")
   @Mapping(target = "programStageDataElements")
-  @Mapping(target = "programStageSections")
   @Mapping(target = "enableUserAssignment")
   @Mapping(target = "validationStrategy")
   @Mapping(target = "featureType")
