@@ -1111,7 +1111,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       if (!dataElementUids.isEmpty()) {
         String paramName = "filter_de_" + caseCounter++;
-        sqlParameters.addValue(paramName, new ArrayList<>(dataElementUids));
+        sqlParameters.addValue(paramName, dataElementUids);
 
         caseStatement
             .append("WHEN ps.uid = '")
