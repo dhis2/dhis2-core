@@ -48,9 +48,7 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,10 +65,6 @@ class SupplementaryDataProviderTest extends TestBase {
   private static final String NOT_NEEDED_ORG_UNIT_GROUP_UID = "NotNeededOrgUnitGroupId";
 
   @Mock private OrganisationUnitGroupService organisationUnitGroupService;
-
-  @Mock private UserService userService;
-
-  @Mock private UserGroupService userGroupService;
 
   @InjectMocks private SupplementaryDataProvider providerToTest;
 

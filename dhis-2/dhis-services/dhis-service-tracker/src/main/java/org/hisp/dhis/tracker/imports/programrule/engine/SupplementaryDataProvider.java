@@ -44,7 +44,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserGroupService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -54,26 +53,17 @@ public class SupplementaryDataProvider {
       "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
           + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
-  private static final String USER_GROUP_REGEX =
-      "d2:inUserGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)| *'[^']*') *\\)";
-
   private static final Pattern ORG_UNIT_GROUP_PATTERN = Pattern.compile(ORG_UNIT_GROUP_REGEX);
-  private static final Pattern USER_GROUP_PATTERN = Pattern.compile(USER_GROUP_REGEX);
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
-  @Nonnull private final UserGroupService userGroupService;
 
   public RuleSupplementaryData getSupplementaryData(
       List<ProgramRule> programRules, UserDetails user) {
 
     Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(programRules);
 
-    extractUserGroups(programRules, user);
-
-    user.getUserRoleIds();
-
     return new RuleSupplementaryData(
-        extractUserGroups(programRules, user),
+        user.getUserGroupIds().stream().toList(),
         user.getUserRoleIds().stream().toList(),
         orgUnitGroupData);
   }
@@ -101,22 +91,5 @@ public class SupplementaryDataProvider {
                     organisationUnitGroupService.getOrganisationUnitGroup(g).getMembers().stream()
                         .map(OrganisationUnit::getUid)
                         .toList()));
-  }
-
-  private List<String> extractUserGroups(List<ProgramRule> programRules, UserDetails user) {
-    List<String> userGroups = new ArrayList<>();
-    for (ProgramRule programRule : programRules) {
-      Matcher matcher =
-          USER_GROUP_PATTERN.matcher(StringUtils.defaultIfBlank(programRule.getCondition(), ""));
-      while (matcher.find()) {
-        userGroups.add(matcher.group(1));
-      }
-    }
-
-    if (userGroups.isEmpty()) {
-      return List.of();
-    }
-
-    return user.getUserGroupIds().stream().toList();
   }
 }
