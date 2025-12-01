@@ -36,7 +36,6 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.DEG;
 import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
-import static org.hisp.dhis.period.Period.of;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
@@ -175,7 +174,7 @@ public class DefaultDataExportService implements DataExportService {
         UID aoc = dv.attributeOptionCombo();
         if (!pe.equals(peG) || !ou.equals(ouG) || !aoc.equals(aocG)) {
           if (valuesG != null)
-            groups.add(new DataExportGroup(ds, of(peG), ouG, aocG, valuesG.stream()));
+            groups.add(new DataExportGroup(ds, Period.of(peG), ouG, aocG, valuesG.stream()));
           valuesG = new ArrayList<>();
         }
         valuesG.add(dv);
@@ -185,7 +184,7 @@ public class DefaultDataExportService implements DataExportService {
       }
       // add last group
       if (valuesG != null && !valuesG.isEmpty())
-        groups.add(new DataExportGroup(ds, of(peG), ouG, aocG, valuesG.stream()));
+        groups.add(new DataExportGroup(ds, Period.of(peG), ouG, aocG, valuesG.stream()));
     }
 
     DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());

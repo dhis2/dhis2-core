@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.util.List;
 import org.hisp.dhis.calendar.Calendar;
@@ -66,13 +67,21 @@ class PeriodTypeTest {
     assertEquals(PeriodType.getPeriodTypeFromIsoString("2011April").getName(), "FinancialApril");
     assertEquals(PeriodType.getPeriodTypeFromIsoString("2011July").getName(), "FinancialJuly");
     assertEquals(PeriodType.getPeriodTypeFromIsoString("2011Oct").getName(), "FinancialOct");
-    assertNull(PeriodType.getPeriodTypeFromIsoString("201"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("20111"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("201W2"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("2011Q12"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("2011W234"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("201er2345566"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("2011Q10"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("201"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("20111"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("201W2"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("2011Q12"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("2011W234"));
+    assertThrowsExactly(
+        IllegalArgumentException.class,
+        () -> PeriodType.getPeriodTypeFromIsoString("201er2345566"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("2011Q10"));
   }
 
   @Test

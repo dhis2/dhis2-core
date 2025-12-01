@@ -199,7 +199,6 @@ class IdentifiableObjectUtilsTest {
     assertEquals(
         Period.of("2017"),
         IdentifiableObjectUtils.getPeriodByPeriodType(Period.of("2017Q1"), yearly, calendar));
-    assertNull(Period.of("u3847847"));
   }
 
   @Test

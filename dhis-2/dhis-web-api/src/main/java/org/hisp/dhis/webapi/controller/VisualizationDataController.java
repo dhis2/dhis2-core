@@ -323,10 +323,6 @@ public class VisualizationDataController {
 
     Period period = Period.of(pe);
 
-    if (period == null) {
-      throw new WebMessageException(conflict("Period does not exist: " + pe));
-    }
-
     OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
 
     if (organisationUnit == null) {

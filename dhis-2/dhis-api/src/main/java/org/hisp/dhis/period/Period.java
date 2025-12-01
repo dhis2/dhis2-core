@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.period;
 
-import static java.lang.Integer.parseInt;
 import static java.util.Objects.requireNonNull;
 import static org.hisp.dhis.period.PeriodTypeEnum.BI_MONTHLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.BI_WEEKLY;
@@ -63,6 +62,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -88,17 +88,34 @@ public class Period implements Serializable {
    * cannot be parsed to a period.
    *
    * @param isoPeriod the date string in ISO format.
-   * @return a period or null in case the given {@link String} was not a valid period
+   * @return a period object for the input if it is valid
+   * @throws IllegalArgumentException if the given ISO period is (formally or semantically) invalid
    * @implNote This got moved from {@code PeriodType#getPeriodFromIsoString}
    */
-  @CheckForNull
-  public static Period of(String isoPeriod) {
-    if (isoPeriod == null) return null;
+  @Nonnull
+  public static Period of(@Nonnull String isoPeriod) {
     PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
     try {
-      return type != null ? type.createPeriod(isoPeriod) : null;
+      return type.createPeriod(isoPeriod);
     } catch (Exception ex) {
-      // Do nothing and return null
+      throw new IllegalArgumentException(
+          "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod), ex);
+    }
+  }
+
+  /**
+   * A version of {@link #of(String)} for backwards compatibility where the old semantics of null
+   * being allowed as input and being the output for illegal periods is required.
+   *
+   * @param isoPeriod the date string in ISO format.
+   * @return a period or null in case the given {@link String} was not a valid period
+   */
+  @CheckForNull
+  public static Period ofNullable(@CheckForNull String isoPeriod) {
+    if (isoPeriod == null || isoPeriod.isEmpty()) return null;
+    try {
+      return of(isoPeriod);
+    } catch (IllegalArgumentException ex) {
       return null;
     }
   }
@@ -355,103 +372,119 @@ public class Period implements Serializable {
      * </pre>
      *
      * @param isoPeriod an ISO string
-     * @return the period for the given string or null if it does not match any of the expected
-     *     patterns
+     * @return the period for the given string
+     * @throws IllegalArgumentException if the given string cannot be parsed to a period
      */
-    @CheckForNull
-    public static Period.Input of(String isoPeriod) {
+    @Nonnull
+    public static Period.Input of(@Nonnull String isoPeriod) {
       String p = isoPeriod;
-      if (p == null || p.isEmpty()) return null;
       int len = p.length();
-      if (len < 4 || len > 11) return null;
-      if (!isDigit(p.charAt(0))) return null;
-      if (!isDigit(p.charAt(1))) return null;
-      if (!isDigit(p.charAt(2))) return null;
-      if (!isDigit(p.charAt(3))) return null;
-      int year = parseInt(p.substring(0, 4));
+      if (len < 4 || len > 11)
+        throw new IllegalArgumentException(
+            "Period must be have between 4 and 11 characters but got: `%s`".formatted(p));
+      int year = digits4(p, 0);
       if (len == 4) {
         return new Input(YEARLY, year);
       }
       if (len == 6) {
-        if (!isDigit(p.charAt(5))) return null;
-        int primary = p.charAt(5) - '0';
+        int primary = digits1(p, 5);
         char c4 = p.charAt(4);
         if (c4 == 'W') return new Input(WEEKLY, year, primary);
-        if (isDigit(c4)) return new Input(MONTHLY, year, parseInt(p.substring(4, 6)));
+        if (isDigit(c4)) return new Input(MONTHLY, year, digits2(p, 4));
         if (c4 == 'Q') return new Input(QUARTERLY, year, primary);
         if (c4 == 'S') return new Input(SIX_MONTHLY, year, primary);
-        return null;
+        throw illegalInfix(p, "W", "Q", "S");
       }
       if (len == 7) {
         if (p.endsWith("Sep")) return new Input(FINANCIAL_SEP, year);
         if (p.endsWith("Oct")) return new Input(FINANCIAL_OCT, year);
         if (p.endsWith("Nov")) return new Input(FINANCIAL_NOV, year);
-        if (p.endsWith("B")) {
-          if (!isDigit(p.charAt(4))) return null;
-          if (!isDigit(p.charAt(5))) return null;
-          return new Input(BI_MONTHLY, year, parseInt(p.substring(4, 6)));
-        }
-        if (!isDigit(p.charAt(5))) return null;
-        if (!isDigit(p.charAt(6))) return null;
+        if (p.endsWith("B")) return new Input(BI_MONTHLY, year, digits2(p, 4));
+        int primary = digits2(p, 5);
         char c4 = p.charAt(4);
-        int primary = parseInt(p.substring(5, 7));
         if (c4 == 'W') return new Input(WEEKLY, year, primary);
         if (c4 == '-') return new Input(MONTHLY, year, primary);
-        return null;
+        throw illegalInfix(p, "W", "-");
       }
       if (len == 8) {
         if (p.endsWith("July")) return new Input(FINANCIAL_JULY, year);
-        if (p.indexOf("BiW") == 4) {
-          if (!isDigit(p.charAt(7))) return null;
-          return new Input(BI_WEEKLY, year, p.charAt(7) - '0');
-        }
-        if (!isDigit(p.charAt(4))) return null;
-        if (!isDigit(p.charAt(5))) return null;
-        if (!isDigit(p.charAt(6))) return null;
-        if (!isDigit(p.charAt(7))) return null;
-        return new Input(DAILY, year, parseInt(p.substring(4, 6)), parseInt(p.substring(6, 8)));
+        if (p.indexOf("BiW") == 4) return new Input(BI_WEEKLY, year, digits1(p, 7));
+        return new Input(DAILY, year, digits2(p, 4), digits2(p, 6));
       }
       if (len == 9) {
         if (p.endsWith("April")) return new Input(FINANCIAL_APRIL, year);
-        if (!isDigit(p.charAt(8))) return null;
-        if (p.indexOf("NovQ") == 4) return new Input(QUARTERLY_NOV, year, p.charAt(8) - '0');
-        if (p.indexOf("BiW") == 4) {
-          if (!isDigit(p.charAt(7))) return null;
-          return new Input(BI_WEEKLY, year, Integer.parseInt(p.substring(7, 9)));
-        }
-        int primeary = p.charAt(8) - '0';
-        if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primeary);
-        if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primeary);
-        if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primeary);
-        if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primeary);
-        if (p.indexOf("NovS") == 4) return new Input(SIX_MONTHLY_NOV, year, primeary);
-        return null;
-      }
-      if (len == 10) {
-        if (!isDigit(p.charAt(8))) return null;
-        if (!isDigit(p.charAt(9))) return null;
-        if (p.charAt(4) == '-') {
-          if (!isDigit(p.charAt(5))) return null;
-          if (!isDigit(p.charAt(6))) return null;
-          if (p.charAt(7) != '-') return null;
-          return new Input(DAILY, year, parseInt(p.substring(5, 7)), parseInt(p.substring(8, 10)));
-        }
-        int primary = parseInt(p.substring(8, 10));
+        if (p.indexOf("NovQ") == 4) return new Input(QUARTERLY_NOV, year, digits1(p, 8));
+        if (p.indexOf("BiW") == 4) return new Input(BI_WEEKLY, year, digits2(p, 7));
+        int primary = digits1(p, 8);
         if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primary);
         if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primary);
         if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primary);
         if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primary);
-        return null;
+        if (p.indexOf("NovS") == 4) return new Input(SIX_MONTHLY_NOV, year, primary);
+        throw illegalInfix(p, "WedW", "ThuW", "SatW", "SunW", "NovS");
       }
-      if (len == 11) {
-        if (!isDigit(p.charAt(10))) return null;
-        if (p.indexOf("AprilS") == 4) return new Input(SIX_MONTHLY_APRIL, year, p.charAt(10) - '0');
+      if (len == 10) {
+        if (p.charAt(4) == '-') {
+          if (p.charAt(7) != '-') throw illegalChar(p, "dash", 7);
+          return new Input(DAILY, year, digits2(p, 5), digits2(p, 8));
+        }
+        int primary = digits2(p, 8);
+        if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primary);
+        if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primary);
+        if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primary);
+        if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primary);
+        throw illegalInfix(p, "WedW", "ThuW", "SatW", "SunW");
       }
-      return null;
+      // if (len == 11)
+      if (p.indexOf("AprilS") == 4) return new Input(SIX_MONTHLY_APRIL, year, digits1(p, 10));
+      throw illegalInfix(p, "AprilS");
     }
 
     private static boolean isDigit(char c) {
       return c >= '0' && c <= '9';
+    }
+
+    private static void checkDigits(String period, int from, int to) {
+      for (int i = from; i <= to; i++) checkDigit(period, i);
+    }
+
+    private static void checkDigit(String period, int index) {
+      if (!isDigit(period.charAt(index))) throw illegalChar(period, "digit", index);
+    }
+
+    private static IllegalArgumentException illegalChar(String period, String expected, int index) {
+      return new IllegalArgumentException(
+          "Invalid Period `%s`, expected a %s at position %d but found: `%s`"
+              .formatted(period, expected, index, period.charAt(index)));
+    }
+
+    private static IllegalArgumentException illegalInfix(String period, String... oneOf) {
+      return new IllegalArgumentException(
+          "Invalid Period `%s`, expected one of %s at index %d for a ISO period of length %d but found: `%s`"
+              .formatted(period, List.of(oneOf), 4, period.length(), period.substring(4)));
+    }
+
+    private static int digits1(String p, int index) {
+      checkDigit(p, index);
+      return p.charAt(index) - '0';
+    }
+
+    private static int digits2(String p, int index) {
+      checkDigits(p, index, index + 1);
+      char d1 = p.charAt(index + 1);
+      char d2 = p.charAt(index);
+      // Main reason to not use parseInt is to avoid exception handling
+      return 10 * (d2 - '0') + (d1 - '0');
+    }
+
+    private static int digits4(String p, int index) {
+      checkDigits(p, index, index + 3);
+      char d1 = p.charAt(index + 3);
+      char d2 = p.charAt(index + 2);
+      char d3 = p.charAt(index + 1);
+      char d4 = p.charAt(index);
+      // Main reason to not use parseInt is to avoid exception handling
+      return 1000 * (d4 - '0') + 100 * (d3 - '0') + 10 * (d2 - '0') + (d1 - '0');
     }
   }
 }

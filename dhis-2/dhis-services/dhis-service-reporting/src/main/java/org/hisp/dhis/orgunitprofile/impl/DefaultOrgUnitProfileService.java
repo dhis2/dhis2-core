@@ -373,7 +373,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
    * @return a {@link Period}.
    */
   private PeriodDimension getPeriod(String isoPeriod) {
-    Period period = Period.of(isoPeriod);
+    Period period = Period.ofNullable(isoPeriod);
 
     if (period != null) {
       return PeriodDimension.of(period);
