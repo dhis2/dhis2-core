@@ -113,6 +113,8 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     programService.updateProgram(programWithOutReg);
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
+    dataElementC = createDataElement('C');
+    dataElementD = createDataElement('D');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
     dataElementService.addDataElement(dataElementC);
