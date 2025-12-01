@@ -36,8 +36,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -292,7 +295,7 @@ public class RouteService {
     MultiValueMap<String, String> queryParameters = getQueryParams(request);
     applyAuthScheme(route, headers, queryParameters);
     UriComponentsBuilder uriComponentsBuilder = createRequestPathBuilder(route, subPath);
-    String upstreamUrlWithoutQueryParams = uriComponentsBuilder.build().toUriString();
+    String upstreamUrlLog = uriComponentsBuilder.build().toUriString();
     String upstreamUrl = createRequestUrl(uriComponentsBuilder.cloneBuilder(), queryParameters);
 
     HttpMethod httpMethod =
@@ -303,22 +306,17 @@ public class RouteService {
     log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
-        upstreamUrlWithoutQueryParams,
+        upstreamUrlLog,
         route.getName(),
         route.getUid());
 
     ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
-        retrieve(
-            requestHeadersSpec,
-            httpMethod,
-            upstreamUrlWithoutQueryParams,
-            route.getUid(),
-            userDetails);
+        retrieve(requestHeadersSpec, httpMethod, upstreamUrlLog, route.getUid(), userDetails);
 
     log.debug(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
-        upstreamUrlWithoutQueryParams,
+        upstreamUrlLog,
         responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
@@ -332,7 +330,7 @@ public class RouteService {
   protected ResponseEntity<Flux<DataBuffer>> retrieve(
       WebClient.RequestHeadersSpec<?> requestHeadersSpec,
       HttpMethod httpMethod,
-      String upstreamUrl,
+      String upstreamUrlLog,
       String routeId,
       UserDetails userDetails) {
     WebClient.ResponseSpec responseSpec =
@@ -351,7 +349,7 @@ public class RouteService {
     auditEntry.setSource("Route Run");
     auditEntry.setRouteId(routeId);
     auditEntry.setHttpMethod(httpMethod.name());
-    auditEntry.setUpstreamUrl(upstreamUrl);
+    auditEntry.setUpstreamUrl(upstreamUrlLog);
 
     return responseSpec
         .toEntityFlux(DataBuffer.class)
@@ -421,7 +419,7 @@ public class RouteService {
     WebClient.RequestBodySpec requestBodySpec =
         webClient
             .method(httpMethod)
-            .uri(targetUri)
+            .uri(uriBuilder -> URI.create(targetUri))
             .httpRequest(
                 clientHttpRequest -> {
                   Object nativeRequest = clientHttpRequest.getNativeRequest();
@@ -498,7 +496,8 @@ public class RouteService {
 
   protected MultiValueMap<String, String> getQueryParams(HttpServletRequest request) {
     if (request.getQueryString() != null) {
-      return UriComponentsBuilder.fromUriString("?" + request.getQueryString())
+      return UriComponentsBuilder.fromUriString(
+              "?" + URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8))
           .build()
           .getQueryParams();
     } else {

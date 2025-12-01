@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,33 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Calendar;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import org.hisp.dhis.tracker.TestSetup;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -58,56 +70,142 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataStatisticsStore hibernateDataStatisticsStore;
 
+  @Autowired private JdbcTemplate jdbc;
+
+  @Autowired private TestSetup testSetup;
+
   private DataStatisticsEvent dse1;
 
   private DataStatisticsEvent dse2;
-
+  private Date dayStart;
   private long snapId1;
-
-  private DateTimeFormatter fmt;
+  private static final ZoneId ZONE = DefaultDataStatisticsService.SERVER_ZONE;
+  private List<Long> eventIds;
 
   @BeforeAll
-  void setUp() {
-    DateTime formatdate;
-    fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
-    formatdate = fmt.parseDateTime("2016-03-22");
-    Date now = formatdate.toDate();
+  void setUp() throws IOException {
+    LocalDate fixedDate = LocalDate.of(2016, 3, 22);
+    dayStart = toDate(fixedDate.atStartOfDay());
+
     dse1 = new DataStatisticsEvent();
-    dse2 = new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser");
+    dse2 =
+        new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, dayStart, "TestUser");
     DataStatistics ds =
         new DataStatistics(
-            1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0, 13.0, 20.0, 14.0, 17.0,
-            11.0, 10, 18);
+            1L, 2L, 4L, 5L, 3L, 6L, 7L, 8L, 11L, 10L, 12L, 11L, 13L, 20L, 14L, 17L, 11L, 10L, 18L);
     hibernateDataStatisticsStore.save(ds);
     snapId1 = ds.getId();
+
+    try {
+      testSetup.importMetadata();
+    } catch (IOException e) {
+      fail("Metadata import failed", e);
+    }
+    injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
+    try {
+      testSetup.importTrackerData();
+    } catch (IOException e) {
+      fail("Tracker import failed", e);
+    }
+    eventIds =
+        jdbc.queryForList(
+            "select eventid from singleevent order by eventid asc limit 3", long.class);
+    // Be sure we have at least three
+    assertTrue(eventIds.size() >= 3);
+
+    Instant base = Instant.now().atZone(ZONE).toInstant();
+
+    // Boundaries
+    Instant sevenDaysAgo = base.minus(7, ChronoUnit.DAYS);
+    Instant oneDayAgo = base.minus(1, ChronoUnit.DAYS);
+    Instant oneHourAgo = base.minus(1, ChronoUnit.HOURS);
+
+    // Avoid edge cases by subtracting extra minutes
+    Instant olderThanHour = oneHourAgo.minus(5, ChronoUnit.MINUTES);
+    Instant olderThanDay = oneDayAgo.minus(5, ChronoUnit.MINUTES);
+    Instant olderThanSevenDays = sevenDaysAgo.minus(5, ChronoUnit.MINUTES);
+
+    // Backdate the three events
+    jdbc.update(
+        "update singleevent set lastupdated = ? where eventid = ?",
+        Timestamp.from(olderThanHour),
+        eventIds.get(1));
+
+    jdbc.update(
+        "update singleevent set lastupdated = ? where eventid = ?",
+        Timestamp.from(olderThanDay),
+        eventIds.get(0));
+
+    jdbc.update(
+        "update singleevent set lastupdated = ? where eventid = ?",
+        Timestamp.from(olderThanSevenDays),
+        eventIds.get(2));
+
+    entityManager.flush();
+    entityManager.clear();
   }
 
   @Test
-  void testAddEvent() throws Exception {
+  void testAddEvent() {
     int id = dataStatisticsService.addEvent(dse1);
     assertNotEquals(0, id);
   }
 
   @Test
-  void testAddEventWithParams() throws Exception {
+  void testAddEventWithParams() {
     int id = dataStatisticsService.addEvent(dse2);
     assertNotEquals(0, id);
   }
 
   @Test
-  void testSaveSnapshot() throws Exception {
-    Calendar c = Calendar.getInstance();
-    DateTime formatdate;
-    fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
-    c.add(Calendar.DAY_OF_MONTH, -2);
-    formatdate = fmt.parseDateTime("2016-03-21");
-    Date startDate = formatdate.toDate();
+  void testSaveSnapshot() {
+    Date twoDaysBefore = addDays(dayStart, -2);
     dse1 =
-        new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser");
+        new DataStatisticsEvent(
+            DataStatisticsEventType.VISUALIZATION_VIEW, twoDaysBefore, "TestUser");
     dataStatisticsService.addEvent(dse1);
     dataStatisticsService.addEvent(dse2);
     long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(JobProgress.noop());
-    assertTrue(snapId2 != 0);
-    assertTrue(snapId1 != snapId2);
+    assertNotEquals(0, snapId2);
+    assertNotEquals(snapId1, snapId2);
+  }
+
+  @Test
+  void testGetSystemStatisticsSummary() {
+    DataSummary summary = dataStatisticsService.getSystemStatisticsSummary();
+
+    assertAll(
+        () -> assertEquals(15L, summary.getEventCount().get(1)),
+        () -> assertEquals(16L, summary.getEventCount().get(7)),
+        () -> assertEquals(17L, summary.getEventCount().get(30)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(0)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(1)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(7)),
+        () -> assertEquals(10L, summary.getTrackerEventCount().get(30)),
+        () -> assertEquals(4L, summary.getSingleEventCount().get(0)),
+        () -> assertEquals(5L, summary.getSingleEventCount().get(1)),
+        () -> assertEquals(6L, summary.getSingleEventCount().get(7)),
+        () -> assertEquals(7L, summary.getSingleEventCount().get(30)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(0)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(1)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(7)),
+        () -> assertEquals(12L, summary.getEnrollmentCount().get(30)));
+  }
+
+  // --- Helpers ---
+  private Date addDays(Date base, int days) {
+    Instant instant = base.toInstant().plus(Duration.ofDays(days));
+    return Date.from(instant);
+  }
+
+  private Date toDate(LocalDateTime ldt) {
+    return Date.from(ldt.atZone(ZONE).toInstant());
+  }
+
+  @AfterAll
+  void tearDown() {
+    // Truncate affected tables
+    jdbc.execute("TRUNCATE TABLE datastatisticsevent CASCADE");
+    jdbc.execute("TRUNCATE TABLE datastatistics CASCADE");
   }
 }

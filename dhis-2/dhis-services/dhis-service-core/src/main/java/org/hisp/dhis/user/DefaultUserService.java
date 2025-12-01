@@ -671,7 +671,6 @@ public class DefaultUserService implements UserService {
   public int getActiveUsersCount(Date since) {
     UserQueryParams params = new UserQueryParams();
     params.setLastLogin(since);
-
     return getUserCount(params);
   }
 

@@ -5,6 +5,10 @@
         </encoder>
     </appender>
 
+    <logger name="org.hisp.dhis.test" level="info" />
+    <!-- Uncomment to see TrackerTest debug logs -->
+    <!-- <logger name="org.hisp.dhis.test.tracker.TrackerTest" level="debug" /> -->
+
     <root level="warn">
         <appender-ref ref="STDOUT" />
     </root>

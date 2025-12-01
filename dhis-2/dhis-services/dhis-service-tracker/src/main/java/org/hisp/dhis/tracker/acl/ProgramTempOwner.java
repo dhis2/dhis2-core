@@ -27,38 +27,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.acl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@JacksonXmlRootElement(localName = "programTempOwner", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramTempOwner implements Serializable {
-
-  /** */
-  private static final long serialVersionUID = -2030234810482111257L;
-
+@Entity
+@Data
+@Table(name = "programtempowner")
+public class ProgramTempOwner {
+  @Id
+  @GeneratedValue
+  @Column(name = "programtempownerid")
   private long id;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "programid",
+      foreignKey = @ForeignKey(name = "fk_programtempowner_programid"),
+      nullable = false)
   private Program program;
 
+  @Column(length = 50000)
   private String reason;
 
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "validtill")
   private Date validTill;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "userid",
+      foreignKey = @ForeignKey(name = "fk_programtempowner_userid"),
+      nullable = false)
   private User user;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "trackedentityid",
+      foreignKey = @ForeignKey(name = "fk_programtempowner_trackedentityinstanceid"),
+      nullable = false)
   private TrackedEntity trackedEntity;
 
   // -------------------------------------------------------------------------
@@ -76,89 +102,7 @@ public class ProgramTempOwner implements Serializable {
     this.trackedEntity = trackedEntity;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(program, trackedEntity, reason, validTill, user);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
-    }
-
-    final ProgramTempOwner other = (ProgramTempOwner) obj;
-
-    return Objects.equals(this.program, other.program)
-        && Objects.equals(this.reason, other.reason)
-        && Objects.equals(this.validTill, other.validTill)
-        && Objects.equals(this.user, other.user)
-        && Objects.equals(this.trackedEntity, other.trackedEntity);
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public Program getProgram() {
-    return program;
-  }
-
-  public void setProgram(Program program) {
-    this.program = program;
-  }
-
-  public TrackedEntity getTrackedEntity() {
-    return trackedEntity;
-  }
-
-  public void setTrackedEntity(TrackedEntity trackedEntity) {
-    this.trackedEntity = trackedEntity;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getReason() {
-    return reason;
-  }
-
-  public void setReason(String reason) {
-    this.reason = reason;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getValidTill() {
-    return validTill;
-  }
-
-  public void setValidTill(Date accessedAt) {
-    this.validTill = accessedAt;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public Date addHoursToJavaUtilDate(Date date, int hours) {
+  private Date addHoursToJavaUtilDate(Date date, int hours) {
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(date);
     calendar.add(Calendar.HOUR_OF_DAY, hours);

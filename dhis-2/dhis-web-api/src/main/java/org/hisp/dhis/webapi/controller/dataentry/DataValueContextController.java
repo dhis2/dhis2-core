@@ -34,8 +34,10 @@ import static java.util.stream.Collectors.toSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
@@ -46,7 +48,6 @@ import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueContextDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,20 +74,24 @@ public class DataValueContextController {
     List<DataValueChangelogEntry> entries = dataValueChangelogService.getChangelogEntries(params);
 
     Set<String> periods =
-        periodService.getPeriods(PeriodType.getPeriodFromIsoString(params.getPe()), 13).stream()
+        periodService.getPeriods(Period.of(params.getPe()), 13).stream()
             .map(Period::getIsoDate)
             .collect(toSet());
 
+    Set<UID> attributeOptions =
+        params.getCp() == null
+            ? null
+            : Set.copyOf(Stream.of(params.getCp().split(";")).map(UID::of).toList());
     List<DataExportValue> dataValues =
         dataExportPipeline.exportAsList(
-            DataExportParams.builder()
+            DataExportParams.Input.builder()
                 .dataElement(Set.of(params.getDe()))
                 .period(periods)
                 .orgUnit(Set.of(params.getOu()))
                 .categoryOptionCombo(Set.of(params.getCo()))
-                .attributeCombo(params.getCc())
-                .attributeOptions(params.getCp() == null ? null : Set.of(params.getCp().split(";")))
-                .orderByPeriod(true)
+                .attributeCombo(UID.ofNullable(params.getCc()))
+                .attributeOptions(attributeOptions)
+                .order(List.of(DataExportParams.Order.PE))
                 .build(),
             Function.identity());
 

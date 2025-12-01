@@ -168,8 +168,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void getAvailableValuesWhenAlreadyUsed()
-      throws TextPatternParser.TextPatternParsingException, IllegalAccessException {
+  void getAvailableValuesWhenAlreadyUsed() throws TextPatternParser.TextPatternParsingException {
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
 
@@ -179,7 +178,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     TextPattern textPattern = TextPatternParser.parse(key);
-    textPattern.setOwnerObject(Objects.fromClass(tea.getClass()));
+    textPattern.setOwnerObject(Objects.TRACKEDENTITYATTRIBUTE);
     textPattern.setOwnerUid(tea.getUid());
     tea.setTextPattern(textPattern);
     tea.setUid(teaUid);

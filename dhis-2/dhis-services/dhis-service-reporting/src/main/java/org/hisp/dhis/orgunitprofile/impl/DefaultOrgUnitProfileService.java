@@ -74,7 +74,6 @@ import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
 import org.hisp.dhis.orgunitprofile.ProfileItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -374,7 +373,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
    * @return a {@link Period}.
    */
   private PeriodDimension getPeriod(String isoPeriod) {
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
+    Period period = Period.ofNullable(isoPeriod);
 
     if (period != null) {
       return PeriodDimension.of(period);

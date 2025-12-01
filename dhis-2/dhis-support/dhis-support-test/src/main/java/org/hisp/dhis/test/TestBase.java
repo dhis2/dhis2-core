@@ -1153,16 +1153,14 @@ public abstract class TestBase {
    * @param isoPeriod the ISO period string.
    */
   public static Period createPeriod(String isoPeriod) {
-    return PeriodType.getPeriodFromIsoString(isoPeriod);
+    return Period.of(isoPeriod);
   }
 
   /**
    * @param isoPeriod the ISO period strings.
    */
   public static List<Period> createPeriods(String... isoPeriod) {
-    return Stream.of(isoPeriod)
-        .map(PeriodType::getPeriodFromIsoString)
-        .collect(Collectors.toList());
+    return Stream.of(isoPeriod).map(Period::of).collect(Collectors.toList());
   }
 
   /**
