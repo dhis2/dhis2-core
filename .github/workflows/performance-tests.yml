@@ -319,7 +319,9 @@ jobs:
             - type: section
               fields:
                 - type: mrkdwn
-                  text: "*Branch:*\n${{ github.ref_name }}"
+                  text: "*Test name:* ${{ inputs.test_name }}"
+                - type: mrkdwn
+                  text: "*Branch:* ${{ github.ref_name }}"
             - type: actions
               elements:
                 - type: button
