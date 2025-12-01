@@ -51,12 +51,15 @@ public class DefaultRequestInfoService implements RequestInfoService {
    * @param info the info to set
    */
   public void setCurrentInfo(RequestInfo info) {
-    info = sanitised(info);
-    currentInfo.set(info);
     if (info == null) {
+      currentInfo.remove();
       MDC.remove(X_REQUEST_ID);
       return;
     }
+
+    info = sanitised(info);
+    currentInfo.set(info);
+
     String xRequestID = info.getHeaderXRequestID();
     if (xRequestID == null) {
       MDC.remove(X_REQUEST_ID);
@@ -66,9 +69,6 @@ public class DefaultRequestInfoService implements RequestInfoService {
   }
 
   private RequestInfo sanitised(RequestInfo info) {
-    if (info == null) {
-      return null;
-    }
     String xRequestID = info.getHeaderXRequestID();
     if (!RequestInfo.isValidXRequestID(xRequestID)) {
       return info.toBuilder().headerXRequestID("(illegal)").build();

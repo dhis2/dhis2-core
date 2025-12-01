@@ -98,9 +98,9 @@ import org.springframework.web.context.WebApplicationContext;
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     implements HttpClientAdapter {
 
-  @Autowired private ApiVersionFilter apiVersionFilter;
-
   @Autowired private RequestInfoFilter requestInfoFilter;
+
+  @Autowired private ApiVersionFilter apiVersionFilter;
 
   @Autowired protected WebApplicationContext webApplicationContext;
 

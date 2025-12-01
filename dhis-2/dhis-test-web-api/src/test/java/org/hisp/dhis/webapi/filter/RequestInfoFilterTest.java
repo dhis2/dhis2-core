@@ -71,6 +71,30 @@ class RequestInfoFilterTest extends H2ControllerIntegrationTestBase {
     assertNull(response3.getString("mdcValue").string());
   }
 
+  @Test
+  void testRequestInfoFilter_InvalidRequestIdSanitized() {
+    // Request with newline injection attempt
+    JsonObject response1 =
+        GET("/test/requestInfo", Header("X-Request-ID", "first\nsecond")).content();
+    assertEquals("(illegal)", response1.getString("requestId").string());
+    assertEquals("(illegal)", response1.getString("mdcValue").string());
+
+    // Request with too long ID (>36 chars)
+    JsonObject response2 =
+        GET(
+                "/test/requestInfo",
+                Header("X-Request-ID", "this-is-way-too-long-to-be-valid-request-id-123456789"))
+            .content();
+    assertEquals("(illegal)", response2.getString("requestId").string());
+    assertEquals("(illegal)", response2.getString("mdcValue").string());
+
+    // Request with special characters (quotes)
+    JsonObject response3 =
+        GET("/test/requestInfo", Header("X-Request-ID", "\"malicious\"")).content();
+    assertEquals("(illegal)", response3.getString("requestId").string());
+    assertEquals("(illegal)", response3.getString("mdcValue").string());
+  }
+
   @Configuration
   static class TestConfig {}
 
