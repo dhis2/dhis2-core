@@ -1090,7 +1090,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   /**
    * Returns either the original event data values or a filtered version, depending on the "skip
    * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
-   * event synchronization.
+   * single event synchronization.
    */
   private String getEventDataValuesProjectionForSelectClause(
       SingleEventQueryParams params, MapSqlParameterSource sqlParameters) {
