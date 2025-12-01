@@ -197,7 +197,7 @@ public class PdfDataEntryFormUtil {
           throw new InvalidIdentifierReferenceException(ERROR_EMPTY_ORG_UNIT);
         }
 
-        Period period = Period.of(periodId);
+        Period period = Period.ofNullable(periodId);
 
         if (period == null) {
           throw new InvalidIdentifierReferenceException(ERROR_INVALID_PERIOD + periodId);

@@ -726,7 +726,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
               periodList.add(relPeriod);
             }
           } else {
-            Period isoPeriod = Period.of(period);
+            Period isoPeriod = Period.ofNullable(period);
             boolean isIsoPeriod = isoPeriod != null;
             boolean addPeriod =
                 isIsoPeriod && periodList.stream().noneMatch(p -> p.getIsoDate().equals(period));

@@ -191,7 +191,7 @@ public class DefaultValidationResultService implements ValidationResultService {
   }
 
   private static boolean isIsoPeriod(String isoPeriod) {
-    return Period.of(isoPeriod) != null;
+    return Period.ofNullable(isoPeriod) != null;
   }
 
   private <T, E> void validateExists(

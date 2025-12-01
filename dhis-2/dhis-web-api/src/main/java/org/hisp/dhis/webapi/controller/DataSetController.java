@@ -277,7 +277,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       throw new NotFoundException(OrganisationUnit.class, orgUnit);
     }
 
-    Period pe = Period.of(period);
+    Period pe = Period.ofNullable(period);
 
     return getForm(List.of(getEntity(uid)), ou, pe, categoryOptions, metaData);
   }

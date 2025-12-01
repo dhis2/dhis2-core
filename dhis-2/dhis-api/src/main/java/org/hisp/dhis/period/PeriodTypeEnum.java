@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.period;
 
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -58,8 +59,17 @@ public enum PeriodTypeEnum {
 
   @Getter private final String name;
 
+  /**
+   * Parses an ISO period to extract its type.
+   *
+   * @param isoPeriod a ISO period (any format)
+   * @return the type of the period
+   * @throws IllegalArgumentException if the given ISO period is formally invalid. This does not
+   *     detect semantically invalid periods, like for example a quarterly period for a 5th quarter,
+   *     but it would detect a two digit quarter.
+   */
+  @Nonnull
   public static PeriodTypeEnum ofIsoPeriod(String isoPeriod) {
-    Period.Input input = Period.Input.of(isoPeriod);
-    return input == null ? null : input.type();
+    return Period.Input.of(isoPeriod).type();
   }
 }

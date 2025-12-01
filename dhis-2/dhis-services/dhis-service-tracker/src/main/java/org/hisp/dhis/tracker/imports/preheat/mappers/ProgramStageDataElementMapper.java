@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.util.Timeout;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-public class HttpClientUtils {
+@Mapper(uses = {DebugMapper.class, DataElementMapper.class})
+public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStageDataElement> {
+  ProgramStageDataElementMapper INSTANCE = Mappers.getMapper(ProgramStageDataElementMapper.class);
 
-  public static CloseableHttpClient createCloseableHttpClient(Timeout connectionTimeout) {
-    // Connect timeout
-    ConnectionConfig connectionConfig =
-        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
-
-    SocketConfig socketConfig =
-        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
-
-    RequestConfig requestConfig =
-        RequestConfig.custom().setConnectTimeout(connectionTimeout).build();
-
-    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-    connectionManager.setDefaultSocketConfig(socketConfig);
-    connectionManager.setDefaultConnectionConfig(connectionConfig);
-
-    return HttpClientBuilder.create()
-        .setConnectionManager(connectionManager)
-        .setDefaultRequestConfig(requestConfig)
-        .setUserAgent("")
-        .build();
-  }
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "compulsory")
+  @Mapping(target = "dataElement")
+  ProgramStageDataElement map(ProgramStageDataElement programStageDataElement);
 }

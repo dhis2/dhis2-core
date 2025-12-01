@@ -42,17 +42,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.Date;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.User;
 
 @Entity
 @Table(name = "trackedentitychangelog")
@@ -95,22 +93,7 @@ public class TrackedEntityChangeLog {
   @Column(name = "createdby")
   private String createdByUsername;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "createdby",
-      insertable = false,
-      updatable = false,
-      referencedColumnName = "username")
-  private User createdBy;
-
-  @Getter(AccessLevel.NONE)
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(
-      name = "trackedentityattributeid",
-      insertable = false,
-      updatable = false,
-      referencedColumnName = "trackedentityattributeid")
-  private ProgramTrackedEntityAttribute programAttribute;
+  @Transient private UserInfoSnapshot createdBy;
 
   public TrackedEntityChangeLog(
       TrackedEntity trackedEntity,
@@ -135,12 +118,7 @@ public class TrackedEntityChangeLog {
       UserInfoSnapshot createdBy) {
     this(
         trackedEntity, trackedEntityAttribute, previousValue, currentValue, changeLogType, created);
-    User user = new User();
-    user.setUid(createdBy.getUid());
-    user.setUsername(createdBy.getUsername());
-    user.setFirstName(createdBy.getFirstName());
-    user.setSurname(createdBy.getSurname());
-    this.createdBy = user;
+    this.createdBy = createdBy;
   }
 
   private TrackedEntityChangeLog(

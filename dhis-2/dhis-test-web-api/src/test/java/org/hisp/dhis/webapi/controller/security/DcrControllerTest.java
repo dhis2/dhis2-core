@@ -230,7 +230,7 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
     assertNotNull(claims);
     assertEquals("admin", claims.get("sub"));
     assertEquals("client.create", claims.get("scope"));
-    assertEquals("http://localhost:8080", claims.get("iss"));
+    assertEquals("http://localhost:8080/", claims.get("iss"));
     assertTrue(
         ((Instant) claims.get("exp")).getEpochSecond()
             > Instant.now().plus(30, ChronoUnit.SECONDS).getEpochSecond());
@@ -281,6 +281,8 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
                 keyPair
                     .jwkSet())); // Inline JWKS , note jwks_uri is also set but should be ignored,
     // validation will fail if not set, only jwks is used
+    // NOTE: Scope is defined here BUT this is only because we use client_credentials grant
+    // when using /authorize first in the real world, you define scope in there.
   }
 
   private String createClientAndIat() {
@@ -306,7 +308,8 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
   }
 
   private String callTokenEndpoint(KeyPair keyPair, String clientId) throws Exception {
-    String tokenEndpoint = authorizationServerSettings.getIssuer() + "/oauth2/token";
+    // This is the server base URL with trailing slash!!!
+    String serverBaseUrlWithTrailingSlash = authorizationServerSettings.getIssuer();
 
     JwsHeader assertionHeader =
         JwsHeader.with(SignatureAlgorithm.RS256).keyId(keyPair.rsaKey().getKeyID()).build();
@@ -318,7 +321,7 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
         JwtClaimsSet.builder()
             .issuer(clientId)
             .subject(clientId)
-            .audience(List.of(tokenEndpoint))
+            .audience(List.of(serverBaseUrlWithTrailingSlash))
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
             .build();

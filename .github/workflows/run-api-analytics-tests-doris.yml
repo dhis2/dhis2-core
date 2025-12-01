@@ -86,7 +86,7 @@ jobs:
       
       - name: Add a comment to the pull request
         if: always()
-        uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |

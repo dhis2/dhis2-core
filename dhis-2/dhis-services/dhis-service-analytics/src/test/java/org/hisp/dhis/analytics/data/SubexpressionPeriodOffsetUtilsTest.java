@@ -135,7 +135,7 @@ class SubexpressionPeriodOffsetUtilsTest {
 
   private List<DimensionalItemObject> getPeriodList(String... isoPeriods) {
     return Arrays.stream(isoPeriods)
-        .map(Period::of)
+        .map(Period::ofNullable)
         .map(PeriodDimension::of)
         .map(DimensionalItemObject.class::cast)
         .toList();
