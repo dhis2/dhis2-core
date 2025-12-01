@@ -36,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
@@ -95,8 +94,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableMethodSecurity
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired public DefaultRequestInfoService requestInfoService;
-
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
