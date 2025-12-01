@@ -277,14 +277,14 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     String programUid = syncParams.getProgram();
 
     if (StringUtils.isBlank(programUid)) {
-      addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4081));
+      addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4085));
       return;
     }
 
     Program program = programService.getProgram(programUid);
 
     if (program == null) {
-      addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4082, programUid));
+      addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4086, programUid));
       return;
     }
 
@@ -292,7 +292,7 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
       addReports.accept(
           new ErrorReport(
               this.getClass(),
-              ErrorCode.E4083,
+              ErrorCode.E4087,
               program.getUid(),
               ProgramType.WITHOUT_REGISTRATION));
     }
