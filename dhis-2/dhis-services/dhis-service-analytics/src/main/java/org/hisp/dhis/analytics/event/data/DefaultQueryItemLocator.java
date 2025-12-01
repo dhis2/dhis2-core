@@ -50,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
@@ -181,8 +182,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
 
   private Optional<QueryItem> getEventStatus(
       String dimension, Program program, LegendSet legendSet) {
-    // TODO could we use a constant?
-    if ("EVENT_STATUS".equals(getSecondElement(dimension))) {
+    if (ColumnHeader.EVENT_STATUS.name().equals(getSecondElement(dimension))) {
       ProgramStage programStage = getProgramStageOrFail(dimension);
 
       if (programStage != null) {
