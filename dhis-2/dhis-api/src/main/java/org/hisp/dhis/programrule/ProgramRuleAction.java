@@ -182,6 +182,12 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   private Set<ProgramRuleActionEvaluationEnvironment> programRuleActionEvaluationEnvironments =
       ProgramRuleActionEvaluationEnvironment.getDefault();
 
+  /**
+   * The priority of the program rule action within the rule. The lower the priority, the earlier the action is
+   * run. Null means that the action is run last(together will all other null-actions)
+   */
+  private Integer priority;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -249,6 +255,42 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
         optionGroup);
     this.programRuleActionEvaluationTime = evaluationTime;
     this.programRuleActionEvaluationEnvironments = environments;
+  }
+
+  public ProgramRuleAction(
+          String name,
+          ProgramRule programRule,
+          ProgramRuleActionType programRuleActionType,
+          DataElement dataElement,
+          TrackedEntityAttribute attribute,
+          ProgramStageSection programStageSection,
+          ProgramStage programStage,
+          ProgramIndicator programIndicator,
+          String location,
+          String content,
+          String data,
+          Option option,
+          OptionGroup optionGroup,
+          ProgramRuleActionEvaluationTime evaluationTime,
+          Set<ProgramRuleActionEvaluationEnvironment> environments,
+          Integer priority) {
+    this(
+            name,
+            programRule,
+            programRuleActionType,
+            dataElement,
+            attribute,
+            programStageSection,
+            programStage,
+            programIndicator,
+            location,
+            content,
+            data,
+            option,
+            optionGroup,
+            evaluationTime,
+            environments);
+    this.priority = priority;
   }
 
   // -------------------------------------------------------------------------
@@ -448,6 +490,16 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   public void setOptionGroup(OptionGroup optionGroup) {
     this.optionGroup = optionGroup;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Integer getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Integer priority) {
+    this.priority = priority;
   }
 
   @JsonProperty
