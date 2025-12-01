@@ -1634,31 +1634,32 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return "";
     }
 
-    String ouConditions =
-        orgUnitsByLevel.entrySet().stream()
-            .map(
-                entry -> {
-                  String col =
-                      params
-                          .getOrgUnitField()
-                          .withSqlBuilder(sqlBuilder)
-                          .getOrgUnitLevelCol(entry.getKey(), getAnalyticsType());
-                  String uids =
-                      entry.getValue().stream()
-                          .filter(ou -> StringUtils.isNotEmpty(ou.getUid()))
-                          .map(ou -> "'" + ou.getUid() + "'")
-                          .collect(joining(","));
-                  return col + " in (" + uids + ")";
-                })
-            .collect(joining(" and "));
+    StringJoiner conditions = new StringJoiner(" and ");
 
-    return "("
-        + ouConditions
-        + " and "
-        + quoteAlias("ps")
-        + " = '"
-        + item.getProgramStage().getUid()
-        + "')";
+    for (Map.Entry<Integer, List<OrganisationUnit>> entry : orgUnitsByLevel.entrySet()) {
+      int level = entry.getKey();
+      List<OrganisationUnit> orgUnits = entry.getValue();
+
+      String column =
+          params
+              .getOrgUnitField()
+              .withSqlBuilder(sqlBuilder)
+              .getOrgUnitLevelCol(level, getAnalyticsType());
+
+      String quotedUids =
+          orgUnits.stream()
+              .map(OrganisationUnit::getUid)
+              .filter(StringUtils::isNotEmpty)
+              .map(uid -> "'" + uid + "'")
+              .collect(joining(","));
+
+      conditions.add(column + " in (" + quotedUids + ")");
+    }
+
+    String psCondition = quoteAlias("ps") + " = '" + item.getProgramStage().getUid() + "'";
+    conditions.add(psCondition);
+
+    return "(" + conditions + ")";
   }
 
   /** Returns PSID.ITEM_ID of given queryItem. */

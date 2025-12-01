@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -60,6 +61,10 @@ import org.hisp.dhis.util.DateUtils;
  * </ul>
  */
 public class DateFilterHandler implements QueryItemFilterHandler {
+
+  /** Pattern for date range format: YYYY-MM-DD_YYYY-MM-DD (e.g., 2025-01-01_2025-01-31) */
+  private static final Pattern DATE_RANGE_PATTERN =
+      Pattern.compile("\\d{4}-\\d{2}-\\d{2}_\\d{4}-\\d{2}-\\d{2}");
 
   @Override
   public boolean supports(QueryItem queryItem) {
@@ -112,7 +117,7 @@ public class DateFilterHandler implements QueryItemFilterHandler {
     }
 
     // Handle date ranges (e.g., 2025-01-01_2025-01-31)
-    if (filterString.matches("\\d{4}-\\d{2}-\\d{2}_\\d{4}-\\d{2}-\\d{2}")) {
+    if (DATE_RANGE_PATTERN.matcher(filterString).matches()) {
       String[] dates = filterString.split("_");
       if (dates.length == 2) {
         queryItem.addFilter(new QueryFilter(QueryOperator.GE, dates[0]));

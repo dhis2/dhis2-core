@@ -546,8 +546,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     OrgUnitField orgUnitField = params.getOrgUnitField();
 
-    // Skip regular OU clause if stage.ou QueryItems cover all org units (avoid duplicates)
-    if (!shouldSkipRegularOuClause(params)) {
+    // Use regular OU clause only if stage.ou QueryItems don't cover all org units (avoid
+    // duplicates)
+    if (useRegularOuClause(params)) {
       if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
         String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
 
@@ -820,13 +821,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   /**
-   * Check if all org units in ORGUNIT_DIM_ID are fully covered by stage.ou QueryItems. If so, skip
-   * the regular OU clause to avoid duplicates.
+   * Check if the regular OU clause should be used. Returns false if all org units in ORGUNIT_DIM_ID
+   * are fully covered by stage.ou QueryItems, to avoid duplicates.
    *
    * @param params the {@link EventQueryParams}
-   * @return true if the regular OU clause should be skipped
+   * @return true if the regular OU clause should be used
    */
-  private boolean shouldSkipRegularOuClause(EventQueryParams params) {
+  private boolean useRegularOuClause(EventQueryParams params) {
     // Get org unit UIDs from stage.ou QueryItems
     Set<String> stageOuUids =
         params.getItems().stream()
@@ -838,7 +839,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             .collect(Collectors.toSet());
 
     if (stageOuUids.isEmpty()) {
-      return false; // No stage.ou items, use regular OU clause
+      return true; // No stage.ou items, use regular OU clause
     }
 
     // Get org unit UIDs from ORGUNIT_DIM_ID
@@ -847,8 +848,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             .map(DimensionalItemObject::getUid)
             .collect(Collectors.toSet());
 
-    // Skip if all regular OU UIDs are covered by stage.ou
-    return stageOuUids.containsAll(regularOuUids);
+    // Use regular OU clause only if NOT all regular OU UIDs are covered by stage.ou
+    return !stageOuUids.containsAll(regularOuUids);
   }
 
   /**
