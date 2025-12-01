@@ -29,44 +29,20 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      AttributeValuesMapper.class,
-      ProgramMapper.class,
-      TrackedEntityTypeMapper.class,
-      ProgramStageMapper.class
-    })
-public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> {
-  RelationshipTypeMapper INSTANCE = Mappers.getMapper(RelationshipTypeMapper.class);
+@Mapper(uses = {DebugMapper.class, DataElementMapper.class})
+public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStageDataElement> {
+  ProgramStageDataElementMapper INSTANCE = Mappers.getMapper(ProgramStageDataElementMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "fromConstraint", qualifiedByName = "constraintMapper")
-  @Mapping(target = "toConstraint", qualifiedByName = "constraintMapper")
-  @Mapping(target = "bidirectional")
-  @Mapping(target = "sharing")
-  RelationshipType map(RelationshipType relationshipType);
-
-  @BeanMapping(ignoreByDefault = true)
-  @Named("constraintMapper")
-  @Mapping(target = "id")
-  @Mapping(target = "relationshipEntity")
-  @Mapping(target = "trackedEntityType")
-  @Mapping(target = "program")
-  @Mapping(target = "programStage")
-  @Mapping(target = "trackerDataView")
-  RelationshipConstraint mapConstraint(RelationshipConstraint constraint);
+  @Mapping(target = "compulsory")
+  @Mapping(target = "dataElement")
+  ProgramStageDataElement map(ProgramStageDataElement programStageDataElement);
 }
