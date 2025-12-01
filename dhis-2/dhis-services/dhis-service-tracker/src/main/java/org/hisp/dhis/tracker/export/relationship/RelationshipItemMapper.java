@@ -67,7 +67,7 @@ public interface RelationshipItemMapper {
 
     RelationshipItem result = new RelationshipItem();
     result.setRelationship(map(fields, relationshipItem.getRelationship()));
-    // only one of these fields will be non null as it represents the entity in which the
+    // only one of these fields will be non-null as it represents the entity in which the
     // relationship originates. we might be able to optimize these mappings but
     // that could result in more programmer errors as in unexpected NPEs
     result.setTrackedEntity(
