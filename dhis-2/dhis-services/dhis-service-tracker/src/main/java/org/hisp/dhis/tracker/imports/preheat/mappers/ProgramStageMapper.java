@@ -44,7 +44,6 @@ import org.mapstruct.factory.Mappers;
       AttributeValuesMapper.class,
       SharingMapper.class,
       ProgramStageDataElementMapper.class,
-      ProgramStageSectionMapper.class
     })
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
