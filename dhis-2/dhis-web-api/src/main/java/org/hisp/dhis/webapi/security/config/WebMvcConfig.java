@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.hisp.dhis.common.Compression;
+import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
@@ -48,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -110,6 +112,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired
   public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
+
+  @Autowired public DefaultRequestInfoService requestInfoService;
 
   @Autowired private CurrentUserService currentUserService;
 
@@ -238,6 +242,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
+    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
   }
 
   private Map<String, MediaType> mediaTypeMap =

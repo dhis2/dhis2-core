@@ -27,83 +27,157 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Tests that {@link RequestIdFilter} properly captures X-Request-ID header, validates and sanitizes
  * it, and makes it available via MDC.
  */
+@SpringJUnitWebConfig
+@WebAppConfiguration
 @ContextConfiguration(classes = RequestIdFilterTest.TestConfig.class)
-class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
+class RequestIdFilterTest {
 
-  @Test
-  void shouldAddRequestIdToMdcAndCleanup() {
-    // First request with X-Request-ID header
-    JsonObject response1 = GET("/test/requestId", Header("X-Request-ID", "request-1")).content();
-    assertEquals("request-1", response1.getString("xRequestID").string());
+  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired private RequestIdFilter requestIdFilter;
 
-    // Second request with different X-Request-ID
-    JsonObject response2 = GET("/test/requestId", Header("X-Request-ID", "request-2")).content();
-    assertEquals("request-2", response2.getString("xRequestID").string());
+  private MockMvc mockMvc;
+  private ObjectMapper objectMapper = new ObjectMapper();
 
-    // Third request without X-Request-ID header (should be null/cleaned up)
-    JsonObject response3 = GET("/test/requestId").content();
-    assertNull(response3.getString("xRequestID").string());
+  @BeforeEach
+  void setup() {
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilters(requestIdFilter)
+            .build();
   }
 
   @Test
-  void shouldAcceptValidUuidAndUid() {
+  void shouldAddRequestIdToMdcAndCleanup() throws Exception {
+    // First request with X-Request-ID header
+    MvcResult result1 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", "request-1"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json1 = objectMapper.readTree(result1.getResponse().getContentAsString());
+    assertEquals("request-1", json1.get("xRequestID").asText());
+
+    // Second request with different X-Request-ID
+    MvcResult result2 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", "request-2"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json2 = objectMapper.readTree(result2.getResponse().getContentAsString());
+    assertEquals("request-2", json2.get("xRequestID").asText());
+
+    // Third request without X-Request-ID header (should be null/cleaned up)
+    MvcResult result3 =
+        mockMvc.perform(get("/api/test/requestId")).andExpect(status().isOk()).andReturn();
+    JsonNode json3 = objectMapper.readTree(result3.getResponse().getContentAsString());
+    assertNull(json3.get("xRequestID").asText(null));
+  }
+
+  @Test
+  void shouldAcceptValidUuidAndUid() throws Exception {
     // UUID is valid
     String uuid = "550e8400-e29b-41d4-a716-446655440000";
-    JsonObject response1 = GET("/test/requestId", Header("X-Request-ID", uuid)).content();
-    assertEquals(uuid, response1.getString("xRequestID").string());
+    MvcResult result1 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", uuid))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json1 = objectMapper.readTree(result1.getResponse().getContentAsString());
+    assertEquals(uuid, json1.get("xRequestID").asText());
 
     // DHIS2 UID is valid
     String uid = "a1b2c3d4e5f";
-    JsonObject response2 = GET("/test/requestId", Header("X-Request-ID", uid)).content();
-    assertEquals(uid, response2.getString("xRequestID").string());
+    MvcResult result2 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", uid))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json2 = objectMapper.readTree(result2.getResponse().getContentAsString());
+    assertEquals(uid, json2.get("xRequestID").asText());
   }
 
   @Test
-  void shouldSanitizeInvalidRequestIds() {
+  void shouldSanitizeInvalidRequestIds() throws Exception {
     // Request with newline injection attempt
-    JsonObject response1 =
-        GET("/test/requestId", Header("X-Request-ID", "first\nsecond")).content();
-    assertEquals("(illegal)", response1.getString("xRequestID").string());
+    MvcResult result1 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", "first\nsecond"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json1 = objectMapper.readTree(result1.getResponse().getContentAsString());
+    assertEquals("(illegal)", json1.get("xRequestID").asText());
 
     // Request with too long ID (>36 chars)
-    JsonObject response2 =
-        GET(
-                "/test/requestId",
-                Header("X-Request-ID", "this-is-way-too-long-to-be-valid-request-id-123456789"))
-            .content();
-    assertEquals("(illegal)", response2.getString("xRequestID").string());
+    MvcResult result2 =
+        mockMvc
+            .perform(
+                get("/api/test/requestId")
+                    .header(
+                        "X-Request-ID", "this-is-way-too-long-to-be-valid-request-id-123456789"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json2 = objectMapper.readTree(result2.getResponse().getContentAsString());
+    assertEquals("(illegal)", json2.get("xRequestID").asText());
 
     // Request with special characters (quotes)
-    JsonObject response3 =
-        GET("/test/requestId", Header("X-Request-ID", "\"malicious\"")).content();
-    assertEquals("(illegal)", response3.getString("xRequestID").string());
+    MvcResult result3 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", "\"malicious\""))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json3 = objectMapper.readTree(result3.getResponse().getContentAsString());
+    assertEquals("(illegal)", json3.get("xRequestID").asText());
 
     // Request with spaces
-    JsonObject response4 =
-        GET("/test/requestId", Header("X-Request-ID", "no - not having it")).content();
-    assertEquals("(illegal)", response4.getString("xRequestID").string());
+    MvcResult result4 =
+        mockMvc
+            .perform(get("/api/test/requestId").header("X-Request-ID", "no - not having it"))
+            .andExpect(status().isOk())
+            .andReturn();
+    JsonNode json4 = objectMapper.readTree(result4.getResponse().getContentAsString());
+    assertEquals("(illegal)", json4.get("xRequestID").asText());
   }
 
   @Configuration
-  static class TestConfig {}
+  static class TestConfig {
+    @Bean
+    public RequestIdFilter requestIdFilter() {
+      return new RequestIdFilter();
+    }
+
+    @Bean
+    public TestRequestIdController testRequestIdController() {
+      return new TestRequestIdController();
+    }
+  }
 
   @Controller
   static class TestRequestIdController {
@@ -112,13 +186,8 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
     @ResponseBody
     public String getRequestInfo() {
       String xRequestID = MDC.get("xRequestID");
-
-      return """
-          {
-            "xRequestID": %s
-          }
-          """
-          .formatted(xRequestID != null ? "\"" + xRequestID + "\"" : "null");
+      String value = xRequestID != null ? "\"" + xRequestID + "\"" : "null";
+      return String.format("{\n  \"xRequestID\": %s\n}", value);
     }
   }
 }
