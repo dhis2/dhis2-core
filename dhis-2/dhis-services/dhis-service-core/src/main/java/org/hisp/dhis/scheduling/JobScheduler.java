@@ -183,7 +183,8 @@ public class JobScheduler implements Runnable, JobRunner {
         if (config != null && config.getJobStatus() == JobStatus.SCHEDULED) {
           Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
           Instant dueTime = dueTime(now, config);
-          runDueJob(config, dueTime);
+          // only run if the job is still due (there can be duplicates in the queue)
+          if (dueTime != null) runDueJob(config, dueTime);
         }
         jobId = jobIds.poll();
       }
@@ -216,7 +217,7 @@ public class JobScheduler implements Runnable, JobRunner {
   private void runDueJob(JobConfiguration config, Instant start) {
     String jobId = config.getUid();
     if (!service.tryRun(jobId)) {
-      log.debug(
+      log.error(
           String.format(
               "Could not start job %s although it should run %s",
               jobId, start.atZone(ZoneId.systemDefault())));
