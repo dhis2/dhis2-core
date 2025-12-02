@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
@@ -47,14 +46,12 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
-import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.fields.FieldsConverter;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
@@ -100,10 +97,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableMethodSecurity
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired private UserSettingsService userSettingsService;
-
-  @Autowired public DefaultRequestInfoService requestInfoService;
-
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
@@ -153,7 +146,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
@@ -227,7 +219,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
   }
 
