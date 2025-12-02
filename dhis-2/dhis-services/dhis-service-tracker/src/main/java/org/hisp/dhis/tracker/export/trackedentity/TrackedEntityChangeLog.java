@@ -74,7 +74,8 @@ public class TrackedEntityChangeLog {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "trackedentityattributeid",
-      foreignKey = @ForeignKey(name = "fk_trackedentitychangelog_trackedentityattributeid"))
+      foreignKey = @ForeignKey(name = "fk_trackedentitychangelog_trackedentityattributeid"),
+      nullable = false)
   private TrackedEntityAttribute trackedEntityAttribute;
 
   @Column(name = "previousvalue", length = 50000)
@@ -90,7 +91,7 @@ public class TrackedEntityChangeLog {
   @Column(name = "created", nullable = false)
   private Date created;
 
-  @Column(name = "createdby")
+  @Column(name = "createdby", nullable = false)
   private String createdByUsername;
 
   @Transient private UserInfoSnapshot createdBy;
