@@ -113,8 +113,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     FilterRegistration.Dynamic openSessionInViewFilter =
         context.addFilter(
             "openSessionInViewFilter", ConditionalOpenEntityManagerInViewFilter.class);
-    openSessionInViewFilter.setInitParameter(
-        "entityManagerFactoryBeanName", "entityManagerFactory");
+    openSessionInViewFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
     openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
     openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
 

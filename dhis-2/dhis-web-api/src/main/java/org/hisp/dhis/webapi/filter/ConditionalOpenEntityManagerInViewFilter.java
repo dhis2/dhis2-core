@@ -32,15 +32,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.server.PathContainer;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
+import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
- * OpenEntityManagerInViewFilter that excludes specific URL patterns from having an open Hibernate
- * session throughout the request lifecycle.
+ * OpenSessionInViewFilter that excludes specific URL patterns from having an open Hibernate session
+ * throughout the request lifecycle.
  *
- * <p>Open Session In View (OSIV) keeps a Hibernate EntityManager and database connection open for
+ * <p>Open Session In View (OSIV) keeps a Hibernate SessionFactory and database connection open for
  * the entire HTTP request duration, from controller entry through view rendering and response
  * serialization. This allows lazy-loaded entity relationships to be accessed anywhere in the
  * request processing chain, even outside explicit transaction boundaries.
@@ -71,7 +71,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * <p>This filter excludes specific endpoints that don't require database access or manage their own
  * transactions explicitly, improving performance by avoiding unnecessary connection usage.
  */
-public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerInViewFilter {
+public class ConditionalOpenEntityManagerInViewFilter extends OpenSessionInViewFilter {
 
   private static final PathPatternParser PARSER = new PathPatternParser();
   private static final List<PathPattern> EXCLUDE_PATTERNS =
