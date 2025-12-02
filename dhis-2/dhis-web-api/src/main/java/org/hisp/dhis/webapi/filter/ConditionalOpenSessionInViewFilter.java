@@ -71,7 +71,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * <p>This filter excludes specific endpoints that don't require database access or manage their own
  * transactions explicitly, improving performance by avoiding unnecessary connection usage.
  */
-public class ConditionalOpenEntityManagerInViewFilter extends OpenSessionInViewFilter {
+public class ConditionalOpenSessionInViewFilter extends OpenSessionInViewFilter {
 
   private static final PathPatternParser PARSER = new PathPatternParser();
   private static final List<PathPattern> EXCLUDE_PATTERNS =
