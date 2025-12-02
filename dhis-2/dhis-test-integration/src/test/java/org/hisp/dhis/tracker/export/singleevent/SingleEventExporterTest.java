@@ -144,10 +144,8 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
   void shouldFetchEventsExcludingDataValuesMarkedSkipSync()
       throws ForbiddenException, BadRequestException {
     SingleEventOperationParams params =
-        SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"))
-            .synchronizationQuery(true)
-            .includeDeleted(true)
-            .withSkipSyncDataElements(Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
+        SingleEventOperationParams.builderForDataSync(
+                UID.of("iS7eutanDry"), null, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
             .build();
 
     Page<SingleEvent> events = singleEventService.findEvents(params, PageParams.of(1, 10, false));

@@ -168,6 +168,7 @@ public class SingleEventOperationParams {
 
     // Hide Lombok-generated synchronizationQuery setter
     private SingleEventOperationParamsBuilder synchronizationQuery(boolean synchronizationQuery) {
+      this.synchronizationQuery = synchronizationQuery;
       return this;
     }
 
