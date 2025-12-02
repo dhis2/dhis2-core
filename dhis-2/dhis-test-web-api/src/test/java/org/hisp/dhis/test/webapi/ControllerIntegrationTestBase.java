@@ -51,7 +51,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.filter.ApiVersionFilter;
 import org.hisp.dhis.webapi.filter.RequestIdFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,8 +97,6 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
   @Autowired private RequestIdFilter requestIdFilter;
 
-  @Autowired private ApiVersionFilter apiVersionFilter;
-
   @Autowired protected WebApplicationContext webApplicationContext;
 
   @Autowired private RenderService _renderService;
@@ -131,7 +128,6 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
             .addFilter(
                 requestIdFilter) // RequestIdFilter must run first to capture X-Request-ID for
             // logging/MDC
-            .addFilter(apiVersionFilter)
             .build();
 
     switchContextToUser(getAdminUser());
