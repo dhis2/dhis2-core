@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
@@ -51,7 +50,6 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrailingSlashInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -119,8 +117,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
       currentSystemSettingsHandlerMethodArgumentResolver;
 
   @Autowired private FieldsConverter fieldsConverter;
-
-  @Autowired private DefaultRequestInfoService requestInfoService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
@@ -279,7 +275,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
