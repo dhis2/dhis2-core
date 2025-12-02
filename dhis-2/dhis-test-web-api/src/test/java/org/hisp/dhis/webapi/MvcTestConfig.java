@@ -43,8 +43,10 @@ import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -57,6 +59,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConvert
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -68,7 +71,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -95,6 +97,8 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class MvcTestConfig implements WebMvcConfigurer {
+  @Autowired private CurrentUserService currentUserService;
+
   @Autowired private UserSettingService userSettingService;
 
   @Autowired private MetadataExportService metadataExportService;
@@ -127,7 +131,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     addInterceptors(registry);
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
-    registry.addInterceptor(new UserContextInterceptor(userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
@@ -189,9 +193,17 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return new DefaultNodeService();
   }
 
-  @Bean
-  public DatabaseInfoProvider databaseInfoProvider() {
-    return () -> DatabaseInfo.builder().build();
+  @Bean("databaseInfo")
+  public DatabaseInfo databaseInfo() {
+    return new DatabaseInfo();
+  }
+
+  @Primary
+  @Bean("systemService")
+  public SystemService systemService() {
+    SystemService systemService = Mockito.mock(SystemService.class);
+    Mockito.when(systemService.getSystemInfo()).thenReturn(new SystemInfo());
+    return systemService;
   }
 
   @Override
@@ -199,7 +211,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
-    registry.addInterceptor(new UserContextInterceptor(userSettingService));
+    registry.addInterceptor(new UserContextInterceptor(currentUserService, userSettingService));
   }
 
   @Bean
@@ -250,7 +262,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     converters.add(mappingJackson2HttpMessageConverter());
     converters.add(mappingJackson2XmlHttpMessageConverter());
-    converters.add(new ResourceHttpMessageConverter());
   }
 
   @Override
