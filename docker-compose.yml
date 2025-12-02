@@ -67,6 +67,7 @@ services:
   web-sync:
     <<: *web-base
     volumes:
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/dhis-sync.conf:/opt/dhis2/dhis.conf:ro
     profiles: [sync]
     ports:
