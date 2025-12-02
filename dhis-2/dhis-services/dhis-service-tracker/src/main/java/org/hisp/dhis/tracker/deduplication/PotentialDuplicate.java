@@ -63,7 +63,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 public class PotentialDuplicate implements IdentifiableObject {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(name = "potentialduplicatesequence")
+  @SequenceGenerator(sequenceName = "potentialduplicatesequence")
   @Column(name = "potentialduplicateid")
   private long id;
 
