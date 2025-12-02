@@ -37,31 +37,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Tests that {@link RequestIdFilter} properly captures X-Request-ID header, validates and sanitizes
  * it, and makes it available via MDC.
  */
-@SpringJUnitWebConfig
-@WebAppConfiguration
-@ContextConfiguration(classes = RequestIdFilterTest.TestConfig.class)
 class RequestIdFilterTest {
-
-  @Autowired private WebApplicationContext webApplicationContext;
-  @Autowired private RequestIdFilter requestIdFilter;
 
   private MockMvc mockMvc;
   private ObjectMapper objectMapper = new ObjectMapper();
@@ -69,8 +56,8 @@ class RequestIdFilterTest {
   @BeforeEach
   void setup() {
     mockMvc =
-        MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .addFilters(requestIdFilter)
+        MockMvcBuilders.standaloneSetup(new RequestIdFilterTestController())
+            .addFilters(new RequestIdFilter())
             .build();
   }
 
@@ -164,19 +151,6 @@ class RequestIdFilterTest {
             .andReturn();
     JsonNode json4 = objectMapper.readTree(result4.getResponse().getContentAsString());
     assertEquals("(illegal)", json4.get("xRequestID").asText());
-  }
-
-  @Configuration
-  static class TestConfig {
-    @Bean
-    public RequestIdFilter requestIdFilter() {
-      return new RequestIdFilter();
-    }
-
-    @Bean
-    public RequestIdFilterTestController requestIdFilterTestController() {
-      return new RequestIdFilterTestController();
-    }
   }
 
   @Controller
