@@ -5,7 +5,9 @@ x-web-base: &web-base
   volumes:
     - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
   environment:
-    JAVA_OPTS:
+    # JAVA_TOOL_OPTIONS: Standard JVM environment variable, works with all image types
+    # (both tomcat-based dhis2/core-dev:latest and distroless dhis2/core-dev:local)
+    JAVA_TOOL_OPTIONS:
       "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
       -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
       -Dcom.sun.management.jmxremote \
@@ -13,6 +15,10 @@ x-web-base: &web-base
       -Dcom.sun.management.jmxremote.local.only=false \
       -Dcom.sun.management.jmxremote.authenticate=false \
       -Dcom.sun.management.jmxremote.ssl=false"
+    DB_HOSTNAME: ${DB_HOSTNAME:-db}
+    DB_NAME: ${DB_NAME:-dhis}
+    DB_USERNAME: ${DB_USERNAME}
+    DB_PASSWORD: ${DB_PASSWORD}
 
 x-db-base: &db-base
   image: ghcr.io/baosystems/postgis:12-3.3
@@ -44,6 +50,7 @@ services:
   web:
     <<: *web-base
     volumes:
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
     ports:
       - "127.0.0.1:8080:8080" # DHIS2
@@ -52,11 +59,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      DB_HOSTNAME: ${DB_HOSTNAME:-db}
-      DB_NAME: ${DB_NAME:-dhis}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
 
   db:
     <<: *db-base
@@ -70,6 +72,7 @@ services:
   web-sync:
     <<: *web-base
     volumes:
+      - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/dhis-sync.conf:/opt/dhis2/dhis.conf:ro
     profiles: [sync]
     ports:
