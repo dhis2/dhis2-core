@@ -48,15 +48,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * This filter places an hashed version of the Session ID in the Log4j Mapped Diagnostic Context
- * (MDC) of log4j. The session id is then logged in all log statements and can be used to correlate
- * different requests.
+ * Filter that adds a hashed version of the Session ID to the Mapped Diagnostic Context (MDC) for
+ * authenticated users. This allows correlating multiple requests from the same user session. Access
+ * via {@code %X{sessionId}} in log4j2 pattern layouts.
+ *
+ * <p>The session ID is hashed using SHA-256 and base64-encoded for security. Only enabled when
+ * {@code logging.request_id.enabled} is true.
  *
  * @author Luciano Fiandesio
+ * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
+ * @see <a
+ *     href="https://logging.apache.org/log4j/2.x/manual/pattern-layout.html#converter-thread-context-map">Pattern
+ *     Layout Thread Context Map</a>
  */
 @Slf4j
 @Component
-public class RequestIdentifierFilter extends OncePerRequestFilter {
+public class SessionIdFilter extends OncePerRequestFilter {
   private static final String SESSION_ID_KEY = "sessionId";
 
   /** The hash algorithm to use. */
@@ -66,7 +73,7 @@ public class RequestIdentifierFilter extends OncePerRequestFilter {
 
   private final boolean enabled;
 
-  public RequestIdentifierFilter(DhisConfigurationProvider dhisConfig) {
+  public SessionIdFilter(DhisConfigurationProvider dhisConfig) {
     this.enabled = dhisConfig.isEnabled(LOGGING_REQUEST_ID_ENABLED);
   }
 
