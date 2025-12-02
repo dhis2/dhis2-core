@@ -60,7 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class TrackedEntityChangeLog {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(name = "trackedentitychangelog_sequence")
+  @SequenceGenerator(sequenceName = "trackedentitychangelog_sequence")
   @Column(name = "trackedentitychangelogid")
   private long id;
 
