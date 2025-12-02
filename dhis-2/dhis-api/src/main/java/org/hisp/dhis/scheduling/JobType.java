@@ -256,8 +256,6 @@ public enum JobType {
    */
   public boolean isUsingContinuousExecution() {
     return this == METADATA_IMPORT
-        || this == RESOURCE_TABLE
-        || this == ANALYTICS_TABLE
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
         || this == DATA_INTEGRITY_DETAILS
