@@ -60,3 +60,6 @@ http-client.private.env.json
 
 # Bundled apps temporary download folder
 /dhis-web-server/bundled_apps/
+
+# Performance test env files
+run-simulation*.env
