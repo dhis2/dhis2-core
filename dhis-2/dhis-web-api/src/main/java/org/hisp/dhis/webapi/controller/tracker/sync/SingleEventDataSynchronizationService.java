@@ -208,10 +208,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private long countEventsForSynchronization(Program program, Date skipChangedBefore)
       throws ForbiddenException, BadRequestException {
     return singleEventService.countEvents(
-        SingleEventOperationParams.builderForProgram(UID.of(program))
-            .skipChangedBefore(skipChangedBefore)
-            .includeDeleted(true)
-            .synchronizationQuery(true)
+        SingleEventOperationParams.builderForDataSync(UID.of(program), skipChangedBefore, Map.of())
             .build());
   }
 
@@ -267,11 +264,10 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       throws ForbiddenException, BadRequestException {
     return singleEventService
         .findEvents(
-            SingleEventOperationParams.builderForProgram(UID.of(context.getProgram().getUid()))
-                .skipChangedBefore(context.getSkipChangedBefore())
-                .synchronizationQuery(true)
-                .includeDeleted(true)
-                .withSkipSyncDataElements(context.getSkipSyncDataElementsByProgramStage())
+            SingleEventOperationParams.builderForDataSync(
+                    UID.of(context.program.getUid()),
+                    context.getSkipChangedBefore(),
+                    context.getSkipSyncDataElementsByProgramStage())
                 .build(),
             PageParams.of(page, context.getPageSize(), false))
         .getItems();

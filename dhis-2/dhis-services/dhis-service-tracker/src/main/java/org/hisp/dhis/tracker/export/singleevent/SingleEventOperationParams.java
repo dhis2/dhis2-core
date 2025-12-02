@@ -166,6 +166,11 @@ public class SingleEventOperationParams {
       return this;
     }
 
+    // Hide Lombok-generated synchronizationQuery setter
+    private SingleEventOperationParamsBuilder synchronizationQuery(boolean synchronizationQuery) {
+      return this;
+    }
+
     // Do not remove this unused method. This hides the data element filters field from the builder
     // which Lombok
     // does not support. The repeated field and private method prevent access to
@@ -202,6 +207,18 @@ public class SingleEventOperationParams {
 
   public static SingleEventOperationParamsBuilder builderForEvent(@Nonnull UID event) {
     return new SingleEventOperationParamsBuilder().events(Set.of(event));
+  }
+
+  public static SingleEventOperationParamsBuilder builderForDataSync(
+      @Nonnull UID program,
+      Date skipChangedBefore,
+      @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    return new SingleEventOperationParamsBuilder()
+        .program(program)
+        .skipChangedBefore(skipChangedBefore)
+        .withSkipSyncDataElements(skipSyncDataElementsByProgramStage)
+        .synchronizationQuery(true)
+        .includeDeleted(true);
   }
 
   // Do not remove this unused method. This hides the builder with no params which Lombok
