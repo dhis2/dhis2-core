@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:gatling.io)",
+      "WebFetch(domain:docs.gatling.io)",
+      "Bash(mvn gatling:help:*)",
+      "Bash(mvn clean compile:*)",
+      "WebFetch(domain:chromium.googlesource.com)",
+      "WebFetch(domain:www-test.mitmproxy.org)",
+      "Bash(cat:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "/home/ivo/code/dhis2/performance/gatling/"
+    ]
+  }
+}

@@ -98,12 +98,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("requestIdFilter", new DelegatingFilterProxy("requestIdFilter"))
         .addMappingForUrlPatterns(null, false, "/*");
 
-    context
-        .addFilter(
-            "SpringSessionRepositoryFilter",
-            new DelegatingFilterProxy("springSessionRepositoryFilter"))
-        .addMappingForUrlPatterns(null, false, "/*");
-
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
@@ -128,11 +122,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.setInitParameter("forceEncoding", "true");
     characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
-
-    context
-        .addFilter(
-            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
-        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
     context
         .addFilter("sessionIdFilter", new DelegatingFilterProxy("sessionIdFilter"))
