@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.hisp.dhis.common.Compression;
+import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
@@ -46,9 +47,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.TrailingSlashInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -118,13 +117,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired public DefaultRequestInfoService requestInfoService;
 
-  @Autowired private FieldsConverter fieldsConverter;
-
-  @Autowired private AuthorityInterceptor authorityInterceptor;
-
-  @Autowired private SystemSettingsInterceptor settingsInterceptor;
-
-  @Autowired private NodeService nodeService;
+  @Autowired private UserSettingService userSettingService;
 
   @Autowired
   @Qualifier("jsonMapper")
@@ -248,21 +241,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(authorityInterceptor);
-    registry.addInterceptor(settingsInterceptor);
-    registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
-  }
-
-  @Override
-  public void configureContentNegotiation(ContentNegotiationConfigurer config) {
-    config
-        .favorPathExtension(true)
-        .favorParameter(false)
-        .ignoreAcceptHeader(false)
-        .defaultContentType(MediaType.APPLICATION_JSON)
-        .mediaType("json", MediaType.APPLICATION_JSON)
-        .mediaType("xml", MediaType.APPLICATION_XML);
+    registry.addInterceptor(new UserContextInterceptor(userSettingService));
+    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
   }
 
   private Map<String, MediaType> mediaTypeMap =
