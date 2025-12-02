@@ -174,13 +174,13 @@ class RequestIdFilterTest {
     }
 
     @Bean
-    public TestRequestIdController testRequestIdController() {
-      return new TestRequestIdController();
+    public RequestIdFilterTestController requestIdFilterTestController() {
+      return new RequestIdFilterTestController();
     }
   }
 
   @Controller
-  static class TestRequestIdController {
+  static class RequestIdFilterTestController {
 
     @GetMapping("/api/test/requestId")
     @ResponseBody
