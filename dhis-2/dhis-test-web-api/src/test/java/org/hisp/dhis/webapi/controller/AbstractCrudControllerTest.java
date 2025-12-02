@@ -2368,4 +2368,71 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(locales.contains("sv"));
     assertTrue(locales.contains("fr"));
   }
+
+  @Test
+  @DisplayName("Should filter programIndicators by displayInForm without 500 error")
+  void testProgramIndicatorsFilterByDisplayInForm() {
+    // Create a Program first (required for ProgramIndicators)
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                """
+            {
+                'name': 'Test Program',
+                'shortName': 'TP',
+                'programType': 'WITH_REGISTRATION'
+            }
+            """));
+
+    // Create ProgramIndicators
+    String indicator1Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programIndicators/",
+                """
+            {
+                'name': 'Test Indicator 1',
+                'shortName': 'TI1',
+                'program': {'id': '%s'},
+                'expression': '1',
+                'displayInForm': true
+            }
+            """
+                    .formatted(programId)));
+
+    String indicator2Id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programIndicators/",
+                """
+            {
+                'name': 'Test Indicator 2',
+                'shortName': 'TI2',
+                'program': {'id': '%s'},
+                'expression': '1',
+                'displayInForm': false
+            }
+            """
+                    .formatted(programId)));
+
+    // Test 1: Filter by displayInForm:eq:true (should not return 500 error)
+    JsonList<JsonIdentifiableObject> resultsTrue =
+        GET("/programIndicators?fields=id,name,displayInForm&filter=displayInForm:eq:true")
+            .content(HttpStatus.OK)
+            .getList("programIndicators", JsonIdentifiableObject.class);
+    assertEquals(1, resultsTrue.size());
+    assertEquals(indicator1Id, resultsTrue.get(0).getId());
+
+    // Test 2: Filter by displayInForm:eq:false
+    JsonList<JsonIdentifiableObject> resultsFalse =
+        GET("/programIndicators?fields=id,name,displayInForm&filter=displayInForm:eq:false")
+            .content(HttpStatus.OK)
+            .getList("programIndicators", JsonIdentifiableObject.class);
+    assertEquals(1, resultsFalse.size());
+    assertEquals(indicator2Id, resultsFalse.get(0).getId());
+  }
 }
