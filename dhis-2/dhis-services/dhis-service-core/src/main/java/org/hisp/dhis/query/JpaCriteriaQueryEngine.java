@@ -374,7 +374,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         filterPath = getBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
       }
-      
+
       return filter.getOperator().getPredicate(builder, root, path);
     }
     // handle special cases:
