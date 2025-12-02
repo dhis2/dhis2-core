@@ -40,6 +40,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
@@ -84,12 +85,17 @@ public class SupplementaryDataProvider {
     }
 
     return orgUnitGroups.stream()
-        .collect(
-            Collectors.toMap(
-                g -> g,
-                g ->
-                    organisationUnitGroupService.getOrganisationUnitGroup(g).getMembers().stream()
-                        .map(OrganisationUnit::getUid)
-                        .toList()));
+        .map(
+            groupId -> {
+              OrganisationUnitGroup orgUnitGroup =
+                  organisationUnitGroupService.getOrganisationUnitGroup(groupId);
+              if (orgUnitGroup == null) {
+                return Map.entry(groupId, List.<String>of());
+              }
+              return Map.entry(
+                  groupId,
+                  orgUnitGroup.getMembers().stream().map(OrganisationUnit::getUid).toList());
+            })
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

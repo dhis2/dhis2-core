@@ -101,6 +101,16 @@ class SupplementaryDataProviderTest extends TestBase {
   }
 
   @Test
+  void shouldReturnEmtpyOrgUnitGroupIfGroupDoesNotExist() {
+    String unkwonOrgUnitGroup = "UnkwonOrgUnitGroup";
+    RuleSupplementaryData supplementaryData =
+        providerToTest.getSupplementaryData(
+            getProgramRule('C', "d2:inOrgUnitGroup('" + unkwonOrgUnitGroup + "')"), currentUser);
+    assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
+    assertTrue(supplementaryData.getOrgUnitGroups().get(unkwonOrgUnitGroup).isEmpty());
+  }
+
+  @Test
   void getUserRolesSupplementaryData() {
     when(organisationUnitGroupService.getOrganisationUnitGroup(ORG_UNIT_GROUP_UID))
         .thenReturn(orgUnitGroup);
