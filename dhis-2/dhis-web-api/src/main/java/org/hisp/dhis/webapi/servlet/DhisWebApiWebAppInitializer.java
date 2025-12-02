@@ -91,6 +91,19 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
+
+    // RequestIdFilter must run first to capture X-Request-ID for logging/MDC before any other
+    // filters (especially Spring Security)
+    context
+        .addFilter("requestIdFilter", new DelegatingFilterProxy("requestIdFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
+    context
+        .addFilter(
+            "SpringSessionRepositoryFilter",
+            new DelegatingFilterProxy("springSessionRepositoryFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
@@ -117,7 +130,16 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
-        .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
+        .addFilter(
+            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    context
+        .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/api/*");
+
+    context
+        .addFilter("sessionIdFilter", new DelegatingFilterProxy("sessionIdFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
