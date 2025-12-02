@@ -168,4 +168,23 @@ public class CategoryOptionComboService {
 
     return attrOptCombo;
   }
+
+  public void update(CategoryOptionCombo persisted, CocUpdateDto updatedCoc) {
+    String newCode = updatedCoc.code();
+    Boolean newIgnoreApproval = updatedCoc.ignoreApproval();
+
+    // if supplied, then update
+    if (newCode != null) {
+      persisted.setCode(newCode);
+    }
+
+    // if supplied, then update
+    if (newIgnoreApproval != null) {
+      persisted.setIgnoreApproval(newIgnoreApproval);
+    }
+
+    idObjectManager.save(persisted);
+  }
+
+  public record CocUpdateDto(String code, Boolean ignoreApproval) {}
 }

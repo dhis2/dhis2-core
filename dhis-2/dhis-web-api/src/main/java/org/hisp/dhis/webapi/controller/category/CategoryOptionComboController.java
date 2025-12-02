@@ -36,6 +36,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -44,25 +45,28 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/categoryOptionCombos")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
@@ -70,12 +74,13 @@ public class CategoryOptionComboController
     extends AbstractCrudController<CategoryOptionCombo, GetObjectListParams> {
 
   private final MergeService categoryOptionComboMergeService;
+  private final CategoryOptionComboService categoryOptionComboService;
 
   @Beta
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_CATEGORY_OPTION_COMBO_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody WebMessage mergeCategoryOptionCombos(@RequestBody MergeParams params)
+  public WebMessage mergeCategoryOptionCombos(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("CategoryOptionCombo merge received");
 
@@ -107,7 +112,57 @@ public class CategoryOptionComboController
    */
   @Override
   public WebMessage postJsonObject(HttpServletRequest request) {
-    log.info("postJsonObject");
     return WebMessageUtils.conflict(E1129);
+  }
+
+  //
+  //  @Beta
+  //  @Override
+  //  @ResponseStatus(HttpStatus.OK)
+  //  @PutMapping(value = "/{uid}", consumes = APPLICATION_JSON_VALUE)
+  //  public WebMessage putJsonObject(
+  //      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+  //      @CurrentUser UserDetails currentUser,
+  //      HttpServletRequest request)
+  //      throws NotFoundException, ForbiddenException {
+  //
+  //    CategoryOptionCombo persisted = getEntity(pvUid);
+  //
+  //    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUserDetails(), persisted)) {
+  //      throw new ForbiddenException("You don't have the proper permissions to update this
+  // object.");
+  //    }
+  //
+  //    categoryOptionComboService.update(persisted, cocUpdateDto);
+  //    return WebMessageUtils.ok();
+  //  }
+
+  /**
+   * When updating a single COC, only updating the code & ignoreApproval fields are allowed
+   *
+   * @param pvUid
+   * @param currentUser
+   * @param request
+   * @return
+   * @throws NotFoundException
+   * @throws ForbiddenException
+   * @throws IOException
+   */
+  @Override
+  public WebMessage putJsonObject(String pvUid, UserDetails currentUser, HttpServletRequest request)
+      throws NotFoundException, ForbiddenException, IOException {
+    CategoryOptionCombo persisted = getEntity(pvUid);
+
+    if (!aclService.canUpdate(currentUser, persisted)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
+    }
+
+    CategoryOptionComboService.CocUpdateDto cocUpdateDto =
+        jsonMapper.readValue(
+            request.getInputStream(), CategoryOptionComboService.CocUpdateDto.class);
+
+    categoryOptionComboService.update(persisted, cocUpdateDto);
+    return WebMessageUtils.ok(
+        "Only fields 'code' and 'ignoreApproval' can be updated through this endpoint");
   }
 }

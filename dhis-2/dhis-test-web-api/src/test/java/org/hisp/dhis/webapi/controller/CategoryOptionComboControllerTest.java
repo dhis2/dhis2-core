@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -34,6 +34,8 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -287,22 +289,16 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         PUT(
                 "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
                 cocCcUpdated(categoryMetadata2.cc1().getUid(), categoryMetadata1))
-            .content(HttpStatus.CONFLICT)
+            .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
     assertEquals(
-        "Importing 0 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo "
-            + categoryMetadata1.cc1().getUid(),
-        jsonWebMessage
-            .getResponse()
-            .getArray("errorReports")
-            .getObject(0)
-            .getString("message")
-            .string());
+        "Only fields 'code' and 'ignoreApproval' can be updated through this endpoint",
+        jsonWebMessage.getMessage());
   }
 
   @Test
-  @DisplayName("Updating a COC CO should be rejected")
+  @DisplayName("Updating a COC CO should be ignored")
   void updateCategoryOptionComboCatOptionRejectedTest() {
     TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("put3");
     TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("put4");
@@ -311,18 +307,106 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         PUT(
                 "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
                 cocCoUpdated(categoryMetadata2.co1().getUid(), categoryMetadata1))
-            .content(HttpStatus.CONFLICT)
+            .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
     assertEquals(
-        "Importing 1 CategoryOptionCombos does not match the expected amount of 4 for CategoryCombo "
-            + categoryMetadata1.cc1().getUid(),
-        jsonWebMessage
-            .getResponse()
-            .getArray("errorReports")
-            .getObject(0)
-            .getString("message")
-            .string());
+        "Only fields 'code' and 'ignoreApproval' can be updated through this endpoint",
+        jsonWebMessage.getMessage());
+  }
+
+  @Test
+  @DisplayName("Updating a COC's code and ignoreApproval fields should be allowed")
+  void updateCategoryOptionComboCodeAndApprovalTest() {
+    // given a COC exists with a code
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put5");
+    JsonCategoryOptionCombo coc = getCoc(categoryMetadata.coc1().getUid());
+
+    assertNull(coc.getCode());
+    assertEquals(false, coc.getIgnoreApproval());
+
+    // when updating the code and ignoreApproval values
+    PUT(
+            "/categoryOptionCombos/" + categoryMetadata.coc1().getUid(),
+            cocCodeAndApprovalUpdated("new code xyz", true))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    // then they should both be updated
+    JsonCategoryOptionCombo updated = getCoc(categoryMetadata.coc1().getUid());
+
+    assertEquals("new code xyz", updated.getCode());
+    assertTrue(updated.getIgnoreApproval());
+  }
+
+  @Test
+  @DisplayName("Updating a COC's code field only should not affect the ignoreApproval value")
+  void updateCategoryOptionComboCodeOnlyTest() {
+    // given a COC exists with a code
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put6");
+    JsonCategoryOptionCombo coc = getCoc(categoryMetadata.coc1().getUid());
+
+    assertNull(coc.getCode());
+    assertEquals(false, coc.getIgnoreApproval());
+
+    // and the ignoreApproval value is true
+    PUT("/categoryOptionCombos/" + categoryMetadata.coc1().getUid(), cocApprovalOnlyUpdated(true))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    JsonCategoryOptionCombo cocUpdated = getCoc(categoryMetadata.coc1().getUid());
+    assertEquals(true, cocUpdated.getIgnoreApproval());
+
+    // when updating the code value only
+    PUT(
+            "/categoryOptionCombos/" + categoryMetadata.coc1().getUid(),
+            cocCodeOnlyUpdated("new code xyz 1"))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    // then the code value should be updated
+    JsonCategoryOptionCombo updated = getCoc(categoryMetadata.coc1().getUid());
+    assertEquals("new code xyz 1", updated.getCode());
+
+    // and the ignoreApproval field should still be true
+    assertEquals(true, updated.getIgnoreApproval());
+  }
+
+  @Test
+  @DisplayName("Updating a COC's ignoreApproval field only should not affect the code value")
+  void updateCategoryOptionComboIgnoreApprovalOnlyTest() {
+    // given a COC exists with a code
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put7");
+    JsonCategoryOptionCombo coc = getCoc(categoryMetadata.coc1().getUid());
+
+    assertNull(coc.getCode());
+    assertEquals(false, coc.getIgnoreApproval());
+
+    // and the code value is set
+    PUT("/categoryOptionCombos/" + categoryMetadata.coc1().getUid(), cocCodeOnlyUpdated("code set"))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    JsonCategoryOptionCombo cocUpdated = getCoc(categoryMetadata.coc1().getUid());
+    assertEquals("code set", cocUpdated.getCode());
+
+    // when updating the ignoreApproval value only
+    PUT("/categoryOptionCombos/" + categoryMetadata.coc1().getUid(), cocApprovalOnlyUpdated(true))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    // then the ignoreApproval value should be updated
+    JsonCategoryOptionCombo updated = getCoc(categoryMetadata.coc1().getUid());
+    assertEquals(true, updated.getIgnoreApproval());
+
+    // and the code value should not have changed
+    assertEquals("code set", updated.getCode());
+  }
+
+  private JsonCategoryOptionCombo getCoc(String uid) {
+    return GET("/categoryOptionCombos/" + uid)
+        .content(HttpStatus.OK)
+        .as(JsonCategoryOptionCombo.class);
   }
 
   private String coc() {
@@ -382,5 +466,33 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
           }
       """
         .formatted(categoryMetadata.cc1().getUid(), categoryMetadata.co1().getUid(), coId);
+  }
+
+  private String cocCodeAndApprovalUpdated(String newCode, boolean ignoreApproval) {
+    return """
+          {
+            "code": "%s",
+            "ignoreApproval": %b
+          }
+      """
+        .formatted(newCode, ignoreApproval);
+  }
+
+  private String cocCodeOnlyUpdated(String newCode) {
+    return """
+          {
+            "code": "%s"
+          }
+      """
+        .formatted(newCode);
+  }
+
+  private String cocApprovalOnlyUpdated(boolean ignoreApproval) {
+    return """
+          {
+             "ignoreApproval": %b
+          }
+      """
+        .formatted(ignoreApproval);
   }
 }
