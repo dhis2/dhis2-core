@@ -2435,7 +2435,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(1, resultsFalse.size());
     assertEquals(indicator2Id, resultsFalse.get(0).getId());
   }
-  
+
   @Test
   @DisplayName("CateogryOption displayFormName should fallback to name if not set")
   void testCategoryOptionDisplayFormName() {
@@ -2444,8 +2444,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             HttpStatus.CREATED,
             POST("/categoryOptions/", "{'name':'CategoryOption1', 'shortName':'CATOPT1'}"));
 
-    JsonObject categoryOption = GET("/categoryOptions/" + catOption1).content(HttpStatus.OK)
-        .as(JsonObject.class);
+    JsonObject categoryOption =
+        GET("/categoryOptions/" + catOption1).content(HttpStatus.OK).as(JsonObject.class);
     assertEquals("CategoryOption1", categoryOption.getString("displayFormName").string());
   }
 }
