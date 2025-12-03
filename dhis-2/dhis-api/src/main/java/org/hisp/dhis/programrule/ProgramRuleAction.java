@@ -184,7 +184,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   /**
    * The priority of the program rule action within the rule. The lower the priority, the earlier
-   * the action is run. Null means that the action is run last(together will all other null-actions)
+   * the action is run. Null means that the action is run last (together with all other actions with a null priority)
    */
   private Integer priority;
 
