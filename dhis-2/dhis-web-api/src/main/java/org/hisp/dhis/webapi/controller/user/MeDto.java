@@ -50,7 +50,12 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Setter
 public class MeDto {
   public MeDto(
-      User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets) {
+      User user,
+      Map<String, Serializable> settings,
+      List<String> programs,
+      List<String> dataSets,
+      Set<UserGroup> filteredUserGroups,
+      Set<UserRole> filteredUserRoles) {
     this.id = user.getUid();
     this.username = user.getUsername();
     this.surname = user.getSurname();
@@ -67,7 +72,7 @@ public class MeDto {
     this.sharing = user.getSharing();
     this.userGroupAccesses = user.getUserGroupAccesses();
     this.userAccesses = user.getUserAccesses();
-    this.userGroups = user.getGroups();
+    this.userGroups = filteredUserGroups;
     this.translations = user.getTranslations();
     this.teiSearchOrganisationUnits = user.getTeiSearchOrganisationUnits();
     this.organisationUnits = user.getOrganisationUnits();
@@ -87,7 +92,8 @@ public class MeDto {
     this.skype = user.getSkype();
     this.telegram = user.getTelegram();
     this.twitter = user.getTwitter();
-    this.userRoles = user.getUserRoles();
+
+    this.userRoles = filteredUserRoles;
     this.userCredentials = null;
 
     this.authorities = new ArrayList<>(user.getAllAuthorities());
