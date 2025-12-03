@@ -423,7 +423,7 @@ public class CategoryOption extends BaseMetadataObject
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
-    return translations.getTranslation("FORM_NAME", getFormName());
+    return translations.getTranslation("FORM_NAME", getFormName() != null ? getFormName() : getName());
   }
 
   @Override
