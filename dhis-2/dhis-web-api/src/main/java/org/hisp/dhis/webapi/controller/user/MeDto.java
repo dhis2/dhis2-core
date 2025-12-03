@@ -58,7 +58,9 @@ public class MeDto {
       Map<String, Serializable> settings,
       List<String> programs,
       List<String> dataSets,
-      List<ApiToken> patTokens) {
+      List<ApiToken> patTokens,
+      Set<UserGroup> filteredUserGroups,
+      Set<UserRole> filteredUserRoles) {
     this.id = user.getUid();
     this.username = user.getUsername();
     this.surname = user.getSurname();
@@ -72,7 +74,7 @@ public class MeDto {
     this.lastUpdated = user.getLastUpdated();
     this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
     this.favorites = user.getFavorites();
-    this.userGroups = user.getGroups();
+    this.userGroups = filteredUserGroups;
     this.translations = user.getTranslations();
     this.teiSearchOrganisationUnits = user.getTeiSearchOrganisationUnits();
     this.organisationUnits = user.getOrganisationUnits();
@@ -91,7 +93,8 @@ public class MeDto {
     this.skype = user.getSkype();
     this.telegram = user.getTelegram();
     this.twitter = user.getTwitter();
-    this.userRoles = user.getUserRoles();
+
+    this.userRoles = filteredUserRoles;
     this.userCredentials = null;
 
     this.authorities = new ArrayList<>(user.getAllAuthorities());
