@@ -156,15 +156,7 @@ public class TrackerTest extends Simulation {
     HttpRequestActionBuilder action() {
       return http(name)
           .get(url)
-          .header(
-              "X-Request-ID",
-              session -> {
-                // Generate unique request ID per HTTP request
-                String sessionId = session.getString("sessionId");
-                int counter = session.getInt("requestCounter");
-                session.set("requestCounter", counter + 1);
-                return sessionId + "-" + String.format("%02d", counter);
-              });
+          .header("X-Request-ID", session -> java.util.UUID.randomUUID().toString());
     }
 
     Optional<Assertion> assertion(Profile profile) {
@@ -429,30 +421,13 @@ public class TrackerTest extends Simulation {
   }
 
   private io.gatling.javaapi.core.ChainBuilder login() {
-    return exec(session -> {
-          // Generate session ID with g-{userNum} prefix for this user session
-          String username = session.getString("username");
-          String userNum = username.substring(username.lastIndexOf('_') + 1);
-          String paddedNum = String.format("%05d", Integer.parseInt(userNum));
-          String randomSuffix =
-              java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 28);
-          String sessionId = "g-" + paddedNum + "-" + randomSuffix;
-          return session.set("sessionId", sessionId).set("requestCounter", 1);
-        })
-        .exec(
-            http("Login")
-                .post("/api/auth/login")
-                .header("Content-Type", "application/json")
-                .header(
-                    "X-Request-ID",
-                    session -> {
-                      String sessionId = session.getString("sessionId");
-                      int counter = session.getInt("requestCounter");
-                      session.set("requestCounter", counter + 1);
-                      return sessionId + "-" + String.format("%02d", counter);
-                    })
-                .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
-                .check(status().is(200)));
+    return exec(
+        http("Login")
+            .post("/api/auth/login")
+            .header("Content-Type", "application/json")
+            .header("X-Request-ID", session -> java.util.UUID.randomUUID().toString())
+            .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
+            .check(status().is(200)));
   }
 
   private ScenarioWithRequests trackerProgramScenario() {

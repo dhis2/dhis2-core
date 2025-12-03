@@ -1,48 +1,107 @@
-# Connection Analysis for OSIV Performance Testing
+# Connection Analysis - OSIV Experiment
 
-Analyze database connection wait and held times during Gatling performance tests to measure the
-impact of removing OSIV from tracker endpoints.
+This directory contains tools to analyze database connection usage during performance tests, specifically for comparing OSIV (Open Session in View) behavior.
 
-## What It Measures
+## Quick Start - Running Baseline vs Candidate Tests
 
-* **wait_ms**: Time waiting to acquire a connection from the pool (indicates pool exhaustion)
-* **held_ms**: Time connection was held before release (indicates actual DB work + OSIV overhead)
-* **Percentiles**: P90, P99, Max for both metrics
-
-## Quick Start
-
-1. **Run your performance test** (TrackerTest with Gatling)
-
-2. **Copy logs for analysis**:
+### 1. Setup Infrastructure
 
 ```bash
-# The test writes logs to docker container, copy them out
-docker compose cp web:/opt/dhis2/logs/dhis2.log connection-analysis/logs/dhis.log
+cd connection-analysis
+docker compose up --detach
 ```
 
-3. **Run analysis script**:
+### 2. Build Once
 
 ```bash
-connection-analysis/analyze-connections.sh \
-  "2025-11-28T10:00:00+01:00" \
-  "2025-11-28T10:15:00+01:00" \
-  "dhis-2/dhis-test-performance/target/gatling/trackertest-*/simulation.log" \
-  "connection-analysis/output"
+./build.sh
 ```
 
-Replace timestamps with your test start/end times (check Gatling console output or simulation.log).
-
-4. **View results**:
+### 3. Run Baseline Test (WITH OSIV on /api/tracker/**)
 
 ```bash
-cat connection-analysis/output/connection-stats.txt
+# Terminal 1: Start DHIS2 with tracker in OSIV
+OSIV_EXCLUDE_TRACKER=false ./start.sh
+
+# Terminal 2: Run the performance test
+cd ../dhis-2/dhis-test-performance
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.tracker.TrackerTest
+
+# After test completes: Save the results
+cd ../..
+mkdir -p connection-analysis/results/baseline
+cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
+  connection-analysis/results/baseline/
+
+# Extract timestamps and analyze
+./connection-analysis/gatling-test-times.sh \
+  connection-analysis/results/baseline/trackertest-*
+
+# Run the command it suggests with results/baseline as output dir
 ```
 
-## Output Files
+### 4. Run Candidate Test (WITHOUT OSIV on /api/tracker/**)
 
-* `connection-stats.txt` - Summary with P90, P99, Max for wait_ms and held_ms
-* `connection-raw.csv` - All connection events with timestamps
-* `per-request-breakdown.csv` - Aggregated by request ID
+```bash
+# Terminal 1: Restart DHIS2 without tracker in OSIV (default)
+# Stop previous instance (Ctrl+C), then:
+./connection-analysis/start.sh
+
+# Terminal 2: Clean and run the performance test
+rm -rf dhis-2/dhis-test-performance/target/gatling/*
+cd dhis-2/dhis-test-performance
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.tracker.TrackerTest
+
+# After test completes: Save the results
+cd ../..
+mkdir -p connection-analysis/results/candidate
+cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
+  connection-analysis/results/candidate/
+
+# Extract timestamps and analyze
+./connection-analysis/gatling-test-times.sh \
+  connection-analysis/results/candidate/trackertest-*
+
+# Run the command it suggests with results/candidate as output dir
+```
+
+## Configuration
+
+### OSIV Control
+
+The filter can be toggled at runtime via environment variable in `start.sh`:
+
+* `OSIV_EXCLUDE_TRACKER=true` (default) - Excludes /api/tracker/** from OSIV (candidate)
+* `OSIV_EXCLUDE_TRACKER=false` - Keeps /api/tracker/** in OSIV (baseline)
+
+### Files
+
+* `dhis.conf` - Database connection config
+* `log4j2.xml` - Logging config with connection timing enabled
+* `docker-compose.yml` - PostgreSQL and Prometheus setup
+* `build.sh` - Build DHIS2 war file
+* `start.sh` - Start DHIS2 with custom config
+* `gatling-test-times.sh` - Extract test timestamps from Gatling results
+* `analyze-connections.sh` - Analyze connection logs
+
+## Output Structure
+
+```
+connection-analysis/results/
+├── baseline/                        # WITH OSIV on tracker
+│   ├── trackertest-TIMESTAMP/       # Gatling test results
+│   │   ├── simulation.log
+│   │   ├── simulation.csv
+│   │   └── ...
+│   ├── connection-raw.csv           # All connection events
+│   ├── connection-stats.txt         # Summary statistics
+│   └── per-request-breakdown.csv    # Per-request analysis
+└── candidate/                       # WITHOUT OSIV on tracker
+    ├── trackertest-TIMESTAMP/
+    ├── connection-raw.csv
+    ├── connection-stats.txt
+    └── per-request-breakdown.csv
+```
 
 ## Example Output
 
@@ -65,6 +124,21 @@ Held Time (ms):
   Max: 242429
 ```
 
+## Key Metrics to Compare
+
+From `connection-stats.txt`:
+
+* **Wait Time** - Time waiting for connection from pool (indicates pool exhaustion)
+  * P90, P99, Max - Look for high values in baseline
+* **Held Time** - Time connection was held before release
+  * P90, P99, Max - Should be lower in candidate (OSIV removed)
+
+From `per-request-breakdown.csv`:
+
+* Connection count per request
+* Total wait time per request
+* Total held time per request
+
 ## Interpreting Results
 
 * **High wait times (P90 > 100ms)**: Connection pool exhaustion, requests blocked waiting for
@@ -73,20 +147,8 @@ Held Time (ms):
   connections open during response serialization
 * **Goal**: After removing OSIV from tracker, expect lower P99 held times and lower wait times
 
-## Finding Long-Held Connections
+## Logs
 
-To identify specific requests holding connections >10s:
-
-```bash
-connection-analysis/analyze-long-held-connections.sh \
-  connection-analysis/output/connection-raw.csv
-```
-
-## Comparing Branches
-
-Run analysis on both branches:
-
-1. `DHIS2-20512-exclude-with-metrics` (current - with OSIV removed)
-2. `DHIS2-20512-exclude-before` (baseline - with OSIV enabled)
-
-Compare the P90, P99, Max metrics to demonstrate improvement.
+* `logs/dhis.log` - DHIS2 logs with connection timing data
+  * Timestamps keep multiple test runs separated
+  * No need to clear between runs

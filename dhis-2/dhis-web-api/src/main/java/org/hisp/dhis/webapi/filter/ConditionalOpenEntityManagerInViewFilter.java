@@ -71,19 +71,39 @@ import org.springframework.web.util.pattern.PathPatternParser;
  *
  * <p>This filter excludes specific endpoints that don't require database access or manage their own
  * transactions explicitly, improving performance by avoiding unnecessary connection usage.
+ *
+ * <h2>Configuration</h2>
+ *
+ * <p>The filter can be configured via system property:
+ *
+ * <ul>
+ *   <li><b>osiv.exclude.tracker</b> - Whether to exclude /api/tracker/** from OSIV (default: true)
+ * </ul>
  */
 public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerInViewFilter {
 
   private static final PathPatternParser PARSER = new PathPatternParser();
-  private static final List<PathPattern> EXCLUDE_PATTERNS =
-      Stream.of(
-              "/api/tracker/**",
-              "/api/ping",
-              "/api/metrics",
-              "/api/system/ping",
-              "/api/potentialDuplicates")
-          .map(PARSER::parse)
-          .toList();
+  private static final boolean EXCLUDE_TRACKER =
+      Boolean.parseBoolean(System.getProperty("osiv.exclude.tracker", "true"));
+
+  private static final List<PathPattern> EXCLUDE_PATTERNS = buildExcludePatterns();
+
+  private static List<PathPattern> buildExcludePatterns() {
+    Stream.Builder<String> patterns = Stream.builder();
+
+    // Always exclude these endpoints
+    patterns.add("/api/ping");
+    patterns.add("/api/metrics");
+    patterns.add("/api/system/ping");
+    patterns.add("/api/potentialDuplicates");
+
+    // Conditionally exclude tracker based on system property
+    if (EXCLUDE_TRACKER) {
+      patterns.add("/api/tracker/**");
+    }
+
+    return patterns.build().map(PARSER::parse).toList();
+  }
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {

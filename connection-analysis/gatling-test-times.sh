@@ -39,18 +39,22 @@ SIMULATION_CSV="$ABS_GATLING_TEST_DIR/simulation.csv"
 if [ ! -f "$SIMULATION_CSV" ]; then
   echo "Generating simulation.csv from simulation.log..."
 
-  TEST_DIR_NAME="$(basename "$ABS_GATLING_TEST_DIR")"
-
-  # Find the project root (where dhis-2 is located)
-  PROJECT_ROOT="$(cd "$GATLING_TEST_DIR" && cd ../../../../.. && pwd)"
+  # Find the script directory to get project root
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
   TEST_MODULE="$PROJECT_ROOT/dhis-2/dhis-test-performance"
+
+  if [ ! -d "$TEST_MODULE" ]; then
+    echo "Error: Cannot find dhis-test-performance module at: $TEST_MODULE"
+    exit 1
+  fi
 
   cd "$TEST_MODULE"
 
-  # Process only the specific test directory
+  # glog can process any directory containing simulation.log
   glog \
     --config src/test/resources/gatling.conf \
-    "target/gatling/$TEST_DIR_NAME"
+    "$ABS_GATLING_TEST_DIR"
 
   if [ ! -f "$SIMULATION_CSV" ]; then
     echo "Error: Failed to generate simulation.csv"
@@ -105,9 +109,17 @@ echo "Duration: ${DURATION_MIN}m ${DURATION_REMAINING_SEC}s"
 echo ""
 echo "Use these timestamps with analyze-connections.sh:"
 echo ""
+echo "Example for baseline:"
 echo "  ./connection-analysis/analyze-connections.sh \\"
 echo "    \"$START_TIME\" \\"
 echo "    \"$END_TIME\" \\"
 echo "    \"$SIMULATION_CSV\" \\"
-echo "    \"connection-analysis/output\""
+echo "    \"connection-analysis/results/baseline\""
+echo ""
+echo "Example for candidate:"
+echo "  ./connection-analysis/analyze-connections.sh \\"
+echo "    \"$START_TIME\" \\"
+echo "    \"$END_TIME\" \\"
+echo "    \"$SIMULATION_CSV\" \\"
+echo "    \"connection-analysis/results/candidate\""
 echo ""
