@@ -171,19 +171,16 @@ public class MeController {
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
-        // Filter userGroups and userRoles based on ACL read access
-        Set<UserGroup> filteredUserGroups =
-            user.getGroups().stream()
-                .filter(group -> aclService.canRead(userDetails, group))
-                .collect(Collectors.toSet());
+    // Filter userGroups and userRoles based on ACL read access
+    Set<UserGroup> filteredUserGroups =
+        user.getGroups().stream()
+            .filter(group -> aclService.canRead(userDetails, group))
+            .collect(Collectors.toSet());
 
-        Set<UserRole> filteredUserRoles =
-            user.getUserRoles().stream()
-                .filter(role -> aclService.canRead(userDetails, role))
-                .collect(Collectors.toSet());
-
-//    Set<UserGroup> filteredUserGroups = user.getGroups();
-//    Set<UserRole> filteredUserRoles = user.getUserRoles();
+    Set<UserRole> filteredUserRoles =
+        user.getUserRoles().stream()
+            .filter(role -> aclService.canRead(userDetails, role))
+            .collect(Collectors.toSet());
 
     Set<String> settingKeys =
         fields.stream()

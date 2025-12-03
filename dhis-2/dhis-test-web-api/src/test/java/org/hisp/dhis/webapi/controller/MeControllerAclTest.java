@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -79,16 +79,20 @@ class MeControllerAclTest extends PostgresControllerIntegrationTestBase {
 
     // Create a test user with no special authorities
     User testUser = switchToNewUser("testUserGroups");
+    String testUserId = testUser.getUid();
 
     // As admin, add the test user to both groups
     switchToAdminUser();
-    assertStatus(
-        HttpStatus.OK, POST("/userGroups/" + privateGroupId + "/users/" + testUser.getUid()));
-    assertStatus(
-        HttpStatus.OK, POST("/userGroups/" + publicGroupId + "/users/" + testUser.getUid()));
+    assertStatus(HttpStatus.OK, POST("/userGroups/" + privateGroupId + "/users/" + testUserId));
+    assertStatus(HttpStatus.OK, POST("/userGroups/" + publicGroupId + "/users/" + testUserId));
 
-    // Switch to the test user
-    switchToNewUser(testUser);
+    // Clear Hibernate session to ensure fresh data is loaded
+    manager.flush();
+    manager.clear();
+
+    // Fetch fresh user from DB (to get updated group memberships) and switch to them
+    User freshUser = userService.getUser(testUserId);
+    switchToNewUser(freshUser);
 
     // Query /api/me with userGroups fields
     JsonObject response = GET("/me?fields=userGroups[id,name]").content();
@@ -140,9 +144,13 @@ class MeControllerAclTest extends PostgresControllerIntegrationTestBase {
             .formatted(privateRoleId, publicRoleId);
 
     String testUserId = assertStatus(HttpStatus.CREATED, POST("/users", testUserJson));
-    User testUser = userService.getUser(testUserId);
 
-    // Switch to the test user
+    // Clear Hibernate session to ensure fresh data is loaded
+    manager.flush();
+    manager.clear();
+
+    // Fetch fresh user from DB and switch to them
+    User testUser = userService.getUser(testUserId);
     switchToNewUser(testUser);
 
     // Query /api/me with userRoles fields
@@ -174,14 +182,19 @@ class MeControllerAclTest extends PostgresControllerIntegrationTestBase {
 
     // Create a test user
     User testUser = switchToNewUser("testUserGroupsExpanded");
+    String testUserId = testUser.getUid();
 
     // As admin, add the test user to the group
     switchToAdminUser();
-    assertStatus(
-        HttpStatus.OK, POST("/userGroups/" + publicGroupId + "/users/" + testUser.getUid()));
+    assertStatus(HttpStatus.OK, POST("/userGroups/" + publicGroupId + "/users/" + testUserId));
 
-    // Switch to the test user
-    switchToNewUser(testUser);
+    // Clear Hibernate session to ensure fresh data is loaded
+    manager.flush();
+    manager.clear();
+
+    // Fetch fresh user from DB (to get updated group memberships) and switch to them
+    User freshUser = userService.getUser(testUserId);
+    switchToNewUser(freshUser);
 
     // Query /api/me with expanded userGroups fields
     JsonObject response = GET("/me?fields=userGroups[id,name,displayName]").content();
@@ -206,6 +219,10 @@ class MeControllerAclTest extends PostgresControllerIntegrationTestBase {
 
     // Add admin to the group
     assertStatus(HttpStatus.OK, POST("/userGroups/" + privateGroupId + "/users/" + getAdminUid()));
+
+    // Clear Hibernate session to ensure fresh data is loaded
+    manager.flush();
+    manager.clear();
 
     // Query /api/me as admin with userGroups fields
     JsonObject response = GET("/me?fields=userGroups[id,name]").content();
