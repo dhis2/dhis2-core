@@ -121,40 +121,6 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  void testGetCsvOrderAsc() {
-    createDataElements(36);
-    String response = GET("/dataElements.csv?order=displayName:asc").content("text/csv");
-
-    assertNotNull(response);
-    String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
-    assertEquals("DataElement1", thirdRowDisplayNameValue);
-  }
-
-  @Test
-  void testGetCsvOrderDesc() {
-    createDataElements(36);
-    String response = GET("/dataElements.csv?order=displayName:desc").content("text/csv");
-
-    assertNotNull(response);
-    String thirdRowDisplayNameValue = getValueFromCsv(1, 2, response);
-    assertEquals("DataElementy", thirdRowDisplayNameValue);
-  }
-
-  @Test
-  void testGetCsvFilterByDisplayName() {
-    createDataElements(36);
-    String response =
-        GET("/dataElements.csv?filter=displayName:eq:DataElement0&skipHeader=true")
-            .content("text/csv");
-
-    assertNotNull(response);
-    String firstRowDisplayNameValue = getValueFromCsv(1, 0, response);
-    int rowCount = getRowCountFromCsv(response);
-    assertEquals("DataElement0", firstRowDisplayNameValue);
-    assertEquals(1, rowCount);
-  }
-
-  @Test
   void testGetCsvWithPageSize() {
     createDataElements(36);
     String response = GET("/dataElements.csv?pageSize=10&skipHeader=true").content("text/csv");

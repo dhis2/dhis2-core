@@ -29,10 +29,12 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = {DebugMapper.class, TrackedEntityAttributeMapper.class})
@@ -45,5 +47,12 @@ public interface TrackedEntityTypeAttributeMapper
   @Mapping(target = "uid")
   @Mapping(target = "mandatory")
   @Mapping(target = "trackedEntityAttribute")
+  @Mapping(target = "trackedEntityType", qualifiedByName = "trackedEntityType")
   TrackedEntityTypeAttribute map(TrackedEntityTypeAttribute trackedEntityTypeAttribute);
+
+  @Named("trackedEntityType")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "name")
+  TrackedEntityType mapTrackedEntityType(TrackedEntityType trackedEntityType);
 }

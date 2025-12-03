@@ -42,9 +42,9 @@ import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
+import org.hisp.dhis.webapi.filter.ConditionalOpenEntityManagerInViewFilter;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
@@ -102,6 +102,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
+    // RequestIdFilter must run first to capture X-Request-ID for logging/MDC before any other
+    // filters (especially Spring Security)
+    context
+        .addFilter("requestIdFilter", new DelegatingFilterProxy("requestIdFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
+
     context
         .addFilter(
             "SpringSessionRepositoryFilter",
@@ -124,7 +130,8 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(null, false, "/api/*");
 
     FilterRegistration.Dynamic openSessionInViewFilter =
-        context.addFilter("openSessionInViewFilter", OpenEntityManagerInViewFilter.class);
+        context.addFilter(
+            "openSessionInViewFilter", ConditionalOpenEntityManagerInViewFilter.class);
     openSessionInViewFilter.setInitParameter(
         "entityManagerFactoryBeanName", "entityManagerFactory");
     openSessionInViewFilter.addMappingForUrlPatterns(
@@ -149,7 +156,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/api/*");
 
     context
-        .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
+        .addFilter("sessionIdFilter", new DelegatingFilterProxy("sessionIdFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     /* Intercept index.html, plugin.html, and other html requests to inject no-cache

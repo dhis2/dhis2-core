@@ -27,55 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import java.util.UUID;
-import org.junit.jupiter.api.Test;
+@Mapper(uses = {DebugMapper.class, DataElementMapper.class})
+public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStageDataElement> {
+  ProgramStageDataElementMapper INSTANCE = Mappers.getMapper(ProgramStageDataElementMapper.class);
 
-/**
- * Tests valid XRequestID header validation of {@link RequestInfo#isValidXRequestID(String)}
- *
- * @author Jan Bernitt
- */
-class RequestInfoTest {
-  @Test
-  void testUidIsValidXRequestID() {
-    assertValid(CodeGenerator.generateUid());
-  }
-
-  @Test
-  void testUUIDIsValidXRequestID() {
-    assertValid(UUID.randomUUID().toString());
-  }
-
-  @Test
-  void testLongStringIsInvalidXRequestID() {
-    assertInvalid("1234567890123456789012345678901234567890");
-  }
-
-  @Test
-  void testQuoteStringIsInvalidXRequestID() {
-    assertInvalid("'now-I-escaped");
-    assertInvalid("\"now-I-escaped");
-  }
-
-  @Test
-  void testSpaceStringIsInvalidXRequestID() {
-    assertInvalid("no - not having it");
-  }
-
-  private static void assertValid(String xRequestID) {
-    assertTrue(
-        RequestInfo.isValidXRequestID(xRequestID),
-        "Should be a valid ID but is not: " + xRequestID);
-  }
-
-  private static void assertInvalid(String xRequestID) {
-    assertFalse(
-        RequestInfo.isValidXRequestID(xRequestID),
-        "Should be an invalid ID but is valid: " + xRequestID);
-  }
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "compulsory")
+  @Mapping(target = "dataElement")
+  ProgramStageDataElement map(ProgramStageDataElement programStageDataElement);
 }
