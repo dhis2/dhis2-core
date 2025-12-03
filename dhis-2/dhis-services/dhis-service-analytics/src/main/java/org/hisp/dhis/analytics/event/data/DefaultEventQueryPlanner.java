@@ -30,6 +30,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 
 import com.google.common.collect.ImmutableList;
@@ -52,6 +56,7 @@ import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Service;
@@ -226,14 +231,22 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
       }
 
       for (ProgramIndicator programIndicator : params.getItemProgramIndicators()) {
+        AnalyticsAggregationType aggregationType =
+            fromAggregationType(programIndicator.getAggregationTypeFallback());
+
+        aggregationType =
+            getOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                programIndicator.getAggregationType(),
+                aggregationType);
+
         EventQueryParams query =
             new EventQueryParams.Builder(params)
                 .removeItems()
                 .removeItemProgramIndicators()
                 .withProgramIndicator(programIndicator)
                 .withProgram(programIndicator.getProgram())
-                .withAggregationType(
-                    fromAggregationType(programIndicator.getAggregationTypeFallback()))
+                .withAggregationType(aggregationType)
                 .withOrgUnitField(new OrgUnitField(programIndicator.getOrgUnitField()))
                 .build();
 
@@ -255,6 +268,41 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     }
 
     return queries;
+  }
+
+  /**
+   * If an aggregation type of max/min Org. Unit is set, we have to get the MAX or MIN value among
+   * all OUs at the slowest level. This rule only applies when we have org. unit with no child.
+   *
+   * @param allOrgUnits the list of org. units selected.
+   * @param programIndicatorAggregationType the PI {@link AggregationType}.
+   * @param analyticsAggregationType the current {@link AnalyticsAggregationType}.
+   * @return the {@link AnalyticsAggregationType} based on the input arguments, or else the same
+   *     one.
+   */
+  private AnalyticsAggregationType getOrgUnitAggregationIfAny(
+      List<DimensionalItemObject> allOrgUnits,
+      AggregationType programIndicatorAggregationType,
+      AnalyticsAggregationType analyticsAggregationType) {
+
+    boolean hasAnyChild = false;
+    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
+      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
+      hasAnyChild = organisationUnit.hasChild();
+    }
+
+    boolean isMaxOrgUnit = programIndicatorAggregationType == MAX_SUM_ORG_UNIT;
+    boolean isMinOrgUnit = programIndicatorAggregationType == MIN_SUM_ORG_UNIT;
+
+    if (isMaxOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MAX, MAX);
+    }
+
+    if (isMinOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MIN, MIN);
+    }
+
+    return analyticsAggregationType;
   }
 
   /**
