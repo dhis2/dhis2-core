@@ -2,7 +2,7 @@
 
 This directory contains tools to analyze database connection usage during performance tests, specifically for comparing OSIV (Open Session in View) behavior.
 
-## Quick Start - Running Baseline vs Candidate Tests
+## Quick Start - Running OSIV ON vs OFF Tests
 
 ### 1. Setup Infrastructure
 
@@ -17,7 +17,7 @@ docker compose up --detach
 ./build.sh
 ```
 
-### 3. Run Baseline Test (WITH OSIV on /api/tracker/**)
+### 3. Run OSIV ON Test (tracker endpoints WITH OSIV)
 
 ```bash
 # Terminal 1: Start DHIS2 with tracker in OSIV
@@ -29,18 +29,18 @@ mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.tracker.TrackerTes
 
 # After test completes: Save the results
 cd ../..
-mkdir -p connection-analysis/results/baseline
+mkdir -p connection-analysis/results/on
 cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
-  connection-analysis/results/baseline/
+  connection-analysis/results/on/
 
 # Extract timestamps and analyze
 ./connection-analysis/gatling-test-times.sh \
-  connection-analysis/results/baseline/trackertest-*
+  connection-analysis/results/on/trackertest-*
 
-# Run the command it suggests with results/baseline as output dir
+# Run the command it suggests with results/on as output dir
 ```
 
-### 4. Run Candidate Test (WITHOUT OSIV on /api/tracker/**)
+### 4. Run OSIV OFF Test (tracker endpoints WITHOUT OSIV)
 
 ```bash
 # Terminal 1: Restart DHIS2 without tracker in OSIV (default)
@@ -54,15 +54,15 @@ mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.tracker.TrackerTes
 
 # After test completes: Save the results
 cd ../..
-mkdir -p connection-analysis/results/candidate
+mkdir -p connection-analysis/results/off
 cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
-  connection-analysis/results/candidate/
+  connection-analysis/results/off/
 
 # Extract timestamps and analyze
 ./connection-analysis/gatling-test-times.sh \
-  connection-analysis/results/candidate/trackertest-*
+  connection-analysis/results/off/trackertest-*
 
-# Run the command it suggests with results/candidate as output dir
+# Run the command it suggests with results/off as output dir
 ```
 
 ## Configuration
@@ -71,8 +71,8 @@ cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
 
 The filter can be toggled at runtime via environment variable in `start.sh`:
 
-* `OSIV_EXCLUDE_TRACKER=true` (default) - Excludes /api/tracker/** from OSIV (candidate)
-* `OSIV_EXCLUDE_TRACKER=false` - Keeps /api/tracker/** in OSIV (baseline)
+* `OSIV_EXCLUDE_TRACKER=true` (default) - Excludes /api/tracker/** from OSIV (OFF)
+* `OSIV_EXCLUDE_TRACKER=false` - Keeps /api/tracker/** in OSIV (ON)
 
 ### Files
 
@@ -88,18 +88,18 @@ The filter can be toggled at runtime via environment variable in `start.sh`:
 
 ```
 connection-analysis/results/
-├── baseline/                        # WITH OSIV on tracker
+├── on/                              # WITH OSIV on tracker
 │   ├── trackertest-TIMESTAMP/       # Gatling test results
 │   │   ├── simulation.log
 │   │   ├── simulation.csv
 │   │   └── ...
 │   ├── connection-raw.csv           # All connection events
-│   ├── connection-stats.txt         # Summary statistics
+│   ├── connection-stats.md          # Summary statistics
 │   └── per-request-breakdown.csv    # Per-request analysis
-└── candidate/                       # WITHOUT OSIV on tracker
+└── off/                             # WITHOUT OSIV on tracker
     ├── trackertest-TIMESTAMP/
     ├── connection-raw.csv
-    ├── connection-stats.txt
+    ├── connection-stats.md
     └── per-request-breakdown.csv
 ```
 
@@ -126,12 +126,12 @@ Held Time (ms):
 
 ## Key Metrics to Compare
 
-From `connection-stats.txt`:
+From `connection-stats.md`:
 
 * **Wait Time** - Time waiting for connection from pool (indicates pool exhaustion)
-  * P90, P99, Max - Look for high values in baseline
+  * P90, P99, Max - Look for high values when OSIV holds connections too long
 * **Held Time** - Time connection was held before release
-  * P90, P99, Max - Should be lower in candidate (OSIV removed)
+  * P90, P99, Max - Expected to be higher with OSIV ON (connections held during serialization)
 
 From `per-request-breakdown.csv`:
 
@@ -145,7 +145,8 @@ From `per-request-breakdown.csv`:
   available connections
 * **High held times (P99 > 10s)**: Connections held during non-DB work, likely OSIV keeping
   connections open during response serialization
-* **Goal**: After removing OSIV from tracker, expect lower P99 held times and lower wait times
+* **Expected outcome**: OSIV OFF should show lower P99 held times and lower wait times compared to
+  OSIV ON
 
 ## Logs
 

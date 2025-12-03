@@ -7,12 +7,12 @@
 #
 # Environment variables:
 #   OSIV_EXCLUDE_TRACKER - Whether to exclude /api/tracker/** from OSIV (default: true)
-#                          Set to "false" to keep tracker in OSIV for baseline comparison
+#                          Set to "false" to keep tracker in OSIV (OSIV ON test)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Default to excluding tracker from OSIV (candidate behavior)
-# Set OSIV_EXCLUDE_TRACKER=false for baseline behavior (tracker with OSIV)
+# Default to excluding tracker from OSIV (OSIV OFF)
+# Set OSIV_EXCLUDE_TRACKER=false for OSIV ON test (tracker with OSIV)
 OSIV_EXCLUDE_TRACKER="${OSIV_EXCLUDE_TRACKER:-true}"
 
 echo "Starting DHIS2 with osiv.exclude.tracker=$OSIV_EXCLUDE_TRACKER"

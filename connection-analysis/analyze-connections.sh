@@ -122,14 +122,15 @@ END {
 source /tmp/stats_vars.txt
 
 # Calculate percentiles by sorting
-WAIT_P50=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.50){print; exit}')
-WAIT_P90=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.90){print; exit}')
-WAIT_P99=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.99){print; exit}')
+# Use int(count*percentile + 0.5) for proper rounding (nearest-rank method)
+WAIT_P50=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.50+0.5){print; exit}')
+WAIT_P90=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.90+0.5){print; exit}')
+WAIT_P99=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.99+0.5){print; exit}')
 WAIT_MAX=$(tail -n +2 "$RAW_CSV" | cut -d',' -f4 | sort -n | tail -1)
 
-HELD_P50=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.50){print; exit}')
-HELD_P90=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.90){print; exit}')
-HELD_P99=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.99){print; exit}')
+HELD_P50=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.50+0.5){print; exit}')
+HELD_P90=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.90+0.5){print; exit}')
+HELD_P99=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | awk -v count=$TOTAL_CONNECTIONS 'NR==int(count*0.99+0.5){print; exit}')
 HELD_MAX=$(tail -n +2 "$RAW_CSV" | cut -d',' -f5 | sort -n | tail -1)
 
 # Write statistics file as markdown
