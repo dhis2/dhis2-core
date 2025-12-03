@@ -37,24 +37,28 @@ summary_sql: >-
     OR username ~ '[-_.@]{2}'
     OR username ~ '[-_.@]$'
     OR username ~ '^[-_.@]'
-    OR username !~ '^[-_.@a-zA-Z0-9]+$';
+    OR username !~ '^[-_.@a-zA-Z0-9]+$'
+    OR username IS NULL;
 details_sql: >
   SELECT uid, 
-  username as name,
+  COALESCE(username,'') as name,
   'disabled:' || disabled as comment
   from userinfo
   WHERE LENGTH(username) NOT BETWEEN 4 AND 255
       OR username ~ '[-_.@]{2}'
       OR username ~ '[-_.@]$'
       OR username ~ '^[-_.@]'
-      OR username !~ '^[-_.@a-zA-Z0-9]+$';
+      OR username !~ '^[-_.@a-zA-Z0-9]+$'
+      OR username IS NULL;
 details_id_type: users
 severity: WARNING
 introduction: >
   In current versions of DHIS2, users are required to have a username that is between 4 and 255 characters long and
     contains only letters, numbers, and the characters `@`, `.`, `-`, and `_`.  Additionally, the username should
-  not end with any of these characters.
+  not end with any of these characters. It has also been observed that users can have no username. These will appear
+  with a blank username in the details query. 
 recommendation: >
   Using the list of users provided by the details query, consider to create a new user for the user with an invalid
-  username. It is currently not possible to update a user's username in DHIS2, so a new user will need to be created
-  for the user with the invalid username.
+  username. It is currently not possible to update a user's username through the DHIS2 API, so a new user will need to be created
+  for the user with the invalid username. Another option would be to set the username directly in the database, which would 
+  require an administrator to reset their password. 

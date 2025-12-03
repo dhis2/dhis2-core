@@ -369,11 +369,12 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (!filter.isVirtual()) {
       String filterPath = filter.getPath();
       // Map display properties to their base properties
-      if (filterPath.startsWith(DISPLAY_PREFIX)) {
+      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
+      if (path == null && filterPath.startsWith(DISPLAY_PREFIX)) {
         filterPath = getBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
       }
-      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
+
       return filter.getOperator().getPredicate(builder, root, path);
     }
     // handle special cases:

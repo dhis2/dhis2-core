@@ -2355,6 +2355,23 @@
           "id": "lPaILkLkgOM"
         }
       ]
+    },
+    {
+      "id": "ruTop9IZjHu",
+      "created": "2020-05-31T09:03:15.823",
+      "lastUpdated": "2020-05-31T11:41:22.375",
+      "lastUpdatedBy": {
+        "id": "tTgjgobT1oS"
+      },
+      "name": "not-used-user-group",
+      "user": {
+        "id": "tTgjgobT1oS"
+      },
+      "users": [
+        {
+          "id": "Z7870757a75"
+        }
+      ]
     }
   ],
   "userRoles": [
