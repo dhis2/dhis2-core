@@ -36,13 +36,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests for the /api/metrics endpoint (Prometheus scrape endpoint).
- *
- * <p>This test verifies that authenticated users can access the metrics endpoint without
- * encountering LazyInitializationException errors (which manifest as 409 Conflict responses). This
- * ensures that the endpoint works correctly with OSIV (Open Session In View) disabled.
- */
+/** Tests for the /api/metrics endpoint (Prometheus scrape endpoint). */
 public class MetricsEndpointTest extends ApiTest {
   private RestApiActions metricsActions;
 
@@ -58,7 +52,7 @@ public class MetricsEndpointTest extends ApiTest {
   public void shouldAccessMetricsAndReturnPrometheusFormat() {
     loginActions.loginAsSuperUser();
 
-    ApiResponse response = metricsActions.get();
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
 
     response
         .validate()
@@ -66,5 +60,4 @@ public class MetricsEndpointTest extends ApiTest {
         .body(containsString("# HELP"))
         .body(containsString("# TYPE"));
   }
-
 }
