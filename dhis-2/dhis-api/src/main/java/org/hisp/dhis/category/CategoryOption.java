@@ -424,7 +424,7 @@ public class CategoryOption extends BaseMetadataObject
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
     return translations.getTranslation(
-        "FORM_NAME", getFormName() != null ? getFormName() : getName());
+        "FORM_NAME", getFormName() != null ? getFormName() : getDisplayName());
   }
 
   @Override
