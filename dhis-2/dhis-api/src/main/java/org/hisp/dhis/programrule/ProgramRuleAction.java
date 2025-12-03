@@ -184,7 +184,8 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   /**
    * The priority of the program rule action within the rule. The lower the priority, the earlier
-   * the action is run. Null means that the action is run last (together with all other actions with a null priority)
+   * the action is run. Null means that the action is run last (together with all other actions with
+   * a null priority)
    */
   private Integer priority;
 
@@ -255,42 +256,6 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
         optionGroup);
     this.programRuleActionEvaluationTime = evaluationTime;
     this.programRuleActionEvaluationEnvironments = environments;
-  }
-
-  public ProgramRuleAction(
-      String name,
-      ProgramRule programRule,
-      ProgramRuleActionType programRuleActionType,
-      DataElement dataElement,
-      TrackedEntityAttribute attribute,
-      ProgramStageSection programStageSection,
-      ProgramStage programStage,
-      ProgramIndicator programIndicator,
-      String location,
-      String content,
-      String data,
-      Option option,
-      OptionGroup optionGroup,
-      ProgramRuleActionEvaluationTime evaluationTime,
-      Set<ProgramRuleActionEvaluationEnvironment> environments,
-      Integer priority) {
-    this(
-        name,
-        programRule,
-        programRuleActionType,
-        dataElement,
-        attribute,
-        programStageSection,
-        programStage,
-        programIndicator,
-        location,
-        content,
-        data,
-        option,
-        optionGroup,
-        evaluationTime,
-        environments);
-    this.priority = priority;
   }
 
   // -------------------------------------------------------------------------
