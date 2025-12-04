@@ -172,6 +172,25 @@ public class SingleEventOperationParams {
       return this;
     }
 
+    private SingleEventOperationParamsBuilder skipChangedBefore(Date skipChangedBefore) {
+      this.skipChangedBefore = skipChangedBefore;
+      return this;
+    }
+
+    // Do not remove this method. It intentionally hides the Lombok-generated setter.
+    // This ensures that skipSyncDataElementsByProgramStage can only be set through
+    // builderForDataSync.
+    private SingleEventOperationParamsBuilder skipSyncDataElementsByProgramStage(
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      return this;
+    }
+
+    private SingleEventOperationParamsBuilder setSkipSyncDataElements(
+        @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+      return this;
+    }
+
     // Do not remove this unused method. This hides the data element filters field from the builder
     // which Lombok
     // does not support. The repeated field and private method prevent access to
@@ -194,12 +213,6 @@ public class SingleEventOperationParams {
           dataElement, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
-
-    public SingleEventOperationParamsBuilder withSkipSyncDataElements(
-        @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
-      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
-      return this;
-    }
   }
 
   public static SingleEventOperationParamsBuilder builderForProgram(@Nonnull UID program) {
@@ -217,7 +230,7 @@ public class SingleEventOperationParams {
     return new SingleEventOperationParamsBuilder()
         .program(program)
         .skipChangedBefore(skipChangedBefore)
-        .withSkipSyncDataElements(skipSyncDataElementsByProgramStage)
+        .setSkipSyncDataElements(skipSyncDataElementsByProgramStage)
         .synchronizationQuery(true)
         .includeDeleted(true);
   }
