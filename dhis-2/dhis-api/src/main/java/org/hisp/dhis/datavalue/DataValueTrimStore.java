@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.datavalue;
+
+import org.hisp.dhis.fileresource.FileResource;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * API for data values operations executed by jobs to trim and adjust the data.
+ *
+ * @author Jan Bernitt
+ * @since 2.43
  */
-public enum UserOverrideMode {
-  NONE,
-  CURRENT,
-  SELECTED
+public interface DataValueTrimStore {
+
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code false} for any data value related file resource
+   * where no data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being true to becoming
+   *     false
+   */
+  int updateFileResourcesNotAssignedToAnyDataValue();
+
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code true} for any data value related file resource
+   * where at least one data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being false to becoming
+   *     true
+   */
+  int updateFileResourcesAssignedToAnyDataValue();
+
+  /**
+   * Set any row to deleted {@code true} that has an empty value and a DE that does not consider
+   * zero being significant.
+   *
+   * @return the number of data values that got changed from deleted being false to becoming true
+   */
+  int updateDeletedIfNotZeroIsSignificant();
 }

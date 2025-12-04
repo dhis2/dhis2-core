@@ -29,6 +29,7 @@ package org.hisp.dhis.document;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.user.User;
 
 /**
@@ -62,18 +63,11 @@ public interface DocumentService {
   Document getDocument(String uid);
 
   /**
-   * Used when removing a file reference from a Document.
-   *
-   * @param document
-   */
-  void deleteFileFromDocument(Document document);
-
-  /**
    * Deletes a Document.
    *
    * @param document the Document to delete.
    */
-  void deleteDocument(Document document);
+  void deleteDocument(Document document) throws ForbiddenException;
 
   /**
    * Retrieves all Documents.

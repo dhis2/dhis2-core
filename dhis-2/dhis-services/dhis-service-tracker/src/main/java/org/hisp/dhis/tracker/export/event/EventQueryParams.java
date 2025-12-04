@@ -59,9 +59,29 @@ import org.hisp.dhis.tracker.export.Order;
  * @author Lars Helge Overland
  */
 class EventQueryParams {
-  private Program program;
+  /**
+   * Program the event must be enrolled in. This should not be set when {@link #accessiblePrograms}
+   * is set. The user must have data read access to this program.
+   */
+  private Program enrolledInProgram;
 
+  /**
+   * Programs the user has data read access to. This should not be set when {@link
+   * #enrolledInProgram} is set.
+   */
+  private List<Program> accessiblePrograms = List.of();
+
+  /**
+   * Program stage the event must be enrolled in. This should not be set when {@link
+   * #accessiblePrograms} is set. The user must have data read access to this program.
+   */
   private ProgramStage programStage;
+
+  /**
+   * Program stages the user has data read access to. This should not be set when {@link
+   * #programStage} is set.
+   */
+  private List<ProgramStage> accessibleProgramStages = List.of();
 
   private ProgramStatus programStatus;
 
@@ -138,10 +158,6 @@ class EventQueryParams {
 
   private boolean includeDeleted;
 
-  private Set<String> accessiblePrograms;
-
-  private Set<String> accessibleProgramStages;
-
   private boolean synchronizationQuery;
 
   /** Indicates a point in the time used to decide the data that should not be synchronized */
@@ -153,8 +169,8 @@ class EventQueryParams {
 
   public EventQueryParams() {}
 
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrollInProgram() {
+    return enrolledInProgram != null;
   }
 
   public boolean hasProgramStage() {
@@ -184,12 +200,12 @@ class EventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  public Program getProgram() {
-    return program;
+  public Program getEnrolledInProgram() {
+    return enrolledInProgram;
   }
 
-  public EventQueryParams setProgram(Program program) {
-    this.program = program;
+  public EventQueryParams setEnrolledInProgram(Program enrolledInProgram) {
+    this.enrolledInProgram = enrolledInProgram;
     return this;
   }
 
@@ -199,6 +215,24 @@ class EventQueryParams {
 
   public EventQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
+    return this;
+  }
+
+  public List<Program> getAccessiblePrograms() {
+    return accessiblePrograms;
+  }
+
+  public EventQueryParams setAccessiblePrograms(List<Program> accessiblePrograms) {
+    this.accessiblePrograms = accessiblePrograms;
+    return this;
+  }
+
+  public List<ProgramStage> getAccessibleProgramStages() {
+    return accessibleProgramStages;
+  }
+
+  public EventQueryParams setAccessibleProgramStages(List<ProgramStage> accessibleProgramStages) {
+    this.accessibleProgramStages = accessibleProgramStages;
     return this;
   }
 
@@ -492,28 +526,6 @@ class EventQueryParams {
 
   public boolean isIncludeDeleted() {
     return this.includeDeleted;
-  }
-
-  public Set<String> getAccessiblePrograms() {
-    return accessiblePrograms;
-  }
-
-  public EventQueryParams setAccessiblePrograms(Set<String> accessiblePrograms) {
-    this.accessiblePrograms = accessiblePrograms;
-    return this;
-  }
-
-  public Set<String> getAccessibleProgramStages() {
-    return accessibleProgramStages;
-  }
-
-  public EventQueryParams setAccessibleProgramStages(Set<String> accessibleProgramStages) {
-    this.accessibleProgramStages = accessibleProgramStages;
-    return this;
-  }
-
-  public boolean hasSecurityFilter() {
-    return accessiblePrograms != null && accessibleProgramStages != null;
   }
 
   public boolean isSynchronizationQuery() {

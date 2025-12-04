@@ -35,6 +35,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -70,7 +71,7 @@ public interface FileResourceService {
 
   List<FileResource> getFileResources(@Nonnull List<String> uids);
 
-  List<FileResource> getOrphanedFileResources();
+  List<FileResource> getExpiredFileResources(Set<FileResourceDomain> domainsToDeleteWhenUnassigned);
 
   /**
    * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
@@ -189,7 +190,8 @@ public interface FileResourceService {
 
   URI getSignedGetFileResourceContentUri(FileResource fileResource);
 
-  List<FileResource> getExpiredFileResources(FileResourceRetentionStrategy retentionStrategy);
+  List<FileResource> getExpiredDataValueFileResources(
+      FileResourceRetentionStrategy retentionStrategy);
 
   List<FileResource> getAllUnProcessedImagesFiles();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.web.WebClient.Header;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+@Service
+@RequiredArgsConstructor
+public class DefaultDataValueTrimService implements DataValueTrimService {
 
-/**
- * Tests the {@link RequestInfoController}.
- *
- * @author Jan Bernitt
- */
-class RequestInfoControllerTest extends DhisControllerConvenienceTest {
-  @Test
-  void testGetCurrentInfo_NoHeader() {
-    JsonObject info = GET("/request").content();
-    assertTrue(info.isObject());
-    assertTrue(info.isEmpty());
+  private final DataValueTrimStore store;
+
+  @Override
+  @Transactional
+  public int updateFileResourcesNotAssignedToAnyDataValue() {
+    return store.updateFileResourcesNotAssignedToAnyDataValue();
   }
 
-  @Test
-  void testGetCurrentInfo_XRequestIdHeader() {
-    JsonObject info = GET("/request", Header("X-Request-ID", "abc")).content();
-    assertTrue(info.isObject());
-    assertEquals("abc", info.getString("headerXRequestID").string());
+  @Override
+  @Transactional
+  public int updateFileResourcesAssignedToAnyDataValue() {
+    return store.updateFileResourcesAssignedToAnyDataValue();
+  }
+
+  @Override
+  @Transactional
+  public int updateDeletedIfNotZeroIsSignificant() {
+    return store.updateDeletedIfNotZeroIsSignificant();
   }
 }

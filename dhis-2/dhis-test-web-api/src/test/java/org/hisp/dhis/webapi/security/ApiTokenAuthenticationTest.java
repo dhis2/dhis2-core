@@ -38,9 +38,7 @@ import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -118,7 +116,6 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     hibernateService.flushSession();
 
     token.addIpToAllowedList("192.168.2.1");
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     String errorMessage =
@@ -129,7 +126,6 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     token.addIpToAllowedList("127.0.0.1");
 
     injectSecurityContextUser(getAdminUser());
-    UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);

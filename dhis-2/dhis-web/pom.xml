@@ -23,7 +23,6 @@
     <rootDir>../</rootDir>
     <useWarCompression>true</useWarCompression>
 
-    <tomcat.version>8.5.47</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
@@ -95,40 +94,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.cargo</groupId>
-        <artifactId>cargo-maven2-plugin</artifactId>
-        <version>${cargo-maven2-plugin.version}</version>
-        <configuration>
-          <container>
-            <containerId>tomcat8x</containerId>
-            <artifactInstaller>
-              <groupId>org.apache.tomcat</groupId>
-              <artifactId>tomcat</artifactId>
-              <version>${tomcat.version}</version>
-            </artifactInstaller>
-          </container>
-          <configuration>
-            <type>standalone</type>
-            <home>${project.build.directory}/apache-tomcat-${tomcat.version}</home>
-            <properties>
-              <cargo.servlet.port>8080</cargo.servlet.port>
-              <cargo.logging>low</cargo.logging>
-            </properties>
-          </configuration>
-          <deployables>
-            <deployable>
-              <groupId>${project.groupId}</groupId>
-              <artifactId>${project.artifactId}</artifactId>
-              <type>war</type>
-              <properties>
-                <context>/</context>
-              </properties>
-            </deployable>
-          </deployables>
-        </configuration>
       </plugin>
 
       <plugin>

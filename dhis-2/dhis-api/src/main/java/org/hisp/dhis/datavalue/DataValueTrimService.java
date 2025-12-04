@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.datavalue;
 
-/**
- * Provides access to the {@link RequestInfo} within the ongoing request.
- *
- * @author Jan Bernitt
- */
-public interface RequestInfoService {
+import org.hisp.dhis.fileresource.FileResource;
+
+public interface DataValueTrimService {
 
   /**
-   * @return the info for the current request (thread)
+   * Set {@link FileResource#isAssigned()} to {@code false} for any data value related file resource
+   * where no data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being true to becoming
+   *     false
    */
-  RequestInfo getCurrentInfo();
+  int updateFileResourcesNotAssignedToAnyDataValue();
+
+  /**
+   * Set {@link FileResource#isAssigned()} to {@code true} for any data value related file resource
+   * where at least one data value exists that actually refers to it (has its UID as value).
+   *
+   * @return the number of file resources that got changed from assigned being false to becoming
+   *     true
+   */
+  int updateFileResourcesAssignedToAnyDataValue();
+
+  /**
+   * Set any row to deleted {@code true} that has an empty value and a DE that does not consider
+   * zero being significant.
+   *
+   * @return the number of data values that got changed from deleted being false to becoming true
+   */
+  int updateDeletedIfNotZeroIsSignificant();
 }

@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests')"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Free disk space on runner (Ubuntu)
         shell: bash
@@ -75,7 +75,7 @@ jobs:
           cd dhis-2/dhis-test-e2e
           docker compose logs web > ~/logs.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: "tomcat_logs"
