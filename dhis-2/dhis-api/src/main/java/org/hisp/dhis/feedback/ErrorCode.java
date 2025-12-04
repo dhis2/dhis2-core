@@ -573,6 +573,10 @@ public enum ErrorCode {
   E7238("Sorting dimension ‘{0}’ is not a column"),
   E7239("Invalid operator for 'null' value: `{0}`"),
   E7240("Event query with org unit ownership does not support time fields"),
+  E7241("Stage parameter cannot be used with stage-specific dimension identifiers"),
+  E7242(
+      "Period dimension cannot be used with stage-specific date dimensions (EVENT_DATE, SCHEDULED_DATE)"),
+  E7243("Duplicate stage dimension identifier: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

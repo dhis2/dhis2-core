@@ -76,6 +76,51 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndEventDateThisYear",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR&desc=eventdate,lastupdated&relativePeriodDate=2022-12-31",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateSpecificYear",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateRange",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:2021-03-01_2021-05-31&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventGreaterThan",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:GT:2021-05-01&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventLowerThan",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:LE:2023-05-01&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "validatePeriodAndStageWithOuNotRejected",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=pe:THIS_YEAR&dimension=Zj7UnCAulEk.ou:ImspTQPwCqd&desc=eventdate,lastupdated&relativePeriodDate=2022-12-31",
+      "version": {
+        "min": 43
+      }
     }
+
+
+
   ]
 }

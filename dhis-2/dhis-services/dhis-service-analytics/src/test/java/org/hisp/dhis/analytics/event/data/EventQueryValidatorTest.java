@@ -56,6 +56,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.TestBase;
@@ -461,6 +462,105 @@ class EventQueryValidatorTest extends TestBase {
             .build();
 
     // Should not throw - stage date item provides period context
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+    assertNull(error);
+  }
+
+  @Test
+  void validateFailsWhenStageParamWithStageSpecificDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withProgramStage(psA) // Stage parameter set
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi) // Stage-specific dimension
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7241, error.getErrorCode());
+  }
+
+  @Test
+  void validateFailsWhenPeriodDimensionWithStageDateDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(List.of(ouA))
+            .withPeriods(createPeriodDimensions("202001"), "monthly") // Period dimension
+            .addItem(qi) // Stage-specific date dimension
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7242, error.getErrorCode());
+  }
+
+  @Test
+  void validateFailsWhenDuplicateStageDimensionIdentifier() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+
+    QueryItem qi1 = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+    qi1.addFilter(new QueryFilter(QueryOperator.GE, "2020-01-01"));
+
+    QueryItem qi2 = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+    qi2.addFilter(new QueryFilter(QueryOperator.GE, "2021-01-01"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi1)
+            .addItem(qi2) // Duplicate stage.identifier
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7243, error.getErrorCode());
+  }
+
+  @Test
+  void validateSucceedsWithDifferentIdentifiersForSameStage() {
+    ProgramStage psA = createProgramStage('A', prA);
+
+    BaseDimensionalItemObject dateItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qiDate = new QueryItem(dateItem, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qiDate.setProgramStage(psA);
+
+    BaseDimensionalItemObject statusItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qiStatus =
+        new QueryItem(statusItem, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiStatus.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qiDate) // stageA.EVENT_DATE
+            .addItem(qiStatus) // stageA.EVENT_STATUS - different identifier, same stage
+            .build();
+
+    // Should not throw - different identifiers are allowed for the same stage
     ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
     assertNull(error);
   }

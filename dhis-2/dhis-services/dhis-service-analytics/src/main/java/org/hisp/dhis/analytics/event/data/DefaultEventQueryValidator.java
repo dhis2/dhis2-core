@@ -93,6 +93,13 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (!params.getDuplicateDimensions().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7201, params.getDuplicateDimensions());
     }
+
+    // Check for duplicate stage dimension identifiers (must be before E7202 check)
+    Set<String> duplicateStageDimensions = params.getDuplicateStageDimensionIdentifiers();
+    if (!duplicateStageDimensions.isEmpty()) {
+      return new ErrorMessage(ErrorCode.E7243, duplicateStageDimensions.iterator().next());
+    }
+
     if (!params.getDuplicateQueryItems().isEmpty()) {
       return new ErrorMessage(ErrorCode.E7202, params.getDuplicateQueryItems());
     }
@@ -137,6 +144,16 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     if ((params.hasBbox() || params.hasClusterSize()) && params.getCoordinateFields() == null) {
       return new ErrorMessage(ErrorCode.E7214);
+    }
+
+    // Stage parameter cannot be used with stage-specific dimension identifiers
+    if (params.hasProgramStage() && params.hasStageSpecificItem()) {
+      return new ErrorMessage(ErrorCode.E7241);
+    }
+
+    // Period dimension cannot be used with stage-specific date dimensions
+    if (params.hasPeriods() && params.hasStageDateItem()) {
+      return new ErrorMessage(ErrorCode.E7242);
     }
 
     for (QueryItem item : params.getItemsAndItemFilters()) {
