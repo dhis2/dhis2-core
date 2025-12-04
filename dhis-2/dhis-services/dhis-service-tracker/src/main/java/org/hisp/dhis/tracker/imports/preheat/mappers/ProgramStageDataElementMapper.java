@@ -27,39 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.RequestInfo;
-import org.hisp.dhis.common.RequestInfoService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * Exposes the {@link org.hisp.dhis.common.RequestInfo} information mainly for debugging and testing
- * purposes.
- *
- * @author Jan Bernitt
- */
-@OpenApi.Document(
-    entity = Server.class,
-    classifiers = {"team:platform", "purpose:support"})
-@Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/api/request")
-@AllArgsConstructor
-public class RequestInfoController {
+@Mapper(uses = {DebugMapper.class, DataElementMapper.class})
+public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStageDataElement> {
+  ProgramStageDataElementMapper INSTANCE = Mappers.getMapper(ProgramStageDataElementMapper.class);
 
-  private final RequestInfoService requestInfoService;
-
-  @GetMapping
-  @ResponseBody
-  public RequestInfo getCurrentInfo() {
-    return requestInfoService.getCurrentInfo();
-  }
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "compulsory")
+  @Mapping(target = "dataElement")
+  ProgramStageDataElement map(ProgramStageDataElement programStageDataElement);
 }

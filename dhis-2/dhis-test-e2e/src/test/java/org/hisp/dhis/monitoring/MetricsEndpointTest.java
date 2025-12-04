@@ -27,44 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.interceptor;
+package org.hisp.dhis.monitoring;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DefaultRequestInfoService;
-import org.hisp.dhis.common.RequestInfo;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
+import static org.hamcrest.Matchers.containsString;
 
-/**
- * Maintains the information contained in {@code X-Request-ID} header as an information that is
- * available in the request context.
- *
- * @author Jan Bernitt
- */
-@Component
-@RequiredArgsConstructor
-public final class RequestInfoInterceptor implements HandlerInterceptor {
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-  private final DefaultRequestInfoService requestInfoService;
+/** Tests for the /api/metrics endpoint (Prometheus scrape endpoint). */
+public class MetricsEndpointTest extends ApiTest {
+  private RestApiActions metricsActions;
 
-  @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-      throws Exception {
-    requestInfoService.setCurrentInfo(
-        RequestInfo.builder().headerXRequestID(request.getHeader("X-Request-ID")).build());
-    return true;
+  private LoginActions loginActions;
+
+  @BeforeAll
+  public void setUp() {
+    loginActions = new LoginActions();
+    metricsActions = new RestApiActions("/metrics");
   }
 
-  @Override
-  public void postHandle(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Object handler,
-      ModelAndView modelAndView)
-      throws Exception {
-    requestInfoService.setCurrentInfo(null);
+  @Test
+  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+    loginActions.loginAsSuperUser();
+
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
+
+    response
+        .validate()
+        .statusCode(200)
+        .body(containsString("# HELP"))
+        .body(containsString("# TYPE"));
   }
 }

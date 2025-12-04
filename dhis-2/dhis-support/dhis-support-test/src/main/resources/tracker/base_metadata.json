@@ -1100,6 +1100,7 @@
             "id": "GieVkTxp4HH"
           },
           "lastUpdated": "2022-04-22T05:57:59.783",
+          "skipSynchronization" : true,
           "programStage": {
             "id": "qLZC0lvvxQH"
           },

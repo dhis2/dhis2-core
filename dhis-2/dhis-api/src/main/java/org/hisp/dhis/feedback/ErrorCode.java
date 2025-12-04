@@ -331,6 +331,9 @@ public enum ErrorCode {
   E4079(
       "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
   E4080("Program `{0}` category mapping `{1}` has an invalid option mapping `{1}`"),
+  E4081("Program is required for tracker data synchronization job"),
+  E4082("Program `{0}` does not exist"),
+  E4083("Program `{0}` must be of type `{1}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -494,6 +497,7 @@ public enum ErrorCode {
   E7149("Invalid measure filter operator: `{0}`"),
   E7150("No periods found for subexpression query"),
   E7151("Too many combinations of columns or rows."),
+  E7152("Periods as filter not supported with Indicator with period offset"),
   /* Analytics outliers */
 
   E7180(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,62 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import javax.annotation.PreDestroy;
-import org.slf4j.MDC;
-import org.springframework.stereotype.Service;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
+import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * @author Jan Bernitt
+ * Base class for tracker data synchronization jobs that require paging support and an associated
+ * Program UID context. Extends {@link DataSynchronizationWithPaging} to add tracker-specific
+ * synchronization behavior.
  */
-@Service
-public class DefaultRequestInfoService implements RequestInfoService {
-  /** Key used for slf4j logging of the X-Request header. */
-  private static final String X_REQUEST_ID = "xRequestID";
-
-  private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
+public abstract class TrackerDataSynchronizationWithPaging
+    implements DataSynchronizationWithPaging {
 
   /**
-   * This method is by intention not part of the {@link RequestInfoService} interface as it should
-   * only be used in one place to update the info for the current thread at the beginning of a
-   * request.
+   * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
    *
-   * @param info the info to set
+   * @param pageSize number of records per page
+   * @param progress job progress reporter
+   * @param programUid uid of the program whose tracker data should be synchronized
+   * @return result of synchronization
    */
-  public void setCurrentInfo(RequestInfo info) {
-    info = sanitised(info);
-    currentInfo.set(info);
-    if (info == null) {
-      MDC.remove(X_REQUEST_ID);
-      return;
-    }
-    String xRequestID = info.getHeaderXRequestID();
-    if (xRequestID == null) {
-      MDC.remove(X_REQUEST_ID);
-    } else {
-      MDC.put(X_REQUEST_ID, xRequestID);
-    }
-  }
+  public abstract SynchronizationResult synchronizeTrackerData(
+      int pageSize, JobProgress progress, @Nonnull String programUid);
 
-  private RequestInfo sanitised(RequestInfo info) {
-    if (info == null) {
-      return null;
-    }
-    String xRequestID = info.getHeaderXRequestID();
-    if (!RequestInfo.isValidXRequestID(xRequestID)) {
-      return info.toBuilder().headerXRequestID("(illegal)").build();
-    }
-    return info;
-  }
-
+  /**
+   * This method from {@link DataSynchronizationWithPaging} is not directly used here.
+   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress, UID)} instead
+   * when a program context is available.
+   */
   @Override
-  public RequestInfo getCurrentInfo() {
-    return currentInfo.get();
-  }
-
-  @PreDestroy
-  public void preDestroy() {
-    currentInfo.remove();
+  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
+    throw new UnsupportedOperationException(
+        "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
   }
 }
