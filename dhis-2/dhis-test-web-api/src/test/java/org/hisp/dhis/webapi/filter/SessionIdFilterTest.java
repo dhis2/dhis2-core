@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
-import static org.hisp.dhis.webapi.filter.RequestIdentifierFilter.hashToBase64;
+import static org.hisp.dhis.webapi.filter.SessionIdFilter.hashToBase64;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -51,13 +51,13 @@ import org.slf4j.MDC;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class RequestIdentifierFilterTest {
+class SessionIdFilterTest {
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-  private RequestIdentifierFilter subject;
+  private SessionIdFilter subject;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     MDC.clear();
   }
 
@@ -94,6 +94,6 @@ class RequestIdentifierFilterTest {
 
   private void init(boolean enabled) {
     when(dhisConfigurationProvider.isEnabled(LOGGING_REQUEST_ID_ENABLED)).thenReturn(enabled);
-    subject = new RequestIdentifierFilter(dhisConfigurationProvider);
+    subject = new SessionIdFilter(dhisConfigurationProvider);
   }
 }
