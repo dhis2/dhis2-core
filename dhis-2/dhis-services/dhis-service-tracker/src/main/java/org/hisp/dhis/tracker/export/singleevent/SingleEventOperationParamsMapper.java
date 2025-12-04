@@ -117,6 +117,9 @@ class SingleEventOperationParamsMapper {
                 operationParams.getAssignedUserMode(),
                 operationParams.getAssignedUsers(),
                 UID.of(user)))
+        .setSynchronizationQuery(operationParams.isSynchronizationQuery())
+        .setSkipChangedBefore(operationParams.getSkipChangedBefore())
+        .withSkipSyncDataElements(operationParams.getSkipSyncDataElementsByProgramStage())
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
