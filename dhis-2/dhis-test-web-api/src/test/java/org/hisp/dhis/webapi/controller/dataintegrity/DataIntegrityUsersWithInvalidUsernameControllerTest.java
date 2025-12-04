@@ -92,6 +92,8 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
             summary.getPercentage().doubleValue(),
             0.1));
     assertEquals(badUsernames.size(), summary.getCount());
+
+    badUsers.forEach(this::deleteUser);
   }
 
   @Test
@@ -110,6 +112,11 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
     manager.persist(user);
+  }
+
+  private void deleteUser(String username) {
+    User user = userService.getUserByUsername(username);
+    userService.deleteUser(user);
   }
 
   private boolean almostEqual(double a, double b, double epsilon) {

@@ -316,4 +316,16 @@ public class Indicator extends BaseDataDimensionalItemObject implements Metadata
   public void setFormName(String formName) {
     this.formName = formName;
   }
+
+  /**
+   * Checks if the denominator contains a periodOffset function.
+   *
+   * @return true if the denominator contains .periodOffset(), false otherwise
+   */
+  public boolean numeratorContainsPeriodOffset() {
+    if (numerator == null || numerator.isEmpty()) {
+      return false;
+    }
+    return numerator.contains(".periodOffset(");
+  }
 }
