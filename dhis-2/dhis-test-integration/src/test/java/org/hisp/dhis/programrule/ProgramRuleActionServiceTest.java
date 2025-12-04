@@ -418,4 +418,28 @@ class ProgramRuleActionServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         ruleActions.get(0).getProgramRuleActionType(), ProgramRuleActionType.HIDEPROGRAMSTAGE);
   }
+
+  @Test
+  public void testShouldAddAndRetrieveProgramRuleActionWithPriority() {
+    ProgramRuleAction lowPriority = new ProgramRuleAction();
+    lowPriority.setProgramRule(programRuleA);
+    lowPriority.setProgramRuleActionType(ProgramRuleActionType.DISPLAYTEXT);
+    lowPriority.setContent("Low");
+    lowPriority.setPriority(1);
+
+    ProgramRuleAction highPriority = new ProgramRuleAction();
+    highPriority.setProgramRule(programRuleA);
+    highPriority.setProgramRuleActionType(ProgramRuleActionType.DISPLAYTEXT);
+    highPriority.setContent("High");
+    highPriority.setPriority(5);
+
+    long idLow = actionService.addProgramRuleAction(lowPriority);
+    long idHigh = actionService.addProgramRuleAction(highPriority);
+
+    ProgramRuleAction reloadedLow = actionService.getProgramRuleAction(idLow);
+    ProgramRuleAction reloadedHigh = actionService.getProgramRuleAction(idHigh);
+
+    assertEquals(Integer.valueOf(1), reloadedLow.getPriority());
+    assertEquals(Integer.valueOf(5), reloadedHigh.getPriority());
+  }
 }
