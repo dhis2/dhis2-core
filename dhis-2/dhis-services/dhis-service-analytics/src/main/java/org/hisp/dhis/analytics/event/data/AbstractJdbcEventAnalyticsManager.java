@@ -2814,7 +2814,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (!hasFunction && !hasPrefix) {
       column = "ax." + column;
-    } else if (hasFunction && !functionColumn.isEmpty() && !hasPrefix) {
+    } else if (hasFunction && isNotBlank(functionColumn) && !hasPrefix) {
       column = column.replace(functionColumn, "ax." + functionColumn);
     }
 
