@@ -36,8 +36,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
+import org.hibernate.query.QueryProducer;
 import org.hibernate.type.BooleanType;
 import org.hibernate.type.DateType;
 import org.hibernate.type.IntegerType;
@@ -52,7 +52,7 @@ import org.hibernate.type.Type;
  */
 class HibernateNativeQueryAPI {
 
-  record HibernateQuery(Session impl, String sql, List<Consumer<NativeQuery<?>>> setters)
+  record HibernateQuery(QueryProducer impl, String sql, List<Consumer<NativeQuery<?>>> setters)
       implements SQL.Query {
 
     @Override
@@ -87,9 +87,16 @@ class HibernateNativeQueryAPI {
     @SuppressWarnings("unchecked")
     public <T> Stream<T> stream(@Nonnull Class<T> of) {
       NativeQuery<T> query =
-          of == Object[].class ? impl.createNativeQuery(sql) : impl.createNativeQuery(sql, of);
+          isKnownNotMappedType(of) ? impl.createNativeQuery(sql) : impl.createNativeQuery(sql, of);
       setters.forEach(s -> s.accept(query));
       return query.stream();
+    }
+
+    private static <T> boolean isKnownNotMappedType(@Nonnull Class<T> of) {
+      return of == Object[].class
+          || of == String.class
+          || of == Boolean.class
+          || Number.class.isAssignableFrom(of);
     }
 
     @Override

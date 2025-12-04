@@ -30,33 +30,47 @@
 package org.hisp.dhis.datasource;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 public class StubDriver implements Driver {
   @Override
   public Connection connect(String s, Properties properties) throws SQLException {
-    Statement mockStatement = mock(Statement.class);
-    Connection mockConnection = mock(Connection.class);
-    given(mockConnection.createStatement()).willReturn(mockStatement);
-    return mockConnection;
+    Connection conn = mock(Connection.class);
+
+    AtomicBoolean readOnly = new AtomicBoolean(false);
+    doAnswer(
+            inv -> {
+              boolean ro = inv.getArgument(0);
+              readOnly.set(ro);
+              return null;
+            })
+        .when(conn)
+        .setReadOnly(org.mockito.ArgumentMatchers.anyBoolean());
+    when(conn.isReadOnly()).thenAnswer(inv -> readOnly.get());
+
+    Statement stmt = mock(Statement.class);
+    given(conn.createStatement()).willReturn(stmt);
+    return conn;
   }
 
   @Override
-  public boolean acceptsURL(String url) throws SQLException {
-    return url.equals("jdbc:fake:db");
+  public boolean acceptsURL(String url) {
+    return "jdbc:fake:db".equals(url);
   }
 
   @Override
-  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) throws SQLException {
+  public DriverPropertyInfo[] getPropertyInfo(String s, Properties properties) {
     return new DriverPropertyInfo[0];
   }
 
@@ -76,7 +90,7 @@ public class StubDriver implements Driver {
   }
 
   @Override
-  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+  public Logger getParentLogger() {
     return null;
   }
 }

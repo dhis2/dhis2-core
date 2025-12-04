@@ -7,11 +7,15 @@ services:
     security_opt:
       - seccomp:unconfined # Allow profiling syscalls
     environment:
-      JAVA_OPTS:
+      # JAVA_TOOL_OPTIONS: Standard JVM environment variable, works with all image types
+      # Note: Must include all JVM options from base docker-compose.yml since environment is replaced, not merged
+      JAVA_TOOL_OPTIONS:
         "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
+        -Xmx10000m -Xms10000m \
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
         -XX:+UnlockDiagnosticVMOptions \
         -XX:+DebugNonSafepoints" # Accurate profiling at all code locations
+    # Volumes merge with parent docker-compose.yml
     volumes:
         - async-profiler:/usr/local
         - async-profiler-output:/profiler-output

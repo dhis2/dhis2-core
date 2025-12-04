@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.datastatistics;
 
-import static java.util.Calendar.DATE;
-import static java.util.Calendar.MILLISECOND;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_CHART_VIEW;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_REPORT_VIEW;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_VISUALIZATION_VIEW;
@@ -40,6 +38,8 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -58,8 +58,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -121,25 +121,30 @@ public class DataStatisticsController {
 
   @GetMapping
   public @ResponseBody List<ObjectNode> getReports(
-      @RequestParam Date startDate,
-      @RequestParam Date endDate,
-      @RequestParam EventInterval interval,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate endDate,
+      @RequestParam(defaultValue = "DAY") EventInterval interval,
       @RequestParam(defaultValue = "*") List<String> fields,
       HttpServletResponse response)
       throws WebMessageException {
-    if (startDate.after(endDate)) {
+
+    if (endDate == null) {
+      endDate = startDate;
+    }
+
+    if (endDate.isBefore(startDate)) {
       throw new WebMessageException(conflict("Start date is after end date"));
     }
 
-    // The endDate is arriving as: "2019-09-28". After the conversion below
-    // it will become: "2019-09-28 23:59:59.999"
-    endDate = DateUtils.calculateDateFrom(endDate, 1, DATE);
-    endDate = DateUtils.calculateDateFrom(endDate, -1, MILLISECOND);
+    ZoneId zone = ZoneId.systemDefault();
+
+    Date start = Date.from(startDate.atStartOfDay(zone).toInstant());
+    Date end = Date.from(endDate.plusDays(1).atStartOfDay(zone).toInstant());
 
     setNoStore(response);
 
-    List<AggregatedStatistics> reports =
-        dataStatisticsService.getReports(startDate, endDate, interval);
+    List<AggregatedStatistics> reports = dataStatisticsService.getReports(start, end, interval);
 
     return fieldFilterService.toObjectNodes(FieldFilterParams.of(reports, fields));
   }

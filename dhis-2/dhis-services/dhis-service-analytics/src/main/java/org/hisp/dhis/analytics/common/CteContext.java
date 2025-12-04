@@ -340,6 +340,10 @@ public class CteContext {
     return endpointItem == EndpointItem.EVENT;
   }
 
+  public boolean isEnrollmentAnalytics() {
+    return endpointItem == EndpointItem.ENROLLMENT;
+  }
+
   public boolean containsCte(String cteName) {
     return cteDefinitions.containsKey(cteName);
   }

@@ -42,7 +42,8 @@ import org.mapstruct.factory.Mappers;
       DebugMapper.class,
       TrackedEntityTypeMapper.class,
       AttributeValuesMapper.class,
-      SharingMapper.class
+      SharingMapper.class,
+      ProgramStageDataElementMapper.class,
     })
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
@@ -76,5 +77,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "categoryCombo")
   @Mapping(target = "sharing")
   @Mapping(target = "accessLevel")
+  @Mapping(target = "enableChangeLog")
   Program mapProgram(Program p);
 }

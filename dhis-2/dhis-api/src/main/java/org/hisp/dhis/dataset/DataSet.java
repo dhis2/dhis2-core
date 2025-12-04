@@ -59,6 +59,7 @@ import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -73,6 +74,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserGroup;
 
 /**
@@ -781,5 +783,14 @@ public class DataSet extends BaseDimensionalItemObject
 
   public void setCompulsoryFieldsCompleteOnly(boolean compulsoryFieldsCompleteOnly) {
     this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
+  }
+
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return getTranslation("NAME", getName());
   }
 }

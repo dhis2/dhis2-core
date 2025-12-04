@@ -96,8 +96,8 @@ public class DataSetValueController {
     CategoryOptionCombo aoc =
         dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-    DataExportParams exportParams =
-        DataExportParams.builder()
+    DataExportParams.Input exportParams =
+        DataExportParams.Input.builder()
             .dataSet(Set.of(params.getDs()))
             .period(Set.of(params.getPe()))
             .orgUnit(Set.of(params.getOu()))

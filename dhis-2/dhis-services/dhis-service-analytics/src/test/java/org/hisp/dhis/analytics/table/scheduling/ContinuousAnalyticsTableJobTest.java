@@ -37,9 +37,10 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.common.TableInfoReader;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -56,19 +57,17 @@ class ContinuousAnalyticsTableJobTest {
 
   @Mock private TableInfoReader tableInfoReader;
 
+  @Mock private PostgreSqlBuilder sqlBuilder;
+
   @InjectMocks private ContinuousAnalyticsTableJob job;
 
   private final Date dateA = getDate(2024, 1, 4, 23, 0);
   private final Date dateB = getDate(2024, 1, 5, 2, 0);
   private final Date dateC = getDate(2024, 1, 5, 8, 0);
 
-  @BeforeEach
-  public void beforeEach() {
-    when(settingsService.getCurrentSettings()).thenReturn(settings);
-  }
-
   @Test
   void testRunFullUpdate() {
+    when(settingsService.getCurrentSettings()).thenReturn(settings);
     when(settings.getNextAnalyticsTableUpdate()).thenReturn(dateB);
 
     assertFalse(job.runFullUpdate(dateA));
@@ -77,9 +76,39 @@ class ContinuousAnalyticsTableJobTest {
 
   @Test
   void testRunFullUpdateNullNextUpdate() {
+    when(settingsService.getCurrentSettings()).thenReturn(settings);
     when(settings.getNextAnalyticsTableUpdate()).thenReturn(new Date(0L));
 
     assertTrue(job.runFullUpdate(dateA));
     assertTrue(job.runFullUpdate(dateC));
+  }
+
+  @Test
+  void testRunContinuousJobWhenOutlierIsSkipped() {
+    // First case.
+    when(sqlBuilder.supportsPercentileCont()).thenReturn(true);
+
+    ContinuousAnalyticsJobParameters params = new ContinuousAnalyticsJobParameters();
+    params.setSkipOutliers(true);
+
+    assertTrue(job.skipOutliers(params));
+
+    // Second case.
+    when(sqlBuilder.supportsPercentileCont()).thenReturn(false);
+
+    ContinuousAnalyticsJobParameters params1 = new ContinuousAnalyticsJobParameters();
+    params1.setSkipOutliers(false);
+
+    assertTrue(job.skipOutliers(params));
+  }
+
+  @Test
+  void testRunContinuousJobWhenOutlierIsNotSkipped() {
+    when(sqlBuilder.supportsPercentileCont()).thenReturn(true);
+
+    ContinuousAnalyticsJobParameters params = new ContinuousAnalyticsJobParameters();
+    params.setSkipOutliers(false);
+
+    assertFalse(job.skipOutliers(params));
   }
 }

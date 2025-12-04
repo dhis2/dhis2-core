@@ -98,6 +98,9 @@ public enum ConfigurationKey {
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
 
+  /** Read replica database connection URL. */
+  READ_REPLICA_CONNECTION_URL("read.replica.connection.url", "", false),
+
   /**
    * If present, overrides the connection.url value - useful when running Apache Doris in a
    * container
@@ -574,12 +577,6 @@ public enum ConfigurationKey {
    */
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
-  /**
-   * Enable/disable changelog/history log of tracker data values. <br>
-   * (default: on)
-   */
-  CHANGELOG_TRACKER("changelog.tracker", Constants.ON),
-
   /** Use in-memory queue before sending audits into the Artemis queue. (default: off). */
   AUDIT_USE_IN_MEMORY_QUEUE_ENABLED(
       "audit.in_memory-queue.enabled",
@@ -743,7 +740,9 @@ public enum ConfigurationKey {
 
   /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
-      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
+      "switch_user_allow_listed_ips",
+      "localhost,127.0.0.1,[0:0:0:0:0:0:0:1],0:0:0:0:0:0:0:1",
+      false),
 
   /** Maximun size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),

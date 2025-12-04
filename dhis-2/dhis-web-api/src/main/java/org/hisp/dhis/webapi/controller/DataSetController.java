@@ -95,7 +95,6 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.webapi.utils.FormUtils;
@@ -278,7 +277,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       throw new NotFoundException(OrganisationUnit.class, orgUnit);
     }
 
-    Period pe = PeriodType.getPeriodFromIsoString(period);
+    Period pe = Period.ofNullable(period);
 
     return getForm(List.of(getEntity(uid)), ou, pe, categoryOptions, metaData);
   }
@@ -301,7 +300,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       throw new NotFoundException(OrganisationUnit.class, orgUnit);
     }
 
-    Period pe = PeriodType.getPeriodFromIsoString(period);
+    Period pe = Period.of(period);
 
     Form form = getForm(List.of(getEntity(uid)), ou, pe, categoryOptions, metaData);
 
@@ -338,8 +337,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
                       .getAttributeOptionCombo(dataSet.getCategoryCombo(), options, IdScheme.UID)
                       .getUid());
 
-      DataExportParams params =
-          DataExportParams.builder()
+      DataExportParams.Input params =
+          DataExportParams.Input.builder()
               .dataElement(
                   dataSets.get(0).getDataElements().stream()
                       .map(DataElement::getUid)

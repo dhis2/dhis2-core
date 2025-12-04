@@ -53,11 +53,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTempOwnerService;
-import org.hisp.dhis.program.ProgramTempOwnershipAudit;
-import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -81,9 +77,9 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Mock private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  @Mock private ProgramTempOwnershipAuditService programTempOwnershipAuditService;
+  @Mock private HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
 
-  @Mock private ProgramTempOwnerService programTempOwnerService;
+  @Mock private HibernateProgramTempOwnerStore programTempOwnerStore;
 
   @Mock private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
@@ -122,8 +118,8 @@ class DefaultTrackerOwnershipManagerTest {
             userService,
             trackedEntityProgramOwnerService,
             cacheProvider,
-            programTempOwnershipAuditService,
-            programTempOwnerService,
+            programTempOwnershipAuditStore,
+            programTempOwnerStore,
             programOwnershipHistoryService,
             programService,
             trackerProgramService,
@@ -164,7 +160,7 @@ class DefaultTrackerOwnershipManagerTest {
 
     trackerOwnershipManager.grantTemporaryOwnership(UID.of(trackedEntity), UID.of(program), reason);
 
-    verify(programTempOwnershipAuditService, times(1))
+    verify(programTempOwnershipAuditStore, times(1))
         .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
   }
 
@@ -179,7 +175,7 @@ class DefaultTrackerOwnershipManagerTest {
 
     trackerOwnershipManager.grantTemporaryOwnership(UID.of(trackedEntity), UID.of(program), reason);
 
-    verify(programTempOwnershipAuditService, never())
+    verify(programTempOwnershipAuditStore, never())
         .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
   }
 

@@ -227,7 +227,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns =
         Lists.newArrayList(
-            "count(event) as count", "ST_Extent(" + sqlClusterFields + ") as extent");
+            "count(event) as count", String.format("ST_Extent(%s) as extent", sqlClusterFields));
 
     columns.add(
         "case when count(event) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
@@ -249,11 +249,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     sql += getWhereClause(params);
 
     sql +=
-        "group by ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_Centroid("
-            + sqlClusterFields
-            + "), 4326), 3785), "
-            + params.getClusterSize()
-            + ") ";
+        String.format(
+            "group by ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_Centroid(%s), 4326), 3785), %d) ",
+            sqlClusterFields, params.getClusterSize());
 
     log.debug("Analytics event cluster SQL: '{}'", sql);
 
@@ -989,7 +987,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     columns.forEach(
         column -> {
-          if (columnIsInFormula(column) || hasColunnPrefix(column, "ax")) {
+          if (columnIsInFormula(column) || hasColumnPrefix(column, "ax")) {
             sb.addColumn(column);
           } else {
             sb.addColumn(column, "ax");
@@ -1015,7 +1013,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
   }
 
-  private boolean hasColunnPrefix(String column, String prefix) {
+  /**
+   * Checks if the given column starts with the given prefix.
+   *
+   * @param column the column name.
+   * @return true if the column starts with the given prefix, false otherwise.
+   */
+  private boolean hasColumnPrefix(String column, String prefix) {
     return column.startsWith(prefix + ".");
   }
 
@@ -1025,7 +1029,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   @Override
-  CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
+  protected CteContext getCteDefinitions(EventQueryParams params, CteContext cteContext) {
     if (cteContext == null) {
       cteContext = new CteContext(EndpointItem.EVENT);
     }
