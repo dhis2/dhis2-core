@@ -355,6 +355,9 @@ public enum ErrorCode {
   E4083(
       "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
   E4084("ProgramStage `{0}` is not part of Program `{1}`"),
+  E4085("Program is required for tracker data synchronization job"),
+  E4086("Program `{0}` does not exist"),
+  E4087("Program `{0}` must be of type `{1}`"),
 
   /* SQL views */
   E4300("SQL query is null"),

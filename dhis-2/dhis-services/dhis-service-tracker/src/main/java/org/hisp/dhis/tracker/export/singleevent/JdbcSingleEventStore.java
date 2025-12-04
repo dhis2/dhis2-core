@@ -43,6 +43,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -134,6 +135,7 @@ class JdbcSingleEventStore {
   private static final String COLUMN_PROGRAM_STAGE_CODE = "ps_code";
   private static final String COLUMN_PROGRAM_STAGE_NAME = "ps_name";
   private static final String COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES = "ps_attributevalues";
+  private static final String COLUMN_EVENT_LAST_UPDATED_GT = " ev.lastupdated >= ";
   private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
   private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
   private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
@@ -404,6 +406,24 @@ class JdbcSingleEventStore {
         });
   }
 
+  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
+    if (eventUids.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        """
+                UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+                """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", eventUids);
+
+    jdbcTemplate.update(sql, parameters);
+  }
+
   private EventDataValue parseEventDataValue(
       TrackerIdSchemeParam dataElementIdScheme, ResultSet resultSet) throws SQLException {
     String dataValueResult = resultSet.getString("ev_eventdatavalue");
@@ -466,7 +486,7 @@ class JdbcSingleEventStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private long getEventCount(SingleEventQueryParams params) {
+  public long getEventCount(SingleEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     String sql;
@@ -589,7 +609,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(COLUMN_EVENT_STATUS)
             .append(", ev.occurreddate as ")
             .append(COLUMN_EVENT_OCCURRED_DATE)
-            .append(", ev.eventdatavalues as ")
+            .append(", ")
+            .append(getEventDataValuesProjectionForSelectClause(params, mapSqlParameterSource))
+            .append(" as ")
             .append(COLUMN_EVENT_DATAVALUES)
             .append(", ev.completedby as ")
             .append(COLUMN_EVENT_COMPLETED_BY)
@@ -720,6 +742,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       sqlParameters.addValue("endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
+    }
+
+    if (params.isSynchronizationQuery()) {
+      fromBuilder.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
+    }
+
+    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
+      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(COLUMN_EVENT_LAST_UPDATED_GT)
+          .append(":skipChangedBefore ");
     }
 
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
@@ -1050,5 +1085,48 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
     }
+  }
+
+  /**
+   * Returns either the original event data values or a filtered version, depending on the "skip
+   * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
+   * single event synchronization.
+   */
+  private String getEventDataValuesProjectionForSelectClause(
+      SingleEventQueryParams params, MapSqlParameterSource sqlParameters) {
+    if (!params.isSynchronizationQuery()
+        || params.getSkipSyncDataElementsByProgramStage() == null
+        || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
+
+      return "ev.eventdatavalues";
+    }
+
+    StringBuilder caseStatement = new StringBuilder("CASE ");
+
+    int caseCounter = 0;
+    for (Map.Entry<String, Set<String>> entry :
+        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
+      String programStageUid = entry.getKey();
+      Set<String> dataElementUids = entry.getValue();
+
+      if (!dataElementUids.isEmpty()) {
+        String paramName = "filter_de_" + caseCounter++;
+        sqlParameters.addValue(paramName, dataElementUids);
+
+        caseStatement
+            .append("WHEN ps.uid = '")
+            .append(programStageUid)
+            .append("' THEN ")
+            .append("(SELECT jsonb_object_agg(key, value) ")
+            .append("FROM jsonb_each(ev.eventdatavalues) ")
+            .append("WHERE key NOT IN (:")
+            .append(paramName)
+            .append(")) ");
+      }
+    }
+
+    caseStatement.append("ELSE ev.eventdatavalues END");
+
+    return caseStatement.toString();
   }
 }

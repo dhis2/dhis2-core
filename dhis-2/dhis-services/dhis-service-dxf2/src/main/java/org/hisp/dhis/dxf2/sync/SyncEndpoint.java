@@ -42,7 +42,8 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum SyncEndpoint {
   COMPLETE_DATA_SET_REGISTRATIONS("/api/completeDataSetRegistrations", ImportSummary.class),
-  DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class);
+  DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class),
+  TRACKER_IMPORT("/api/tracker", ImportSummary.class);
 
   private final String path;
 

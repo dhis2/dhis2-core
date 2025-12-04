@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import java.util.Date;
-import lombok.Getter;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
+import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
- * @author Jan Bernitt (refactoring to interface and state class)
+ * Base class for tracker data synchronization jobs that require paging support and an associated
+ * Program UID context. Extends {@link DataSynchronizationWithPaging} to add tracker-specific
+ * synchronization behavior.
  */
-public interface DataSynchronizationWithPaging {
-  @Getter
-  class PagedDataSynchronisationContext
-      extends DataSynchronizationWithoutPaging.DataSynchronizationContext {
-    private final int pages;
+public abstract class TrackerDataSynchronizationWithPaging
+    implements DataSynchronizationWithPaging {
 
-    private final int pageSize;
+  /**
+   * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
+   *
+   * @param pageSize number of records per page
+   * @param progress job progress reporter
+   * @param programUid uid of the program whose tracker data should be synchronized
+   * @return result of synchronization
+   */
+  public abstract SynchronizationResult synchronizeTrackerData(
+      int pageSize, JobProgress progress, @Nonnull String programUid);
 
-    public PagedDataSynchronisationContext(
-        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
-      super(skipChangedBefore, objectsToSynchronize, instance);
-      this.pageSize = pageSize;
-      this.pages =
-          (int) (objectsToSynchronize / pageSize)
-              + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
-    }
+  /**
+   * This method from {@link DataSynchronizationWithPaging} is not directly used here.
+   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress, UID)} instead
+   * when a program context is available.
+   */
+  @Override
+  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
+    throw new UnsupportedOperationException(
+        "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
   }
-
-  SynchronizationResult synchronizeData(final int pageSize, JobProgress progress);
 }

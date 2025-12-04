@@ -62,11 +62,12 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 public class SyncUtils {
-  static final String HEADER_AUTHORIZATION = "Authorization";
-
+  public static final String HEADER_AUTHORIZATION = "Authorization";
   private static final String PING_PATH = "/api/system/ping";
 
-  private SyncUtils() {}
+  private SyncUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
   /**
    * Sends a synchronization request to the {@code syncUrl} and analyzes the returned summary
@@ -78,7 +79,7 @@ public class SyncUtils {
    * @param endpoint Endpoint against which the sync request is run
    * @return True if sync was successful, false otherwise
    */
-  static boolean sendSyncRequest(
+  public static boolean sendSyncRequest(
       SystemSettings settings,
       RestTemplate restTemplate,
       RequestCallback requestCallback,
@@ -218,7 +219,7 @@ public class SyncUtils {
    * @param restTemplate Reference to RestTemplate
    * @return AvailabilityStatus that says whether the server is available or not
    */
-  static AvailabilityStatus testServerAvailability(
+  public static AvailabilityStatus testServerAvailability(
       SystemSettings settings, RestTemplate restTemplate) {
     final int maxAttempts = settings.getSyncMaxRemoteServerAvailabilityCheckAttempts();
     final int delayBetweenAttempts =
@@ -364,7 +365,7 @@ public class SyncUtils {
     return true;
   }
 
-  static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
+  public static SystemInstance getRemoteInstance(SystemSettings settings, SyncEndpoint endpoint) {
     String username = settings.getRemoteInstanceUsername();
     String password = settings.getRemoteInstancePassword();
     String syncUrl = settings.getRemoteInstanceUrl() + endpoint.getPath();

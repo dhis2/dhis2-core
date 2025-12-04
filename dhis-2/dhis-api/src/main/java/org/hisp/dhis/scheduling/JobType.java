@@ -58,6 +58,7 @@ import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
@@ -80,6 +81,7 @@ public enum JobType {
   RESOURCE_TABLE(),
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
+  SINGLE_EVENT_DATA_SYNC(SingleEventDataSynchronizationJobParameters.class),
   DATA_SYNC(DataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
@@ -200,7 +202,10 @@ public enum JobType {
    *     (System User will not work).
    */
   public boolean isValidUserRequiredForJob() {
-    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE || this == META_DATA_SYNC;
+    return this == HTML_PUSH_ANALYTICS
+        || this == AGGREGATE_DATA_EXCHANGE
+        || this == META_DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC;
   }
 
   /**
@@ -219,6 +224,7 @@ public enum JobType {
         || this == VALIDATION_RESULTS_NOTIFICATION
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC
         || this == SMS_SEND
         || this == PUSH_ANALYSIS
         || this == PREDICTOR
