@@ -25,42 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.monitoring;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import static org.hamcrest.Matchers.containsString;
 
-/**
- * Various information about the HTTP request made available to the system.
- *
- * @author Jan Bernitt
- */
-@Getter
-@Builder(toBuilder = true)
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class RequestInfo {
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-  @JsonProperty private final String headerXRequestID;
+/** Tests for the /api/metrics endpoint (Prometheus scrape endpoint). */
+public class MetricsEndpointTest extends ApiTest {
+  private RestApiActions metricsActions;
 
-  /**
-   * Since the xRequestID is a user provided input that will be used in logs and potentially other
-   * places we need to make sure it is secure to be used. Therefore, it is limited to unique
-   * identifier patterns such as UUID strings or the UIDs used by DHIS2.
-   *
-   * <p>A valid ID is alphanumeric (which dash and underscored being allowed too) and has a length
-   * between 1 and 36.
-   *
-   * @param xRequestID the ID to check, may be null
-   * @return true, if the provided ID is legal (null is legal) or false if it is not
-   */
-  public static boolean isValidXRequestID(String xRequestID) {
-    return xRequestID == null || xRequestID.matches("[-_a-zA-Z0-9]{1,36}");
+  private LoginActions loginActions;
+
+  @BeforeAll
+  public void setUp() {
+    loginActions = new LoginActions();
+    metricsActions = new RestApiActions("/metrics");
+  }
+
+  @Test
+  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+    loginActions.loginAsSuperUser();
+
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
+
+    response
+        .validate()
+        .statusCode(200)
+        .body(containsString("# HELP"))
+        .body(containsString("# TYPE"));
   }
 }

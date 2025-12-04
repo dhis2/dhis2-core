@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,65 +27,61 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
-
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.util.regex.Pattern;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * This filter places an hashed version of the Session ID in the Log4j Mapped Diagnostic Context
- * (MDC) of log4j. The session id is then logged in all log statements and can be used to correlate
- * different requests.
+ * Filter that captures the X-Request-ID header and adds it to the Mapped Diagnostic Context (MDC)
+ * for logging. Access via {@code %X{xRequestID}} in log4j2 pattern layouts.
  *
- * @author Luciano Fiandesio
+ * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
+ * @see <a
+ *     href="https://logging.apache.org/log4j/2.x/manual/pattern-layout.html#converter-thread-context-map">Pattern
+ *     Layout Thread Context Map</a>
  */
-@Slf4j
-@Component
-public class RequestIdentifierFilter extends OncePerRequestFilter {
-  private static final String SESSION_ID_KEY = "sessionId";
+@Component("requestIdFilter")
+public class RequestIdFilter extends OncePerRequestFilter {
 
-  /** The hash algorithm to use. */
-  private static final String HASH_ALGO = "SHA-256";
+  /** MDC key for the X-Request-ID header value. Use {@code %X{xRequestID}} in log patterns. */
+  private static final String X_REQUEST_ID = "xRequestID";
 
-  private static final String IDENTIFIER_PREFIX = "ID";
-
-  private final boolean enabled;
-
-  public RequestIdentifierFilter(DhisConfigurationProvider dhisConfig) {
-    this.enabled = dhisConfig.isEnabled(LOGGING_REQUEST_ID_ENABLED);
-  }
+  /** Pattern for valid request IDs: alphanumeric, dash, and underscore, 1-36 characters. */
+  private static final Pattern VALID_REQUEST_ID_PATTERN = Pattern.compile("[-_a-zA-Z0-9]{1,36}");
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    if (enabled) {
-      try {
-        MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
-
-      } catch (NoSuchAlgorithmException e) {
-        log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
+    try {
+      String xRequestID = request.getHeader("X-Request-ID");
+      if (xRequestID != null) {
+        MDC.put(X_REQUEST_ID, sanitizeXRequestID(xRequestID));
       }
+      filterChain.doFilter(request, response);
+    } finally {
+      MDC.remove(X_REQUEST_ID);
     }
-
-    chain.doFilter(req, res);
   }
 
-  static String hashToBase64(String sessionId) throws NoSuchAlgorithmException {
-    byte[] data = sessionId.getBytes();
-    MessageDigest digester = MessageDigest.getInstance(HASH_ALGO);
-    digester.update(data);
-    return Base64.getEncoder().encodeToString(digester.digest());
+  /**
+   * Since the xRequestID is a user provided input that will be used in logs and potentially other
+   * places we need to make sure it is secure to be used. Therefore, it is limited to unique
+   * identifier patterns such as UUID strings or the UIDs used by DHIS2.
+   *
+   * <p>A valid ID is alphanumeric (with dash and underscore being allowed too) and has a length
+   * between 1 and 36.
+   *
+   * @param xRequestID the ID to sanitize
+   * @return the sanitized ID or "(illegal)" if the provided ID is invalid
+   */
+  private static String sanitizeXRequestID(String xRequestID) {
+    return VALID_REQUEST_ID_PATTERN.matcher(xRequestID).matches() ? xRequestID : "(illegal)";
   }
 }
