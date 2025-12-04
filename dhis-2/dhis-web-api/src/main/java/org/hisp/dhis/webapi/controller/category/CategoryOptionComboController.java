@@ -115,28 +115,6 @@ public class CategoryOptionComboController
     return WebMessageUtils.conflict(E1129);
   }
 
-  //
-  //  @Beta
-  //  @Override
-  //  @ResponseStatus(HttpStatus.OK)
-  //  @PutMapping(value = "/{uid}", consumes = APPLICATION_JSON_VALUE)
-  //  public WebMessage putJsonObject(
-  //      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-  //      @CurrentUser UserDetails currentUser,
-  //      HttpServletRequest request)
-  //      throws NotFoundException, ForbiddenException {
-  //
-  //    CategoryOptionCombo persisted = getEntity(pvUid);
-  //
-  //    if (!aclService.canUpdate(CurrentUserUtil.getCurrentUserDetails(), persisted)) {
-  //      throw new ForbiddenException("You don't have the proper permissions to update this
-  // object.");
-  //    }
-  //
-  //    categoryOptionComboService.update(persisted, cocUpdateDto);
-  //    return WebMessageUtils.ok();
-  //  }
-
   /**
    * When updating a single COC, only updating the code & ignoreApproval fields are allowed
    *
