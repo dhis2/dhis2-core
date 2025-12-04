@@ -202,6 +202,12 @@
 
         <property name="hideNaData"/>
 
+        <property name="hideEmptyColumns"/>
+
+        <property name="fixColumnHeaders"/>
+
+        <property name="fixRowHeaders"/>
+
         <property name="programStatus" length="40">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.program.EnrollmentStatus</param>

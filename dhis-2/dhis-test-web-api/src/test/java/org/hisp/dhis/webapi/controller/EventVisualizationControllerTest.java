@@ -659,9 +659,15 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   void testPost() {
     // Given
     String body =
-        "{'name': 'Test post', 'type': 'LINE_LIST', 'program': {'id': '"
-            + mockProgram.getUid()
-            + "'}, 'skipRounding': true}";
+        """
+          {"name": "Test post", "type": "LINE_LIST",
+              "program": {"id": "deabcdefghP"},
+              "skipRounding": true,
+              "hideEmptyColumns": true,
+              "fixColumnHeaders": false,
+              "fixRowHeaders": true
+          }
+        """;
 
     // When
     String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
@@ -673,6 +679,9 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("type").node().value(), is(equalTo("LINE_LIST")));
     assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
     assertThat(response.get("skipRounding").node().value(), is(equalTo(true)));
+    assertThat(response.get("hideEmptyColumns").node().value(), is(equalTo(true)));
+    assertThat(response.get("fixColumnHeaders").node().value(), is(equalTo(false)));
+    assertThat(response.get("fixRowHeaders").node().value(), is(equalTo(true)));
   }
 
   @Test
