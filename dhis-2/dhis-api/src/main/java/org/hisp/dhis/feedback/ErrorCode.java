@@ -65,6 +65,13 @@ public enum ErrorCode {
       "Option set `{0}` of value type multi-text cannot have option codes with the separator character: `{1}`"),
   E1119("{0} already exists: `{1}`"),
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
+  E1121("Data element `{0}` value type cannot be changed as it has associated data values"),
+
+  E1122("Category option combo {0} cannot be associated with the default category combo"),
+  E1125("Category option combo {0} contains options not associated with category combo {1}"),
+  E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
+  E1127("Category {0} cannot have more than {1} options, but had: {2} "),
+  E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -453,7 +460,7 @@ public enum ErrorCode {
   E7149("Invalid measure filter operator: `{0}`"),
   E7150("No periods found for subexpression query"),
   E7151("Too many combinations of columns or rows."),
-
+  E7152("Periods as filter not supported with Indicator with period offset"),
   /* Analytics outliers */
 
   E7180(
