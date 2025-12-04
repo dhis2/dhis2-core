@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -61,6 +63,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -741,6 +744,41 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasStageInValue() {
     return isNotBlank(requestValue) && requestValue.contains(DIMENSION_IDENTIFIER_SEP);
+  }
+
+  /**
+   * Returns true if any query item has a program stage (stage-specific dimension). This includes
+   * dimensions like stageUid.EVENT_DATE, stageUid.SCHEDULED_DATE, stageUid.EVENT_STATUS, and
+   * stageUid.ou.
+   */
+  public boolean hasStageSpecificItem() {
+    return getItemsAndItemFilters().stream().anyMatch(QueryItem::hasProgramStage);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific date dimension (EVENT_DATE or
+   * SCHEDULED_DATE).
+   */
+  public boolean hasStageDateItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageDateItem(item));
+  }
+
+  /**
+   * Returns duplicate stage dimension identifiers (stageUid.itemId combinations). A duplicate
+   * occurs when the same stage and identifier are used more than once.
+   */
+  public Set<String> getDuplicateStageDimensionIdentifiers() {
+    Map<String, Long> counts =
+        getItemsAndItemFilters().stream()
+            .filter(QueryItem::hasProgramStage)
+            .map(item -> item.getProgramStage().getUid() + "." + item.getItemId())
+            .collect(groupingBy(Function.identity(), counting()));
+
+    return counts.entrySet().stream()
+        .filter(e -> e.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(toSet());
   }
 
   /**
