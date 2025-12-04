@@ -58,7 +58,7 @@ import org.hisp.dhis.program.SingleEvent;
 public class SingleEventChangeLog {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(name = "eventchangelog_sequence")
+  @SequenceGenerator(sequenceName = "singleeventchangelog_sequence")
   @Column(name = "eventchangelogid")
   private long id;
 
