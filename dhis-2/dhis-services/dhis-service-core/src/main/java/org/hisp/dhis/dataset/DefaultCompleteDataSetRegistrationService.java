@@ -83,6 +83,12 @@ public class DefaultCompleteDataSetRegistrationService
 
   @Override
   @Transactional
+  public void importCompletion(DataSetCompletion completion) {
+    // TODO
+  }
+
+  @Override
+  @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration)
       throws ConflictException {
     checkCompulsoryDeOperands(registration);
