@@ -164,7 +164,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         useExperimentalAnalyticsQueryEngine()
             ? buildAnalyticsQuery(params, maxLimit)
             : getAggregatedEnrollmentsSql(params, maxLimit);
-    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -534,7 +533,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Periods
     // ---------------------------------------------------------------------
 
-    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+    // Skip global time field filter when stage-specific date items are present,
+    // as they already include their own date filters with program stage conditions
+    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
+        && !params.hasStageDateItem()) {
       String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
       if (StringUtils.isNotBlank(timeFieldSql)) {
         sql += hlp.whereAnd() + " " + timeFieldSql;

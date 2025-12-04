@@ -543,7 +543,8 @@ class EventQueryValidatorTest extends TestBase {
 
     BaseDimensionalItemObject dateItem =
         new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
-    QueryItem qiDate = new QueryItem(dateItem, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    QueryItem qiDate =
+        new QueryItem(dateItem, prA, null, ValueType.DATE, AggregationType.NONE, null);
     qiDate.setProgramStage(psA);
 
     BaseDimensionalItemObject statusItem =
