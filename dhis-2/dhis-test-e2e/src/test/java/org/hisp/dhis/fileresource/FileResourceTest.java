@@ -40,6 +40,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import java.io.File;
+import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.junit.jupiter.api.BeforeAll;
@@ -397,6 +399,37 @@ class FileResourceTest extends ApiTest {
     fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
   }
 
+  @Test
+  @DisplayName("Adding an org unit image results in 3 extra images saved (small, medium, large)")
+  void orgUnitMultiImageTest() {
+    // when creating an org unit file
+    File file = new File("src/test/resources/fileResources/dhis2.png");
+    String frUid = postFileResource(file, "ORG_UNIT");
+
+    assertTrue(frUid != null && !frUid.isEmpty());
+
+    // wait 3 seconds at most until a valid file size is retrieved
+    Awaitility.await().atMost(3, TimeUnit.SECONDS).until(() -> twoDiffFileSizesPresent(frUid));
+
+    // then there are small, medium & large versions of the original file
+    long small = getFileResourceSizeByDimension(frUid, "small");
+    long medium = getFileResourceSizeByDimension(frUid, "medium");
+    long large = getFileResourceSizeByDimension(frUid, "large");
+
+    // all are valid sizes
+    assertTrue(small > 0 && medium > 0 && large > 0);
+
+    // 3 different sizes exist
+    assertTrue(large > medium);
+    assertTrue(medium > small);
+  }
+
+  private Boolean twoDiffFileSizesPresent(String frUid) {
+    long small = getFileResourceSizeByDimension(frUid, "small");
+    long medium = getFileResourceSizeByDimension(frUid, "medium");
+    return small > 0 && small < medium;
+  }
+
   private String postFileResource(File file, String domain) {
     return given()
         .multiPart("file", file, "image/png")
@@ -408,5 +441,13 @@ class FileResourceTest extends ApiTest {
         .statusCode(202)
         .extract()
         .path("response.fileResource.id");
+  }
+
+  private long getFileResourceSizeByDimension(String uid, String dimension) {
+    Response response =
+        given().param("dimension", dimension).when().get("/fileResources/" + uid + "/data");
+
+    String header = response.getHeader("Content-Length");
+    return header != null ? Long.parseLong(header) : -1;
   }
 }

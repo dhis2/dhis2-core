@@ -303,7 +303,11 @@ public class FileResourceUtils {
           resize(
               ImageIO.read(multipartFile.getInputStream()), resizeMode, targetWidth, targetHeight);
 
-      tmpFile = Files.createTempFile("org.hisp.dhis", ".tmp").toFile();
+      tmpFile =
+          Files.createTempFile(
+                  "org.hisp.dhis",
+                  "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename()))
+              .toFile();
 
       ImageIO.write(
           resizedImage,

@@ -139,7 +139,7 @@ public class FileResourceController
 
     if (!checkSharing(fileResource, currentUser)) {
       throw new ForbiddenException(
-          String.format("File resource not found or not accessible: %s}'", uid));
+          String.format("File resource not found or not accessible: %s", uid));
     }
 
     response.setContentType(fileResource.getContentType());
