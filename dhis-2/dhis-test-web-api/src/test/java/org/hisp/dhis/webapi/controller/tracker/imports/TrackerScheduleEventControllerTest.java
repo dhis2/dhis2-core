@@ -32,6 +32,8 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -65,6 +67,11 @@ import org.springframework.transaction.annotation.Transactional;
 class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTestBase {
   private static final String INVALID_DATE = "2025-22-22";
   private static final String DATE_TODAY = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+  private static final String DATE_NEXT_WEEK =
+      LocalDate.now()
+          .plusWeeks(1)
+          .atStartOfDay()
+          .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
 
   private User importUser;
   private User readOnlyUser;
@@ -197,7 +204,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     createProgramRuleWithAction(
         'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageA, programStageB);
     JsonImportReport importReport =
-        POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-11-11"))
+        POST("/tracker?async=false&reportMode=FULL", buildEventJson(DATE_NEXT_WEEK))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 
@@ -217,7 +224,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
     createProgramRuleWithAction(
         'R', "V{current_date}!=V{event_date}", "V{current_date}", programStageA, programStageB);
     JsonImportReport importReport =
-        POST("/tracker?async=false&reportMode=FULL", buildEventJson("2025-11-11"))
+        POST("/tracker?async=false&reportMode=FULL", buildEventJson(DATE_NEXT_WEEK))
             .content(HttpStatus.OK)
             .as(JsonImportReport.class);
 
@@ -252,7 +259,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
                     .formatted(
                         eventUid,
                         enrollment.getUid(),
-                        "2025-11-11",
+                        DATE_NEXT_WEEK,
                         enrollment.getOrganisationUnit().getUid(),
                         enrollment.getProgram().getUid(),
                         programStageA.getUid(),

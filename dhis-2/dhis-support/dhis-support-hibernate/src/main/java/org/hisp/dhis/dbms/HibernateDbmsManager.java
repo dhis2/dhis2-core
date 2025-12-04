@@ -95,6 +95,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("report");
     emptyTable("datastatisticsevent");
+    emptyTable("datastatistics");
 
     emptyTable("visualization_yearlyseries");
     emptyTable("visualization_rows");

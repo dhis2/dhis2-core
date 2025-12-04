@@ -671,7 +671,6 @@ public class DefaultUserService implements UserService {
   public int getActiveUsersCount(Date since) {
     UserQueryParams params = new UserQueryParams();
     params.setLastLogin(since);
-
     return getUserCount(params);
   }
 
@@ -828,6 +827,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays) {
     return userStore.getExpiringUserAccounts(inDays);
   }
@@ -886,6 +886,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<User> getUsersWithAuthority(String authority) {
     return userStore.getHasAuthority(authority);
   }
@@ -1492,6 +1493,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<User> getUsersWithOrgUnits(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids) {
     return userStore.getUsersWithOrgUnit(orgUnitProperty, uids);

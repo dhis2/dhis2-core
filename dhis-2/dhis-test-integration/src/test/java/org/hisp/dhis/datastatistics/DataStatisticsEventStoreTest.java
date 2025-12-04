@@ -99,35 +99,27 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void getDataStatisticsEventCountTest() {
-    // When
-    final Map<DataStatisticsEventType, Double> eventsMap =
+    final Map<DataStatisticsEventType, Long> eventsMap =
         dataStatisticsEventStore.getDataStatisticsEventCount(start, end);
 
-    // Then
     // Test for 6 objects because TOTAL_VIEW and ACTIVE_USERS is always present.
     assertEquals(6, eventsMap.size());
   }
 
   @Test
   void getDataStatisticsEventCountCorrectContentTest() {
-    // Given
-    final double expectedSize = 1.0;
-
-    // When
-    final Map<DataStatisticsEventType, Double> eventsMap =
+    final Map<DataStatisticsEventType, Long> eventsMap =
         dataStatisticsEventStore.getDataStatisticsEventCount(start, end);
 
-    // Then
-    assertEquals(expectedSize, eventsMap.get(VISUALIZATION_VIEW));
-    assertEquals(expectedSize, eventsMap.get(EVENT_CHART_VIEW));
-    assertEquals(expectedSize, eventsMap.get(DASHBOARD_VIEW));
-    assertEquals(expectedSize, eventsMap.get(PASSIVE_DASHBOARD_VIEW));
+    assertEquals(1, eventsMap.get(VISUALIZATION_VIEW));
+    assertEquals(1, eventsMap.get(EVENT_CHART_VIEW));
+    assertEquals(1, eventsMap.get(DASHBOARD_VIEW));
+    assertEquals(1, eventsMap.get(PASSIVE_DASHBOARD_VIEW));
   }
 
   @Test
   void getDataStatisticsEventCountNonExistingDatesTest() {
-    // When
-    final Map<DataStatisticsEventType, Double> eventsMap =
+    final Map<DataStatisticsEventType, Long> eventsMap =
         dataStatisticsEventStore.getDataStatisticsEventCount(new Date(), new Date());
 
     // Test that the map contains the TOTAL_VIEW and ACTIVE_USERS keys

@@ -29,6 +29,19 @@
  */
 package org.hisp.dhis.tracker.export.singleevent;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import java.util.Date;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,31 +49,50 @@ import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.UserInfoSnapshot;
 
+@Entity
+@Table(name = "singleeventchangelog")
 @NoArgsConstructor
 @Getter
 @Setter
 public class SingleEventChangeLog {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @SequenceGenerator(sequenceName = "singleeventchangelog_sequence")
+  @Column(name = "eventchangelogid")
   private long id;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "eventid",
+      foreignKey = @ForeignKey(name = "fk_eventchangelog_eventid"),
+      nullable = false)
   private SingleEvent event;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "dataelementid",
+      foreignKey = @ForeignKey(name = "fk_eventchangelog_dataelementid"))
   private DataElement dataElement;
 
+  @Column(name = "eventfield", length = 100)
   private String eventField;
 
+  @Column(name = "previousvalue", length = 50000)
   private String previousValue;
 
+  @Column(name = "currentvalue", length = 50000)
   private String currentValue;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "changelogtype", length = 100, nullable = false)
   private ChangeLogType changeLogType;
 
+  @Column(name = "created", nullable = false)
   private Date created;
 
-  private String createdByUsername;
-
-  private UserInfoSnapshot createdBy;
+  @Column(name = "createdby")
+  private String createdBy;
 
   public SingleEventChangeLog(
       SingleEvent event,
@@ -70,9 +102,9 @@ public class SingleEventChangeLog {
       String currentValue,
       ChangeLogType changeLogType,
       Date created,
-      String createdByUsername) {
+      String createdBy) {
     this(event, dataElement, eventField, previousValue, currentValue, changeLogType, created);
-    this.createdByUsername = createdByUsername;
+    this.createdBy = createdBy;
   }
 
   private SingleEventChangeLog(

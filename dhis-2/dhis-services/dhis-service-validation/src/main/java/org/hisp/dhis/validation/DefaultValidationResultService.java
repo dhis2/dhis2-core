@@ -49,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -192,7 +191,7 @@ public class DefaultValidationResultService implements ValidationResultService {
   }
 
   private static boolean isIsoPeriod(String isoPeriod) {
-    return PeriodType.getPeriodFromIsoString(isoPeriod) != null;
+    return Period.ofNullable(isoPeriod) != null;
   }
 
   private <T, E> void validateExists(

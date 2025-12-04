@@ -93,7 +93,7 @@ public final class ReportRatesHelper {
 
   private static Double getTargetFromDimension(
       int periodIndex, int timeUnits, List<String> dataRow, Double target) {
-    Period period = PeriodType.getPeriodFromIsoString(dataRow.get(periodIndex));
+    Period period = Period.of(dataRow.get(periodIndex));
 
     return consolidateTarget(timeUnits, target, period.getDaysInPeriod());
   }

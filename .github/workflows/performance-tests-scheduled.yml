@@ -14,14 +14,22 @@ on:
 jobs:
   run-scheduled-tests:
     name: ${{ matrix.name }}
+    if: github.repository == 'dhis2/dhis2-core'
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: tracker
+          - name: tracker-smoke
             env: |
               DHIS2_IMAGE=dhis2/core-dev:latest
               SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+              MVN_ARGS=-Dprofile=smoke
+            slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
+          - name: tracker-load
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+              MVN_ARGS=-Dprofile=load
             slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
     uses: ./.github/workflows/performance-tests.yml
     with:

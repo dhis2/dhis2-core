@@ -69,7 +69,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -190,11 +189,7 @@ public class CompleteDataSetRegistrationController {
       throw new WebMessageException(conflict("Illegal data set identifier in this list: " + ds));
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(pe);
-
-    if (period == null) {
-      throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-    }
+    Period period = Period.of(pe);
 
     OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
 

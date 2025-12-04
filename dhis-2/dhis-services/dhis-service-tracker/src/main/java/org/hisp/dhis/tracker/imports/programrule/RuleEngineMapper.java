@@ -33,10 +33,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import kotlinx.datetime.Clock;
-import kotlinx.datetime.Instant;
-import kotlinx.datetime.LocalDate;
-import kotlinx.datetime.LocalDateTime;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -45,16 +41,18 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
+import org.hisp.dhis.rules.DateUtils;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEnrollmentStatus;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleEventStatus;
+import org.hisp.dhis.rules.models.RuleInstant;
+import org.hisp.dhis.rules.models.RuleLocalDate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 
 /** RuleEngineMapper maps tracker objects from DB and payload to rule engine model objects. */
@@ -136,16 +134,13 @@ class RuleEngineMapper {
   }
 
   @Nonnull
-  private static LocalDate getDate(Date date) {
-    return LocalDateTime.Formats.INSTANCE.getISO().parse(DateUtils.toIso8601NoTz(date)).getDate();
+  private static RuleLocalDate getDate(Date date) {
+    return getDate(date.toInstant());
   }
 
   @Nonnull
-  private static LocalDate getDate(java.time.Instant instant) {
-    return LocalDateTime.Formats.INSTANCE
-        .getISO()
-        .parse(DateUtils.toIso8601NoTz(DateUtils.fromInstant(instant)))
-        .getDate();
+  private static RuleLocalDate getDate(java.time.Instant instant) {
+    return DateUtils.toRuleLocalDate(instant);
   }
 
   private static String getValue(String value, ValueType valueType) {
@@ -168,10 +163,8 @@ class RuleEngineMapper {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
     TrackerEvent event = preheat.getTrackerEvent(eventToEvaluate.getUid());
-    Instant createdDate =
-        event == null
-            ? Clock.System.INSTANCE.now()
-            : Instant.Companion.fromEpochMilliseconds(event.getCreated().getTime());
+    RuleInstant createdDate =
+        event == null ? RuleInstant.now() : DateUtils.toRuleInstant(event.getCreated());
 
     return new RuleEvent(
         eventToEvaluate.getUid().getValue(),
@@ -179,10 +172,8 @@ class RuleEngineMapper {
         programStage.getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredAt() != null
-            ? Instant.Companion.fromEpochMilliseconds(
-                eventToEvaluate.getOccurredAt().toEpochMilli())
-            : Instant.Companion.fromEpochMilliseconds(
-                eventToEvaluate.getScheduledAt().toEpochMilli()),
+            ? DateUtils.toRuleInstant(eventToEvaluate.getOccurredAt())
+            : DateUtils.toRuleInstant(eventToEvaluate.getScheduledAt()),
         createdDate,
         eventToEvaluate.getScheduledAt() == null ? null : getDate(eventToEvaluate.getScheduledAt()),
         eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
@@ -203,17 +194,15 @@ class RuleEngineMapper {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
     SingleEvent event = preheat.getSingleEvent(eventToEvaluate.getUid());
-    Instant createdDate =
-        event == null
-            ? Clock.System.INSTANCE.now()
-            : Instant.Companion.fromEpochMilliseconds(event.getCreated().getTime());
+    RuleInstant createdDate =
+        event == null ? RuleInstant.now() : DateUtils.toRuleInstant(event.getCreated());
 
     return new RuleEvent(
         eventToEvaluate.getUid().getValue(),
         programStage.getUid(),
         programStage.getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
-        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredAt().toEpochMilli()),
+        DateUtils.toRuleInstant(eventToEvaluate.getOccurredAt()),
         createdDate,
         null,
         eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
@@ -240,9 +229,9 @@ class RuleEngineMapper {
         eventToEvaluate.getProgramStage().getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
-            ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
-            : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
-        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getCreated().getTime()),
+            ? DateUtils.toRuleInstant(eventToEvaluate.getOccurredDate())
+            : DateUtils.toRuleInstant(eventToEvaluate.getScheduledDate()),
+        DateUtils.toRuleInstant(eventToEvaluate.getCreated()),
         eventToEvaluate.getScheduledDate() == null
             ? null
             : getDate(eventToEvaluate.getScheduledDate()),

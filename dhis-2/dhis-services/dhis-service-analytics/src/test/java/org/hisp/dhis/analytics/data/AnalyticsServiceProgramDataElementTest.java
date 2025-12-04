@@ -54,8 +54,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -84,7 +84,7 @@ class AnalyticsServiceProgramDataElementTest extends AnalyticsServiceBaseTest {
     DataQueryParams params =
         DataQueryParams.newBuilder()
             .withAggregationType(AnalyticsAggregationType.AVERAGE)
-            .withPeriod(PeriodDimension.of(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withPeriod(PeriodDimension.of(Period.of("2017W10")))
             .withDataElements(newArrayList(pded1))
             .withIgnoreLimit(true)
             .withFilters(

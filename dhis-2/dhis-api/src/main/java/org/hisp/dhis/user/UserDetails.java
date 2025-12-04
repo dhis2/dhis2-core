@@ -42,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
@@ -49,6 +50,27 @@ import org.springframework.security.core.GrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
+
+  /**
+   * @return a {@link UserDetails} object that is all initialized to empty (no anything) but which
+   *     can be used to only set the properties that matter (for example in a test).
+   */
+  @UsageTestOnly
+  static UserDetailsImplBuilder empty() {
+    return UserDetailsImpl.builder()
+        .isSuper(false)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of());
+  }
 
   /**
    * Create UserDetails from User

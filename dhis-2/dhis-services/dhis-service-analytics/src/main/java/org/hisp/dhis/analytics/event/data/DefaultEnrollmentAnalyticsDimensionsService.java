@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.AGGREGATE;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.ENROLLMENT_AGGREGATE;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
@@ -120,9 +121,9 @@ public class DefaultEnrollmentAnalyticsDimensionsService
             program ->
                 collectDimensions(
                     List.of(
-                        getProgramStageDataElements(AGGREGATE, program),
+                        getProgramStageDataElements(ENROLLMENT_AGGREGATE, program),
                         filterByValueType(
-                            AGGREGATE,
+                            ENROLLMENT_AGGREGATE,
                             ofItemsWithProgram(program, program.getTrackedEntityAttributes())))))
         .orElse(List.of());
   }

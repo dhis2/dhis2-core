@@ -116,6 +116,9 @@ public class DataSummaryController {
         "Count of active users by day");
 
     metrics.addMetrics(
+        summary.getLogins(), "data_summary_logins", "days", "Count of user logins by day");
+
+    metrics.addMetrics(
         summary.getUserInvitations(),
         "data_summary_user_invitations",
         "type",
@@ -132,6 +135,18 @@ public class DataSummaryController {
         "data_summary_event_count",
         "days",
         "Count of updated events by day");
+
+    metrics.addMetrics(
+        summary.getTrackerEventCount(),
+        "data_summary_tracker_event_count",
+        "days",
+        "Count of updated tracker events by day");
+
+    metrics.addMetrics(
+        summary.getSingleEventCount(),
+        "data_summary_single_event_count",
+        "days",
+        "Count of updated single events by day");
 
     metrics.addMetrics(
         summary.getEnrollmentCount(),

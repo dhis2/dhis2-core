@@ -203,15 +203,20 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
       throw new IllegalArgumentException("CC and COs must either both be null or defined");
     String sql =
         """
-          WITH co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos))
-          SELECT coc.uid
-          FROM categorycombos_optioncombos coc_cc
-          JOIN categoryoptioncombos_categoryoptions coc_co ON coc_cc.categoryoptioncomboid = coc_co.categoryoptioncomboid
-          JOIN categoryoptioncombo coc ON coc_co.categoryoptioncomboid = coc.categoryoptioncomboid
-          WHERE coc_cc.categorycomboid = (SELECT cc.categorycomboid FROM categorycombo cc WHERE cc.uid = :cc)
-            AND coc_co.categoryoptionid IN (SELECT categoryoptionid FROM co_ids)
-          GROUP BY coc_co.categoryoptioncomboid
-          HAVING COUNT(*) = (SELECT COUNT(*) FROM co_ids)""";
+        WITH
+        co_ids AS ( SELECT categoryoptionid FROM categoryoption WHERE uid IN (:cos)),
+        coc_ids AS (
+            SELECT coc_co.categoryoptioncomboid
+            FROM categorycombos_optioncombos coc_cc
+                     JOIN categoryoptioncombos_categoryoptions coc_co ON coc_cc.categoryoptioncomboid = coc_co.categoryoptioncomboid
+            WHERE coc_cc.categorycomboid = (SELECT cc.categorycomboid FROM categorycombo cc WHERE cc.uid = :cc)
+              AND coc_co.categoryoptionid IN (SELECT categoryoptionid FROM co_ids)
+            GROUP BY coc_co.categoryoptioncomboid
+            HAVING COUNT(*) = (SELECT COUNT(*) FROM co_ids)
+        )
+        SELECT coc.uid
+        FROM coc_ids ids
+        JOIN public.categoryoptioncombo coc ON ids.categoryoptioncomboid = coc.categoryoptioncomboid""";
     @SuppressWarnings("unchecked")
     Object aocId =
         getSingleResult(
