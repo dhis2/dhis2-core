@@ -98,16 +98,6 @@ class SingleEventOperationParamsMapper {
     mapDataElementFilters(queryParams, operationParams.getDataElementFilters());
     mapOrderParam(queryParams, operationParams.getOrder());
 
-    if (operationParams.isSynchronizationQuery()) {
-      queryParams.setSynchronizationQuery(true);
-      if (operationParams.getSkipSyncDataElementsByProgramStage() != null
-          && !operationParams.getSkipSyncDataElementsByProgramStage().isEmpty()) {
-        queryParams =
-            queryParams.withSkipSyncDataElements(
-                operationParams.getSkipSyncDataElementsByProgramStage());
-      }
-    }
-
     return queryParams
         .setProgram(program)
         .setOrgUnit(orgUnit)
@@ -119,7 +109,7 @@ class SingleEventOperationParamsMapper {
                 UID.of(user)))
         .setSynchronizationQuery(operationParams.isSynchronizationQuery())
         .setSkipChangedBefore(operationParams.getSkipChangedBefore())
-        .withSkipSyncDataElements(operationParams.getSkipSyncDataElementsByProgramStage())
+        .setSkipSyncDataElements(operationParams.getSkipSyncDataElementsByProgramStage())
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setUpdatedAtStartDate(operationParams.getUpdatedAfter())

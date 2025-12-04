@@ -177,16 +177,8 @@ public class SingleEventOperationParams {
       return this;
     }
 
-    // Do not remove this method. It intentionally hides the Lombok-generated setter.
-    // This ensures that skipSyncDataElementsByProgramStage can only be set through
-    // builderForDataSync.
     private SingleEventOperationParamsBuilder skipSyncDataElementsByProgramStage(
         Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
-      return this;
-    }
-
-    private SingleEventOperationParamsBuilder setSkipSyncDataElements(
-        @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
       this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
       return this;
     }
@@ -230,7 +222,7 @@ public class SingleEventOperationParams {
     return new SingleEventOperationParamsBuilder()
         .program(program)
         .skipChangedBefore(skipChangedBefore)
-        .setSkipSyncDataElements(skipSyncDataElementsByProgramStage)
+        .skipSyncDataElementsByProgramStage(skipSyncDataElementsByProgramStage)
         .synchronizationQuery(true)
         .includeDeleted(true);
   }

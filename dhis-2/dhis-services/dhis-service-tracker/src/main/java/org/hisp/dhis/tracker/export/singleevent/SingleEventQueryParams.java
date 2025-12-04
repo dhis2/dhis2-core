@@ -142,7 +142,7 @@ class SingleEventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  public SingleEventQueryParams withSkipSyncDataElements(
+  public SingleEventQueryParams setSkipSyncDataElements(
       Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
     this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
     return this;
