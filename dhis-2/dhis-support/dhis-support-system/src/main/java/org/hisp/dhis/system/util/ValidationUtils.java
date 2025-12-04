@@ -77,6 +77,11 @@ import org.hisp.dhis.render.type.ValueTypeRenderingType;
  * @author Lars Helge Overland
  */
 public class ValidationUtils {
+  // Note that a data integrity check replicates this pattern in a slightly different way.
+  // If this pattern is changed, the data integrity check should be updated as well.
+  // See
+  // dhis-service-administration/src/main/resources/data-integrity-checks/users/users_with_invalid_usernames.yaml
+  // for details.
   private static final Pattern USERNAME_PATTERN =
       Pattern.compile("^(?=.{4,255}$)(?![-_.@])(?!.*[-_.@]{2})[-_.@a-zA-Z0-9]+(?<![-_.@])$");
 

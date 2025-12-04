@@ -78,3 +78,4 @@ checks:
   - users/users_with_no_user_role.yaml
   - users/user_roles_no_authorities.yaml
   - users/user_roles_with_no_users.yaml
+  - users/users_with_invalid_usernames.yaml
