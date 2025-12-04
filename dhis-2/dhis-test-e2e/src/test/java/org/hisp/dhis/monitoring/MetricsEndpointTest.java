@@ -27,46 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.monitoring;
 
-import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
+import static org.hamcrest.Matchers.containsString;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      AttributeValuesMapper.class,
-      ProgramMapper.class,
-      TrackedEntityTypeMapper.class,
-      ProgramStageMapper.class
-    })
-public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> {
-  RelationshipTypeMapper INSTANCE = Mappers.getMapper(RelationshipTypeMapper.class);
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "fromConstraint", qualifiedByName = "constraintMapper")
-  @Mapping(target = "toConstraint", qualifiedByName = "constraintMapper")
-  @Mapping(target = "bidirectional")
-  @Mapping(target = "sharing")
-  RelationshipType map(RelationshipType relationshipType);
+/** Tests for the /api/metrics endpoint (Prometheus scrape endpoint). */
+public class MetricsEndpointTest extends ApiTest {
+  private RestApiActions metricsActions;
 
-  @BeanMapping(ignoreByDefault = true)
-  @Named("constraintMapper")
-  @Mapping(target = "id")
-  @Mapping(target = "relationshipEntity")
-  @Mapping(target = "trackedEntityType")
-  @Mapping(target = "program")
-  @Mapping(target = "programStage")
-  @Mapping(target = "trackerDataView")
-  RelationshipConstraint mapConstraint(RelationshipConstraint constraint);
+  private LoginActions loginActions;
+
+  @BeforeAll
+  public void setUp() {
+    loginActions = new LoginActions();
+    metricsActions = new RestApiActions("/metrics");
+  }
+
+  @Test
+  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+    loginActions.loginAsSuperUser();
+
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
+
+    response
+        .validate()
+        .statusCode(200)
+        .body(containsString("# HELP"))
+        .body(containsString("# TYPE"));
+  }
 }

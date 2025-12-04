@@ -29,53 +29,20 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      TrackedEntityTypeMapper.class,
-      AttributeValuesMapper.class,
-      SharingMapper.class,
-      ProgramStageDataElementMapper.class,
-    })
-public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
-  ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
+@Mapper(uses = {DebugMapper.class, DataElementMapper.class})
+public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStageDataElement> {
+  ProgramStageDataElementMapper INSTANCE = Mappers.getMapper(ProgramStageDataElementMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "user")
-  @Mapping(target = "program", qualifiedByName = "program")
-  @Mapping(target = "repeatable")
-  @Mapping(target = "referral")
-  @Mapping(target = "programStageDataElements")
-  @Mapping(target = "enableUserAssignment")
-  @Mapping(target = "validationStrategy")
-  @Mapping(target = "featureType")
-  @Mapping(target = "sharing")
-  ProgramStage map(ProgramStage programStage);
-
-  @Named("program")
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "trackedEntityType")
-  @Mapping(target = "programType")
-  @Mapping(target = "categoryCombo")
-  @Mapping(target = "sharing")
-  @Mapping(target = "accessLevel")
-  Program mapProgram(Program p);
+  @Mapping(target = "compulsory")
+  @Mapping(target = "dataElement")
+  ProgramStageDataElement map(ProgramStageDataElement programStageDataElement);
 }
