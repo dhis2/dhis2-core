@@ -101,6 +101,10 @@ DURATION_SEC=$((END_SEC - START_SEC))
 DURATION_MIN=$((DURATION_SEC / 60))
 DURATION_REMAINING_SEC=$((DURATION_SEC % 60))
 
+# Determine output directory based on input directory
+# Extract parent directory from the gatling test dir (e.g., "connection-analysis/results/off")
+OUTPUT_DIR=$(dirname "$GATLING_TEST_DIR")
+
 echo "===== Test Time Range ====="
 echo ""
 echo "Start: $START_TIME ($START_MS ms)"
@@ -109,17 +113,9 @@ echo "Duration: ${DURATION_MIN}m ${DURATION_REMAINING_SEC}s"
 echo ""
 echo "Use these timestamps with analyze-connections.sh:"
 echo ""
-echo "Example for OSIV ON:"
 echo "./connection-analysis/analyze-connections.sh \\"
 echo "\"$START_TIME\" \\"
 echo "\"$END_TIME\" \\"
 echo "\"$SIMULATION_CSV\" \\"
-echo "\"connection-analysis/results/on\""
-echo ""
-echo "Example for OSIV OFF:"
-echo "./connection-analysis/analyze-connections.sh \\"
-echo "\"$START_TIME\" \\"
-echo "\"$END_TIME\" \\"
-echo "\"$SIMULATION_CSV\" \\"
-echo "\"connection-analysis/results/off\""
+echo "\"$OUTPUT_DIR\""
 echo ""

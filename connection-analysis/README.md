@@ -32,6 +32,7 @@ cd ../..
 mkdir -p connection-analysis/results/on
 cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
   connection-analysis/results/on/
+cp connection-analysis/logs/dhis.log connection-analysis/results/on/
 
 # Extract timestamps and analyze
 ./connection-analysis/gatling-test-times.sh \
@@ -57,6 +58,7 @@ cd ../..
 mkdir -p connection-analysis/results/off
 cp -r dhis-2/dhis-test-performance/target/gatling/trackertest-* \
   connection-analysis/results/off/
+cp connection-analysis/logs/dhis.log connection-analysis/results/off/
 
 # Extract timestamps and analyze
 ./connection-analysis/gatling-test-times.sh \
@@ -93,11 +95,13 @@ connection-analysis/results/
 │   │   ├── simulation.log
 │   │   ├── simulation.csv
 │   │   └── ...
+│   ├── dhis.log                     # DHIS2 logs with connection timing
 │   ├── connection-raw.csv           # All connection events
 │   ├── connection-stats.md          # Summary statistics
 │   └── per-request-breakdown.csv    # Per-request analysis
 └── off/                             # WITHOUT OSIV on tracker
     ├── trackertest-TIMESTAMP/
+    ├── dhis.log
     ├── connection-raw.csv
     ├── connection-stats.md
     └── per-request-breakdown.csv

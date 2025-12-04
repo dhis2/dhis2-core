@@ -7,12 +7,13 @@ set -eu
 # Script to analyze Hikari connection acquisition times from DHIS2 logs
 # Extracts CONN_RELEASED logs within a time range and generates analysis
 
-if [ $# -ne 4 ]; then
-  echo "Usage: $0 <start_time> <end_time> <simulation_csv> <output_dir>"
+if [ $# -lt 4 ] || [ $# -gt 5 ]; then
+  echo "Usage: $0 <start_time> <end_time> <simulation_csv> <output_dir> [exclude_request_id]"
   echo "  start_time: ISO-8601 timestamp (e.g., 2025-11-25T12:43:30+01:00)"
   echo "  end_time: ISO-8601 timestamp"
   echo "  simulation_csv: Path to Gatling simulation.csv"
   echo "  output_dir: Directory to write analysis files"
+  echo "  exclude_request_id: Optional X-Request-ID to exclude from analysis (e.g., prometheus-scraper)"
   exit 1
 fi
 
@@ -20,15 +21,25 @@ START_TIME="$1"
 END_TIME="$2"
 SIMULATION_CSV="$3"
 OUTPUT_DIR="$4"
+EXCLUDE_REQUEST_ID="${5:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="$SCRIPT_DIR/logs/dhis.log"
+
+# Look for dhis.log in output directory first (for archived results), then fall back to default location
+if [ -f "$OUTPUT_DIR/dhis.log" ]; then
+  LOG_FILE="$OUTPUT_DIR/dhis.log"
+else
+  LOG_FILE="$SCRIPT_DIR/logs/dhis.log"
+fi
 
 echo "Start time: $START_TIME"
 echo "End time: $END_TIME"
 echo "Simulation CSV: $SIMULATION_CSV"
 echo "Output directory: $OUTPUT_DIR"
 echo "Log file: $LOG_FILE"
+if [ -n "$EXCLUDE_REQUEST_ID" ]; then
+  echo "Excluding request ID: $EXCLUDE_REQUEST_ID"
+fi
 echo ""
 
 # Convert ISO-8601 timestamps to epoch for comparison (handles timezone)
@@ -53,6 +64,9 @@ echo "timestamp,request_id,thread,wait_ms,held_ms" > "$RAW_CSV"
 START_DATE=$(date -d "$START_TIME" +"%Y-%m-%d")
 START_HOUR=$(date -d "$START_TIME" +"%H")
 
+# Export exclude pattern for perl to use
+export EXCLUDE_REQUEST_ID
+
 # Use rg to filter by date/hour first (fast), then filter precisely with perl
 rg "${START_DATE}T${START_HOUR}:.*CONN_RELEASED" "$LOG_FILE" --no-heading --no-line-number | perl -ne '
   # Extract fields directly without date conversion
@@ -64,6 +78,9 @@ rg "${START_DATE}T${START_HOUR}:.*CONN_RELEASED" "$LOG_FILE" --no-heading --no-l
 
   # Skip empty request_id
   next if ($request_id eq "");
+
+  # Skip excluded request_id if specified
+  next if ($ENV{EXCLUDE_REQUEST_ID} && $request_id eq $ENV{EXCLUDE_REQUEST_ID});
 
   /\[([^\]]+)\]/ and $thread = $1;
   /wait_ms=(\d+)/ and $wait_ms = $1;
@@ -142,6 +159,7 @@ cat > "$STATS_TXT" <<EOF
 * **Time Range**: $START_TIME to $END_TIME
 * **Log File**: $LOG_FILE
 * **Analysis Date**: $(date -Iseconds)
+$(if [ -n "$EXCLUDE_REQUEST_ID" ]; then echo "* **Excluded Request ID**: $EXCLUDE_REQUEST_ID"; fi)
 
 ## Summary
 
