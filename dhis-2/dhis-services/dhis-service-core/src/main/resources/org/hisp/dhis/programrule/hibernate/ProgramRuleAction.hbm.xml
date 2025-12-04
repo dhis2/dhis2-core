@@ -45,11 +45,11 @@
                  column="notificationtemplateid" foreign-key="fk_programruleaction_notificationtemplate" not-null="false" />
 
     <many-to-one name="option" class="org.hisp.dhis.option.Option"
-      column="optionid" foreign-key="fk_programruleaction_option" />             
+      column="optionid" foreign-key="fk_programruleaction_option" />
 
 	<many-to-one name="optionGroup" class="org.hisp.dhis.option.OptionGroup"
       column="optiongroupid" foreign-key="fk_programruleaction_optiongroup" />
-      
+
     <property name="location" />
 
     <property name="content" type="text" />

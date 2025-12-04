@@ -32,7 +32,7 @@ package org.hisp.dhis.webapi.controller.message;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.program.message.ProgramMessageOperationParams;
+import org.hisp.dhis.tracker.program.message.ProgramMessageOperationParams;
 import org.springframework.stereotype.Component;
 
 /**
