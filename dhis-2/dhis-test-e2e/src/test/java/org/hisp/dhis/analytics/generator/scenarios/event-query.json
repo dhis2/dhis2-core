@@ -118,8 +118,14 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndEventDateMultipleStages",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.EVENT_DATE:2022&dimension=jdRD35YwbRH.EVENT_DATE:2023&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
-
 
 
   ]

@@ -38,7 +38,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
@@ -747,12 +749,26 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   /**
-   * Returns true if any query item has a program stage (stage-specific dimension). This includes
-   * dimensions like stageUid.EVENT_DATE, stageUid.SCHEDULED_DATE, stageUid.EVENT_STATUS, and
-   * stageUid.ou.
+   * Returns true if any query item is a stage-specific dimension identifier. This includes only the
+   * special dimensions: stageUid.EVENT_DATE, stageUid.SCHEDULED_DATE, stageUid.EVENT_STATUS, and
+   * stageUid.ou. Regular data elements with a stage prefix (e.g., stageUid.dataElementUid) are NOT
+   * considered stage-specific dimension identifiers.
    */
   public boolean hasStageSpecificItem() {
-    return getItemsAndItemFilters().stream().anyMatch(QueryItem::hasProgramStage);
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageSpecificDimension(item));
+  }
+
+  /**
+   * Returns true if the item is a stage-specific dimension identifier (EVENT_DATE, SCHEDULED_DATE,
+   * ou, or EVENT_STATUS). These are special dimensions that can be prefixed with a program stage.
+   */
+  private boolean isStageSpecificDimension(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+        || SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+        || OU_COLUMN_NAME.equals(itemId)
+        || EVENT_STATUS_COLUMN_NAME.equals(itemId);
   }
 
   /**

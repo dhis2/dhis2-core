@@ -1486,19 +1486,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
             .toList();
 
-    // Non-repeatable conditions
-    List<String> andConditions =
-        asSqlCollection(itemsByRepeatableFlag.get(NON_REPEATABLE), params)
+    // Non-repeatable conditions - separate stage-specific date items
+    List<IdentifiableSql> nonRepeatableItems =
+        asSqlCollection(itemsByRepeatableFlag.get(NON_REPEATABLE), params).toList();
+
+    // Stage-specific date items should be OR'd (events can only belong to one stage)
+    List<String> stageDateConditions =
+        nonRepeatableItems.stream()
+            .filter(IdentifiableSql::isStageDateItem)
             .map(IdentifiableSql::getSql)
             .toList();
 
-    if (orConditions.isEmpty() && andConditions.isEmpty()) {
+    // Other non-repeatable items are AND'd as usual
+    List<String> andConditions =
+        nonRepeatableItems.stream()
+            .filter(is -> !is.isStageDateItem())
+            .map(IdentifiableSql::getSql)
+            .toList();
+
+    // Combine all conditions
+    List<String> allConditions = new ArrayList<>(orConditions);
+    allConditions.addAll(andConditions);
+
+    // Add stage date conditions as a single OR'd group
+    if (!stageDateConditions.isEmpty()) {
+      String stageDateSql =
+          stageDateConditions.size() == 1
+              ? stageDateConditions.get(0)
+              : "(" + joinSql(stageDateConditions.stream(), OR_JOINER) + ")";
+      allConditions.add(stageDateSql);
+    }
+
+    if (allConditions.isEmpty()) {
       return StringUtils.EMPTY;
     }
 
-    return helper.whereAnd()
-        + " "
-        + joinSql(Stream.concat(orConditions.stream(), andConditions.stream()), AND_JOINER);
+    return helper.whereAnd() + " " + joinSql(allConditions.stream(), AND_JOINER);
   }
 
   /**
@@ -1589,7 +1612,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return IdentifiableSql.builder()
         .identifier(getIdentifier(queryItem))
         .sql(toSql(queryItem, params))
+        .stageDateItem(isStageDateItem(queryItem))
         .build();
+  }
+
+  /**
+   * Returns true if the query item is a stage-specific date dimension (EVENT_DATE or SCHEDULED_DATE
+   * with a program stage).
+   */
+  private boolean isStageDateItem(QueryItem item) {
+    return item.hasProgramStage()
+        && (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
+            || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(item.getItemId()));
   }
 
   /** Converts given queryItem into SQL joining its filters using AND. */
@@ -1678,6 +1712,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     private final String identifier;
 
     private final String sql;
+
+    /** Whether this item is a stage-specific date dimension (EVENT_DATE or SCHEDULED_DATE). */
+    private final boolean stageDateItem;
   }
 
   /**
