@@ -54,6 +54,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
@@ -61,9 +62,11 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -117,8 +120,14 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventAggregateService eventAggregateService;
 
+  @Autowired private ConfigurationService configurationService;
+
+  @Autowired private PeriodService periodService;
+
   @BeforeAll
   void setUp() {
+    createPeriodTypes();
+
     leA = createLegend('A', 0d, 10d);
     leB = createLegend('B', 11d, 20d);
     leC = createLegend('C', 21d, 30d);
@@ -265,5 +274,10 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
   void testLegendSetSortedLegends() {
     List<Legend> legends = List.of(leA, leB, leC, leD);
     assertEquals(legends, lsA.getSortedLegends());
+  }
+
+  @AfterAll
+  void cleanUpRefs() {
+    cleanPeriodTypes();
   }
 }

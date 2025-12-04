@@ -70,6 +70,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Collation;
@@ -141,6 +142,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   protected final SqlBuilder sqlBuilder;
+
+  private final ConfigurationService configurationService;
 
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
@@ -498,7 +501,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a List of {@link AnalyticsTableColumn}
    */
   protected List<AnalyticsTableColumn> getPeriodTypeColumns(String prefix) {
-    return PeriodType.getAvailablePeriodTypes().stream()
+    Set<PeriodType> periodTypes =
+        configurationService.getConfiguration().getDataOutputPeriodTypes();
+
+    return periodTypes.stream()
         .map(
             pt -> {
               String name = pt.getName().toLowerCase();
