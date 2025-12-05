@@ -154,8 +154,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7241);
     }
 
-    if (params.getEndpointItem().equals(RequestTypeAware.EndpointItem.EVENT)) {
-      // Stage-prefixed dimensions must all use the same stage
+    if (params.getEndpointItem() != null
+        && params.getEndpointItem().equals(RequestTypeAware.EndpointItem.EVENT)) {
+      // Stage-prefixed dimensions must all use the same stage for EVENT queries
       Set<ProgramStage> distinctStages = params.getDistinctStages();
       if (distinctStages.size() > 1) {
         String stages =
