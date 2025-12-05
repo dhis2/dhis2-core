@@ -62,8 +62,15 @@ public class PrometheusMonitoringConfig {
   @Bean
   public PrometheusMeterRegistry prometheusMeterRegistry(
       PrometheusConfig prometheusConfig, PrometheusRegistry prometheusRegistry, Clock clock) {
-    return new io.micrometer.prometheusmetrics.PrometheusMeterRegistry(
-        prometheusConfig, prometheusRegistry, clock);
+    PrometheusMeterRegistry registry =
+        new io.micrometer.prometheusmetrics.PrometheusMeterRegistry(
+            prometheusConfig, prometheusRegistry, clock);
+
+    // Apply filters inline - order matters: histogram config first, then renaming
+    registry.config().meterFilter(createHikariCpHistogramMeterFilter());
+    registry.config().meterFilter(createHikariCpRenamingMeterFilter());
+
+    return registry;
   }
 
   @Bean
@@ -72,16 +79,15 @@ public class PrometheusMonitoringConfig {
   }
 
   /**
-   * Configures HikariCP connection pool metrics with histogram buckets.
+   * Creates a MeterFilter that configures HikariCP timer metrics with histogram buckets.
    *
    * <p>Bucket boundaries: 1ms, 2ms, 5ms, 10ms, 25ms, 50ms, 100ms, 200ms, 500ms
    *
-   * <p>This provides 9 buckets focused on the range where healthy systems operate (1-25ms) through
-   * problematic states (100-500ms). Values beyond 500ms indicate pool exhaustion.
+   * <p>HikariCP's default Micrometer integration publishes timer metrics as summaries. This filter
+   * enables histogram buckets which are more suitable for aggregation in Prometheus/Grafana.
    */
-  @Bean
-  public MeterFilter hikariCpHistogramMeterFilter() {
-    // SLO buckets optimized for OLTP connection pool metrics
+  private static MeterFilter createHikariCpHistogramMeterFilter() {
+    // SLO buckets optimized for OLTP connection pool metrics (in nanoseconds)
     double[] sloBuckets =
         new double[] {
           Duration.ofMillis(1).toNanos(),
@@ -99,9 +105,13 @@ public class PrometheusMonitoringConfig {
       @Override
       public DistributionStatisticConfig configure(
           io.micrometer.core.instrument.Meter.Id id, DistributionStatisticConfig config) {
-        // apply histogram configuration to HikariCP timer metrics
-        if (id.getName().startsWith("hikaricp.connections.")) {
+        String name = id.getName();
+        if (name.startsWith("hikaricp.connections.")
+            && (name.endsWith(".acquire")
+                || name.endsWith(".usage")
+                || name.endsWith(".creation"))) {
           return DistributionStatisticConfig.builder()
+              .percentilesHistogram(false)
               .serviceLevelObjectives(sloBuckets)
               .build()
               .merge(config);
@@ -112,11 +122,10 @@ public class PrometheusMonitoringConfig {
   }
 
   /**
-   * Renames HikariCP metrics from "hikaricp.connections.*" to "jdbc.connections.*" for backward
-   * compatibility.
+   * Creates a MeterFilter that renames HikariCP metrics from "hikaricp.connections.*" to
+   * "jdbc.connections.*" for backward compatibility.
    */
-  @Bean
-  public MeterFilter hikariCpRenamingMeterFilter() {
+  private static MeterFilter createHikariCpRenamingMeterFilter() {
     return new MeterFilter() {
       @Override
       public io.micrometer.core.instrument.Meter.Id map(io.micrometer.core.instrument.Meter.Id id) {

@@ -32,84 +32,107 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.HikariMetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetadataProvider;
-import org.hisp.dhis.monitoring.metrics.jdbc.PoolMetrics;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * Configures connection pool metrics for DHIS2 data sources.
+ *
+ * <p>HikariCP metrics are handled by HikariCP's native Micrometer integration via
+ * MicrometerMetricsTrackerFactory (configured in DatabasePoolUtils). Metrics are renamed from
+ * hikaricp.connections.* to jdbc.connections.* via PrometheusMonitoringConfig for backward
+ * compatibility.
+ *
+ * <p>C3P0 metrics are manually registered as basic gauges with jdbc.connections.* naming
+ * (deprecated, will be removed).
+ *
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Configuration
+@Conditional(DataSourcePoolMetricsConfig.DataSourcePoolMetricsEnabledCondition.class)
 public class DataSourcePoolMetricsConfig {
-  @Configuration
-  @Conditional(DataSourcePoolMetricsEnabledCondition.class)
-  static class DataSourcePoolMetadataMetricsConfiguration {
 
-    private static final String DATASOURCE_SUFFIX = "dataSource";
+  private static final String DATASOURCE_SUFFIX = "dataSource";
 
-    private final MeterRegistry registry;
+  private final MeterRegistry registry;
 
-    private final Collection<PoolMetadataProvider> metadataProviders;
+  public DataSourcePoolMetricsConfig(MeterRegistry registry) {
+    this.registry = registry;
+  }
 
-    DataSourcePoolMetadataMetricsConfiguration(
-        MeterRegistry registry, Collection<PoolMetadataProvider> metadataProviders) {
-      this.registry = registry;
-      this.metadataProviders = metadataProviders;
+  @Autowired
+  public void bindDataSourcesToRegistry(Map<String, DataSource> dataSources) {
+    dataSources.forEach(this::bindDataSourceToRegistry);
+  }
+
+  private void bindDataSourceToRegistry(String beanName, DataSource dataSource) {
+    String poolName = getDataSourceName(beanName);
+
+    if (dataSource instanceof ComboPooledDataSource c3p0) {
+      log.warn("C3P0 connection pool metrics are deprecated. Migrate to HikariCP");
+      registerC3p0Metrics(c3p0, poolName);
     }
+    // HikariCP metrics are automatically registered via MicrometerMetricsTrackerFactory
+    // configured in DatabasePoolUtils.createHikariDbPool()
+  }
 
-    @Autowired
-    public void bindDataSourcesToRegistry(Map<String, DataSource> dataSources) {
-      dataSources.forEach(this::bindDataSourceToRegistry);
-    }
+  @Deprecated(since = "v43", forRemoval = true)
+  private void registerC3p0Metrics(ComboPooledDataSource dataSource, String poolName) {
+    Iterable<Tag> tags = Tags.of("name", poolName);
 
-    private void bindDataSourceToRegistry(String beanName, DataSource dataSource) {
-      String dataSourceName = getDataSourceName(beanName);
-      new PoolMetrics(dataSource, this.metadataProviders, dataSourceName, Collections.emptyList())
-          .bindTo(this.registry);
-    }
+    try {
+      registry.gauge(
+          "jdbc.connections.active",
+          tags,
+          dataSource,
+          ds -> {
+            try {
+              return ds.getNumBusyConnectionsDefaultUser();
+            } catch (SQLException e) {
+              return Double.NaN;
+            }
+          });
 
-    /**
-     * Get the name of a DataSource based on its {@code beanName}.
-     *
-     * @param beanName the name of the data source bean
-     * @return a name for the given data source
-     */
-    private String getDataSourceName(String beanName) {
-      if (beanName.length() > DATASOURCE_SUFFIX.length()
-          && Strings.CI.endsWith(beanName, DATASOURCE_SUFFIX)) {
-        return beanName.substring(0, beanName.length() - DATASOURCE_SUFFIX.length());
-      }
-      return beanName;
+      registry.gauge(
+          "jdbc.connections.idle",
+          tags,
+          dataSource,
+          ds -> {
+            try {
+              return ds.getNumIdleConnectionsDefaultUser();
+            } catch (SQLException e) {
+              return Double.NaN;
+            }
+          });
+
+      registry.gauge(
+          "jdbc.connections.max", tags, dataSource, ComboPooledDataSource::getMaxPoolSize);
+
+      registry.gauge(
+          "jdbc.connections.min", tags, dataSource, ComboPooledDataSource::getMinPoolSize);
+
+    } catch (Exception e) {
+      log.error("Failed to register C3P0 metrics for pool '{}'", poolName, e);
     }
   }
 
-  @Bean
-  public Collection<PoolMetadataProvider> dataSourceMetadataProvider() {
-    return List.of(
-        dataSource -> {
-          if (dataSource instanceof ComboPooledDataSource comboPooledDataSource) {
-            return new C3p0MetadataProvider(comboPooledDataSource);
-          } else if (dataSource instanceof HikariDataSource hikariDataSource) {
-            return new HikariMetadataProvider(hikariDataSource);
-          } else {
-            throw new IllegalArgumentException(
-                "Unsupported DataSource type: " + dataSource.getClass().getName());
-          }
-        });
+  private String getDataSourceName(String beanName) {
+    if (beanName.length() > DATASOURCE_SUFFIX.length()
+        && Strings.CI.endsWith(beanName, DATASOURCE_SUFFIX)) {
+      return beanName.substring(0, beanName.length() - DATASOURCE_SUFFIX.length());
+    }
+    return beanName;
   }
 
   static class DataSourcePoolMetricsEnabledCondition extends MetricsEnabler {
