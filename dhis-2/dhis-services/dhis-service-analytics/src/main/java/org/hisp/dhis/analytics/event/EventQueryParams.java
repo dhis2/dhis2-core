@@ -797,6 +797,14 @@ public class EventQueryParams extends DataQueryParams {
         .collect(toSet());
   }
 
+  /** Returns all distinct program stages from items that have a stage prefix. */
+  public Set<ProgramStage> getDistinctStages() {
+    return getItemsAndItemFilters().stream()
+        .filter(QueryItem::hasProgramStage)
+        .map(QueryItem::getProgramStage)
+        .collect(toSet());
+  }
+
   /**
    * Returns a list of query items which occur more than once, not including the first duplicate.
    */

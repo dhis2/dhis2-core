@@ -577,6 +577,7 @@ public enum ErrorCode {
   E7242(
       "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
   E7243("Duplicate stage dimension identifier: `{0}`"),
+  E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

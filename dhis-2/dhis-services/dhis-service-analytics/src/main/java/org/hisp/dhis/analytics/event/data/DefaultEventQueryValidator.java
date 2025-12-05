@@ -39,6 +39,7 @@ import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
@@ -52,6 +53,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Service;
@@ -149,6 +151,17 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     // Stage parameter cannot be used with stage-specific dimension identifiers
     if (params.hasProgramStage() && params.hasStageSpecificItem()) {
       return new ErrorMessage(ErrorCode.E7241);
+    }
+
+    // Stage-prefixed dimensions must all use the same stage
+    Set<ProgramStage> distinctStages = params.getDistinctStages();
+    if (distinctStages.size() > 1) {
+      String stages =
+          distinctStages.stream()
+              .map(ProgramStage::getUid)
+              .sorted()
+              .collect(Collectors.joining(", "));
+      return new ErrorMessage(ErrorCode.E7244, stages);
     }
 
     // Period dimension cannot be used with stage-specific date dimensions
