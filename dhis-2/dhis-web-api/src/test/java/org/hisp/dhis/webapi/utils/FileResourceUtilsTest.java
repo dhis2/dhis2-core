@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.utils;
 
 import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +39,7 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -89,7 +92,39 @@ class FileResourceUtilsTest {
     MultipartFile file = FileResourceUtils.resizeIconToDefaultSize(mockMultipartFile);
     BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
 
-    Assertions.assertEquals(48, bufferedImage.getWidth());
-    Assertions.assertEquals(48, bufferedImage.getHeight());
+    assertEquals(48, bufferedImage.getWidth());
+    assertEquals(48, bufferedImage.getHeight());
+  }
+
+  @Test
+  @DisplayName("When resizing an Org Unit image, its content type is kept")
+  void orgUnitImageResizingKeepsContentType() throws IOException {
+    // given a png image file exists
+    InputStream in = getClass().getResourceAsStream("/fileResources/org_unit.png");
+    MockMultipartFile file = new MockMultipartFile("file", "org_unit.png", "image/png", in);
+
+    // when the file is processed for resizing
+    MultipartFile resizedFile = FileResourceUtils.resizeOrgToDefaultSize(file);
+
+    // then its original content type is kept
+    String contentType = resizedFile.getContentType();
+    assertNotNull(contentType);
+    assertEquals("image/png", contentType);
+  }
+
+  @Test
+  @DisplayName("When resizing an Avatar image, its content type is kept")
+  void avatarImageResizingKeepsContentType() throws IOException {
+    // given a png image file exists
+    InputStream in = getClass().getResourceAsStream("/fileResources/user_avatar.png");
+    MockMultipartFile file = new MockMultipartFile("file", "user_avatar.png", "image/png", in);
+
+    // when the file is processed for resizing
+    MultipartFile resizedFile = FileResourceUtils.resizeAvatarToDefaultSize(file);
+
+    // then its original content type is kept
+    String contentType = resizedFile.getContentType();
+    assertNotNull(contentType);
+    assertEquals("image/png", contentType);
   }
 }
