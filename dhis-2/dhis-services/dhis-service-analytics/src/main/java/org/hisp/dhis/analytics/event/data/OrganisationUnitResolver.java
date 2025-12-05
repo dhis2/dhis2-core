@@ -32,9 +32,12 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
+import static org.hisp.dhis.feedback.ErrorCode.E7143;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,6 +85,12 @@ public class OrganisationUnitResolver {
     List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
     List<String> orgUnitDimensionUid =
         dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits);
+
+    // Throw E7143 if no valid org units were resolved (mirrors standard ou: dimension behavior)
+    if (orgUnitDimensionUid.isEmpty()) {
+      throwIllegalQueryEx(E7143, ORGUNIT_DIM_ID);
+    }
+
     return String.join(OPTION_SEP, orgUnitDimensionUid);
   }
 

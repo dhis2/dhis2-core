@@ -1690,9 +1690,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void stageAndInvalidOu() throws JSONException {
-
-    boolean expectPostgis = isPostgres();
+  public void stageAndInvalidOu() {
 
     // Given
     QueryParamsBuilder params =
@@ -1701,11 +1699,24 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
             .add("outputType=EVENT")
             .add("pageSize=100")
             .add("page=1")
-            .add("dimension=ZkbAXlQUYJG.ou:THIS_YEAR") // TODO this should fail
+            .add("dimension=ZkbAXlQUYJG.ou:THIS_YEAR")
             .add("desc=eventdate,lastupdated");
 
     // When
     ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+      // Then
+              response
+        .validate()
+              .statusCode(409)
+              .body("httpStatus", equalTo("Conflict"))
+              .body("httpStatusCode", equalTo(409))
+              .body("status", equalTo("ERROR"))
+              .body(
+                      "message",
+                      equalTo(
+                              "Organisation unit or organisation unit level is not valid"))
+              .body("errorCode", equalTo("E7143"));
   }
 
   @Test
