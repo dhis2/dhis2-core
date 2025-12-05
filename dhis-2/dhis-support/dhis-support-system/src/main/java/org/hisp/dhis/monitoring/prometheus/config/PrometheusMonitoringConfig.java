@@ -83,29 +83,13 @@ public class PrometheusMonitoringConfig {
   /**
    * Creates a MeterFilter that configures HikariCP timer metrics with histogram buckets.
    *
-   * <p>Bucket boundaries: 1ms, 2ms, 5ms, 10ms, 25ms, 50ms, 100ms, 200ms, 500ms
-   *
    * <p>HikariCP's default Micrometer integration publishes timer metrics as summaries. This filter
    * enables histogram buckets which are more suitable for aggregation in Prometheus/Grafana.
    *
-   * <p>Note: This filter must be applied BEFORE the renaming filter so it matches the original
-   * "hikaricp.connections.*" meter names.
+   * <p>Micrometer's default percentile histogram buckets are used, filtered to the 1ms-500ms range
+   * which is appropriate for OLTP connection pool metrics. This yields approximately 39 buckets.
    */
   private static MeterFilter createHikariCpHistogramMeterFilter() {
-    // SLO buckets optimized for OLTP connection pool metrics (in nanoseconds for Timer)
-    double[] sloBuckets =
-        new double[] {
-          Duration.ofMillis(1).toNanos(),
-          Duration.ofMillis(2).toNanos(),
-          Duration.ofMillis(5).toNanos(),
-          Duration.ofMillis(10).toNanos(),
-          Duration.ofMillis(25).toNanos(),
-          Duration.ofMillis(50).toNanos(),
-          Duration.ofMillis(100).toNanos(),
-          Duration.ofMillis(200).toNanos(),
-          Duration.ofMillis(500).toNanos()
-        };
-
     return new MeterFilter() {
       @Override
       public DistributionStatisticConfig configure(
@@ -117,11 +101,9 @@ public class PrometheusMonitoringConfig {
             && (name.endsWith(".acquire")
                 || name.endsWith(".usage")
                 || name.endsWith(".creation"))) {
-          log.info("Applying histogram config to HikariCP metric: {}", name);
           return DistributionStatisticConfig.builder()
               .percentilesHistogram(true) // Enable histogram publishing
               .percentiles((double[]) null) // Disable summary percentiles
-              .serviceLevelObjectives(sloBuckets) // Add our custom SLO buckets
               .minimumExpectedValue(Duration.ofMillis(1).toNanos()) // Min: 1ms
               .maximumExpectedValue(Duration.ofMillis(500).toNanos()) // Max: 500ms
               .build()
