@@ -6,7 +6,7 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.program.notification.ProgramNotificationInstance" table="programnotificationinstance">
+    <class name="org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance" table="programnotificationinstance">
 
         <id name="id" column="programnotificationinstanceid">
             <generator class="native"/>

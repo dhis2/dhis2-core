@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**

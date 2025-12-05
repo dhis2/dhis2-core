@@ -156,7 +156,7 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramNotificationTemplateSnapshot">
-    <param name="clazz">org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot</param>
+    <param name="clazz">org.hisp.dhis.tracker.program.notification.snapshot.ProgramNotificationTemplateSnapshot</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbUserInfoSnapshot">

@@ -39,13 +39,13 @@ import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
+import org.hisp.dhis.tracker.program.notification.snapshot.NotificationTemplateService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

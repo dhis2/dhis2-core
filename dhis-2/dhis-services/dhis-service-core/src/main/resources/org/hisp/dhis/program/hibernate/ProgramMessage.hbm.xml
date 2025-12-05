@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.message.ProgramMessage" table="programmessage">
+  <class name="org.hisp.dhis.tracker.program.message.ProgramMessage" table="programmessage">
 
     <id name="id" column="id">
       <generator class="native" />
@@ -33,13 +33,13 @@
 
      <property name="messageStatus" length="50">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.message.ProgramMessageStatus</param>
+        <param name="enumClass">org.hisp.dhis.tracker.program.message.ProgramMessageStatus</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
     </property>
 
-    <component name="recipients" class="org.hisp.dhis.program.message.ProgramMessageRecipients">
+    <component name="recipients" class="org.hisp.dhis.tracker.program.message.ProgramMessageRecipients">
 
      <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
       column="trackedEntityId" foreign-key="fk_programmessage_trackedentityinstanceid" not-null="false" />

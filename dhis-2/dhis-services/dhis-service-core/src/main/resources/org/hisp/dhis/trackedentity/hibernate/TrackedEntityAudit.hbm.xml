@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-	<class name="org.hisp.dhis.trackedentity.TrackedEntityAudit" table="trackedentityaudit">
+	<class name="org.hisp.dhis.tracker.audit.TrackedEntityAudit" table="trackedentityaudit">
         <id name="id" column="trackedentityauditid">
             <generator class="sequence">
               <param name="sequence_name">trackedentityinstanceaudit_sequence</param>
@@ -24,7 +24,7 @@
                 <param name="type">12</param>
             </type>
         </property>
-        
+
         <property name="comment" length="50000"/>
     </class>
 </hibernate-mapping>

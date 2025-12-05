@@ -44,7 +44,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
