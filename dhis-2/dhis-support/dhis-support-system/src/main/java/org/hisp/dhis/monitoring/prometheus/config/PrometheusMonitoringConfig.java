@@ -110,10 +110,14 @@ public class PrometheusMonitoringConfig {
       @Override
       public DistributionStatisticConfig configure(
           io.micrometer.core.instrument.Meter.Id id, DistributionStatisticConfig config) {
-        // Only apply to Timer metrics with names starting with "hikaricp.connections."
+        String name = id.getName();
+        // Match on jdbc.connections.* because the renaming filter's map() runs before configure()
         if (id.getType() == io.micrometer.core.instrument.Meter.Type.TIMER
-            && id.getName().startsWith("hikaricp.connections.")) {
-          log.info("Applying histogram config to HikariCP metric: {}", id.getName());
+            && (name.startsWith("hikaricp.connections.") || name.startsWith("jdbc.connections."))
+            && (name.endsWith(".acquire")
+                || name.endsWith(".usage")
+                || name.endsWith(".creation"))) {
+          log.info("Applying histogram config to HikariCP metric: {}", name);
           return DistributionStatisticConfig.builder()
               .percentilesHistogram(true) // Enable histogram publishing
               .percentiles((double[]) null) // Disable summary percentiles
