@@ -87,6 +87,9 @@ public class PrometheusMonitoringConfig {
    *
    * <p>HikariCP's default Micrometer integration publishes timer metrics as summaries. This filter
    * enables histogram buckets which are more suitable for aggregation in Prometheus/Grafana.
+   *
+   * <p>Note: This filter must be applied BEFORE the renaming filter so it matches the original
+   * "hikaricp.connections.*" meter names.
    */
   private static MeterFilter createHikariCpHistogramMeterFilter() {
     // SLO buckets optimized for OLTP connection pool metrics (in nanoseconds for Timer)
@@ -107,18 +110,16 @@ public class PrometheusMonitoringConfig {
       @Override
       public DistributionStatisticConfig configure(
           io.micrometer.core.instrument.Meter.Id id, DistributionStatisticConfig config) {
-        String name = id.getName();
-        log.info("MeterFilter configure called for meter: {}", name);
-        // Match on jdbc.connections.* because the renaming filter runs before this one
-        if ((name.startsWith("hikaricp.connections.") || name.startsWith("jdbc.connections."))
-            && (name.endsWith(".acquire")
-                || name.endsWith(".usage")
-                || name.endsWith(".creation"))) {
-          log.info("Applying histogram config to HikariCP metric: {}", name);
+        // Only apply to Timer metrics with names starting with "hikaricp.connections."
+        if (id.getType() == io.micrometer.core.instrument.Meter.Type.TIMER
+            && id.getName().startsWith("hikaricp.connections.")) {
+          log.info("Applying histogram config to HikariCP metric: {}", id.getName());
           return DistributionStatisticConfig.builder()
               .percentilesHistogram(true) // Enable histogram publishing
               .percentiles((double[]) null) // Disable summary percentiles
-              .serviceLevelObjectives(sloBuckets) // Set bucket boundaries
+              .serviceLevelObjectives(sloBuckets) // Add our custom SLO buckets
+              .minimumExpectedValue(Duration.ofMillis(1).toNanos()) // Min: 1ms
+              .maximumExpectedValue(Duration.ofMillis(500).toNanos()) // Max: 500ms
               .build()
               .merge(config);
         }
