@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -582,6 +583,7 @@ class EventQueryValidatorTest extends TestBase {
 
     EventQueryParams params =
         new EventQueryParams.Builder()
+            .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
             .withProgram(prA)
             .withOrganisationUnits(List.of(ouA))
             .addItem(qi1) // stageA.EVENT_DATE
@@ -606,6 +608,7 @@ class EventQueryValidatorTest extends TestBase {
 
     EventQueryParams params =
         new EventQueryParams.Builder()
+            .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
             .withProgram(prA)
             .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
             .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
