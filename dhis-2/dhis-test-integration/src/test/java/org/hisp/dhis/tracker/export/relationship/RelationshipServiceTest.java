@@ -29,13 +29,18 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -47,6 +52,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -101,6 +107,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   private final RelationshipType eventToEventType = createRelationshipType('F');
 
   private Enrollment enrollmentA;
+
+  private Enrollment enrollmentB;
 
   private OrganisationUnit orgUnitA;
 
@@ -161,7 +169,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     eventA.setOccurredDate(enrollmentDate);
     manager.save(eventA);
 
-    Enrollment enrollmentB = createEnrollment(program, teB, orgUnitA);
+    enrollmentB = createEnrollment(program, teB, orgUnitA);
     manager.save(enrollmentB);
     teA.getEnrollments().add(enrollmentB);
     manager.update(teA);
@@ -277,10 +285,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
       throws BadRequestException {
     injectAdminIntoSecurityContext();
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('X');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('C');
     manager.save(trackedEntityType, false);
 
-    Program program = protectedProgram('P', trackedEntityType, orgUnitA);
+    Program program = protectedProgram('E', trackedEntityType, orgUnitA);
     program.getSharing().setOwner(user); // set metadata access to the program
     program.setProgramStages(Set.of(programStage));
     program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
@@ -324,7 +332,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
-    Program inaccessibleProgram = protectedProgram('P', trackedEntityType, orgUnitB);
+    Program inaccessibleProgram = protectedProgram('F', trackedEntityType, orgUnitB);
     manager.save(inaccessibleProgram, false);
 
     TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB, trackedEntityType);
@@ -338,6 +346,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(trackedEntityFrom).build();
 
+    manager.flush();
+
     List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
@@ -349,10 +359,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('Y');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('D');
     manager.save(trackedEntityType, false);
 
-    Program program = createProgram('Y', new HashSet<>(), orgUnitA);
+    Program program = createProgram('B', new HashSet<>(), orgUnitA);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
     program.getSharing().setOwner(admin);
@@ -373,6 +383,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(trackedEntityFrom).build();
 
+    manager.flush();
+
     assertThrows(
         ForbiddenException.class,
         () -> relationshipService.findRelationships(operationParams),
@@ -384,10 +396,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('Y');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('E');
     manager.save(trackedEntityType, false);
 
-    Program program = createProgram('Y', new HashSet<>(), orgUnitA);
+    Program program = createProgram('C', new HashSet<>(), orgUnitA);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
     program.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
@@ -407,10 +419,69 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(trackedEntityFrom).build();
 
+    manager.flush();
+
     assertThrows(
         ForbiddenException.class,
         () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of missing data read access to at least one program");
+  }
+
+  @Test
+  void shouldNotReturnRelationshipWhenNoDataReadAccessToTrackerEventCategoryOption() {
+    User admin = getAdminUser();
+    injectSecurityContextUser(admin);
+    CategoryOptionCombo categoryOptionCombo = createCoc('A');
+    TrackerEvent eventB = createEvent(programStage, enrollmentB, orgUnitA);
+    eventB.setAttributeOptionCombo(categoryOptionCombo);
+    manager.save(eventB);
+    relationship(eventA, eventB);
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder(eventB).build();
+    manager.flush();
+    injectSecurityContextUser(user);
+
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class, () -> relationshipService.findRelationships(operationParams));
+    assertStartsWith("User has no access to Event", exception.getMessage());
+  }
+
+  @Test
+  void shouldNotReturnRelationshipWhenNoDataReadAccessToSingleEventCategoryOption() {
+    User admin = getAdminUser();
+    injectSecurityContextUser(admin);
+    CategoryOptionCombo categoryOptionCombo = createCoc('B');
+    SingleEvent singleEventA = createSingleEvent(programStage, orgUnitA);
+    singleEventA.setAttributeOptionCombo(categoryOptionCombo);
+    manager.save(singleEventA);
+    SingleEvent singleEventB = createSingleEvent(programStage, orgUnitA);
+    singleEventB.setAttributeOptionCombo(categoryOptionCombo);
+    manager.save(singleEventB);
+    relationship(singleEventA, singleEventB);
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder(singleEventB).build();
+    manager.flush();
+    injectSecurityContextUser(user);
+
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class, () -> relationshipService.findRelationships(operationParams));
+    assertStartsWith("User has no access to Event", exception.getMessage());
+  }
+
+  private CategoryOptionCombo createCoc(char uniqueIdentifier) {
+    CategoryOption categoryOption = createCategoryOption(uniqueIdentifier);
+    manager.save(categoryOption);
+    categoryOption.getSharing().setPublicAccess(READ);
+    manager.update(categoryOption);
+    CategoryCombo categoryCombo = createCategoryCombo(uniqueIdentifier);
+    manager.save(categoryCombo);
+    CategoryOptionCombo categoryOptionCombo =
+        createCategoryOptionCombo(categoryCombo, categoryOption);
+    manager.save(categoryOptionCombo);
+
+    return categoryOptionCombo;
   }
 
   private Program protectedProgram(
@@ -499,6 +570,18 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     manager.save(relationship);
   }
 
+  private void relationship(SingleEvent from, SingleEvent to) {
+    Relationship relationship = new Relationship();
+    relationship.setUid(CodeGenerator.generateUid());
+    relationship.setRelationshipType(eventToEventType);
+    relationship.setFrom(item(from));
+    relationship.setTo(item(to));
+    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
+    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
+
+    manager.save(relationship);
+  }
+
   private RelationshipItem item(TrackedEntity from) {
     RelationshipItem relationshipItem = new RelationshipItem();
     relationshipItem.setTrackedEntity(from);
@@ -514,6 +597,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   private RelationshipItem item(TrackerEvent from) {
     RelationshipItem relationshipItem = new RelationshipItem();
     relationshipItem.setTrackerEvent(from);
+    return relationshipItem;
+  }
+
+  private RelationshipItem item(SingleEvent from) {
+    RelationshipItem relationshipItem = new RelationshipItem();
+    relationshipItem.setSingleEvent(from);
     return relationshipItem;
   }
 }
