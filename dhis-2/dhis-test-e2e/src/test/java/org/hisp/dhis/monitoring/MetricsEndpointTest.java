@@ -63,4 +63,19 @@ public class MetricsEndpointTest extends ApiTest {
         .body(containsString("# TYPE"))
         .body(containsString("jdbc_connections_"));
   }
+
+  @Test
+  public void shouldExposeJdbcConnectionMetrics() {
+    loginActions.loginAsSuperUser();
+
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
+
+    response
+        .validate()
+        .statusCode(200)
+        // Backwards compatible metric (also available with C3P0)
+        .body(containsString("jdbc_connections_max{pool=\"main\"}"))
+        // New HikariCP histogram bucket metric
+        .body(containsString("jdbc_connections_acquire_seconds_bucket{pool=\"main\",le="));
+  }
 }
