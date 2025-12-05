@@ -83,7 +83,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         .body(
             "message",
             equalTo(
-                "Period dimension cannot be used with stage-specific date dimensions (EVENT_DATE, SCHEDULED_DATE)"))
+                "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"))
         .body("errorCode", equalTo("E7242"));
   }
 
@@ -1443,10 +1443,10 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void stageAndEventDateMultipleStages() throws JSONException {
+  public void stageAndEventDateMultipleStagesRejected() {
 
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = isPostgres();
+    // The test verifies that querying with multiple stages in stage-specific dimensions
+    // results in a conflict error. At the moment, only one stage per query is supported.
 
     // Given
     QueryParamsBuilder params =
@@ -1462,232 +1462,17 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
 
     // Then
-    // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
-    validateResponseStructure(
-        response,
-        expectPostgis,
-        4,
-        23,
-        20); // Pass runtime flag, row count, and expected header counts
-
-    // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders =
-        response.extractList("headers", Map.class).stream()
-            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
-            .collect(Collectors.toList());
-
-    // 3. Assert metaData.
-    String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"total\":4,\"pageSize\":100,\"pageCount\":1},\"items\":{\"ZkbAXlQUYJG.EVENT_DATE\":{\"name\":\"TB visit date, TB visit\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"jdRD35YwbRH.EVENT_DATE\":{\"name\":\"Report date, Sputum smear microscopy test\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"jdRD35YwbRH.occurreddate\":[],\"ZkbAXlQUYJG.occurreddate\":[]}}";
-    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    assertEquals(expectedMetaData, actualMetaData, false);
-
-    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "psi", "Event", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "eventdate",
-        "Event date",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "createdbydisplayname",
-        "Created by",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "lastupdatedbydisplayname",
-        "Last updated by",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "lastupdated",
-        "Last updated on",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "scheduleddate",
-        "Scheduled date",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentdate",
-        "Start of treatment date",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "incidentdate",
-        "Start of treatment date",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "pi", "Program instance", "TEXT", "java.lang.String", false, true);
-    if (expectPostgis) {
-      validateHeaderPropertiesByName(
-          response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
-    }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentgeometry",
-        "Enrollment geometry",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    if (expectPostgis) {
-      validateHeaderPropertiesByName(
-          response,
-          actualHeaders,
-          "longitude",
-          "Longitude",
-          "NUMBER",
-          "java.lang.Double",
-          false,
-          true);
-    }
-    if (expectPostgis) {
-      validateHeaderPropertiesByName(
-          response,
-          actualHeaders,
-          "latitude",
-          "Latitude",
-          "NUMBER",
-          "java.lang.Double",
-          false,
-          true);
-    }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ounamehierarchy",
-        "Organisation unit name hierarchy",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "programstatus",
-        "Program status",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "eventstatus",
-        "Event status",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "jdRD35YwbRH.occurreddate",
-        "occurreddate",
-        "DATE",
-        "java.time.LocalDate",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.occurreddate",
-        "occurreddate",
-        "DATE",
-        "java.time.LocalDate",
-        false,
-        true);
-
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "psi", "IQCiAZs7PrK");
-    validateRowValueByName(
-        response, actualHeaders, 0, "ZkbAXlQUYJG.occurreddate", "2022-07-03 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2021-05-14 12:35:24.03");
-    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2021-04-25 12:35:24.03");
-    validateRowValueByName(response, actualHeaders, 0, "tei", "LxMVYhJm3Jp");
-    validateRowValueByName(response, actualHeaders, 0, "pi", "awZ5RHoJin5");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
-
-    // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "psi", "BijwU5PwIMh");
-    validateRowValueByName(
-        response, actualHeaders, 3, "ZkbAXlQUYJG.occurreddate", "2022-01-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2023-01-15 01:00:00.0");
-    validateRowValueByName(response, actualHeaders, 3, "incidentdate", "2023-01-15 01:00:00.0");
-    validateRowValueByName(response, actualHeaders, 3, "tei", "fSofnQR6lAU");
-    validateRowValueByName(response, actualHeaders, 3, "pi", "czKU08gniYG");
-    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 3, "programstatus", "ACTIVE");
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("httpStatusCode", equalTo(409))
+        .body("status", equalTo("ERROR"))
+        .body(
+            "message",
+            equalTo(
+                "Multiple stages in stage-specific dimensions are not allowed: `ZkbAXlQUYJG, jdRD35YwbRH`"))
+        .body("errorCode", equalTo("E7244"));
   }
 
   @Test
