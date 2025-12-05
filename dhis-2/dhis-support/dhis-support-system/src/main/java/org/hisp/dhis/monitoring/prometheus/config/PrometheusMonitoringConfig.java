@@ -36,12 +36,14 @@ import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Configuration
 public class PrometheusMonitoringConfig {
   @Bean
@@ -106,10 +108,13 @@ public class PrometheusMonitoringConfig {
       public DistributionStatisticConfig configure(
           io.micrometer.core.instrument.Meter.Id id, DistributionStatisticConfig config) {
         String name = id.getName();
-        if (name.startsWith("hikaricp.connections.")
+        log.info("MeterFilter configure called for meter: {}", name);
+        // Match on jdbc.connections.* because the renaming filter runs before this one
+        if ((name.startsWith("hikaricp.connections.") || name.startsWith("jdbc.connections."))
             && (name.endsWith(".acquire")
                 || name.endsWith(".usage")
                 || name.endsWith(".creation"))) {
+          log.info("Applying histogram config to HikariCP metric: {}", name);
           return DistributionStatisticConfig.builder()
               .percentilesHistogram(true) // Enable histogram publishing
               .percentiles((double[]) null) // Disable summary percentiles
