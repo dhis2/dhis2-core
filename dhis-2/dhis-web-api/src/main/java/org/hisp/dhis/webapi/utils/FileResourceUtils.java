@@ -349,7 +349,8 @@ public class FileResourceUtils {
         multipartFile, AVATAR_TARGET_WIDTH, AVATAR_TARGET_HEIGHT, Mode.AUTOMATIC);
   }
 
-  public MultipartFile resizeOrgToDefaultSize(MultipartFile multipartFile) throws IOException {
+  public static MultipartFile resizeOrgToDefaultSize(MultipartFile multipartFile)
+      throws IOException {
     return resizeImageToCustomSize(
         multipartFile, ORGUNIT_TARGET_WIDTH, ORGUNIT_TARGET_HEIGHT, Mode.AUTOMATIC);
   }

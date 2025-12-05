@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeOrgToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import com.google.common.base.MoreObjects;
@@ -183,9 +184,7 @@ public class FileResourceController
 
     } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
       fileResourceUtils.validateOrgUnitImage(file);
-      fileResource =
-          fileResourceUtils.saveFileResource(
-              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(uid, resizeOrgToDefaultSize(file), domain);
 
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);

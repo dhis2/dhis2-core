@@ -400,23 +400,41 @@ class FileResourceTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("Adding an org unit image results in 3 extra images saved (small, medium, large)")
+  @DisplayName(
+      "Adding an org unit file resource results in 3 extra images saved (small, medium, large)")
   void orgUnitMultiImageTest() {
-    // when creating an org unit file
-    File file = new File("src/test/resources/fileResources/dhis2.png");
+    // when creating an org unit file resource
+    File file = new File("src/test/resources/fileResources/org_unit.png");
     String frUid = postFileResource(file, "ORG_UNIT");
 
     assertTrue(frUid != null && !frUid.isEmpty());
+    assertMultiImageState(frUid);
+  }
 
-    // wait 3 seconds at most until a valid file size is retrieved
+  @Test
+  @DisplayName(
+      "Adding a user avatar file resource results in 3 extra images saved (small, medium, large)")
+  void avatarMultiImageTest() {
+    // when creating an avatar file resource
+    File file = new File("src/test/resources/fileResources/user_avatar.png");
+    String frUid = postFileResource(file, "USER_AVATAR");
+
+    assertTrue(frUid != null && !frUid.isEmpty());
+    assertMultiImageState(frUid);
+  }
+
+  private void assertMultiImageState(String frUid) {
+    // wait 3 seconds at most until multiple file sizes exist
     Awaitility.await().atMost(3, TimeUnit.SECONDS).until(() -> twoDiffFileSizesPresent(frUid));
 
     // then there are small, medium & large versions of the original file
+    // if this feature is not working correctly, then all of these calls return the default
+    // original size, and will all have the same size Content-length
     long small = getFileResourceSizeByDimension(frUid, "small");
     long medium = getFileResourceSizeByDimension(frUid, "medium");
     long large = getFileResourceSizeByDimension(frUid, "large");
 
-    // all are valid sizes
+    // all are positive sizes
     assertTrue(small > 0 && medium > 0 && large > 0);
 
     // 3 different sizes exist
