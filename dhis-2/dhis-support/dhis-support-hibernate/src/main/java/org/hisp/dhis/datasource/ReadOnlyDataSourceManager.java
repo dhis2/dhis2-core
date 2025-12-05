@@ -34,6 +34,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -76,8 +77,12 @@ public class ReadOnlyDataSourceManager {
   private static final int MAX_READ_REPLICAS = 5;
 
   public ReadOnlyDataSourceManager(DhisConfigurationProvider config) {
+    this(config, null);
+  }
+
+  public ReadOnlyDataSourceManager(DhisConfigurationProvider config, MeterRegistry meterRegistry) {
     checkNotNull(config);
-    init(config);
+    init(config, meterRegistry);
   }
 
   /** State holder for the resolved read only data source. */
@@ -91,7 +96,11 @@ public class ReadOnlyDataSourceManager {
   // -------------------------------------------------------------------------
 
   public void init(DhisConfigurationProvider config) {
-    List<DataSource> ds = getReadOnlyDataSources(config);
+    init(config, null);
+  }
+
+  public void init(DhisConfigurationProvider config, MeterRegistry meterRegistry) {
+    List<DataSource> ds = getReadOnlyDataSources(config, meterRegistry);
 
     this.internalReadOnlyInstanceList = ds;
     this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource(ds) : null;
@@ -109,7 +118,8 @@ public class ReadOnlyDataSourceManager {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  private List<DataSource> getReadOnlyDataSources(DhisConfigurationProvider config) {
+  private List<DataSource> getReadOnlyDataSources(
+      DhisConfigurationProvider config, MeterRegistry meterRegistry) {
     String mainUser = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
     String driverClass = config.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
@@ -120,6 +130,7 @@ public class ReadOnlyDataSourceManager {
 
     List<ReadOnlyDataSourceConfig> dataSourceConfigs = getReadOnlyDataSourceConfigs(config);
 
+    int replicaIndex = 1;
     for (ReadOnlyDataSourceConfig dataSourceConfig : dataSourceConfigs) {
       String url = dataSourceConfig.getUrl();
       String username = StringUtils.defaultIfEmpty(dataSourceConfig.getUsername(), mainUser);
@@ -134,6 +145,8 @@ public class ReadOnlyDataSourceManager {
       builder.maxPoolSize(maxPoolSize);
       builder.acquireIncrement(String.valueOf(VAL_ACQUIRE_INCREMENT));
       builder.maxIdleTime(String.valueOf(VAL_MAX_IDLE_TIME));
+      builder.meterRegistry(meterRegistry);
+      builder.poolName("read" + replicaIndex);
 
       try {
         dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
@@ -150,6 +163,7 @@ public class ReadOnlyDataSourceManager {
 
         throw new IllegalStateException(message, e);
       }
+      replicaIndex++;
     }
 
     config

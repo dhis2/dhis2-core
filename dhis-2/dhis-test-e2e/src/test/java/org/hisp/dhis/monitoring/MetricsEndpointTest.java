@@ -60,6 +60,7 @@ public class MetricsEndpointTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body(containsString("# HELP"))
-        .body(containsString("# TYPE"));
+        .body(containsString("# TYPE"))
+        .body(containsString("jdbc_connections_"));
   }
 }

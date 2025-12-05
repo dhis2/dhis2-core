@@ -30,9 +30,12 @@
 package org.hisp.dhis.monitoring.prometheus.config;
 
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
+import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -66,5 +69,62 @@ public class PrometheusMonitoringConfig {
   @Bean
   public PrometheusRegistry prometheusRegistry() {
     return new PrometheusRegistry();
+  }
+
+  /**
+   * Configures HikariCP connection pool metrics with histogram buckets.
+   *
+   * <p>Bucket boundaries: 1ms, 2ms, 5ms, 10ms, 25ms, 50ms, 100ms, 200ms, 500ms
+   *
+   * <p>This provides 9 buckets focused on the range where healthy systems operate (1-25ms) through
+   * problematic states (100-500ms). Values beyond 500ms indicate pool exhaustion.
+   */
+  @Bean
+  public MeterFilter hikariCpHistogramMeterFilter() {
+    // SLO buckets optimized for OLTP connection pool metrics
+    double[] sloBuckets =
+        new double[] {
+          Duration.ofMillis(1).toNanos(),
+          Duration.ofMillis(2).toNanos(),
+          Duration.ofMillis(5).toNanos(),
+          Duration.ofMillis(10).toNanos(),
+          Duration.ofMillis(25).toNanos(),
+          Duration.ofMillis(50).toNanos(),
+          Duration.ofMillis(100).toNanos(),
+          Duration.ofMillis(200).toNanos(),
+          Duration.ofMillis(500).toNanos()
+        };
+
+    return new MeterFilter() {
+      @Override
+      public DistributionStatisticConfig configure(
+          io.micrometer.core.instrument.Meter.Id id, DistributionStatisticConfig config) {
+        // apply histogram configuration to HikariCP timer metrics
+        if (id.getName().startsWith("hikaricp.connections.")) {
+          return DistributionStatisticConfig.builder()
+              .serviceLevelObjectives(sloBuckets)
+              .build()
+              .merge(config);
+        }
+        return config;
+      }
+    };
+  }
+
+  /**
+   * Renames HikariCP metrics from "hikaricp.connections.*" to "jdbc.connections.*" for backward
+   * compatibility.
+   */
+  @Bean
+  public MeterFilter hikariCpRenamingMeterFilter() {
+    return new MeterFilter() {
+      @Override
+      public io.micrometer.core.instrument.Meter.Id map(io.micrometer.core.instrument.Meter.Id id) {
+        if (id.getName().startsWith("hikaricp.connections.")) {
+          return id.withName(id.getName().replace("hikaricp.connections.", "jdbc.connections."));
+        }
+        return id;
+      }
+    };
   }
 }

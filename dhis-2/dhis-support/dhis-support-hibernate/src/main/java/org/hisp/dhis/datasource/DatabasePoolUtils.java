@@ -79,6 +79,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -251,7 +252,12 @@ public final class DatabasePoolUtils {
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
 
     HikariConfig hc = new HikariConfig();
-    hc.setPoolName("HikariDataSource_" + CodeGenerator.generateCode(10));
+    // Use provided pool name or generate random one
+    String poolName =
+        config.getPoolName() != null
+            ? config.getPoolName()
+            : "HikariDataSource_" + CodeGenerator.generateCode(10);
+    hc.setPoolName(poolName);
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
@@ -284,6 +290,11 @@ public final class DatabasePoolUtils {
       } catch (NumberFormatException e) {
         log.warn("Invalid leak detection threshold value '{}', skipping.", leakThresholdStr);
       }
+    }
+
+    // Configure HikariCP metrics if MeterRegistry is available
+    if (config.getMeterRegistry() != null) {
+      hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(config.getMeterRegistry()));
     }
 
     HikariDataSource ds = new HikariDataSource(hc);
