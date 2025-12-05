@@ -115,23 +115,19 @@ pipeline {
         }
 
         stage('Publish image') {
-            environment {
-                // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
-                BASE_IMAGE = "tomcat:10.1.48-jre17"
-                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
-            }
-
             steps {
                 script {
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
-                        if (env.GIT_BRANCH == 'master') {
-                            tag = 'latest'
-                        } else {
-                            tag = env.GIT_BRANCH
-                        }
+                        def tag = env.GIT_BRANCH == 'master' ? 'latest' : env.GIT_BRANCH
 
                         withMaven(options: [artifactsPublisher(disabled: true)]) {
-                            sh "./dhis-2/build-docker-image.sh -t ${tag} -d"
+                            sh """mvn --batch-mode --no-transfer-progress \
+                                -DskipTests -Dpackaging.type=jar \
+                                --file dhis-2/dhis-web-server/pom.xml \
+                                --activate-profiles embedded,jibBuild \
+                                jib:build \
+                                -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag} \
+                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"""
                         }
                     }
                 }
