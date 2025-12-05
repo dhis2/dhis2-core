@@ -125,8 +125,41 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndSimpleOu",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:ImspTQPwCqd&dimension=pe:2022&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndOuUserOrgUnit",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT&dimension=pe:202206&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndOuUserLevel",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:LEVEL-3&dimension=pe:202111&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndScheduledDate",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.SCHEDULED_DATE:202208&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndStatus",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE&dimension=pe:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
-
-
   ]
 }
