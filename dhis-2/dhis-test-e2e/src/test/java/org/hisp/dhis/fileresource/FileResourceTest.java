@@ -406,8 +406,9 @@ class FileResourceTest extends ApiTest {
     // when creating an org unit file resource
     File file = new File("src/test/resources/fileResources/org_unit.png");
     String frUid = postFileResource(file, "ORG_UNIT");
-
     assertTrue(frUid != null && !frUid.isEmpty());
+
+    // then there are small, medium & large versions of the original file
     assertMultiImageState(frUid);
   }
 
@@ -418,8 +419,9 @@ class FileResourceTest extends ApiTest {
     // when creating an avatar file resource
     File file = new File("src/test/resources/fileResources/user_avatar.png");
     String frUid = postFileResource(file, "USER_AVATAR");
-
     assertTrue(frUid != null && !frUid.isEmpty());
+
+    // then there are small, medium & large versions of the original file
     assertMultiImageState(frUid);
   }
 
