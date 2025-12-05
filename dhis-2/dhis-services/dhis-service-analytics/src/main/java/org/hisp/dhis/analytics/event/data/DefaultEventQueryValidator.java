@@ -50,6 +50,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -153,15 +154,17 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7241);
     }
 
-    // Stage-prefixed dimensions must all use the same stage
-    Set<ProgramStage> distinctStages = params.getDistinctStages();
-    if (distinctStages.size() > 1) {
-      String stages =
-          distinctStages.stream()
-              .map(ProgramStage::getUid)
-              .sorted()
-              .collect(Collectors.joining(", "));
-      return new ErrorMessage(ErrorCode.E7244, stages);
+    if (params.getEndpointItem().equals(RequestTypeAware.EndpointItem.EVENT)) {
+      // Stage-prefixed dimensions must all use the same stage
+      Set<ProgramStage> distinctStages = params.getDistinctStages();
+      if (distinctStages.size() > 1) {
+        String stages =
+            distinctStages.stream()
+                .map(ProgramStage::getUid)
+                .sorted()
+                .collect(Collectors.joining(", "));
+        return new ErrorMessage(ErrorCode.E7244, stages);
+      }
     }
 
     // Period dimension cannot be used with stage-specific date dimensions
