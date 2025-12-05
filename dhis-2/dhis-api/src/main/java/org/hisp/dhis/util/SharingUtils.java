@@ -43,7 +43,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 public class SharingUtils {
   private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES =
       ImmutableList.<String>builder()
-          .add("userAccesses", "userGroupAccesses", "publicAccess", "externalAccess")
+          .add("userAccesses", "userGroupAccesses", "publicAccess")
           .build();
 
   private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
@@ -89,9 +89,7 @@ public class SharingUtils {
             .append(", name: ")
             .append(object.getName())
             .append(", publicAccess: ")
-            .append(object.getSharing().getPublicAccess())
-            .append(", externalAccess: ")
-            .append(object.getSharing().isExternal());
+            .append(object.getSharing().getPublicAccess());
 
     if (!MapUtils.isEmpty(object.getSharing().getUserGroups())) {
       builder.append(", userGroupAccesses: ");

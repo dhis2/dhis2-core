@@ -39,7 +39,6 @@ public interface SharingMapper extends PreheatMapper<Sharing> {
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "publicAccess")
-  @Mapping(target = "external")
   @Mapping(target = "owner")
   @Mapping(target = "users")
   @Mapping(target = "userGroups")

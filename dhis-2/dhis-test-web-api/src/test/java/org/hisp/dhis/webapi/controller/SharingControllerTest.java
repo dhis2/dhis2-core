@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonNode;
@@ -120,13 +119,11 @@ class SharingControllerTest extends DhisControllerConvenienceTest {
     JsonObject sharing = GET("/sharing?type=userGroup&id=" + groupId).content(HttpStatus.OK);
     JsonObject meta = sharing.getObject("meta");
     assertTrue(meta.getBoolean("allowPublicAccess").booleanValue());
-    assertFalse(meta.getBoolean("allowExternalAccess").booleanValue());
     JsonObject object = sharing.getObject("object");
     assertEquals(groupId, object.getString("id").string());
     assertEquals("test", object.getString("name").string());
     assertEquals("test", object.getString("displayName").string());
     assertEquals("rw------", object.getString("publicAccess").string());
-    assertFalse(object.getBoolean("externalAccess").booleanValue());
     assertEquals(
         "FirstNameadmin Surnameadmin", object.getObject("user").getString("name").string());
     assertEquals(0, object.getArray("userGroupAccesses").size());
@@ -200,7 +197,6 @@ class SharingControllerTest extends DhisControllerConvenienceTest {
     {
          "object": {
              "publicAccess": "--------",
-             "externalAccess": false,
              "user": {},
              "userAccesses": [],
              "userGroupAccesses": []

@@ -566,7 +566,6 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
             [{"op":"add", "path":"/sharing",
             "value":{"owner": "GOLswS44mh8",
               "public": "rw------",
-              "external": false,
               "users": {"%s": {"id": "%s", "access": "rw------"}}}}]"""
                 .formatted(userA.getUid(), userA.getUid()))
         .content(HttpStatus.OK);

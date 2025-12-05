@@ -61,7 +61,6 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
 
   private static final Set<String> IGNORED_SCHEMAS =
       Set.of(
-          "externalFileResource", // can't POST files
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
           "pushanalysis", // uses dashboards (see above)

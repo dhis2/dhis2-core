@@ -138,14 +138,10 @@ public class SharingController {
 
     Sharing sharing = new Sharing();
     sharing.getMeta().setAllowPublicAccess(aclService.canMakePublic(currentUserDetails, object));
-    sharing
-        .getMeta()
-        .setAllowExternalAccess(aclService.canMakeExternal(currentUserDetails, object));
 
     sharing.getObject().setId(object.getUid());
     sharing.getObject().setName(object.getDisplayName());
     sharing.getObject().setDisplayName(object.getDisplayName());
-    sharing.getObject().setExternalAccess(object.getSharing().isExternal());
 
     if (object.getSharing().getPublicAccess() == null) {
       String access;
@@ -248,14 +244,6 @@ public class SharingController {
 
     if (!AccessStringHelper.isValid(sharing.getObject().getPublicAccess())) {
       return conflict("Invalid public access string: " + sharing.getObject().getPublicAccess());
-    }
-
-    // ---------------------------------------------------------------------
-    // Ignore externalAccess if user is not allowed to make objects external
-    // ---------------------------------------------------------------------
-
-    if (aclService.canMakeExternal(currentUserDetails, object)) {
-      object.getSharing().setExternal(sharing.getObject().hasExternalAccess());
     }
 
     // ---------------------------------------------------------------------

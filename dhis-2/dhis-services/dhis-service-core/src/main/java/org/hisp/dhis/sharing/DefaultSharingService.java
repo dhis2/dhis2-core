@@ -95,14 +95,6 @@ public class DefaultSharingService implements SharingService {
     }
 
     // ---------------------------------------------------------------------
-    // Ignore externalAccess if user is not allowed to make objects external
-    // ---------------------------------------------------------------------
-
-    if (aclService.canMakeClassExternal(CurrentUserUtil.getCurrentUserDetails(), entityClass)) {
-      object.getSharing().setExternal(sharing.isExternal());
-    }
-
-    // ---------------------------------------------------------------------
     // Ignore publicAccess if user is not allowed to make objects public
     // ---------------------------------------------------------------------
 
