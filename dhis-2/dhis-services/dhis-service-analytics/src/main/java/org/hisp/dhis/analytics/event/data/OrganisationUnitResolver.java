@@ -32,9 +32,12 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
+import static org.hisp.dhis.feedback.ErrorCode.E7143;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,6 +85,12 @@ public class OrganisationUnitResolver {
     List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
     List<String> orgUnitDimensionUid =
         dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits);
+
+    // Throw E7143 if no valid org units were resolved (mirrors standard ou: dimension behavior)
+    if (orgUnitDimensionUid.isEmpty()) {
+      throwIllegalQueryEx(E7143, ORGUNIT_DIM_ID);
+    }
+
     return String.join(OPTION_SEP, orgUnitDimensionUid);
   }
 
@@ -136,13 +145,31 @@ public class OrganisationUnitResolver {
    * @param item the query item
    * @return the list of organisation unit dimension uids
    */
-  public List<String> resolveOrgUnis(EventQueryParams params, QueryItem item) {
+  public List<String> resolveOrgUnits(EventQueryParams params, QueryItem item) {
     return item.getFilters().stream()
         .map(queryFilter -> resolveOrgUnits(queryFilter, params.getUserOrgUnits()))
         .map(s -> s.split(DimensionConstants.OPTION_SEP))
         .flatMap(Arrays::stream)
         .distinct()
         .toList();
+  }
+
+  /**
+   * Resolves organisation units from a QueryItem's filters and returns them grouped by level. This
+   * is useful for generating proper uidlevelX WHERE clauses for stage.ou dimensions.
+   *
+   * @param params the event query parameters
+   * @param item the query item containing org unit filters
+   * @return a map of level to list of organisation units at that level
+   */
+  public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
+      EventQueryParams params, QueryItem item) {
+    List<String> orgUnitUids = resolveOrgUnits(params, item);
+    if (orgUnitUids.isEmpty()) {
+      return Map.of();
+    }
+    return organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
+        .collect(Collectors.groupingBy(OrganisationUnit::getLevel));
   }
 
   /**

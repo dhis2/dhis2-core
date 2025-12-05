@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -36,6 +38,10 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -59,6 +65,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
@@ -84,6 +91,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
@@ -105,6 +113,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
@@ -661,6 +670,53 @@ public class EventQueryParams extends DataQueryParams {
       ranges.sort(Comparator.comparing(DateRange::getStartDate));
     }
     removeDimensionOrFilter(PERIOD_DIM_ID);
+
+    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
+    extractDatesFromStageDateItems();
+  }
+
+  /**
+   * Extracts start/end dates from stage-scoped date QueryItems (e.g., stageId.EVENT_DATE:201910 or
+   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as comparison
+   * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
+   */
+  private void extractDatesFromStageDateItems() {
+    for (QueryItem item : items) {
+      if (item.hasProgramStage() && isStageDateItem(item)) {
+        Date start = null;
+        Date end = null;
+
+        for (QueryFilter filter : item.getFilters()) {
+          Date filterDate = DateUtils.parseDate(filter.getFilter());
+          if (filterDate != null) {
+            switch (filter.getOperator()) {
+              case GE, GT -> start = filterDate;
+              case LE, LT -> end = filterDate;
+              case EQ -> {
+                start = filterDate;
+                end = filterDate;
+              }
+              default -> {}
+            }
+          }
+        }
+
+        if (start != null || end != null) {
+          setDates(start, end);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if the QueryItem is a stage date item (EVENT_DATE or SCHEDULED_DATE).
+   *
+   * @param item the QueryItem to check
+   * @return true if the item is a stage date item
+   */
+  private boolean isStageDateItem(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId) || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
   }
 
   /**
@@ -690,6 +746,63 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasStageInValue() {
     return isNotBlank(requestValue) && requestValue.contains(DIMENSION_IDENTIFIER_SEP);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific dimension identifier. This includes only the
+   * special dimensions: stageUid.EVENT_DATE, stageUid.SCHEDULED_DATE, stageUid.EVENT_STATUS, and
+   * stageUid.ou. Regular data elements with a stage prefix (e.g., stageUid.dataElementUid) are NOT
+   * considered stage-specific dimension identifiers.
+   */
+  public boolean hasStageSpecificItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageSpecificDimension(item));
+  }
+
+  /**
+   * Returns true if the item is a stage-specific dimension identifier (EVENT_DATE, SCHEDULED_DATE,
+   * ou, or EVENT_STATUS). These are special dimensions that can be prefixed with a program stage.
+   */
+  private boolean isStageSpecificDimension(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+        || SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+        || OU_COLUMN_NAME.equals(itemId)
+        || EVENT_STATUS_COLUMN_NAME.equals(itemId);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific date dimension (EVENT_DATE or
+   * SCHEDULED_DATE).
+   */
+  public boolean hasStageDateItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageDateItem(item));
+  }
+
+  /**
+   * Returns duplicate stage dimension identifiers (stageUid.itemId combinations). A duplicate
+   * occurs when the same stage and identifier are used more than once.
+   */
+  public Set<String> getDuplicateStageDimensionIdentifiers() {
+    Map<String, Long> counts =
+        getItemsAndItemFilters().stream()
+            .filter(QueryItem::hasProgramStage)
+            .map(item -> item.getProgramStage().getUid() + "." + item.getItemId())
+            .collect(groupingBy(Function.identity(), counting()));
+
+    return counts.entrySet().stream()
+        .filter(e -> e.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(toSet());
+  }
+
+  /** Returns all distinct program stages from items that have a stage prefix. */
+  public Set<ProgramStage> getDistinctStages() {
+    return getItemsAndItemFilters().stream()
+        .filter(QueryItem::hasProgramStage)
+        .map(QueryItem::getProgramStage)
+        .collect(toSet());
   }
 
   /**
