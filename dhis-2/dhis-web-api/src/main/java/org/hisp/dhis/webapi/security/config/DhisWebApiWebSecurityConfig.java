@@ -388,9 +388,6 @@ public class DhisWebApiWebSecurityConfig {
                       new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
                   .permitAll()
                   .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/externalFileResources/**"))
-                  .permitAll()
-                  .requestMatchers(
                       new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))

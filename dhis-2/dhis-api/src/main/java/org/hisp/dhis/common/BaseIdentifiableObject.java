@@ -525,14 +525,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   // Sharing helpers
   // -------------------------------------------------------------------------
 
-  public void setExternalAccess(boolean externalAccess) {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
-    sharing.setExternal(externalAccess);
-  }
-
   public void setPublicAccess(String access) {
     if (sharing == null) {
       sharing = new Sharing();
