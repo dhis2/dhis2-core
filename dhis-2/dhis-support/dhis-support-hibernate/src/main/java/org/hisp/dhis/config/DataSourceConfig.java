@@ -30,6 +30,7 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -67,6 +68,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @RequiredArgsConstructor
 public class DataSourceConfig {
 
+  private final MeterRegistry meterRegistry;
+
   @Primary
   @Bean
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
@@ -98,7 +101,7 @@ public class DataSourceConfig {
   @Bean
   public JdbcTemplate readOnlyJdbcTemplate(
       DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -128,6 +131,8 @@ public class DataSourceConfig {
             .password(config.getProperty(ConfigurationKey.CONNECTION_PASSWORD))
             .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))
             .readOnly(true)
+            .meterRegistry(meterRegistry)
+            .poolName("read-replica")
             .build();
 
     try {
@@ -147,7 +152,12 @@ public class DataSourceConfig {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
+        DbPoolConfig.builder()
+            .dhisConfig(config)
+            .dbPoolType(dbPoolType)
+            .meterRegistry(meterRegistry)
+            .poolName("main")
+            .build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);

@@ -129,6 +129,10 @@
       <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jeasy</groupId>
       <artifactId>easy-random-core</artifactId>
       <scope>compile</scope>

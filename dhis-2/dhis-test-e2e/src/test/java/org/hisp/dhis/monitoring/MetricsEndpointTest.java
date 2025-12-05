@@ -60,6 +60,26 @@ public class MetricsEndpointTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body(containsString("# HELP"))
-        .body(containsString("# TYPE"));
+        .body(containsString("# TYPE"))
+        .body(containsString("jdbc_connections_"));
+  }
+
+  @Test
+  public void shouldExposeJdbcConnectionMetrics() {
+    loginActions.loginAsSuperUser();
+
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
+
+    response
+        .validate()
+        .statusCode(200)
+        // Backwards compatible metric (also available with C3P0)
+        .body(containsString("jdbc_connections_max{pool=\"main\"}"))
+        // Counter metric
+        .body(containsString("jdbc_connections_timeout_total{pool=\"main\"}"))
+        // New HikariCP histogram bucket metrics for all three timer types
+        .body(containsString("jdbc_connections_acquire_seconds_bucket{pool=\"main\",le="))
+        .body(containsString("jdbc_connections_creation_seconds_bucket{pool=\"main\",le="))
+        .body(containsString("jdbc_connections_usage_seconds_bucket{pool=\"main\",le="));
   }
 }

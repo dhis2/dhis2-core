@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.datasource.model;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Value;
@@ -75,6 +76,18 @@ public class DbPoolConfig {
    * behavior will not be enforced.
    */
   boolean readOnly;
+
+  /**
+   * Optional MeterRegistry for HikariCP metrics. If provided, HikariCP will publish timer metrics
+   * (acquire, usage, creation) with histogram support.
+   */
+  private MeterRegistry meterRegistry;
+
+  /**
+   * Optional pool name for identifying the datasource in metrics. If not provided, a random name
+   * will be generated. Use meaningful names like "main", "analytics", "read-replica-1", etc.
+   */
+  private String poolName;
 
   public ConfigKeyMapper getMapper() {
     return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
