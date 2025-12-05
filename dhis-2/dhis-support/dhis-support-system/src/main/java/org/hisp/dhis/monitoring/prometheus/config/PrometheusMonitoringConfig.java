@@ -87,7 +87,7 @@ public class PrometheusMonitoringConfig {
    * enables histogram buckets which are more suitable for aggregation in Prometheus/Grafana.
    */
   private static MeterFilter createHikariCpHistogramMeterFilter() {
-    // SLO buckets optimized for OLTP connection pool metrics (in nanoseconds)
+    // SLO buckets optimized for OLTP connection pool metrics (in nanoseconds for Timer)
     double[] sloBuckets =
         new double[] {
           Duration.ofMillis(1).toNanos(),
@@ -111,8 +111,9 @@ public class PrometheusMonitoringConfig {
                 || name.endsWith(".usage")
                 || name.endsWith(".creation"))) {
           return DistributionStatisticConfig.builder()
-              .percentilesHistogram(false)
-              .serviceLevelObjectives(sloBuckets)
+              .percentilesHistogram(true) // Enable histogram publishing
+              .percentiles((double[]) null) // Disable summary percentiles
+              .serviceLevelObjectives(sloBuckets) // Set bucket boundaries
               .build()
               .merge(config);
         }
@@ -122,15 +123,16 @@ public class PrometheusMonitoringConfig {
   }
 
   /**
-   * Creates a MeterFilter that renames HikariCP metrics from "hikaricp.connections.*" to
-   * "jdbc.connections.*" for backward compatibility.
+   * Creates a MeterFilter that renames HikariCP metrics from "hikaricp.connections*" to
+   * "jdbc.connections*" for backward compatibility.
    */
   private static MeterFilter createHikariCpRenamingMeterFilter() {
     return new MeterFilter() {
       @Override
       public io.micrometer.core.instrument.Meter.Id map(io.micrometer.core.instrument.Meter.Id id) {
-        if (id.getName().startsWith("hikaricp.connections.")) {
-          return id.withName(id.getName().replace("hikaricp.connections.", "jdbc.connections."));
+        // Match both "hikaricp.connections." and "hikaricp.connections" (without dot)
+        if (id.getName().startsWith("hikaricp.connections")) {
+          return id.withName(id.getName().replace("hikaricp.connections", "jdbc.connections"));
         }
         return id;
       }
