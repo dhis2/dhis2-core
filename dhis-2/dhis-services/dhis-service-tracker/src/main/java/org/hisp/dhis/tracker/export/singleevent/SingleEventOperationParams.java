@@ -91,6 +91,13 @@ public class SingleEventOperationParams {
 
   private boolean includeRelationships;
 
+  private boolean synchronizationQuery;
+
+  private Map<String, Set<String>> skipSyncDataElementsByProgramStage = new HashMap<>();
+
+  /** Indicates a point in the time used to decide the data that should not be synchronized */
+  private Date skipChangedBefore;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data element (given as {@link
    * UID}) and tracked entity attribute (given as {@link UID}). It is crucial for the order values
@@ -159,6 +166,23 @@ public class SingleEventOperationParams {
       return this;
     }
 
+    // Hide Lombok-generated synchronizationQuery setter
+    private SingleEventOperationParamsBuilder synchronizationQuery(boolean synchronizationQuery) {
+      this.synchronizationQuery = synchronizationQuery;
+      return this;
+    }
+
+    private SingleEventOperationParamsBuilder skipChangedBefore(Date skipChangedBefore) {
+      this.skipChangedBefore = skipChangedBefore;
+      return this;
+    }
+
+    private SingleEventOperationParamsBuilder skipSyncDataElementsByProgramStage(
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
+      return this;
+    }
+
     // Do not remove this unused method. This hides the data element filters field from the builder
     // which Lombok
     // does not support. The repeated field and private method prevent access to
@@ -189,6 +213,18 @@ public class SingleEventOperationParams {
 
   public static SingleEventOperationParamsBuilder builderForEvent(@Nonnull UID event) {
     return new SingleEventOperationParamsBuilder().events(Set.of(event));
+  }
+
+  public static SingleEventOperationParamsBuilder builderForDataSync(
+      @Nonnull UID program,
+      Date skipChangedBefore,
+      @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    return new SingleEventOperationParamsBuilder()
+        .program(program)
+        .skipChangedBefore(skipChangedBefore)
+        .skipSyncDataElementsByProgramStage(skipSyncDataElementsByProgramStage)
+        .synchronizationQuery(true)
+        .includeDeleted(true);
   }
 
   // Do not remove this unused method. This hides the builder with no params which Lombok
