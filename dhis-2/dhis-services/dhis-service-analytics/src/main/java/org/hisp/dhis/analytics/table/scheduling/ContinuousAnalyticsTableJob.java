@@ -105,7 +105,7 @@ public class ContinuousAnalyticsTableJob implements Job {
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
               .skipResourceTables(false)
-              .skipOutliers(parameters.getSkipOutliers() || !sqlBuilder.supportsPercentileCont())
+              .skipOutliers(skipOutliers(parameters))
               .skipTableTypes(parameters.getSkipTableTypes())
               .startTime(startTime)
               .build();
@@ -123,7 +123,7 @@ public class ContinuousAnalyticsTableJob implements Job {
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
               .skipResourceTables(true)
-              .skipOutliers(parameters.getSkipOutliers() || sqlBuilder.supportsPercentileCont())
+              .skipOutliers(skipOutliers(parameters))
               .skipTableTypes(parameters.getSkipTableTypes())
               .startTime(startTime)
               .build()
@@ -154,9 +154,13 @@ public class ContinuousAnalyticsTableJob implements Job {
     boolean analyticsTableWithOutliers =
         tableInfoReader.getInfo("analytics").getColumns().stream()
             .anyMatch("sourceid"::equalsIgnoreCase);
-    boolean outliersRequired = !parameters.getSkipOutliers();
+    boolean skipOutliers = skipOutliers(parameters);
 
-    return outliersRequired && analyticsTableWithOutliers
-        || !outliersRequired && !analyticsTableWithOutliers;
+    return !skipOutliers && analyticsTableWithOutliers
+        || skipOutliers && !analyticsTableWithOutliers;
+  }
+
+  boolean skipOutliers(ContinuousAnalyticsJobParameters parameters) {
+    return !sqlBuilder.supportsPercentileCont() || parameters.getSkipOutliers();
   }
 }

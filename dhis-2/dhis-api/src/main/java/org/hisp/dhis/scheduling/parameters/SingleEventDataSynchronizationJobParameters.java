@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,55 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.scheduling.parameters;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.UUID;
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * Tests valid XRequestID header validation of {@link RequestInfo#isValidXRequestID(String)}
- *
- * @author Jan Bernitt
+ * @author Zubair Asghar
  */
-class RequestInfoTest {
-  @Test
-  void testUidIsValidXRequestID() {
-    assertValid(CodeGenerator.generateUid());
-  }
+@Getter
+@Setter
+@NoArgsConstructor
+public class SingleEventDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-  @Test
-  void testUUIDIsValidXRequestID() {
-    assertValid(UUID.randomUUID().toString());
-  }
+  static final int PAGE_SIZE_MAX = 200;
 
-  @Test
-  void testLongStringIsInvalidXRequestID() {
-    assertInvalid("1234567890123456789012345678901234567890");
-  }
+  @JsonProperty private int pageSize = 60;
 
-  @Test
-  void testQuoteStringIsInvalidXRequestID() {
-    assertInvalid("'now-I-escaped");
-    assertInvalid("\"now-I-escaped");
-  }
+  @OpenApi.Property({UID.class, Program.class})
+  @JsonProperty(required = true)
+  private String program;
 
-  @Test
-  void testSpaceStringIsInvalidXRequestID() {
-    assertInvalid("no - not having it");
-  }
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
+    }
 
-  private static void assertValid(String xRequestID) {
-    assertTrue(
-        RequestInfo.isValidXRequestID(xRequestID),
-        "Should be a valid ID but is not: " + xRequestID);
-  }
-
-  private static void assertInvalid(String xRequestID) {
-    assertFalse(
-        RequestInfo.isValidXRequestID(xRequestID),
-        "Should be an invalid ID but is valid: " + xRequestID);
+    return Optional.empty();
   }
 }

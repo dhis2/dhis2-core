@@ -104,7 +104,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
         query.getOrders().stream()
             .map(Order::getProperty)
             .map(schema::getProperty)
-            .allMatch(p -> p != null && p.isPersisted() && p.isSimple());
+            .allMatch(
+                p ->
+                    p != null
+                        && (p.isPersisted() || isDisplayProperty(p.getName()))
+                        && p.isSimple());
     if (dbOrdering) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
@@ -120,5 +124,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
         && path.isPersisted()
         && !path.haveAlias()
         && !Attribute.ObjectType.isValidType(path.getPath());
+  }
+
+  private boolean isDisplayProperty(String propertyName) {
+    return propertyName != null && propertyName.startsWith("display");
   }
 }

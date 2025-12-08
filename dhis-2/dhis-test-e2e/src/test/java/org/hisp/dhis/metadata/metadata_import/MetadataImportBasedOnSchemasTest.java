@@ -137,8 +137,7 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
   private Stream<Arguments> getSchemaEndpoints() {
     ApiResponse apiResponse = schemasActions.get();
 
-    String jsonPathIdentifier =
-        "schemas.findAll{it.relativeApiEndpoint && it.metadata && it.singular != 'externalFileResource'}";
+    String jsonPathIdentifier = "schemas.findAll{it.relativeApiEndpoint && it.metadata}";
     List<String> apiEndpoints = apiResponse.extractList(jsonPathIdentifier + ".plural");
     List<String> schemaEndpoints = apiResponse.extractList(jsonPathIdentifier + ".singular");
 

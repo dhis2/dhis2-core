@@ -234,10 +234,6 @@ public class InterpretationController
 
     Period period = Period.of(isoPeriod);
 
-    if (period == null) {
-      return conflict("Period identifier not valid: " + isoPeriod);
-    }
-
     OrganisationUnit orgUnit = idObjectManager.get(OrganisationUnit.class, orgUnitUid);
 
     if (orgUnit == null) {

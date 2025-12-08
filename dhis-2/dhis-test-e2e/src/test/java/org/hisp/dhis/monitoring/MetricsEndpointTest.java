@@ -27,39 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.monitoring;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+import static org.hamcrest.Matchers.containsString;
 
-/**
- * @author Stian Sandvold
- */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.ExternalFileResourceService")
-public class DefaultExternalFileResourceService implements ExternalFileResourceService {
-  private final ExternalFileResourceStore externalFileResourceStore;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalFileResource getExternalFileResourceByAccessToken(String accessToken) {
-    return externalFileResourceStore.getExternalFileResourceByAccessToken(accessToken);
+/** Tests for the /api/metrics endpoint (Prometheus scrape endpoint). */
+public class MetricsEndpointTest extends ApiTest {
+  private RestApiActions metricsActions;
+
+  private LoginActions loginActions;
+
+  @BeforeAll
+  public void setUp() {
+    loginActions = new LoginActions();
+    metricsActions = new RestApiActions("/metrics");
   }
 
-  @Override
-  @Transactional
-  public String saveExternalFileResource(ExternalFileResource externalFileResource) {
-    Assert.notNull(externalFileResource, "External file resource cannot be null");
-    Assert.notNull(
-        externalFileResource.getFileResource(), "External file resource entity cannot be null");
+  @Test
+  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+    loginActions.loginAsSuperUser();
 
-    externalFileResource.setAccessToken(CodeGenerator.getRandomSecureToken());
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
 
-    externalFileResourceStore.save(externalFileResource);
-
-    return externalFileResource.getAccessToken();
+    response
+        .validate()
+        .statusCode(200)
+        .body(containsString("# HELP"))
+        .body(containsString("# TYPE"));
   }
 }

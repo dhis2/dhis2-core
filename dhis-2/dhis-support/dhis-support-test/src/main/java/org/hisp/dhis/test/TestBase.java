@@ -128,7 +128,6 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.hibernate.HibernateService;
@@ -2325,21 +2324,6 @@ public abstract class TestBase {
     icon.setCustom(true);
 
     return icon;
-  }
-
-  /**
-   * @param uniqueChar A unique character to identify the object.
-   * @param content The content of the file
-   * @return an externalFileResource object
-   */
-  public static ExternalFileResource createExternalFileResource(char uniqueChar, byte[] content) {
-    FileResource fileResource = createFileResource(uniqueChar, content);
-    ExternalFileResource externalFileResource = new ExternalFileResource();
-
-    externalFileResource.setFileResource(fileResource);
-    fileResource.setAssigned(true);
-    externalFileResource.setAccessToken(String.valueOf(uniqueChar));
-    return externalFileResource;
   }
 
   /**

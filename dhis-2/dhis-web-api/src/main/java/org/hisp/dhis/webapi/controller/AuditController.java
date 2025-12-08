@@ -168,8 +168,7 @@ public class AuditController {
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws WebMessageException {
+      @RequestParam(required = false, defaultValue = "1") int page) {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -345,7 +344,7 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
+  private List<Period> getPeriods(List<String> isoPeriods) {
     if (isoPeriods == null) {
       return new ArrayList<>();
     }
@@ -353,13 +352,7 @@ public class AuditController {
     List<Period> periods = new ArrayList<>();
 
     for (String pe : isoPeriods) {
-      Period period = Period.of(pe);
-
-      if (period == null) {
-        throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-      }
-
-      periods.add(period);
+      periods.add(Period.of(pe));
     }
 
     return periods;

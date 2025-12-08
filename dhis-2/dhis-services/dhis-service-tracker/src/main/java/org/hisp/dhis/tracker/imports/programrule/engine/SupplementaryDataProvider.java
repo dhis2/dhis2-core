@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
-import com.google.common.collect.Maps;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -40,55 +40,62 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class SupplementaryDataProvider {
-  private static final String USER = "USER";
-
-  private static final String REGEX =
+  private static final String ORG_UNIT_GROUP_REGEX =
       "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
           + "( *'[^']*'))*+( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))*+ *\\)";
 
-  private static final Pattern PATTERN = Pattern.compile(REGEX);
+  private static final Pattern ORG_UNIT_GROUP_PATTERN = Pattern.compile(ORG_UNIT_GROUP_REGEX);
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
 
-  public Map<String, List<String>> getSupplementaryData(
+  public RuleSupplementaryData getSupplementaryData(
       List<ProgramRule> programRules, UserDetails user) {
+
+    Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(programRules);
+
+    return new RuleSupplementaryData(
+        user.getUserGroupIds().stream().toList(),
+        user.getUserRoleIds().stream().toList(),
+        orgUnitGroupData);
+  }
+
+  private Map<String, List<String>> extractOrgUnitGroups(List<ProgramRule> programRules) {
     List<String> orgUnitGroups = new ArrayList<>();
-
     for (ProgramRule programRule : programRules) {
-      Matcher matcher = PATTERN.matcher(StringUtils.defaultIfBlank(programRule.getCondition(), ""));
-
+      Matcher matcher =
+          ORG_UNIT_GROUP_PATTERN.matcher(
+              StringUtils.defaultIfBlank(programRule.getCondition(), ""));
       while (matcher.find()) {
         orgUnitGroups.add(StringUtils.replace(matcher.group(1), "'", ""));
       }
     }
 
-    Map<String, List<String>> supplementaryData = Maps.newHashMap();
-
-    if (!orgUnitGroups.isEmpty()) {
-      supplementaryData =
-          orgUnitGroups.stream()
-              .collect(
-                  Collectors.toMap(
-                      g -> g,
-                      g ->
-                          organisationUnitGroupService
-                              .getOrganisationUnitGroup(g)
-                              .getMembers()
-                              .stream()
-                              .map(OrganisationUnit::getUid)
-                              .toList()));
+    if (orgUnitGroups.isEmpty()) {
+      return Collections.emptyMap();
     }
 
-    supplementaryData.put(USER, new ArrayList<>(user.getUserRoleIds()));
-
-    return supplementaryData;
+    return orgUnitGroups.stream()
+        .map(
+            groupId -> {
+              OrganisationUnitGroup orgUnitGroup =
+                  organisationUnitGroupService.getOrganisationUnitGroup(groupId);
+              if (orgUnitGroup == null) {
+                return Map.entry(groupId, List.<String>of());
+              }
+              return Map.entry(
+                  groupId,
+                  orgUnitGroup.getMembers().stream().map(OrganisationUnit::getUid).toList());
+            })
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }

@@ -115,13 +115,13 @@ public class HibernateTrackedEntityChangeLogStore {
         from TrackedEntityChangeLog tecl \
         join tecl.trackedEntity t \
         join tecl.trackedEntityAttribute tea \
-        left join tecl.createdBy u \
+        left join User u on u.username = tecl.createdByUsername \
         """;
 
     if (program != null) {
       hql +=
           """
-          join tecl.programAttribute pa \
+          join ProgramTrackedEntityAttribute pa on pa.attribute = tea \
           join pa.program p \
           where t.uid = :trackedEntity \
           and p.uid = :program \

@@ -145,7 +145,7 @@ public class DataValidator {
    * @throws IllegalQueryException if the validation fails.
    */
   public Period getAndValidatePeriod(String pe) {
-    Period period = Period.of(pe);
+    Period period = Period.ofNullable(pe);
 
     if (period == null) {
       throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1101, pe));

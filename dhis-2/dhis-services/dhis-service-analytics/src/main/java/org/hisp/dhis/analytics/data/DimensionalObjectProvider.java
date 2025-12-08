@@ -72,7 +72,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7611;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedChildren;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChildren;
-import static org.hisp.dhis.period.Period.of;
+import static org.hisp.dhis.period.Period.ofNullable;
 import static org.hisp.dhis.period.PeriodType.getCalendar;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -208,7 +208,7 @@ public class DimensionalObjectProvider {
         addRelativePeriods(
             dateAndField, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
       } else {
-        Period period = of(isoPeriodHolder.getIsoPeriod());
+        Period period = ofNullable(isoPeriodHolder.getIsoPeriod());
 
         if (period != null) {
           addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, PeriodDimension.of(period));
