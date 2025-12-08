@@ -143,7 +143,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.20.0</jackson.version>
+    <jackson.version>2.20.1</jackson.version>
     <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -202,7 +202,7 @@
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.10.0</commons-validator.version>
-    <commons-io.version>2.20.0</commons-io.version>
+    <commons-io.version>2.21.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
@@ -248,7 +248,7 @@
     <versions-maven-plugin.version>2.19.1</versions-maven-plugin.version>
     <dependency-check-maven.version>12.1.9</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.3.0</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.5</spotless.version>
+    <spotless.version>3.1.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.39</dhis-antlr-expression-parser.version>
