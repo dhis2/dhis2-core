@@ -45,6 +45,7 @@ import static org.hisp.dhis.test.TestBase.createOptionSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -193,6 +194,66 @@ class MetadataItemsHandlerTest {
       assertNotNull(grid.getMetaData());
       assertTrue(grid.getMetaData().containsKey(ITEMS.getKey()));
       assertTrue(grid.getMetaData().containsKey(DIMENSIONS.getKey()));
+    }
+
+    @Test
+    @DisplayName(
+        "should use raw item ID as dimension key for option set items in non-query context")
+    void shouldUseRawItemIdAsDimensionKeyForOptionSetItemsInNonQueryContext() {
+      // Given
+      Grid grid = new ListGrid();
+
+      // 1. Create a Program Stage
+      // (Assuming createProgramStage is available in TestBase, otherwise mock it)
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+
+      // 2. Create a QueryItem with an OptionSet AND associated with the ProgramStage
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA,
+              null,
+              dataElementA.getValueType(),
+              dataElementA.getAggregationType(),
+              optionSetA);
+      queryItem.setProgramStage(programStage);
+
+      // 3. Create params for a NON-QUERY action (AGGREGATE)
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE) // This ensures itemOptions is empty
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+
+      assertNotNull(dimensions);
+
+      // THE BUG CHECK:
+      // The bug causes the key to be "ProgramStageID.DataElementID"
+      // The fix ensures the key is just "DataElementID"
+
+      // 1. Assert the RAW ID is present
+      assertTrue(
+          dimensions.containsKey(dataElementA.getUid()),
+          "Dimensions map should contain the raw Data Element UID key");
+
+      // 2. Assert the PREFIXED ID is NOT present
+      String prefixedId = programStage.getUid() + "." + dataElementA.getUid();
+      assertFalse(
+          dimensions.containsKey(prefixedId),
+          "Dimensions map should NOT contain the ProgramStage prefixed UID key");
     }
 
     @Test
