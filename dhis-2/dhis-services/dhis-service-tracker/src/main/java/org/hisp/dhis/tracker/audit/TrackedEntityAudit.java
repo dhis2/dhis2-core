@@ -36,10 +36,9 @@ import java.util.Objects;
 import org.hisp.dhis.audit.AuditOperationType;
 
 /**
- * This class is deprecated.
- *
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
+@Deprecated
 public class TrackedEntityAudit implements Serializable {
   private static final long serialVersionUID = 4260110537887403524L;
 
