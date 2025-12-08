@@ -315,6 +315,10 @@ public abstract class AbstractAnalyticsService {
    * @param grid the {@link Grid}.
    */
   void applyIdScheme(EventQueryParams params, Grid grid) {
+    if (params.hasDataIdScheme()) {
+      schemaIdResponseMapper.applyBooleanMapping(params.getDataIdScheme(), grid);
+    }
+
     if (!params.isSkipMeta() && params.hasCustomIdSchemaSet()) {
       grid.substituteMetaData(schemaIdResponseMapper.getSchemeIdResponseMap(params));
     }

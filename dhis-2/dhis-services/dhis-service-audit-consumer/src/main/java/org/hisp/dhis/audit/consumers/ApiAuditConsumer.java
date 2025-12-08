@@ -25,35 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.audit.consumers;
 
-import static org.hisp.dhis.web.WebClient.Header;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.jms.TextMessage;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+@Component
+public class ApiAuditConsumer extends AbstractAuditConsumer {
+  public ApiAuditConsumer(
+      AuditService auditService, ObjectMapper objectMapper, DhisConfigurationProvider dhisConfig) {
+    this.auditService = auditService;
+    this.objectMapper = objectMapper;
 
-/**
- * Tests the {@link RequestInfoController}.
- *
- * @author Jan Bernitt
- */
-class RequestInfoControllerTest extends DhisControllerConvenienceTest {
-
-  @Test
-  void testGetCurrentInfo_NoHeader() {
-    JsonObject info = GET("/request").content();
-    assertTrue(info.isObject());
-    assertTrue(info.isEmpty());
+    this.isAuditLogEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_LOGGER);
+    this.isAuditDatabaseEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_DATABASE);
   }
 
-  @Test
-  void testGetCurrentInfo_XRequestIdHeader() {
-    JsonResponse info = GET("/request", Header("X-Request-ID", "abc")).content();
-    assertTrue(info.isObject());
-    assertEquals("abc", info.getString("headerXRequestID").string());
+  @JmsListener(destination = Topics.API_TOPIC_NAME)
+  public void consume(TextMessage message) {
+    _consume(message);
   }
 }

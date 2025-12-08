@@ -38,7 +38,7 @@ import lombok.Value;
 public class AuditableEntity {
   /**
    * Class of the AuditableEntity It will be used by {@link
-   * org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
+   * org.hisp.dhis.artemis.audit.AuditManager#collectAuditAttributes(Object, Class)}
    */
   Class<?> entityClass;
 

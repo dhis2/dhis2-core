@@ -419,6 +419,9 @@ public enum ConfigurationKey {
   /** Sets the audit matrix for tracker. (default: none). */
   AUDIT_TRACKER_MATRIX("audit.tracker", "", false),
 
+  /** Sets the audit matrix for API. (default: none). */
+  AUDIT_API_MATRIX("audit.api", "", false),
+
   /** Enable OIDC. (default: off). */
   OIDC_OAUTH2_LOGIN_ENABLED("oidc.oauth2.login.enabled", Constants.OFF, false),
 
@@ -430,22 +433,22 @@ public enum ConfigurationKey {
 
   /**
    * Google IdP specific parameters. Provider client ID: This is the identifier that the IdP
-   * assigned to your application.
+   * assigned to your application. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_ID("oidc.provider.google.client_id", "", true),
 
   /**
    * Google IdP specific parameters. Provider client secret: This value is a secret and should be
-   * kept secure.
+   * kept secure. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_SECRET("oidc.provider.google.client_secret", "", true),
 
-  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). */
+  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). (sensitive) */
   OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM("oidc.provider.google.mapping_claim", "email", true),
 
   /**
-   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash,
-   * <br>
+   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash.
+   * (sensitive) <br>
    * e.g. https://dhis2.org/demo.
    */
   OIDC_PROVIDER_GOOGLE_REDIRECT_URI("oidc.provider.google.redirect_url", "", true),

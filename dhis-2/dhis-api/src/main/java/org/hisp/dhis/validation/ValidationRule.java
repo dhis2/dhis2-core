@@ -285,6 +285,7 @@ public class ValidationRule extends BaseDataDimensionalItemObject implements Met
   }
 
   @JsonProperty
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlElementWrapper(localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0)
   public Set<ValidationNotificationTemplate> getNotificationTemplates() {
@@ -296,7 +297,6 @@ public class ValidationRule extends BaseDataDimensionalItemObject implements Met
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlElementWrapper(localName = "organisationUnitLevels", namespace = DxfNamespaces.DXF_2_0)
   public Set<Integer> getOrganisationUnitLevels() {

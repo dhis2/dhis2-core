@@ -419,6 +419,12 @@ public enum ErrorCode {
   E7147("Query failed because of a missing column: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
   E7151("Too many combinations of columns or rows."),
+  E7152("Periods as filter not supported with Indicator with period offset"),
+  /* Analytics outliers */
+
+  E7180(
+      "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"),
+  E7181("Column `{0}` specified, in orderBy, is not eligible for orderBy or does not exist"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

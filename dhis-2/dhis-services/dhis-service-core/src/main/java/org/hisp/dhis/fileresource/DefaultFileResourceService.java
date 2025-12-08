@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -72,8 +71,6 @@ public class DefaultFileResourceService implements FileResourceService {
   private final SessionFactory sessionFactory;
 
   private final FileResourceContentStore fileResourceContentStore;
-
-  private final ImageProcessingService imageProcessingService;
 
   private final ApplicationEventPublisher fileEventPublisher;
 
@@ -116,10 +113,8 @@ public class DefaultFileResourceService implements FileResourceService {
 
     if (FileResource.isImage(fileResource.getContentType())
         && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {
-      Map<ImageFileDimension, File> imageFiles =
-          imageProcessingService.createImages(fileResource, file);
 
-      fileEventPublisher.publishEvent(new ImageFileSavedEvent(fileResource.getUid(), imageFiles));
+      fileEventPublisher.publishEvent(new ImageFileSavedEvent(fileResource.getUid(), file));
       return;
     }
 

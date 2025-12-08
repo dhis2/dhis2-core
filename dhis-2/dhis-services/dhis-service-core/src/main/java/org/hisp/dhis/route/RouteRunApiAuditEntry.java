@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.route;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum UserOverrideMode {
-  NONE,
-  CURRENT,
-  SELECTED
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.audit.ApiAuditEntry;
+import org.hisp.dhis.audit.AuditAttribute;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class RouteRunApiAuditEntry extends ApiAuditEntry {
+
+  @AuditAttribute private String routeId;
+
+  @AuditAttribute private String httpMethod;
+
+  @AuditAttribute private String upstreamUrl;
+
+  @AuditAttribute private boolean successful;
 }

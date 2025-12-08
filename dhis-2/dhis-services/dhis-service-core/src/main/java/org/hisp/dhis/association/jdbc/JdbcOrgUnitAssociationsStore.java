@@ -30,9 +30,11 @@ package org.hisp.dhis.association.jdbc;
 import java.sql.Array;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
@@ -66,7 +68,10 @@ public class JdbcOrgUnitAssociationsStore {
           SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
           while (resultSet.next()) {
             setValuedMap.putAll(
-                resultSet.getString(1), Arrays.asList((String[]) resultSet.getArray(2).getArray()));
+                resultSet.getString(1),
+                Stream.of((String[]) resultSet.getArray(2).getArray())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
           }
           return setValuedMap;
         });

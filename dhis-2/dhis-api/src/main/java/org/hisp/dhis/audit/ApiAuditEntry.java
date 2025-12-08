@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.audit;
 
-/**
- * Provides access to the {@link RequestInfo} within the ongoing request.
- *
- * @author Jan Bernitt
- */
-public interface RequestInfoService {
+import lombok.Data;
 
-  /**
-   * @return the info for the current request (thread)
-   */
-  RequestInfo getCurrentInfo();
+@Data
+@Auditable(scope = AuditScope.API)
+public class ApiAuditEntry {
+
+  @AuditAttribute private String source;
 }

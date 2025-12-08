@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -55,5 +58,50 @@ class ValidationRuleControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Expression is not well-formed",
         POST("/validationRules/expression/description", "illegal").content(HttpStatus.OK));
+  }
+
+  @Test
+  void patchValidationRuleTest() {
+    // Given a ValidationValidationRule exists with org unit levels
+    assertWebMessage(HttpStatus.OK, POST("/metadata", importMetadata()));
+
+    // When a patch request is submitted to update the name
+    assertWebMessage(
+        HttpStatus.OK,
+        PATCH(
+            "/validationRules/ValRuleUID1",
+            "["
+                + "    {"
+                + "        \"op\": \"replace\","
+                + "        \"path\": \"/name\","
+                + "        \"value\": \"test val rule 1 - new name\""
+                + "    }\n"
+                + "]"));
+
+    // Then the name should be updated
+    JsonResponse response = GET("/validationRules/ValRuleUID1").content(HttpStatus.OK);
+    assertEquals("test val rule 1 - new name", response.getString("name").string());
+  }
+
+  private String importMetadata() {
+    return "{\n"
+        + "  \"validationRules\": ["
+        + "    {"
+        + "      \"id\": \"ValRuleUID1\","
+        + "      \"name\": \"test val rule 1\","
+        + "      \"organisationUnitLevels\": [1, 2],"
+        + "      \"leftSide\": {"
+        + "        \"expression\": \"1 + 1\","
+        + "        \"description\": \"rule 1\""
+        + "      },"
+        + "      \"rightSide\": {"
+        + "        \"expression\": \"2 + 2\","
+        + "        \"description\": \"rule 2\""
+        + "      },"
+        + "      \"operator\": \"less_than_or_equal_to\","
+        + "      \"periodType\": \"Monthly\""
+        + "    }"
+        + "  ]"
+        + "}";
   }
 }

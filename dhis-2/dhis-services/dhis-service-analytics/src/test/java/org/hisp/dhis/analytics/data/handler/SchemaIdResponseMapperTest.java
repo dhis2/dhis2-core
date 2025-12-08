@@ -46,7 +46,10 @@ import static org.hisp.dhis.common.IdScheme.ID;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
@@ -54,13 +57,21 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -70,9 +81,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SchemaIdResponseMapperTest {
   private SchemaIdResponseMapper schemaIdResponseMapper;
 
+  @Mock private I18nManager i18nManager;
+
+  @Mock private I18n i18n;
+
   @BeforeEach
   public void setUp() {
-    schemaIdResponseMapper = new SchemaIdResponseMapper();
+    schemaIdResponseMapper = new SchemaIdResponseMapper(i18nManager);
   }
 
   @Test
@@ -515,6 +530,43 @@ class SchemaIdResponseMapperTest {
     assertThat(
         responseMap.get(categoryOptionComboC.getUid()),
         is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  @Test
+  void testApplyBooleanMappingWhenDataIdSchemeIsName() {
+    // Given
+    Option yes = new Option("Yes", "1");
+    Option no = new Option("No", "0");
+
+    OptionSet optionSet = new OptionSet();
+    optionSet.addOption(yes);
+    optionSet.addOption(no);
+
+    GridHeader gridHeader =
+        new GridHeader("header", "column", BOOLEAN, false, false, optionSet, null);
+
+    Grid grid = new ListGrid();
+    grid.addHeader(gridHeader);
+    grid.addMetaData("dim1", "dim2");
+    grid.addRow();
+    grid.addValue("0");
+    grid.addValue("0");
+    grid.addRow();
+    grid.addValue("1");
+    grid.addValue("1");
+
+    // When
+    when(i18nManager.getI18n()).thenReturn(i18n);
+    when(i18n.getString("yes", "Yes")).thenReturn("Yes");
+    when(i18n.getString("no", "No")).thenReturn("No");
+    schemaIdResponseMapper.applyBooleanMapping(NAME, grid);
+
+    // Then
+    assertEquals("No", grid.getRow(0).get(0));
+    assertEquals("Yes", grid.getRow(1).get(0));
+
+    assertEquals("0", grid.getRow(0).get(1));
+    assertEquals("1", grid.getRow(1).get(1));
   }
 
   private DataQueryParams stubQueryParams(

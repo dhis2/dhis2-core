@@ -5,7 +5,6 @@ services:
     build: .
     stdin_open: true
     environment:
-      RP_UUID: ${RP_UUID}
       DHIS2_E2E_TEST_ARGS: "${DHIS2_E2E_TEST_ARGS:-}" # to for example pass a profile like -Panalytics
       DHIS2_E2E_TEST_USER_ARGS: "${DHIS2_E2E_TEST_USER_ARGS:--Duser.default.username=admin -Duser.default.password=district}" # adjust if you for example use a demo DB dump instead of the default empty DB
     command: sh -c './wait-for-it.sh web:8080 -t 600 -- mvn test $$DHIS2_E2E_TEST_ARGS $$DHIS2_E2E_TEST_USER_ARGS --batch-mode --no-transfer-progress -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Dtest.track_called_endpoints=true -Drp.enable=true -Drp.launch=api_test_master -Drp.attributes=version:master;'

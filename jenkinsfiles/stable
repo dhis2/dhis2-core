@@ -44,9 +44,6 @@ pipeline {
 
         stage('Run api tests') {
             environment {
-                RP_UUID = credentials('report-portal-access-uuid')
-                RP_ENABLE = 'true'
-                RP_ATTRIBUTES = "version:${env.GIT_BRANCH};"
                 IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME_DEV"
                 DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME_DEV}:${DOCKER_IMAGE_TAG}"
             }

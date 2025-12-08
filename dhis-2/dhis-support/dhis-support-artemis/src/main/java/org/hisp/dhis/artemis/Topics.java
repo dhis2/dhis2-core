@@ -41,6 +41,8 @@ public final class Topics {
 
   public static final String TRACKER_TOPIC_NAME = "dhis2.topic.tracker";
 
+  public static final String API_TOPIC_NAME = "dhis2.topic.api";
+
   public static final String TRACKER_IMPORT_JOB_TOPIC_NAME = "dhis2.jobs.tracker";
 
   public static final String TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME =

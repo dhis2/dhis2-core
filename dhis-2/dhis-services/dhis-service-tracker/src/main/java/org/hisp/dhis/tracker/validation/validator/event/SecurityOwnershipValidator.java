@@ -217,11 +217,21 @@ class SecurityOwnershipValidator implements Validator<Event> {
         teiUid,
         programStageInstance.isCreatableInSearchScope());
 
-    if (strategy.isUpdate()
-        && EventStatus.COMPLETED == programStageInstance.getStatus()
-        && event.getStatus() != programStageInstance.getStatus()
-        && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
-      reporter.addError(event, E1083, user);
+    if (strategy.isUpdate()) {
+      if (programStageInstance.getProgramStage().getProgram().isWithoutRegistration()) {
+        OrganisationUnit payloadOrgUnit =
+            bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+        if (!programStageInstance.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
+          checkEventOrgUnitWriteAccess(reporter, event, payloadOrgUnit, false, bundle.getUser());
+        }
+      }
+
+      if (EventStatus.COMPLETED == programStageInstance.getStatus()
+          && event.getStatus() != programStageInstance.getStatus()
+          && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
+
+        reporter.addError(event, E1083, user);
+      }
     }
   }
 

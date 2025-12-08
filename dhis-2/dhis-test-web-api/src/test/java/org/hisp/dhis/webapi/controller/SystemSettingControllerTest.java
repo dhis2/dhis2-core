@@ -40,6 +40,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,6 +49,12 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class SystemSettingControllerTest extends DhisControllerConvenienceTest {
+
+  @AfterEach
+  void resetLocale() {
+    POST("/systemSettings/keyUiLocale?value=en");
+  }
+
   @Test
   void testSetSystemSettingOrTranslation_NoSuchObject() {
     assertWebMessage(

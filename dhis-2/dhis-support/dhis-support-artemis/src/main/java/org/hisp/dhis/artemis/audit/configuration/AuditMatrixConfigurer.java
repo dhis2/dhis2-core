@@ -67,8 +67,8 @@ public class AuditMatrixConfigurer {
   private static final String AUDIT_TYPE_STRING_SEPAR = ";";
 
   /**
-   * Default Audit configuration: CREATE, UPDATE and DELETE operations are audited by default. Other
-   * Audit types have to be explicitly enabled by the user
+   * Default Audit configuration: CREATE, UPDATE, DELETE, and SECURITY operations are audited by
+   * default. Other Audit types have to be explicitly enabled by the user
    */
   private static final Map<AuditType, Boolean> DEFAULT_AUDIT_CONFIGURATION =
       ImmutableMap.<AuditType, Boolean>builder()
@@ -77,7 +77,7 @@ public class AuditMatrixConfigurer {
           .put(AuditType.DELETE, true)
           .put(AuditType.READ, false)
           .put(AuditType.SEARCH, false)
-          .put(AuditType.SECURITY, false)
+          .put(AuditType.SECURITY, true)
           .build();
 
   public AuditMatrixConfigurer(DhisConfigurationProvider dhisConfigurationProvider) {

@@ -28,9 +28,8 @@
 package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
@@ -38,7 +37,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -66,8 +64,6 @@ class FileResourceServiceTest {
 
   @Mock private FileResourceContentStore fileResourceContentStore;
 
-  @Mock private ImageProcessingService imageProcessingService;
-
   @Mock private ApplicationEventPublisher fileEventPublisher;
 
   @Mock private Session session;
@@ -84,11 +80,7 @@ class FileResourceServiceTest {
   public void setUp() {
     subject =
         new DefaultFileResourceService(
-            fileResourceStore,
-            sessionFactory,
-            fileResourceContentStore,
-            imageProcessingService,
-            fileEventPublisher);
+            fileResourceStore, sessionFactory, fileResourceContentStore, fileEventPublisher);
   }
 
   @Test
@@ -152,10 +144,6 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
     when(sessionFactory.getCurrentSession()).thenReturn(session);
 
     fileResource.setUid("imageUid1");
@@ -170,9 +158,7 @@ class FileResourceServiceTest {
     ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
     assertThat(event.getFileResource(), is("imageUid1"));
-    assertFalse(event.getImageFiles().isEmpty());
-    assertThat(event.getImageFiles().size(), is(1));
-    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+    assertNotNull(event.getFile());
   }
 
   @Test
@@ -208,10 +194,6 @@ class FileResourceServiceTest {
 
     File file = new File("");
 
-    Map<ImageFileDimension, File> imageFiles = Map.of(ImageFileDimension.LARGE, file);
-
-    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
-
     when(sessionFactory.getCurrentSession()).thenReturn(session);
 
     fileResource.setUid("imageUid1");
@@ -226,8 +208,6 @@ class FileResourceServiceTest {
     ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
     assertThat(event.getFileResource(), is("imageUid1"));
-    assertFalse(event.getImageFiles().isEmpty());
-    assertThat(event.getImageFiles().size(), is(1));
-    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+    assertNotNull(event.getFile());
   }
 }
