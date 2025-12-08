@@ -125,6 +125,26 @@ public class HibernateCompleteDataSetRegistrationStore
   }
 
   @Override
+  public void deleteCompleteDataSetRegistration(
+      UID dataSet, Period period, UID orgUnit, UID attributeOptionCombo) {
+    String hql =
+        """
+        DELETE FROM CompleteDataSetRegistration c
+        WHERE c.dataSet.uid = :ds
+          AND c.period.iso = :pe
+          AND c.source.uid = :ou
+          AND c.attributeOptionCombo.uid = :aoc
+        """;
+    entityManager
+        .createQuery(hql)
+        .setParameter("ds", dataSet.getValue())
+        .setParameter("pe", period.getIsoDate())
+        .setParameter("ou", orgUnit.getValue())
+        .setParameter("aoc", attributeOptionCombo.getValue())
+        .executeUpdate();
+  }
+
+  @Override
   public void deleteCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
     getSession().delete(registration);
   }

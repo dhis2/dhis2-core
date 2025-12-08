@@ -47,6 +47,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataEntryService;
@@ -56,11 +57,14 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -84,6 +88,12 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private DataElementService dataElementService;
 
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
+
+  @Mock private ProgramService programService;
+
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private CategoryService categoryService;
@@ -91,6 +101,8 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   // Needed for this test
 
   @Mock private DataSetService dataSetService;
+
+  @Mock private CompleteDataSetRegistrationService registrationService;
 
   @Mock private DataEntryService dataEntryService;
 
@@ -126,7 +138,14 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   void initTest() throws SmsCompressionException, ConflictException {
     subject =
         new AggregateDataSetSMSListener(
-            incomingSmsService, smsSender, dataEntryService, identifiableObjectManager);
+            incomingSmsService,
+            smsSender,
+            organisationUnitService,
+            categoryService,
+            dataSetService,
+            dataEntryService,
+            registrationService,
+            identifiableObjectManager);
 
     setUpInstances();
 

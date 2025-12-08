@@ -30,12 +30,17 @@
 package org.hisp.dhis.sms.listener;
 
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
@@ -43,6 +48,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -50,6 +58,7 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -59,24 +68,89 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.sms.listener.AggregateDatasetSMSListener")
 @Transactional
 public class AggregateDataSetSMSListener extends CompressionSMSListener {
+  private final DataSetService dataSetService;
 
   private final DataEntryService dataEntryService;
+
+  private final CompleteDataSetRegistrationService registrationService;
+
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CategoryService categoryService;
 
   public AggregateDataSetSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      DataSetService dataSetService,
       DataEntryService dataEntryService,
+      CompleteDataSetRegistrationService registrationService,
       IdentifiableObjectManager identifiableObjectManager) {
     super(incomingSmsService, smsSender, identifiableObjectManager);
+    this.dataSetService = dataSetService;
     this.dataEntryService = dataEntryService;
+    this.registrationService = registrationService;
+    this.organisationUnitService = organisationUnitService;
+    this.categoryService = categoryService;
   }
 
   @Override
   protected SmsResponse postProcess(
       IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
       throws SMSProcessingException, ConflictException {
+    AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
-    return importDataValues((AggregateDatasetSmsSubmission) submission);
+    Uid ouid = subm.getOrgUnit();
+    Uid dsid = subm.getDataSet();
+    String per = subm.getPeriod();
+    Uid aocid = subm.getAttributeOptionCombo();
+
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
+
+    DataSet dataSet = dataSetService.getDataSet(dsid.getUid());
+    if (dataSet == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(dsid));
+    }
+
+    Period period = Period.ofNullable(per);
+    if (period == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(per));
+    }
+
+    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
+
+    if (aoc == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
+    }
+
+    if (!dataSet.hasOrganisationUnit(orgUnit)) {
+      throw new SMSProcessingException(SmsResponse.OU_NOTIN_DATASET.set(ouid, dsid));
+    }
+
+    SmsResponse response = importDataValues(subm);
+
+    if (response == SmsResponse.SUCCESS && subm.isComplete()) {
+      CompleteDataSetRegistration existingReg =
+          registrationService.getCompleteDataSetRegistration(dataSet, period, orgUnit, aoc);
+      if (existingReg != null) {
+        registrationService.deleteCompleteDataSetRegistration(existingReg);
+      }
+      Date now = new Date();
+      CompleteDataSetRegistration newReg =
+          new CompleteDataSetRegistration(
+              dataSet,
+              period,
+              orgUnit,
+              aoc,
+              now,
+              smsCreatedBy.getUsername(),
+              now,
+              smsCreatedBy.getUsername(),
+              true);
+      registrationService.saveCompleteDataSetRegistration(newReg);
+    }
+    return response;
   }
 
   private SmsResponse importDataValues(AggregateDatasetSmsSubmission sub) {
@@ -93,9 +167,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
             ? List.of()
             : sub.getValues().stream().map(AggregateDataSetSMSListener::toDataEntryValue).toList();
     if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
-    String completionDate = sub.isComplete() ? toMediumDate(new Date()) : null;
     DataEntryGroup.Input input =
-        new DataEntryGroup.Input(null, ds, completionDate, null, ou, pe, aoc, null, values);
+        new DataEntryGroup.Input(null, ds, null, null, ou, pe, aoc, null, values);
     try {
       DataEntryGroup group = dataEntryService.decodeGroup(input);
       DataEntrySummary result = dataEntryService.upsertGroup(options, group, transitory());
