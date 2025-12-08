@@ -61,7 +61,7 @@ public class ProgramMessageOperationParamMapper {
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
       throws NotFoundException {
-    Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
+    Enrollment enrollment = getEnrollment(operationParams.getEnrollment());
     Optional<TrackerEvent> trackerEvent =
         findEntity(operationParams.getEvent(), TrackerEvent.class);
     Optional<SingleEvent> singleEvent = findEntity(operationParams.getEvent(), SingleEvent.class);
@@ -90,18 +90,18 @@ public class ProgramMessageOperationParamMapper {
         .build();
   }
 
-  private <T extends BaseIdentifiableObject> T getEntity(UID entity, Class<T> klass)
-      throws NotFoundException {
-    if (entity == null) {
+  private Enrollment getEnrollment(UID enrollment) throws NotFoundException {
+    if (enrollment == null) {
       return null;
     }
 
-    return Optional.ofNullable(manager.get(klass, entity.getValue()))
+    return Optional.ofNullable(manager.get(Enrollment.class, enrollment.getValue()))
         .orElseThrow(
             () ->
                 new NotFoundException(
                     String.format(
-                        "%s: %s does not exist.", klass.getSimpleName(), entity.getValue())));
+                        "%s: %s does not exist.",
+                        Enrollment.class.getSimpleName(), enrollment.getValue())));
   }
 
   private <T extends BaseIdentifiableObject> Optional<T> findEntity(UID entity, Class<T> klass) {

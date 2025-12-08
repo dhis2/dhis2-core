@@ -30,76 +30,168 @@
 package org.hisp.dhis.program;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
+import lombok.Data;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.ListIndexBase;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.BaseTrackerObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Abyot Asalefew
  */
+@Entity
+@Table(name = "enrollment")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @Auditable(scope = AuditScope.TRACKER)
-@JacksonXmlRootElement(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
-public class Enrollment extends SoftDeletableObject {
+@Data
+public class Enrollment extends BaseTrackerObject
+    implements IdentifiableObject, SoftDeletableEntity {
+
+  @Id
+  @Column(name = "enrollmentid")
+  @GeneratedValue(generator = "programinstance_sequence")
+  @SequenceGenerator(sequenceName = "programinstance_sequence")
+  private long id;
+
+  @JsonProperty
+  @Column(name = "createdatclient")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date createdAtClient;
 
+  @JsonProperty
+  @Column(name = "lastupdatedatclient")
+  @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdatedAtClient;
 
-  private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
-
-  @AuditAttribute private OrganisationUnit organisationUnit;
-
-  private Date occurredDate;
-
-  private Date enrollmentDate;
-
-  private Date completedDate;
-
+  @JsonProperty
+  @Type(type = "jbUserInfoSnapshot")
+  @Column(name = "createdbyuserinfo")
   private UserInfoSnapshot createdByUserInfo;
 
+  @JsonProperty
+  @Type(type = "jbUserInfoSnapshot")
+  @Column(name = "lastupdatedbyuserinfo")
   private UserInfoSnapshot lastUpdatedByUserInfo;
 
-  @AuditAttribute private TrackedEntity trackedEntity;
+  @JsonProperty
+  @Column(name = "occurreddate")
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date occurredDate;
 
-  @AuditAttribute private Program program;
+  @JsonProperty
+  @Column(name = "enrollmentdate", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date enrollmentDate;
 
-  private Set<TrackerEvent> events = new HashSet<>();
+  @JsonProperty
+  @Column(name = "completeddate")
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date completedDate;
 
-  private Set<RelationshipItem> relationshipItems = new HashSet<>();
-
-  private List<MessageConversation> messageConversations = new ArrayList<>();
-
+  @JsonProperty
+  @Column(name = "followup")
   private Boolean followup = false;
 
-  private List<Note> notes = new ArrayList<>();
-
+  @JsonProperty
+  @Column(name = "completedby")
   private String completedBy;
 
+  @JsonProperty
+  @Column(name = "geometry", columnDefinition = "geometry")
   private Geometry geometry;
 
-  private String storedBy;
+  @JsonProperty
+  @Column(name = "deleted")
+  private boolean deleted = false;
+
+  @JsonProperty
+  @Column(name = "status", length = 50)
+  @Enumerated(EnumType.STRING)
+  private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
+
+  @JsonProperty
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "trackedentityid", referencedColumnName = "trackedentityid")
+  @AuditAttribute
+  private TrackedEntity trackedEntity;
+
+  @JsonProperty
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "programid", referencedColumnName = "programid", nullable = false)
+  @AuditAttribute
+  private Program program;
+
+  @JsonProperty
+  @OneToMany(mappedBy = "enrollment", fetch = FetchType.LAZY)
+  @OrderBy("occurreddate, scheduleddate")
+  private Set<TrackerEvent> events = new HashSet<>();
+
+  @JsonProperty
+  @OneToMany(mappedBy = "enrollment", fetch = FetchType.LAZY)
+  private Set<RelationshipItem> relationshipItems = new HashSet<>();
+
+  @JsonProperty
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(
+      name = "organisationunitid",
+      referencedColumnName = "organisationunitid",
+      nullable = false)
+  @AuditAttribute
+  private OrganisationUnit organisationUnit;
+
+  @JsonProperty
+  @ListIndexBase(1)
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+  @JoinTable(
+      name = "enrollment_notes",
+      joinColumns = @JoinColumn(name = "enrollmentid"),
+      inverseJoinColumns = @JoinColumn(name = "noteid"))
+  @OrderColumn(name = "sort_order")
+  private List<Note> notes = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -124,13 +216,25 @@ public class Enrollment extends SoftDeletableObject {
 
   @Override
   public void setAutoFields() {
-    super.setAutoFields();
+    if (getUid() == null || getUid().isEmpty()) {
+      setUid(CodeGenerator.generateUid());
+    }
+
+    Date date = new Date();
+
+    if (getCreated() == null) {
+      setCreated(date);
+    }
+
+    setLastUpdated(date);
 
     if (createdAtClient == null) {
       createdAtClient = created;
     }
 
-    lastUpdatedAtClient = lastUpdated;
+    if (lastUpdatedAtClient == null) {
+      lastUpdatedAtClient = lastUpdated;
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -166,202 +270,24 @@ public class Enrollment extends SoftDeletableObject {
   // Getters and setters
   // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCreatedAtClient() {
-    return createdAtClient;
+  @Override
+  public long getId() {
+    return id;
   }
 
-  public void setCreatedAtClient(Date createdAtClient) {
-    this.createdAtClient = createdAtClient;
+  @Override
+  public void setId(long id) {
+    this.id = id;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getLastUpdatedAtClient() {
-    return lastUpdatedAtClient;
+  @Override
+  public boolean isDeleted() {
+    return deleted;
   }
 
-  public void setLastUpdatedAtClient(Date lastUpdatedAtClient) {
-    this.lastUpdatedAtClient = lastUpdatedAtClient;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
-
-  public Enrollment setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-    return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getOccurredDate() {
-    return occurredDate;
-  }
-
-  public void setOccurredDate(Date occurredDate) {
-    this.occurredDate = occurredDate;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getEnrollmentDate() {
-    return enrollmentDate;
-  }
-
-  public void setEnrollmentDate(Date enrollmentDate) {
-    this.enrollmentDate = enrollmentDate;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCompletedDate() {
-    return completedDate;
-  }
-
-  public void setCompletedDate(Date completedDate) {
-    this.completedDate = completedDate;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getCreatedByUserInfo() {
-    return createdByUserInfo;
-  }
-
-  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
-    this.createdByUserInfo = createdByUserInfo;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getLastUpdatedByUserInfo() {
-    return lastUpdatedByUserInfo;
-  }
-
-  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
-    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public EnrollmentStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(EnrollmentStatus status) {
-    this.status = status;
-  }
-
-  @JsonProperty("trackedEntityInstance")
-  @JsonSerialize(as = IdentifiableObject.class)
-  @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
-  public TrackedEntity getTrackedEntity() {
-    return trackedEntity;
-  }
-
-  public void setTrackedEntity(TrackedEntity trackedEntity) {
-    this.trackedEntity = trackedEntity;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Program getProgram() {
-    return program;
-  }
-
-  public void setProgram(Program program) {
-    this.program = program;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "events", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "event", namespace = DxfNamespaces.DXF_2_0)
-  public Set<TrackerEvent> getEvents() {
-    return events;
-  }
-
-  public void setEvents(Set<TrackerEvent> events) {
-    this.events = events;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getFollowup() {
-    return followup;
-  }
-
-  public void setFollowup(Boolean followup) {
-    this.followup = followup;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0)
-  public List<MessageConversation> getMessageConversations() {
-    return messageConversations;
-  }
-
-  public void setMessageConversations(List<MessageConversation> messageConversations) {
-    this.messageConversations = messageConversations;
-  }
-
-  @JsonProperty("trackedEntityComments")
-  @JacksonXmlElementWrapper(localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-  public List<Note> getNotes() {
-    return notes;
-  }
-
-  public void setNotes(List<Note> notes) {
-    this.notes = notes;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCompletedBy() {
-    return completedBy;
-  }
-
-  public void setCompletedBy(String completedBy) {
-    this.completedBy = completedBy;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Geometry getGeometry() {
-    return geometry;
-  }
-
-  public void setGeometry(Geometry geometry) {
-    this.geometry = geometry;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getStoredBy() {
-    return storedBy;
-  }
-
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0)
-  public Set<RelationshipItem> getRelationshipItems() {
-    return relationshipItems;
-  }
-
-  public void setRelationshipItems(Set<RelationshipItem> relationshipItems) {
-    this.relationshipItems = relationshipItems;
+  @Override
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
   }
 
   @Override
@@ -369,8 +295,6 @@ public class Enrollment extends SoftDeletableObject {
     return MoreObjects.toStringHelper(this)
         .add("id", id)
         .add("uid", uid)
-        .add("code", code)
-        .add("name", name)
         .add("created", created)
         .add("lastUpdated", lastUpdated)
         .add("organisationUnit", organisationUnit)
@@ -383,36 +307,175 @@ public class Enrollment extends SoftDeletableObject {
         .toString();
   }
 
-  public static final BiFunction<Enrollment, Program, Enrollment> copyOf =
-      (original, prog) -> {
-        Enrollment copy = new Enrollment();
-        copy.setAutoFields();
-        setShallowCopyValues(copy, original, prog);
-        return copy;
-      };
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    }
+    if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
 
-  private static void setShallowCopyValues(
-      Enrollment copy, Enrollment original, Program programCopy) {
-    copy.setNotes(ObjectUtils.copyOf(original.getNotes()));
-    copy.setCompletedBy(original.getCompletedBy());
-    copy.setCreatedAtClient(original.getCreatedAtClient());
-    copy.setCreatedByUserInfo(original.getCreatedByUserInfo());
-    copy.setCompletedDate(original.getCompletedDate());
-    copy.setEnrollmentDate(original.getEnrollmentDate());
-    copy.setEvents(new HashSet<>());
-    copy.setFollowup(original.getFollowup());
-    copy.setGeometry(original.getGeometry());
-    copy.setOccurredDate(original.getOccurredDate());
-    copy.setLastUpdatedAtClient(original.getLastUpdatedAtClient());
-    copy.setLastUpdatedByUserInfo(original.getLastUpdatedByUserInfo());
-    copy.setMessageConversations(ObjectUtils.copyOf(original.getMessageConversations()));
-    copy.setName(original.getName());
-    copy.setOrganisationUnit(original.getOrganisationUnit());
-    copy.setProgram(programCopy);
-    copy.setPublicAccess(original.getPublicAccess());
-    copy.setRelationshipItems(ObjectUtils.copyOf(original.getRelationshipItems()));
-    copy.setStatus(original.getStatus());
-    copy.setStoredBy(original.getStoredBy());
-    copy.setTrackedEntity(original.getTrackedEntity());
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Not supported methods
+  // -------------------------------------------------------------------------
+  @Override
+  public User getLastUpdatedBy() {
+    return getCreatedBy();
+  }
+
+  @Override
+  public void setLastUpdatedBy(User user) {
+    // not supported
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
+  public Sharing getSharing() {
+    return Sharing.empty();
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    // not supported
+  }
+
+  // -------------------------------------------------------------------------
+  // Not supported properties
+  // -------------------------------------------------------------------------
+
+  @Override
+  public Set<Translation> getTranslations() {
+    return Set.of();
+  }
+
+  @Override
+  public void setAccess(Access access) {
+    // not supported
+  }
+
+  /**
+   * @param user
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
+   *     used for web api backward compatibility
+   */
+  @Override
+  public void setUser(User user) {
+    // not supported
+  }
+
+  @Override
+  public Access getAccess() {
+    return null;
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    // not supported
+  }
+
+  @Override
+  public String getCode() {
+    return null;
+  }
+
+  @Override
+  public void setCode(String code) {
+    // not supported
+  }
+
+  @Override
+  public String getName() {
+    return null;
+  }
+
+  @Override
+  public void setName(String name) {
+    // not supported
+  }
+
+  /** Enrollment does not support sharing */
+  @Override
+  public boolean hasSharing() {
+    return false;
+  }
+
+  /** Enrollment does not support sharing */
+  @Override
+  public void setOwner(String owner) {
+    // not supported
+  }
+
+  /** Enrollment does not support AttributeValues */
+  @Override
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /** Enrollment does not support AttributeValues */
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // not supported
+  }
+
+  /** Enrollment does not support AttributeValues */
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {
+    // not supported
+  }
+
+  /** Enrollment does not support AttributeValues */
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    // not supported
+  }
+
+  /**
+   * @deprecated Enrollment does not support createdBy, use storeBy instead.
+   */
+  @Override
+  public User getUser() {
+    return getCreatedBy();
+  }
+
+  /**
+   * @deprecated Enrollment does not support createdBy, use storeBy instead.
+   */
+  @Override
+  public void setCreatedBy(User createdBy) {
+    // not supported
+  }
+
+  /**
+   * @deprecated Enrollment does not support createdBy, use storeBy instead.
+   */
+  @Override
+  public User getCreatedBy() {
+    return null;
+  }
+
+  @Override
+  public String getHref() {
+    return "";
+  }
+
+  @Override
+  public void setHref(String link) {
+    // not supported
   }
 }
