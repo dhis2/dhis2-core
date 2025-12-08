@@ -446,19 +446,12 @@ public class DimensionalObjectProvider {
 
     List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
 
-    // Also fetch org units at specified levels and groups (like getOrgUnitDimension does)
+    // Expand levels to actual org units (needed for SQL uidlevelX filtering)
     List<OrganisationUnit> ousList = asTypedList(ous);
 
     if (!levels.isEmpty()) {
       result.addAll(
           organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList).stream()
-              .map(OrganisationUnit::getUid)
-              .toList());
-    }
-
-    if (!groups.isEmpty()) {
-      result.addAll(
-          organisationUnitService.getOrganisationUnits(groups, ousList).stream()
               .map(OrganisationUnit::getUid)
               .toList());
     }
