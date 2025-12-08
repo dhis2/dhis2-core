@@ -97,13 +97,20 @@ public class DefaultCompleteDataSetRegistrationService
     Period pe = completion.period();
     UID ou = completion.orgUnit();
     UID aoc = completion.attributeOptionCombo();
-    completeDataSetRegistrationStore.deleteCompleteDataSetRegistration(ds, pe, ou, aoc);
+
+    CategoryOptionCombo attributeOptionCombo =
+        aoc == null
+            ? categoryService.getDefaultCategoryOptionCombo()
+            : categoryOptionComboStore.getByUidNoAcl(aoc.getValue());
+    completeDataSetRegistrationStore.deleteCompleteDataSetRegistration(
+        ds, pe, ou, UID.of(attributeOptionCombo));
 
     CompleteDataSetRegistration reg = new CompleteDataSetRegistration();
     reg.setDataSet(dataSetStore.getByUidNoAcl(ds.getValue()));
     reg.setPeriod(pe);
     reg.setSource(organisationUnitStore.getByUidNoAcl(ou.getValue()));
-    reg.setAttributeOptionCombo(categoryOptionComboStore.getByUidNoAcl(aoc.getValue()));
+
+    reg.setAttributeOptionCombo(attributeOptionCombo);
     reg.setDate(completion.completed());
     reg.setCompleted(true);
     saveCompleteDataSetRegistration(reg);

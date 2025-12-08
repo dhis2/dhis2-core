@@ -32,6 +32,7 @@ package org.hisp.dhis.dataset;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.period.Period;
@@ -43,7 +44,7 @@ import org.hisp.dhis.period.Period;
  *     specified
  * @param period completed PE scope
  * @param orgUnit completed OU scope
- * @param attributeOptionCombo completed AOC scope
+ * @param attributeOptionCombo completed AOC scope, null for default AOC
  * @param completed date at which the slice of data is considered as becoming complete
  * @author Jan Bernitt
  */
@@ -51,14 +52,13 @@ public record DataSetCompletion(
     @Nonnull UID dataSet,
     @Nonnull Period period,
     @Nonnull UID orgUnit,
-    @Nonnull UID attributeOptionCombo,
+    @CheckForNull UID attributeOptionCombo,
     @Nonnull Date completed) {
 
   public DataSetCompletion {
     requireNonNull(dataSet);
     requireNonNull(period);
     requireNonNull(orgUnit);
-    requireNonNull(attributeOptionCombo);
     requireNonNull(completed);
   }
 }

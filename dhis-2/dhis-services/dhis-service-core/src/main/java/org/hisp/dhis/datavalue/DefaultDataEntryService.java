@@ -181,8 +181,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       Map<Set<String>, String> aocByKey = store.getDataSetAocIdMapping(ds, categoryOptions);
       aocGroup = aocByKey.get(aocKey);
     }
-    if (completionDate != null
-        && (dataSet == null || ouGroup == null || peGroup == null || aocGroup == null))
+    if (completionDate != null && (dataSet == null || ouGroup == null || peGroup == null))
+      // aoc may be null to indicate "default" so we cannot validate it
       throw new BadRequestException(ErrorCode.E8009);
     Map<String, List<String>> categoriesByDe = null;
     Map<String, Map<Set<String>, String>> cocByOptionsByDe = null;
@@ -276,11 +276,19 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       // add the value
       decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, deleted));
     }
-    DataSetCompletion completion =
-        completionDate == null
-            ? null
-            : new DataSetCompletion(
-                ds, Period.of(peGroup), UID.of(ouGroup), UID.of(aocGroup), completionDate);
+    DataSetCompletion completion;
+    if (completionDate == null) {
+      completion = null;
+    } else {
+      UID attributeOptionCombo = aocGroup == null ? null : UID.ofNullable(aocOf.apply(aocGroup));
+      completion =
+          new DataSetCompletion(
+              ds,
+              Period.of(peGroup),
+              UID.of(ouOf.apply(ouGroup)),
+              attributeOptionCombo,
+              completionDate);
+    }
     return new DataEntryGroup(ds, completion, decoded);
   }
 
