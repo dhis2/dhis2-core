@@ -32,9 +32,14 @@ package org.hisp.dhis.program.hibernate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
@@ -86,5 +91,34 @@ public class HibernateProgramStageDataElementStore
             where psde.dataElement in :dataElements""")
         .setParameter("dataElements", dataElements)
         .list();
+  }
+
+  @Override
+  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+      Program program) {
+    final String sql =
+        "SELECT ps.uid AS ps_uid, de.uid AS de_uid "
+            + "FROM programstagedataelement psde "
+            + "JOIN programstage ps ON psde.programstageid = ps.programstageid "
+            + "JOIN dataelement de ON psde.dataelementid = de.dataelementid "
+            + "JOIN program p ON ps.programid = p.programid "
+            + "WHERE psde.skipsynchronization = TRUE "
+            + "AND p.uid = ?";
+
+    final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
+
+    jdbcTemplate.query(
+        sql,
+        ps -> ps.setString(1, program.getUid()),
+        rs -> {
+          String programStageUid = rs.getString("ps_uid");
+          String dataElementUid = rs.getString("de_uid");
+
+          psdesWithSkipSync
+              .computeIfAbsent(programStageUid, p -> new HashSet<>())
+              .add(dataElementUid);
+        });
+
+    return psdesWithSkipSync;
   }
 }

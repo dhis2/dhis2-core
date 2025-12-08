@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobEntry;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Stian Sandvold
+ * @author Zubair Asghar
  */
-public class ExternalFileResourceSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "externalFileResource";
+@Component
+@AllArgsConstructor
+public class SingleEventDataSynchronizationJob implements Job {
 
-  public static final String PLURAL = "externalFileResources";
-
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  private final SingleEventDataSynchronizationService eventSync;
 
   @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(ExternalFileResource.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1000);
+  public JobType getJobType() {
+    return JobType.SINGLE_EVENT_DATA_SYNC;
+  }
 
-    return schema;
+  @Override
+  public void execute(JobEntry config, JobProgress progress) {
+    SingleEventDataSynchronizationJobParameters params =
+        (SingleEventDataSynchronizationJobParameters) config.parameters();
+    eventSync.synchronizeTrackerData(params.getPageSize(), progress, params.getProgram());
   }
 }
