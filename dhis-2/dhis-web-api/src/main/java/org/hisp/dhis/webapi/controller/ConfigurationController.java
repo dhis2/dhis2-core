@@ -58,6 +58,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -102,6 +104,8 @@ public class ConfigurationController {
   @Autowired private RenderService renderService;
 
   @Autowired private AppManager appManager;
+
+  @Autowired private I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -481,8 +485,10 @@ public class ConfigurationController {
     Set<PeriodType> periodTypes =
         configurationService.getConfiguration().getDataOutputPeriodTypes();
 
+    I18n i18n = i18nManager.getI18n();
+
     return periodTypes.stream()
-        .map(org.hisp.dhis.webapi.webdomain.PeriodType::new)
+        .map(periodType -> new org.hisp.dhis.webapi.webdomain.PeriodType(periodType, i18n))
         .collect(toCollection(LinkedHashSet::new));
   }
 

@@ -29,18 +29,22 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Data;
-import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.i18n.I18n;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
-@JacksonXmlRootElement(localName = "periodType", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement(localName = "periodType", namespace = DXF_2_0)
 public class PeriodType {
   private String name;
+
+  private String displayName;
 
   private String isoDuration;
 
@@ -50,29 +54,35 @@ public class PeriodType {
 
   public PeriodType() {}
 
-  public PeriodType(org.hisp.dhis.period.PeriodType periodType) {
+  public PeriodType(org.hisp.dhis.period.PeriodType periodType, I18n i18n) {
     this.name = periodType.getName();
+    this.displayName = periodType.getDisplayName(i18n);
     this.frequencyOrder = periodType.getFrequencyOrder();
     this.isoDuration = periodType.getIso8601Duration();
     this.isoFormat = periodType.getIsoFormat();
   }
 
-  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty(namespace = DXF_2_0)
   public String getName() {
     return name;
   }
 
-  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty(namespace = DXF_2_0)
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  @JsonProperty(namespace = DXF_2_0)
   public String getIsoDuration() {
     return isoDuration;
   }
 
-  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty(namespace = DXF_2_0)
   public String getIsoFormat() {
     return isoFormat;
   }
 
-  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty(namespace = DXF_2_0)
   public int getFrequencyOrder() {
     return frequencyOrder;
   }

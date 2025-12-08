@@ -55,6 +55,7 @@ import org.hisp.dhis.calendar.PeriodTypeParser;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.i18n.I18n;
 
 /**
  * The superclass of all PeriodTypes.
@@ -745,6 +746,10 @@ public abstract class PeriodType implements Serializable {
    */
   public boolean equalsName(String periodTypeName) {
     return this.getName().equals(periodTypeName);
+  }
+
+  public String getDisplayName(I18n i18n) {
+    return i18n.getString(getName());
   }
 
   // -------------------------------------------------------------------------
