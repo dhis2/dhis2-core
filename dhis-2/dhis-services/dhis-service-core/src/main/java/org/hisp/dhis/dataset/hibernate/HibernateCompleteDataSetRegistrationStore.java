@@ -127,16 +127,16 @@ public class HibernateCompleteDataSetRegistrationStore
   @Override
   public void deleteCompleteDataSetRegistration(
       UID dataSet, Period period, UID orgUnit, UID attributeOptionCombo) {
-    String hql =
+    String sql =
         """
-        DELETE FROM CompleteDataSetRegistration c
-        WHERE c.dataSet.uid = :ds
-          AND c.period.iso = :pe
-          AND c.source.uid = :ou
-          AND c.attributeOptionCombo.uid = :aoc
+        DELETE FROM completedatasetregistration c
+        WHERE c.datasetid = (SELECT datasetid FROM dataset ds WHERE ds.uid = :ds)
+          AND c.periodid = (SELECT periodid FROM period pe WHERE pe.iso = :pe)
+          AND c.sourceid = (SELECT organisationunitid FROM organisationunit ou WHERE ou.uid = :ou)
+          AND c.attributeoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo aoc WHERE aoc.uid = :aoc)
         """;
     entityManager
-        .createQuery(hql)
+        .createNativeQuery(sql)
         .setParameter("ds", dataSet.getValue())
         .setParameter("pe", period.getIsoDate())
         .setParameter("ou", orgUnit.getValue())

@@ -30,11 +30,13 @@
 package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.feedback.DataEntrySummary.toConflict;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -206,8 +208,7 @@ public class DataEntryPipeline {
       boolean delete) {
     DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
-    List<DataSetCompletion> successfulCompletions = new ArrayList<>(groups.size());
-    int groupsWithCompletion = 0;
+    List<DataSetCompletion> markComplete = new ArrayList<>(groups.size());
     for (DataEntryGroup g : groups) {
       try {
         // further stages happen within the service method...
@@ -216,10 +217,7 @@ public class DataEntryPipeline {
                 ? service.deleteGroup(options, g, progress)
                 : service.upsertGroup(options, g, progress);
         DataSetCompletion c = g.completion();
-        if (c != null) {
-          groupsWithCompletion++;
-          if (res.ignored() == 0) successfulCompletions.add(c);
-        }
+        if (c != null && res.ignored() == 0) markComplete.add(c);
         summary = summary.mergedWith(res);
       } catch (ConflictException ex) {
         conflicts.add(
@@ -228,12 +226,13 @@ public class DataEntryPipeline {
         if (options.atomic()) return toImportSummary(summary, delete, conflicts);
       }
     }
-    completeDataSetSlices(successfulCompletions);
+    boolean completionSuccessful =
+        options.dryRun() || completeDataSetSlices(markComplete, progress);
     String dataSetComplete = "false";
-    if (!successfulCompletions.isEmpty()
-        && successfulCompletions.size() == groupsWithCompletion
-        && successfulCompletions.stream().map(DataSetCompletion::completed).distinct().count() == 1)
-      dataSetComplete = successfulCompletions.get(0).completed().toString();
+    if (completionSuccessful
+        && groups.size() == markComplete.size()
+        && markComplete.stream().map(DataSetCompletion::completed).distinct().count() == 1)
+      dataSetComplete = toMediumDate(markComplete.get(0).completed());
     return toImportSummary(summary, delete, conflicts).setDataSetComplete(dataSetComplete);
   }
 
@@ -254,16 +253,21 @@ public class DataEntryPipeline {
     return res;
   }
 
-  private void completeDataSetSlices(List<DataSetCompletion> completions) {
-    if (completions.isEmpty()) return;
-    Iterator<DataSetCompletion> iter = completions.iterator();
-    while (iter.hasNext()) {
-      DataSetCompletion c = iter.next();
-      try {
-        completeDataSetRegistrationService.importCompletion(c);
-      } catch (Exception ex) {
-        iter.remove();
-      }
-    }
+  private boolean completeDataSetSlices(List<DataSetCompletion> completions, JobProgress progress) {
+    if (completions.isEmpty()) return false;
+    AtomicBoolean success = new AtomicBoolean(true);
+    progress.startingStage("Completing datasets", completions.size(), SKIP_ITEM);
+    progress.runStage(
+        completions,
+        DataSetCompletion::toString,
+        c -> {
+          try {
+            completeDataSetRegistrationService.importCompletion(c);
+          } catch (Exception ex) {
+            success.set(false);
+            throw new RuntimeException(ex);
+          }
+        });
+    return success.get();
   }
 }
