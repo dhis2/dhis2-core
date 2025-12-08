@@ -491,9 +491,16 @@ public class MetadataItemsHandler {
       Optional<Map<String, List<Option>>> itemOptions) {
 
     for (QueryItem item : params.getItems()) {
-      String itemUid = getItemUid(item, params.hasStageSpecificItem());
+      String itemUid = getItemUid(item);
       List<String> itemDimensionValues = resolveQueryItemDimension(item, params, itemOptions);
-      dimensionItems.put(itemUid, itemDimensionValues);
+
+      // Check if we are in the specific "Option Set but no Item Options" scenario
+      if (item.hasOptionSet() && itemOptions.isEmpty()) {
+        // Fallback to raw item ID to match original behavior
+        dimensionItems.put(item.getItemId(), itemDimensionValues);
+      } else {
+        dimensionItems.put(itemUid, itemDimensionValues);
+      }
     }
   }
 
