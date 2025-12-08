@@ -491,7 +491,7 @@ public class MetadataItemsHandler {
       Optional<Map<String, List<Option>>> itemOptions) {
 
     for (QueryItem item : params.getItems()) {
-      String itemUid = getItemUid(item);
+      String itemUid = getItemUid(item, params.hasStageSpecificItem());
       List<String> itemDimensionValues = resolveQueryItemDimension(item, params, itemOptions);
       dimensionItems.put(itemUid, itemDimensionValues);
     }
