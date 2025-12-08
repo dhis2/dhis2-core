@@ -556,6 +556,7 @@ public class DefaultUserService implements UserService {
 
     if (user != null) {
       user.getAllAuthorities();
+      user.getAllRestrictions();
     }
 
     return user;
@@ -747,6 +748,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays) {
     return userStore.getExpiringUserAccounts(inDays);
   }
@@ -869,6 +871,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<User> getUsersWithAuthority(String authority) {
     return userStore.getHasAuthority(authority);
   }
@@ -954,6 +957,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public boolean hasTwoFactorRoleRestriction(User user) {
     return user.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
   }
@@ -1025,6 +1029,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<User> getUsersWithOrgUnits(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids) {
     return userStore.getUsersWithOrgUnits(orgUnitProperty, uids);
