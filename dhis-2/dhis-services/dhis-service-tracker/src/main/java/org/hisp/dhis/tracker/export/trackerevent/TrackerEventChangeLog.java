@@ -58,7 +58,7 @@ import org.hisp.dhis.program.TrackerEvent;
 public class TrackerEventChangeLog {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
-  @SequenceGenerator(name = "eventchangelog_sequence")
+  @SequenceGenerator(sequenceName = "trackereventchangelog_sequence")
   @Column(name = "eventchangelogid")
   private long id;
 

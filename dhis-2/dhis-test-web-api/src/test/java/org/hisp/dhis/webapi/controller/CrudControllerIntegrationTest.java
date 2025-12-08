@@ -695,7 +695,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
     // Query users ordered by displayName ascending
     JsonList<JsonUser> users =
-        GET("/users?fields=displayName,id&order=displayName:ASC")
+        GET("/users?fields=displayName,id&order=displayName:asc")
             .content(HttpStatus.OK)
             .getList("users", JsonUser.class);
 

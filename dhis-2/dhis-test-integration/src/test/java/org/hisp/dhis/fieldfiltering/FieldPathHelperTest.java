@@ -106,7 +106,6 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     FieldPath publicAccess = new FieldPath("publicAccess", List.of(), true, false);
     FieldPath userGroupAccesses = new FieldPath("userGroupAccesses", List.of(), true, false);
     FieldPath userAccesses = new FieldPath("userAccesses", List.of(), true, false);
-    FieldPath externalAccess = new FieldPath("externalAccess", List.of(), true, false);
     FieldPath sharing = new FieldPath("sharing", List.of(), true, false);
 
     // and default preset owner
@@ -115,14 +114,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     // when applying skipSharing exclusions for the User class
     List<FieldPath> result =
         helper.apply(
-            List.of(
-                user,
-                owner,
-                publicAccess,
-                userGroupAccesses,
-                userAccesses,
-                externalAccess,
-                sharing),
+            List.of(user, owner, publicAccess, userGroupAccesses, userAccesses, sharing),
             User.class);
 
     // then only matching exclusions should have been applied

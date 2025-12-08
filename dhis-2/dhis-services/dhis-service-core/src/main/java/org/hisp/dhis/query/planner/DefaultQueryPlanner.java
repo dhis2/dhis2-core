@@ -120,24 +120,10 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    path = overridePersistedFlag(path, filter);
     return path != null
         && path.isPersisted()
         && !path.haveAlias()
         && !Attribute.ObjectType.isValidType(path.getPath());
-  }
-
-  /** Overrides the persisted flag for certain properties based on the filter. */
-  private PropertyPath overridePersistedFlag(PropertyPath path, Filter filter) {
-    if (isTranslationFilter(filter)) {
-      return new PropertyPath(path.getProperty(), true, path.getAlias());
-    }
-    return path;
-  }
-
-  private boolean isTranslationFilter(Filter filter) {
-    String path = filter.getPath();
-    return path.startsWith("display");
   }
 
   private boolean isDisplayProperty(String propertyName) {

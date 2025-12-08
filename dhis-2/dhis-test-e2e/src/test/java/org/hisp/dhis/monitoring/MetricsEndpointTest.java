@@ -27,28 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.monitoring;
 
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import static org.hamcrest.Matchers.containsString;
 
-/**
- * @author Stian Sandvold
- */
-public class ExternalFileResourceSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "externalFileResource";
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-  public static final String PLURAL = "externalFileResources";
+/** Tests for the /api/metrics endpoint (Prometheus scrape endpoint). */
+public class MetricsEndpointTest extends ApiTest {
+  private RestApiActions metricsActions;
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  private LoginActions loginActions;
 
-  @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(ExternalFileResource.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1000);
+  @BeforeAll
+  public void setUp() {
+    loginActions = new LoginActions();
+    metricsActions = new RestApiActions("/metrics");
+  }
 
-    return schema;
+  @Test
+  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+    loginActions.loginAsSuperUser();
+
+    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
+
+    response
+        .validate()
+        .statusCode(200)
+        .body(containsString("# HELP"))
+        .body(containsString("# TYPE"));
   }
 }
