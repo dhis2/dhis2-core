@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.zaxxer.hikari.HikariDataSource;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -56,7 +57,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -77,10 +77,6 @@ class ReadOnlyDatasourceIntegrationTest {
   @Qualifier("readOnlyNamedParameterJdbcTemplate")
   private NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate;
 
-  @Autowired
-  @Qualifier("primaryReadOnlyJdbcTemplate")
-  private JdbcTemplate jdbcTemplate;
-
   @Test
   void shouldReturnReadOnlyDataSourceWhenReadOnlyUrlIsConfigured() throws SQLException {
     assertNotSame(
@@ -89,106 +85,119 @@ class ReadOnlyDatasourceIntegrationTest {
         "Read-only DataSource should be distinct from the main DataSource when READ_REPLICA_CONNECTION_URL is provided");
 
     assertReadOnlyConnection(readOnlyNamedParameterJdbcTemplate.getJdbcTemplate().getDataSource());
-    assertReadOnlyConnection(jdbcTemplate.getDataSource());
+  }
+
+  @Test
+  void shouldReturnDefaultDataSourceWhenReadOnlyUrlIsTheSameAsThePrimaryUrl() throws SQLException {
+    String primaryUrl = ((HikariDataSource) actualDataSource).getJdbcUrl();
+    DataSource readWriteDataSource =
+        new DataSourceConfig()
+            .readOnlyDataSource(
+                getDhisConfigurationProvider(primaryUrl, primaryUrl), actualDataSource);
+
+    assertReadAndWriteConnection(readWriteDataSource);
   }
 
   @Test
   void shouldReturnDefaultDataSourceWhenReadOnlyUrlIsNotConfigured() throws SQLException {
-    DhisConfigurationProvider readWriteConfig =
-        new DhisConfigurationProvider() {
-          @Override
-          public String getProperty(ConfigurationKey key) {
-            return key == ConfigurationKey.READ_REPLICA_CONNECTION_URL ? "" : null;
-          }
-
-          @Override
-          public Properties getProperties() {
-            Properties props = new Properties();
-            props.setProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL.name(), "");
-            return props;
-          }
-
-          @Override
-          public String getPropertyOrDefault(ConfigurationKey key, String defaultValue) {
-            return defaultValue;
-          }
-
-          @Override
-          public boolean hasProperty(ConfigurationKey key) {
-            return false;
-          }
-
-          @Override
-          public Optional<GoogleCredential> getGoogleCredential() {
-            return Optional.empty();
-          }
-
-          @Override
-          public Optional<GoogleAccessToken> getGoogleAccessToken() {
-            return Optional.empty();
-          }
-
-          @Override
-          public String getConnectionUrl() {
-            return "";
-          }
-
-          @Override
-          public boolean isReadOnlyMode() {
-            return false;
-          }
-
-          @Override
-          public boolean isClusterEnabled() {
-            return false;
-          }
-
-          @Override
-          public String getServerBaseUrl() {
-            return "";
-          }
-
-          @Override
-          public List<String> getMetaDataSyncRemoteServersAllowed() {
-            return List.of();
-          }
-
-          @Override
-          public boolean isMetaDataSyncRemoteServerAllowed(String url) {
-            return false;
-          }
-
-          @Override
-          public boolean isLdapConfigured() {
-            return false;
-          }
-
-          @Override
-          public EncryptionStatus getEncryptionStatus() {
-            return null;
-          }
-
-          @Override
-          public boolean isAnalyticsDatabaseConfigured() {
-            return false;
-          }
-
-          @Override
-          public Map<String, Serializable> getConfigurationsAsMap() {
-            return Map.of();
-          }
-        };
-
+    String primaryUrl = ((HikariDataSource) actualDataSource).getJdbcUrl();
     DataSource readWriteDataSource =
-        new DataSourceConfig().readOnlyDataSource(readWriteConfig, actualDataSource);
+        new DataSourceConfig()
+            .readOnlyDataSource(getDhisConfigurationProvider("", primaryUrl), actualDataSource);
 
-    try (Connection conn = readWriteDataSource.getConnection();
-        PreparedStatement ps = conn.prepareStatement("SELECT 1");
-        ResultSet rs = ps.executeQuery()) {
-      assertFalse(conn.isReadOnly(), "Connection should not be read-only");
-      assertTrue(rs.next(), "ResultSet should have a row");
-      assertEquals(1, rs.getInt(1), "Query should return 1");
-    }
+    assertReadAndWriteConnection(readWriteDataSource);
+  }
+
+  private DhisConfigurationProvider getDhisConfigurationProvider(
+      String readReplicaUrl, String primaryUrl) throws SQLException {
+    return new DhisConfigurationProvider() {
+      @Override
+      public String getProperty(ConfigurationKey key) {
+        return switch (key) {
+          case READ_REPLICA_CONNECTION_URL -> readReplicaUrl;
+          case CONNECTION_URL -> primaryUrl;
+          default -> throw new IllegalArgumentException("Unexpected key: " + key);
+        };
+      }
+
+      @Override
+      public Properties getProperties() {
+        Properties props = new Properties();
+        props.setProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL.name(), readReplicaUrl);
+        props.setProperty(ConfigurationKey.CONNECTION_URL.name(), primaryUrl);
+        return props;
+      }
+
+      @Override
+      public String getPropertyOrDefault(ConfigurationKey key, String defaultValue) {
+        return defaultValue;
+      }
+
+      @Override
+      public boolean hasProperty(ConfigurationKey key) {
+        return false;
+      }
+
+      @Override
+      public Optional<GoogleCredential> getGoogleCredential() {
+        return Optional.empty();
+      }
+
+      @Override
+      public Optional<GoogleAccessToken> getGoogleAccessToken() {
+        return Optional.empty();
+      }
+
+      @Override
+      public String getConnectionUrl() {
+        return "";
+      }
+
+      @Override
+      public boolean isReadOnlyMode() {
+        return false;
+      }
+
+      @Override
+      public boolean isClusterEnabled() {
+        return false;
+      }
+
+      @Override
+      public String getServerBaseUrl() {
+        return "";
+      }
+
+      @Override
+      public List<String> getMetaDataSyncRemoteServersAllowed() {
+        return List.of();
+      }
+
+      @Override
+      public boolean isMetaDataSyncRemoteServerAllowed(String url) {
+        return false;
+      }
+
+      @Override
+      public boolean isLdapConfigured() {
+        return false;
+      }
+
+      @Override
+      public EncryptionStatus getEncryptionStatus() {
+        return null;
+      }
+
+      @Override
+      public boolean isAnalyticsDatabaseConfigured() {
+        return false;
+      }
+
+      @Override
+      public Map<String, Serializable> getConfigurationsAsMap() {
+        return Map.of();
+      }
+    };
   }
 
   private void assertReadOnlyConnection(DataSource dataSource) throws SQLException {
@@ -197,6 +206,17 @@ class ReadOnlyDatasourceIntegrationTest {
         PreparedStatement ps = conn.prepareStatement("SELECT 1");
         ResultSet rs = ps.executeQuery()) {
       assertTrue(conn.isReadOnly(), "Connection should be read-only");
+      assertTrue(rs.next(), "ResultSet should have a row");
+      assertEquals(1, rs.getInt(1), "Query should return 1");
+    }
+  }
+
+  private void assertReadAndWriteConnection(DataSource dataSource) throws SQLException {
+    Assertions.assertNotNull(dataSource, "DataSource should not be null");
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement("SELECT 1");
+        ResultSet rs = ps.executeQuery()) {
+      assertFalse(conn.isReadOnly(), "Connection should not be read-only");
       assertTrue(rs.next(), "ResultSet should have a row");
       assertEquals(1, rs.getInt(1), "Query should return 1");
     }

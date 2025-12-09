@@ -116,7 +116,10 @@ public class DataSourceConfig {
   @Bean
   public DataSource readOnlyDataSource(
       DhisConfigurationProvider config, @Qualifier("actualDataSource") DataSource dataSource) {
-    if (StringUtils.isBlank(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))) {
+    if (StringUtils.isBlank(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))
+        || config
+            .getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL)
+            .equals(config.getProperty(ConfigurationKey.CONNECTION_URL))) {
       return dataSource;
     }
 

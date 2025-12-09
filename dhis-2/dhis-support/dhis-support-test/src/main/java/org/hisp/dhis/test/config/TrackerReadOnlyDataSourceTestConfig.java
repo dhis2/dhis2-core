@@ -31,6 +31,10 @@ package org.hisp.dhis.test.config;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,21 +60,41 @@ public class TrackerReadOnlyDataSourceTestConfig {
         new PostgreSQLContainer<>(
                 DockerImageName.parse("postgis/postgis:16-3.5-alpine")
                     .asCompatibleSubstituteFor("postgres"))
-            .withDatabaseName("testdb")
             .withUsername("user")
             .withPassword("password")
             .withTmpFs(Map.of("/testtmpfs", "rw"));
     container.start();
+
+    createDatabase(container, "primarydb");
+    createDatabase(container, "replicadb");
+
     return container;
+  }
+
+  private void createDatabase(PostgreSQLContainer<?> container, String dbName) {
+    String url = container.getJdbcUrl();
+    String username = container.getUsername();
+    String password = container.getPassword();
+
+    try (Connection conn = DriverManager.getConnection(url, username, password);
+        Statement stmt = conn.createStatement()) {
+      stmt.executeUpdate("CREATE DATABASE " + dbName);
+    } catch (SQLException e) {
+      throw new RuntimeException("Failed to create database " + dbName, e);
+    }
   }
 
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider(PostgreSQLContainer<?> container) {
+    final String primaryUrl = urlForDb(container, "primarydb");
+    final String replicaUrl = urlForDb(container, "replicadb");
+
     return new DhisConfigurationProvider() {
       @Override
       public String getProperty(ConfigurationKey key) {
         return switch (key) {
-          case READ_REPLICA_CONNECTION_URL, CONNECTION_URL -> container.getJdbcUrl();
+          case CONNECTION_URL -> primaryUrl;
+          case READ_REPLICA_CONNECTION_URL -> replicaUrl;
           case CONNECTION_USERNAME -> container.getUsername();
           case CONNECTION_PASSWORD -> container.getPassword();
           case DB_POOL_TYPE -> "HIKARI";
@@ -90,8 +114,8 @@ public class TrackerReadOnlyDataSourceTestConfig {
       @Override
       public Properties getProperties() {
         Properties props = new Properties();
-        props.setProperty(
-            ConfigurationKey.READ_REPLICA_CONNECTION_URL.name(), container.getJdbcUrl());
+        props.setProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL.name(), replicaUrl);
+        props.setProperty(ConfigurationKey.CONNECTION_URL.name(), primaryUrl);
         props.setProperty(ConfigurationKey.CONNECTION_USERNAME.name(), container.getUsername());
         props.setProperty(ConfigurationKey.CONNECTION_PASSWORD.name(), container.getPassword());
         props.setProperty(ConfigurationKey.DB_POOL_TYPE.name(), "HIKARI");
@@ -121,7 +145,7 @@ public class TrackerReadOnlyDataSourceTestConfig {
 
       @Override
       public String getConnectionUrl() {
-        return container.getJdbcUrl();
+        return primaryUrl;
       }
 
       @Override
@@ -169,6 +193,18 @@ public class TrackerReadOnlyDataSourceTestConfig {
         return Map.of();
       }
     };
+  }
+
+  private static String urlForDb(PostgreSQLContainer<?> container, String dbName) {
+    String base = container.getJdbcUrl();
+    String params = base.contains("?") ? base.substring(base.indexOf("?")) : "";
+    return "jdbc:postgresql://"
+        + container.getHost()
+        + ":"
+        + container.getFirstMappedPort()
+        + "/"
+        + dbName
+        + params;
   }
 
   @Bean
