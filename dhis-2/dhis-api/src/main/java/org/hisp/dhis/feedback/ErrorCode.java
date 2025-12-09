@@ -634,6 +634,9 @@ public enum ErrorCode {
   E8005("Data set not found: `${id:{0}}`"),
   E8006("PDF file error : ${error:{0}}"),
   E8007("XML file error : ${error:{0}}"),
+  E8008("Data set `completeDate` is not a valid date string: `${date:{0}}`"),
+  E8009(
+      "Data set `completeDate` requires data set, org unit, period and attribute option combo to be defined at the group level."),
 
   // set level current user access issues: Current user cannot enter...
   E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
