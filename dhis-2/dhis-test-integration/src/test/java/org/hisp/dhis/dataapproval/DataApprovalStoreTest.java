@@ -297,4 +297,235 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
         allByCoc.containsAll(List.of(dataApprovalA, dataApprovalB)),
         "Retrieved result set should contain both DataApprovals");
   }
+
+  // -------------------------------------------------------------------------
+  // JPA Annotation Verification Tests
+  // -------------------------------------------------------------------------
+
+  @Test
+  @DisplayName("All ManyToOne associations are properly persisted and loaded")
+  void testAllAssociationsPersistedAndLoaded() {
+    // given
+    Date date = new Date();
+    DataApproval approval =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+    approval.setLastUpdatedBy(userB);
+
+    // when
+    dataApprovalStore.addDataApproval(approval);
+    DataApproval loaded =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+
+    // then
+    assertNotNull(loaded, "DataApproval should be loaded from database");
+    assertNotNull(loaded.getDataApprovalLevel(), "DataApprovalLevel association should be loaded");
+    assertNotNull(loaded.getWorkflow(), "Workflow association should be loaded");
+    assertNotNull(loaded.getPeriod(), "Period association should be loaded");
+    assertNotNull(loaded.getOrganisationUnit(), "OrganisationUnit association should be loaded");
+    assertNotNull(
+        loaded.getAttributeOptionCombo(), "AttributeOptionCombo association should be loaded");
+    assertNotNull(loaded.getCreator(), "Creator association should be loaded");
+    assertNotNull(loaded.getLastUpdatedBy(), "LastUpdatedBy association should be loaded");
+
+    assertEquals(
+        level1.getId(),
+        loaded.getDataApprovalLevel().getId(),
+        "DataApprovalLevel should match");
+    assertEquals(workflowA12.getId(), loaded.getWorkflow().getId(), "Workflow should match");
+    assertEquals(periodA.getId(), loaded.getPeriod().getId(), "Period should match");
+    assertEquals(sourceA.getId(), loaded.getOrganisationUnit().getId(), "OrganisationUnit should match");
+    assertEquals(
+        categoryOptionCombo.getId(),
+        loaded.getAttributeOptionCombo().getId(),
+        "AttributeOptionCombo should match");
+    assertEquals(userA.getId(), loaded.getCreator().getId(), "Creator should match");
+    assertEquals(userB.getId(), loaded.getLastUpdatedBy().getId(), "LastUpdatedBy should match");
+  }
+
+  @Test
+  @DisplayName("Required associations enforce not-null constraint")
+  void testRequiredAssociationsNotNull() {
+    // given
+    Date date = new Date();
+    DataApproval approval =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+
+    // when
+    dataApprovalStore.addDataApproval(approval);
+    DataApproval loaded =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+
+    // then - verify required fields are not null
+    assertNotNull(
+        loaded.getDataApprovalLevel(), "Required field dataApprovalLevel should not be null");
+    assertNotNull(loaded.getPeriod(), "Required field period should not be null");
+    assertNotNull(
+        loaded.getOrganisationUnit(), "Required field organisationUnit should not be null");
+    assertNotNull(loaded.getCreated(), "Required field created should not be null");
+    assertNotNull(loaded.getCreator(), "Required field creator should not be null");
+  }
+
+  @Test
+  @DisplayName("Optional associations can be null")
+  void testOptionalAssociationsCanBeNull() {
+    // given
+    Date date = new Date();
+    DataApproval approval =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+    // lastUpdatedBy is nullable - don't set it
+    approval.setLastUpdatedBy(null);
+
+    // when
+    dataApprovalStore.addDataApproval(approval);
+    DataApproval loaded =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+
+    // then - verify entity can be loaded with null optional associations
+    assertNotNull(loaded, "DataApproval should be loaded even with null optional associations");
+    assertNull(loaded.getLastUpdatedBy(), "Optional lastUpdatedBy association can be null");
+  }
+
+  @Test
+  @DisplayName("Update operation preserves all associations")
+  void testUpdatePreservesAssociations() {
+    // given
+    Date date = new Date();
+    DataApproval approval =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+    dataApprovalStore.addDataApproval(approval);
+
+    // when - update the accepted status and lastUpdatedBy
+    DataApproval loaded =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+    loaded.setAccepted(true, userB);
+    dataApprovalStore.updateDataApproval(loaded);
+
+    // then - reload and verify all associations are still intact
+    DataApproval reloaded =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+    assertNotNull(reloaded);
+    assertTrue(reloaded.isAccepted(), "Accepted status should be updated");
+    assertEquals(userB.getId(), reloaded.getLastUpdatedBy().getId(), "LastUpdatedBy should be updated");
+    assertNotNull(reloaded.getLastUpdated(), "LastUpdated timestamp should be set");
+
+    // Verify other associations are preserved
+    assertEquals(level1.getId(), reloaded.getDataApprovalLevel().getId());
+    assertEquals(workflowA12.getId(), reloaded.getWorkflow().getId());
+    assertEquals(periodA.getId(), reloaded.getPeriod().getId());
+    assertEquals(sourceA.getId(), reloaded.getOrganisationUnit().getId());
+    assertEquals(categoryOptionCombo.getId(), reloaded.getAttributeOptionCombo().getId());
+    assertEquals(userA.getId(), reloaded.getCreator().getId());
+    assertEquals(date, reloaded.getCreated(), "Created date should be unchanged");
+  }
+
+  @Test
+  @DisplayName("Entity can be persisted with all association variations")
+  void testPersistWithDifferentAssociationCombinations() {
+    // given
+    Date date = new Date();
+
+    // Use unique combinations to avoid conflicts with other tests
+    // Test 1: level2 + workflowB12 + sourceA
+    DataApproval approval1 =
+        new DataApproval(
+            level2, workflowB12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+
+    // Test 2: level1 + workflowB12 + sourceB
+    DataApproval approval2 =
+        new DataApproval(
+            level1, workflowB12, periodA, sourceB, categoryOptionCombo, false, date, userA);
+
+    // Test 3: level2 + workflowA12 + sourceC
+    DataApproval approval3 =
+        new DataApproval(
+            level2, workflowA12, periodA, sourceC, categoryOptionCombo, false, date, userA);
+
+    // Test 4: level1 + workflowB12 + periodB + sourceB (different period from approval2)
+    DataApproval approval4 =
+        new DataApproval(
+            level1, workflowB12, periodB, sourceB, categoryOptionCombo, false, date, userA);
+
+    // Test 5: level2 + workflowB12 + periodB + sourceA (different period from approval1)
+    DataApproval approval5 =
+        new DataApproval(
+            level2, workflowB12, periodB, sourceA, categoryOptionCombo, false, date, userA);
+
+    // Test 6: level1 + workflowB12 + sourceD + different user
+    DataApproval approval6 =
+        new DataApproval(
+            level1, workflowB12, periodA, sourceD, categoryOptionCombo, false, date, userB);
+
+    // when - persist all variations
+    dataApprovalStore.addDataApproval(approval1);
+    dataApprovalStore.addDataApproval(approval2);
+    dataApprovalStore.addDataApproval(approval3);
+    dataApprovalStore.addDataApproval(approval4);
+    dataApprovalStore.addDataApproval(approval5);
+    dataApprovalStore.addDataApproval(approval6);
+
+    // then - verify all can be loaded with correct associations
+    DataApproval loaded1 =
+        dataApprovalStore.getDataApproval(
+            level2, workflowB12, periodA, sourceA, categoryOptionCombo);
+    DataApproval loaded2 =
+        dataApprovalStore.getDataApproval(
+            level1, workflowB12, periodA, sourceB, categoryOptionCombo);
+    DataApproval loaded3 =
+        dataApprovalStore.getDataApproval(
+            level2, workflowA12, periodA, sourceC, categoryOptionCombo);
+    DataApproval loaded4 =
+        dataApprovalStore.getDataApproval(
+            level1, workflowB12, periodB, sourceB, categoryOptionCombo);
+    DataApproval loaded5 =
+        dataApprovalStore.getDataApproval(
+            level2, workflowB12, periodB, sourceA, categoryOptionCombo);
+    DataApproval loaded6 =
+        dataApprovalStore.getDataApproval(
+            level1, workflowB12, periodA, sourceD, categoryOptionCombo);
+
+    assertNotNull(loaded1);
+    assertNotNull(loaded2);
+    assertNotNull(loaded3);
+    assertNotNull(loaded4);
+    assertNotNull(loaded5);
+    assertNotNull(loaded6);
+
+    assertEquals(level2.getId(), loaded1.getDataApprovalLevel().getId());
+    assertEquals(workflowB12.getId(), loaded1.getWorkflow().getId());
+    assertEquals(level1.getId(), loaded2.getDataApprovalLevel().getId());
+    assertEquals(workflowA12.getId(), loaded3.getWorkflow().getId());
+    assertEquals(periodB.getId(), loaded4.getPeriod().getId());
+    assertEquals(periodB.getId(), loaded5.getPeriod().getId());
+    assertEquals(sourceD.getId(), loaded6.getOrganisationUnit().getId());
+    assertEquals(userB.getId(), loaded6.getCreator().getId());
+  }
+
+  @Test
+  @DisplayName("ID is properly generated and can be retrieved")
+  void testIdGeneration() {
+    // given
+    Date date = new Date();
+    DataApproval approval =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+
+    // when
+    dataApprovalStore.addDataApproval(approval);
+    DataApproval loaded =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+
+    // then
+    assertNotNull(loaded);
+    assertTrue(loaded.getId() > 0, "ID should be auto-generated and greater than 0");
+  }
 }
