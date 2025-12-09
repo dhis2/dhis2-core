@@ -330,12 +330,11 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
     assertNotNull(loaded.getLastUpdatedBy(), "LastUpdatedBy association should be loaded");
 
     assertEquals(
-        level1.getId(),
-        loaded.getDataApprovalLevel().getId(),
-        "DataApprovalLevel should match");
+        level1.getId(), loaded.getDataApprovalLevel().getId(), "DataApprovalLevel should match");
     assertEquals(workflowA12.getId(), loaded.getWorkflow().getId(), "Workflow should match");
     assertEquals(periodA.getId(), loaded.getPeriod().getId(), "Period should match");
-    assertEquals(sourceA.getId(), loaded.getOrganisationUnit().getId(), "OrganisationUnit should match");
+    assertEquals(
+        sourceA.getId(), loaded.getOrganisationUnit().getId(), "OrganisationUnit should match");
     assertEquals(
         categoryOptionCombo.getId(),
         loaded.getAttributeOptionCombo().getId(),
@@ -414,7 +413,8 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
             level1, workflowA12, periodA, sourceA, categoryOptionCombo);
     assertNotNull(reloaded);
     assertTrue(reloaded.isAccepted(), "Accepted status should be updated");
-    assertEquals(userB.getId(), reloaded.getLastUpdatedBy().getId(), "LastUpdatedBy should be updated");
+    assertEquals(
+        userB.getId(), reloaded.getLastUpdatedBy().getId(), "LastUpdatedBy should be updated");
     assertNotNull(reloaded.getLastUpdated(), "LastUpdated timestamp should be set");
 
     // Verify other associations are preserved
