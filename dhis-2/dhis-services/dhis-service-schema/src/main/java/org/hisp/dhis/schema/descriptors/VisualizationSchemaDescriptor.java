@@ -31,7 +31,6 @@ package org.hisp.dhis.schema.descriptors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.security.AuthorityType.CREATE_PUBLIC;
-import static org.hisp.dhis.security.AuthorityType.EXTERNALIZE;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -54,7 +53,6 @@ public class VisualizationSchemaDescriptor implements SchemaDescriptor {
     schema.setShareable(true);
 
     schema.add(new Authority(CREATE_PUBLIC, newArrayList("F_VISUALIZATION_PUBLIC_ADD")));
-    schema.add(new Authority(EXTERNALIZE, newArrayList("F_VISUALIZATION_EXTERNAL")));
 
     return schema;
   }

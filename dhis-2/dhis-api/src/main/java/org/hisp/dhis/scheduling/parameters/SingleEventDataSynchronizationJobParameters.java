@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.scheduling.parameters;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * @author Stian Sandvold
+ * @author Zubair Asghar
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.ExternalFileResourceService")
-public class DefaultExternalFileResourceService implements ExternalFileResourceService {
-  private final ExternalFileResourceStore externalFileResourceStore;
+@Getter
+@Setter
+@NoArgsConstructor
+public class SingleEventDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
+
+  static final int PAGE_SIZE_MAX = 200;
+
+  @JsonProperty private int pageSize = 60;
+
+  @OpenApi.Property({UID.class, Program.class})
+  @JsonProperty(required = true)
+  private String program;
 
   @Override
-  @Transactional(readOnly = true)
-  public ExternalFileResource getExternalFileResourceByAccessToken(String accessToken) {
-    return externalFileResourceStore.getExternalFileResourceByAccessToken(accessToken);
-  }
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
+    }
 
-  @Override
-  @Transactional
-  public String saveExternalFileResource(ExternalFileResource externalFileResource) {
-    Assert.notNull(externalFileResource, "External file resource cannot be null");
-    Assert.notNull(
-        externalFileResource.getFileResource(), "External file resource entity cannot be null");
-
-    externalFileResource.setAccessToken(CodeGenerator.getRandomSecureToken());
-
-    externalFileResourceStore.save(externalFileResource);
-
-    return externalFileResource.getAccessToken();
+    return Optional.empty();
   }
 }

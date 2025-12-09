@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobEntry;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Stian Sandvold
+ * @author Zubair Asghar
  */
-public interface ExternalFileResourceStore extends IdentifiableObjectStore<ExternalFileResource> {
-  /**
-   * Returns a single ExternalFileResource with the given (unique) accessToken.
-   *
-   * @param accessToken unique string belonging to a single ExternalFileResource.
-   * @return ExternalFileResource
-   */
-  ExternalFileResource getExternalFileResourceByAccessToken(String accessToken);
+@Component
+@AllArgsConstructor
+public class SingleEventDataSynchronizationJob implements Job {
+
+  private final SingleEventDataSynchronizationService eventSync;
+
+  @Override
+  public JobType getJobType() {
+    return JobType.SINGLE_EVENT_DATA_SYNC;
+  }
+
+  @Override
+  public void execute(JobEntry config, JobProgress progress) {
+    SingleEventDataSynchronizationJobParameters params =
+        (SingleEventDataSynchronizationJobParameters) config.parameters();
+    eventSync.synchronizeTrackerData(params.getPageSize(), progress, params.getProgram());
+  }
 }
