@@ -208,6 +208,9 @@ class ReadOnlyDatasourceIntegrationTest {
       assertTrue(conn.isReadOnly(), "Connection should be read-only");
       assertTrue(rs.next(), "ResultSet should have a row");
       assertEquals(1, rs.getInt(1), "Query should return 1");
+      assertEquals(
+          ((HikariDataSource) readOnlyDataSource).getJdbcUrl(),
+          ((HikariDataSource) dataSource).getJdbcUrl());
     }
   }
 
@@ -219,6 +222,9 @@ class ReadOnlyDatasourceIntegrationTest {
       assertFalse(conn.isReadOnly(), "Connection should not be read-only");
       assertTrue(rs.next(), "ResultSet should have a row");
       assertEquals(1, rs.getInt(1), "Query should return 1");
+      assertEquals(
+          ((HikariDataSource) actualDataSource).getJdbcUrl(),
+          ((HikariDataSource) dataSource).getJdbcUrl());
     }
   }
 }
