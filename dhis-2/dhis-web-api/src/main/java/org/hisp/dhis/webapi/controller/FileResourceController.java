@@ -208,12 +208,11 @@ public class FileResourceController
    */
   private boolean checkSharing(FileResource fileResource, User currentUser) {
     /*
-     * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
-     * doesn't make sense So we will return false if the fileResource have
-     * either of these domains.
+     * Serving DATA_VALUE fileResources from this endpoint doesn't make sense
+     * So we will return false if the fileResource have this domain.
      */
     FileResourceDomain domain = fileResource.getDomain();
-    if (domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS) {
+    if (domain == FileResourceDomain.DATA_VALUE) {
       return false;
     }
 

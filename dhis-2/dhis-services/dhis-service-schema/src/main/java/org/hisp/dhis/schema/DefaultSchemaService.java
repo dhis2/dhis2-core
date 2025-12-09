@@ -154,7 +154,6 @@ import org.hisp.dhis.schema.descriptors.ProgramStageSectionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageWorkingListSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipConstraintSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
@@ -290,7 +289,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new ValidationRuleGroupSchemaDescriptor());
     register(new ValidationRuleSchemaDescriptor());
     register(new ValidationNotificationTemplateSchemaDescriptor());
-    register(new PushAnalysisSchemaDescriptor());
     register(new ProgramIndicatorGroupSchemaDescriptor());
     register(new OptionGroupSchemaDescriptor());
     register(new OptionGroupSetSchemaDescriptor());

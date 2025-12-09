@@ -83,8 +83,6 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
 
   private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
 
-  private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
-
   private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
   private static final String LOG4J_CONF_PROP = "log4j2.configurationFile";
@@ -139,9 +137,6 @@ public class Log4JLogConfigInitializer implements LogConfigInitializer {
 
     addConfigurableLogger(
         METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.dxf2.metadata"));
-
-    addConfigurableLogger(
-        PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.pushanalysis"));
 
     addConfigurableAuditLog(AUDIT_LOGGER_FILENAME, Lists.newArrayList("org.hisp.dhis.audit"));
 
