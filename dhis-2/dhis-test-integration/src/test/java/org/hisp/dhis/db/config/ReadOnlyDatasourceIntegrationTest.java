@@ -109,7 +109,7 @@ class ReadOnlyDatasourceIntegrationTest {
   }
 
   private DhisConfigurationProvider getDhisConfigurationProvider(
-      String readReplicaUrl, String primaryUrl) throws SQLException {
+      String readReplicaUrl, String primaryUrl) {
     return new DhisConfigurationProvider() {
       @Override
       public String getProperty(ConfigurationKey key) {

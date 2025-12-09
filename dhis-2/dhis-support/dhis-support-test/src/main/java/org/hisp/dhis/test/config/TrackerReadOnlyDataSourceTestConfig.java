@@ -47,6 +47,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -80,7 +81,7 @@ public class TrackerReadOnlyDataSourceTestConfig {
         Statement stmt = conn.createStatement()) {
       stmt.executeUpdate("CREATE DATABASE " + dbName);
     } catch (SQLException e) {
-      throw new RuntimeException("Failed to create database " + dbName, e);
+      throw new DataAccessResourceFailureException("Failed to create database " + dbName, e);
     }
   }
 
