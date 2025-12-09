@@ -531,6 +531,7 @@ class EventQueryValidatorTest extends TestBase {
             .withOrganisationUnits(List.of(ouA))
             .addItem(qi1)
             .addItem(qi2) // Duplicate stage.identifier
+            .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
             .build();
 
     ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);

@@ -99,7 +99,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
 
     // Check for duplicate stage dimension identifiers (must be before E7202 check)
     Set<String> duplicateStageDimensions = params.getDuplicateStageDimensionIdentifiers();
-    if (!duplicateStageDimensions.isEmpty()) {
+    if (!duplicateStageDimensions.isEmpty()
+        && params.getEndpointItem().equals(RequestTypeAware.EndpointItem.EVENT)) {
       return new ErrorMessage(ErrorCode.E7243, duplicateStageDimensions.iterator().next());
     }
 
