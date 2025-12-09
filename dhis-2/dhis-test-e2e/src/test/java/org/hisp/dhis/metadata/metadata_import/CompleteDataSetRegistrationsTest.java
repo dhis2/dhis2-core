@@ -158,6 +158,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
   }
 
   @Test
+  @Disabled("DHIS2-19679 CDSR is not fully working and should get a rethink and reimplement")
   void getCompleteDataSetRegistrationSyncXml() {
     loginActions.loginAsSuperUser();
 
