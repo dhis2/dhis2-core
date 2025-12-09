@@ -2645,8 +2645,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addWhereClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
     Condition baseConditions = Condition.raw(getWhereClause(params));
-    Condition cteConditions = addCteFiltersToWhereClause(params, cteContext);
-    sb.where(Condition.and(baseConditions, cteConditions));
+    Condition itemFilters = buildQueryItemFiltersCondition(params, cteContext);
+    sb.where(Condition.and(baseConditions, itemFilters));
   }
 
   private void addSortingAndPaging(
@@ -2863,21 +2863,36 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   // ---------------------------------------------------------------------
 
   /**
-   * Builds a WHERE clause by combining CTE filters and non-CTE filters for event queries.
+   * Builds QueryItem filter conditions for the WHERE clause. Combines CTE-based filters (for items
+   * with program stage) and non-CTE filters (e.g., TEA filters without program stage).
    *
    * @param params The event query parameters containing items and filters
    * @param cteContext The CTE context containing CTE definitions
-   * @return A Condition representing the combined WHERE clause
+   * @return A Condition representing the combined QueryItem filters
    * @throws IllegalArgumentException if params or cteContext is null
    */
-  private Condition addCteFiltersToWhereClause(EventQueryParams params, CteContext cteContext) {
+  private Condition buildQueryItemFiltersCondition(EventQueryParams params, CteContext cteContext) {
     if (params == null || cteContext == null) {
       throw new IllegalArgumentException("Query parameters and CTE context cannot be null");
     }
 
     Set<QueryItem> processedItems = new HashSet<>();
     // Build CTE conditions
-    return buildCteConditions(params, cteContext, processedItems);
+    Condition cteConditions = buildCteConditions(params, cteContext, processedItems);
+
+    // Get non-CTE conditions (e.g., TEA filters without program stage)
+    String nonCteWhereClause =
+        getQueryItemsAndFiltersWhereClause(params, processedItems, new SqlHelper())
+            .replace("where", "");
+
+    // Combine conditions
+    if (!nonCteWhereClause.isEmpty()) {
+      return cteConditions != null
+          ? Condition.and(cteConditions, Condition.raw(nonCteWhereClause))
+          : Condition.raw(nonCteWhereClause);
+    }
+
+    return cteConditions;
   }
 
   /**
