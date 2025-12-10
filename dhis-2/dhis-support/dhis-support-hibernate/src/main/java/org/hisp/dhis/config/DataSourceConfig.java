@@ -30,6 +30,7 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -47,7 +48,6 @@ import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.HikariMetricsTrackerProvider;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -67,9 +67,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @Configuration
 public class DataSourceConfig {
 
-  /** Optional - only present when monitoring.dbpool.enabled=on and using HikariCP */
+  /** Optional - only present when monitoring.dbpool.enabled=on */
   @Autowired(required = false)
-  private HikariMetricsTrackerProvider metricsProvider;
+  private MeterRegistry meterRegistry;
 
   @Primary
   @Bean
@@ -102,7 +102,7 @@ public class DataSourceConfig {
   @Bean
   public JdbcTemplate readOnlyJdbcTemplate(
       DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, metricsProvider);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -125,22 +125,18 @@ public class DataSourceConfig {
     }
 
     DbPoolConfig dbPoolConfig =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("read_replica")
             .dhisConfig(config)
             .jdbcUrl(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))
             .username(config.getProperty(ConfigurationKey.CONNECTION_USERNAME))
             .password(config.getProperty(ConfigurationKey.CONNECTION_PASSWORD))
             .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))
             .readOnly(true)
-            .metricsTrackerFactory(
-                metricsProvider != null
-                    ? metricsProvider.createMetricsTracker("read_replica")
-                    : null)
-            .dataSourceName("read_replica")
             .build();
 
     try {
-      return createLoggingDataSource(config, DatabasePoolUtils.createDbPool(dbPoolConfig));
+      return createLoggingDataSource(
+          config, DatabasePoolUtils.createDbPool(dbPoolConfig, meterRegistry));
     } catch (PropertyVetoException | SQLException e) {
       String message =
           String.format(
@@ -156,16 +152,10 @@ public class DataSourceConfig {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder()
-            .dhisConfig(config)
-            .dbPoolType(dbPoolType)
-            .metricsTrackerFactory(
-                metricsProvider != null ? metricsProvider.createMetricsTracker("main") : null)
-            .dataSourceName("main")
-            .build();
+        DbPoolConfig.builder("main").dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(

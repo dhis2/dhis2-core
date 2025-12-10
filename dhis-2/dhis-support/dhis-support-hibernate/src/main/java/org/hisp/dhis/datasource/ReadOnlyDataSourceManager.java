@@ -34,11 +34,13 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -80,9 +82,9 @@ public class ReadOnlyDataSourceManager {
   }
 
   public ReadOnlyDataSourceManager(
-      DhisConfigurationProvider config, HikariMetricsTrackerProvider metricsProvider) {
+      DhisConfigurationProvider config, @Nullable MeterRegistry meterRegistry) {
     checkNotNull(config);
-    init(config, metricsProvider);
+    init(config, meterRegistry);
   }
 
   /** State holder for the resolved read only data source. */
@@ -99,8 +101,8 @@ public class ReadOnlyDataSourceManager {
     init(config, null);
   }
 
-  public void init(DhisConfigurationProvider config, HikariMetricsTrackerProvider metricsProvider) {
-    List<DataSource> ds = getReadOnlyDataSources(config, metricsProvider);
+  public void init(DhisConfigurationProvider config, @Nullable MeterRegistry meterRegistry) {
+    List<DataSource> ds = getReadOnlyDataSources(config, meterRegistry);
 
     this.internalReadOnlyInstanceList = ds;
     this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource(ds) : null;
@@ -119,7 +121,7 @@ public class ReadOnlyDataSourceManager {
   // -------------------------------------------------------------------------
 
   private List<DataSource> getReadOnlyDataSources(
-      DhisConfigurationProvider config, HikariMetricsTrackerProvider metricsProvider) {
+      DhisConfigurationProvider config, @Nullable MeterRegistry meterRegistry) {
     String mainUser = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
     String driverClass = config.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
@@ -136,7 +138,7 @@ public class ReadOnlyDataSourceManager {
       String username = StringUtils.defaultIfEmpty(dataSourceConfig.getUsername(), mainUser);
       String password = StringUtils.defaultIfEmpty(dataSourceConfig.getPassword(), mainPassword);
 
-      DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder();
+      DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder("read" + replicaIndex);
       builder.dhisConfig(config);
       builder.password(password);
       builder.username(username);
@@ -145,13 +147,9 @@ public class ReadOnlyDataSourceManager {
       builder.maxPoolSize(maxPoolSize);
       builder.acquireIncrement(String.valueOf(VAL_ACQUIRE_INCREMENT));
       builder.maxIdleTime(String.valueOf(VAL_MAX_IDLE_TIME));
-      String dataSourceName = "read" + replicaIndex;
-      builder.metricsTrackerFactory(
-          metricsProvider != null ? metricsProvider.createMetricsTracker(dataSourceName) : null);
-      builder.dataSourceName(dataSourceName);
 
       try {
-        dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
+        dataSources.add(DatabasePoolUtils.createDbPool(builder.build(), meterRegistry));
         log.info("Created read-only data source with connection URL: '{}'", url);
       } catch (SQLException | PropertyVetoException e) {
         String message =

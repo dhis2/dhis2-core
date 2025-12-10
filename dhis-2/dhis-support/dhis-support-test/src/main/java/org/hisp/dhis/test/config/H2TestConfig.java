@@ -104,11 +104,11 @@ public class H2TestConfig {
       throws SQLException, PropertyVetoException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder();
+    DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder("test");
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 
-    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build());
+    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build(), null);
     H2SqlFunction.registerH2Functions(dbPool);
 
     return dbPool;

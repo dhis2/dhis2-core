@@ -79,17 +79,21 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -101,6 +105,9 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
  */
 @Slf4j
 public final class DatabasePoolUtils {
+
+  /** Tracks registered datasource names to detect duplicates at startup. */
+  private static final Set<String> registeredDataSourceNames = ConcurrentHashMap.newKeySet();
 
   /**
    * This enum maps each database configuration key into a corresponding analytics configuration
@@ -164,16 +171,27 @@ public final class DatabasePoolUtils {
    * <p>The analytics database driver class name is inferred from analytics database property and
    * must be passed using the {@code PoolConfig#driverClassName} property.
    *
-   * @param config the {@link DbPoolConfig}.
+   * @param config the {@link DbPoolConfig}. Must include a unique {@code dataSourceName}.
+   * @param meterRegistry optional Micrometer registry for HikariCP metrics. Pass null to disable
+   *     metrics.
    * @return a {@link DataSource}.
+   * @throws IllegalArgumentException if dataSourceName is missing
+   * @throws IllegalStateException if a datasource with the same name was already registered
    */
-  public static DataSource createDbPool(DbPoolConfig config)
+  public static DataSource createDbPool(DbPoolConfig config, @Nullable MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
+    String dataSourceName = config.getDataSourceName();
+    if (!registeredDataSourceNames.add(dataSourceName)) {
+      throw new IllegalStateException(
+          "Duplicate dataSourceName '%s'. Already registered: %s"
+              .formatted(dataSourceName, registeredDataSourceNames));
+    }
+
     ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    log.info("Database pool type value is '{}'", dbPoolType);
+    log.debug("Creating database pool '{}' with type '{}'", dataSourceName, dbPoolType);
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
@@ -191,7 +209,9 @@ public final class DatabasePoolUtils {
 
     final DataSource dataSource =
         switch (dbPoolType) {
-          case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+          case HIKARI ->
+              createHikariDbPool(
+                  username, password, driverClassName, jdbcUrl, config, meterRegistry);
           case UNPOOLED -> createNoPoolDataSource(username, password, driverClassName, jdbcUrl);
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
           default ->
@@ -221,7 +241,8 @@ public final class DatabasePoolUtils {
       String password,
       String driverClassName,
       String jdbcUrl,
-      DbPoolConfig config) {
+      DbPoolConfig config,
+      @Nullable MeterRegistry meterRegistry) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -251,12 +272,7 @@ public final class DatabasePoolUtils {
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
 
     HikariConfig hc = new HikariConfig();
-    // Use provided datasource name or generate random one for backward compatibility
-    String dataSourceName =
-        config.getDataSourceName() != null
-            ? config.getDataSourceName()
-            : "HikariDataSource_" + CodeGenerator.generateCode(10);
-    hc.setPoolName(dataSourceName);
+    hc.setPoolName(config.getDataSourceName());
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
@@ -291,9 +307,9 @@ public final class DatabasePoolUtils {
       }
     }
 
-    // Configure HikariCP metrics if tracker factory is provided
-    if (config.getMetricsTrackerFactory() != null) {
-      hc.setMetricsTrackerFactory(config.getMetricsTrackerFactory());
+    // Configure HikariCP metrics if registry is provided
+    if (meterRegistry != null) {
+      hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 
     HikariDataSource ds = new HikariDataSource(hc);

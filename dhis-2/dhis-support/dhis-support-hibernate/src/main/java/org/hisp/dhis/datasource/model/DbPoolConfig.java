@@ -29,12 +29,11 @@
  */
 package org.hisp.dhis.datasource.model;
 
-import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
-import org.hisp.dhis.datasource.HikariMetricsTrackerProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
@@ -43,8 +42,25 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-@Builder
+@Builder(builderMethodName = "")
 public class DbPoolConfig {
+
+  /**
+   * Name identifying this datasource in metrics. Required. Must be unique across all data sources.
+   * Use meaningful names like "main", "analytics", "read_replica", "read1", etc.
+   */
+  @Nonnull final String dataSourceName;
+
+  /**
+   * Creates a builder with the required dataSourceName.
+   *
+   * @param dataSourceName required name identifying this datasource in metrics
+   * @return a builder with the dataSourceName already set
+   */
+  public static DbPoolConfigBuilder builder(@Nonnull String dataSourceName) {
+    return new DbPoolConfigBuilder().dataSourceName(dataSourceName);
+  }
+
   private String dbPoolType;
 
   private DhisConfigurationProvider dhisConfig;
@@ -77,19 +93,6 @@ public class DbPoolConfig {
    * behavior will not be enforced.
    */
   boolean readOnly;
-
-  /**
-   * Pre-created metrics tracker factory for HikariCP. Obtained from {@link
-   * HikariMetricsTrackerProvider#createMetricsTracker(String)}. Null if metrics are disabled or not
-   * using HikariCP.
-   */
-  private MicrometerMetricsTrackerFactory metricsTrackerFactory;
-
-  /**
-   * Name identifying this datasource in metrics and logs. Use meaningful names like "main",
-   * "analytics", "read_replica", "read1", etc.
-   */
-  private String dataSourceName;
 
   public ConfigKeyMapper getMapper() {
     return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);

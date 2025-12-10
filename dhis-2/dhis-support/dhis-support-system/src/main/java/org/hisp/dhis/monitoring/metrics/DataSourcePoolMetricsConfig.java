@@ -33,7 +33,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.DB_POOL_TYPE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -43,13 +42,9 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.datasource.DatabasePoolUtils.DbPoolType;
-import org.hisp.dhis.datasource.HikariMetricsTrackerProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,20 +59,22 @@ import org.springframework.context.annotation.Lazy;
  * for all pool types:
  *
  * <ul>
- *   <li><b>HikariCP</b>: Applies histogram filters for timing metrics and provides {@link
- *       #createMetricsTracker(String)} for datasources to register metrics
- *   <li><b>C3P0</b> (deprecated): Registers basic gauge metrics for active/idle connections
+ *   <li><b>HikariCP</b>: Metrics are registered via {@code DatabasePoolUtils.createDbPool()} which
+ *       configures HikariCP's native MetricsTrackerFactory. This class applies histogram filters
+ *       for timing metrics and renames metrics from hikaricp.* to jdbc.* for backward
+ *       compatibility.
+ *   <li><b>C3P0</b> (deprecated): Registers basic gauge metrics for active/idle connections via
+ *       post-creation binding in {@link #bindDataSourcesToRegistry}.
  *   <li><b>UNPOOLED</b>: No metrics (no connection pooling)
  * </ul>
  */
 @Slf4j
 @Configuration
 @Conditional(DataSourcePoolMetricsConfig.DataSourcePoolMetricsEnabledCondition.class)
-public class DataSourcePoolMetricsConfig implements HikariMetricsTrackerProvider {
+public class DataSourcePoolMetricsConfig {
 
   private final PrometheusMeterRegistry registry;
   private final DbPoolType poolType;
-  private final Set<String> registeredDataSourceNames = ConcurrentHashMap.newKeySet();
 
   public DataSourcePoolMetricsConfig(
       PrometheusMeterRegistry registry, DhisConfigurationProvider config) {
@@ -88,58 +85,10 @@ public class DataSourcePoolMetricsConfig implements HikariMetricsTrackerProvider
       // Apply HikariCP-specific filters: histogram buckets and metric renaming
       registry.config().meterFilter(hikariHistogramFilter());
       registry.config().meterFilter(hikariRenamingFilter());
-      log.debug("HikariCP connection pool metrics enabled");
+      log.debug("HikariCP connection pool metrics filters configured");
     } else if (poolType == DbPoolType.C3P0) {
       log.warn("C3P0 connection pool metrics are deprecated. Migrate to HikariCP");
     }
-  }
-
-  /**
-   * Creates a metrics tracker factory for a HikariCP datasource.
-   *
-   * <p>This method must be called during datasource creation, before the HikariCP pool is
-   * initialized. The returned factory must be set on {@link com.zaxxer.hikari.HikariConfig} via
-   * {@code setMetricsTrackerFactory()} before creating the {@link
-   * com.zaxxer.hikari.HikariDataSource}.
-   *
-   * <p><b>Why this approach instead of {@link #bindDataSourcesToRegistry}?</b>
-   *
-   * <p>HikariCP's {@code MetricsTrackerFactory} must be configured before the pool starts. Once
-   * {@code new HikariDataSource(config)} is called, the pool initializes and it's too late to add
-   * metrics tracking. This is different from C3P0, where we can register gauges on an existing pool
-   * via {@link #bindDataSourcesToRegistry}.
-   *
-   * <p>Using HikariCP's native metrics integration provides rich timing histograms:
-   *
-   * <ul>
-   *   <li>{@code hikaricp.connections.acquire} - time to obtain a connection from the pool
-   *   <li>{@code hikaricp.connections.usage} - time connections are held before being returned
-   *   <li>{@code hikaricp.connections.creation} - time to create new connections
-   * </ul>
-   *
-   * These would not be available if we only registered gauges post-creation like C3P0.
-   *
-   * @param dataSourceName unique name identifying this datasource (e.g., "main", "analytics")
-   * @return metrics tracker factory, or null if not using HikariCP
-   * @throws IllegalStateException if dataSourceName is already registered
-   * @throws NullPointerException if dataSourceName is null
-   */
-  @Override
-  public MicrometerMetricsTrackerFactory createMetricsTracker(String dataSourceName) {
-    Objects.requireNonNull(dataSourceName, "dataSourceName is required");
-
-    if (poolType != DbPoolType.HIKARI) {
-      return null;
-    }
-
-    if (!registeredDataSourceNames.add(dataSourceName)) {
-      throw new IllegalStateException(
-          "Duplicate datasource name '%s'. Already registered: %s"
-              .formatted(dataSourceName, registeredDataSourceNames));
-    }
-
-    log.debug("Registered HikariCP metrics for datasource '{}'", dataSourceName);
-    return new MicrometerMetricsTrackerFactory(registry);
   }
 
   /**
@@ -155,9 +104,10 @@ public class DataSourcePoolMetricsConfig implements HikariMetricsTrackerProvider
    * poll the pool's state (active connections, idle connections, etc.). This can be done on an
    * already-running pool, so post-creation binding works fine.
    *
-   * <p><b>Why HikariCP doesn't use this approach:</b> See {@link #createMetricsTracker(String)}.
-   * HikariCP requires metrics configuration before pool initialization to capture timing
-   * histograms.
+   * <p><b>Why HikariCP doesn't use this approach:</b> HikariCP requires metrics configuration
+   * before pool initialization to capture timing histograms. This is done in {@code
+   * DatabasePoolUtils.createDbPool()} which configures {@code MicrometerMetricsTrackerFactory} when
+   * a {@code MeterRegistry} is provided.
    *
    * @param dataSources all DataSource beans in the application context, keyed by bean name
    */
@@ -166,7 +116,7 @@ public class DataSourcePoolMetricsConfig implements HikariMetricsTrackerProvider
     if (poolType == DbPoolType.C3P0) {
       dataSources.forEach(this::bindC3p0DataSource);
     }
-    // HikariCP: metrics registered via createMetricsTracker() called by datasource configs
+    // HikariCP: metrics registered via DatabasePoolUtils.createDbPool() with MeterRegistry
     // UNPOOLED: no metrics to register
   }
 

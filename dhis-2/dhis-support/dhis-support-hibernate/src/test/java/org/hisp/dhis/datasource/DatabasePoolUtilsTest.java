@@ -62,14 +62,14 @@ class DatabasePoolUtilsTest {
         .willReturn("org.hisp.dhis.datasource.StubDriver");
 
     DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("test_unpooled")
             .dbPoolType(DatabasePoolUtils.DbPoolType.UNPOOLED.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
             .password("")
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
+    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), null);
     assertInstanceOf(DriverManagerDataSource.class, dataSource);
   }
 
@@ -94,7 +94,7 @@ class DatabasePoolUtilsTest {
         .willReturn("1");
 
     DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("test_c3p0")
             .dbPoolType(DatabasePoolUtils.DbPoolType.C3P0.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
@@ -106,7 +106,7 @@ class DatabasePoolUtilsTest {
             .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
+    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), null);
     assertInstanceOf(ComboPooledDataSource.class, dataSource);
   }
 
@@ -135,7 +135,7 @@ class DatabasePoolUtilsTest {
         .willReturn("250");
 
     DbPoolConfig.DbPoolConfigBuilder poolConfigBuilder =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("test_hikari")
             .dbPoolType(DatabasePoolUtils.DbPoolType.HIKARI.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
@@ -145,7 +145,7 @@ class DatabasePoolUtilsTest {
             .maxIdleTime("120000")
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
+    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), null);
     assertInstanceOf(HikariDataSource.class, dataSource);
   }
 }

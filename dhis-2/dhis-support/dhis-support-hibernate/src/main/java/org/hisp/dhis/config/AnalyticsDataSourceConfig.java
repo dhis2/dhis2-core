@@ -35,6 +35,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -43,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.HikariMetricsTrackerProvider;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.db.model.Database;
@@ -69,9 +69,9 @@ public class AnalyticsDataSourceConfig {
 
   private final SqlBuilderSettings sqlBuilderSettings;
 
-  /** Optional - only present when monitoring.dbpool.enabled=on and using HikariCP */
+  /** Optional - only present when monitoring.dbpool.enabled=on */
   @Autowired(required = false)
-  private HikariMetricsTrackerProvider metricsProvider;
+  private MeterRegistry meterRegistry;
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")
@@ -125,7 +125,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, metricsProvider);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
     DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
     return getJdbcTemplate(ds);
   }
@@ -153,7 +153,7 @@ public class AnalyticsDataSourceConfig {
   @Bean("analyticsPostgresReadOnlyJdbcTemplate")
   public JdbcTemplate readOnlyPostgresJdbcTemplate(
       @Qualifier("actualDataSource") DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, metricsProvider);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
     DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
     return getJdbcTemplate(ds);
   }
@@ -173,18 +173,15 @@ public class AnalyticsDataSourceConfig {
     final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("analytics")
             .driverClassName(driverClassName)
             .dhisConfig(config)
             .mapper(ANALYTICS)
             .dbPoolType(dbPoolType)
-            .metricsTrackerFactory(
-                metricsProvider != null ? metricsProvider.createMetricsTracker("analytics") : null)
-            .dataSourceName("analytics")
             .build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException ex) {
       String message =
           TextUtils.format(
