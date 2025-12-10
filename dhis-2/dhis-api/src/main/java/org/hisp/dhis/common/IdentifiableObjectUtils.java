@@ -138,8 +138,11 @@ public class IdentifiableObjectUtils {
    */
   public static <T extends IdentifiableObject> Set<String> getUidsAsSet(Collection<T> objects) {
     return objects != null
-        ? objects.stream().filter(Objects::nonNull).map(o -> o.getUid()).collect(Collectors.toSet())
-        : null;
+        ? objects.stream()
+            .filter(Objects::nonNull)
+            .map(UidObject::getUid)
+            .collect(Collectors.toSet())
+        : Set.of();
   }
 
   /**
@@ -472,5 +475,13 @@ public class IdentifiableObjectUtils {
     }
 
     return ObjectUtils.allNull(object, target);
+  }
+
+  public static boolean uidsMatch(
+      Collection<? extends IdentifiableObject> col1,
+      Collection<? extends IdentifiableObject> col2) {
+    Set<String> updateUids = getUidsAsSet(col1);
+    Set<String> persistedUids = getUidsAsSet(col2);
+    return updateUids.equals(persistedUids);
   }
 }

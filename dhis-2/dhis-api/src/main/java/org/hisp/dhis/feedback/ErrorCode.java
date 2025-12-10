@@ -90,6 +90,10 @@ public enum ErrorCode {
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
   E1132(
       "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
+  E1133("CategoryCombo must be provided for Category option combo {0}"),
+  E1134("CategoryOptions must be provided for Category option combo {0}"),
+  E1135("CategoryCombo cannot be updated for Category option combo {0}"),
+  E1136("CategoryOptions cannot be updated for Category option combo {0}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),

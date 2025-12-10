@@ -40,6 +40,8 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboService;
+import org.hisp.dhis.category.CategoryOptionComboUpdateDto;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -52,7 +54,6 @@ import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -118,29 +119,24 @@ public class CategoryOptionComboController
   /**
    * When updating a single COC, only updating the code & ignoreApproval fields are allowed
    *
-   * @param pvUid
-   * @param currentUser
-   * @param request
-   * @return
-   * @throws NotFoundException
-   * @throws ForbiddenException
-   * @throws IOException
+   * @param pvUid COC UID
+   * @param currentUser current user
+   * @param request request
+   * @return updated COC
    */
   @Override
   public WebMessage putJsonObject(String pvUid, UserDetails currentUser, HttpServletRequest request)
-      throws NotFoundException, ForbiddenException, IOException {
+      throws NotFoundException, ForbiddenException, ConflictException, IOException {
     CategoryOptionCombo persisted = getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persisted)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
-    CategoryOptionComboService.CocUpdateDto cocUpdateDto =
-        jsonMapper.readValue(
-            request.getInputStream(), CategoryOptionComboService.CocUpdateDto.class);
-
-    categoryOptionComboService.update(persisted, cocUpdateDto);
-    return WebMessageUtils.ok(
-        "Only fields 'code' and 'ignoreApproval' can be updated through this endpoint");
+    //    CategoryOptionComboUpdateDto cocUpdate = deserializeJsonEntity(request);
+    CategoryOptionComboUpdateDto cocUpdate =
+        jsonMapper.readValue(request.getInputStream(), CategoryOptionComboUpdateDto.class);
+    categoryOptionComboService.updateCoc(persisted, cocUpdate);
+    return WebMessageUtils.ok();
   }
 }
