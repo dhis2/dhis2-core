@@ -40,9 +40,8 @@ import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.datasource.DatabasePoolUtils.DbPoolType;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -155,19 +154,17 @@ public class C3P0MetricsConfig {
    *   <li>{@code connection.pool.type=c3p0}
    * </ul>
    */
-  static class C3P0MetricsEnabledCondition extends PropertiesAwareConfigurationCondition {
+  static class C3P0MetricsEnabledCondition extends MetricsEnabler {
     @Override
-    public ConfigurationPhase getConfigurationPhase() {
-      return ConfigurationPhase.REGISTER_BEAN;
+    protected ConfigurationKey getConfigKey() {
+      return MONITORING_DBPOOL_ENABLED;
     }
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-      DhisConfigurationProvider config = getConfiguration();
-      boolean c3p0 = DbPoolType.C3P0.name().equalsIgnoreCase(config.getProperty(DB_POOL_TYPE));
-      boolean metricsEnabled = config.isEnabled(MONITORING_DBPOOL_ENABLED);
-
-      return metricsEnabled && c3p0;
+      boolean c3p0 =
+          DbPoolType.C3P0.name().equalsIgnoreCase(getConfiguration().getProperty(DB_POOL_TYPE));
+      return c3p0 && super.matches(context, metadata);
     }
   }
 }
