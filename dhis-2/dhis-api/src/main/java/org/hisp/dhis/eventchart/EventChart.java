@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.eventchart;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -97,6 +99,15 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
 
   /** Indicates whether to hide n/a data. */
   private boolean hideNaData;
+
+  /** Indicates whether to hide columns with no data values. */
+  private boolean hideEmptyColumns;
+
+  /** Fixes (or not) the pivot table column headers. */
+  private boolean fixColumnHeaders;
+
+  /** Fixes (or not) the pivot table row headers. */
+  private boolean fixRowHeaders;
 
   /** The enrollment status. */
   private EnrollmentStatus enrollmentStatus;
@@ -352,6 +363,36 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
 
   public void setHideNaData(boolean hideNaData) {
     this.hideNaData = hideNaData;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isHideEmptyColumns() {
+    return hideEmptyColumns;
+  }
+
+  public void setHideEmptyColumns(boolean hideEmptyColumns) {
+    this.hideEmptyColumns = hideEmptyColumns;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixColumnHeaders() {
+    return fixColumnHeaders;
+  }
+
+  public void setFixColumnHeaders(boolean fixColumnHeaders) {
+    this.fixColumnHeaders = fixColumnHeaders;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixRowHeaders() {
+    return fixRowHeaders;
+  }
+
+  public void setFixRowHeaders(boolean fixRowHeaders) {
+    this.fixRowHeaders = fixRowHeaders;
   }
 
   // -------------------------------------------------------------------------
