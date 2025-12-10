@@ -138,7 +138,7 @@ public class ReadOnlyDataSourceManager {
       String username = StringUtils.defaultIfEmpty(dataSourceConfig.getUsername(), mainUser);
       String password = StringUtils.defaultIfEmpty(dataSourceConfig.getPassword(), mainPassword);
 
-      DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder("read" + replicaIndex);
+      DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder("read_" + replicaIndex);
       builder.dhisConfig(config);
       builder.password(password);
       builder.username(username);

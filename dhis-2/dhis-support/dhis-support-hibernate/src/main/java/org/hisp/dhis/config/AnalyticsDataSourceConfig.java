@@ -38,8 +38,8 @@ import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -50,7 +50,6 @@ import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,7 +59,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class AnalyticsDataSourceConfig {
 
   private static final int FETCH_SIZE = 1000;
@@ -70,8 +68,16 @@ public class AnalyticsDataSourceConfig {
   private final SqlBuilderSettings sqlBuilderSettings;
 
   /** Optional - only present when monitoring.dbpool.enabled=on */
-  @Autowired(required = false)
-  private MeterRegistry meterRegistry;
+  private final MeterRegistry meterRegistry;
+
+  public AnalyticsDataSourceConfig(
+      DhisConfigurationProvider config,
+      SqlBuilderSettings sqlBuilderSettings,
+      @Nullable MeterRegistry meterRegistry) {
+    this.config = config;
+    this.sqlBuilderSettings = sqlBuilderSettings;
+    this.meterRegistry = meterRegistry;
+  }
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")

@@ -87,8 +87,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.sql.DataSource;
@@ -105,9 +103,6 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
  */
 @Slf4j
 public final class DatabasePoolUtils {
-
-  /** Tracks registered datasource names to detect duplicates at startup. */
-  private static final Set<String> registeredDataSourceNames = ConcurrentHashMap.newKeySet();
 
   /**
    * This enum maps each database configuration key into a corresponding analytics configuration
@@ -171,27 +166,18 @@ public final class DatabasePoolUtils {
    * <p>The analytics database driver class name is inferred from analytics database property and
    * must be passed using the {@code PoolConfig#driverClassName} property.
    *
-   * @param config the {@link DbPoolConfig}. Must include a unique {@code dataSourceName}.
+   * @param config the {@link DbPoolConfig}. Must include a {@code dataSourceName} for metrics.
    * @param meterRegistry optional Micrometer registry for HikariCP metrics. Pass null to disable
    *     metrics.
    * @return a {@link DataSource}.
-   * @throws IllegalArgumentException if dataSourceName is missing
-   * @throws IllegalStateException if a datasource with the same name was already registered
    */
   public static DataSource createDbPool(DbPoolConfig config, @Nullable MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
 
-    String dataSourceName = config.getDataSourceName();
-    if (!registeredDataSourceNames.add(dataSourceName)) {
-      throw new IllegalStateException(
-          "Duplicate dataSourceName '%s'. Already registered: %s"
-              .formatted(dataSourceName, registeredDataSourceNames));
-    }
-
     ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
-    log.debug("Creating database pool '{}' with type '{}'", dataSourceName, dbPoolType);
+    log.debug("Creating database pool '{}' with type '{}'", config.getDataSourceName(), dbPoolType);
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 

@@ -35,6 +35,7 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
@@ -52,7 +53,6 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,8 +68,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class DataSourceConfig {
 
   /** Optional - only present when monitoring.dbpool.enabled=on */
-  @Autowired(required = false)
-  private MeterRegistry meterRegistry;
+  private final MeterRegistry meterRegistry;
+
+  public DataSourceConfig(@Nullable MeterRegistry meterRegistry) {
+    this.meterRegistry = meterRegistry;
+  }
 
   @Primary
   @Bean
@@ -152,7 +155,7 @@ public class DataSourceConfig {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder("main").dhisConfig(config).dbPoolType(dbPoolType).build();
+        DbPoolConfig.builder("actual").dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
