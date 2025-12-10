@@ -132,7 +132,7 @@ public class DataSourceConfig {
             .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))
             .readOnly(true)
             .meterRegistry(meterRegistry)
-            .poolName("read-replica")
+            .poolName("read_replica")
             .build();
 
     try {

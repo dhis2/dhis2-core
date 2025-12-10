@@ -85,7 +85,7 @@ public class DbPoolConfig {
 
   /**
    * Optional pool name for identifying the datasource in metrics. If not provided, a random name
-   * will be generated. Use meaningful names like "main", "analytics", "read-replica-1", etc.
+   * will be generated. Use meaningful names like "main", "analytics", "read_replica", etc.
    */
   private String poolName;
 
