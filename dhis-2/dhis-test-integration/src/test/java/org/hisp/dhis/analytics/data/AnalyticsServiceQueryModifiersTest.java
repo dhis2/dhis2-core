@@ -54,6 +54,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -106,6 +107,8 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
   @Autowired private IndicatorService indicatorService;
 
+  @Autowired private ConfigurationService configurationService;
+
   private Period jan;
 
   private Period feb;
@@ -124,6 +127,8 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
+    createPeriodTypes();
+
     jan = createPeriod("2022-01");
     feb = createPeriod("2022-02");
     mar = createPeriod("2022-03");
@@ -433,6 +438,11 @@ class AnalyticsServiceQueryModifiersTest extends PostgresIntegrationTestBase {
             mar);
 
     assertEquals(expected, result);
+  }
+
+  @AfterAll
+  void cleanUpRefs() {
+    cleanPeriodTypes();
   }
 
   // -------------------------------------------------------------------------
