@@ -69,6 +69,8 @@
 
     <property name="translations" type="jblTranslations"/>
 
+    <property name="priority" />
+
   </class>
 
 </hibernate-mapping>
