@@ -38,6 +38,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.Data;
 import org.hibernate.annotations.Cache;
@@ -93,7 +93,7 @@ public class Enrollment extends BaseTrackerObject
 
   @Id
   @Column(name = "enrollmentid")
-  @GeneratedValue(generator = "programinstance_sequence")
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @SequenceGenerator(sequenceName = "programinstance_sequence")
   private long id;
 
@@ -231,39 +231,7 @@ public class Enrollment extends BaseTrackerObject
     if (createdAtClient == null) {
       createdAtClient = created;
     }
-
-    if (lastUpdatedAtClient == null) {
-      lastUpdatedAtClient = lastUpdated;
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  // equals and hashCode
-  // -------------------------------------------------------------------------
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-
-    result = prime * result + ((occurredDate == null) ? 0 : occurredDate.hashCode());
-    result = prime * result + ((enrollmentDate == null) ? 0 : enrollmentDate.hashCode());
-    result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
-    result = prime * result + ((program == null) ? 0 : program.hashCode());
-
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj || obj instanceof Enrollment && objectEquals((Enrollment) obj);
-  }
-
-  private boolean objectEquals(Enrollment other) {
-    return Objects.equals(occurredDate, other.occurredDate)
-        && Objects.equals(enrollmentDate, other.enrollmentDate)
-        && Objects.equals(trackedEntity, other.trackedEntity)
-        && Objects.equals(program, other.program);
+    lastUpdatedAtClient = lastUpdated;
   }
 
   // -------------------------------------------------------------------------
@@ -446,7 +414,7 @@ public class Enrollment extends BaseTrackerObject
   }
 
   /**
-   * @deprecated Enrollment does not support createdBy, use storeBy instead.
+   * @deprecated Enrollment does not support createdBy, use storedBy instead.
    */
   @Override
   public User getUser() {
