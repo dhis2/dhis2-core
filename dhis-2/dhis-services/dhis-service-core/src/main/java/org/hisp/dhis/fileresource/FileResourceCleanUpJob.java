@@ -87,7 +87,10 @@ import org.springframework.stereotype.Component;
  * The job currently excludes {@code MESSAGE_ATTACHMENT} domain. Product need to review this. As
  * such, these files are not currently cleaned up.<br>
  * This job runs nightly (see {@link JobType for details}.<br>
- * Reviewed and updated for 2.43
+ * Reviewed and updated for 2.43 <br>
+ * The PUSH_ANALYSIS domain is now removed in PR: https://github.com/dhis2/dhis2-core/pull/22607
+ * Records in the fileresource is not removed automatically, and hence old records might still
+ * exists after the this PR.
  *
  * @author davidmackessy
  */
