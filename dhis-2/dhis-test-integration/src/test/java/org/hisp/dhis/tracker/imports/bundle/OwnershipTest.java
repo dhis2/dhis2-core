@@ -129,6 +129,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(nonSuperUser);
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/ownership_event.json");
     manager.flush();
+    manager.clear();
     TrackerObjects teTrackerObjects = testSetup.fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
 
