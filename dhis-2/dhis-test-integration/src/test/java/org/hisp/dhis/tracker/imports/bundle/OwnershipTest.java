@@ -97,6 +97,8 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     testSetup.importTrackerData("tracker/ownership_enrollment.json");
 
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
+    manager.clear();
+    manager.flush();
   }
 
   @Test
