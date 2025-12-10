@@ -551,7 +551,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -587,7 +587,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -625,7 +625,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -698,7 +698,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
-        List.of(enrollmentA, enrollmentB, enrollmentChildA, enrollmentGrandchildA), enrollments);
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
+        uids(enrollments));
   }
 
   @Test

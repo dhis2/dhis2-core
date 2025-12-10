@@ -533,7 +533,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             .build();
     List<Enrollment> enrollment = enrollmentService.findEnrollments(params);
 
-    assertContainsOnly(List.of(trackedEntityA1Enrollment), enrollment);
+    assertContainsOnly(List.of(trackedEntityA1Enrollment.getUid()), uids(enrollment));
   }
 
   @Test
