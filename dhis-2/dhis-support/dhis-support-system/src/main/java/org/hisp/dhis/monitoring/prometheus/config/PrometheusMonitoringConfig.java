@@ -30,6 +30,7 @@
 package org.hisp.dhis.monitoring.prometheus.config;
 
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
@@ -37,48 +38,71 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import java.time.Duration;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Luciano Fiandesio
+ * Configures Prometheus metrics integration for DHIS2.
+ *
+ * <p>Creates the Micrometer-to-Prometheus bridge and configures HikariCP connection pool metrics
+ * with histogram buckets for better observability.
+ *
+ * <h2>Metrics Flow</h2>
+ *
+ * This shows how metrics are created using the example of the HikariCP connection pool:
+ *
+ * <pre>
+ * ┌───────────────────────────┐
+ * │     HikariDataSource      │ ← MicrometerMetricsTrackerFactory registered in DatabasePoolUtils
+ * │     (metrics source)      │
+ * └─────────────┬─────────────┘
+ *               │ publishes hikaricp.connections.* metrics
+ *               ▼
+ * ┌───────────────────────────┐
+ * │ PrometheusMeterRegistry   │ ← Micrometer's bridge to Prometheus
+ * │     + MeterFilters        │   (renames hikaricp→jdbc, adds histogram buckets)
+ * └─────────────┬─────────────┘
+ *               │ writes to
+ *               ▼
+ * ┌───────────────────────────┐
+ * │    PrometheusRegistry     │ ← Prometheus client library's registry (this config creates it)
+ * │   (stores all metrics)    │
+ * └─────────────┬─────────────┘
+ *               │ scraped by
+ *               ▼
+ * ┌───────────────────────────┐
+ * │       /api/metrics        │ ← PrometheusScrapeEndpointController calls registry.scrape()
+ * │      (HTTP endpoint)      │
+ * └───────────────────────────┘
+ * </pre>
  */
-@Slf4j
 @Configuration
 public class PrometheusMonitoringConfig {
-  @Bean
-  public Clock micrometerClock() {
-    return Clock.SYSTEM;
-  }
 
-  @Bean
-  public PrometheusProperties defaultProperties() {
-    return new PrometheusProperties();
-  }
-
-  @Bean
-  public PrometheusConfig prometheusConfig(PrometheusProperties prometheusProperties) {
-    return new PrometheusPropertiesConfigAdapter(prometheusProperties);
-  }
-
-  @Bean
-  public PrometheusMeterRegistry prometheusMeterRegistry(
-      PrometheusConfig prometheusConfig, PrometheusRegistry prometheusRegistry, Clock clock) {
-    PrometheusMeterRegistry registry =
-        new io.micrometer.prometheusmetrics.PrometheusMeterRegistry(
-            prometheusConfig, prometheusRegistry, clock);
-
-    // Apply filters inline - order matters: histogram config first, then renaming
-    registry.config().meterFilter(createHikariCpHistogramMeterFilter());
-    registry.config().meterFilter(createHikariCpRenamingMeterFilter());
-
-    return registry;
-  }
-
+  /**
+   * Prometheus client library's native registry that stores metrics in Prometheus format. The
+   * /api/metrics endpoint reads from this via {@code scrape()}.
+   */
   @Bean
   public PrometheusRegistry prometheusRegistry() {
     return new PrometheusRegistry();
+  }
+
+  /**
+   * Micrometer's adapter that bridges Micrometer metrics to Prometheus. Metrics sources like
+   * HikariCP write to this via {@code MicrometerMetricsTrackerFactory}. It translates Micrometer
+   * metrics and writes them to the {@link PrometheusRegistry}.
+   */
+  @Bean
+  public PrometheusMeterRegistry prometheusMeterRegistry(PrometheusRegistry prometheusRegistry) {
+    PrometheusMeterRegistry registry =
+        new PrometheusMeterRegistry(PrometheusConfig.DEFAULT, prometheusRegistry, Clock.SYSTEM);
+
+    // Apply filters inline - order matters: histogram config first, then renaming
+    registry.config().meterFilter(hikariHistogramFilter());
+    registry.config().meterFilter(hikariRenamingFilter());
+
+    return registry;
   }
 
   /**
@@ -102,16 +126,19 @@ public class PrometheusMonitoringConfig {
    * <p>Different ranges are used for each metric type:
    *
    * <ul>
-   *   <li>acquire: 1ms-100ms (getting connection from pool, should be fast)
-   *   <li>creation: 1ms-500ms (TCP connection + auth handshake)
+   *   <li>acquire: 1ms-100ms (getting connection from pool should be fast)
+   *   <li>creation: 1ms-500ms (TCP connection and auth handshake)
    *   <li>usage: 1ms-10s (actual query execution varies widely)
    * </ul>
+   *
+   * <p>Micrometer selects buckets from a pre-computed set (~276 buckets) that fall within the
+   * min/max range. The bucket boundaries use powers of 4 with linear interpolation between them.
    */
-  private static MeterFilter createHikariCpHistogramMeterFilter() {
+  private static MeterFilter hikariHistogramFilter() {
     // Full metric name -> histogram range configuration
     // Note: Uses jdbc.connections.* because MeterFilter.map() runs before configure(),
     // so metrics are already renamed by the time this configure() method sees them
-    var ranges =
+    Map<String, HistogramRange> ranges =
         Map.of(
             "jdbc.connections.acquire",
                 HistogramRange.of(Duration.ofMillis(1), Duration.ofMillis(100)),
@@ -123,8 +150,8 @@ public class PrometheusMonitoringConfig {
     return new MeterFilter() {
       @Override
       public DistributionStatisticConfig configure(
-          io.micrometer.core.instrument.Meter.Id id, DistributionStatisticConfig config) {
-        if (id.getType() != io.micrometer.core.instrument.Meter.Type.TIMER) {
+          Meter.Id id, DistributionStatisticConfig config) {
+        if (id.getType() != Meter.Type.TIMER) {
           return config;
         }
 
@@ -148,11 +175,10 @@ public class PrometheusMonitoringConfig {
    * Creates a MeterFilter that renames HikariCP metrics from "hikaricp.connections*" to
    * "jdbc.connections*" for backward compatibility.
    */
-  private static MeterFilter createHikariCpRenamingMeterFilter() {
+  private static MeterFilter hikariRenamingFilter() {
     return new MeterFilter() {
       @Override
-      public io.micrometer.core.instrument.Meter.Id map(io.micrometer.core.instrument.Meter.Id id) {
-        // Match both "hikaricp.connections." and "hikaricp.connections" (without dot)
+      public Meter.Id map(Meter.Id id) {
         if (id.getName().startsWith("hikaricp.connections")) {
           return id.withName(id.getName().replace("hikaricp.connections", "jdbc.connections"));
         }
