@@ -55,6 +55,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * Configures connection pool metrics for DHIS2 data sources.
@@ -161,7 +162,7 @@ public class DataSourcePoolMetricsConfig implements HikariMetricsTrackerProvider
    * @param dataSources all DataSource beans in the application context, keyed by bean name
    */
   @Autowired
-  public void bindDataSourcesToRegistry(Map<String, DataSource> dataSources) {
+  public void bindDataSourcesToRegistry(@Lazy Map<String, DataSource> dataSources) {
     if (poolType == DbPoolType.C3P0) {
       dataSources.forEach(this::bindC3p0DataSource);
     }

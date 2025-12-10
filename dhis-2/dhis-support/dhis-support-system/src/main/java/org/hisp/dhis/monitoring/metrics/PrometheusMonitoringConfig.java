@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.monitoring.prometheus.config;
+package org.hisp.dhis.monitoring.metrics;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
@@ -40,8 +40,7 @@ import org.springframework.context.annotation.Configuration;
  * Configures Prometheus metrics integration for DHIS2.
  *
  * <p>Creates the Micrometer-to-Prometheus bridge. Connection pool metrics (HikariCP histogram
- * filters, metric renaming) are configured in {@link
- * org.hisp.dhis.monitoring.metrics.DataSourcePoolMetricsConfig} when enabled.
+ * filters, metric renaming) are configured in {@link DataSourcePoolMetricsConfig} when enabled.
  *
  * <h2>Metrics Flow</h2>
  *
@@ -83,7 +82,7 @@ public class PrometheusMonitoringConfig {
    * metrics and writes them to the {@link PrometheusRegistry}.
    *
    * <p>Note: Connection pool metric filters (histogram buckets, renaming) are applied by {@link
-   * org.hisp.dhis.monitoring.metrics.DataSourcePoolMetricsConfig} when pool metrics are enabled.
+   * DataSourcePoolMetricsConfig} when pool metrics are enabled.
    */
   @Bean
   public PrometheusMeterRegistry prometheusMeterRegistry(PrometheusRegistry prometheusRegistry) {
