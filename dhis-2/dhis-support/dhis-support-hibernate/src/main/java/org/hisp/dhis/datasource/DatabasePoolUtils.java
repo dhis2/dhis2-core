@@ -79,7 +79,6 @@ import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -252,12 +251,12 @@ public final class DatabasePoolUtils {
         parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_IDLE)));
 
     HikariConfig hc = new HikariConfig();
-    // Use provided pool name or generate random one
-    String poolName =
-        config.getPoolName() != null
-            ? config.getPoolName()
+    // Use provided datasource name or generate random one for backward compatibility
+    String dataSourceName =
+        config.getDataSourceName() != null
+            ? config.getDataSourceName()
             : "HikariDataSource_" + CodeGenerator.generateCode(10);
-    hc.setPoolName(poolName);
+    hc.setPoolName(dataSourceName);
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
@@ -292,9 +291,9 @@ public final class DatabasePoolUtils {
       }
     }
 
-    // Configure HikariCP metrics if MeterRegistry is available
-    if (config.getMeterRegistry() != null) {
-      hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(config.getMeterRegistry()));
+    // Configure HikariCP metrics if tracker factory is provided
+    if (config.getMetricsTrackerFactory() != null) {
+      hc.setMetricsTrackerFactory(config.getMetricsTrackerFactory());
     }
 
     HikariDataSource ds = new HikariDataSource(hc);

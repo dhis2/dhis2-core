@@ -29,11 +29,12 @@
  */
 package org.hisp.dhis.datasource.model;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Value;
 import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
+import org.hisp.dhis.datasource.HikariMetricsTrackerProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
@@ -78,16 +79,17 @@ public class DbPoolConfig {
   boolean readOnly;
 
   /**
-   * Optional MeterRegistry for HikariCP metrics. If provided, HikariCP will publish timer metrics
-   * (acquire, usage, creation) with histogram support.
+   * Pre-created metrics tracker factory for HikariCP. Obtained from {@link
+   * HikariMetricsTrackerProvider#createMetricsTracker(String)}. Null if metrics are disabled or not
+   * using HikariCP.
    */
-  private MeterRegistry meterRegistry;
+  private MicrometerMetricsTrackerFactory metricsTrackerFactory;
 
   /**
-   * Optional pool name for identifying the datasource in metrics. If not provided, a random name
-   * will be generated. Use meaningful names like "main", "analytics", "read_replica", etc.
+   * Name identifying this datasource in metrics and logs. Use meaningful names like "main",
+   * "analytics", "read_replica", "read1", etc.
    */
-  private String poolName;
+  private String dataSourceName;
 
   public ConfigKeyMapper getMapper() {
     return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);

@@ -30,13 +30,11 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
-import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
@@ -49,10 +47,12 @@ import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
+import org.hisp.dhis.datasource.HikariMetricsTrackerProvider;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,10 +65,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  */
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 public class DataSourceConfig {
 
-  private final MeterRegistry meterRegistry;
+  /** Optional - only present when monitoring.dbpool.enabled=on and using HikariCP */
+  @Autowired(required = false)
+  private HikariMetricsTrackerProvider metricsProvider;
 
   @Primary
   @Bean
@@ -101,7 +102,7 @@ public class DataSourceConfig {
   @Bean
   public JdbcTemplate readOnlyJdbcTemplate(
       DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, metricsProvider);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -131,8 +132,11 @@ public class DataSourceConfig {
             .password(config.getProperty(ConfigurationKey.CONNECTION_PASSWORD))
             .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))
             .readOnly(true)
-            .meterRegistry(meterRegistry)
-            .poolName("read_replica")
+            .metricsTrackerFactory(
+                metricsProvider != null
+                    ? metricsProvider.createMetricsTracker("read_replica")
+                    : null)
+            .dataSourceName("read_replica")
             .build();
 
     try {
@@ -155,8 +159,9 @@ public class DataSourceConfig {
         DbPoolConfig.builder()
             .dhisConfig(config)
             .dbPoolType(dbPoolType)
-            .meterRegistry(meterRegistry)
-            .poolName("main")
+            .metricsTrackerFactory(
+                metricsProvider != null ? metricsProvider.createMetricsTracker("main") : null)
+            .dataSourceName("main")
             .build();
 
     try {
