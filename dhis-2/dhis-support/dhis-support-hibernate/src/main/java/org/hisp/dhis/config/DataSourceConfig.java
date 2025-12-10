@@ -67,7 +67,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @Configuration
 public class DataSourceConfig {
 
-  /** Optional - only present when monitoring.dbpool.enabled=on */
+  /** Optional for tests that instantiate this class directly without Spring DI */
   private final MeterRegistry meterRegistry;
 
   public DataSourceConfig(@Nullable MeterRegistry meterRegistry) {

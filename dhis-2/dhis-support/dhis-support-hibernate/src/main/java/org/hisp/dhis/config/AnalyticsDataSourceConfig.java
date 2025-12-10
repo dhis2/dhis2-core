@@ -67,7 +67,7 @@ public class AnalyticsDataSourceConfig {
 
   private final SqlBuilderSettings sqlBuilderSettings;
 
-  /** Optional - only present when monitoring.dbpool.enabled=on */
+  /** Optional for tests that instantiate this class directly without Spring DI */
   private final MeterRegistry meterRegistry;
 
   public AnalyticsDataSourceConfig(

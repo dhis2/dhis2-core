@@ -173,6 +173,6 @@ public class TrackerReadOnlyDataSourceTestConfig {
 
   @Bean
   public DataSource trackerReadOnlyDataSource(DhisConfigurationProvider config) {
-    return new DataSourceConfig().readOnlyDataSource(config, null);
+    return new DataSourceConfig(null).readOnlyDataSource(config, null);
   }
 }

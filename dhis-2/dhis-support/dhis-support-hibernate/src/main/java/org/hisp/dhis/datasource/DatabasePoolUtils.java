@@ -74,6 +74,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALID
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -293,8 +294,8 @@ public final class DatabasePoolUtils {
       }
     }
 
-    // Configure HikariCP metrics if registry is provided
-    if (meterRegistry != null) {
+    // Configure HikariCP metrics if registry is provided and metrics are enabled
+    if (meterRegistry != null && dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 
