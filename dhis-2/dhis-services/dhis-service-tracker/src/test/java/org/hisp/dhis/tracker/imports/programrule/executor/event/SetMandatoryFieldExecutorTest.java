@@ -48,9 +48,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerTestBase;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -69,7 +69,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SetMandatoryFieldExecutorTest extends TestBase {
+class SetMandatoryFieldExecutorTest extends TrackerTestBase {
   private static final UID ACTIVE_EVENT_UID = UID.generate();
 
   private static final UID COMPLETED_EVENT_UID = UID.generate();
@@ -151,7 +151,7 @@ class SetMandatoryFieldExecutorTest extends TestBase {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     Event event = getEventWithMandatoryValueSet();
     when(preheat.getTrackerEvent(event.getUid()))
-        .thenReturn(new org.hisp.dhis.program.TrackerEvent());
+        .thenReturn(new org.hisp.dhis.tracker.model.TrackerEvent());
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
@@ -255,8 +255,9 @@ class SetMandatoryFieldExecutorTest extends TestBase {
     assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
   }
 
-  private org.hisp.dhis.program.TrackerEvent eventWithMandatoryValue(UID uid, EventStatus status) {
-    org.hisp.dhis.program.TrackerEvent event = new org.hisp.dhis.program.TrackerEvent();
+  private org.hisp.dhis.tracker.model.TrackerEvent eventWithMandatoryValue(
+      UID uid, EventStatus status) {
+    org.hisp.dhis.tracker.model.TrackerEvent event = new org.hisp.dhis.tracker.model.TrackerEvent();
     event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
@@ -264,8 +265,8 @@ class SetMandatoryFieldExecutorTest extends TestBase {
     return event;
   }
 
-  private org.hisp.dhis.program.TrackerEvent event(UID uid, EventStatus status) {
-    org.hisp.dhis.program.TrackerEvent event = new org.hisp.dhis.program.TrackerEvent();
+  private org.hisp.dhis.tracker.model.TrackerEvent event(UID uid, EventStatus status) {
+    org.hisp.dhis.tracker.model.TrackerEvent event = new org.hisp.dhis.tracker.model.TrackerEvent();
     event.setUid(uid.getValue());
     event.setStatus(status);
     return event;

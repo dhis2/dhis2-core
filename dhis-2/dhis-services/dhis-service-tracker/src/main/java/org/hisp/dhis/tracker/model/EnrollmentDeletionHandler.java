@@ -27,54 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+package org.hisp.dhis.tracker.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.UID;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.springframework.stereotype.Component;
 
-@Data
-@Builder(toBuilder = true)
-@AllArgsConstructor(staticName = "of")
-public class RelationshipKey {
+/**
+ * @author Quang Nguyen
+ */
+@Component
+@RequiredArgsConstructor
+public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
 
-  private static final String RELATIONSHIP_KEY_SEPARATOR = "_";
-
-  private final String type;
-
-  private final RelationshipItemKey from;
-
-  private final RelationshipItemKey to;
-
-  public String asString() {
-    return String.join(RELATIONSHIP_KEY_SEPARATOR, type, from.asString(), to.asString());
+  @Override
+  protected void registerHandler() {
+    whenVetoing(Program.class, this::allowDeleteProgram);
   }
 
-  public RelationshipKey inverseKey() {
-    return toBuilder().from(to).to(from).build();
-  }
-
-  @Data
-  @Builder
-  public static class RelationshipItemKey {
-    private final UID trackedEntity;
-
-    private final UID enrollment;
-
-    private final UID trackerEvent;
-
-    private final UID singleEvent;
-
-    public String asString() {
-      UID uid = ObjectUtils.firstNonNull(trackedEntity, enrollment, trackerEvent, singleEvent);
-
-      if (uid != null) {
-        return uid.getValue();
-      }
-
-      return "ERROR";
-    }
+  private DeletionVeto allowDeleteProgram(Program program) {
+    String sql = "select 1 from enrollment where programid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
   }
 }

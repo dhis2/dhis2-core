@@ -250,8 +250,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     Relationship relationship = getRelationship(UID.of("x8919212736"));
 
-    org.hisp.dhis.program.SingleEvent to =
-        manager.get(org.hisp.dhis.program.SingleEvent.class, "QRYjLTiJTrA");
+    org.hisp.dhis.tracker.model.SingleEvent to =
+        manager.get(org.hisp.dhis.tracker.model.SingleEvent.class, "QRYjLTiJTrA");
     assertHasSize(
         1,
         to.getRelationshipItems(),
@@ -386,8 +386,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
 
-    org.hisp.dhis.program.Enrollment to =
-        manager.get(org.hisp.dhis.program.Enrollment.class, "nxP7UnKhomJ");
+    org.hisp.dhis.tracker.model.Enrollment to =
+        manager.get(org.hisp.dhis.tracker.model.Enrollment.class, "nxP7UnKhomJ");
     assertHasSize(
         1,
         to.getRelationshipItems(),
@@ -556,8 +556,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     Relationship relationship = getRelationship(UID.of("N8800829a58"));
 
-    org.hisp.dhis.trackedentity.TrackedEntity to =
-        manager.get(org.hisp.dhis.trackedentity.TrackedEntity.class, "QesgJkTyTCk");
+    org.hisp.dhis.tracker.model.TrackedEntity to =
+        manager.get(org.hisp.dhis.tracker.model.TrackedEntity.class, "QesgJkTyTCk");
     assertHasSize(
         1,
         to.getRelationshipItems(),

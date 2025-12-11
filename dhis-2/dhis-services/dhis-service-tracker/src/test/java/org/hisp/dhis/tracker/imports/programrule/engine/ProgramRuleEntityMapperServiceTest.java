@@ -72,8 +72,8 @@ import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerTestBase;
 import org.hisp.dhis.util.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class ProgramRuleEntityMapperServiceTest extends TestBase {
+class ProgramRuleEntityMapperServiceTest extends TrackerTestBase {
   private final List<ProgramRule> programRules = new ArrayList<>();
 
   private Program program;

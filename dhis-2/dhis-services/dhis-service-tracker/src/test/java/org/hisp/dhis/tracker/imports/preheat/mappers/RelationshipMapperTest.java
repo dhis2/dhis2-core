@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.model.Relationship;
 import org.junit.jupiter.api.Test;
 
 class RelationshipMapperTest {

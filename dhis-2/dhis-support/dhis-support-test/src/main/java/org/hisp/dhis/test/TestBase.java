@@ -115,8 +115,6 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
@@ -154,7 +152,6 @@ import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -165,8 +162,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -175,10 +170,8 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
@@ -187,12 +180,9 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
@@ -250,8 +240,6 @@ public abstract class TestBase {
   protected static final String BASE_PG_UID = "pgabcdefgh";
 
   protected static final String BASE_PR_UID = "prabcdefgh";
-
-  protected static final String BASE_TE_UID = "teibcdefgh";
 
   protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
 
@@ -1685,53 +1673,6 @@ public abstract class TestBase {
     return program;
   }
 
-  public static Enrollment createEnrollment(
-      Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(new Date(), new Date(), te, program);
-    enrollment.setAutoFields();
-    enrollment.setTrackedEntity(te);
-    enrollment.setOrganisationUnit(organisationUnit);
-    return enrollment;
-  }
-
-  public static SingleEvent createSingleEvent(
-      ProgramStage programStage, OrganisationUnit organisationUnit) {
-    SingleEvent event = new SingleEvent();
-    event.setAutoFields();
-    event.setOccurredDate(new Date());
-    event.setProgramStage(programStage);
-    event.setOrganisationUnit(organisationUnit);
-    if (categoryService != null) {
-      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
-    }
-    return event;
-  }
-
-  public static TrackerEvent createEvent(
-      ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
-    TrackerEvent event = new TrackerEvent();
-    event.setAutoFields();
-    event.setProgramStage(programStage);
-    event.setEnrollment(enrollment);
-    event.setOrganisationUnit(organisationUnit);
-    if (categoryService != null) {
-      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
-    }
-    return event;
-  }
-
-  public static TrackerEvent createEvent(
-      Enrollment enrollment,
-      ProgramStage programStage,
-      OrganisationUnit organisationUnit,
-      Set<EventDataValue> dataValues) {
-    TrackerEvent event = createEvent(programStage, enrollment, organisationUnit);
-    event.setOccurredDate(new Date());
-    event.setStatus(EventStatus.ACTIVE);
-    event.setEventDataValues(dataValues);
-    return event;
-  }
-
   public static ProgramRule createProgramRule(char uniqueCharacter, Program parentProgram) {
     ProgramRule programRule = new ProgramRule();
     programRule.setAutoFields();
@@ -1997,68 +1938,6 @@ public abstract class TestBase {
     return relationshipType;
   }
 
-  public static Relationship createTeToTeRelationship(
-      TrackedEntity from, TrackedEntity to, RelationshipType relationshipType) {
-    Relationship relationship = new Relationship();
-    RelationshipItem riFrom = new RelationshipItem();
-    RelationshipItem riTo = new RelationshipItem();
-
-    riFrom.setTrackedEntity(from);
-    riFrom.setRelationship(relationship);
-    riTo.setTrackedEntity(to);
-    riTo.setRelationship(relationship);
-
-    relationship.setRelationshipType(relationshipType);
-    relationship.setFrom(riFrom);
-    relationship.setTo(riTo);
-    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
-    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
-    relationship.setAutoFields();
-
-    return relationship;
-  }
-
-  public static Relationship createTeToEnrollmentRelationship(
-      TrackedEntity from, Enrollment to, RelationshipType relationshipType) {
-    Relationship relationship = new Relationship();
-    RelationshipItem riFrom = new RelationshipItem();
-    RelationshipItem riTo = new RelationshipItem();
-
-    riFrom.setTrackedEntity(from);
-    riTo.setEnrollment(to);
-
-    relationship.setRelationshipType(relationshipType);
-    relationship.setFrom(riFrom);
-    relationship.setTo(riTo);
-    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
-    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
-    relationship.setAutoFields();
-
-    return relationship;
-  }
-
-  public static Relationship createTeToEventRelationship(
-      TrackedEntity from, TrackerEvent to, RelationshipType relationshipType) {
-    Relationship relationship = new Relationship();
-    RelationshipItem riFrom = new RelationshipItem();
-    RelationshipItem riTo = new RelationshipItem();
-
-    riFrom.setTrackedEntity(from);
-    riTo.setTrackerEvent(to);
-
-    relationship.setRelationshipType(relationshipType);
-    relationship.setFrom(riFrom);
-    relationship.setTo(riTo);
-    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
-    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
-    relationship.setAutoFields();
-
-    return relationship;
-  }
-
   public static RelationshipType createPersonToPersonRelationshipType(
       char uniqueCharacter,
       Program program,
@@ -2159,56 +2038,6 @@ public abstract class TestBase {
     trackedEntityType.setDescription("TrackedEntityType" + uniqueChar + " description");
 
     return trackedEntityType;
-  }
-
-  public static TrackedEntity createTrackedEntity(
-      OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setAutoFields();
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    return trackedEntity;
-  }
-
-  public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setAutoFields();
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setUid(BASE_TE_UID + uniqueChar);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    return trackedEntity;
-  }
-
-  public static TrackedEntity createTrackedEntity(
-      char uniqueChar,
-      OrganisationUnit organisationUnit,
-      TrackedEntityAttribute attribute,
-      TrackedEntityType trackedEntityType) {
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setAutoFields();
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-    attributeValue.setAttribute(attribute);
-    attributeValue.setTrackedEntity(trackedEntity);
-    attributeValue.setValue("Attribute" + uniqueChar);
-    trackedEntity.getTrackedEntityAttributeValues().add(attributeValue);
-
-    return trackedEntity;
-  }
-
-  public static TrackedEntityAttributeValue createTrackedEntityAttributeValue(
-      char uniqueChar, TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
-    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-    attributeValue.setTrackedEntity(trackedEntity);
-    attributeValue.setAttribute(attribute);
-    attributeValue.setValue("Attribute" + uniqueChar);
-
-    return attributeValue;
   }
 
   /**

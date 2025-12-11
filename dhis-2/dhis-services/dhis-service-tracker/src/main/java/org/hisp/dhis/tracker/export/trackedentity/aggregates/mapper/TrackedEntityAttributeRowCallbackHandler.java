@@ -31,9 +31,9 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 
 /**
  * @author Luciano Fiandesio
