@@ -40,7 +40,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -77,13 +76,9 @@ public class ReadOnlyDataSourceManager {
 
   private static final int MAX_READ_REPLICAS = 5;
 
-  public ReadOnlyDataSourceManager(DhisConfigurationProvider config) {
-    this(config, null);
-  }
-
-  public ReadOnlyDataSourceManager(
-      DhisConfigurationProvider config, @Nullable MeterRegistry meterRegistry) {
+  public ReadOnlyDataSourceManager(DhisConfigurationProvider config, MeterRegistry meterRegistry) {
     checkNotNull(config);
+    checkNotNull(meterRegistry);
     init(config, meterRegistry);
   }
 
@@ -97,11 +92,7 @@ public class ReadOnlyDataSourceManager {
   // Public methods
   // -------------------------------------------------------------------------
 
-  public void init(DhisConfigurationProvider config) {
-    init(config, null);
-  }
-
-  public void init(DhisConfigurationProvider config, @Nullable MeterRegistry meterRegistry) {
+  public void init(DhisConfigurationProvider config, MeterRegistry meterRegistry) {
     List<DataSource> ds = getReadOnlyDataSources(config, meterRegistry);
 
     this.internalReadOnlyInstanceList = ds;
@@ -121,7 +112,7 @@ public class ReadOnlyDataSourceManager {
   // -------------------------------------------------------------------------
 
   private List<DataSource> getReadOnlyDataSources(
-      DhisConfigurationProvider config, @Nullable MeterRegistry meterRegistry) {
+      DhisConfigurationProvider config, MeterRegistry meterRegistry) {
     String mainUser = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
     String driverClass = config.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);

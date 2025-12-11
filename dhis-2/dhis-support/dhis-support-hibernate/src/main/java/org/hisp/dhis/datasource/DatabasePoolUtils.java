@@ -89,7 +89,6 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -168,13 +167,15 @@ public final class DatabasePoolUtils {
    * must be passed using the {@code PoolConfig#driverClassName} property.
    *
    * @param config the {@link DbPoolConfig}. Must include a {@code dataSourceName} for metrics.
-   * @param meterRegistry optional Micrometer registry for HikariCP metrics. Pass null to disable
-   *     metrics.
+   * @param meterRegistry Micrometer registry for HikariCP metrics. Use {@code SimpleMeterRegistry}
+   *     in tests where metrics export is not needed.
    * @return a {@link DataSource}.
    */
-  public static DataSource createDbPool(DbPoolConfig config, @Nullable MeterRegistry meterRegistry)
+  public static DataSource createDbPool(DbPoolConfig config, MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
+    Objects.requireNonNull(
+        meterRegistry, "MeterRegistry is required. Use SimpleMeterRegistry in tests.");
 
     ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
@@ -229,7 +230,7 @@ public final class DatabasePoolUtils {
       String driverClassName,
       String jdbcUrl,
       DbPoolConfig config,
-      @Nullable MeterRegistry meterRegistry) {
+      MeterRegistry meterRegistry) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -294,8 +295,8 @@ public final class DatabasePoolUtils {
       }
     }
 
-    // Configure HikariCP metrics if registry is provided and metrics are enabled
-    if (meterRegistry != null && dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
+    // Configure HikariCP metrics if enabled
+    if (dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 

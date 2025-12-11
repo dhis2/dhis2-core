@@ -35,7 +35,6 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
@@ -67,10 +66,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @Configuration
 public class DataSourceConfig {
 
-  /** Optional for tests that instantiate this class directly without Spring DI */
   private final MeterRegistry meterRegistry;
 
-  public DataSourceConfig(@Nullable MeterRegistry meterRegistry) {
+  public DataSourceConfig(MeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
   }
 

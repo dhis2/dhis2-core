@@ -38,7 +38,6 @@ import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -67,13 +66,12 @@ public class AnalyticsDataSourceConfig {
 
   private final SqlBuilderSettings sqlBuilderSettings;
 
-  /** Optional for tests that instantiate this class directly without Spring DI */
   private final MeterRegistry meterRegistry;
 
   public AnalyticsDataSourceConfig(
       DhisConfigurationProvider config,
       SqlBuilderSettings sqlBuilderSettings,
-      @Nullable MeterRegistry meterRegistry) {
+      MeterRegistry meterRegistry) {
     this.config = config;
     this.sqlBuilderSettings = sqlBuilderSettings;
     this.meterRegistry = meterRegistry;
