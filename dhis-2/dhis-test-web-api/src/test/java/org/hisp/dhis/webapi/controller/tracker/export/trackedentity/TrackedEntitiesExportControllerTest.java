@@ -55,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
@@ -682,14 +683,13 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
     assertHasSize(2, te.getEnrollments(), "test expects a tracked entity with two enrollments");
-    Enrollment enrollment = te.getEnrollments().iterator().next();
 
     JsonList<JsonEnrollment> json =
         GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
-    assertDefaultEnrollmentResponse(json, enrollment);
+    assertDefaultEnrollmentResponse(json, te.getEnrollments());
   }
 
   @Test
@@ -1213,6 +1213,19 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     manager.clear();
     manager.flush();
     return trackedEntity;
+  }
+
+  private void assertDefaultEnrollmentResponse(
+      JsonList<JsonEnrollment> jsonEnrollments, Set<Enrollment> enrollments) {
+    assertFalse(jsonEnrollments.isEmpty());
+    for (JsonEnrollment jsonEnrollment : jsonEnrollments) {
+      Optional<Enrollment> enrollment =
+          enrollments.stream()
+              .filter(e -> e.getUid().equals(jsonEnrollment.getEnrollment()))
+              .findFirst();
+      assertTrue(enrollment.isPresent());
+      assertDefaultEnrollmentResponse(enrollment.get(), jsonEnrollment);
+    }
   }
 
   private JsonEnrollment assertDefaultEnrollmentResponse(

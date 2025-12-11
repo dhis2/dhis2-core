@@ -63,11 +63,13 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.translation.Translation;
@@ -97,6 +99,11 @@ public class TrackedEntity extends BaseTrackerObject
   private long id;
 
   private boolean deleted = false;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
+  @Setter
+  protected User lastUpdatedBy;
 
   @Column(name = "createdatclient")
   @Temporal(TemporalType.TIMESTAMP)
@@ -228,6 +235,12 @@ public class TrackedEntity extends BaseTrackerObject
   @Override
   public long getId() {
     return id;
+  }
+
+  @Override
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
   }
 
   @Override

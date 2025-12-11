@@ -31,8 +31,6 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -44,8 +42,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.user.User;
 
 @MappedSuperclass
 public class BaseTrackerObject {
@@ -64,11 +60,6 @@ public class BaseTrackerObject {
   @Temporal(TemporalType.TIMESTAMP)
   @Setter
   protected Date lastUpdated;
-
-  @ManyToOne
-  @JoinColumn(name = "lastupdatedby")
-  @Setter
-  protected User lastUpdatedBy;
 
   @Column(name = "storedby", length = 255)
   @Setter
@@ -94,11 +85,6 @@ public class BaseTrackerObject {
   @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getLastUpdated() {
     return lastUpdated;
-  }
-
-  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
   }
 
   @JsonProperty

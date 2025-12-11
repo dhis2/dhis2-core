@@ -42,6 +42,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
@@ -66,7 +67,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject {
   private Long programNotificationTemplateId;
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private Enrollment enrollment;
 
