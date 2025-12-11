@@ -50,7 +50,7 @@ public abstract class MetricsEnabler extends PropertiesAwareConfigurationConditi
       ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
     ConfigurationKey key = getConfigKey();
 
-    boolean isEnabled = !isTestRun(conditionContext) && getBooleanValue(getConfigKey());
+    boolean isEnabled = getBooleanValue(getConfigKey());
     log.debug(
         String.format(
             "Monitoring metric for key '%s' is %s",

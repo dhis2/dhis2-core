@@ -33,9 +33,9 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.DB_POOL_TYPE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -69,9 +69,9 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 @Deprecated(since = "v43", forRemoval = true)
 public class C3P0MetricsConfig {
 
-  private final PrometheusMeterRegistry registry;
+  private final MeterRegistry registry;
 
-  public C3P0MetricsConfig(PrometheusMeterRegistry registry) {
+  public C3P0MetricsConfig(MeterRegistry registry) {
     this.registry = registry;
     log.warn("C3P0 connection pool metrics are deprecated. Migrate to HikariCP");
   }
@@ -162,9 +162,6 @@ public class C3P0MetricsConfig {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-      if (isTestRun(context)) {
-        return false;
-      }
       boolean c3p0 =
           DbPoolType.C3P0.name().equalsIgnoreCase(getConfiguration().getProperty(DB_POOL_TYPE));
       return c3p0 && super.matches(context, metadata);
