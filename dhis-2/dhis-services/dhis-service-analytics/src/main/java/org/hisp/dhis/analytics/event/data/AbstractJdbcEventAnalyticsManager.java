@@ -961,9 +961,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     EventOutputType outputType = params.getOutputType();
-
     AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
-
     String function =
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
 
