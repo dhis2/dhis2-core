@@ -51,7 +51,7 @@ public class MetricsEndpointTest extends ApiTest {
   }
 
   @Test
-  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+  public void shouldExposeJdbcConnectionMetrics() {
     loginActions.loginAsSuperUser();
 
     ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
@@ -61,25 +61,13 @@ public class MetricsEndpointTest extends ApiTest {
         .statusCode(200)
         .body(containsString("# HELP"))
         .body(containsString("# TYPE"))
-        .body(containsString("jdbc_connections_"));
-  }
-
-  @Test
-  public void shouldExposeJdbcConnectionMetrics() {
-    loginActions.loginAsSuperUser();
-
-    ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
-
-    response
-        .validate()
-        .statusCode(200)
         // Backwards compatible metric (also available with C3P0)
         .body(containsString("jdbc_connections_max{pool=\"actual\"}"))
         // Counter metric
         .body(containsString("jdbc_connections_timeout_total{pool=\"actual\"}"))
-        // New HikariCP histogram bucket metrics for all three timer types
-        .body(containsString("jdbc_connections_acquire_seconds_bucket{pool=\"actual\",le="))
-        .body(containsString("jdbc_connections_creation_seconds_bucket{pool=\"actual\",le="))
-        .body(containsString("jdbc_connections_usage_seconds_bucket{pool=\"actual\",le="));
+        // HikariCP histogram bucket metrics with max bucket from PrometheusMonitoringConfig
+        .body(containsString("jdbc_connections_acquire_seconds_bucket{pool=\"actual\",le=\"0.1\""))
+        .body(containsString("jdbc_connections_creation_seconds_bucket{pool=\"actual\",le=\"0.5\""))
+        .body(containsString("jdbc_connections_usage_seconds_bucket{pool=\"actual\",le=\"10.0\""));
   }
 }

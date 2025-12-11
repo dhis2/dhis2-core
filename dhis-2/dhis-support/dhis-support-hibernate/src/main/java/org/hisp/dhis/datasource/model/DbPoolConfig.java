@@ -47,7 +47,9 @@ public class DbPoolConfig {
 
   /**
    * Name identifying this datasource in metrics. Required. Must be unique across all data sources.
-   * Use meaningful names like "main", "analytics", "read_replica", "read1", etc.
+   * Use meaningful names like "actual", "analytics", "read_replica", "read_1", etc. Names should
+   * follow the <a href="https://prometheus.io/docs/practices/naming/">Prometheus naming
+   * conventions</a>.
    */
   @Nonnull final String dataSourceName;
 
