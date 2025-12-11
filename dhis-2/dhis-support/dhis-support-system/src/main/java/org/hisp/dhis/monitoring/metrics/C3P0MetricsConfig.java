@@ -162,6 +162,10 @@ public class C3P0MetricsConfig {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+      // Short-circuit in tests to avoid loading dhis.conf via getConfiguration()
+      if (isTestRun(context)) {
+        return false;
+      }
       boolean c3p0 =
           DbPoolType.C3P0.name().equalsIgnoreCase(getConfiguration().getProperty(DB_POOL_TYPE));
       return c3p0 && super.matches(context, metadata);
