@@ -246,7 +246,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       return gistDescribeToJsonObjectResponse(query);
     }
     query = gistService.plan(query);
-    List<?> elements = gistService.gist(query);
+    List<?> elements = gistService.gist(query).toList();
     JsonNode body =
         new JsonBuilder(jsonMapper).skipNullOrEmpty().toArray(query.getFieldNames(), elements);
     if (body.isEmpty()) {
@@ -263,7 +263,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     query = gistService.plan(query);
     JsonBuilder responseBuilder = new JsonBuilder(jsonMapper);
     List<String> fieldNames = query.getFieldNames();
-    List<?> matches = gistService.gist(query);
+    List<?> matches = gistService.gist(query).toList();
     List<?> elements = matches;
     if (params.isOrgUnitsTree() && query.getElementType() == OrganisationUnit.class) {
       fieldNames = new ArrayList<>(fieldNames);
@@ -315,7 +315,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
                     .filters(List.of(new Filter("id", Comparison.IN, ids.toArray(String[]::new))))
                     .fields(query.getFields())
                     .build())
-            .stream()
             .map(e -> prependMatchElement(e, false))
             .toList();
     // - inject ancestors into elements list (ordered by path)
@@ -344,7 +343,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     new CsvBuilder(response.getWriter())
         .withLocale(query.getTranslationLocale())
         .skipHeaders(query.isHeadless())
-        .toRows(query.getFieldNames(), gistService.gist(query));
+        .toRows(query.getFieldNames(), gistService.gist(query).toList());
   }
 
   // --------------------------------------------------------------------------

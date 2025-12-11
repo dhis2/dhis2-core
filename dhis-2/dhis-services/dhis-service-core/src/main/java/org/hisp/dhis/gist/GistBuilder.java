@@ -268,28 +268,15 @@ final class GistBuilder {
     @JsonProperty final String id;
   }
 
-  public List<?> transform(List<?> rows) {
-    if (fieldResultTransformers.isEmpty() || rows.isEmpty()) {
-      return rows;
-    }
-    @SuppressWarnings("unchecked")
-    List<Object> rowsObjects = (List<Object>) rows;
-    for (int i = 0; i < rowsObjects.size(); i++) {
-      Object rowValue = rowsObjects.get(i);
-      if (rowValue != null && rowValue.getClass() == Object[].class) {
-        Object[] row = (Object[]) rowValue;
-        for (Consumer<Object[]> transformer : fieldResultTransformers) {
-          transformer.accept(row);
-        }
-      } else if (rowValue != null) {
-        Object[] row = new Object[] {rowValue};
-        for (Consumer<Object[]> transformer : fieldResultTransformers) {
-          transformer.accept(row);
-        }
-        rowsObjects.set(i, row[0]);
-      }
-    }
-    return rowsObjects;
+  public Stream<?> transform(Stream<?> rows) {
+    if (fieldResultTransformers.isEmpty()) return rows;
+    return rows.map(
+        e -> {
+          if (e == null) return null;
+          Object[] row = e instanceof Object[] arr ? arr : new Object[] {e};
+          for (Consumer<Object[]> transformer : fieldResultTransformers) transformer.accept(row);
+          return row;
+        });
   }
 
   private void addTransformer(Consumer<Object[]> transformer) {
@@ -313,7 +300,6 @@ final class GistBuilder {
   }
 
   private Object translate(Object value, String property, Object translations) {
-    @SuppressWarnings("unchecked")
     Set<Translation> list = TranslationProperty.fromObject(translations);
 
     if (list == null || list.isEmpty()) {

@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * The GIST API gives convenient access to (potentially large) collections. Good performance is
@@ -62,7 +63,7 @@ public interface GistService {
    * @return Either a list of simple values (one {@link org.hisp.dhis.gist.GistQuery.Field} query)
    *     or a list of {@link Object[]} containing the values for {@link GistQuery#getFields()}.
    */
-  List<?> gist(GistQuery query);
+  Stream<?> gist(GistQuery query);
 
   /**
    * Create a pager for the given {@link GistQuery}, its results rows and the request params.

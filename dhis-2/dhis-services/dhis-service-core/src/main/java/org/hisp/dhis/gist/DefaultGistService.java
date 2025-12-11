@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -90,12 +91,12 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   }
 
   @Override
-  public List<?> gist(GistQuery query) {
+  public Stream<?> gist(GistQuery query) {
     GistAccessControl access = createGistAccessControl();
     RelativePropertyContext context = createPropertyContext(query);
     new GistValidator(query, context, access).validateQuery();
     GistBuilder queryBuilder = createFetchBuilder(query, context, access, this);
-    List<Object[]> rows =
+    Stream<Object[]> rows =
         fetchWithParameters(
             query,
             queryBuilder,
@@ -203,7 +204,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
     return new RelativePropertyContext(query.getElementType(), schemaService::getDynamicSchema);
   }
 
-  private <T> List<T> fetchWithParameters(
+  private <T> Stream<T> fetchWithParameters(
       GistQuery gistQuery, GistBuilder builder, Query<T> query) {
     builder.addFetchParameters(query::setParameter, this::parseFilterArgument);
     if (gistQuery.isPaging()) {
@@ -211,7 +212,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
       query.setFirstResult(gistQuery.getPageOffset());
     }
     query.setCacheable(false);
-    return query.list();
+    return query.stream();
   }
 
   private int countWithParameters(GistBuilder builder, Query<Long> query) {
