@@ -180,7 +180,7 @@ class ReadOnlyDatasourceIntegrationTest {
         };
 
     DataSource readWriteDataSource =
-        new DataSourceConfig().readOnlyDataSource(readWriteConfig, actualDataSource);
+        new DataSourceConfig(null).readOnlyDataSource(readWriteConfig, actualDataSource);
 
     try (Connection conn = readWriteDataSource.getConnection();
         PreparedStatement ps = conn.prepareStatement("SELECT 1");
