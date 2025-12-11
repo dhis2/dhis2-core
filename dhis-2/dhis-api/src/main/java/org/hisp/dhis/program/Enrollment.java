@@ -94,7 +94,10 @@ public class Enrollment extends BaseTrackerObject
   @Id
   @Column(name = "enrollmentid")
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "programinstance_sequence")
-  @SequenceGenerator(name = "programinstance_sequence", sequenceName = "programinstance_sequence")
+  @SequenceGenerator(
+      name = "programinstance_sequence",
+      sequenceName = "programinstance_sequence",
+      allocationSize = 1)
   private long id;
 
   @JsonProperty
