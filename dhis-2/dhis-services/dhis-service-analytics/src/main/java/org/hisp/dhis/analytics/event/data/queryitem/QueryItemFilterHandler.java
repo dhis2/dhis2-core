@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.generator;
+package org.hisp.dhis.analytics.event.data.queryitem;
 
-import org.hisp.dhis.analytics.generator.impl.EventQueryGenerator;
+import java.util.Date;
+import org.hisp.dhis.common.QueryItem;
 
-/** This class simply hold the generator implementation to be used during the code generation. */
-public class TestGenerator {
-  static Generator get() {
-    return new EventQueryGenerator("validatePeriodAndStageWithOuNotRejected");
+/**
+ * Strategy interface for handling filter application to QueryItem based on item type. Follows the
+ * same pattern as {@link
+ * org.hisp.dhis.analytics.event.data.programindicator.ctefactory.CteSqlFactory}.
+ *
+ * <p>Implementations handle specific types of query items (e.g., date fields, event status, org
+ * units) with their own filter parsing and validation logic.
+ */
+public interface QueryItemFilterHandler {
 
-    // To generate all e2e tests just return the default constructor.
-    // ie.: return new TeiQueryGenerator();
-  }
+  /**
+   * Returns {@code true} when this handler can process filters for the given QueryItem.
+   *
+   * @param queryItem the query item to check
+   * @return true if this handler supports the query item type
+   */
+  boolean supports(QueryItem queryItem);
+
+  /**
+   * Applies filters from the dimension string parts to the query item.
+   *
+   * @param queryItem the query item to add filters to
+   * @param filterParts the split dimension string (index 0 is item ID, 1+ are filters)
+   * @param dimensionString original dimension string for error messages
+   * @param relativePeriodDate reference date for relative period calculations (may be null)
+   */
+  void applyFilters(
+      QueryItem queryItem, String[] filterParts, String dimensionString, Date relativePeriodDate);
 }

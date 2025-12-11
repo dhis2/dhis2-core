@@ -179,6 +179,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? buildAnalyticsQuery(params, maxLimit)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
+
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));

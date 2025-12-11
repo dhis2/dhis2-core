@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.generator;
+package org.hisp.dhis.analytics.event.data.queryitem;
 
-import org.hisp.dhis.analytics.generator.impl.EventQueryGenerator;
+import java.util.List;
+import org.hisp.dhis.common.QueryItem;
+import org.springframework.stereotype.Component;
 
-/** This class simply hold the generator implementation to be used during the code generation. */
-public class TestGenerator {
-  static Generator get() {
-    return new EventQueryGenerator("validatePeriodAndStageWithOuNotRejected");
+/**
+ * Registry that selects the appropriate {@link QueryItemFilterHandler} for a given query item.
+ *
+ * <p>Note that the order of the handlers is important: specific handlers are registered first, with
+ * the generic fallback handler registered last (it always matches).
+ */
+@Component
+public class QueryItemFilterHandlerRegistry {
 
-    // To generate all e2e tests just return the default constructor.
-    // ie.: return new TeiQueryGenerator();
+  private final List<QueryItemFilterHandler> handlers;
+
+  public QueryItemFilterHandlerRegistry() {
+    // Order matters: specific handlers first, generic last
+    handlers =
+        List.of(
+            new DateFilterHandler(),
+            new EventStatusFilterHandler(),
+            new OrgUnitFilterHandler(),
+            new GenericFilterHandler()); // Must be last (always matches)
+  }
+
+  /**
+   * Finds the appropriate handler for the given query item.
+   *
+   * @param queryItem the query item to find a handler for
+   * @return the matching handler (GenericFilterHandler as fallback, never null)
+   */
+  public QueryItemFilterHandler handlerFor(QueryItem queryItem) {
+    return handlers.stream()
+        .filter(h -> h.supports(queryItem))
+        .findFirst()
+        .orElseThrow(); // GenericFilterHandler always matches, so this won't throw
   }
 }

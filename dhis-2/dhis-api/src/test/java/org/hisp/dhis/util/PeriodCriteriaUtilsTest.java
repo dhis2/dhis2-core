@@ -300,6 +300,38 @@ class PeriodCriteriaUtilsTest {
     assertFalse(PeriodCriteriaUtils.hasPeriod(c));
   }
 
+  @Test
+  void testHasPeriodEvent_whenDimensionContainsStageDotEventDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add("ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEvent_whenFilterContainsStageDotEventDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    Set<String> filters = new HashSet<>();
+    filters.add("ZkbAXlQUYJG.EVENT_DATE:202301");
+    c.setFilter(filters);
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEvent_whenDimensionContainsStageDotScheduledDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add("A03MvHHogjR.SCHEDULED_DATE:LAST_12_MONTHS");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEvent_whenFilterContainsStageDotScheduledDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    Set<String> filters = new HashSet<>();
+    filters.add("A03MvHHogjR.SCHEDULED_DATE:201910");
+    c.setFilter(filters);
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
   private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithPeriod(
       String period) {
     EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria =

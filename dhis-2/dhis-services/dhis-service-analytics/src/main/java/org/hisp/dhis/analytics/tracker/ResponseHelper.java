@@ -143,4 +143,21 @@ public class ResponseHelper {
 
     return uid;
   }
+
+  /**
+   * Based on the given item this method returns the correct UID based on internal rules.
+   *
+   * @param item the current QueryItem.
+   * @param includeProgramStage whether to include the program stage UID as prefix.
+   * @return the correct UID based on the item type.
+   */
+  public static String getItemUid(QueryItem item, boolean includeProgramStage) {
+    String uid = item.getItem().getUid();
+
+    if (includeProgramStage && item.hasProgramStage()) {
+      uid = joinWith(".", item.getProgramStage().getUid(), uid);
+    }
+
+    return uid;
+  }
 }
