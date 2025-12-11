@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.SingleEvent" table="singleevent">
+  <class name="org.hisp.dhis.tracker.model.SingleEvent" table="singleevent">
 
     <id name="id" column="eventid">
       <generator class="sequence">
@@ -68,7 +68,7 @@ fields=!notes. reconsider this if we do implement that optimization -->
 
     <set name="relationshipItems" inverse="true">
       <key column="singleeventid" />
-      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
+      <one-to-many class="org.hisp.dhis.tracker.model.RelationshipItem" />
     </set>
 
   </class>

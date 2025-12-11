@@ -44,30 +44,30 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerTestBase;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipKey;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TrackerObjectsMapperTest extends TestBase {
+class TrackerObjectsMapperTest extends TrackerTestBase {
   private static final Date NOW = new Date();
 
   private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
@@ -474,8 +474,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .to(RelationshipItem.builder().enrollment(ENROLLMENT_UID).build())
             .build();
 
-    org.hisp.dhis.relationship.Relationship dbRelationship =
-        TrackerObjectsMapper.map(preheat, relationship, creatingUser);
+    Relationship dbRelationship = TrackerObjectsMapper.map(preheat, relationship, creatingUser);
 
     assertMappedRelationship(relationship, dbRelationship, creatingUser);
   }
@@ -492,8 +491,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .to(RelationshipItem.builder().event(EVENT_UID).build())
             .build();
 
-    org.hisp.dhis.relationship.Relationship dbRelationship =
-        TrackerObjectsMapper.map(preheat, relationship, creatingUser);
+    Relationship dbRelationship = TrackerObjectsMapper.map(preheat, relationship, creatingUser);
 
     assertMappedRelationship(relationship, dbRelationship, creatingUser);
   }
@@ -512,8 +510,7 @@ class TrackerObjectsMapperTest extends TestBase {
             .to(RelationshipItem.builder().trackedEntity(toTrackedEntityUid).build())
             .build();
 
-    org.hisp.dhis.relationship.Relationship dbRelationship =
-        TrackerObjectsMapper.map(preheat, relationship, creatingUser);
+    Relationship dbRelationship = TrackerObjectsMapper.map(preheat, relationship, creatingUser);
 
     assertMappedRelationship(relationship, dbRelationship, creatingUser);
   }

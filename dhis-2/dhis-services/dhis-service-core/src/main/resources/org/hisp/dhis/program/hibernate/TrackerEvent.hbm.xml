@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.TrackerEvent" table="trackerevent">
+  <class name="org.hisp.dhis.tracker.model.TrackerEvent" table="trackerevent">
 
     <id name="id" column="eventid">
       <generator class="sequence">
@@ -28,7 +28,7 @@
 
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
-    <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
+    <many-to-one name="enrollment" class="org.hisp.dhis.tracker.model.Enrollment"
                  column="enrollmentid" not-null="true" foreign-key="fk_trackerevent_enrollmentid"/>
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
@@ -73,7 +73,7 @@ fields=!notes. reconsider this if we do implement that optimization -->
 
     <set name="relationshipItems" inverse="true">
       <key column="trackereventid" />
-      <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
+      <one-to-many class="org.hisp.dhis.tracker.model.RelationshipItem" />
     </set>
 
   </class>

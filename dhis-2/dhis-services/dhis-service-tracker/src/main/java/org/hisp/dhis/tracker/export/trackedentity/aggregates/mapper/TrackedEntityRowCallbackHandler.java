@@ -37,10 +37,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery.COLUMNS;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**

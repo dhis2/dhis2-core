@@ -44,7 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -57,7 +57,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SupplementaryDataProviderTest extends TestBase {
+class SupplementaryDataProviderTest extends TrackerTestBase {
 
   private static final String ORG_UNIT_GROUP_UID = "OrgUnitGroupId";
   private static final String USER_GROUP_UID = "UserGroupId";

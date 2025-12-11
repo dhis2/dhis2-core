@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -60,11 +60,11 @@ import org.mapstruct.Named;
     })
 interface RelationshipItemMapper {
   @Mapping(target = "event", source = ".", qualifiedByName = "trackerOrSingleEvent")
-  RelationshipItem map(org.hisp.dhis.relationship.RelationshipItem relationshipItem);
+  RelationshipItem map(org.hisp.dhis.tracker.model.RelationshipItem relationshipItem);
 
   @Named("trackerOrSingleEvent")
   default RelationshipItem.Event trackerOrSingleEvent(
-      org.hisp.dhis.relationship.RelationshipItem relationshipItem) {
+      org.hisp.dhis.tracker.model.RelationshipItem relationshipItem) {
     return relationshipItem.getTrackerEvent() != null
         ? map(relationshipItem.getTrackerEvent())
         : map(relationshipItem.getSingleEvent());

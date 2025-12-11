@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;

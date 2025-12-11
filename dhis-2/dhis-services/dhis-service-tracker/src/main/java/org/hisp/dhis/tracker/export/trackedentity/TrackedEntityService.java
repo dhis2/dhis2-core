@@ -38,10 +38,10 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 public interface TrackedEntityService {
 

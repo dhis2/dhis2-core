@@ -44,7 +44,7 @@ import java.util.Date;
 import lombok.Data;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>

@@ -31,6 +31,9 @@ package org.hisp.dhis.maintenance;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.tracker.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,24 +61,18 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.RelationshipUtils;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -85,6 +82,12 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
@@ -582,14 +585,14 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1,
         audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.program.Enrollment"))
+            .filter(a -> a.getKlass().equals("org.hisp.dhis.tracker.model.Enrollment"))
             .count());
     assertEquals(
         1, audits.stream().filter(a -> a.getKlass().equals("org.hisp.dhis.program.Event")).count());
     assertEquals(
         1,
         audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.trackedentity.TrackedEntity"))
+            .filter(a -> a.getKlass().equals("org.hisp.dhis.tracker.model.TrackedEntity"))
             .count());
     audits.forEach(a -> assertEquals(AuditType.DELETE, a.getAuditType()));
   }

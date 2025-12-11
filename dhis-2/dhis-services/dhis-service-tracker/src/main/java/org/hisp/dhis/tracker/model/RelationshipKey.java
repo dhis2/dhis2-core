@@ -27,32 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.model;
 
-import java.util.Map;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.UID;
 
-/**
- * @author Chau Thu Tran
- */
-@Component
-public class TrackedEntityDeletionHandler extends IdObjectDeletionHandler<TrackedEntity> {
-  @Override
-  protected void registerHandler() {
-    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
-    whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
+@Data
+@Builder(toBuilder = true)
+@AllArgsConstructor(staticName = "of")
+public class RelationshipKey {
+
+  private static final String RELATIONSHIP_KEY_SEPARATOR = "_";
+
+  private final String type;
+
+  private final RelationshipItemKey from;
+
+  private final RelationshipItemKey to;
+
+  public String asString() {
+    return String.join(RELATIONSHIP_KEY_SEPARATOR, type, from.asString(), to.asString());
   }
 
-  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
-    String sql = "select 1 from trackedentity where organisationunitid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
+  public RelationshipKey inverseKey() {
+    return toBuilder().from(to).to(from).build();
   }
 
-  private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
-    String sql = "select 1 from trackedentity where trackedentitytypeid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", trackedEntityType.getId()));
+  @Data
+  @Builder
+  public static class RelationshipItemKey {
+    private final UID trackedEntity;
+
+    private final UID enrollment;
+
+    private final UID trackerEvent;
+
+    private final UID singleEvent;
+
+    public String asString() {
+      UID uid = ObjectUtils.firstNonNull(trackedEntity, enrollment, trackerEvent, singleEvent);
+
+      if (uid != null) {
+        return uid.getValue();
+      }
+
+      return "ERROR";
+    }
   }
 }

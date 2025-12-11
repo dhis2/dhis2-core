@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

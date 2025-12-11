@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.TrackerTestBase;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
@@ -45,7 +45,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CurrentUserSupplierTest extends TestBase {
+class CurrentUserSupplierTest extends TrackerTestBase {
 
   @InjectMocks private CurrentUserSupplier supplier;
 
