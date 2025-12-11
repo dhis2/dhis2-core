@@ -77,9 +77,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("datavalue");
     emptyTable("completedatasetregistration");
 
-    emptyTable("pushanalysisrecipientusergroups");
-    emptyTable("pushanalysis");
-
     emptyTable("potentialduplicate");
 
     emptyTable("dashboarditem_users");
