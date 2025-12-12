@@ -66,7 +66,6 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -261,7 +260,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void updateTrackedEntitiesSyncTimestamp(
-      @NotNull List<String> trackedEntitiesUid, @NotNull Date lastSynchronized) {
+      @Nonnull List<String> trackedEntitiesUid, @Nonnull Date lastSynchronized) {
     trackedEntityStore.updateTrackedEntitiesSyncTimestamp(trackedEntitiesUid, lastSynchronized);
   }
 

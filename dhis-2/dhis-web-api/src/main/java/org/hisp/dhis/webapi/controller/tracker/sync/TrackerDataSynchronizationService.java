@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
 import org.hisp.dhis.webmessage.WebMessageResponse;
-import org.jetbrains.annotations.NotNull;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -109,7 +109,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
   @Override
   public SynchronizationResult synchronizeSingleEventData(
-      int pageSize, JobProgress progress, @NotNull String programUid) {
+      int pageSize, JobProgress progress, @Nonnull String programUid) {
     return null;
   }
 
