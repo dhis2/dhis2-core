@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.test.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -83,15 +81,5 @@ public class IntegrationTestBaseConfig {
   @Bean
   public PasswordEncoder encoder() {
     return new BCryptPasswordEncoder();
-  }
-
-  /**
-   * Provides a no-op MeterRegistry for tests. This bean name matches the production bean from
-   * PrometheusMonitoringConfig, ensuring it takes precedence via explicit @Configuration over
-   * component-scanned beans.
-   */
-  @Bean
-  public MeterRegistry prometheusMeterRegistry() {
-    return new SimpleMeterRegistry();
   }
 }
