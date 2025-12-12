@@ -63,6 +63,7 @@ import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 
 /**
@@ -82,6 +83,7 @@ public enum JobType {
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
   SINGLE_EVENT_DATA_SYNC(SingleEventDataSynchronizationJobParameters.class),
+  TRACKER_DATA_SYNC(TrackerDataSynchronizationJobParameters.class),
   DATA_SYNC(DataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
