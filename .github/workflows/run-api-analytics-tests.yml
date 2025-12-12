@@ -48,7 +48,7 @@ jobs:
             -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}
