@@ -125,7 +125,6 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     programMessageA =
         createProgramMessage(TEXT, SUBJECT, recipientA, messageStatus, Set.of(DeliveryChannel.SMS));
     programMessageA.setEnrollment(enrollment);
-    programMessageA.setStoreCopy(false);
     programMessageB =
         createProgramMessage(TEXT, SUBJECT, recipientB, messageStatus, Set.of(DeliveryChannel.SMS));
     programMessageB.setTrackerEvent(trackerEvent);
