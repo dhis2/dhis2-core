@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -112,4 +113,26 @@ public interface TrackedEntityService {
    * #findTrackedEntities(TrackedEntityOperationParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Returns the total number of tracked entities matching the given operation parameters.
+   *
+   * @param operationParams parameters defining filters such as program, attributes, updated-after,
+   *     etc.
+   * @return the count of tracked entities that satisfy the provided criteria
+   * @throws ForbiddenException if the current user is not authorized to perform the query
+   * @throws BadRequestException if the parameters are invalid or incomplete
+   */
+  long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, BadRequestException;
+
+  /**
+   * Updates the last synchronization timestamp for the specified tracked entities.
+   *
+   * @param trackedEntitiesUid list of tracked entity UIDs whose sync timestamp should be updated
+   * @param lastSynchronized the timestamp to set as the entities' last synchronization time
+   * @throws IllegalArgumentException if the UID list is empty or the timestamp is null
+   */
+  void updateTrackedEntitiesSyncTimestamp(
+      @Nonnull List<String> trackedEntitiesUid, @Nonnull Date lastSynchronized);
 }

@@ -34,7 +34,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,19 +42,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class SingleEventDataSynchronizationJob implements Job {
+public class TrackerDataSynchronizationJob implements Job {
 
-  private final SingleEventDataSynchronizationService eventSync;
+  private final TrackerDataSynchronizationService syncService;
 
   @Override
   public JobType getJobType() {
-    return JobType.SINGLE_EVENT_DATA_SYNC;
+    return JobType.TRACKER_DATA_SYNC;
   }
 
   @Override
   public void execute(JobEntry config, JobProgress progress) {
-    SingleEventDataSynchronizationJobParameters params =
-        (SingleEventDataSynchronizationJobParameters) config.parameters();
-    eventSync.synchronizeSingleEventData(params.getPageSize(), progress, params.getProgram());
+    TrackerDataSynchronizationJobParameters params =
+        (TrackerDataSynchronizationJobParameters) config.parameters();
+    syncService.synchronizeTrackerData(params.getPageSize(), progress);
   }
 }
