@@ -129,7 +129,7 @@
     <!-- Jackson -->
     <jackson.version>2.20.1</jackson.version>
     <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
-    <geojson-jackson.version>1.14</geojson-jackson.version>
+    <geojson-jackson.version>3.0</geojson-jackson.version>
 
     <!-- JAXB -->
     <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
