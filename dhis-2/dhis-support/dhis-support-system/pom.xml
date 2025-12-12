@@ -249,11 +249,6 @@
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-    </dependency>
-
     <!-- application monitoring -->
     <dependency>
       <groupId>io.micrometer</groupId>
