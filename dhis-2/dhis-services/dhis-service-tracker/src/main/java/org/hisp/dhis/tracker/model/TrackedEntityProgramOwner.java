@@ -27,12 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import lombok.EqualsAndHashCode;
@@ -40,7 +38,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -48,7 +45,6 @@ import org.hisp.dhis.program.Program;
 /**
  * @author Ameen Mohamed
  */
-@JacksonXmlRootElement(localName = "trackedEntityProgramOwner", namespace = DxfNamespaces.DXF_2_0)
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -80,21 +76,18 @@ public class TrackedEntityProgramOwner implements Serializable {
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OrganisationUnit getOrganisationUnit() {
     return organisationUnit;
   }
 
   @JsonProperty("trackedEntityInstance")
   @JsonSerialize(as = IdentifiableObject.class)
-  @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;
   }
 
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;
   }

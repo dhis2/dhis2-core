@@ -87,7 +87,8 @@ class StatusUpdateValidatorTest {
   @MethodSource("validTransitions")
   void shouldPassValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
-    org.hisp.dhis.program.TrackerEvent savedEvent = new org.hisp.dhis.program.TrackerEvent();
+    org.hisp.dhis.tracker.model.TrackerEvent savedEvent =
+        new org.hisp.dhis.tracker.model.TrackerEvent();
     savedEvent.setUid(EVENT_UID.getValue());
     savedEvent.setStatus(fromStatus);
     when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(savedEvent);
@@ -103,7 +104,8 @@ class StatusUpdateValidatorTest {
   @MethodSource("invalidTransitions")
   void shouldFailValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
-    org.hisp.dhis.program.TrackerEvent savedEvent = new org.hisp.dhis.program.TrackerEvent();
+    org.hisp.dhis.tracker.model.TrackerEvent savedEvent =
+        new org.hisp.dhis.tracker.model.TrackerEvent();
     savedEvent.setUid(EVENT_UID.getValue());
     savedEvent.setStatus(fromStatus);
     when(preheat.getTrackerEvent(EVENT_UID)).thenReturn(savedEvent);

@@ -57,6 +57,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -81,7 +82,7 @@ class JdbcTrackedEntityStore {
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
-   * org.hisp.dhis.trackedentity.TrackedEntity}. Maps fields to DB columns.
+   * TrackedEntity}. Maps fields to DB columns.
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(

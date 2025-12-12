@@ -32,12 +32,12 @@ package org.hisp.dhis.tracker.acl;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.UserDetails;
 
 /**

@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.model;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,7 +46,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
@@ -54,10 +55,12 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @NoArgsConstructor
-public class SingleEvent extends SoftDeletableObject {
+public class TrackerEvent extends SoftDeletableObject {
   private Date createdAtClient;
 
   private Date lastUpdatedAtClient;
+
+  @AuditAttribute private Enrollment enrollment;
 
   @AuditAttribute private ProgramStage programStage;
 
@@ -66,6 +69,8 @@ public class SingleEvent extends SoftDeletableObject {
   private UserInfoSnapshot createdByUserInfo;
 
   private UserInfoSnapshot lastUpdatedByUserInfo;
+
+  private Date scheduledDate;
 
   private Date occurredDate;
 
@@ -104,5 +109,11 @@ public class SingleEvent extends SoftDeletableObject {
 
   public boolean hasAttributeOptionCombo() {
     return attributeOptionCombo != null;
+  }
+
+  public boolean isCreatableInSearchScope() {
+    return this.getStatus() == EventStatus.SCHEDULE
+        && this.getEventDataValues().isEmpty()
+        && this.getOccurredDate() == null;
   }
 }

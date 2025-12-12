@@ -48,7 +48,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.tracker.model.SingleEvent;
 
 @Entity
 @Table(name = "singleeventchangelog")

@@ -31,9 +31,9 @@ package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 
 /**
  * @author Abyot Asalefew

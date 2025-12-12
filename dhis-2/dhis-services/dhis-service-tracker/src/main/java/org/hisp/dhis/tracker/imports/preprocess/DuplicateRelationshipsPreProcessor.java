@@ -36,10 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipKey;
 import org.springframework.stereotype.Component;
 
 /**

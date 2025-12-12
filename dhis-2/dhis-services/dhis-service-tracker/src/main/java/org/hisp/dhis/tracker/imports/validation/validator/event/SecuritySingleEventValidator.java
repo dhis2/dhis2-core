@@ -66,7 +66,7 @@ class SecuritySingleEventValidator
     }
 
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    org.hisp.dhis.program.SingleEvent preheatEvent =
+    org.hisp.dhis.tracker.model.SingleEvent preheatEvent =
         bundle.getPreheat().getSingleEvent(event.getEvent());
 
     OrganisationUnit organisationUnit =
@@ -98,7 +98,7 @@ class SecuritySingleEventValidator
   private void checkCompletablePermission(
       Reporter reporter,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      org.hisp.dhis.program.SingleEvent preheatEvent,
+      org.hisp.dhis.tracker.model.SingleEvent preheatEvent,
       UserDetails user) {
     if (EventStatus.COMPLETED == preheatEvent.getStatus()
         && event.getStatus() != preheatEvent.getStatus()

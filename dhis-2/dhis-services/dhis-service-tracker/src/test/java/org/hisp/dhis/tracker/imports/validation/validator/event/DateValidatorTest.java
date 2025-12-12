@@ -47,8 +47,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerTestBase;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -66,7 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class DateValidatorTest extends TestBase {
+class DateValidatorTest extends TrackerTestBase {
 
   private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 

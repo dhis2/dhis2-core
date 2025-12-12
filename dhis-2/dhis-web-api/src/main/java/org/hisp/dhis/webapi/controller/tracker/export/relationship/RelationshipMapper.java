@@ -49,7 +49,7 @@ public abstract class RelationshipMapper {
 
   /**
    * Relationships can be ordered by given fields which correspond to fields on {@link
-   * org.hisp.dhis.relationship.Relationship}.
+   * org.hisp.dhis.tracker.model.Relationship}.
    */
   static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(entry("createdAt", "created"), entry("createdAtClient", "createdAtClient"));
@@ -61,15 +61,15 @@ public abstract class RelationshipMapper {
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
-  public abstract Relationship map(org.hisp.dhis.relationship.Relationship relationship);
+  public abstract Relationship map(org.hisp.dhis.tracker.model.Relationship relationship);
 
   /**
-   * Maps a {@link org.hisp.dhis.relationship.RelationshipItem} to a {@link
-   * org.hisp.dhis.relationship.Relationship} which is then mapped by {@link
-   * #map(org.hisp.dhis.relationship.Relationship)}.
+   * Maps a {@link org.hisp.dhis.tracker.model.RelationshipItem} to a {@link
+   * org.hisp.dhis.tracker.model.Relationship} which is then mapped by {@link
+   * #map(org.hisp.dhis.tracker.model.Relationship)}.
    */
-  public org.hisp.dhis.relationship.Relationship map(
-      org.hisp.dhis.relationship.RelationshipItem relationshipItem) {
+  public org.hisp.dhis.tracker.model.Relationship map(
+      org.hisp.dhis.tracker.model.RelationshipItem relationshipItem) {
     if (relationshipItem == null) {
       return null;
     }
@@ -80,7 +80,7 @@ public abstract class RelationshipMapper {
   @AfterMapping
   protected Relationship afterMapping(
       @MappingTarget Relationship.RelationshipBuilder builder,
-      org.hisp.dhis.relationship.Relationship relationshipDb) {
+      org.hisp.dhis.tracker.model.Relationship relationshipDb) {
     Relationship relationship = builder.build();
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();

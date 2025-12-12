@@ -40,10 +40,10 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.Test;
 
 class TrackedEntityMapperTest {

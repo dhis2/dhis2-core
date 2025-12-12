@@ -35,10 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.hisp.dhis.tracker.model.Relationship;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -67,8 +67,7 @@ public class RelationshipStrategy extends HibernateGenericStore<Relationship>
             this.getClass().getAnnotation(StrategyFor.class).mapper(), relationships));
   }
 
-  private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships(
-      List<List<String>> splitList) {
+  private List<Relationship> retrieveRelationships(List<List<String>> splitList) {
     List<String> uids =
         splitList.stream().flatMap(List::stream).filter(CodeGenerator::isValidUid).toList();
 

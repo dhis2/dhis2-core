@@ -40,20 +40,20 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(name = "TrackerEnrollment")
-@OpenApi.Identifiable(as = org.hisp.dhis.program.Enrollment.class)
+@OpenApi.Identifiable(as = org.hisp.dhis.tracker.model.Enrollment.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Enrollment {
-  @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.tracker.model.Enrollment.class})
   @JsonProperty
   private UID enrollment;
 

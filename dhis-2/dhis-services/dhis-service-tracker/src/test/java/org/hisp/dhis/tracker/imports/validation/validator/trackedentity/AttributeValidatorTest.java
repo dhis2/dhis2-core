@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
-import static org.hisp.dhis.test.TestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -53,7 +53,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -64,6 +63,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -677,17 +677,17 @@ class AttributeValidatorTest {
     return trackedEntityAttribute;
   }
 
-  private org.hisp.dhis.trackedentity.TrackedEntity trackedEntity() {
-    org.hisp.dhis.trackedentity.TrackedEntity trackedEntity =
-        new org.hisp.dhis.trackedentity.TrackedEntity();
+  private org.hisp.dhis.tracker.model.TrackedEntity trackedEntity() {
+    org.hisp.dhis.tracker.model.TrackedEntity trackedEntity =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
     trackedEntity.setUid(TE_UID.getValue());
     return trackedEntity;
   }
 
-  private org.hisp.dhis.trackedentity.TrackedEntity trackedEntity(
+  private org.hisp.dhis.tracker.model.TrackedEntity trackedEntity(
       TrackedEntityAttribute attribute) {
-    org.hisp.dhis.trackedentity.TrackedEntity trackedEntity =
-        new org.hisp.dhis.trackedentity.TrackedEntity();
+    org.hisp.dhis.tracker.model.TrackedEntity trackedEntity =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
     trackedEntity.setUid(TE_UID.getValue());
     TrackedEntityAttributeValue attributeValue =
         createTrackedEntityAttributeValue('c', trackedEntity, attribute);

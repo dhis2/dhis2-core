@@ -102,7 +102,7 @@ class RelationshipsExportController {
       PageParams pageParams =
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
-      org.hisp.dhis.tracker.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.model.Relationship> relationshipsPage =
           relationshipService.findRelationships(operationParams, pageParams);
 
       org.hisp.dhis.tracker.Page<Relationship> page =
@@ -124,7 +124,7 @@ class RelationshipsExportController {
   @GetMapping("/{uid}")
   @OpenApi.Response(Relationship.class)
   FilteredEntity<Relationship> getRelationshipByUid(
-      @OpenApi.Param({UID.class, org.hisp.dhis.relationship.Relationship.class}) @PathVariable
+      @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.Relationship.class}) @PathVariable
           UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           Fields fields)

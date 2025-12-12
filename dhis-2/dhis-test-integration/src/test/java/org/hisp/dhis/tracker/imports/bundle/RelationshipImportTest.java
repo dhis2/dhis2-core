@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.Assertions.assertHasError;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -45,6 +44,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

@@ -34,7 +34,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
