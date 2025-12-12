@@ -35,7 +35,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
+import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
