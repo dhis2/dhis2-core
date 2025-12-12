@@ -360,6 +360,11 @@
       <artifactId>dhis-support-hibernate</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
