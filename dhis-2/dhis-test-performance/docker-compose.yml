@@ -78,7 +78,7 @@ services:
   # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
   prometheus:
     profiles: [monitoring]
-    image: prom/prometheus:v2.53.5
+    image: prom/prometheus:v3.5.0
     command: --config.file=/etc/prometheus/prometheus.yml
     ports:
       - "127.0.0.1:9090:9090"

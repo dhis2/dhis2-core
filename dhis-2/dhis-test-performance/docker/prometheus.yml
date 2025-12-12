@@ -1,5 +1,5 @@
 global:
-  scrape_interval: 1s # this is aggressive for use in performance tests
+  scrape_interval: 1s # this is aggressive, so we get enough samples to monitor during performance tests which might be short
 
 scrape_configs:
   - job_name: 'prometheus'

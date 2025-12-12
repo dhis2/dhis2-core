@@ -50,7 +50,6 @@ public abstract class MetricsEnabler extends PropertiesAwareConfigurationConditi
       ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
     ConfigurationKey key = getConfigKey();
 
-    // Short-circuit in tests to avoid loading dhis.conf via getConfiguration()
     boolean isEnabled = !isTestRun(conditionContext) && getBooleanValue(getConfigKey());
     log.debug(
         String.format(

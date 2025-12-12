@@ -39,6 +39,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -58,6 +59,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class AnalyticsDataSourceConfig {
 
   private static final int FETCH_SIZE = 1000;
@@ -67,15 +69,6 @@ public class AnalyticsDataSourceConfig {
   private final SqlBuilderSettings sqlBuilderSettings;
 
   private final MeterRegistry meterRegistry;
-
-  public AnalyticsDataSourceConfig(
-      DhisConfigurationProvider config,
-      SqlBuilderSettings sqlBuilderSettings,
-      MeterRegistry meterRegistry) {
-    this.config = config;
-    this.sqlBuilderSettings = sqlBuilderSettings;
-    this.meterRegistry = meterRegistry;
-  }
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")

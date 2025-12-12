@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -180,7 +181,8 @@ class ReadOnlyDatasourceIntegrationTest {
         };
 
     DataSource readWriteDataSource =
-        new DataSourceConfig(null).readOnlyDataSource(readWriteConfig, actualDataSource);
+        new DataSourceConfig(new SimpleMeterRegistry())
+            .readOnlyDataSource(readWriteConfig, actualDataSource);
 
     try (Connection conn = readWriteDataSource.getConnection();
         PreparedStatement ps = conn.prepareStatement("SELECT 1");

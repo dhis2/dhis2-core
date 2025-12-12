@@ -36,6 +36,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
@@ -64,13 +65,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class DataSourceConfig {
 
   private final MeterRegistry meterRegistry;
-
-  public DataSourceConfig(MeterRegistry meterRegistry) {
-    this.meterRegistry = meterRegistry;
-  }
 
   @Primary
   @Bean
