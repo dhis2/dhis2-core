@@ -253,6 +253,7 @@ public class AggregateDataExchangeService {
         null,
         set.getDataSet(),
         null,
+        null,
         set.getOrgUnit(),
         set.getPeriod(),
         set.getAttributeOptionCombo(),

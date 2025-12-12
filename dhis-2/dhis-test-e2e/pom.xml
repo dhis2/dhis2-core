@@ -31,12 +31,12 @@
     <awaitility.version>4.3.0</awaitility.version>
     <lombok.version>1.18.42</lombok.version>
     <allure.version>2.29.1</allure.version>
-    <selenium-java.version>4.38.0</selenium-java.version>
+    <selenium-java.version>4.39.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.5.1</httpclient5.version>
     <commons-io.version>2.21.0</commons-io.version>
-    <spring.version>7.0.1</spring.version>
+    <spring.version>7.0.2</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <nimbus-jose-jwt.version>10.6</nimbus-jose-jwt.version>

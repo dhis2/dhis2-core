@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeOrgToDefaultSize;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import com.google.common.base.MoreObjects;
@@ -139,7 +140,7 @@ public class FileResourceController
 
     if (!checkSharing(fileResource, currentUser)) {
       throw new ForbiddenException(
-          String.format("File resource not found or not accessible: %s}'", uid));
+          String.format("File resource not found or not accessible: %s", uid));
     }
 
     response.setContentType(fileResource.getContentType());
@@ -183,9 +184,7 @@ public class FileResourceController
 
     } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
       fileResourceUtils.validateOrgUnitImage(file);
-      fileResource =
-          fileResourceUtils.saveFileResource(
-              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(uid, resizeOrgToDefaultSize(file), domain);
 
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
@@ -209,12 +208,11 @@ public class FileResourceController
    */
   private boolean checkSharing(FileResource fileResource, User currentUser) {
     /*
-     * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
-     * doesn't make sense So we will return false if the fileResource have
-     * either of these domains.
+     * Serving DATA_VALUE fileResources from this endpoint doesn't make sense
+     * So we will return false if the fileResource have this domain.
      */
     FileResourceDomain domain = fileResource.getDomain();
-    if (domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS) {
+    if (domain == FileResourceDomain.DATA_VALUE) {
       return false;
     }
 

@@ -36,7 +36,6 @@ import java.util.Set;
  */
 public enum FileResourceDomain {
   DATA_VALUE("dataValue"),
-  PUSH_ANALYSIS("pushAnalysis"),
   DOCUMENT("document"),
   MESSAGE_ATTACHMENT("messageAttachment"),
   USER_AVATAR("userAvatar"),

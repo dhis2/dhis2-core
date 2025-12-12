@@ -45,6 +45,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
@@ -61,7 +62,7 @@ public class ProgramMessage extends BaseIdentifiableObject implements Serializab
   private static final long serialVersionUID = -5882823752156937730L;
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   private Enrollment enrollment;
 
   @JsonIgnore private TrackerEvent trackerEvent;

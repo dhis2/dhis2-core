@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dataset;
 
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Date;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Stian Sandvold
+ * A record to report a PE-OU-AOC slice of data within a DS as complete.
+ *
+ * @param dataSet DS that gets more completed by completing the slice for the PE-OU-AOC slice
+ *     specified
+ * @param period completed PE scope
+ * @param orgUnit completed OU scope
+ * @param attributeOptionCombo completed AOC scope, null for default AOC
+ * @param completed date at which the slice of data is considered as becoming complete
+ * @author Jan Bernitt
  */
-public class ExternalFileResourceSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "externalFileResource";
+public record DataSetCompletion(
+    @Nonnull UID dataSet,
+    @Nonnull Period period,
+    @Nonnull UID orgUnit,
+    @CheckForNull UID attributeOptionCombo,
+    @Nonnull Date completed) {
 
-  public static final String PLURAL = "externalFileResources";
-
-  public static final String API_ENDPOINT = "/" + PLURAL;
-
-  @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(ExternalFileResource.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1000);
-
-    return schema;
+  public DataSetCompletion {
+    requireNonNull(dataSet);
+    requireNonNull(period);
+    requireNonNull(orgUnit);
+    requireNonNull(completed);
   }
 }

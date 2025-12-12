@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reporting.config;
+package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import jakarta.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.pushanalysis.PushAnalysis;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobEntry;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author Zubair Asghar
  */
-@Configuration("reportingStoreConfig")
-public class StoreConfig {
-  @Bean("org.hisp.dhis.pushanalysis.PushAnalysisStore")
-  public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    return new HibernateIdentifiableObjectStore<PushAnalysis>(
-        entityManager, jdbcTemplate, publisher, PushAnalysis.class, aclService, false);
+@Component
+@AllArgsConstructor
+public class SingleEventDataSynchronizationJob implements Job {
+
+  private final SingleEventDataSynchronizationService eventSync;
+
+  @Override
+  public JobType getJobType() {
+    return JobType.SINGLE_EVENT_DATA_SYNC;
+  }
+
+  @Override
+  public void execute(JobEntry config, JobProgress progress) {
+    SingleEventDataSynchronizationJobParameters params =
+        (SingleEventDataSynchronizationJobParameters) config.parameters();
+    eventSync.synchronizeTrackerData(params.getPageSize(), progress, params.getProgram());
   }
 }
