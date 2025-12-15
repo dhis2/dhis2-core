@@ -86,6 +86,14 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   }
 
   @Override
+  public GistObjectList listObjects(GistQuery query) {
+    @SuppressWarnings("unchecked")
+    Stream<Object[]> values = (Stream<Object[]>) gist(plan(query));
+    List<String> paths = query.getFieldNames();
+    return new GistObjectList(pager(query), paths, null, values);
+  }
+
+  @Override
   public GistQuery plan(GistQuery query) {
     return new GistPlanner(query, createPropertyContext(query), createGistAccessControl()).plan();
   }
@@ -105,25 +113,19 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
   }
 
   @Override
-  public GistPager pager(GistQuery query, List<?> rows, Map<String, String[]> params) {
+  public GistPager pager(GistQuery query) {
     int page = 1 + (query.getPageOffset() / query.getPageSize());
     Schema schema = schemaService.getDynamicSchema(query.getElementType());
     String prev = null;
     String next = null;
     Integer total = null;
     if (query.isTotal()) {
-      if (rows.size() < query.getPageSize() && !rows.isEmpty()) {
-        // NB. only do this when rows are returned as otherwise the page
-        // simply might not exist which leads to zero rows
-        total = query.getPageOffset() + rows.size();
-      } else {
         GistAccessControl access = createGistAccessControl();
         RelativePropertyContext context = createPropertyContext(query);
         GistBuilder countBuilder = createCountBuilder(query, context, access, this);
         total =
             countWithParameters(
                 countBuilder, getSession().createQuery(countBuilder.buildCountHQL(), Long.class));
-      }
     }
     if (schema.hasApiEndpoint()) {
       URI queryURI = URI.create(query.getRequestURL());
@@ -134,8 +136,8 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
                 .build()
                 .toString();
       }
-      if (total != null && query.getPageOffset() + rows.size() < total
-          || total == null && query.getPageSize() == rows.size()) {
+      Integer pageCount = GistPager.getPageCount(total, query.getPageSize());
+      if (pageCount == null || pageCount > page) {
         next =
             UriComponentsBuilder.fromUri(queryURI)
                 .replaceQueryParam("page", page + 1)

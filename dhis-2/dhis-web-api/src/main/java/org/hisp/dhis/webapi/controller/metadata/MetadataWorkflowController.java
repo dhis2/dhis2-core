@@ -37,6 +37,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
@@ -45,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.gist.GistPager;
 import org.hisp.dhis.gist.GistParams;
 import org.hisp.dhis.metadata.MetadataAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposal;
@@ -69,6 +71,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.io.IOException;
+
 /**
  * REST API for going through the states of {@link MetadataProposal}s.
  *
@@ -89,9 +93,9 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
   }
 
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposals(GistParams params, HttpServletRequest request)
-      throws BadRequestException {
-    return getObjectListGist(params, request);
+  public void getProposals(GistParams params, HttpServletRequest request, HttpServletResponse response)
+      throws BadRequestException, IOException {
+    getObjectListGist(params, request, response);
   }
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)

@@ -34,6 +34,7 @@ import static org.hisp.dhis.json.JsonOutputUtils.addAsJsonObjects;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -46,6 +47,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.json.JsonOutputUtils.JsonObjectAdder;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
@@ -106,6 +108,14 @@ public final class GistOutput {
     register(Object.class, GistOutput::addJacksonMapped);
   }
 
+  public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
+    try (PrintWriter csv = new PrintWriter(out)) {
+      new CsvBuilder(csv)
+        .skipHeaders(list.headless())
+        .toRows(list.paths(), list.values());
+    }
+  }
+
   public static void toJson(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
     List<String> paths = list.paths();
     List<JsonObjectAdder<Object[]>> adders = toAdders(list.valueTypes());
@@ -124,14 +134,14 @@ public final class GistOutput {
             obj.addObject(
                 "pager",
                 p -> {
-                  p.addNumber("page", pager.getPage());
-                  p.addNumber("pageSize", pager.getPageSize());
-                  p.addNumber("total", pager.getTotal());
+                  p.addNumber("page", pager.page());
+                  p.addNumber("pageSize", pager.pageSize());
+                  p.addNumber("total", pager.total());
                   p.addNumber("pageCount", pager.getPageCount());
-                  p.addString("prevPage", pager.getPrevPage());
-                  p.addString("nextPage", pager.getNextPage());
+                  p.addString("prevPage", pager.prevPage());
+                  p.addString("nextPage", pager.nextPage());
                 });
-          obj.addArray(list.valuesName(), arr -> addAsJsonObjects(paths, adders, values, arr));
+          obj.addArray(list.collectionName(), arr -> addAsJsonObjects(paths, adders, values, arr));
         });
   }
 
@@ -187,4 +197,5 @@ public final class GistOutput {
       throw new IllegalArgumentException(ex);
     }
   }
+
 }

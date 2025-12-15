@@ -29,19 +29,21 @@
  */
 package org.hisp.dhis.gist;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 /**
  * The GIST API gives convenient access to (potentially large) collections. Good performance is
  * achieved by directly fetching simple values only. Collections are projected to size, emptiness or
- * arrays of ids. In addition the result contains references to the API endpoints where the items of
+ * arrays of ids. In addition, the result contains references to the API endpoints where the items of
  * collections can be browsed with more detail.
  *
  * @author Jan Bernitt
  */
 public interface GistService {
+
+  GistObjectList listObjects(GistQuery query);
+
   /**
    * Before running {@link #gist(GistQuery)} a {@link GistQuery} should be planned. This gives the
    * service a change to modify the query fields.
@@ -69,11 +71,9 @@ public interface GistService {
    * Create a pager for the given {@link GistQuery}, its results rows and the request params.
    *
    * @param query a query build from params
-   * @param rows the result list of running the query
-   * @param params The request params used to build the query
    * @return the pager suitable for the provided situation
    */
-  GistPager pager(GistQuery query, List<?> rows, Map<String, String[]> params);
+  GistPager pager(GistQuery query);
 
   /**
    * Describes the query execution without actually running the query.

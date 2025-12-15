@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.csv;
 
 import static java.util.stream.Collectors.joining;
 
@@ -35,18 +35,15 @@ import com.csvreader.CsvWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import org.hisp.dhis.system.util.CsvUtils;
+import java.util.stream.Stream;
+
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * CSV writer specifically tailored to the Gist API needs.
@@ -63,15 +60,12 @@ public final class CsvBuilder {
 
   private final EnumSet<Preference> preferences = EnumSet.noneOf(Preference.class);
 
-  private DateTimeFormatter dateTimeFormatter;
-
   public CsvBuilder(PrintWriter out) {
-    this(out, CsvUtils.DELIMITER);
+    this(out, ',');
   }
 
   public CsvBuilder(PrintWriter out, char delimiter) {
     this.out = new CsvWriter(out, delimiter);
-    withLocale(Locale.getDefault());
   }
 
   public CsvBuilder with(Preference preference) {
@@ -81,13 +75,6 @@ public final class CsvBuilder {
 
   public CsvBuilder without(Preference preference) {
     preferences.remove(preference);
-    return this;
-  }
-
-  public CsvBuilder withLocale(Locale locale) {
-    this.dateTimeFormatter =
-        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-            .withLocale(locale == null ? Locale.getDefault() : locale);
     return this;
   }
 
@@ -103,7 +90,7 @@ public final class CsvBuilder {
     return skipHeaders ? with(Preference.SKIP_HEADERS) : without(Preference.SKIP_HEADERS);
   }
 
-  public void toRows(List<String> fields, List<?> values) {
+  public void toRows(List<String> fields, Stream<?> values) {
     try {
       if (!preferences.contains(Preference.SKIP_HEADERS)) {
         for (String header : fields) {
@@ -112,12 +99,12 @@ public final class CsvBuilder {
         out.endRecord();
       }
       final int columns = fields.size();
-      for (Object value : values) {
-        if (value instanceof Object[]) {
-          Object[] row = (Object[]) value;
-          for (int c = 0; c < columns; c++) {
+      Iterator<?> iter = values.iterator();
+      while (iter.hasNext()) {
+        Object value = iter.next();
+        if (value instanceof Object[] row) {
+          for (int c = 0; c < columns; c++)
             out.write(toCsvValue(row[c]));
-          }
         } else {
           out.write(toCsvValue(value));
         }
@@ -133,45 +120,26 @@ public final class CsvBuilder {
   }
 
   private String toCsvValue(Object value) {
-    if (value == null) {
-      return isNullEmpty() ? "" : "null";
-    }
-    if (value instanceof Object[]) {
-      return toCsvValue((Object[]) value);
-    }
-    if (value instanceof Collection<?>) {
-      return toCsvValue((Collection<?>) value);
-    }
-    if (value instanceof Date) {
-      return dateTimeFormatter.format(
-          LocalDateTime.ofInstant(Instant.ofEpochMilli(((Date) value).getTime()), ZoneOffset.UTC));
-    }
+    if (value == null) return isNullEmpty() ? "" : "null";
+    if (value instanceof Object[]) return toCsvValue((Object[]) value);
+    if (value instanceof Collection<?>) return toCsvValue((Collection<?>) value);
+    if (value instanceof Date date) return DateUtils.toIso8601(date);
     return value.toString();
   }
 
   private String toCsvValue(Object[] items) {
-    if (items.length == 0) {
-      return toCsvValue((Object) null);
-    }
-    if (items.length == 1) {
-      return toCsvValue(items[0]);
-    }
-    if (items.length < 10 && items[0] instanceof Number) {
+    if (items.length == 0) return toCsvValue((Object) null);
+    if (items.length == 1) return toCsvValue(items[0]);
+    if (items.length < 10 && items[0] instanceof Number)
       return Arrays.stream(items).map(String::valueOf).collect(joining(" "));
-    }
     return "(" + items.length + " elements)";
   }
 
   private String toCsvValue(Collection<?> items) {
-    if (items.isEmpty()) {
-      return toCsvValue((Object) null);
-    }
-    if (items.size() == 1) {
-      return toCsvValue(items.iterator().next());
-    }
-    if (items.size() < 10 && items.iterator().next() instanceof Number) {
+    if (items.isEmpty()) return toCsvValue((Object) null);
+    if (items.size() == 1) return toCsvValue(items.iterator().next());
+    if (items.size() < 10 && items.iterator().next() instanceof Number)
       return items.stream().map(String::valueOf).collect(joining(" "));
-    }
     return "(" + items.size() + " elements)";
   }
 }

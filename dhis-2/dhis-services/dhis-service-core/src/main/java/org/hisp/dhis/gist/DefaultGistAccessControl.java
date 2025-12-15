@@ -122,7 +122,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
                 .autoType(GistAutoType.M)
                 .fields(singletonList(new Field("sharing", Transform.NONE)))
                 .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
-                .build());
+                .build()).toList();
     Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get(0);
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(sharing);
