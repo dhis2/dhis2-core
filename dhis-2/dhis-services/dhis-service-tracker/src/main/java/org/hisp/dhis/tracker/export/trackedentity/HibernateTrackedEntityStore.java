@@ -37,6 +37,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
@@ -541,6 +542,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated <= '")
             .append(toLongDateWithMillis(params.getLastUpdatedEndDate()))
+            .append(SINGLE_QUOTE);
+      }
+    }
+
+    if (params.isSynchronizationQuery()) {
+      trackedEntity.append(whereAnd.whereAnd()).append(" TE.lastupdated >= TE.lastsynchronized ");
+      if (params.getSkipChangedBefore() != null) {
+        trackedEntity
+            .append(" AND TE.lastupdated >= '")
+            .append(toLongDate(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
     }

@@ -128,6 +128,8 @@ class TrackedEntityOperationParamsMapper {
     params
         .setEnrolledInTrackerProgram(program)
         .setAccessibleTrackerPrograms(programs)
+        .setSynchronizationQuery(operationParams.isSynchronizationQuery())
+        .setSkipChangedBefore(operationParams.getSkipChangedBefore())
         .setProgramStage(programStage)
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
