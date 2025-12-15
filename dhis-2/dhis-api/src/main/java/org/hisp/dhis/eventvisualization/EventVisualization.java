@@ -143,6 +143,15 @@ public class EventVisualization extends BaseAnalyticalObject
   /** Indicates whether to hide n/a data. */
   private boolean hideNaData;
 
+  /** Indicates whether to hide columns with no data values. */
+  private boolean hideEmptyColumns;
+
+  /** Fixes (or not) the pivot table column headers. */
+  private boolean fixColumnHeaders;
+
+  /** Fixes (or not) the pivot table row headers. */
+  private boolean fixRowHeaders;
+
   /**
    * Indicates whether this is a legacy row (EventChart or EventReport).
    *
@@ -589,6 +598,36 @@ public class EventVisualization extends BaseAnalyticalObject
 
   public void setHideNaData(boolean hideNaData) {
     this.hideNaData = hideNaData;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isHideEmptyColumns() {
+    return hideEmptyColumns;
+  }
+
+  public void setHideEmptyColumns(boolean hideEmptyColumns) {
+    this.hideEmptyColumns = hideEmptyColumns;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixColumnHeaders() {
+    return fixColumnHeaders;
+  }
+
+  public void setFixColumnHeaders(boolean fixColumnHeaders) {
+    this.fixColumnHeaders = fixColumnHeaders;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isFixRowHeaders() {
+    return fixRowHeaders;
+  }
+
+  public void setFixRowHeaders(boolean fixRowHeaders) {
+    this.fixRowHeaders = fixRowHeaders;
   }
 
   // -------------------------------------------------------------------------

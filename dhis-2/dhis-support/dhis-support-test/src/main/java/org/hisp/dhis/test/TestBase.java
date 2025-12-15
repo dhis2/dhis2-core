@@ -83,7 +83,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -168,9 +167,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -1894,24 +1890,6 @@ public abstract class TestBase {
     psde.setAutoFields();
 
     return psde;
-  }
-
-  public static ProgramMessage createProgramMessage(
-      String text,
-      String subject,
-      ProgramMessageRecipients recipients,
-      ProgramMessageStatus status,
-      Set<DeliveryChannel> channels) {
-
-    ProgramMessage pm = new ProgramMessage();
-    pm.setAutoFields();
-    pm.setText(text);
-    pm.setSubject(subject);
-    pm.setRecipients(recipients);
-    pm.setMessageStatus(status);
-    pm.setDeliveryChannels(channels);
-
-    return pm;
   }
 
   public static ProgramIndicator createProgramIndicator(

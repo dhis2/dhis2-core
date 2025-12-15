@@ -37,7 +37,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
+import org.hisp.dhis.tracker.program.message.ProgramMessageStatus;
 
 /**
  * @author Zubair Asghar

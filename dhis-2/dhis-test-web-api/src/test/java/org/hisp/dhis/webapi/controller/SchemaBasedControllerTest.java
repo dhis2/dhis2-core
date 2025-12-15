@@ -77,7 +77,6 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "categoryOptionCombo", // can't POST/create a new COC, should use /metadata
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
-          "pushanalysis", // uses dashboards (see above)
           "metadataVersion", // no POST endpoint
           "softDeletableObject", // depends on programInstance (see above)
           "relationship", // generator insufficient for embedded fields

@@ -43,11 +43,11 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonProgramMessage;
+import org.hisp.dhis.tracker.program.message.ProgramMessage;
+import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
+import org.hisp.dhis.tracker.program.message.ProgramMessageStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.message.ProgramMessageController;
 import org.hisp.dhis.webapi.controller.tracker.TestSetup;
@@ -179,5 +179,23 @@ class ProgramMessageControllerTest extends PostgresControllerIntegrationTestBase
     JsonArray summaries = status.getArray("summaries");
     assertTrue(summaries.isArray());
     assertTrue(summaries.isEmpty());
+  }
+
+  public static ProgramMessage createProgramMessage(
+      String text,
+      String subject,
+      ProgramMessageRecipients recipients,
+      ProgramMessageStatus status,
+      Set<DeliveryChannel> channels) {
+
+    ProgramMessage pm = new ProgramMessage();
+    pm.setAutoFields();
+    pm.setText(text);
+    pm.setSubject(subject);
+    pm.setRecipients(recipients);
+    pm.setMessageStatus(status);
+    pm.setDeliveryChannels(channels);
+
+    return pm;
   }
 }
