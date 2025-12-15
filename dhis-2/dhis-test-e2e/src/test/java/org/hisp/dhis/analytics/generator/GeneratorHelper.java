@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONObject;
-import org.apache.http.client.fluent.Content;
+import org.apache.http.HttpResponse;
 
 /** Helper class that provides auxiliary methods for the test generation. */
 public class GeneratorHelper {
@@ -745,14 +745,44 @@ public class GeneratorHelper {
     String authHeader = "Basic " + new String(encodedAuth);
 
     try {
-      Content response =
-          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnContent();
+      HttpResponse httpResponse =
+          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnResponse();
 
-      return response.asString();
+      int statusCode = httpResponse.getStatusLine().getStatusCode();
+      String responseBody =
+          org.apache.http.util.EntityUtils.toString(httpResponse.getEntity(), UTF_8);
+
+      if (statusCode >= 200 && statusCode < 300) {
+        return responseBody;
+      } else {
+        System.err.println("## ERROR: HTTP " + statusCode + " for query: " + query);
+        System.err.println("## Response body: " + prettyPrintJson(responseBody));
+        return EMPTY;
+      }
     } catch (IOException e) {
       System.err.println("## ERROR: " + e.getLocalizedMessage());
     }
 
     return EMPTY;
+  }
+
+  /**
+   * Attempts to pretty print a JSON string. If parsing fails, returns the original string.
+   *
+   * @param json the JSON string to format.
+   * @return the pretty printed JSON, or the original string if not valid JSON.
+   */
+  private static String prettyPrintJson(String json) {
+    if (isBlank(json)) {
+      return json;
+    }
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper mapper =
+          new com.fasterxml.jackson.databind.ObjectMapper();
+      Object jsonObject = mapper.readValue(json, Object.class);
+      return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+    } catch (Exception e) {
+      return json;
+    }
   }
 }
