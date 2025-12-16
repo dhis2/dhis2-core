@@ -70,6 +70,7 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -77,7 +78,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
-import org.hisp.dhis.tracker.program.notification.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
@@ -134,9 +134,6 @@ class ProgramNotificationServiceTest extends TestBase {
   @Mock private ApplicationEventPublisher applicationEventPublisher;
 
   @Mock private ProgramNotificationInstanceService programNotificationInstanceService;
-
-  private final NotificationTemplateMapper notificationTemplateMapper =
-      new NotificationTemplateMapper();
 
   private DefaultProgramNotificationService programNotificationService;
 
@@ -201,7 +198,6 @@ class ProgramNotificationServiceTest extends TestBase {
             this.programStageNotificationRenderer,
             this.singleEventNotificationRenderer,
             notificationTemplateService,
-            notificationTemplateMapper,
             entityManager,
             jdbcTemplate,
             applicationEventPublisher,
@@ -914,7 +910,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
     programNotificationInstaceForToday = new ProgramNotificationInstance();
     programNotificationInstaceForToday.setProgramNotificationTemplateSnapshot(
-        notificationTemplateMapper.toProgramNotificationTemplateSnapshot(
+        NotificationTemplateMapper.toProgramNotificationTemplateSnapshot(
             programNotificationTemplateForToday));
     programNotificationInstaceForToday.setName(programNotificationTemplateForToday.getName());
     programNotificationInstaceForToday.setAutoFields();
