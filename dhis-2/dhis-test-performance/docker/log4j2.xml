@@ -31,6 +31,15 @@
 
             Please check https://logging.apache.org/log4j/2.x/manual/configuration.html
         -->
+        <!-- Silence authentication success events (noisy during performance tests) -->
+        <Logger name="org.hisp.dhis.security.AuthenticationLoggerListener" level="WARN" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <!-- Silence audit logging (noisy during performance tests)
+             Alternative: disable in dhis.conf with audit.logger=off -->
+        <Logger name="org.hisp.dhis.audit.AbstractAuditConsumer" level="WARN" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
         <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
 
         <Root level="WARN">
