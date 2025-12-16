@@ -51,7 +51,7 @@ public class MetricsEndpointTest extends ApiTest {
   }
 
   @Test
-  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+  public void shouldExposeJdbcConnectionMetrics() {
     loginActions.loginAsSuperUser();
 
     ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
@@ -60,6 +60,11 @@ public class MetricsEndpointTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body(containsString("# HELP"))
-        .body(containsString("# TYPE"));
+        .body(containsString("# TYPE"))
+        // C3P0 pool metrics (default pool in 2.42)
+        .body(containsString("jdbc_connections_active{pool=\"actual\"}"))
+        .body(containsString("jdbc_connections_idle{pool=\"actual\"}"))
+        .body(containsString("jdbc_connections_max{pool=\"actual\"}"))
+        .body(containsString("jdbc_connections_min{pool=\"actual\"}"));
   }
 }
