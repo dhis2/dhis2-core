@@ -28,6 +28,7 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -67,6 +68,8 @@ public class DataSourceConfig {
 
   private final DhisConfigurationProvider config;
 
+  private final MeterRegistry meterRegistry;
+
   @Bean("namedParameterJdbcTemplate")
   @Primary
   @DependsOn("dataSource")
@@ -87,7 +90,7 @@ public class DataSourceConfig {
   @Bean("readOnlyJdbcTemplate")
   @DependsOn("dataSource")
   public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -96,16 +99,16 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  static DataSource createActualDataSource(DhisConfigurationProvider dhisConfig) {
-    String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
-    String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
-    String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
+  private DataSource createActualDataSource() {
+    String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
+    String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     PoolConfig poolConfig =
-        PoolConfig.builder().dhisConfig(dhisConfig).dbPoolType(dbPoolType).build();
+        PoolConfig.builder("actual").dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(
@@ -177,7 +180,7 @@ public class DataSourceConfig {
 
   @Bean("actualDataSource")
   public DataSource actualDataSource() {
-    return createActualDataSource(config);
+    return createActualDataSource();
   }
 
   private static void executeAfterMethod(MethodExecutionContext executionContext) {
