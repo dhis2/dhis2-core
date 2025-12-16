@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -56,7 +57,8 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook<TrackedEntityAttribute> {
 
-  private static final Set<QueryOperator> NON_BLOCKABLE_OPERATORS = Set.of(EQ, IN, GE, GT, LT, LE);
+  private static final Set<QueryOperator> NON_BLOCKABLE_OPERATORS =
+      EnumSet.of(EQ, IN, GE, GT, LT, LE);
 
   /**
    * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
