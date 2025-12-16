@@ -63,6 +63,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -215,14 +216,15 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   private List<TrackedEntity> fetchTrackedEntitiesForPage(
       int page, TrackerSynchronizationContext context)
       throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .skipChangedBefore(context.getSkipChangedBefore())
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .fields(TrackedEntityFields.all())
+            .build();
     return trackedEntityService
-        .findTrackedEntities(
-            TrackedEntityOperationParams.builder()
-                .skipChangedBefore(context.getSkipChangedBefore())
-                .synchronizationQuery(true)
-                .includeDeleted(true)
-                .build(),
-            PageParams.of(page, context.getPageSize(), false))
+        .findTrackedEntities(params, PageParams.of(page, context.getPageSize(), false))
         .getItems();
   }
 

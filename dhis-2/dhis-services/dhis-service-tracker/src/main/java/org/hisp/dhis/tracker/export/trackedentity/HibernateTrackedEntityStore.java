@@ -167,11 +167,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
             .addValue("uids", trackedEntitiesUid);
 
-    jdbcTemplate.update(sql, parameters);
-  }
-
-  long countTrackedEntities() {
-    return 0;
+    namedParameterJdbcTemplate.update(sql, parameters);
   }
 
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
@@ -547,7 +543,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.isSynchronizationQuery()) {
-      trackedEntity.append(whereAnd.whereAnd()).append(" TE.lastupdated >= TE.lastsynchronized ");
+      trackedEntity.append(whereAnd.whereAnd()).append(" TE.lastupdated > TE.lastsynchronized ");
       if (params.getSkipChangedBefore() != null) {
         trackedEntity
             .append(" AND TE.lastupdated >= '")
