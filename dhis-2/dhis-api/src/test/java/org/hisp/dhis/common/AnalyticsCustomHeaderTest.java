@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +53,7 @@ class AnalyticsCustomHeaderTest {
 
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
 
-    assertEquals("StageUid123.EVENT_DATE", header.key());
+    assertEquals("StageUid123.eventdate", header.key());
     assertEquals("Visit Date, First Visit", header.value());
   }
 
@@ -62,9 +61,8 @@ class AnalyticsCustomHeaderTest {
   void forEventDate_withDefaultLabel() {
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
 
-    assertEquals("StageUid123.EVENT_DATE", header.key());
-    assertEquals(
-        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME + ", Test Stage", header.value());
+    assertEquals("StageUid123.eventdate", header.key());
+    assertEquals("Event date, Test Stage", header.value());
   }
 
   @Test
@@ -74,7 +72,7 @@ class AnalyticsCustomHeaderTest {
 
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forScheduledDate(programStage);
 
-    assertEquals("StageUid123.SCHEDULED_DATE", header.key());
+    assertEquals("StageUid123.scheduleddate", header.key());
     assertEquals("Appointment Date, Follow-up", header.value());
   }
 
@@ -82,9 +80,8 @@ class AnalyticsCustomHeaderTest {
   void forScheduledDate_withDefaultLabel() {
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forScheduledDate(programStage);
 
-    assertEquals("StageUid123.SCHEDULED_DATE", header.key());
-    assertEquals(
-        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME + ", Test Stage", header.value());
+    assertEquals("StageUid123.scheduleddate", header.key());
+    assertEquals("Scheduled date, Test Stage", header.value());
   }
 
   @Test
@@ -93,7 +90,7 @@ class AnalyticsCustomHeaderTest {
 
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventStatus(programStage);
 
-    assertEquals("StageUid123.EVENT_STATUS", header.key());
+    assertEquals("StageUid123.eventstatus", header.key());
     assertEquals("Event status, Custom Stage", header.value());
   }
 
@@ -101,7 +98,7 @@ class AnalyticsCustomHeaderTest {
   void forEventStatus_withDefaultStageLabel() {
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventStatus(programStage);
 
-    assertEquals("StageUid123.EVENT_STATUS", header.key());
+    assertEquals("StageUid123.eventstatus", header.key());
     assertEquals("Event status, Test Stage", header.value());
   }
 

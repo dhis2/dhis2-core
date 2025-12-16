@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
@@ -43,30 +42,32 @@ import org.hisp.dhis.program.ProgramStage;
  */
 public record AnalyticsCustomHeader(String key, String value) {
 
+  private static final String EVENT_DATE_HEADER = "eventdate";
+  private static final String SCHEDULED_DATE_HEADER = "scheduleddate";
+  private static final String EVENT_STATUS_HEADER = "eventstatus";
+  private static final String ORG_UNIT_HEADER = "ou";
+
+  private static final String EVENT_DATE_LABEL = "Event date";
+  private static final String SCHEDULED_DATE_LABEL = "Scheduled date";
+  private static final String EVENT_STATUS_LABEL = "Event status";
+  private static final String ORG_UNIT_LABEL = "Organisation unit";
+
   public static AnalyticsCustomHeader forEventDate(ProgramStage programStage) {
-    String label =
-        firstNonNull(
-            programStage.getExecutionDateLabel(),
-            EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
-    var x = create(programStage, "EVENT_DATE", label);
-    System.out.println(x);
-    return x;
+    String label = firstNonNull(programStage.getExecutionDateLabel(), EVENT_DATE_LABEL);
+    return create(programStage, EVENT_DATE_HEADER, label);
   }
 
   public static AnalyticsCustomHeader forScheduledDate(ProgramStage programStage) {
-    String label =
-        firstNonNull(
-            programStage.getDisplayDueDateLabel(),
-            EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
-    return create(programStage, "SCHEDULED_DATE", label);
+    String label = firstNonNull(programStage.getDisplayDueDateLabel(), SCHEDULED_DATE_LABEL);
+    return create(programStage, SCHEDULED_DATE_HEADER, label);
   }
 
   public static AnalyticsCustomHeader forEventStatus(ProgramStage programStage) {
-    return create(programStage, "EVENT_STATUS", "Event status");
+    return create(programStage, EVENT_STATUS_HEADER, EVENT_STATUS_LABEL);
   }
 
   public static AnalyticsCustomHeader forOrgUnit(ProgramStage programStage) {
-    return create(programStage, "ou", "Organisation unit");
+    return create(programStage, ORG_UNIT_HEADER, ORG_UNIT_LABEL);
   }
 
   private static AnalyticsCustomHeader create(

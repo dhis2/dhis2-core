@@ -109,7 +109,7 @@ public class HeaderHelper {
                 item.getProgramStage().getUid(),
                 item.getRepeatableStageParams()));
       } else {
-        String uid = getItemUid(item);
+        String uid = item.hasCustomHeader() ? item.getCustomHeader().key() : getItemUid(item);
         String column = item.getItem().getDisplayProperty(displayProperty);
         String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
 
