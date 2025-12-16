@@ -46,10 +46,10 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +60,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RelationshipOperationParamsMapperTest extends TestBase {
+class RelationshipOperationParamsMapperTest extends TrackerTestBase {
 
   private static final UID TE_UID = UID.of("OBzmpRP6YUh");
 

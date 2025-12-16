@@ -30,6 +30,9 @@
 package org.hisp.dhis.notification;
 
 import static org.hisp.dhis.notification.BaseNotificationMessageRenderer.formatDate;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;

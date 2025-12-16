@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.relationship;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -67,7 +69,7 @@ class RelationshipDeletionHandlerTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityFrom);
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntityTo);
-    Relationship relationship =
+    org.hisp.dhis.relationship.Relationship relationship =
         createTeToTeRelationship(trackedEntityFrom, trackedEntityTo, relationshipType);
     manager.save(relationship);
   }

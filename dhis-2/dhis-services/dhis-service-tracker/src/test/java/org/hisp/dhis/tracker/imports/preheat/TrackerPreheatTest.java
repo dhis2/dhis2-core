@@ -58,19 +58,20 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerPreheatTest extends TestBase {
+class TrackerPreheatTest extends TrackerTestBase {
 
   private TrackerPreheat preheat;
 
@@ -406,8 +407,7 @@ class TrackerPreheatTest extends TestBase {
     UID uid = UID.generate();
     assertFalse(preheat.exists(TrackerType.RELATIONSHIP, uid));
 
-    org.hisp.dhis.relationship.Relationship relationship =
-        new org.hisp.dhis.relationship.Relationship();
+    Relationship relationship = new Relationship();
     relationship.setUid(uid.getValue());
     preheat.putRelationship(relationship);
 

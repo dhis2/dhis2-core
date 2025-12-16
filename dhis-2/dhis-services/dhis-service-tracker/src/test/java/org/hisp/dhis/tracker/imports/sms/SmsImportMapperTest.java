@@ -53,7 +53,6 @@ import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -64,12 +63,13 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
-class SmsImportMapperTest extends TestBase {
+class SmsImportMapperTest extends TrackerTestBase {
   @Test
   void mapEnrollmentWithNewTrackedEntityAndOnlyMandatoryFields() {
     EnrollmentSmsSubmission input = new EnrollmentSmsSubmission();
