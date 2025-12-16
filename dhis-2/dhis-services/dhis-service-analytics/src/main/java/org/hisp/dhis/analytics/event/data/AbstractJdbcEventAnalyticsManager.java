@@ -2572,7 +2572,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               }
             });
 
-    // Process non-repeatable stage filters
+    // Process non-repeatable stage filters (data elements with program stage)
     itemsByRepeatableFlag
         .getOrDefault(NON_REPEATABLE, List.of())
         .forEach(
@@ -3134,15 +3134,25 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             from ${eventTableName} evt
             join ${enrollmentAggrBase} eb on eb.enrollment = evt.enrollment
             where evt.eventstatus != 'SCHEDULE'
-                and evt.ps = '${programStageUid}') evt
+                and evt.ps = '${programStageUid}'${filterConditions}) evt
         where evt.rn = 1
         """;
+
+    // Extract filter conditions if the item has filters
+    String filterConditions = "";
+    if (item.hasFilter()) {
+      String conditions = extractFiltersAsSql(item, "evt." + colName);
+      if (!conditions.isEmpty()) {
+        filterConditions = " and " + conditions;
+      }
+    }
 
     Map<String, String> values = new HashMap<>();
     values.put("colName", colName);
     values.put("eventTableName", eventTableName);
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
+    values.put("filterConditions", filterConditions);
 
     return new StringSubstitutor(values).replace(template);
   }
@@ -3201,8 +3211,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 order by occurreddate ${orderDirection}, created ${orderDirection}
             ) as rn
         from ${eventTableName}
-        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'
+        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'${filterConditions}
         """;
+
+    // Extract filter conditions if the item has filters
+    String filterConditions = "";
+    if (item.hasFilter()) {
+      String conditions = extractFiltersAsSql(item, colName);
+      if (!conditions.isEmpty()) {
+        filterConditions = " and " + conditions;
+      }
+    }
 
     Map<String, String> values = new HashMap<>();
     values.put("colName", colName);
@@ -3210,6 +3229,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("eventTableName", eventTableName);
     values.put("programStageUid", item.getProgramStage().getUid());
     values.put("orderDirection", orderDirection);
+    values.put("filterConditions", filterConditions);
 
     return new StringSubstitutor(values).replace(template);
   }

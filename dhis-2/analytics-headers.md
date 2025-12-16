@@ -1,0 +1,17 @@
+# Analytics headers in event/enrollment analytics
+
+- **Request → params**: The HTTP `headers` query param is parsed into `EventDataQueryRequest.headers` (`dhis-api/src/main/java/org/hisp/dhis/common/EventDataQueryRequest.java`) and copied into `EventQueryParams.headers` via `DefaultEventDataQueryService.withHeaders(request.getHeaders())` (`dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/event/data/DefaultEventDataQueryService.java`). The field is a `LinkedHashSet`, so the client order is preserved.
+
+- **Default header set**:
+  - Event queries use `EventQueryService.createGridWithHeaders` to add the standard event columns (event id, stage, dates, storedBy, created/updated by, scheduled date, enrollment/TEI info, geometry, OU info, program/event status) before adding any dimension/item headers through `HeaderHelper.addCommonHeaders` (`dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/event/data/EventQueryService.java` and `.../tracker/HeaderHelper.java`).
+  - Enrollment queries use `EnrollmentQueryService.createGridWithHeaders` to add enrollment/TEI ids, dates, storedBy/created/updated, geometry, OU info, program status, then `HeaderHelper.addCommonHeaders` for dimensions/items (`dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/event/data/EnrollmentQueryService.java`).
+  - Aggregated enrollments start with only the value column (`EnrollmentAggregateService.createGridWithHeaders`) and then add dimension/item headers via `HeaderHelper.addCommonHeaders` (`dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/event/data/EnrollmentAggregateService.java`).
+
+- **How the `headers` param filters returned fields**:
+  - At the end of the services, `ResponseHelper.applyHeaders` is called for events, enrollments, and aggregated enrollments. It checks `params.hasHeaders()` and, if set, calls `grid.retainColumns(params.getHeaders())` (`dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/tracker/ResponseHelper.java`).
+  - `ListGrid.retainColumns` drops any grid columns not listed and then reorders the remaining columns to match the client-supplied header order (`dhis-support/dhis-support-system/src/main/java/org/hisp/dhis/system/grid/ListGrid.java`). Both the header metadata and the row values for the removed columns are pruned.
+  - For aggregated enrollment queries, SQL generation uses the grid headers to decide which columns to select/group (`getAggregatedEnrollmentsSql(grid.getHeaders(), params)` → `EnrollmentQueryHelper.getHeaderColumns`, `dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/event/data/JdbcEnrollmentAnalyticsManager.java` and `.../EnrollmentQueryHelper.java`). The user-supplied `headers` still prune the grid afterward via `applyHeaders`.
+
+- **How headers appear in the JSON response**:
+  - The `Grid` returned by the services is serialized with a `headers` array derived from the grid’s `GridHeader` list. Because `applyHeaders` runs before returning, that list already contains only the requested columns in the requested order, so the HTTP response’s `headers` section matches the client filter.
+  - For event/enrollment (non-aggregate) queries, `setRowContextColumns` is invoked after `applyHeaders` to realign any row-context metadata with the filtered column indexes (`dhis-services/dhis-service-analytics/src/main/java/org/hisp/dhis/analytics/event/data/EventQueryService.java` and `.../EnrollmentQueryService.java`).

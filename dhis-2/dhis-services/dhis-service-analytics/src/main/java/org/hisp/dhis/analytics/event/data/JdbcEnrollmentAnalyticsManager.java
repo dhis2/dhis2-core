@@ -180,6 +180,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
 
+    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -388,10 +389,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Periods
     // ---------------------------------------------------------------------
 
-    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    // Skip global time field filter when stage-specific date items are present,
+    // as they already include their own date filters with program stage conditions
+    if (!params.hasStageDateItem()) {
+      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
 
-    if (StringUtils.isNotBlank(timeFieldSql)) {
-      sql += hlp.whereAnd() + " " + timeFieldSql;
+      if (StringUtils.isNotBlank(timeFieldSql)) {
+        sql += hlp.whereAnd() + " " + timeFieldSql;
+      }
     }
 
     // ---------------------------------------------------------------------

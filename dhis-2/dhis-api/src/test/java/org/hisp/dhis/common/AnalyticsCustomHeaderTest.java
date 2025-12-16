@@ -104,4 +104,22 @@ class AnalyticsCustomHeaderTest {
     assertEquals("StageUid123.EVENT_STATUS", header.key());
     assertEquals("Event status, Test Stage", header.value());
   }
+
+  @Test
+  void forOrgUnit_withCustomStageLabel() {
+    programStage.setProgramStageLabel("Custom Stage");
+
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forOrgUnit(programStage);
+
+    assertEquals("StageUid123.ou", header.key());
+    assertEquals("Organisation unit, Custom Stage", header.value());
+  }
+
+  @Test
+  void forOrgUnit_withDefaultStageLabel() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forOrgUnit(programStage);
+
+    assertEquals("StageUid123.ou", header.key());
+    assertEquals("Organisation unit, Test Stage", header.value());
+  }
 }

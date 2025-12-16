@@ -48,7 +48,9 @@ public record AnalyticsCustomHeader(String key, String value) {
         firstNonNull(
             programStage.getExecutionDateLabel(),
             EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
-    return create(programStage, "EVENT_DATE", label);
+    var x = create(programStage, "EVENT_DATE", label);
+    System.out.println(x);
+    return x;
   }
 
   public static AnalyticsCustomHeader forScheduledDate(ProgramStage programStage) {
@@ -61,6 +63,10 @@ public record AnalyticsCustomHeader(String key, String value) {
 
   public static AnalyticsCustomHeader forEventStatus(ProgramStage programStage) {
     return create(programStage, "EVENT_STATUS", "Event status");
+  }
+
+  public static AnalyticsCustomHeader forOrgUnit(ProgramStage programStage) {
+    return create(programStage, "ou", "Organisation unit");
   }
 
   private static AnalyticsCustomHeader create(
