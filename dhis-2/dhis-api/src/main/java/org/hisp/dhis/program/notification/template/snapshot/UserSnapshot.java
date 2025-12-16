@@ -27,16 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.program.notification.snapshot;
+package org.hisp.dhis.program.notification.template.snapshot;
 
-import java.util.HashSet;
-import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class UserGroupSnapshot extends IdentifiableObjectSnapshot {
-  private Set<UserSnapshot> members = new HashSet<>();
+public class UserSnapshot extends IdentifiableObjectSnapshot {
+  private String name;
+
+  private String username;
+
+  private String email;
+
+  private String phoneNumber;
 }
