@@ -83,7 +83,7 @@
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
-    <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
+    <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
     <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
     <cargo-maven2-plugin.version>1.8.5</cargo-maven2-plugin.version>
 
@@ -129,10 +129,10 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.11.2</c3p0.version>
     <HikariCP.version>7.0.2</HikariCP.version>
-    <postgresql-driver.version>42.7.7</postgresql-driver.version>
+    <postgresql-driver.version>42.7.8</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
-    <mysql-connector-j.version>9.4.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.5.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.9.2</clickhouse-jdbc.version>
 
     <!-- Servlet -->
@@ -220,7 +220,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.13.4</junit.version>
+    <junit.version>6.0.1</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
@@ -241,7 +241,7 @@
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-    <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+    <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.0</restrict-imports-enforcer.version>
