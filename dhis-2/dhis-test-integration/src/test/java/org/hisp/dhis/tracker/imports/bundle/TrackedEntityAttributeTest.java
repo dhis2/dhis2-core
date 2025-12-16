@@ -207,13 +207,13 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetSkipIndividualAnalyticsFlagFromImportOrDefaultToFalseIfNotSpecified() {
+  void shouldSetSkipAnalyticsFlagFromImportOrDefaultToFalseIfNotSpecified() {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
-    assertSkipIndividualAnalytics(trackedEntityAttributes, "sTGqP5JNy6E", true);
-    assertSkipIndividualAnalytics(trackedEntityAttributes, "sYn3tkL3XKa", false);
-    assertSkipIndividualAnalytics(trackedEntityAttributes, "TsfP85GKsU5", false);
+    assertSkipAnalytics(trackedEntityAttributes, "sTGqP5JNy6E", true);
+    assertSkipAnalytics(trackedEntityAttributes, "sYn3tkL3XKa", false);
+    assertSkipAnalytics(trackedEntityAttributes, "TsfP85GKsU5", false);
   }
 
   private void assertMinCharactersToSearch(
@@ -291,7 +291,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         "Expected trigram indexable flag for UID " + uid + " to be " + expected);
   }
 
-  private void assertSkipIndividualAnalytics(
+  private void assertSkipAnalytics(
       List<TrackedEntityAttribute> attributeValues, String uid, boolean expected) {
     TrackedEntityAttribute tea =
         attributeValues.stream()
@@ -302,7 +302,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         expected,
-        tea.isSkipIndividualAnalytics(),
+        tea.isSkipAnalytics(),
         "Expected skip individual analytics flag for UID " + uid + " to be " + expected);
   }
 }

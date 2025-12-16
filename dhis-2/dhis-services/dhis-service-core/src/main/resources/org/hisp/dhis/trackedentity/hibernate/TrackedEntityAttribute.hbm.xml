@@ -103,7 +103,7 @@
 
     <property name="trigramIndexable" column="trigramindexable" not-null="true" />
 
-    <property name="skipIndividualAnalytics" column="skipindividualanalytics"/>
+    <property name="skipAnalytics" column="skipanalytics"/>
 
   </class>
 
