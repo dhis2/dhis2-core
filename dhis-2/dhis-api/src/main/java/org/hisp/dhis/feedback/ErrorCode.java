@@ -357,6 +357,8 @@ public enum ErrorCode {
   E4085("Program is required for tracker data synchronization job"),
   E4086("Program `{0}` does not exist"),
   E4087("Program `{0}` must be of type `{1}`"),
+  E4088(
+      "The operator(s) `{0}` cannot be blocked. The following operators cannot be blocked: `{1}`."),
 
   /* SQL views */
   E4300("SQL query is null"),

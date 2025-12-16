@@ -29,10 +29,19 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.QueryOperator.LE;
+import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
 
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -46,6 +55,8 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook")
 public class TrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook<TrackedEntityAttribute> {
+
+  private static final Set<QueryOperator> NON_BLOCKABLE_OPERATORS = Set.of(EQ, IN, GE, GT, LT, LE);
 
   /**
    * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
@@ -74,6 +85,20 @@ public class TrackedEntityAttributeObjectBundleHook
       }
     }
 
+    List<QueryOperator> providedNonBlockableOperators =
+        attr.getBlockedSearchOperators().stream()
+            .filter(NON_BLOCKABLE_OPERATORS::contains)
+            .sorted()
+            .toList();
+    if (!providedNonBlockableOperators.isEmpty()) {
+      addReports.accept(
+          new ErrorReport(
+              TrackedEntityAttribute.class,
+              ErrorCode.E4088,
+              providedNonBlockableOperators,
+              NON_BLOCKABLE_OPERATORS));
+    }
+
     if (attr.getPreferredSearchOperator() != null) {
       if (!getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
         addReports.accept(
@@ -84,7 +109,7 @@ public class TrackedEntityAttributeObjectBundleHook
                 getTrackerOperators()));
       }
 
-      if (attr.getBlockedSearchOperators() != null
+      if (providedNonBlockableOperators.isEmpty()
           && attr.getBlockedSearchOperators().contains(attr.getPreferredSearchOperator())) {
         addReports.accept(
             new ErrorReport(

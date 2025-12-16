@@ -31,13 +31,9 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
-import static org.hisp.dhis.common.QueryOperator.GE;
 import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
-import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
-import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.SW;
@@ -50,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -171,7 +168,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   void shouldFailIfPreferredOperatorIsBlocked() {
     TrackedEntityAttribute tea =
         trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
-    tea.setPreferredSearchOperator(IN);
+    tea.setPreferredSearchOperator(NNULL);
 
     ImportReport report =
         metadataImportService.importMetadata(
@@ -180,7 +177,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(Status.ERROR, report.getStatus());
     assertStartsWith(
-        "The preferred search operator `IN` is blocked for the selected tracked entity attribute",
+        "The preferred search operator `NNULL` is blocked for the selected tracked entity attribute",
         getErrorMessage(report));
   }
 
@@ -189,10 +186,8 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
-    assertBlockedOperators(
-        trackedEntityAttributes, "sTGqP5JNy6E", List.of(LE, GE, EW, IN, SW, NULL, NNULL));
-    assertBlockedOperators(
-        trackedEntityAttributes, "sYn3tkL3XKa", List.of(IN, NNULL, GT, LT, SW, LE, EW, NULL, GE));
+    assertBlockedOperators(trackedEntityAttributes, "sTGqP5JNy6E", List.of(EW, SW, NULL, NNULL));
+    assertBlockedOperators(trackedEntityAttributes, "sYn3tkL3XKa", List.of(NNULL, SW, EW, NULL));
     assertIsEmpty(getAttribute(trackedEntityAttributes, "TsfP85GKsU5").getBlockedSearchOperators());
   }
 
@@ -204,6 +199,23 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertTrigramIndexableFlag(trackedEntityAttributes, "sTGqP5JNy6E", true);
     assertTrigramIndexableFlag(trackedEntityAttributes, "sYn3tkL3XKa", false);
     assertTrigramIndexableFlag(trackedEntityAttributes, "TsfP85GKsU5", false);
+  }
+
+  @Test
+  void shouldFailWhenTryingToBlockANonBlockableOperator() {
+    TrackedEntityAttribute tea =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    tea.setBlockedSearchOperators(Set.of(EQ, GT));
+
+    ImportReport report =
+        metadataImportService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
+
+    assertEquals(Status.ERROR, report.getStatus());
+    assertStartsWith(
+        "The operator(s) `[EQ, GT]` cannot be blocked. The following operators cannot be blocked:",
+        getErrorMessage(report));
   }
 
   private void assertMinCharactersToSearch(
