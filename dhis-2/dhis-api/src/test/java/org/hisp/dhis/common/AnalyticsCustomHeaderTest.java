@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.program.ProgramStage;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,13 +47,21 @@ class AnalyticsCustomHeaderTest {
   }
 
   @Test
+  void constructor_createsHeaderWithKeyAndValue() {
+    AnalyticsCustomHeader header = new AnalyticsCustomHeader("testKey", "testValue");
+
+    assertEquals("testKey", header.key());
+    assertEquals("testValue", header.value());
+  }
+
+  @Test
   void forEventDate_withCustomLabel() {
     programStage.setExecutionDateLabel("Visit Date");
     programStage.setProgramStageLabel("First Visit");
 
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
 
-    assertEquals("StageUid123.eventdate", header.key());
+    assertEquals("StageUid123.EVENT_DATE", header.key());
     assertEquals("Visit Date, First Visit", header.value());
   }
 
@@ -61,7 +69,7 @@ class AnalyticsCustomHeaderTest {
   void forEventDate_withDefaultLabel() {
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
 
-    assertEquals("StageUid123.eventdate", header.key());
+    assertEquals("StageUid123.EVENT_DATE", header.key());
     assertEquals("Event date, Test Stage", header.value());
   }
 
@@ -72,7 +80,7 @@ class AnalyticsCustomHeaderTest {
 
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forScheduledDate(programStage);
 
-    assertEquals("StageUid123.scheduleddate", header.key());
+    assertEquals("StageUid123.SCHEDULED_DATE", header.key());
     assertEquals("Appointment Date, Follow-up", header.value());
   }
 
@@ -80,7 +88,7 @@ class AnalyticsCustomHeaderTest {
   void forScheduledDate_withDefaultLabel() {
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forScheduledDate(programStage);
 
-    assertEquals("StageUid123.scheduleddate", header.key());
+    assertEquals("StageUid123.SCHEDULED_DATE", header.key());
     assertEquals("Scheduled date, Test Stage", header.value());
   }
 
@@ -90,7 +98,7 @@ class AnalyticsCustomHeaderTest {
 
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventStatus(programStage);
 
-    assertEquals("StageUid123.eventstatus", header.key());
+    assertEquals("StageUid123.EVENT_STATUS", header.key());
     assertEquals("Event status, Custom Stage", header.value());
   }
 
@@ -98,7 +106,7 @@ class AnalyticsCustomHeaderTest {
   void forEventStatus_withDefaultStageLabel() {
     AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventStatus(programStage);
 
-    assertEquals("StageUid123.eventstatus", header.key());
+    assertEquals("StageUid123.EVENT_STATUS", header.key());
     assertEquals("Event status, Test Stage", header.value());
   }
 
@@ -118,5 +126,158 @@ class AnalyticsCustomHeaderTest {
 
     assertEquals("StageUid123.ou", header.key());
     assertEquals("Organisation unit, Test Stage", header.value());
+  }
+
+  @Test
+  void headerKey_withPrefixAndMappedKey() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("StageUid123.EVENT_DATE");
+
+    assertEquals("StageUid123.eventdate", result);
+  }
+
+  @Test
+  void headerKey_withPrefixAndUnmappedKey() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("StageUid123.UNKNOWN_KEY");
+
+    assertEquals("StageUid123.UNKNOWN_KEY", result);
+  }
+
+  @Test
+  void headerKey_withoutPrefixAndMappedKey() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("EVENT_DATE");
+
+    assertEquals("eventdate", result);
+  }
+
+  @Test
+  void headerKey_withoutPrefixAndUnmappedKey() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("UNKNOWN_KEY");
+
+    assertEquals("UNKNOWN_KEY", result);
+  }
+
+  @Test
+  void headerKey_withScheduledDate() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forScheduledDate(programStage);
+
+    String result = header.headerKey("StageUid123.SCHEDULED_DATE");
+
+    assertEquals("StageUid123.scheduleddate", result);
+  }
+
+  @Test
+  void headerKey_withEventStatus() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventStatus(programStage);
+
+    String result = header.headerKey("StageUid123.EVENT_STATUS");
+
+    assertEquals("StageUid123.eventstatus", result);
+  }
+
+  @Test
+  void headerKey_withOrgUnit() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forOrgUnit(programStage);
+
+    String result = header.headerKey("StageUid123.ou");
+
+    assertEquals("StageUid123.ou", result);
+  }
+
+  // Edge cases for headerKey
+  @Test
+  void headerKey_withEmptyString() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("");
+
+    assertEquals("", result);
+  }
+
+  @Test
+  void headerKey_withMultipleDots() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("prefix.middle.EVENT_DATE");
+
+    assertEquals("prefix.middle.EVENT_DATE", result);
+  }
+
+  @Test
+  void headerKey_withDotAtBeginning() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey(".EVENT_DATE");
+
+    assertEquals(".eventdate", result);
+  }
+
+  @Test
+  void headerKey_withDotAtEnd() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    String result = header.headerKey("prefix.");
+
+    assertEquals("prefix.", result);
+  }
+
+  @Test
+  void headerKey_withNull() {
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    assertThrows(NullPointerException.class, () -> header.headerKey(null));
+  }
+
+  // Record equality and hashCode
+  @Test
+  void equals_sameValues_returnsTrue() {
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value");
+
+    assertEquals(header1, header2);
+    assertEquals(header1.hashCode(), header2.hashCode());
+  }
+
+  @Test
+  void equals_differentKeys_returnsFalse() {
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key1", "value");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key2", "value");
+
+    assertNotEquals(header1, header2);
+  }
+
+  @Test
+  void equals_differentValues_returnsFalse() {
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value1");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value2");
+
+    assertNotEquals(header1, header2);
+  }
+
+  // Null handling in factory methods
+  @Test
+  void forEventDate_withNullName_usesProgramStageName() {
+    programStage.setProgramStageLabel(null);
+
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forEventDate(programStage);
+
+    assertEquals("Event date, Test Stage", header.value());
+  }
+
+  @Test
+  void forScheduledDate_withNullLabels_usesDefaults() {
+    programStage.setDueDateLabel(null);
+    programStage.setProgramStageLabel(null);
+
+    AnalyticsCustomHeader header = AnalyticsCustomHeader.forScheduledDate(programStage);
+
+    assertEquals("Scheduled date, Test Stage", header.value());
   }
 }
