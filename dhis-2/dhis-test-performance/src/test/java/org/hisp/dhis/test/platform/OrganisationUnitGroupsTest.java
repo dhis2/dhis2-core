@@ -34,8 +34,6 @@ import static io.gatling.javaapi.http.HttpDsl.*;
 
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Simulation that tests the /api/organisationUnitGroups endpoint in multiple ways:
@@ -49,7 +47,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OrganisationUnitGroupsTest extends Simulation {
 
-  public static final Logger logger = LoggerFactory.getLogger(OrganisationUnitGroupsTest.class);
   public static final String BASE_URL = "http://localhost:8080";
   private static final String GET_ORG_UNIT_GROUPS = "GET Organisation Unit Groups";
   private static final String GET_ORG_UNIT_GROUPS_ALL_FIELDS =
@@ -65,21 +62,19 @@ public class OrganisationUnitGroupsTest extends Simulation {
   }
 
   public OrganisationUnitGroupsTest() {
-    // setup http protocol
+    // http protocol
     HttpProtocolBuilder httpProtocol =
         http.baseUrl(BASE_URL)
             .acceptHeader("application/json")
             .warmUp(BASE_URL + "/api/ping")
             .disableCaching();
 
-    // user feeder
-    logger.debug("creating user feeder");
+    // virtual user feeder
     FeederBuilder<Object> circularUserFeeder =
         UserFeeder.createUserFeederFromFile(
             "platform/superuser-data-sl-db.json", UserFeeder.Strategy.CIRCULAR);
 
-    // setup scenarios
-    logger.debug("Building scenarios");
+    // scenarios
     ScenarioBuilder getOrgUnitGroupsScenario =
         scenario(GET_ORG_UNIT_GROUPS)
             .feed(circularUserFeeder)
@@ -101,10 +96,10 @@ public class OrganisationUnitGroupsTest extends Simulation {
                         .basicAuth("#{username}", "#{password}"))
                     .pause(1));
 
-    // how users should enter the tests
+    // how users should enter the scenarios
     ClosedInjectionStep closedInjection = rampConcurrentUsers(0).to(5).during(10);
 
-    // setup simulation with scenarios, users, protocol and assertions
+    // final setup, bringing all parts together (scenarios, injection, protocol, assertions)
     setUp(
             getOrgUnitGroupsScenario.injectClosed(closedInjection),
             getOrgUnitGroupsAllFieldsScenario.injectClosed(closedInjection))
