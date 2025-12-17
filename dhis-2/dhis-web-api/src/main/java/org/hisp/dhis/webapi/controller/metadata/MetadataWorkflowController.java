@@ -40,14 +40,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.gist.GistPager;
-import org.hisp.dhis.gist.GistParams;
+import org.hisp.dhis.gist.GistObjectListParams;
+import org.hisp.dhis.gist.GistObjectParams;
 import org.hisp.dhis.metadata.MetadataAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
@@ -86,15 +87,17 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
 
   private final MetadataWorkflowService service;
 
+  @OpenApi.Response(MetadataProposal.class)
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposal(@PathVariable("uid") String uid, GistParams params)
+  public void getProposal(@PathVariable("uid") UID uid, GistObjectParams params, HttpServletResponse response)
       throws NotFoundException, BadRequestException {
-    return getObjectGist(uid, params);
+    getObjectGist(uid, params, response);
   }
 
+  @OpenApi.Response(MetadataProposal[].class)
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
-  public void getProposals(GistParams params, HttpServletRequest request, HttpServletResponse response)
-      throws BadRequestException, IOException {
+  public void getProposals(GistObjectListParams params, HttpServletRequest request, HttpServletResponse response)
+      throws BadRequestException {
     getObjectListGist(params, request, response);
   }
 

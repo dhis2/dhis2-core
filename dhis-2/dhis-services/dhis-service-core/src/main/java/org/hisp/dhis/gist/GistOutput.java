@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.gist;
 
-import static org.hisp.dhis.json.JsonOutputUtils.addAsJsonObjects;
+import static org.hisp.dhis.json.JsonStreamOutput.addArrayElements;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,16 +42,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CsvBuilder;
-import org.hisp.dhis.json.JsonOutputUtils.JsonObjectAdder;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
+import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
 import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
@@ -66,25 +68,71 @@ public final class GistOutput {
 
   private static final JsonBuilder.PrettyPrint LIST_FORMAT =
       new JsonBuilder.PrettyPrint(0, 0, false, true, true);
+
+  public static void toCsv(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
+    try (PrintWriter csv = new PrintWriter(out)) {
+      new CsvBuilder(csv).toRows(obj.paths(), Stream.of(obj.values()));
+    }
+  }
+
+  public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
+    try (PrintWriter csv = new PrintWriter(out)) {
+      new CsvBuilder(csv)
+          .skipHeaders(list.headless())
+          .toRows(list.paths(), list.values());
+    }
+  }
+
+  public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
+    List<String> paths = obj.paths();
+    //TODO write object
+  }
+
+  public static void toJson(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
+    List<String> paths = list.paths();
+    List<AddMember<Object>> adders = toAdders(null);
+    Stream<IntFunction<Object>> values = list.values().map(arr -> (i -> arr[i]));
+    if (list.headless()) {
+      JsonBuilder.streamArray(
+          LIST_FORMAT, out, arr -> addArrayElements(arr, paths, adders, values));
+      return;
+    }
+    GistPager pager = list.pager();
+    JsonBuilder.streamObject(
+        LIST_FORMAT,
+        out,
+        obj -> {
+          if (pager != null)
+            obj.addObject(
+                "pager",
+                p -> {
+                  p.addNumber("page", pager.page());
+                  p.addNumber("pageSize", pager.pageSize());
+                  p.addNumber("total", pager.total());
+                  p.addNumber("pageCount", pager.getPageCount());
+                  p.addString("prevPage", pager.prevPage());
+                  p.addString("nextPage", pager.nextPage());
+                });
+          obj.addArray(list.collectionName(), arr -> addArrayElements(arr, paths, adders, values));
+        });
+  }
+
+  /*
+  Implementation of value type conversion
+   */
+
   private static final ObjectMapper FALLBACK_MAPPER = new ObjectMapper();
 
-  private static final Map<Class<?>, JsonObjectAdder<Object[]>> ADDERS_BY_TYPE =
+  private static final Map<Class<?>, AddMember<Object>> ADDERS_BY_TYPE =
       new ConcurrentHashMap<>();
 
   private static <T> void register(Class<T> type, Function<? super T, String> toString) {
     register(type, (obj, name, value) -> obj.addString(name, toString.apply(value)));
   }
 
-  private static <T> void register(Class<T> type, BiConsumer<T, JsonObjectBuilder> toObj) {
-    register(type, (obj, name, value) -> obj.addObject(name, o -> toObj.accept(value, o)));
-  }
-
-  private static <T> void register(Class<T> type, JsonObjectBuilder.AddMember<? super T> adder) {
-    register(type, (e, name, i, obj) -> adder.add(obj, name, type.cast(e[i])));
-  }
-
-  private static <T> void register(Class<T> type, JsonObjectAdder<Object[]> adder) {
-    ADDERS_BY_TYPE.put(type, adder);
+  private static <T> void register(Class<T> type, AddMember<? super T> adder) {
+    AddMember<Object> castAdder = (obj, name, val) -> adder.add(obj, name, type.cast(val));
+    ADDERS_BY_TYPE.put(type, castAdder);
   }
 
   static {
@@ -104,54 +152,17 @@ public final class GistOutput {
     register(float.class, JsonObjectBuilder::addNumber);
     register(Boolean.class, JsonObjectBuilder::addBoolean);
     register(boolean.class, JsonObjectBuilder::addBoolean);
-    register(JsonBuilder.JsonEncodable.class, GistOutput::addJsonEncodable);
+    register(JsonBuilder.JsonEncodable.class, JsonObjectBuilder::addMember);
     register(Object.class, GistOutput::addJacksonMapped);
   }
 
-  public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
-    try (PrintWriter csv = new PrintWriter(out)) {
-      new CsvBuilder(csv)
-        .skipHeaders(list.headless())
-        .toRows(list.paths(), list.values());
-    }
-  }
-
-  public static void toJson(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
-    List<String> paths = list.paths();
-    List<JsonObjectAdder<Object[]>> adders = toAdders(list.valueTypes());
-    Stream<Object[]> values = list.values();
-    if (list.headless()) {
-      JsonBuilder.streamArray(
-          LIST_FORMAT, out, arr -> addAsJsonObjects(paths, adders, values, arr));
-      return;
-    }
-    GistPager pager = list.pager();
-    JsonBuilder.streamObject(
-        LIST_FORMAT,
-        out,
-        obj -> {
-          if (pager != null)
-            obj.addObject(
-                "pager",
-                p -> {
-                  p.addNumber("page", pager.page());
-                  p.addNumber("pageSize", pager.pageSize());
-                  p.addNumber("total", pager.total());
-                  p.addNumber("pageCount", pager.getPageCount());
-                  p.addString("prevPage", pager.prevPage());
-                  p.addString("nextPage", pager.nextPage());
-                });
-          obj.addArray(list.collectionName(), arr -> addAsJsonObjects(paths, adders, values, arr));
-        });
-  }
-
-  private static List<JsonObjectAdder<Object[]>> toAdders(List<GistObjectList.Type> valueTypes) {
+  private static List<AddMember<Object>> toAdders(List<ObjectOutput.Type> valueTypes) {
     return valueTypes.stream().map(GistOutput::toAdder).toList();
   }
 
-  private static JsonObjectAdder<Object[]> toAdder(GistObjectList.Type valueType) {
+  private static AddMember<Object> toAdder(ObjectOutput.Type valueType) {
     Class<?> type = valueType.rawType();
-    JsonObjectAdder<Object[]> adder = ADDERS_BY_TYPE.get(type);
+    AddMember<Object> adder = ADDERS_BY_TYPE.get(type);
     if (adder != null) return adder;
     if (type.isEnum()) return ADDERS_BY_TYPE.get(Enum.class);
     if (JsonBuilder.JsonEncodable.class.isAssignableFrom(type))
@@ -174,22 +185,15 @@ public final class GistOutput {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T, E> JsonObjectAdder<Object[]> toAdder(
+  private static <T, E> AddMember<Object> toAdder(
       Class<T> elementType,
       Function<Collection<T>, E[]> map,
       BiConsumer<JsonBuilder.JsonArrayBuilder, E[]> add) {
-    return (e, name, i, obj) ->
-        obj.addArray(name, arr -> add.accept(arr, map.apply((Collection<T>) e[i])));
+    return (obj, name, val) ->
+        obj.addArray(name, arr -> add.accept(arr, map.apply((Collection<T>) val)));
   }
 
-  private static void addJsonEncodable(
-      Object[] data, String name, int valueAt, JsonObjectBuilder obj) {
-    obj.addMember(name, (JsonBuilder.JsonEncodable) data[valueAt]);
-  }
-
-  private static void addJacksonMapped(
-      Object[] data, String name, int valueAt, JsonObjectBuilder obj) {
-    Object value = data[valueAt];
+  private static void addJacksonMapped(JsonObjectBuilder obj, String name, Object value) {
     try {
       String json = FALLBACK_MAPPER.writeValueAsString(value);
       obj.addMember(name, JsonNode.of(json));

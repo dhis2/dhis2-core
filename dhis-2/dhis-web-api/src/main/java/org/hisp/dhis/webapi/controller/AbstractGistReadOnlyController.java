@@ -30,10 +30,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Comparator.comparing;
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.getRequestURL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.getRootPath;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -48,12 +46,10 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+
 import lombok.Value;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
@@ -64,9 +60,11 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.gist.GistAutoType;
+import org.hisp.dhis.gist.GistObject;
 import org.hisp.dhis.gist.GistObjectList;
+import org.hisp.dhis.gist.GistObjectParams;
 import org.hisp.dhis.gist.GistPager;
-import org.hisp.dhis.gist.GistParams;
+import org.hisp.dhis.gist.GistObjectListParams;
 import org.hisp.dhis.gist.GistPipeline;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -74,7 +72,6 @@ import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.gist.GistService;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -98,10 +95,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.EntityType(OpenApi.EntityType.class)
 @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject> {
+
   @Autowired protected ObjectMapper jsonMapper;
-
   @Autowired protected SchemaService schemaService;
-
   @Autowired private GistService gistService;
   @Autowired private GistPipeline gistPipeline;
 
@@ -110,14 +106,12 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   // --------------------------------------------------------------------------
 
   @OpenApi.Response(value = OpenApi.EntityType.class)
-  @GetMapping(value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid, GistParams params)
+  @GetMapping(value = "/{uid}/gist", produces = "application/json")
+  public void getObjectGist(
+      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid, GistObjectParams params, HttpServletResponse response)
       throws NotFoundException, BadRequestException {
-    return gistToJsonObjectResponse(
-        uid,
-        createGistQuery(params, getEntityClass(), GistAutoType.L)
-            .withFilter(new Filter("id", Comparison.EQ, uid)));
+    GistObject.Input input = new GistObject.Input(getEntityClass(), uid, params);
+    gistPipeline.exportAsJson(input, lazyOutputStream("application/json", response));
   }
 
   @OpenApi.Response(String.class)
@@ -125,17 +119,11 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       value = {"/{uid}/gist", "/{uid}/gist.csv"},
       produces = "text/csv")
   public void getObjectGistAsCsv(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      GistParams params,
-      HttpServletResponse response)
-      throws IOException, BadRequestException {
-    gistToCsvResponse(
-        response,
-        createGistQuery(params, getEntityClass(), GistAutoType.L)
-            .withFilter(new Filter("id", Comparison.EQ, uid))
-            .toBuilder()
-            .typedAttributeValues(false)
-            .build());
+      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
+      GistObjectParams params,  HttpServletResponse response)
+      throws BadRequestException, NotFoundException {
+    GistObject.Input input = new GistObject.Input(getEntityClass(), uid, params);
+    gistPipeline.exportAsCsv(input, lazyOutputStream("text/csv", response));
   }
 
   @Value
@@ -148,34 +136,78 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   }
 
   @OpenApi.Response({GistListResponse.class, OpenApi.EntityType[].class})
-  @GetMapping(value = "/gist", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody void getObjectListGist(
-      GistParams params, HttpServletRequest request, HttpServletResponse response)
+  @GetMapping(value = "/gist", produces = "application/json")
+  public void getObjectListGist(
+      GistObjectListParams params, HttpServletRequest request, HttpServletResponse response)
       throws BadRequestException {
-    GistObjectList.Input listInput =
+    GistObjectList.Input input =
         new GistObjectList.Input(
-            getEntityClass(),
-            GistAutoType.S,
-            ContextUtils.getRootPath(request),
-            ContextUtils.getRequestURL(),
-            params);
-    gistPipeline.listAsJson(listInput, lazyOutputStream(CONTENT_TYPE_JSON, response));
+            getEntityClass(), getRootPath(request), getRequestURL(request), params);
+    gistPipeline.exportAsJson(input, lazyOutputStream("application/json", response));
   }
 
   @OpenApi.Response(value = String.class)
   @GetMapping(
       value = {"/gist", "/gist.csv"},
       produces = "text/csv")
-  public void getObjectListGistAsCsv(GistParams params, HttpServletRequest request, HttpServletResponse response)
+  public void getObjectListGistAsCsv(GistObjectListParams params, HttpServletRequest request, HttpServletResponse response)
       throws BadRequestException {
-    GistObjectList.Input listInput =
+    GistObjectList.Input input =
         new GistObjectList.Input(
-            getEntityClass(),
-            GistAutoType.S,
-            ContextUtils.getRootPath(request),
-            ContextUtils.getRequestURL(),
-            params);
-    gistPipeline.listAsCsv(listInput, lazyOutputStream(CONTENT_TYPE_CSV, response));
+            getEntityClass(), getRootPath(request), getRequestURL(request), params);
+    gistPipeline.exportAsCsv(input, lazyOutputStream("text/csv", response));
+  }
+
+  @OpenApi.Response(JsonValue.class)
+  @GetMapping(value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
+      GistObjectListParams params,
+      HttpServletRequest request)
+      throws BadRequestException, NotFoundException {
+    Property objProperty = getSchema().getProperty(property);
+    if (objProperty == null) {
+      throw new BadRequestException("No such property: " + property);
+    }
+
+    if (!objProperty.isCollection()
+        || !PrimaryKeyObject.class.isAssignableFrom(objProperty.getItemKlass())) {
+      // basically same as object list with fields=<property>
+      return gistToJsonObjectResponse(
+          uid,
+          createGistQuery(params, getEntityClass(), GistAutoType.L)
+              .withFilter(new Filter("id", Comparison.EQ, uid))
+              .addField(property));
+    }
+
+    // whereas a collection of an identifiable object lists the collection itself
+    return gistToJsonArrayResponse(
+        request,
+        params,
+        createPropertyQuery(uid, property, params, objProperty),
+        schemaService.getDynamicSchema(objProperty.getItemKlass()));
+  }
+
+  @OpenApi.Response(String.class)
+  @GetMapping(
+      value = {"/{uid}/{property}/gist", "/{uid}/{property}/gist.csv"},
+      produces = "text/csv")
+  public void getObjectPropertyGistAsCsv(
+      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
+      GistObjectListParams params,
+      HttpServletResponse response)
+      throws BadRequestException, IOException {
+    Property objProperty = getSchema().getProperty(property);
+    if (objProperty == null) {
+      throw new BadRequestException("No such property: " + property);
+    }
+    gistToCsvResponse(
+        response,
+        createPropertyQuery(uid, property, params, objProperty).toBuilder()
+            .typedAttributeValues(false)
+            .build());
   }
 
   /**
@@ -195,63 +227,11 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     };
   }
 
-  @OpenApi.Response(JsonValue.class)
-  @GetMapping(value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
-      GistParams params,
-      HttpServletRequest request)
-      throws BadRequestException, NotFoundException {
-    Property objProperty = getSchema().getProperty(property);
-    if (objProperty == null) {
-      throw new BadRequestException("No such property: " + property);
-    }
-
-    if (!objProperty.isCollection()
-        || !PrimaryKeyObject.class.isAssignableFrom(objProperty.getItemKlass())) {
-      // basically same as object list with fields=<property>
-      return gistToJsonObjectResponse(
-          uid,
-          createGistQuery(params, getEntityClass(), GistAutoType.L)
-              .withFilter(new Filter("id", Comparison.EQ, uid))
-              .withField(property));
-    }
-
-    // whereas a collection of an identifiable object lists the collection itself
-    return gistToJsonArrayResponse(
-        request,
-        params,
-        createPropertyQuery(uid, property, params, objProperty),
-        schemaService.getDynamicSchema(objProperty.getItemKlass()));
-  }
-
-  @OpenApi.Response(String.class)
-  @GetMapping(
-      value = {"/{uid}/{property}/gist", "/{uid}/{property}/gist.csv"},
-      produces = "text/csv")
-  public void getObjectPropertyGistAsCsv(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
-      GistParams params,
-      HttpServletResponse response)
-      throws BadRequestException, IOException {
-    Property objProperty = getSchema().getProperty(property);
-    if (objProperty == null) {
-      throw new BadRequestException("No such property: " + property);
-    }
-    gistToCsvResponse(
-        response,
-        createPropertyQuery(uid, property, params, objProperty).toBuilder()
-            .typedAttributeValues(false)
-            .build());
-  }
-
   @SuppressWarnings("unchecked")
   private GistQuery createPropertyQuery(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
       @PathVariable("property") String property,
-      GistParams params,
+      GistObjectListParams params,
       Property objProperty)
       throws BadRequestException {
     return createGistQuery(
@@ -261,7 +241,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   }
 
   private GistQuery createGistQuery(
-      GistParams params, Class<? extends PrimaryKeyObject> elementType, GistAutoType autoDefault)
+      GistObjectListParams params, Class<? extends PrimaryKeyObject> elementType, GistAutoType autoDefault)
       throws BadRequestException {
     Locale translationLocale =
         !params.getLocale().isEmpty()
@@ -270,8 +250,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     return GistQuery.builder()
         .elementType(elementType)
         .autoType(params.getAuto(autoDefault))
-        .contextRoot(ContextUtils.getRootPath(ContextUtils.getRequest()))
-        .requestURL(ContextUtils.getRequestURL())
+        .contextRoot(getRootPath(ContextUtils.getRequest()))
+        .requestURL(getRequestURL())
         .translationLocale(translationLocale)
         .typedAttributeValues(true)
         .build()
@@ -280,9 +260,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
   private ResponseEntity<JsonNode> gistToJsonObjectResponse(String uid, GistQuery query)
       throws NotFoundException {
-    if (query.isDescribe()) {
-      return gistDescribeToJsonObjectResponse(query);
-    }
     query = gistService.plan(query);
     List<?> elements = gistService.gist(query).toList();
     JsonNode body =
@@ -294,10 +271,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   }
 
   private ResponseEntity<JsonNode> gistToJsonArrayResponse(
-      HttpServletRequest request, GistParams params, GistQuery query, Schema schema) {
-    if (query.isDescribe()) {
-      return gistDescribeToJsonObjectResponse(query);
-    }
+      HttpServletRequest request, GistObjectListParams params, GistQuery query, Schema schema) {
     query = gistService.plan(query);
     JsonBuilder responseBuilder = new JsonBuilder(jsonMapper);
     List<String> fieldNames = query.getFieldNames();
@@ -316,12 +290,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
               : responseBuilder.toObject(List.of(property), body);
     }
     return ResponseEntity.ok().cacheControl(noCache().cachePrivate()).body(body);
-  }
-
-  private ResponseEntity<JsonNode> gistDescribeToJsonObjectResponse(GistQuery query) {
-    return ResponseEntity.ok()
-        .cacheControl(noCache().cachePrivate())
-        .body(new JsonBuilder(jsonMapper).skipNullMembers().toObject(gistService.describe(query)));
   }
 
   private void gistToCsvResponse(HttpServletResponse response, GistQuery query) throws IOException {
@@ -345,7 +313,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
           ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments();
       entityClass = (Class<T>) actualTypeArguments[0];
     }
-
     return entityClass;
   }
 

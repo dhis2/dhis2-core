@@ -53,6 +53,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
+import javax.annotation.Nonnull;
+
 /**
  * Description of the gist query that should be run.
  *
@@ -177,7 +179,7 @@ public final class GistQuery {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
-  public GistQuery with(GistParams params) throws BadRequestException {
+  public GistQuery with(GistObjectListParams params) throws BadRequestException {
     int page = abs(params.getPage());
     int size = Math.min(1000, abs(params.getPageSize()));
     boolean tree = params.isOrgUnitsTree();
@@ -198,26 +200,20 @@ public final class GistQuery {
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
         .translate(params.isTranslate())
-        .inverse(params.isInverse())
+        //.inverse(params.isInverse())
         .total(params.isCountTotalPages())
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
-        .describe(params.isDescribe())
         .references(!tree && !offline && params.isReferences())
         .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList())
-        .filters(
-            getStrings(params.getFilter(), FIELD_SPLIT).stream()
-                .map(Filter::parse)
-                .collect(toList()))
-        .orders(getStrings(order, ",").stream().map(Order::parse).toList())
+        .fields(Field.ofList(fields))
+        .filters(Filter.ofList(params.getFilter()))
+        .orders(Order.ofList(order))
         .build();
   }
 
   private static List<String> getStrings(String value, String splitRegex) {
-    if (value == null || value.isEmpty()) {
-      return emptyList();
-    }
+    if (value == null || value.isEmpty()) return List.of();
     return asList(value.split(splitRegex));
   }
 
@@ -226,14 +222,10 @@ public final class GistQuery {
   }
 
   public GistQuery withFilter(Filter filter) {
-    return withAddedItem(filter, getFilters(), GistQueryBuilder::filters);
+    return toBuilder().filters(List.of(filter)).build();
   }
 
-  public GistQuery withOrder(Order order) {
-    return withAddedItem(order, getOrders(), GistQueryBuilder::orders);
-  }
-
-  public GistQuery withField(String path) {
+  public GistQuery addField(String path) {
     return withAddedItem(
         new Field(path, getDefaultTransformation()), getFields(), GistQueryBuilder::fields);
   }
@@ -382,6 +374,11 @@ public final class GistQuery {
       this(propertyPath, transformation, "", null, false, false);
     }
 
+    @Nonnull
+    public static List<Field> ofList(String fields) {
+      return getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList();
+    }
+
     @JsonProperty
     public String getName() {
       return alias.isEmpty() ? propertyPath : alias;
@@ -460,6 +457,11 @@ public final class GistQuery {
       throw new IllegalArgumentException("Not a valid order expression: " + order);
     }
 
+    @Nonnull
+    public static List<Order> ofList(String order) {
+      return getStrings(order, ",").stream().map(Order::parse).toList();
+    }
+
     @Override
     public String toString() {
       return propertyPath + " " + direction.name();
@@ -479,6 +481,13 @@ public final class GistQuery {
 
     public Filter(String propertyPath, Comparison operator, String... value) {
       this(0, propertyPath, operator, value, false, false);
+    }
+
+    @Nonnull
+    public static List<Filter> ofList(String filter) {
+      return getStrings(filter, FIELD_SPLIT).stream()
+          .map(Filter::parse)
+          .collect(toList());
     }
 
     public Filter withPropertyPath(String path) {

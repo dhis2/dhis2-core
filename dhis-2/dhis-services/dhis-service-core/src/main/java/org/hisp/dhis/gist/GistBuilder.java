@@ -202,7 +202,7 @@ final class GistBuilder {
     if (f.isAttribute() && !existsSameParentField(query, f, ATTRIBUTES_PROPERTY)) {
       return f.getTransformation() == Transform.PLUCK
           ? query
-          : query.withField(pathOnSameParent(f.getPropertyPath(), ATTRIBUTES_PROPERTY));
+          : query.addField(pathOnSameParent(f.getPropertyPath(), ATTRIBUTES_PROPERTY));
     }
 
     Property p = context.resolveMandatory(f.getPropertyPath());
@@ -210,26 +210,26 @@ final class GistBuilder {
     // ID column not present but ID column required?
     if ((isPersistentCollectionField(p) || isHrefProperty(p))
         && !existsSameParentField(query, f, ID_PROPERTY)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), ID_PROPERTY));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), ID_PROPERTY));
     }
 
     // translatable fields? => make sure we have translations
     if ((query.isTranslate() || f.isTranslate())
         && p.isTranslatable()
         && !existsSameParentField(query, f, TRANSLATIONS_PROPERTY)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), TRANSLATIONS_PROPERTY));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), TRANSLATIONS_PROPERTY));
     }
 
     // Access based on Sharing
     if (isAccessProperty(p) && !existsSameParentField(query, f, SHARING_PROPERTY)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), SHARING_PROPERTY));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), SHARING_PROPERTY));
     }
 
     // flags on Attribute map to/from objectTypes set
     if (query.getElementType() == Attribute.class
         && isAttributeFlagProperty(p)
         && !existsSameParentField(query, f, OBJECT_TYPES)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), OBJECT_TYPES));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), OBJECT_TYPES));
     }
 
     return addFromTransformationSupportFields(query, f);
@@ -239,7 +239,7 @@ final class GistBuilder {
     if (f.getTransformation() == Transform.FROM) {
       for (String propertyName : f.getTransformationArgument().split(",")) {
         if (!existsSameParentField(query, f, propertyName)) {
-          query = query.withField(pathOnSameParent(f.getPropertyPath(), propertyName));
+          query = query.addField(pathOnSameParent(f.getPropertyPath(), propertyName));
         }
       }
     }

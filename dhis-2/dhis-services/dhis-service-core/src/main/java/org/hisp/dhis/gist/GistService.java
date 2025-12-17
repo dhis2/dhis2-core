@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.gist;
 
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -43,6 +42,8 @@ import java.util.stream.Stream;
 public interface GistService {
 
   GistObjectList listObjects(GistQuery query);
+
+  GistObject listObjectDetails(GistQuery query);
 
   /**
    * Before running {@link #gist(GistQuery)} a {@link GistQuery} should be planned. This gives the
@@ -75,11 +76,4 @@ public interface GistService {
    */
   GistPager pager(GistQuery query);
 
-  /**
-   * Describes the query execution without actually running the query.
-   *
-   * @param query a not yet {@link #plan(GistQuery)}ned query
-   * @return a description of the query execution
-   */
-  Map<String, ?> describe(GistQuery query);
 }

@@ -41,15 +41,22 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.object.ObjectOutput;
+import org.hisp.dhis.object.ObjectOutput.Property;
+import org.hisp.dhis.object.ObjectOutput.Type;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import static java.lang.Math.abs;
 import static java.util.Comparator.comparing;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.gist.GistQuery.Comparison.EQ;
 
 /**
  * @implNote This implementation utilizes {@link Stream}-processing to transform the DB results to
@@ -68,23 +75,23 @@ public class GistPipeline {
   private final Map<Class<?>, String> collectionNames = new ConcurrentHashMap<>();
 
   /**
-   * @param input describes the slice of data to export to JSON
+   * @param in describes the slice of data to export to JSON
    * @param out target to write the JSON to
    */
   @Transactional(readOnly = true)
-  public void listAsJson(@Nonnull GistObjectList.Input input, @Nonnull Supplier<OutputStream> out)
+  public void exportAsJson(@Nonnull GistObjectList.Input in, @Nonnull Supplier<OutputStream> out)
       throws BadRequestException {
-    GistQuery query = createGistQuery(input);
-    GistObjectList list = listObjects(input, query);
-    GistOutput.toJson(createObjectListOutput(input, list), out.get());
+    GistQuery query = createListQuery(in);
+    GistObjectList list = listObjects(in, query);
+    GistOutput.toJson(createObjectListOutput(in, list), out.get());
   }
 
   @Transactional(readOnly = true)
-  public void listAsCsv(@Nonnull GistObjectList.Input input, @Nonnull Supplier<OutputStream> out)
+  public void exportAsCsv(@Nonnull GistObjectList.Input in, @Nonnull Supplier<OutputStream> out)
       throws BadRequestException {
-    GistQuery query = createGistQuery(input).toBuilder().typedAttributeValues(false).build();
-    GistObjectList list = listObjects(input, query);
-    GistOutput.toCsv(createObjectListOutput(input, list), out.get());
+    GistQuery query = createListQuery(in).toBuilder().typedAttributeValues(false).build();
+    GistObjectList list = listObjects(in, query);
+    GistOutput.toCsv(createObjectListOutput(in, list), out.get());
   }
 
   private GistObjectList listObjects(GistObjectList.Input input, GistQuery query) {
@@ -94,6 +101,30 @@ public class GistPipeline {
         : list;
   }
 
+  @Transactional(readOnly = true)
+  public void exportAsJson(GistObject.Input in, Supplier<OutputStream> out) throws BadRequestException, NotFoundException {
+    GistQuery query = createDetailsQuery(in);
+    GistObject details = gistService.listObjectDetails(query);
+    Object[] values = details.values();
+    if (values == null) throw new NotFoundException(in.objectType(), in.id());
+    GistOutput.toJson(new GistObject.Output(details.properties(), values), out.get());
+  }
+
+  @Transactional(readOnly = true)
+  public void exportAsCsv(GistObject.Input in, Supplier<OutputStream> out) throws BadRequestException, NotFoundException {
+
+  }
+
+  @Transactional(readOnly = true)
+  public void exportPropertyAsJson(@Nonnull OutputStream out) {
+
+  }
+
+  @Transactional(readOnly = true)
+  public void exportPropertyAsCsv(@Nonnull OutputStream out) {
+
+  }
+
   @Nonnull
   private GistObjectList.Output createObjectListOutput(
       GistObjectList.Input input, GistObjectList list) {
@@ -101,36 +132,82 @@ public class GistPipeline {
         input.params().headless,
         list.pager(),
         getCollectionName(input),
-        list.paths(),
-        list.valueTypes(),
+        list.properties(),
         list.values());
   }
 
-  @Transactional(readOnly = true)
-  public void listPropertyAsJson(@Nonnull OutputStream out) {
-
+  private GistQuery createDetailsQuery(GistObject.Input input) {
+    GistObjectParams params = input.params();
+    return GistQuery.builder()
+        .elementType(input.objectType())
+        .autoType(params.getAuto(GistAutoType.L))
+        .translationLocale(getTranslationLocale(params.getLocale()))
+        .typedAttributeValues(true)
+        .translate(params.isTranslate())
+        .absoluteUrls(params.isAbsoluteUrls())
+        .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
+        .build();
   }
 
-  @Transactional(readOnly = true)
-  public void listPropertyAsCsv(@Nonnull OutputStream out) {
-
+  private GistQuery createPropertyListQuery(GistObjectProperty.Input input) {
+    GistObjectPropertyParams params = input.params();
+    return GistQuery.builder()
+        .elementType(input.objectType())
+        .autoType(params.getAuto(GistAutoType.M))
+        .translationLocale(getTranslationLocale(params.getLocale()))
+        .typedAttributeValues(true)
+        .translate(params.isTranslate())
+        .absoluteUrls(params.isAbsoluteUrls())
+        .inverse(params.isInverse())
+        .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
+        .fields(GistQuery.Field.ofList(input.property()))
+        .build();
   }
 
-  private GistQuery createGistQuery(GistObjectList.Input input) throws BadRequestException {
-    String locale = input.params().getLocale();
-    Locale translationLocale =
+  private GistQuery createListQuery(GistObjectList.Input input) throws BadRequestException {
+    GistObjectListParams params = input.params();
+    int page = abs(params.getPage());
+    int size = Math.min(1000, abs(params.getPageSize()));
+    boolean tree = params.isOrgUnitsTree();
+    boolean offline = params.isOrgUnitsOffline();
+    String order = tree ? "path" : params.getOrder();
+    if (offline && (order == null || order.isEmpty())) order = "level,name";
+    String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
+    // ensure tree always includes path in fields
+    if (tree) {
+      if (fields == null || fields.isEmpty()) {
+        fields = "path";
+      } else if (!(fields.contains(",path,"))
+          || fields.startsWith("path,")
+          || fields.endsWith(",path")) fields += ",path";
+    }
+    return GistQuery.builder()
+        .elementType(input.elementType())
+        .autoType(input.params().getAuto(GistAutoType.S))
+        .contextRoot(input.contextRoot())
+        .requestURL(input.requestURL())
+        .translationLocale(getTranslationLocale(params.getLocale()))
+        .typedAttributeValues(true)
+        .paging(!offline)
+        .pageSize(size)
+        .pageOffset(Math.max(0, page - 1) * size)
+        .translate(params.isTranslate())
+        .total(params.isCountTotalPages())
+        .absoluteUrls(params.isAbsoluteUrls())
+        .headless(params.isHeadless())
+        .references(!tree && !offline && params.isReferences())
+        .anyFilter(params.getRootJunction() == Junction.Type.OR)
+        .fields(GistQuery.Field.ofList(fields))
+        .filters(GistQuery.Filter.ofList(params.getFilter()))
+        .orders(GistQuery.Order.ofList(order))
+        .build();
+  }
+
+  private static Locale getTranslationLocale(String locale) {
+    return
         !locale.isEmpty()
             ? Locale.forLanguageTag(locale)
             : UserSettings.getCurrentSettings().getUserDbLocale();
-    return GistQuery.builder()
-        .elementType(input.elementType())
-        .autoType(input.params().getAuto(input.autoDefault()))
-        .contextRoot(input.contextRoot())
-        .requestURL(input.requestURL())
-        .translationLocale(translationLocale)
-        .typedAttributeValues(true)
-        .build()
-        .with(input.params());
   }
 
   private String getCollectionName(GistObjectList.Input input) {
@@ -140,11 +217,13 @@ public class GistPipeline {
         input.elementType(), key -> schemaService.getSchema(key).getCollectionName());
   }
 
+  private static final Property MATCH = new Property("match", new Type(Boolean.class));
+
   /**
    * @implNote When listing OU with their ancestors the main query just matches using filters as
    *     normal. Then a second query is made for all ancestors of the result page and added to the
    *     matches. This creates pages of varying size because the matches might already contain some
-   *     ancestors of other matches. This also mean the total matches still reflect matches to the
+   *     ancestors of other matches. This also means the total matches still reflect matches to the
    *     filters, not including ancestors that might be added on top. This is simply the best we can
    *     do with reasonable performance and complexity.
    */
@@ -168,12 +247,10 @@ public class GistPipeline {
     matchesIds.forEach(
         ids::remove); // we already have those, what is left are the ancestors not yet fetched
 
-    List<String> paths = new ArrayList<>(matches.paths());
-    paths.add(0, "match");
-    List<GistObjectList.Type> valueTypes = new ArrayList<>(matches.valueTypes());
-    valueTypes.add(0, new GistObjectList.Type(Boolean.class));
+    List<Property> properties = new ArrayList<>(matches.properties());
+    properties.add(0, MATCH);
     // if ancestors are missing fetch them
-    if (ids.isEmpty()) return new GistObjectList(matches.pager(), paths, valueTypes, elements.stream());
+    if (ids.isEmpty()) return new GistObjectList(matches.pager(), properties, elements.stream());
     List<Object[]> ancestors =
         gistService
             .gist(
@@ -190,8 +267,7 @@ public class GistPipeline {
     // - inject ancestors into elements list (ordered by path)
     return new GistObjectList(
         matches.pager(),
-        paths,
-        valueTypes,
+        properties,
         Stream.concat(elements.stream(), ancestors.stream())
             .sorted(comparing(e -> ((String) e[pathIndex]))));
   }

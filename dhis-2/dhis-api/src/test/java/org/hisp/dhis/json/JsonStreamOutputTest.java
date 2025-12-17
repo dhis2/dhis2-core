@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.json;
 
-import static org.hisp.dhis.json.JsonOutputUtils.addAsJsonObjects;
-import static org.hisp.dhis.json.JsonOutputUtils.reorderNoParentTearing;
+import static org.hisp.dhis.json.JsonStreamOutput.addArrayElements;
+import static org.hisp.dhis.json.JsonStreamOutput.reorderNoParentTearing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.junit.jupiter.api.Test;
 
-class JsonOutputUtilsTest {
+class JsonStreamOutputTest {
 
   @Test
   void testReorderNoParentTearing_Empty() {
@@ -72,16 +72,16 @@ class JsonOutputUtilsTest {
   @Test
   void testAddAsJsonObjects() {
     ByteArrayOutputStream str = new ByteArrayOutputStream();
-    JsonOutputUtils.JsonObjectAdder<List<Integer>> adder =
-        (e, name, i, parent) -> parent.addNumber(name, e.get(i));
+    JsonBuilder.JsonObjectBuilder.AddMember<Object> adder =
+        (obj, name, val) -> obj.addNumber(name, (Number) val);
     JsonBuilder.streamArray(
         str,
         arr ->
-            addAsJsonObjects(
-                List.of("a.x.z", "a.y", "c", "a.x.t", "d"),
+            addArrayElements(
+                arr, List.of("a.x.z", "a.y", "c", "a.x.t", "d"),
                 List.of(adder, adder, adder, adder, adder),
-                Stream.of(List.of(1, 2, 3, 4, 5), List.of(6, 7, 8, 9, 10)),
-                arr));
+                Stream.of(List.of(1, 2, 3, 4, 5), List.of(6, 7, 8, 9, 10)).map(l -> l::get)
+            ));
     assertEquals(
         """
         [{"a":{"x":{"z":1,"t":4},"y":2},"c":3,"d":5},{"a":{"x":{"z":6,"t":9},"y":7},"c":8,"d":10}]""",
