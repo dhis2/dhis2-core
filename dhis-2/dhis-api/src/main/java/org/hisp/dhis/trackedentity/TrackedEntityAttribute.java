@@ -119,6 +119,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   @Transient private Boolean trigramIndexed = false;
 
+  @OpenApi.Description("Indicates whether this attribute should be excluded from analytics.")
   private boolean skipAnalytics;
 
   // -------------------------------------------------------------------------
