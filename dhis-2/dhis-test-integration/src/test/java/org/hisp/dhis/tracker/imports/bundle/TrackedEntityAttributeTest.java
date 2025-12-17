@@ -32,9 +32,8 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
-import static org.hisp.dhis.common.QueryOperator.NNULL;
-import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.SW;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -142,7 +141,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
-    assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
+    assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", IN);
     assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
     assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", null);
   }
@@ -168,7 +167,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   void shouldFailIfPreferredOperatorIsBlocked() {
     TrackedEntityAttribute tea =
         trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
-    tea.setPreferredSearchOperator(NNULL);
+    tea.setPreferredSearchOperator(LIKE);
 
     ImportReport report =
         metadataImportService.importMetadata(
@@ -177,7 +176,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(Status.ERROR, report.getStatus());
     assertStartsWith(
-        "The preferred search operator `NNULL` is blocked for the selected tracked entity attribute",
+        "The preferred search operator `LIKE` is blocked for the selected tracked entity attribute",
         getErrorMessage(report));
   }
 
@@ -186,8 +185,8 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
-    assertBlockedOperators(trackedEntityAttributes, "sTGqP5JNy6E", List.of(EW, SW, NULL, NNULL));
-    assertBlockedOperators(trackedEntityAttributes, "sYn3tkL3XKa", List.of(NNULL, SW, EW, NULL));
+    assertBlockedOperators(trackedEntityAttributes, "sTGqP5JNy6E", List.of(EW, SW, LIKE));
+    assertBlockedOperators(trackedEntityAttributes, "sYn3tkL3XKa", List.of(EW, SW, LIKE));
     assertIsEmpty(getAttribute(trackedEntityAttributes, "TsfP85GKsU5").getBlockedSearchOperators());
   }
 

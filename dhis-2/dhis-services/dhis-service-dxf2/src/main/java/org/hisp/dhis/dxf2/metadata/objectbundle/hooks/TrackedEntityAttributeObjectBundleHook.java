@@ -35,6 +35,8 @@ import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
 import static org.hisp.dhis.common.collection.CollectionUtils.intersection;
 
@@ -59,7 +61,7 @@ public class TrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook<TrackedEntityAttribute> {
 
   private static final Set<QueryOperator> NON_BLOCKABLE_OPERATORS =
-      EnumSet.of(EQ, IN, GE, GT, LT, LE);
+      EnumSet.of(EQ, IN, GE, GT, LT, LE, NULL, NNULL);
 
   /**
    * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
