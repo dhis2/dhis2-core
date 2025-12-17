@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.program.notification.snapshot;
+package org.hisp.dhis.program.notification.template.snapshot;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;

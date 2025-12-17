@@ -27,35 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.program.notification.snapshot;
+package org.hisp.dhis.program.notification.template.snapshot;
 
-import java.util.Date;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Service;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.tracker.program.notification.snapshot.NotificationTemplateService")
-public class NotificationTemplateService {
-
-  private final NotificationTemplateMapper mapper;
-
-  public ProgramNotificationInstance createNotificationInstance(
-      ProgramNotificationTemplate template, String date) {
-    return createNotificationInstance(template, DateUtils.parseDate(date));
-  }
-
-  public ProgramNotificationInstance createNotificationInstance(
-      ProgramNotificationTemplate template, Date date) {
-    ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
-    notificationInstance.setAutoFields();
-    notificationInstance.setName(template.getName());
-    notificationInstance.setScheduledAt(date);
-    notificationInstance.setProgramNotificationTemplateSnapshot(
-        mapper.toProgramNotificationTemplateSnapshot(template));
-
-    return notificationInstance;
-  }
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class UserGroupSnapshot extends IdentifiableObjectSnapshot {
+  private Set<UserSnapshot> members = new HashSet<>();
 }
