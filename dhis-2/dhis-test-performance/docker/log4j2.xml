@@ -6,31 +6,23 @@
             docker compose logs -f web | grep org.hisp.dhis.monitoring.metrics
          Show timestamps:
             docker compose logs -t -f web
+
+         Log file is written to /opt/dhis2/logs/dhis.log (mounted to ./logs/dhis.log on host)
     -->
     <Properties>
-        <Property name="layout">%-5level %c [%t] %msg%n</Property>
+        <Property name="layout">%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level %c [%t] request_id=%X{xRequestID} %msg%n</Property>
     </Properties>
 
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="${layout}" />
         </Console>
+        <File name="file" fileName="/opt/dhis2/logs/dhis.log" append="false">
+            <PatternLayout pattern="${layout}" />
+        </File>
     </Appenders>
 
     <Loggers>
-        <!--
-            This config logs events
-
-            for Loggers declared in packages prefixed with "org.hisp.dhis" i.e. "org.hisp.dhis.security"
-            from level INFO to more severe (WARN, ERROR, ...)
-
-            any Logger declared in a package not prefixed with "org.hisp.dhis" and
-            without a Logger config defined here will log from level WARN to more severe.
-
-            Adapt this config as you see fit.
-
-            Please check https://logging.apache.org/log4j/2.x/manual/configuration.html
-        -->
         <!-- Silence authentication success events (noisy during performance tests) -->
         <Logger name="org.hisp.dhis.security.AuthenticationLoggerListener" level="WARN" additivity="false">
             <AppenderRef ref="console"/>
@@ -42,8 +34,12 @@
         </Logger>
         <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
 
+        <!-- Connection acquisition timing - enable for connection pool analysis -->
+        <Logger name="org.hisp.dhis.datasource.ConnectionLoggingDataSource" level="DEBUG" additivity="true"/>
+
         <Root level="WARN">
             <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
         </Root>
     </Loggers>
 </Configuration>
