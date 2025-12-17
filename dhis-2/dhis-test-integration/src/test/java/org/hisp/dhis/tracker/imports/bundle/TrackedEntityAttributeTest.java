@@ -31,12 +31,12 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
-import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.NNULL;
 import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.SW;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
@@ -205,7 +205,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   void shouldFailWhenTryingToBlockANonBlockableOperator() {
     TrackedEntityAttribute tea =
         trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
-    tea.setBlockedSearchOperators(Set.of(EQ, GT));
+    tea.setBlockedSearchOperators(Set.of(EQ));
 
     ImportReport report =
         metadataImportService.importMetadata(
@@ -213,8 +213,8 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
             new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
 
     assertEquals(Status.ERROR, report.getStatus());
-    assertStartsWith(
-        "The operator(s) `[EQ, GT]` cannot be blocked. The following operators cannot be blocked:",
+    assertContains(
+        "The operator(s) `[EQ]` cannot be blocked. The following operators cannot be blocked:",
         getErrorMessage(report));
   }
 

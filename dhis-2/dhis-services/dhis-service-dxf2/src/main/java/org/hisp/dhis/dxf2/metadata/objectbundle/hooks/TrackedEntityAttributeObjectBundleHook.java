@@ -36,9 +36,10 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.getTrackerOperators;
+import static org.hisp.dhis.common.collection.CollectionUtils.intersection;
 
+import java.util.Collection;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.Objects;
@@ -87,11 +88,9 @@ public class TrackedEntityAttributeObjectBundleHook
       }
     }
 
-    List<QueryOperator> providedNonBlockableOperators =
-        attr.getBlockedSearchOperators().stream()
-            .filter(NON_BLOCKABLE_OPERATORS::contains)
-            .sorted()
-            .toList();
+    Collection<QueryOperator> providedNonBlockableOperators =
+        intersection(NON_BLOCKABLE_OPERATORS, attr.getBlockedSearchOperators());
+
     if (!providedNonBlockableOperators.isEmpty()) {
       addReports.accept(
           new ErrorReport(
@@ -101,25 +100,27 @@ public class TrackedEntityAttributeObjectBundleHook
               NON_BLOCKABLE_OPERATORS));
     }
 
-    if (attr.getPreferredSearchOperator() != null) {
-      if (!getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
-        addReports.accept(
-            new ErrorReport(
-                TrackedEntityAttribute.class,
-                ErrorCode.E4081,
-                attr.getPreferredSearchOperator(),
-                getTrackerOperators()));
-      }
+    if (attr.getPreferredSearchOperator() == null) {
+      return;
+    }
 
-      if (providedNonBlockableOperators.isEmpty()
-          && attr.getBlockedSearchOperators().contains(attr.getPreferredSearchOperator())) {
-        addReports.accept(
-            new ErrorReport(
-                TrackedEntityAttribute.class,
-                ErrorCode.E4082,
-                attr.getPreferredSearchOperator(),
-                attr.getUid()));
-      }
+    if (!getTrackerOperators().contains(attr.getPreferredSearchOperator())) {
+      addReports.accept(
+          new ErrorReport(
+              TrackedEntityAttribute.class,
+              ErrorCode.E4081,
+              attr.getPreferredSearchOperator(),
+              getTrackerOperators()));
+    }
+
+    if (providedNonBlockableOperators.isEmpty()
+        && attr.getBlockedSearchOperators().contains(attr.getPreferredSearchOperator())) {
+      addReports.accept(
+          new ErrorReport(
+              TrackedEntityAttribute.class,
+              ErrorCode.E4082,
+              attr.getPreferredSearchOperator(),
+              attr.getUid()));
     }
   }
 
