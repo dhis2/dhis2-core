@@ -44,16 +44,15 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceParam;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -73,6 +72,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/programNotificationInstances")
 @RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
+  private static final String PLURAL = "programNotificationInstances";
+
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   private final EnrollmentService enrollmentService;
@@ -139,11 +140,7 @@ public class ProgramNotificationInstanceController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(
-              Page.withPager(
-                  ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-                  page,
-                  getRequestURL(request)));
+          .body(Page.withPager(PLURAL, page, getRequestURL(request)));
     }
 
     ProgramNotificationInstanceParam params =
@@ -159,7 +156,7 @@ public class ProgramNotificationInstanceController {
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
-        .body(Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances));
+        .body(Page.withoutPager(PLURAL, instances));
   }
 
   private void setEvent(ProgramNotificationInstance programNotificationInstance) {

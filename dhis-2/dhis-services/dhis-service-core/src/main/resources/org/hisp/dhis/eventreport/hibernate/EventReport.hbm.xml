@@ -204,6 +204,12 @@
 
         <property name="hideNaData"/>
 
+        <property name="hideEmptyColumns"/>
+
+        <property name="fixColumnHeaders"/>
+
+        <property name="fixRowHeaders"/>
+
         <property name="showHierarchy"/>
 
         <property name="outputType" length="30">

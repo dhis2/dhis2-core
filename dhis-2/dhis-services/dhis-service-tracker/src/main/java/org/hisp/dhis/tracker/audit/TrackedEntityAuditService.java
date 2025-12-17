@@ -33,7 +33,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**

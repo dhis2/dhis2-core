@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -83,7 +84,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -92,6 +92,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.design.Column;
@@ -148,6 +150,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
@@ -168,9 +171,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -295,13 +295,23 @@ public abstract class TestBase {
   @Autowired(required = false)
   protected CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
+  @Autowired private ConfigurationService internalConfigurationService;
+
+  @Autowired private PeriodService internalPeriodService;
+
   @Autowired protected HibernateService hibernateService;
 
-  protected static CategoryService categoryService;
+  @Autowired protected static CategoryService categoryService;
+
+  protected static ConfigurationService configurationService;
+
+  protected static PeriodService periodService;
 
   @PostConstruct
   protected void initServices() {
     categoryService = internalCategoryService;
+    configurationService = internalConfigurationService;
+    periodService = internalPeriodService;
   }
 
   static {
@@ -1896,24 +1906,6 @@ public abstract class TestBase {
     return psde;
   }
 
-  public static ProgramMessage createProgramMessage(
-      String text,
-      String subject,
-      ProgramMessageRecipients recipients,
-      ProgramMessageStatus status,
-      Set<DeliveryChannel> channels) {
-
-    ProgramMessage pm = new ProgramMessage();
-    pm.setAutoFields();
-    pm.setText(text);
-    pm.setSubject(subject);
-    pm.setRecipients(recipients);
-    pm.setMessageStatus(status);
-    pm.setDeliveryChannels(channels);
-
-    return pm;
-  }
-
   public static ProgramIndicator createProgramIndicator(
       char uniqueCharacter, Program program, String expression, String filter) {
     return createProgramIndicator(
@@ -3059,6 +3051,39 @@ public abstract class TestBase {
     }
     layout.setColumns(columns);
     return layout;
+  }
+
+  protected static void createPeriodTypes() {
+    Set<PeriodType> periodTypes = new LinkedHashSet<>();
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.BI_MONTHLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.BI_WEEKLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.DAILY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_APRIL));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_JULY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_NOV));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_SEP));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_OCT));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.QUARTERLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.QUARTERLY_NOV));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.SIX_MONTHLY_APRIL));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.SIX_MONTHLY_NOV));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.SIX_MONTHLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_SATURDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_SUNDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_THURSDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_WEDNESDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.YEARLY));
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.setDataOutputPeriodTypes(periodTypes);
+    configurationService.setConfiguration(configuration);
+  }
+
+  public static void cleanPeriodTypes() {
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.setDataOutputPeriodTypes(new LinkedHashSet<>());
+    configurationService.setConfiguration(configuration);
   }
 
   public static User createRandomAdminUserWithEntityManager(EntityManager entityManager) {

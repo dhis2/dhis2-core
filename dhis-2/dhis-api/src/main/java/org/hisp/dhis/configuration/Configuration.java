@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.configuration;
 
+import static java.util.stream.Collectors.toCollection;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -92,6 +97,9 @@ public class Configuration implements Serializable {
 
   private Set<String> corsWhitelist = new HashSet<>();
 
+  /** Set of periods used in data output (analytics). */
+  private Set<PeriodType> dataOutputPeriodTypes = new LinkedHashSet<>();
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
@@ -110,6 +118,22 @@ public class Configuration implements Serializable {
 
   public boolean selfRegistrationAllowed() {
     return selfRegistrationRole != null && selfRegistrationOrgUnit != null;
+  }
+
+  /**
+   * It returns the current {@link PeriodType}'s set for output, or the default ones (if nothing is
+   * set).
+   *
+   * @return the {@link PeriodType}'s.
+   */
+  public Set<PeriodType> getDataOutputPeriodTypesOrDefault() {
+    Set<PeriodType> outputPeriodTypes = getDataOutputPeriodTypes();
+
+    if (isNotEmpty(outputPeriodTypes)) {
+      return outputPeriodTypes;
+    }
+
+    return PERIOD_TYPES.stream().collect(toCollection(LinkedHashSet::new));
   }
 
   // -------------------------------------------------------------------------
@@ -258,5 +282,15 @@ public class Configuration implements Serializable {
   @JsonProperty
   public Set<String> getCorsAllowlist() {
     return getCorsWhitelist(); // just an alias
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<PeriodType> getDataOutputPeriodTypes() {
+    return dataOutputPeriodTypes;
+  }
+
+  public void setDataOutputPeriodTypes(Set<PeriodType> dataOutputPeriodTypes) {
+    this.dataOutputPeriodTypes = dataOutputPeriodTypes;
   }
 }

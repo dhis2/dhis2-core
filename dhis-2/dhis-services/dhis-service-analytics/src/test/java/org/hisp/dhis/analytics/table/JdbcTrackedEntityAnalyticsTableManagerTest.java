@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -98,6 +99,8 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableHookService analyticsTableHookService;
 
+  @Mock private ConfigurationService configurationService;
+
   private JdbcTrackedEntityAnalyticsTableManager tableManager;
 
   @BeforeEach
@@ -118,7 +121,8 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
             analyticsTableSettings,
             periodDataProvider,
             new ColumnMapper(sqlBuilder, systemSettingsProvider),
-            sqlBuilder);
+            sqlBuilder,
+            configurationService);
   }
 
   @Test
