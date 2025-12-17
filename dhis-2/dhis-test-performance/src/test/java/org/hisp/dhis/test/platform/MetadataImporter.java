@@ -36,20 +36,19 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** General purpose class to import metadata. */
 public class MetadataImporter {
 
+  private static final Logger logger = LoggerFactory.getLogger(MetadataImporter.class);
   private static final HttpClient client = HttpClient.newHttpClient();
 
   /**
    * Import metadata from a file on the classpath, using the user credentials passed in. Supplying a
    * payload with UIDs will allow the same call to be made multiple times without getting errors
    * (1st call is seen as a create, subsequent calls seen as updates).
-   *
-   * @param fileName file name
-   * @param username username
-   * @param password password
    */
   public static void importJsonFile(String fileName, String username, String password) {
     try {
@@ -72,9 +71,9 @@ public class MetadataImporter {
         HttpResponse<String> metadataImportResponse =
             client.send(request, HttpResponse.BodyHandlers.ofString());
         if (metadataImportResponse.statusCode() == 200) {
-          OrganisationUnitGroupsTest.logger.debug("Metadata import successful");
+          logger.debug("Metadata import successful");
         } else {
-          OrganisationUnitGroupsTest.logger.debug("Metadata import unsuccessful");
+          logger.debug("Metadata import unsuccessful");
           throw new RuntimeException(
               "Problem importing metadata: " + metadataImportResponse.body());
         }
