@@ -29,24 +29,22 @@
  */
 package org.hisp.dhis.test.tracker;
 
-import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
+import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.time.Duration;
 
 /**
  * Demonstrates the N×M connection pool exhaustion issue in the tracker API.
  *
- * <p>This test makes sequential requests with increasing pageSize to show how connection usage
- * scales with the number of tracked entities returned. The relationship is approximately:
- *
- * <pre>
- *   connections ≈ 2 (base) + N (per TE for enrollments) + N×M (per enrollment for events)
- * </pre>
+ * <p>This test runs a single user making repeated requests for each pageSize, sustaining the load
+ * long enough for Prometheus to capture the connection usage pattern.
  *
  * <p>With Sierra Leone data and the "martha" filter (from DHIS2-20484 analysis):
  *
@@ -75,8 +73,9 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
  *
  * <h2>Expected Result</h2>
  *
- * <p>The Prometheus graph of {@code jdbc_connections_active} should show staircase spikes: 25 → 105
- * → 205 → 405 active connections, clearly demonstrating linear scaling with TEs.
+ * <p>The Prometheus graph of {@code jdbc_connections_active} should show staircase pattern: each
+ * step corresponds to increasing pageSize (10, 20, 30, 40, 50) with proportionally more active
+ * connections.
  *
  * @see <a href="https://dhis2.atlassian.net/browse/DHIS2-20484">DHIS2-20484</a>
  */
@@ -87,8 +86,14 @@ public class ConnectionPoolTest extends Simulation {
   private final String adminPassword = System.getProperty("adminPassword", "district");
   private final String trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
 
-  // Pause between requests to let metrics scrape capture the connection spike
-  private final int pauseBetweenSec = Integer.getInteger("pauseBetweenSec", 5);
+  // Duration to sustain each pageSize level (must be long enough for Prometheus to scrape)
+  // At 1s scrape interval, 30s gives ~30 samples per step for clear visualization
+  private final int stepDurationSec = Integer.getInteger("stepDurationSec", 30);
+
+  // pageSize increments: start at 10, increment by 10, for 5 steps (10, 20, 30, 40, 50)
+  private final int pageSizeStart = Integer.getInteger("pageSizeStart", 10);
+  private final int pageSizeIncrement = Integer.getInteger("pageSizeIncrement", 10);
+  private final int steps = Integer.getInteger("steps", 5);
 
   public ConnectionPoolTest() {
     HttpProtocolBuilder httpProtocol =
@@ -108,19 +113,23 @@ public class ConnectionPoolTest extends Simulation {
             + "&orgUnitMode=ACCESSIBLE"
             + "&page=1";
 
-    // Sequential requests with increasing page sizes to demonstrate N×M scaling
-    // Expected connections from DHIS2-20484 analysis: 5→25, 25→105, 50→205, 100→405
-    ScenarioBuilder scenario =
-        scenario("Connection Pool N×M Demo")
-            .exec(http("pageSize=5").get(baseUrl + "&pageSize=5").check(status().is(200)))
-            .pause(pauseBetweenSec)
-            .exec(http("pageSize=25").get(baseUrl + "&pageSize=25").check(status().is(200)))
-            .pause(pauseBetweenSec)
-            .exec(http("pageSize=50").get(baseUrl + "&pageSize=50").check(status().is(200)))
-            .pause(pauseBetweenSec)
-            .exec(http("pageSize=100").get(baseUrl + "&pageSize=100").check(status().is(200)))
-            .pause(pauseBetweenSec);
+    // Build sequential scenarios for each pageSize step
+    // Each step runs 1 concurrent user for stepDurationSec seconds
+    PopulationBuilder population = null;
 
-    setUp(scenario.injectOpen(atOnceUsers(1))).protocols(httpProtocol);
+    for (int i = 0; i < steps; i++) {
+      int pageSize = pageSizeStart + (i * pageSizeIncrement);
+      String url = baseUrl + "&pageSize=" + pageSize;
+
+      ScenarioBuilder step =
+          scenario("pageSize=" + pageSize).exec(http("pageSize=" + pageSize).get(url));
+
+      PopulationBuilder stepPopulation =
+          step.injectClosed(constantConcurrentUsers(1).during(Duration.ofSeconds(stepDurationSec)));
+
+      population = (population == null) ? stepPopulation : population.andThen(stepPopulation);
+    }
+
+    setUp(population).protocols(httpProtocol);
   }
 }
