@@ -37,15 +37,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.object.ObjectOutput;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -53,6 +58,8 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -60,7 +67,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultGistService implements GistService, GistBuilder.GistBuilderSupport {
+public class DefaultGistService implements GistService {
   /**
    * Instead of an actual date value users may use string {@code now} to always get current moment
    * as time for a {@link Date} value.
@@ -79,29 +86,63 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
 
   private final ObjectMapper jsonMapper;
 
+  private final GistBuilder.GistBuilderSupport builderSupport = new GistBuilderSupportAdapter();
+
   private Session getSession() {
     return entityManager.unwrap(Session.class);
   }
 
+  @Nonnull
   @Override
-  public GistObjectList listObjects(GistQuery query) {
-    @SuppressWarnings("unchecked")
-    Stream<Object[]> values = (Stream<Object[]>) gist(plan(query));
-    List<String> paths = query.getFieldNames();
-    return new GistObjectList(pager(query), paths, null, values);
+  @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
+  public GistObjectList exportObjectList(@Nonnull GistQuery query) {
+    Stream<Object[]> values = gist(plan(query));
+    return new GistObjectList(pager(query), properties(query), values);
   }
 
+  @Nonnull
   @Override
-  public GistQuery plan(GistQuery query) {
+  @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
+  public GistObjectList exportPropertyObjectList(@Nonnull GistQuery query) {
+    return exportObjectList(query);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public GistObject exportObject(@Nonnull GistQuery query) {
+    Object[] values = gist(plan(query)).findFirst().orElse(null);
+    return new GistObject(properties(query), values);
+  }
+
+  private List<ObjectOutput.Property> properties(GistQuery query) {
+    RelativePropertyContext context = createPropertyContext(query);
+    List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
+    for (GistQuery.Field f : query.getFields()) {
+      String path = f.getPropertyPath();
+      Property p = context.resolveMandatory(path);
+      ObjectOutput.Type type =
+          switch (f.getTransformation()) {
+            case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
+            case SIZE -> ObjectOutput.Type.INTEGER;
+            case IDS, PLUCK -> new ObjectOutput.Type(String[].class);
+            case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
+            default -> new ObjectOutput.Type(p.getKlass(), p.getItemKlass());
+          };
+      res.add(new ObjectOutput.Property(path, type));
+    }
+    return res;
+  }
+
+  private GistQuery plan(GistQuery query) {
     return new GistPlanner(query, createPropertyContext(query), createGistAccessControl()).plan();
   }
 
-  @Override
-  public Stream<?> gist(GistQuery query) {
+  private Stream<Object[]> gist(GistQuery query) {
     GistAccessControl access = createGistAccessControl();
     RelativePropertyContext context = createPropertyContext(query);
     new GistValidator(query, context, access).validateQuery();
-    GistBuilder queryBuilder = createFetchBuilder(query, context, access, this);
+    GistBuilder queryBuilder = createFetchBuilder(query, context, access, builderSupport);
     Stream<Object[]> rows =
         fetchWithParameters(
             query,
@@ -110,20 +151,19 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
     return queryBuilder.transform(rows);
   }
 
-  @Override
-  public GistPager pager(GistQuery query) {
+  private GistPager pager(GistQuery query) {
     int page = 1 + (query.getPageOffset() / query.getPageSize());
     Schema schema = schemaService.getDynamicSchema(query.getElementType());
     String prev = null;
     String next = null;
     Integer total = null;
     if (query.isTotal()) {
-        GistAccessControl access = createGistAccessControl();
-        RelativePropertyContext context = createPropertyContext(query);
-        GistBuilder countBuilder = createCountBuilder(query, context, access, this);
-        total =
-            countWithParameters(
-                countBuilder, getSession().createQuery(countBuilder.buildCountHQL(), Long.class));
+      GistAccessControl access = createGistAccessControl();
+      RelativePropertyContext context = createPropertyContext(query);
+      GistBuilder countBuilder = createCountBuilder(query, context, access, builderSupport);
+      total =
+          countWithParameters(
+              countBuilder, getSession().createQuery(countBuilder.buildCountHQL(), Long.class));
     }
     if (schema.hasApiEndpoint()) {
       URI queryURI = URI.create(query.getRequestURL());
@@ -155,15 +195,22 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
     return new RelativePropertyContext(query.getElementType(), schemaService::getDynamicSchema);
   }
 
-  private <T> Stream<T> fetchWithParameters(
-      GistQuery gistQuery, GistBuilder builder, Query<T> query) {
+  private Stream<Object[]> fetchWithParameters(
+      GistQuery gistQuery, GistBuilder builder, Query<?> query) {
     builder.addFetchParameters(query::setParameter, this::parseFilterArgument);
     if (gistQuery.isPaging()) {
       query.setMaxResults(Math.max(1, gistQuery.getPageSize()));
       query.setFirstResult(gistQuery.getPageOffset());
     }
     query.setCacheable(false);
-    return query.stream();
+    // The map is required because querying a single property will not result in Object[] returned
+    // by query API
+    return query.stream()
+        .map(
+            e -> {
+              if (e == null) return null;
+              return e instanceof Object[] row ? row : new Object[] {e};
+            });
   }
 
   private int countWithParameters(GistBuilder builder, Query<Long> query) {
@@ -189,27 +236,30 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
     }
   }
 
-  @Override
-  public List<String> getUserGroupIdsByUserId(String userId) {
-    return userService.getUser(userId).getGroups().stream()
-        .map(IdentifiableObject::getUid)
-        .collect(toList());
-  }
+  private class GistBuilderSupportAdapter implements GistBuilder.GistBuilderSupport {
 
-  @Override
-  public Attribute getAttributeById(String attributeId) {
-    return attributeService.getAttribute(attributeId);
-  }
-
-  @Override
-  public Object getTypedAttributeValue(Attribute attribute, String value) {
-    if (value == null || value.isBlank()) {
-      return value;
+    @Override
+    public List<String> getUserGroupIdsByUserId(String userId) {
+      return userService.getUser(userId).getGroups().stream()
+          .map(IdentifiableObject::getUid)
+          .collect(toList());
     }
-    try {
-      return attribute.getValueType().isJson() ? jsonMapper.readTree(value) : value;
-    } catch (JsonProcessingException e) {
-      return value;
+
+    @Override
+    public Attribute getAttributeById(String attributeId) {
+      return attributeService.getAttribute(attributeId);
+    }
+
+    @Override
+    public Object getTypedAttributeValue(Attribute attribute, String value) {
+      if (value == null || value.isBlank()) {
+        return value;
+      }
+      try {
+        return attribute.getValueType().isJson() ? jsonMapper.readTree(value) : value;
+      } catch (JsonProcessingException e) {
+        return value;
+      }
     }
   }
 }

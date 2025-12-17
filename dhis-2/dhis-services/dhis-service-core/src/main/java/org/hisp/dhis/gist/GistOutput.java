@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
@@ -50,6 +49,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.JsonBuilder.JsonEncodable;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -77,20 +77,19 @@ public final class GistOutput {
 
   public static void toCsv(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
     try (PrintWriter csv = new PrintWriter(out)) {
-      new CsvBuilder(csv)
-          .skipHeaders(list.headless())
-          .toRows(list.paths(), list.values());
+      new CsvBuilder(csv).skipHeaders(list.headless()).toRows(list.paths(), list.values());
     }
   }
 
   public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
     List<String> paths = obj.paths();
-    //TODO write object
+    // TODO write object
   }
 
   public static void toJson(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
     List<String> paths = list.paths();
-    List<AddMember<Object>> adders = toAdders(null);
+    List<AddMember<Object>> adders =
+        toAdders(list.properties().stream().map(ObjectOutput.Property::type).toList());
     Stream<IntFunction<Object>> values = list.values().map(arr -> (i -> arr[i]));
     if (list.headless()) {
       JsonBuilder.streamArray(
@@ -123,16 +122,18 @@ public final class GistOutput {
 
   private static final ObjectMapper FALLBACK_MAPPER = new ObjectMapper();
 
-  private static final Map<Class<?>, AddMember<Object>> ADDERS_BY_TYPE =
-      new ConcurrentHashMap<>();
+  private static final Map<Class<?>, AddMember<Object>> ADDERS_BY_TYPE = new ConcurrentHashMap<>();
 
   private static <T> void register(Class<T> type, Function<? super T, String> toString) {
     register(type, (obj, name, value) -> obj.addString(name, toString.apply(value)));
   }
 
   private static <T> void register(Class<T> type, AddMember<? super T> adder) {
-    AddMember<Object> castAdder = (obj, name, val) -> adder.add(obj, name, type.cast(val));
-    ADDERS_BY_TYPE.put(type, castAdder);
+    AddMember<Object> guarded =
+        (obj, name, val) -> {
+          if (val != null) adder.add(obj, name, type.cast(val));
+        };
+    ADDERS_BY_TYPE.put(type, guarded);
   }
 
   static {
@@ -152,8 +153,27 @@ public final class GistOutput {
     register(float.class, JsonObjectBuilder::addNumber);
     register(Boolean.class, JsonObjectBuilder::addBoolean);
     register(boolean.class, JsonObjectBuilder::addBoolean);
-    register(JsonBuilder.JsonEncodable.class, JsonObjectBuilder::addMember);
+    register(JsonEncodable.class, JsonObjectBuilder::addMember);
     register(Object.class, GistOutput::addJacksonMapped);
+    register(
+        String[].class,
+        (obj, name, val) ->
+            obj.addArray(
+                name,
+                arr -> {
+                  for (String s : val) arr.addString(s);
+                }));
+    register(
+        JsonEncodable[].class,
+        (obj, name, val) ->
+            obj.addArray(
+                name,
+                arr -> {
+                  for (JsonEncodable e : val)
+                    if (e == null) {
+                      arr.addElement(JsonNode.NULL);
+                    } else e.addTo(arr);
+                }));
   }
 
   private static List<AddMember<Object>> toAdders(List<ObjectOutput.Type> valueTypes) {
@@ -165,32 +185,26 @@ public final class GistOutput {
     AddMember<Object> adder = ADDERS_BY_TYPE.get(type);
     if (adder != null) return adder;
     if (type.isEnum()) return ADDERS_BY_TYPE.get(Enum.class);
-    if (JsonBuilder.JsonEncodable.class.isAssignableFrom(type))
-      return ADDERS_BY_TYPE.get(JsonBuilder.JsonEncodable.class);
+    if (JsonEncodable.class.isAssignableFrom(type)) return ADDERS_BY_TYPE.get(JsonEncodable.class);
     Class<?> elementType = valueType.elementType();
     if (Collection.class.isAssignableFrom(type) && elementType != null) {
       if (Number.class.isAssignableFrom(elementType))
-        return toAdder(
-            Number.class, c -> c.toArray(Number[]::new), JsonBuilder.JsonArrayBuilder::addNumbers);
+        return (obj, name, val) ->
+            obj.addArray(name, arr -> ((Collection<Number>) val).forEach(arr::addNumber));
       if (elementType == String.class)
-        return toAdder(
-            String.class, c -> c.toArray(String[]::new), JsonBuilder.JsonArrayBuilder::addStrings);
+        return (obj, name, val) ->
+            obj.addArray(name, arr -> ((Collection<String>) val).forEach(arr::addString));
       if (elementType.isEnum())
-        return toAdder(
-            Enum.class,
-            c -> c.stream().map(Enum::name).toArray(String[]::new),
-            JsonBuilder.JsonArrayBuilder::addStrings);
+        return (obj, name, val) ->
+            obj.addArray(
+                name, arr -> ((Collection<Enum>) val).forEach(e -> arr.addString(e.name())));
+      if (JsonEncodable.class.isAssignableFrom(elementType))
+        return (obj, name, val) ->
+            obj.addArray(
+                name,
+                arr -> ((Collection<? extends JsonEncodable>) val).forEach(e -> e.addTo(arr)));
     }
     return ADDERS_BY_TYPE.get(Object.class);
-  }
-
-  @SuppressWarnings("unchecked")
-  private static <T, E> AddMember<Object> toAdder(
-      Class<T> elementType,
-      Function<Collection<T>, E[]> map,
-      BiConsumer<JsonBuilder.JsonArrayBuilder, E[]> add) {
-    return (obj, name, val) ->
-        obj.addArray(name, arr -> add.accept(arr, map.apply((Collection<T>) val)));
   }
 
   private static void addJacksonMapped(JsonObjectBuilder obj, String name, Object value) {
@@ -201,5 +215,4 @@ public final class GistOutput {
       throw new IllegalArgumentException(ex);
     }
   }
-
 }

@@ -42,7 +42,6 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -103,8 +102,7 @@ public final class CsvBuilder {
       while (iter.hasNext()) {
         Object value = iter.next();
         if (value instanceof Object[] row) {
-          for (int c = 0; c < columns; c++)
-            out.write(toCsvValue(row[c]));
+          for (int c = 0; c < columns; c++) out.write(toCsvValue(row[c]));
         } else {
           out.write(toCsvValue(value));
         }

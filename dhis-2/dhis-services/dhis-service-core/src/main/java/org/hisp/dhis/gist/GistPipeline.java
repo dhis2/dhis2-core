@@ -29,6 +29,12 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.lang.Math.abs;
+import static java.util.Comparator.comparing;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.gist.GistQuery.Comparison.EQ;
+
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +46,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.object.ObjectOutput.Property;
 import org.hisp.dhis.object.ObjectOutput.Type;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,12 +57,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import static java.lang.Math.abs;
-import static java.util.Comparator.comparing;
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.gist.GistQuery.Comparison.EQ;
 
 /**
  * @implNote This implementation utilizes {@link Stream}-processing to transform the DB results to
@@ -72,6 +72,7 @@ public class GistPipeline {
 
   private final GistService gistService;
   private final SchemaService schemaService;
+
   private final Map<Class<?>, String> collectionNames = new ConcurrentHashMap<>();
 
   /**
@@ -83,60 +84,108 @@ public class GistPipeline {
       throws BadRequestException {
     GistQuery query = createListQuery(in);
     GistObjectList list = listObjects(in, query);
-    GistOutput.toJson(createObjectListOutput(in, list), out.get());
+    GistOutput.toJson(createObjectListOutput(in.params(), in.elementType(), list), out.get());
   }
 
   @Transactional(readOnly = true)
   public void exportAsCsv(@Nonnull GistObjectList.Input in, @Nonnull Supplier<OutputStream> out)
       throws BadRequestException {
-    GistQuery query = createListQuery(in).toBuilder().typedAttributeValues(false).build();
+    GistQuery query = createListQuery(in).withoutTypedAttributeValues();
     GistObjectList list = listObjects(in, query);
-    GistOutput.toCsv(createObjectListOutput(in, list), out.get());
+    GistOutput.toCsv(createObjectListOutput(in.params(), in.elementType(), list), out.get());
   }
 
-  private GistObjectList listObjects(GistObjectList.Input input, GistQuery query) {
-    GistObjectList list = gistService.listObjects(query);
+  private GistObjectList listObjects(GistObjectList.Input input, GistQuery query)
+      throws BadRequestException {
+    GistObjectList list = gistService.exportObjectList(query);
     return input.elementType() == OrganisationUnit.class && input.params().isOrgUnitsTree()
         ? withAncestors(query, list)
         : list;
   }
 
   @Transactional(readOnly = true)
-  public void exportAsJson(GistObject.Input in, Supplier<OutputStream> out) throws BadRequestException, NotFoundException {
-    GistQuery query = createDetailsQuery(in);
-    GistObject details = gistService.listObjectDetails(query);
-    Object[] values = details.values();
+  public void exportAsJson(GistObject.Input in, Supplier<OutputStream> out)
+      throws BadRequestException, NotFoundException {
+    GistQuery query = createObjectQuery(in);
+    GistObject obj = gistService.exportObject(query);
+    Object[] values = obj.values();
     if (values == null) throw new NotFoundException(in.objectType(), in.id());
-    GistOutput.toJson(new GistObject.Output(details.properties(), values), out.get());
+    GistOutput.toJson(new GistObject.Output(obj.properties(), values), out.get());
   }
 
   @Transactional(readOnly = true)
-  public void exportAsCsv(GistObject.Input in, Supplier<OutputStream> out) throws BadRequestException, NotFoundException {
-
+  public void exportAsCsv(GistObject.Input in, Supplier<OutputStream> out)
+      throws BadRequestException, NotFoundException {
+    GistQuery query = createObjectQuery(in).withoutTypedAttributeValues();
+    GistObject obj = gistService.exportObject(query);
+    Object[] values = obj.values();
+    if (values == null) throw new NotFoundException(in.objectType(), in.id());
+    GistOutput.toCsv(new GistObject.Output(obj.properties(), values), out.get());
   }
 
   @Transactional(readOnly = true)
-  public void exportPropertyAsJson(@Nonnull OutputStream out) {
+  public void exportPropertyAsJson(
+      @Nonnull GistObjectProperty.Input in, @Nonnull Supplier<OutputStream> out)
+      throws BadRequestException, NotFoundException {
+    org.hisp.dhis.schema.Property property = checkObjectProperty(in);
 
+    if (!property.isCollection()
+        || !PrimaryKeyObject.class.isAssignableFrom(property.getItemKlass())) {
+      // equivalent to object info with: fields=<property>
+      in.params().setFields(in.property());
+      exportAsJson(new GistObject.Input(in.objectType(), in.id(), in.params()), out);
+    } else {
+      @SuppressWarnings("unchecked")
+      Class<? extends PrimaryKeyObject> elementType =
+          (Class<? extends PrimaryKeyObject>) property.getItemKlass();
+      GistQuery query = createPropertyListQuery(in, elementType);
+      GistObjectList list = gistService.exportPropertyObjectList(query);
+      GistOutput.toJson(createObjectListOutput(in.params(), elementType, list), out.get());
+    }
   }
 
   @Transactional(readOnly = true)
-  public void exportPropertyAsCsv(@Nonnull OutputStream out) {
+  public void exportPropertyAsCsv(
+      @Nonnull GistObjectProperty.Input in, @Nonnull Supplier<OutputStream> out)
+      throws BadRequestException, NotFoundException {
+    org.hisp.dhis.schema.Property property = checkObjectProperty(in);
 
+    if (!property.isCollection()
+        || !PrimaryKeyObject.class.isAssignableFrom(property.getItemKlass())) {
+      // equivalent to object info with: fields=<property>
+      in.params().setFields(in.property());
+      exportAsCsv(new GistObject.Input(in.objectType(), in.id(), in.params()), out);
+    } else {
+      @SuppressWarnings("unchecked")
+      Class<? extends PrimaryKeyObject> elementType =
+          (Class<? extends PrimaryKeyObject>) property.getItemKlass();
+      GistQuery query = createPropertyListQuery(in, elementType).withoutTypedAttributeValues();
+      GistObjectList list = gistService.exportPropertyObjectList(query);
+      GistOutput.toCsv(createObjectListOutput(in.params(), elementType, list), out.get());
+    }
+  }
+
+  @Nonnull
+  private org.hisp.dhis.schema.Property checkObjectProperty(GistObjectProperty.Input in)
+      throws BadRequestException {
+    org.hisp.dhis.schema.Property property =
+        schemaService.getSchema(in.objectType()).getProperty(in.property());
+    if (property == null) throw new BadRequestException("No such property: " + in.property());
+    return property;
   }
 
   @Nonnull
   private GistObjectList.Output createObjectListOutput(
-      GistObjectList.Input input, GistObjectList list) {
+      GistObjectListParams params, Class<?> elementType, GistObjectList list) {
     return new GistObjectList.Output(
-        input.params().headless,
+        params.isHeadless(),
         list.pager(),
-        getCollectionName(input),
+        getCollectionName(params, elementType),
         list.properties(),
         list.values());
   }
 
-  private GistQuery createDetailsQuery(GistObject.Input input) {
+  private GistQuery createObjectQuery(GistObject.Input input) {
     GistObjectParams params = input.params();
     return GistQuery.builder()
         .elementType(input.objectType())
@@ -149,10 +198,11 @@ public class GistPipeline {
         .build();
   }
 
-  private GistQuery createPropertyListQuery(GistObjectProperty.Input input) {
+  private GistQuery createPropertyListQuery(
+      GistObjectProperty.Input input, Class<? extends PrimaryKeyObject> collectionItemType) {
     GistObjectPropertyParams params = input.params();
     return GistQuery.builder()
-        .elementType(input.objectType())
+        .elementType(collectionItemType)
         .autoType(params.getAuto(GistAutoType.M))
         .translationLocale(getTranslationLocale(params.getLocale()))
         .typedAttributeValues(true)
@@ -161,6 +211,12 @@ public class GistPipeline {
         .inverse(params.isInverse())
         .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
         .fields(GistQuery.Field.ofList(input.property()))
+        .owner(
+            GistQuery.Owner.builder()
+                .id(input.id().getValue())
+                .type(input.objectType())
+                .collectionProperty(input.property())
+                .build())
         .build();
   }
 
@@ -204,17 +260,16 @@ public class GistPipeline {
   }
 
   private static Locale getTranslationLocale(String locale) {
-    return
-        !locale.isEmpty()
-            ? Locale.forLanguageTag(locale)
-            : UserSettings.getCurrentSettings().getUserDbLocale();
+    return !locale.isEmpty()
+        ? Locale.forLanguageTag(locale)
+        : UserSettings.getCurrentSettings().getUserDbLocale();
   }
 
-  private String getCollectionName(GistObjectList.Input input) {
-    String name = input.params().getPageListName();
+  private String getCollectionName(GistObjectListParams params, Class<?> elementType) {
+    String name = params.getPageListName();
     if (name != null) return name;
     return collectionNames.computeIfAbsent(
-        input.elementType(), key -> schemaService.getSchema(key).getCollectionName());
+        elementType, key -> schemaService.getSchema(key).getCollectionName());
   }
 
   private static final Property MATCH = new Property("match", new Type(Boolean.class));
@@ -227,7 +282,8 @@ public class GistPipeline {
    *     filters, not including ancestors that might be added on top. This is simply the best we can
    *     do with reasonable performance and complexity.
    */
-  private GistObjectList withAncestors(GistQuery query, GistObjectList matches) {
+  private GistObjectList withAncestors(GistQuery query, GistObjectList matches)
+      throws BadRequestException {
     // unfortunately we cannot avoid materializing the list in memory now
     List<Object[]> orgUnits = matches.values().toList();
     // - add match true to all matches
@@ -251,24 +307,27 @@ public class GistPipeline {
     properties.add(0, MATCH);
     // if ancestors are missing fetch them
     if (ids.isEmpty()) return new GistObjectList(matches.pager(), properties, elements.stream());
-    List<Object[]> ancestors =
+    Stream<Object[]> ancestors =
         gistService
-            .gist(
+            .exportObjectList(
                 GistQuery.builder()
                     .elementType(query.getElementType())
                     .translate(query.isTranslate())
                     .translationLocale(query.getTranslationLocale())
                     .paging(false)
-                    .filters(List.of(new GistQuery.Filter("id", GistQuery.Comparison.IN, ids.toArray(String[]::new))))
+                    .filters(
+                        List.of(
+                            new GistQuery.Filter(
+                                "id", GistQuery.Comparison.IN, ids.toArray(String[]::new))))
                     .fields(query.getFields())
                     .build())
-            .map(e -> prependMatchElement(e, false))
-            .toList();
+            .values()
+            .map(e -> prependMatchElement(e, false));
     // - inject ancestors into elements list (ordered by path)
     return new GistObjectList(
         matches.pager(),
         properties,
-        Stream.concat(elements.stream(), ancestors.stream())
+        Stream.concat(elements.stream(), ancestors)
             .sorted(comparing(e -> ((String) e[pathIndex]))));
   }
 

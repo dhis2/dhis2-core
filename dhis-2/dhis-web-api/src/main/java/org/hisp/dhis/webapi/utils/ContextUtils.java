@@ -41,7 +41,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IdentifiableObject;

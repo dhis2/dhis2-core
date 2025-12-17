@@ -127,7 +127,8 @@ public final class JsonStreamOutput {
       }
       String name = ObjectOutput.Property.name(path);
       parent.members.add(
-          new JsonLayoutNode.PropertyLayoutNode(i, path, name, i < adders.size() ? adders.get(i) : null));
+          new JsonLayoutNode.PropertyLayoutNode(
+              i, path, name, i < adders.size() ? adders.get(i) : null));
       i++;
     }
     return root;
@@ -145,11 +146,8 @@ public final class JsonStreamOutput {
 
     void add(JsonBuilder.JsonObjectBuilder obj, IntFunction<java.lang.Object> valueAtPathIndex);
 
-    /**
-     * The layout (schema) eqivalent of a JSON object (data)
-     */
-    record ObjectLayoutNode(String name, List<JsonLayoutNode> members)
-        implements JsonLayoutNode {
+    /** The layout (schema) eqivalent of a JSON object (data) */
+    record ObjectLayoutNode(String name, List<JsonLayoutNode> members) implements JsonLayoutNode {
       ObjectLayoutNode(String name) {
         this(name, new ArrayList<>());
       }
@@ -166,7 +164,8 @@ public final class JsonStreamOutput {
       }
 
       @Override
-      public void add(JsonBuilder.JsonObjectBuilder to, IntFunction<java.lang.Object> valueAtPathIndex) {
+      public void add(
+          JsonBuilder.JsonObjectBuilder to, IntFunction<java.lang.Object> valueAtPathIndex) {
         if (name.isEmpty()) { // root
           members.forEach(m -> m.add(to, valueAtPathIndex));
         } else {
@@ -175,10 +174,9 @@ public final class JsonStreamOutput {
       }
     }
 
-    /**
-     * The layout (schema) eqivalent of a JSON object member (data)
-     */
-    record PropertyLayoutNode(int index, String path, String name, AddMember<java.lang.Object> adder)
+    /** The layout (schema) eqivalent of a JSON object member (data) */
+    record PropertyLayoutNode(
+        int index, String path, String name, AddMember<java.lang.Object> adder)
         implements JsonLayoutNode {
 
       @Override
@@ -187,7 +185,8 @@ public final class JsonStreamOutput {
       }
 
       @Override
-      public void add(JsonBuilder.JsonObjectBuilder obj, IntFunction<java.lang.Object> getValueAtPathIndex) {
+      public void add(
+          JsonBuilder.JsonObjectBuilder obj, IntFunction<java.lang.Object> getValueAtPathIndex) {
         adder.add(obj, name, getValueAtPathIndex.apply(index));
       }
     }

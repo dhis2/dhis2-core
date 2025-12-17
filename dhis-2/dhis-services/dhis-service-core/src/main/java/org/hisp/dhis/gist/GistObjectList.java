@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,22 +29,20 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.object.ObjectOutput.Property;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Data types to process a Gist API object list request.
  *
  * @author Jan Bernitt
  * @since 2.43
- *
  * @param values the objects matching the query given as an array of values for the requested
  *     fields/properties
  */

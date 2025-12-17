@@ -46,7 +46,7 @@ import org.hisp.dhis.query.Junction;
 @OpenApi.Shared
 @OpenApi.Property // all fields are public properties
 @EqualsAndHashCode(callSuper = true)
-public final class GistObjectListParams extends GistObjectParams {
+public class GistObjectListParams extends GistObjectParams {
 
   @OpenApi.Description(
       """

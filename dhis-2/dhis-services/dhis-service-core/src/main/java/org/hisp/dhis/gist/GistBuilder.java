@@ -56,7 +56,6 @@ import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +82,7 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -264,18 +264,27 @@ final class GistBuilder {
    */
 
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
-  public static final class IdObject {
+  public static final class IdObject implements JsonBuilder.JsonEncodable {
     @JsonProperty final String id;
+
+    @Override
+    public void addTo(JsonBuilder.JsonArrayBuilder arr) {
+      arr.addObject(obj -> obj.addString("id", id));
+    }
+
+    @Override
+    public void addTo(String name, JsonBuilder.JsonObjectBuilder obj) {
+      obj.addObject(name, idObj -> idObj.addString("id", id));
+    }
   }
 
-  public Stream<?> transform(Stream<?> rows) {
+  public Stream<Object[]> transform(Stream<Object[]> rows) {
     if (fieldResultTransformers.isEmpty()) return rows;
     return rows.map(
         e -> {
           if (e == null) return null;
-          Object[] row = e instanceof Object[] arr ? arr : new Object[] {e};
-          for (Consumer<Object[]> transformer : fieldResultTransformers) transformer.accept(row);
-          return row;
+          for (Consumer<Object[]> transformer : fieldResultTransformers) transformer.accept(e);
+          return e;
         });
   }
 
@@ -801,8 +810,10 @@ final class GistBuilder {
     return id == null ? null : new IdObject((String) id);
   }
 
-  private static Object[] toIdObjects(Object ids) {
-    return isNullOrEmpty(ids) ? null : Arrays.stream(((String[]) ids)).map(IdObject::new).toArray();
+  private static IdObject[] toIdObjects(Object ids) {
+    return isNullOrEmpty(ids)
+        ? null
+        : Stream.of(((String[]) ids)).map(IdObject::new).toArray(IdObject[]::new);
   }
 
   private static boolean isNullOrEmpty(Object obj) {

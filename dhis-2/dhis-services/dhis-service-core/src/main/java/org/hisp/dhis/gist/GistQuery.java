@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,8 +53,6 @@ import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
-
-import javax.annotation.Nonnull;
 
 /**
  * Description of the gist query that should be run.
@@ -200,7 +199,7 @@ public final class GistQuery {
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
         .translate(params.isTranslate())
-        //.inverse(params.isInverse())
+        // .inverse(params.isInverse())
         .total(params.isCountTotalPages())
         .absoluteUrls(params.isAbsoluteUrls())
         .headless(params.isHeadless())
@@ -223,6 +222,10 @@ public final class GistQuery {
 
   public GistQuery withFilter(Filter filter) {
     return toBuilder().filters(List.of(filter)).build();
+  }
+
+  public GistQuery withoutTypedAttributeValues() {
+    return toBuilder().typedAttributeValues(false).build();
   }
 
   public GistQuery addField(String path) {
@@ -485,9 +488,7 @@ public final class GistQuery {
 
     @Nonnull
     public static List<Filter> ofList(String filter) {
-      return getStrings(filter, FIELD_SPLIT).stream()
-          .map(Filter::parse)
-          .collect(toList());
+      return getStrings(filter, FIELD_SPLIT).stream().map(Filter::parse).collect(toList());
     }
 
     public Filter withPropertyPath(String path) {

@@ -79,6 +79,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
@@ -128,6 +129,15 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected AttributeService attributeService;
 
   @Autowired protected CsvMapper csvMapper;
+
+  @Autowired protected SchemaService schemaService;
+
+  private Schema schema;
+
+  protected final Schema getSchema() {
+    if (schema == null) schema = schemaService.getDynamicSchema(getEntityClass());
+    return schema;
+  }
 
   // --------------------------------------------------------------------------
   // Hooks

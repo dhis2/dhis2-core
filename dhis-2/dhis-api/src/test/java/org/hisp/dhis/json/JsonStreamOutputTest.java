@@ -78,10 +78,10 @@ class JsonStreamOutputTest {
         str,
         arr ->
             addArrayElements(
-                arr, List.of("a.x.z", "a.y", "c", "a.x.t", "d"),
+                arr,
+                List.of("a.x.z", "a.y", "c", "a.x.t", "d"),
                 List.of(adder, adder, adder, adder, adder),
-                Stream.of(List.of(1, 2, 3, 4, 5), List.of(6, 7, 8, 9, 10)).map(l -> l::get)
-            ));
+                Stream.of(List.of(1, 2, 3, 4, 5), List.of(6, 7, 8, 9, 10)).map(l -> l::get)));
     assertEquals(
         """
         [{"a":{"x":{"z":1,"t":4},"y":2},"c":3,"d":5},{"a":{"x":{"z":6,"t":9},"y":7},"c":8,"d":10}]""",

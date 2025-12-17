@@ -29,51 +29,56 @@
  */
 package org.hisp.dhis.gist;
 
-import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 
 /**
- * The GIST API gives convenient access to (potentially large) collections. Good performance is
- * achieved by directly fetching simple values only. Collections are projected to size, emptiness or
- * arrays of ids. In addition, the result contains references to the API endpoints where the items of
- * collections can be browsed with more detail.
+ * The GIST API gives convenient access to (potentially large) collections.
  *
+ * @apiNote Metadata queries can yield large result sets which is why the API uses the phrase
+ *     "export" rather than "get" or "read" to put the reader in the right frame of mind of the
+ *     operation that is performed.
+ * @implNote Good performance is achieved by directly fetching simple values only. Collections are
+ *     projected to size, emptiness or arrays of ids. In addition, the result contains references to
+ *     the API endpoints where the items of collections can be browsed with more detail.
  * @author Jan Bernitt
  */
 public interface GistService {
 
-  GistObjectList listObjects(GistQuery query);
-
-  GistObject listObjectDetails(GistQuery query);
+  /**
+   * Reads a selection of properties of a specific object.
+   *
+   * @param query specifies the object and properties
+   * @return the data
+   * @throws BadRequestException in case the query is missing mandatory parameters or contains
+   *     contradictory details
+   */
+  @Nonnull
+  GistObject exportObject(@Nonnull GistQuery query) throws BadRequestException;
 
   /**
-   * Before running {@link #gist(GistQuery)} a {@link GistQuery} should be planned. This gives the
-   * service a change to modify the query fields.
+   * Reads a selection of properties listing all objects of a specific type that match the filter
+   * criteria.
    *
-   * <p>The result is exposed again so that the caller can use the modified {@link GistQuery} in
-   * subsequent processing steps like serialising the result based on the {@link
-   * GistQuery#getFields()}.
-   *
-   * @param query A {@link GistQuery} as build by the caller
-   * @return the rectified {@link GistQuery} that should be used to query results. This might be the
-   *     same instance as the provided one or a modified "copy".
+   * @param query specifies the object type, properties and filters (and more)
+   * @return the data for matching objects given as values for the requested properties
+   * @throws BadRequestException in case the query is missing mandatory parameters or contains
+   *     contradictory details
    */
-  GistQuery plan(GistQuery query);
+  @Nonnull
+  GistObjectList exportObjectList(@Nonnull GistQuery query) throws BadRequestException;
 
   /**
-   * Run a gist query. Each matching entry as a corresponding element in the result list.
+   * Reads a selection of properties listing all objects of a specific object collection property
+   * that match the filter criteria.
    *
-   * @param query query to run and which has been {@link #plan(GistQuery)}ned
-   * @return Either a list of simple values (one {@link org.hisp.dhis.gist.GistQuery.Field} query)
-   *     or a list of {@link Object[]} containing the values for {@link GistQuery#getFields()}.
-   */
-  Stream<?> gist(GistQuery query);
-
-  /**
-   * Create a pager for the given {@link GistQuery}, its results rows and the request params.
+   * <p>For this query the {@link org.hisp.dhis.gist.GistQuery.Owner} must be specified.
    *
-   * @param query a query build from params
-   * @return the pager suitable for the provided situation
+   * @param query specifies the object property, listed properties and filters (and more)
+   * @return the data for matching objects given as values for the requested properties
+   * @throws BadRequestException in case the query is missing mandatory parameters or contains
+   *     contradictory details
    */
-  GistPager pager(GistQuery query);
-
+  @Nonnull
+  GistObjectList exportPropertyObjectList(@Nonnull GistQuery query) throws BadRequestException;
 }
