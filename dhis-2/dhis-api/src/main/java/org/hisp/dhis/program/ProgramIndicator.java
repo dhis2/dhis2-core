@@ -166,7 +166,7 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
    * AVERAGE.
    */
   public AggregationType getAggregationTypeFallback() {
-    if (aggregationType == null) {
+    if (getAggregationType() == null) {
       return AggregationType.AVERAGE;
     }
 
