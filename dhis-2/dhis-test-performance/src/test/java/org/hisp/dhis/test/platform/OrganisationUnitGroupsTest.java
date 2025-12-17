@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>2. Calls the GET /api/organisationUnitGroups?fields=* endpoint
  *
- * <p>10 concurrent users in total, make calls every second for 60 seconds. Users start at 0 and
+ * <p>10 concurrent users in total, make calls every second for 10 seconds. Users start at 0 and
  * ramp up every second to a max of 5 per endpoint.
  */
 public class OrganisationUnitGroupsTest extends Simulation {
