@@ -31,6 +31,7 @@ package org.hisp.dhis.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -279,6 +280,7 @@ public final class JsonStreamOutput {
     register(String.class, JsonBuilder.JsonObjectBuilder::addString);
     register(UID.class, UID::getValue);
     register(Date.class, DateUtils::toIso8601);
+    register(Timestamp.class, DateUtils::toIso8601);
     register(Enum.class, Enum::name);
     register(Period.class, Period::getIsoDate);
     register(PeriodType.class, PeriodType::getName);

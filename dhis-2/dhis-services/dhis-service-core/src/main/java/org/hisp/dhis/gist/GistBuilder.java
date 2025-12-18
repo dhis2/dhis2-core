@@ -439,11 +439,6 @@ final class GistBuilder {
       return HQL_NULL;
     }
     Property property = context.resolveMandatory(path);
-    /*
-    if (isAttributeValuesProperty(property)) {
-      addTransformer(row -> row[index] = attributeValues(row[index]));
-    }
-    */
     if (query.getElementType() == Attribute.class && isAttributeFlagProperty(property)) {
       int objectTypesFieldIndex = getSameParentFieldIndex(path, OBJECT_TYPES);
       String name =
@@ -669,7 +664,7 @@ final class GistBuilder {
       return createMultiPluckTransformerHQL(index, field, property);
     }
     String propertyName = determineReferenceProperty(field, itemContext, true);
-    if (propertyName == null || table == Period.class) {
+    if (propertyName == null) {
       // give up
       return createSizeTransformerHQL(index, field, property);
     }
@@ -729,6 +724,7 @@ final class GistBuilder {
     if (field.getTransformationArgument() != null) {
       return getPluckPropertyName(field, fieldType, forceTextual);
     }
+    if (fieldType == Period.class) return "iso";
     if (fieldType == PeriodType.class) {
       // this is how HQL refers to discriminator property, here "name"
       return "class";
