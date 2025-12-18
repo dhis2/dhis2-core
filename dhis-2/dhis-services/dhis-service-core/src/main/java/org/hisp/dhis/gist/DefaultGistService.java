@@ -32,6 +32,7 @@ package org.hisp.dhis.gist;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
+import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +41,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -96,8 +98,9 @@ public class DefaultGistService implements GistService {
   @Override
   @Transactional(readOnly = true, propagation = Propagation.MANDATORY)
   public GistObjectList exportObjectList(@Nonnull GistQuery query) {
-    Stream<Object[]> values = gist(plan(query));
-    return new GistObjectList(pager(query), properties(query), values);
+    GistQuery planned = plan(query);
+    Stream<Object[]> values = gist(planned);
+    return new GistObjectList(pager(query), properties(planned), values);
   }
 
   @Nonnull
@@ -111,8 +114,9 @@ public class DefaultGistService implements GistService {
   @Override
   @Transactional(readOnly = true)
   public GistObject exportObject(@Nonnull GistQuery query) {
-    Object[] values = gist(plan(query)).findFirst().orElse(null);
-    return new GistObject(properties(query), values);
+    GistQuery planned = plan(query);
+    Object[] values = gist(planned).findFirst().orElse(null);
+    return new GistObject(properties(planned), values);
   }
 
   private List<ObjectOutput.Property> properties(GistQuery query) {
@@ -120,18 +124,32 @@ public class DefaultGistService implements GistService {
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
     for (GistQuery.Field f : query.getFields()) {
       String path = f.getPropertyPath();
-      Property p = context.resolveMandatory(path);
-      ObjectOutput.Type type =
-          switch (f.getTransformation()) {
-            case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
-            case SIZE -> ObjectOutput.Type.INTEGER;
-            case IDS, PLUCK -> new ObjectOutput.Type(String[].class);
-            case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
-            default -> new ObjectOutput.Type(p.getKlass(), p.getItemKlass());
-          };
-      res.add(new ObjectOutput.Property(path, type));
+      if (f.isAttribute()) {
+        res.add(new ObjectOutput.Property(path, ObjectOutput.Type.STRING));
+      } else if (GistQuery.Field.REFS_PATH.equals(f.getPropertyPath())) {
+        res.add(
+            new ObjectOutput.Property(
+                "apiEndpoints", new ObjectOutput.Type(Map.class, String.class)));
+      } else {
+        Property p = context.resolveMandatory(path);
+        ObjectOutput.Type type =
+            switch (f.getTransformation()) {
+              case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
+              case SIZE -> ObjectOutput.Type.INTEGER;
+              case IDS, PLUCK -> new ObjectOutput.Type(String[].class);
+              case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
+              default -> type(p);
+            };
+        res.add(new ObjectOutput.Property(path, type));
+      }
     }
     return res;
+  }
+
+  private static ObjectOutput.Type type(Property p) {
+    if (isPersistentReferenceField(p)) return ObjectOutput.Type.STRING;
+    if (p.isCollection() && p.getOwningRole() != null) return ObjectOutput.Type.INTEGER;
+    return new ObjectOutput.Type(p.getKlass(), p.getItemKlass());
   }
 
   private GistQuery plan(GistQuery query) {

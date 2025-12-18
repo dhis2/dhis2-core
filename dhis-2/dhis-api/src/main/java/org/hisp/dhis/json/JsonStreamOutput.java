@@ -29,16 +29,29 @@
  */
 package org.hisp.dhis.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.object.ObjectOutput;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * A utility to support {@link Stream}-serialisation as JSON for varying property paths.
@@ -50,6 +63,22 @@ import org.hisp.dhis.object.ObjectOutput;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class JsonStreamOutput {
+
+  /**
+   * @see #addArrayElements(JsonBuilder.JsonArrayBuilder, List, List, Stream)
+   */
+  public static void addArrayElements(
+      @Nonnull JsonBuilder.JsonArrayBuilder arr,
+      @Nonnull List<ObjectOutput.Property> properties,
+      @Nonnull Stream<IntFunction<Object>> elements) {
+    List<String> paths = properties.stream().map(ObjectOutput.Property::path).toList();
+    List<AddMember<Object>> adders =
+        properties.stream()
+            .map(ObjectOutput.Property::type)
+            .map(JsonStreamOutput::getAdder)
+            .toList();
+    addArrayElements(arr, paths, adders, elements);
+  }
 
   /**
    * Stream-adds JSON object nodes to an JSON array parent. Each object is created with the same
@@ -75,10 +104,38 @@ public final class JsonStreamOutput {
       @Nonnull List<String> paths,
       @Nonnull List<AddMember<Object>> adders,
       @Nonnull Stream<IntFunction<Object>> elements) {
-    if (paths.size() != adders.size())
-      throw new IllegalArgumentException("A adder must be provided for each path");
+    checkCardinality(paths, adders);
     JsonLayoutNode.ObjectLayoutNode element = createLayoutTree(paths, adders);
     elements.forEach(e -> arr.addObject(obj -> element.add(obj, e)));
+  }
+
+  public static void addObjectMembers(
+      @Nonnull JsonBuilder.JsonObjectBuilder obj,
+      @Nonnull List<ObjectOutput.Property> properties,
+      @Nonnull IntFunction<Object> values) {
+    List<String> paths = properties.stream().map(ObjectOutput.Property::path).toList();
+    List<AddMember<Object>> adders =
+        properties.stream()
+            .map(ObjectOutput.Property::type)
+            .map(JsonStreamOutput::getAdder)
+            .toList();
+    addObjectMembers(obj, paths, adders, values);
+  }
+
+  public static void addObjectMembers(
+      @Nonnull JsonBuilder.JsonObjectBuilder obj,
+      @Nonnull List<String> paths,
+      @Nonnull List<AddMember<Object>> adders,
+      @Nonnull IntFunction<Object> values) {
+    checkCardinality(paths, adders);
+    JsonLayoutNode.ObjectLayoutNode self = createLayoutTree(paths, adders);
+    self.add(obj, values);
+  }
+
+  private static void checkCardinality(
+      @Nonnull List<String> paths, @Nonnull List<AddMember<Object>> adders) {
+    if (paths.size() != adders.size())
+      throw new IllegalArgumentException("A adder must be provided for each path");
   }
 
   /**
@@ -189,6 +246,130 @@ public final class JsonStreamOutput {
           JsonBuilder.JsonObjectBuilder obj, IntFunction<java.lang.Object> getValueAtPathIndex) {
         adder.add(obj, name, getValueAtPathIndex.apply(index));
       }
+    }
+  }
+
+  /*
+  Implementation of value type conversion
+   */
+
+  private static final ObjectMapper FALLBACK_MAPPER = new ObjectMapper();
+
+  private static final Map<Class<?>, AddMember<Object>> ADDERS_BY_TYPE = new ConcurrentHashMap<>();
+
+  private static <T> void register(Class<T> type, Function<? super T, String> toString) {
+    register(type, (obj, name, value) -> obj.addString(name, toString.apply(value)));
+  }
+
+  private static <T> void register(Class<T> type, AddMember<? super T> adder) {
+    AddMember<Object> guarded =
+        (obj, name, val) -> {
+          if (val != null) {
+            try {
+              adder.add(obj, name, type.cast(val));
+            } catch (ClassCastException ex) {
+              addJacksonMapped(obj, name, val);
+            }
+          }
+        };
+    ADDERS_BY_TYPE.put(type, guarded);
+  }
+
+  static {
+    register(String.class, JsonBuilder.JsonObjectBuilder::addString);
+    register(UID.class, UID::getValue);
+    register(Date.class, DateUtils::toIso8601);
+    register(Enum.class, Enum::name);
+    register(Period.class, Period::getIsoDate);
+    register(PeriodType.class, PeriodType::getName);
+    register(Integer.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(int.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(Long.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(long.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(Double.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(double.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(Float.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(float.class, JsonBuilder.JsonObjectBuilder::addNumber);
+    register(Boolean.class, JsonBuilder.JsonObjectBuilder::addBoolean);
+    register(boolean.class, JsonBuilder.JsonObjectBuilder::addBoolean);
+    register(JsonBuilder.JsonEncodable.class, JsonBuilder.JsonObjectBuilder::addMember);
+    register(Object.class, JsonStreamOutput::addJacksonMapped);
+    register(
+        String[].class,
+        (obj, name, val) ->
+            obj.addArray(
+                name,
+                arr -> {
+                  // uses for loop to avoid wrapping => defensive copying
+                  for (String s : val) arr.addString(s);
+                }));
+    register(
+        JsonBuilder.JsonEncodable[].class,
+        (obj, name, val) ->
+            obj.addArray(
+                name,
+                arr -> {
+                  // uses for loop to avoid wrapping => defensive copying
+                  for (JsonBuilder.JsonEncodable e : val)
+                    if (e == null) {
+                      arr.addElement(JsonNode.NULL);
+                    } else e.addTo(arr);
+                }));
+  }
+
+  public static AddMember<Object> getAdder(ObjectOutput.Type valueType) {
+    Class<?> type = valueType.rawType();
+    AddMember<Object> adder = ADDERS_BY_TYPE.get(type);
+    if (adder != null) return adder;
+    if (type.isEnum()) return ADDERS_BY_TYPE.get(Enum.class);
+    if (JsonBuilder.JsonEncodable.class.isAssignableFrom(type))
+      return ADDERS_BY_TYPE.get(JsonBuilder.JsonEncodable.class);
+    Class<?> elementType = valueType.elementType();
+    if (Collection.class.isAssignableFrom(type) && elementType != null) {
+      AddMember<Object> obj = createCollectionAdder(elementType);
+      if (obj != null) return obj;
+    }
+    if (Map.class.isAssignableFrom(type) && elementType == String.class)
+      return createStringMapAdder();
+    return ADDERS_BY_TYPE.get(Object.class);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static AddMember<Object> createStringMapAdder() {
+    return (obj, name, val) ->
+        obj.addObject(name, map -> ((Map<String, String>) val).forEach(map::addString));
+  }
+
+  @CheckForNull
+  @SuppressWarnings("unchecked")
+  private static AddMember<Object> createCollectionAdder(Class<?> elementType) {
+    if (Number.class.isAssignableFrom(elementType))
+      return (obj, name, val) ->
+          obj.addArray(name, arr -> ((Collection<Number>) val).forEach(arr::addNumber));
+    if (elementType == String.class)
+      return (obj, name, val) ->
+          obj.addArray(name, arr -> ((Collection<String>) val).forEach(arr::addString));
+    if (elementType.isEnum())
+      return (obj, name, val) ->
+          obj.addArray(
+              name, arr -> ((Collection<Enum<?>>) val).forEach(e -> arr.addString(e.name())));
+    if (JsonBuilder.JsonEncodable.class.isAssignableFrom(elementType))
+      return (obj, name, val) ->
+          obj.addArray(
+              name,
+              arr ->
+                  ((Collection<? extends JsonBuilder.JsonEncodable>) val)
+                      .forEach(e -> e.addTo(arr)));
+    return null;
+  }
+
+  private static void addJacksonMapped(
+      JsonBuilder.JsonObjectBuilder obj, String name, Object value) {
+    try {
+      String json = FALLBACK_MAPPER.writeValueAsString(value);
+      obj.addMember(name, JsonNode.of(json));
+    } catch (JsonProcessingException ex) {
+      throw new IllegalArgumentException(ex);
     }
   }
 }

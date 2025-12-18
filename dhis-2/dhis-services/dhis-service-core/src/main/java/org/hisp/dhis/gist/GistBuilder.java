@@ -42,7 +42,6 @@ import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
-import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isJsonCollectionFilter;
@@ -440,9 +439,11 @@ final class GistBuilder {
       return HQL_NULL;
     }
     Property property = context.resolveMandatory(path);
+    /*
     if (isAttributeValuesProperty(property)) {
       addTransformer(row -> row[index] = attributeValues(row[index]));
     }
+    */
     if (query.getElementType() == Attribute.class && isAttributeFlagProperty(property)) {
       int objectTypesFieldIndex = getSameParentFieldIndex(path, OBJECT_TYPES);
       String name =

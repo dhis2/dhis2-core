@@ -30,33 +30,17 @@
 package org.hisp.dhis.gist;
 
 import static org.hisp.dhis.json.JsonStreamOutput.addArrayElements;
+import static org.hisp.dhis.json.JsonStreamOutput.addObjectMembers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CsvBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder;
-import org.hisp.dhis.jsontree.JsonBuilder.JsonEncodable;
-import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
-import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
-import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.object.ObjectOutput;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * Utility class responsible for all details concerning the serialisation of Gist API data as JSON.
@@ -82,18 +66,16 @@ public final class GistOutput {
   }
 
   public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
-    List<String> paths = obj.paths();
-    // TODO write object
+    IntFunction<Object> values = (i -> obj.values()[i]);
+    JsonBuilder.streamObject(
+        LIST_FORMAT, out, root -> addObjectMembers(root, obj.properties(), values));
   }
 
   public static void toJson(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
-    List<String> paths = list.paths();
-    List<AddMember<Object>> adders =
-        toAdders(list.properties().stream().map(ObjectOutput.Property::type).toList());
     Stream<IntFunction<Object>> values = list.values().map(arr -> (i -> arr[i]));
     if (list.headless()) {
       JsonBuilder.streamArray(
-          LIST_FORMAT, out, arr -> addArrayElements(arr, paths, adders, values));
+          LIST_FORMAT, out, arr -> addArrayElements(arr, list.properties(), values));
       return;
     }
     GistPager pager = list.pager();
@@ -112,107 +94,8 @@ public final class GistOutput {
                   p.addString("prevPage", pager.prevPage());
                   p.addString("nextPage", pager.nextPage());
                 });
-          obj.addArray(list.collectionName(), arr -> addArrayElements(arr, paths, adders, values));
+          obj.addArray(
+              list.collectionName(), arr -> addArrayElements(arr, list.properties(), values));
         });
-  }
-
-  /*
-  Implementation of value type conversion
-   */
-
-  private static final ObjectMapper FALLBACK_MAPPER = new ObjectMapper();
-
-  private static final Map<Class<?>, AddMember<Object>> ADDERS_BY_TYPE = new ConcurrentHashMap<>();
-
-  private static <T> void register(Class<T> type, Function<? super T, String> toString) {
-    register(type, (obj, name, value) -> obj.addString(name, toString.apply(value)));
-  }
-
-  private static <T> void register(Class<T> type, AddMember<? super T> adder) {
-    AddMember<Object> guarded =
-        (obj, name, val) -> {
-          if (val != null) adder.add(obj, name, type.cast(val));
-        };
-    ADDERS_BY_TYPE.put(type, guarded);
-  }
-
-  static {
-    register(String.class, JsonObjectBuilder::addString);
-    register(UID.class, UID::getValue);
-    register(Date.class, DateUtils::toIso8601);
-    register(Enum.class, Enum::name);
-    register(Period.class, Period::getIsoDate);
-    register(PeriodType.class, PeriodType::getName);
-    register(Integer.class, JsonObjectBuilder::addNumber);
-    register(int.class, JsonObjectBuilder::addNumber);
-    register(Long.class, JsonObjectBuilder::addNumber);
-    register(long.class, JsonObjectBuilder::addNumber);
-    register(Double.class, JsonObjectBuilder::addNumber);
-    register(double.class, JsonObjectBuilder::addNumber);
-    register(Float.class, JsonObjectBuilder::addNumber);
-    register(float.class, JsonObjectBuilder::addNumber);
-    register(Boolean.class, JsonObjectBuilder::addBoolean);
-    register(boolean.class, JsonObjectBuilder::addBoolean);
-    register(JsonEncodable.class, JsonObjectBuilder::addMember);
-    register(Object.class, GistOutput::addJacksonMapped);
-    register(
-        String[].class,
-        (obj, name, val) ->
-            obj.addArray(
-                name,
-                arr -> {
-                  for (String s : val) arr.addString(s);
-                }));
-    register(
-        JsonEncodable[].class,
-        (obj, name, val) ->
-            obj.addArray(
-                name,
-                arr -> {
-                  for (JsonEncodable e : val)
-                    if (e == null) {
-                      arr.addElement(JsonNode.NULL);
-                    } else e.addTo(arr);
-                }));
-  }
-
-  private static List<AddMember<Object>> toAdders(List<ObjectOutput.Type> valueTypes) {
-    return valueTypes.stream().map(GistOutput::toAdder).toList();
-  }
-
-  private static AddMember<Object> toAdder(ObjectOutput.Type valueType) {
-    Class<?> type = valueType.rawType();
-    AddMember<Object> adder = ADDERS_BY_TYPE.get(type);
-    if (adder != null) return adder;
-    if (type.isEnum()) return ADDERS_BY_TYPE.get(Enum.class);
-    if (JsonEncodable.class.isAssignableFrom(type)) return ADDERS_BY_TYPE.get(JsonEncodable.class);
-    Class<?> elementType = valueType.elementType();
-    if (Collection.class.isAssignableFrom(type) && elementType != null) {
-      if (Number.class.isAssignableFrom(elementType))
-        return (obj, name, val) ->
-            obj.addArray(name, arr -> ((Collection<Number>) val).forEach(arr::addNumber));
-      if (elementType == String.class)
-        return (obj, name, val) ->
-            obj.addArray(name, arr -> ((Collection<String>) val).forEach(arr::addString));
-      if (elementType.isEnum())
-        return (obj, name, val) ->
-            obj.addArray(
-                name, arr -> ((Collection<Enum>) val).forEach(e -> arr.addString(e.name())));
-      if (JsonEncodable.class.isAssignableFrom(elementType))
-        return (obj, name, val) ->
-            obj.addArray(
-                name,
-                arr -> ((Collection<? extends JsonEncodable>) val).forEach(e -> e.addTo(arr)));
-    }
-    return ADDERS_BY_TYPE.get(Object.class);
-  }
-
-  private static void addJacksonMapped(JsonObjectBuilder obj, String name, Object value) {
-    try {
-      String json = FALLBACK_MAPPER.writeValueAsString(value);
-      obj.addMember(name, JsonNode.of(json));
-    } catch (JsonProcessingException ex) {
-      throw new IllegalArgumentException(ex);
-    }
   }
 }

@@ -59,6 +59,7 @@ public final class ObjectOutput {
   public record Type(@Nonnull Class<?> rawType, @CheckForNull Class<?> elementType) {
 
     public static final Type //
+        OBJECT = new Type(Object.class),
         STRING = new Type(String.class),
         BOOLEAN = new Type(Boolean.class),
         INTEGER = new Type(Integer.class);
