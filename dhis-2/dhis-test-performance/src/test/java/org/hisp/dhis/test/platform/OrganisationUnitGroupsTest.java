@@ -49,8 +49,11 @@ public class OrganisationUnitGroupsTest extends Simulation {
 
   public static final String BASE_URL = "http://localhost:8080";
   private static final String GET_ORG_UNIT_GROUPS = "GET Organisation Unit Groups";
+  private static final String GET_ORG_UNIT_GROUPS_REQUEST = "GET Organisation Unit Groups REQUEST";
   private static final String GET_ORG_UNIT_GROUPS_ALL_FIELDS =
       "GET Organisation Unit Groups - all fields";
+  private static final String GET_ORG_UNIT_GROUPS_ALL_FIELDS_REQUEST =
+      "GET Organisation Unit Groups - all fields REQUEST";
 
   /**
    * Setup users before simulation runs. This could be a test scenario in its own right, but the aim
@@ -74,27 +77,35 @@ public class OrganisationUnitGroupsTest extends Simulation {
         UserFeeder.createUserFeederFromFile(
             "platform/superuser-data-sl-db.json", UserFeeder.Strategy.CIRCULAR);
 
-    // scenarios
+    // scenarios include a login step and the target API call step
+    // steps are grouped so we can assert on the target API call only (login stats ignored)
     ScenarioBuilder getOrgUnitGroupsScenario =
         scenario(GET_ORG_UNIT_GROUPS)
             .feed(circularUserFeeder)
-            .repeat(1)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group("Org Unit Groups Requests")
             .on(
-                exec(http(GET_ORG_UNIT_GROUPS)
-                        .get("/api/organisationUnitGroups")
-                        .basicAuth("#{username}", "#{password}"))
-                    .pause(1));
+                repeat(1)
+                    .on(
+                        exec(http(GET_ORG_UNIT_GROUPS)
+                                .get("/api/organisationUnitGroups")
+                                .basicAuth("#{username}", "#{password}"))
+                            .pause(1)));
 
     ScenarioBuilder getOrgUnitGroupsAllFieldsScenario =
         scenario(GET_ORG_UNIT_GROUPS_ALL_FIELDS)
             .feed(circularUserFeeder)
-            .repeat(1)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group("Org Unit Groups Requests - All fields")
             .on(
-                exec(http(GET_ORG_UNIT_GROUPS_ALL_FIELDS)
-                        .get("/api/organisationUnitGroups")
-                        .queryParam("fields", "*")
-                        .basicAuth("#{username}", "#{password}"))
-                    .pause(1));
+                repeat(1)
+                    .on(
+                        exec(http(GET_ORG_UNIT_GROUPS_ALL_FIELDS)
+                                .get("/api/organisationUnitGroups")
+                                .queryParam("fields", "*"))
+                            .pause(1)));
 
     // how users should enter the scenarios
     ClosedInjectionStep closedInjection = rampConcurrentUsers(0).to(5).during(10);
@@ -105,11 +116,23 @@ public class OrganisationUnitGroupsTest extends Simulation {
             getOrgUnitGroupsAllFieldsScenario.injectClosed(closedInjection))
         .protocols(httpProtocol)
         .assertions(
-            details(GET_ORG_UNIT_GROUPS).responseTime().percentile(95).lt(400),
-            details(GET_ORG_UNIT_GROUPS).responseTime().max().lt(800),
-            details(GET_ORG_UNIT_GROUPS).successfulRequests().percent().is(100D),
-            details(GET_ORG_UNIT_GROUPS_ALL_FIELDS).responseTime().percentile(95).lt(600),
-            details(GET_ORG_UNIT_GROUPS_ALL_FIELDS).responseTime().max().lt(1000),
-            details(GET_ORG_UNIT_GROUPS_ALL_FIELDS).successfulRequests().percent().is(100D));
+            details(GET_ORG_UNIT_GROUPS_REQUEST).responseTime().percentile(95).lt(400),
+            details(GET_ORG_UNIT_GROUPS_REQUEST).responseTime().max().lt(800),
+            details(GET_ORG_UNIT_GROUPS_REQUEST).successfulRequests().percent().is(100D),
+            details(GET_ORG_UNIT_GROUPS_ALL_FIELDS_REQUEST).responseTime().percentile(95).lt(600),
+            details(GET_ORG_UNIT_GROUPS_ALL_FIELDS_REQUEST).responseTime().max().lt(1000),
+            details(GET_ORG_UNIT_GROUPS_ALL_FIELDS_REQUEST)
+                .successfulRequests()
+                .percent()
+                .is(100D));
+  }
+
+  private ChainBuilder loginChain() {
+    return exec(
+        http("Login")
+            .post("/api/auth/login")
+            .header("Content-Type", "application/json")
+            .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
+            .check(status().is(200)));
   }
 }
