@@ -279,8 +279,8 @@ public final class JsonStreamOutput {
   static {
     register(String.class, JsonBuilder.JsonObjectBuilder::addString);
     register(UID.class, UID::getValue);
-    register(Date.class, DateUtils::toIso8601);
-    register(Timestamp.class, DateUtils::toIso8601);
+    register(Date.class, DateUtils::toIso8601NoTz);
+    register(Timestamp.class, DateUtils::toIso8601NoTz);
     register(Enum.class, Enum::name);
     register(Period.class, Period::getIsoDate);
     register(PeriodType.class, PeriodType::getName);
