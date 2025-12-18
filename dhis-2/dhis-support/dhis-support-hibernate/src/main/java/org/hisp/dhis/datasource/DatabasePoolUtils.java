@@ -69,11 +69,14 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALID
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_WARN_MAX_AGE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
 import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.micrometer.MicrometerMetricsTrackerFactory;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -83,7 +86,6 @@ import java.util.Objects;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -149,9 +151,19 @@ public final class DatabasePoolUtils {
     UNPOOLED
   }
 
-  public static DataSource createDbPool(PoolConfig config)
+  /**
+   * Creates a data source backed by a database connection pool.
+   *
+   * @param config the {@link PoolConfig}.
+   * @param meterRegistry Micrometer registry for HikariCP metrics. Use {@code SimpleMeterRegistry}
+   *     in tests where metrics export is not needed.
+   * @return a {@link DataSource}.
+   */
+  public static DataSource createDbPool(PoolConfig config, MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     Objects.requireNonNull(config);
+    Objects.requireNonNull(
+        meterRegistry, "MeterRegistry is required. Use SimpleMeterRegistry in tests.");
 
     ConfigKeyMapper mapper = config.getMapper();
     DbPoolType dbPoolType = DbPoolType.valueOf(config.getDbPoolType().toUpperCase());
@@ -173,7 +185,9 @@ public final class DatabasePoolUtils {
     final DataSource dataSource =
         switch (dbPoolType) {
           case C3P0 -> createC3p0DbPool(username, password, driverClassName, jdbcUrl, config);
-          case HIKARI -> createHikariDbPool(username, password, driverClassName, jdbcUrl, config);
+          case HIKARI ->
+              createHikariDbPool(
+                  username, password, driverClassName, jdbcUrl, config, meterRegistry);
           case UNPOOLED -> createUnPooledDataSource(username, password, driverClassName, jdbcUrl);
           default ->
               throw new IllegalArgumentException(
@@ -187,7 +201,12 @@ public final class DatabasePoolUtils {
   }
 
   private static DataSource createHikariDbPool(
-      String username, String password, String driverClassName, String jdbcUrl, PoolConfig config) {
+      String username,
+      String password,
+      String driverClassName,
+      String jdbcUrl,
+      PoolConfig config,
+      MeterRegistry meterRegistry) {
     ConfigKeyMapper mapper = config.getMapper();
 
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
@@ -205,7 +224,7 @@ public final class DatabasePoolUtils {
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
 
     HikariConfig hc = new HikariConfig();
-    hc.setPoolName("HikariDataSource_" + CodeGenerator.generateCode(10));
+    hc.setPoolName(config.getDataSourceName());
     hc.setDriverClassName(driverClassName);
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
@@ -237,6 +256,11 @@ public final class DatabasePoolUtils {
       } catch (NumberFormatException e) {
         log.warn("Invalid leak detection threshold value '{}', skipping.", leakThresholdStr);
       }
+    }
+
+    // Configure HikariCP metrics if enabled
+    if (dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
+      hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 
     HikariDataSource ds = new HikariDataSource(hc);

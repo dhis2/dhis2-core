@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
@@ -136,5 +138,10 @@ public class WebTestConfiguration {
   @Bean
   public SystemAuthoritiesProvider systemAuthoritiesProvider() {
     return Authorities::getAllAuthorities;
+  }
+
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return new SimpleMeterRegistry();
   }
 }

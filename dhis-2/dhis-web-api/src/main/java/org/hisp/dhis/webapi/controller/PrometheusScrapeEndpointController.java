@@ -31,8 +31,8 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.UncheckedIOException;
 import java.io.Writer;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Profile("!test")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@Slf4j
 public class PrometheusScrapeEndpointController {
   private final CollectorRegistry collectorRegistry;
 
@@ -63,10 +64,10 @@ public class PrometheusScrapeEndpointController {
       TextFormat.write004(writer, this.collectorRegistry.metricFamilySamples());
       return writer.toString();
     } catch (IOException ex) {
-      // This never happens since StringWriter::write() doesn't throw
-      // IOException
-
-      throw new UncheckedIOException("Writing metrics failed", ex);
+      // Client disconnected during metrics scraping (common with Prometheus)
+      // Log at debug level to avoid noise - Prometheus will automatically retry
+      log.debug("Client disconnected while writing metrics: {}", ex.getMessage());
+      return "";
     }
   }
 }

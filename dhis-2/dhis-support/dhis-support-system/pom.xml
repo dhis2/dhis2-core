@@ -246,11 +246,6 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-    </dependency>
-
     <!-- application monitoring -->
 
     <dependency>

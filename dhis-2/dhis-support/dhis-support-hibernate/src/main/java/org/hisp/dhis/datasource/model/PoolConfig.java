@@ -28,6 +28,7 @@
 package org.hisp.dhis.datasource.model;
 
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
@@ -39,8 +40,26 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-@Builder
+@Builder(builderMethodName = "")
 public class PoolConfig {
+  /**
+   * Name identifying this datasource in metrics. Required. Must be unique across all data sources.
+   * Use meaningful names like "actual", "analytics", "read_replica", "read_1", etc. Names should
+   * follow the <a href="https://prometheus.io/docs/practices/naming/">Prometheus naming
+   * conventions</a>.
+   */
+  @Nonnull final String dataSourceName;
+
+  /**
+   * Creates a builder with the required dataSourceName.
+   *
+   * @param dataSourceName required name identifying this datasource in metrics
+   * @return a builder with the dataSourceName already set
+   */
+  public static PoolConfigBuilder builder(@Nonnull String dataSourceName) {
+    return new PoolConfigBuilder().dataSourceName(dataSourceName);
+  }
+
   private String dbPoolType;
 
   private DhisConfigurationProvider dhisConfig;

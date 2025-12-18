@@ -30,6 +30,7 @@ package org.hisp.dhis.config;
 import static org.hisp.dhis.config.HibernateConfig.getAdditionalProperties;
 import static org.hisp.dhis.config.HibernateConfig.loadResources;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Properties;
@@ -105,15 +106,15 @@ public class H2TestConfig {
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
   @Primary
-  public DataSource actualDataSource(DhisConfigurationProvider config)
+  public DataSource actualDataSource(DhisConfigurationProvider config, MeterRegistry meterRegistry)
       throws PropertyVetoException, SQLException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
+    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder("test");
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 
-    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build());
+    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build(), meterRegistry);
     H2SqlFunction.registerH2Functions(dbPool);
 
     return dbPool;

@@ -49,7 +49,7 @@ public abstract class MetricsEnabler extends PropertiesAwareConfigurationConditi
     ConfigurationKey key = getConfigKey();
 
     boolean isEnabled = !isTestRun(conditionContext) && getBooleanValue(getConfigKey());
-    log.info(
+    log.debug(
         String.format(
             "Monitoring metric for key '%s' is %s",
             key.getKey(), isEnabled ? "enabled" : "disabled"));

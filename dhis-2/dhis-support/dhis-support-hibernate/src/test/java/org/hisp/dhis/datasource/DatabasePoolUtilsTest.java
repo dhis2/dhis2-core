@@ -33,6 +33,8 @@ import static org.mockito.Mockito.mock;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariDataSource;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -46,6 +48,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 class DatabasePoolUtilsTest {
+  private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
   @BeforeEach
   public void beforeEach() throws SQLException {
     StubDriver jdbcDriver = new StubDriver();
@@ -60,14 +64,15 @@ class DatabasePoolUtilsTest {
         .willReturn("org.hisp.dhis.datasource.StubDriver");
 
     PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        PoolConfig.builder()
+        PoolConfig.builder("test_unpooled")
             .dbPoolType(DatabasePoolUtils.DbPoolType.UNPOOLED.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
             .password("")
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
+    DataSource dataSource =
+        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), meterRegistry);
     assertInstanceOf(DriverManagerDataSource.class, dataSource);
   }
 
@@ -92,7 +97,7 @@ class DatabasePoolUtilsTest {
         .willReturn("1");
 
     PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        PoolConfig.builder()
+        PoolConfig.builder("test_c3p0")
             .dbPoolType(DatabasePoolUtils.DbPoolType.C3P0.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
@@ -104,7 +109,8 @@ class DatabasePoolUtilsTest {
             .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
+    DataSource dataSource =
+        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), meterRegistry);
     assertInstanceOf(ComboPooledDataSource.class, dataSource);
   }
 
@@ -121,7 +127,7 @@ class DatabasePoolUtilsTest {
         .willReturn("250");
 
     PoolConfig.PoolConfigBuilder poolConfigBuilder =
-        PoolConfig.builder()
+        PoolConfig.builder("test_hikari")
             .dbPoolType(DatabasePoolUtils.DbPoolType.HIKARI.name())
             .jdbcUrl("jdbc:fake:db")
             .username("")
@@ -131,7 +137,8 @@ class DatabasePoolUtilsTest {
             .maxIdleTime(String.valueOf(ThreadLocalRandom.current().nextInt()))
             .dhisConfig(mockDhisConfigurationProvider);
 
-    DataSource dataSource = DatabasePoolUtils.createDbPool(poolConfigBuilder.build());
+    DataSource dataSource =
+        DatabasePoolUtils.createDbPool(poolConfigBuilder.build(), meterRegistry);
     assertInstanceOf(HikariDataSource.class, dataSource);
   }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.config;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -61,5 +63,11 @@ public class IntegrationBaseConfig {
   @Bean
   public PasswordEncoder encoder() {
     return new BCryptPasswordEncoder();
+  }
+
+  /** MeterRegistry for integration tests. */
+  @Bean
+  public MeterRegistry meterRegistry() {
+    return new SimpleMeterRegistry();
   }
 }
