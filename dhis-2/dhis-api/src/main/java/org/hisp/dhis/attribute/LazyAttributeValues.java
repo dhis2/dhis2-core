@@ -71,7 +71,7 @@ import org.intellij.lang.annotations.Language;
  * @since 2.42
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-final class LazyAttributeValues implements AttributeValues, JsonBuilder.JsonEncodable {
+final class LazyAttributeValues implements AttributeValues {
 
   private static final AttributeValues EMPTY = new LazyAttributeValues("{}", null, null);
 

@@ -50,7 +50,7 @@ import org.hisp.dhis.jsontree.JsonBuilder;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class GistOutput {
 
-  private static final JsonBuilder.PrettyPrint LIST_FORMAT =
+  private static final JsonBuilder.PrettyPrint FORMAT =
       new JsonBuilder.PrettyPrint(0, 0, false, true, true);
 
   public static void toCsv(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
@@ -67,20 +67,18 @@ public final class GistOutput {
 
   public static void toJson(@Nonnull GistObject.Output obj, @Nonnull OutputStream out) {
     IntFunction<Object> values = (i -> obj.values()[i]);
-    JsonBuilder.streamObject(
-        LIST_FORMAT, out, root -> addObjectMembers(root, obj.properties(), values));
+    JsonBuilder.streamObject(FORMAT, out, root -> addObjectMembers(root, obj.properties(), values));
   }
 
   public static void toJson(@Nonnull GistObjectList.Output list, @Nonnull OutputStream out) {
     Stream<IntFunction<Object>> values = list.values().map(arr -> (i -> arr[i]));
     if (list.headless()) {
-      JsonBuilder.streamArray(
-          LIST_FORMAT, out, arr -> addArrayElements(arr, list.properties(), values));
+      JsonBuilder.streamArray(FORMAT, out, arr -> addArrayElements(arr, list.properties(), values));
       return;
     }
     GistPager pager = list.pager();
     JsonBuilder.streamObject(
-        LIST_FORMAT,
+        FORMAT,
         out,
         obj -> {
           if (pager != null)
