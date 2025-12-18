@@ -67,4 +67,5 @@ public class LoginConfigResponse {
   @JsonProperty private boolean useCustomLogoFront;
 
   @JsonProperty private List<LoginOidcProvider> oidcProviders;
+  @JsonProperty private List<String> audiences;
 }

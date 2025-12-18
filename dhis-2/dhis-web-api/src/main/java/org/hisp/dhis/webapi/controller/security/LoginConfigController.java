@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -44,10 +45,15 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.User;
+import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContext;
+import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContextHolder;
+import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -98,7 +104,41 @@ public class LoginConfigController {
         .minPasswordLength(String.valueOf(settings.getMinPasswordLength()))
         .maxPasswordLength(String.valueOf(settings.getMaxPasswordLength()))
         .oidcProviders(getRegisteredOidcProviders())
+        .audiences(getAudience())
         .build();
+  }
+
+  private static List<String> getAudience() {
+    AuthorizationServerContext authorizationServerContext =
+        AuthorizationServerContextHolder.getContext();
+    if (!StringUtils.hasText(authorizationServerContext.getIssuer())) {
+      return Collections.emptyList();
+    }
+    AuthorizationServerSettings authorizationServerSettings =
+        authorizationServerContext.getAuthorizationServerSettings();
+    List<String> audience = new ArrayList<>();
+    audience.add(authorizationServerContext.getIssuer());
+    audience.add(
+        asUrl(
+            authorizationServerContext.getIssuer(),
+            authorizationServerSettings.getTokenEndpoint()));
+    audience.add(
+        asUrl(
+            authorizationServerContext.getIssuer(),
+            authorizationServerSettings.getTokenIntrospectionEndpoint()));
+    audience.add(
+        asUrl(
+            authorizationServerContext.getIssuer(),
+            authorizationServerSettings.getTokenRevocationEndpoint()));
+    audience.add(
+        asUrl(
+            authorizationServerContext.getIssuer(),
+            authorizationServerSettings.getPushedAuthorizationRequestEndpoint()));
+    return audience;
+  }
+
+  private static String asUrl(String issuer, String endpoint) {
+    return UriComponentsBuilder.fromUriString(issuer).path(endpoint).build().toUriString();
   }
 
   private List<LoginOidcProvider> getRegisteredOidcProviders() {
