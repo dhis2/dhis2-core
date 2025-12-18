@@ -84,11 +84,11 @@ public class OrganisationUnitGroupsTest extends Simulation {
             .feed(circularUserFeeder)
             .group("Authentication")
             .on(exec(loginChain()))
-            .group("Org Unit Groups Requests")
+            .group(GET_ORG_UNIT_GROUPS_REQUEST)
             .on(
                 repeat(1)
                     .on(
-                        exec(http(GET_ORG_UNIT_GROUPS)
+                        exec(http(GET_ORG_UNIT_GROUPS_REQUEST)
                                 .get("/api/organisationUnitGroups")
                                 .basicAuth("#{username}", "#{password}"))
                             .pause(1)));
@@ -98,11 +98,11 @@ public class OrganisationUnitGroupsTest extends Simulation {
             .feed(circularUserFeeder)
             .group("Authentication")
             .on(exec(loginChain()))
-            .group("Org Unit Groups Requests - All fields")
+            .group(GET_ORG_UNIT_GROUPS_ALL_FIELDS_REQUEST)
             .on(
                 repeat(1)
                     .on(
-                        exec(http(GET_ORG_UNIT_GROUPS_ALL_FIELDS)
+                        exec(http(GET_ORG_UNIT_GROUPS_ALL_FIELDS_REQUEST)
                                 .get("/api/organisationUnitGroups")
                                 .queryParam("fields", "*"))
                             .pause(1)));
