@@ -43,7 +43,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.tracker.program.notification.snapshot.ProgramNotificationTemplateSnapshot;
+import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
 
 /**
  * @author Zubair Asghar
