@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.program.notification.snapshot;
+package org.hisp.dhis.program.notification.template;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,15 +42,20 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
+import org.hisp.dhis.program.notification.template.snapshot.UserGroupSnapshot;
+import org.hisp.dhis.program.notification.template.snapshot.UserSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.springframework.stereotype.Service;
 
-@Service("org.hisp.dhis.tracker.program.notification.snapshot.NotificationTemplateMapper")
 public class NotificationTemplateMapper {
 
-  public ProgramNotificationTemplate toProgramNotificationTemplate(
+  private NotificationTemplateMapper() {
+    throw new UnsupportedOperationException("util");
+  }
+
+  public static ProgramNotificationTemplate toProgramNotificationTemplate(
       ProgramNotificationTemplateSnapshot templateSnapshot) {
     return toBaseIdentifiableObject(
         templateSnapshot,
@@ -80,7 +85,7 @@ public class NotificationTemplateMapper {
             t -> t.setRecipientUserGroup(toUserGroup(templateSnapshot.getRecipientUserGroup()))));
   }
 
-  public ProgramNotificationTemplateSnapshot toProgramNotificationTemplateSnapshot(
+  public static ProgramNotificationTemplateSnapshot toProgramNotificationTemplateSnapshot(
       ProgramNotificationTemplate template) {
 
     return toIdentifiableObjectSnapshot(
@@ -112,21 +117,21 @@ public class NotificationTemplateMapper {
             t -> t.setRecipientUserGroup(toUserGroupSnapshot(template.getRecipientUserGroup()))));
   }
 
-  private UserGroup toUserGroup(UserGroupSnapshot userGroupSnapshot) {
+  private static UserGroup toUserGroup(UserGroupSnapshot userGroupSnapshot) {
     return toBaseIdentifiableObject(
         userGroupSnapshot,
         UserGroup::new,
         List.of(ug -> ug.setMembers(toUsers(userGroupSnapshot.getMembers()))));
   }
 
-  private UserGroupSnapshot toUserGroupSnapshot(UserGroup userGroup) {
+  private static UserGroupSnapshot toUserGroupSnapshot(UserGroup userGroup) {
     return toIdentifiableObjectSnapshot(
         userGroup,
         UserGroupSnapshot::new,
         List.of(ug -> ug.setMembers(toUserSnapshot(userGroup.getMembers()))));
   }
 
-  private Set<User> toUsers(Set<UserSnapshot> userSnapshots) {
+  private static Set<User> toUsers(Set<UserSnapshot> userSnapshots) {
     Set<User> users = new HashSet<>();
 
     for (UserSnapshot userSnapshot : userSnapshots) {
@@ -143,7 +148,7 @@ public class NotificationTemplateMapper {
     return users;
   }
 
-  private Set<UserSnapshot> toUserSnapshot(Set<User> users) {
+  private static Set<UserSnapshot> toUserSnapshot(Set<User> users) {
     Set<UserSnapshot> userSnapshots = new HashSet<>();
 
     for (User user : users) {
@@ -160,7 +165,7 @@ public class NotificationTemplateMapper {
     return userSnapshots;
   }
 
-  private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot(
+  private static <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot(
       IdentifiableObject from,
       Supplier<T> instanceSupplier,
       Collection<Consumer<T>> instanceTransformers) {
@@ -181,7 +186,7 @@ public class NotificationTemplateMapper {
     return optionalInstance.orElse(null);
   }
 
-  private <T extends BaseIdentifiableObject> T toBaseIdentifiableObject(
+  private static <T extends BaseIdentifiableObject> T toBaseIdentifiableObject(
       IdentifiableObjectSnapshot from,
       Supplier<T> instanceSupplier,
       Collection<Consumer<T>> instanceTransformers) {

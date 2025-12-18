@@ -75,13 +75,13 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
-import org.hisp.dhis.tracker.program.notification.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
@@ -126,8 +126,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   private final ProgramNotificationTemplateService notificationTemplateService;
 
-  private final NotificationTemplateMapper notificationTemplateMapper;
-
   private final ProgramNotificationInstanceService notificationInstanceService;
 
   public DefaultProgramNotificationService(
@@ -138,7 +136,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       NotificationMessageRenderer<TrackerEvent> programStageNotificationRenderer,
       NotificationMessageRenderer<SingleEvent> singleEventNotificationRenderer,
       ProgramNotificationTemplateService notificationTemplateService,
-      NotificationTemplateMapper notificationTemplateMapper,
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
@@ -151,7 +148,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     this.programStageNotificationRenderer = programStageNotificationRenderer;
     this.singleEventNotificationRenderer = singleEventNotificationRenderer;
     this.notificationTemplateService = notificationTemplateService;
-    this.notificationTemplateMapper = notificationTemplateMapper;
     this.notificationInstanceService = notificationInstanceService;
   }
 
@@ -303,7 +299,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       ProgramNotificationInstance programNotificationInstance) {
     return Optional.of(programNotificationInstance)
         .map(ProgramNotificationInstance::getProgramNotificationTemplateSnapshot)
-        .map(notificationTemplateMapper::toProgramNotificationTemplate)
+        .map(NotificationTemplateMapper::toProgramNotificationTemplate)
         .orElseGet(() -> this.getDatabaseTemplate(programNotificationInstance));
   }
 

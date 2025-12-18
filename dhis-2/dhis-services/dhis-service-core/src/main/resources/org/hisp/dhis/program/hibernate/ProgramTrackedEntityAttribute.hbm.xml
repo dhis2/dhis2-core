@@ -33,8 +33,6 @@
     
     <property name="searchable" column="searchable" />
 
-    <property name="skipIndividualAnalytics" column="skipIndividualAnalytics" />
-
     </class>
 
 </hibernate-mapping>

@@ -51,6 +51,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -75,6 +77,7 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   @Autowired private DataDumpService dataDumpService;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodStore periodStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -112,6 +115,9 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
 
   @BeforeAll
   void setUp() {
+    periodStore.invalidateCache();
+    PeriodType.invalidatePeriodCache();
+
     sourceA = createOrganisationUnit('A');
     sourceB = createOrganisationUnit('B');
     sourceC = createOrganisationUnit('C');
