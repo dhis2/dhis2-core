@@ -53,6 +53,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -369,6 +370,22 @@ final class LazyAttributeValues implements AttributeValues {
         return Map.entry(keys[i], values[i++]);
       }
     };
+  }
+
+  @Override
+  public void addTo(JsonBuilder.JsonArrayBuilder arr) {
+    init();
+    arr.addObject(this::asJsonObject);
+  }
+
+  @Override
+  public void addTo(String name, JsonBuilder.JsonObjectBuilder parent) {
+    init();
+    parent.addObject(name, this::asJsonObject);
+  }
+
+  private void asJsonObject(JsonBuilder.JsonObjectBuilder self) {
+    for (int i = 0; i < size(); i++) if (values[i] != null) self.addString(keys[i], values[i]);
   }
 
   @Nonnull
