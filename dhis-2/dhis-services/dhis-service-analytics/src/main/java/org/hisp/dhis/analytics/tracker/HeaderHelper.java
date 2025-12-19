@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
@@ -126,7 +127,40 @@ public class HeaderHelper {
                 true,
                 item.getOptionSet(),
                 item.getLegendSet()));
+
+        // For stage.ou dimensions, also add ouname and oucode headers
+        if (isStageOuDimension(item)) {
+          String stageUid = item.getProgramStage().getUid();
+
+          grid.addHeader(
+              new GridHeader(
+                  stageUid + ".ouname",
+                  "Organisation unit name",
+                  "Organisation unit name",
+                  TEXT,
+                  false,
+                  true,
+                  null,
+                  null));
+
+          grid.addHeader(
+              new GridHeader(
+                  stageUid + ".oucode",
+                  "Organisation unit code",
+                  "Organisation unit code",
+                  TEXT,
+                  false,
+                  true,
+                  null,
+                  null));
+        }
       }
     }
+  }
+
+  private static boolean isStageOuDimension(QueryItem item) {
+    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
+    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
+        && item.hasProgramStage();
   }
 }

@@ -99,6 +99,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -1927,6 +1928,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         if (params.getCoordinateFields().stream()
             .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
+        } else if (!cteContext.isEventsAnalytics() && isStageOuDimension(queryItem)) {
+          // Stage.ou dimensions use CTE columns
+          columns.add(getColumnWithCte(queryItem, cteContext));
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
         }
@@ -2032,6 +2036,165 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             f ->
                 "%s %s %s".formatted(columnName, f.getOperator().getValue(), getSqlFilter(f, item)))
         .collect(Collectors.joining(" and "));
+  }
+
+  /**
+   * Transforms the query item filters into an "and" separated SQL string, resolving special
+   * organisation unit keywords like USER_ORGUNIT. For instance, if the query item has filters with
+   * values "a" and "b" and the operator is "eq", the resulting SQL string will be "column = 'a' and
+   * column = 'b'". If the query item has no filters, an empty string is returned.
+   *
+   * @param item the {@link QueryItem}.
+   * @param columnName the column name.
+   * @param params the {@link EventQueryParams} used to resolve special org unit keywords.
+   * @return the SQL string.
+   */
+  protected String extractFiltersAsSql(QueryItem item, String columnName, EventQueryParams params) {
+    return item.getFilters().stream()
+        .map(
+            f -> {
+              boolean needsResolution = requiresOrgUnitResolution(item);
+              String resolvedFilter =
+                  needsResolution
+                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
+                      : f.getFilter();
+
+              String sqlFilterValue = getSqlFilterWithResolvedValue(f, item, resolvedFilter);
+              return "%s %s %s".formatted(columnName, f.getOperator().getValue(), sqlFilterValue);
+            })
+        .collect(Collectors.joining(" and "));
+  }
+
+  /**
+   * Checks if the query item requires organisation unit resolution.
+   *
+   * @param item the {@link QueryItem}.
+   * @return true if the item is either a stage.ou dimension or a data element of type
+   *     ORGANISATION_UNIT.
+   */
+  private boolean requiresOrgUnitResolution(QueryItem item) {
+    // Data element of type ORGANISATION_UNIT (this catches stage.ou dimension as well
+    // since it's created with ValueType.ORGANISATION_UNIT in DefaultQueryItemLocator)
+    if (item.getValueType() == ValueType.ORGANISATION_UNIT) {
+      return true;
+    }
+    // Also check the item ID/name for robustness (stage.ou dimension)
+    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
+    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
+        && item.hasProgramStage();
+  }
+
+  /**
+   * Checks if the query item is a stage-specific org unit dimension (stage.ou). This is different
+   * from general org unit resolution - it specifically identifies when a QueryItem represents a
+   * dimension like "ZzYYXq4fJie.ou:LEVEL-3" which requires special handling in CTE generation.
+   *
+   * @param item the {@link QueryItem}.
+   * @return true if the item is a stage.ou dimension
+   */
+  protected boolean isStageOuDimension(QueryItem item) {
+    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
+    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
+        && item.hasProgramStage();
+  }
+
+  /**
+   * Builds stage.ou filter conditions using uidlevelX columns. Returns a record containing the
+   * column name to use in SELECT (most specific level) and the WHERE condition string with proper
+   * uidlevelX comparisons.
+   *
+   * @param item the {@link QueryItem} representing the stage.ou dimension
+   * @param params the {@link EventQueryParams} used to resolve org unit keywords
+   * @return a {@link StageOuCteContext} containing the value column and filter condition
+   */
+  private StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
+    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
+        organisationUnitResolver.resolveOrgUnitsGroupedByLevel(params, item);
+
+    // Additional columns for stage.ou: ouname and oucode
+    String additionalSelectColumns =
+        quote("ouname") + " as ev_ouname, " + quote("oucode") + " as ev_oucode,";
+
+    if (orgUnitsByLevel.isEmpty()) {
+      return new StageOuCteContext(
+          quote("ou"), "", additionalSelectColumns); // fallback to raw ou column
+    }
+
+    // Sort levels from most specific (highest) to least specific (lowest)
+    List<Integer> sortedLevels =
+        orgUnitsByLevel.keySet().stream().sorted(Comparator.reverseOrder()).toList();
+
+    // Build value column expression
+    String valueColumn;
+    if (sortedLevels.size() == 1) {
+      // Single level: just use the column directly
+      valueColumn = quote("uidlevel" + sortedLevels.get(0));
+    } else {
+      // Multiple levels: use CASE to return the matching value
+      StringBuilder caseExpr = new StringBuilder("case");
+      for (int level : sortedLevels) {
+        List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
+        String column = quote("uidlevel" + level);
+        String quotedUids =
+            orgUnits.stream()
+                .map(OrganisationUnit::getUid)
+                .filter(StringUtils::isNotEmpty)
+                .map(uid -> "'" + uid + "'")
+                .collect(joining(","));
+        caseExpr
+            .append(" when ")
+            .append(column)
+            .append(" in (")
+            .append(quotedUids)
+            .append(") THEN ")
+            .append(column);
+      }
+      caseExpr.append(" end");
+      valueColumn = caseExpr.toString();
+    }
+
+    // Build WHERE conditions for each level (OR'd together since we want rows matching any org
+    // unit)
+    StringJoiner conditions = new StringJoiner(" or ");
+    for (int level : sortedLevels) {
+      List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
+      String column = quote("uidlevel" + level);
+      String quotedUids =
+          orgUnits.stream()
+              .map(OrganisationUnit::getUid)
+              .filter(StringUtils::isNotEmpty)
+              .map(uid -> "'" + uid + "'")
+              .collect(joining(","));
+      conditions.add(column + " in (" + quotedUids + ")");
+    }
+
+    // Wrap in parentheses to ensure proper grouping when combined with other conditions
+    String filterCondition =
+        sortedLevels.size() > 1 ? "(" + conditions + ")" : conditions.toString();
+
+    return new StageOuCteContext(valueColumn, filterCondition, additionalSelectColumns);
+  }
+
+  /**
+   * Contains the column name to use in SELECT (most specific level), the WHERE condition string
+   * with proper uidlevelX comparisons, and additional columns (ouname, oucode) for stage.ou
+   * dimensions.
+   */
+  private record StageOuCteContext(
+      String valueColumn, String filterCondition, String additionalSelectColumns) {}
+
+  /**
+   * Returns the SQL filter value using a pre-resolved filter string.
+   *
+   * @param queryFilter the {@link QueryFilter}.
+   * @param item the {@link QueryItem}.
+   * @param resolvedFilter the resolved filter value.
+   * @return the SQL filter string.
+   */
+  private String getSqlFilterWithResolvedValue(
+      QueryFilter queryFilter, QueryItem item, String resolvedFilter) {
+    String filter = getFilter(resolvedFilter, item);
+    return item.getSqlFilter(queryFilter, sqlBuilder.escape(filter), true);
   }
 
   /**
@@ -2452,8 +2615,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         // Add program stage condition
         conditions.add("ps = '" + item.getProgramStage().getUid() + "'");
 
-        // Add data element filters
-        String filterConditions = extractFiltersAsSql(item, quote(item.getItemName()));
+        // Add data element filters (use version with params to resolve USER_ORGUNIT)
+        String filterConditions = extractFiltersAsSql(item, quote(item.getItemName()), params);
         if (!filterConditions.isEmpty()) {
           conditions.add(filterConditions);
         }
@@ -2747,7 +2910,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String colName = quote(item.getItemName());
 
     if (params.isAggregatedEnrollments()) {
-      handleAggregatedEnrollments(cteContext, item, eventTableName, colName);
+      handleAggregatedEnrollments(cteContext, item, eventTableName, colName, params);
       return;
     }
 
@@ -2757,7 +2920,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Build the main CTE SQL.
     int programStageOffset = item.getProgramStageOffset();
     String cteSql =
-        buildMainCteSql(eventTableName, colName, item, hasRowContext, programStageOffset);
+            buildMainCteSql(eventTableName, colName, item, hasRowContext, programStageOffset, params);
+
 
     // Register this CTE in the context.
     cteContext.addCte(
@@ -2923,7 +3087,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (cteContext.containsCte(cteName)) {
         processedItems.add(item);
-        conditions.addAll(buildItemConditions(item, cteContext.getDefinitionByItemUid(cteName)));
+        conditions.addAll(
+            buildItemConditions(item, cteContext.getDefinitionByItemUid(cteName), params));
       }
     }
 
@@ -2935,11 +3100,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param item The query item
    * @param cteDef The CTE definition
+   * @param params The event query parameters
    * @return List of conditions for the item
    */
-  private List<Condition> buildItemConditions(QueryItem item, CteDefinition cteDef) {
+  private List<Condition> buildItemConditions(
+      QueryItem item, CteDefinition cteDef, EventQueryParams params) {
     return item.getFilters().stream()
-        .map(filter -> buildFilterCondition(filter, item, cteDef))
+        .map(filter -> buildFilterCondition(filter, item, cteDef, params))
         .toList();
   }
 
@@ -2949,12 +3116,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param filter The query filter
    * @param item The query item
    * @param cteDef The CTE definition
+   * @param params The event query parameters
    * @return Condition for the filter
    */
-  private Condition buildFilterCondition(QueryFilter filter, QueryItem item, CteDefinition cteDef) {
+  private Condition buildFilterCondition(
+      QueryFilter filter, QueryItem item, CteDefinition cteDef, EventQueryParams params) {
     return IN.equals(filter.getOperator())
-        ? buildInFilterCondition(filter, item, cteDef)
-        : buildStandardFilterCondition(filter, item, cteDef);
+        ? buildInFilterCondition(filter, item, cteDef, params)
+        : buildStandardFilterCondition(filter, item, cteDef, params);
   }
 
   /**
@@ -2963,12 +3132,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param filter The IN query filter
    * @param item The query item
    * @param cteDef The CTE definition
+   * @param params The event query parameters
    * @return Condition for the IN filter
    */
   private Condition buildInFilterCondition(
-      QueryFilter filter, QueryItem item, CteDefinition cteDef) {
+      QueryFilter filter, QueryItem item, CteDefinition cteDef, EventQueryParams params) {
+    // Resolve special org unit keywords like USER_ORGUNIT if applicable
+    String resolvedFilter =
+        requiresOrgUnitResolution(item)
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            : filter.getFilter();
+
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("value", filter.getFilter(), !item.isNumeric(), cteDef);
+        new InQueryCteFilter("value", resolvedFilter, !item.isNumeric(), cteDef);
     // Compute the offset for the row number if applicable
     Integer offset =
         cteDef.getOffsets().isEmpty() ? null : computeRowNumberOffset(item.getProgramStageOffset());
@@ -2982,11 +3158,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param filter The query filter
    * @param item The query item
    * @param cteDef The CTE definition
+   * @param params The event query parameters
    * @return Condition for the standard filter
    */
   private Condition buildStandardFilterCondition(
-      QueryFilter filter, QueryItem item, CteDefinition cteDef) {
-    String value = getSqlFilterValue(filter, item);
+      QueryFilter filter, QueryItem item, CteDefinition cteDef, EventQueryParams params) {
+    String value = getSqlFilterValue(filter, item, params);
     String operator = resolveOperator(filter, value);
     return Condition.raw(String.format("%s.value %s %s", cteDef.getAlias(), operator, value));
   }
@@ -3010,14 +3187,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return operator == QueryOperator.EQ || operator == QueryOperator.IEQ;
   }
 
-  private String getSqlFilterValue(QueryFilter filter, QueryItem item) {
-    if ("NV".equals(filter.getFilter())) {
+  private String getSqlFilterValue(QueryFilter filter, QueryItem item, EventQueryParams params) {
+    // Resolve special org unit keywords like USER_ORGUNIT if applicable
+    String filterValue =
+        requiresOrgUnitResolution(item)
+            ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
+            : filter.getFilter();
+
+    if ("NV".equals(filterValue)) {
       return "NULL"; // Special case for 'null' filters
     }
 
     // Handle IN operator: wrap the value(s) in parentheses
     if (filter.getOperator() == QueryOperator.IN) {
-      String[] values = filter.getFilter().split(","); // Support multiple values
+      String[] values = filterValue.split(","); // Support multiple values
       String quotedValues =
           Arrays.stream(values)
               .map(value -> item.isNumeric() ? value : sqlBuilder.singleQuote(value))
@@ -3026,19 +3209,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // Handle text and numeric values
-    return item.isNumeric()
-        ? filter.getSqlBindFilter()
-        : sqlBuilder.singleQuote(filter.getSqlBindFilter());
+    return item.isNumeric() ? filterValue : sqlBuilder.singleQuote(filterValue);
   }
 
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
     final String filterSql =
         """
-        select enrollment, %s as value
+        select enrollment, ${colName} as value${outerAdditionalCols}
         from
             (select
                 enrollment,
-                %s,
+                ${colName},${innerAdditionalCols}
                 row_number() over (
                     partition by enrollment
                     order by
@@ -3046,10 +3227,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                         created desc
                 ) as rn
             from
-                %s
+                ${tableName}
             where
                 eventstatus != 'SCHEDULE'
-                %s %s
+                ${programStageCondition} ${filterConditions}
             ) ranked
         where
             rn = 1
@@ -3067,21 +3248,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                               .toLowerCase() // Event table for program stage
                       : params.getTableName(); // Enrollment table
 
-              String columnName = quote(item.getItemName()); // Raw column name without alias
               String programStageCondition =
                   item.hasProgramStage()
                       ? "and ps = '" + item.getProgramStage().getUid() + "'"
                       : ""; // Add program stage filter if available
 
-              // Collect the filter on the item
-              String filterConditions = extractFiltersAsSql(item, columnName);
+              // Determine effective column name and filter conditions
+              String effectiveColName;
+              String filterConditions;
+              String innerAdditionalCols = "";
+              String outerAdditionalCols = "";
 
-              return filterSql.formatted(
-                  columnName,
-                  columnName,
-                  tableName,
-                  programStageCondition,
+              if (isStageOuDimension(item)) {
+                // For stage.ou dimensions, use uidlevelX columns instead of raw ou
+                StageOuCteContext stageOuContext = buildStageOuCteContext(item, params);
+                effectiveColName = stageOuContext.valueColumn();
+                filterConditions = stageOuContext.filterCondition();
+                // Inner select needs the raw columns with aliases
+                innerAdditionalCols = " " + stageOuContext.additionalSelectColumns();
+                // Outer select references the aliased columns
+                outerAdditionalCols = ", ev_ouname, ev_oucode";
+              } else {
+                effectiveColName = quote(item.getItemName());
+                filterConditions = extractFiltersAsSql(item, effectiveColName, params);
+              }
+
+              Map<String, String> values = new HashMap<>();
+              values.put("colName", effectiveColName);
+              values.put("tableName", tableName);
+              values.put("programStageCondition", programStageCondition);
+              values.put(
+                  "filterConditions",
                   StringUtils.isEmpty(filterConditions) ? "" : " and " + filterConditions);
+              values.put("innerAdditionalCols", innerAdditionalCols);
+              values.put("outerAdditionalCols", outerAdditionalCols);
+
+              return new StringSubstitutor(values).replace(filterSql);
             })
         .collect(Collectors.joining("\nunion all\n"));
   }
@@ -3093,13 +3295,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param item the {@link QueryItem} containing program-stage details
    * @param eventTableName the event table name
    * @param colName the quoted column name for the item
+   * @param params the {@link EventQueryParams} for resolving org unit filters
    */
   private void handleAggregatedEnrollments(
-      CteContext cteContext, QueryItem item, String eventTableName, String colName) {
+      CteContext cteContext,
+      QueryItem item,
+      String eventTableName,
+      String colName,
+      EventQueryParams params) {
     CteDefinition baseAggregatedCte = cteContext.getBaseAggregatedCte();
     assert baseAggregatedCte != null;
 
-    String cteSql = buildAggregatedCteSql(eventTableName, colName, item);
+    String cteSql = buildAggregatedCteSql(eventTableName, colName, item, params);
 
     cteContext.addCte(
         item.getProgramStage(),
@@ -3115,18 +3322,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param eventTableName the event table name
    * @param colName the quoted column name for the item
    * @param item the {@link QueryItem} containing program-stage details
+   * @param params the {@link EventQueryParams} for resolving org unit filters
    * @return the aggregated CTE SQL
    */
-  private String buildAggregatedCteSql(String eventTableName, String colName, QueryItem item) {
+  private String buildAggregatedCteSql(
+      String eventTableName, String colName, QueryItem item, EventQueryParams params) {
     String template =
         """
         select
             evt.enrollment,
-            evt.${colName} as value
+            evt.${colName} as value${outerAdditionalCols}
         from (
             select
                 evt.enrollment,
-                evt.${colName},
+                evt.${colName},${innerAdditionalCols}
                 row_number() over (
                     partition by evt.enrollment
                     order by occurreddate desc, created desc
@@ -3138,21 +3347,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         where evt.rn = 1
         """;
 
-    // Extract filter conditions if the item has filters
+    // Determine effective column name and filter conditions
+    String effectiveColName = colName;
     String filterConditions = "";
-    if (item.hasFilter()) {
-      String conditions = extractFiltersAsSql(item, "evt." + colName);
+    String innerAdditionalCols = "";
+    String outerAdditionalCols = "";
+
+    if (isStageOuDimension(item)) {
+      // For stage.ou dimensions, use uidlevelX columns instead of raw ou
+      StageOuCteContext stageOuContext = buildStageOuCteContext(item, params);
+      effectiveColName = stageOuContext.valueColumn();
+      // Inner select needs evt. prefix for raw columns
+      innerAdditionalCols =
+          " evt." + quote("ouname") + " as ev_ouname, evt." + quote("oucode") + " as ev_oucode,";
+      // Outer select references the aliased columns from inner subquery
+      outerAdditionalCols = ", evt.ev_ouname, evt.ev_oucode";
+      if (!stageOuContext.filterCondition().isEmpty()) {
+        // Add evt. prefix to each uidlevel column reference
+        String prefixedCondition =
+            stageOuContext.filterCondition().replace("\"uidlevel", "evt.\"uidlevel");
+        filterConditions = " and " + prefixedCondition;
+      }
+    } else if (item.hasFilter()) {
+      String conditions = extractFiltersAsSql(item, "evt." + colName, params);
       if (!conditions.isEmpty()) {
         filterConditions = " and " + conditions;
       }
     }
 
     Map<String, String> values = new HashMap<>();
-    values.put("colName", colName);
+    values.put("colName", effectiveColName);
     values.put("eventTableName", eventTableName);
     values.put("enrollmentAggrBase", ENROLLMENT_AGGR_BASE);
     values.put("programStageUid", item.getProgramStage().getUid());
     values.put("filterConditions", filterConditions);
+    values.put("innerAdditionalCols", innerAdditionalCols);
+    values.put("outerAdditionalCols", outerAdditionalCols);
 
     return new StringSubstitutor(values).replace(template);
   }
@@ -3189,14 +3419,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param item the {@link QueryItem} containing program-stage details
    * @param hasRowContext whether row context is needed
    * @param programStageOffset the program stage offset (0 = newest, positive = nth oldest)
+   * @param params the {@link EventQueryParams} for resolving org unit filters
    * @return the main CTE SQL
    */
   private String buildMainCteSql(
-      String eventTableName,
-      String colName,
-      QueryItem item,
-      boolean hasRowContext,
-      int programStageOffset) {
+          String eventTableName,
+          String colName,
+          QueryItem item,
+          boolean hasRowContext,
+          int programStageOffset,
+          EventQueryParams params) {
     // For offset 0 or negative: DESC (newest first, rn=1 is newest)
     // For positive offset: ASC (oldest first, rn=1 is oldest)
     String orderDirection = (programStageOffset <= 0) ? "desc" : "asc";
@@ -3205,7 +3437,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         """
         select
             enrollment,
-            ${colName} as value,${rowContext}
+            ${colName} as value,${additionalCols}${rowContext}
             row_number() over (
                 partition by enrollment
                 order by occurreddate ${orderDirection}, created ${orderDirection}
@@ -3214,17 +3446,30 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'${filterConditions}
         """;
 
-    // Extract filter conditions if the item has filters
+    // Determine the effective column name and filter conditions
+    String effectiveColName = colName;
     String filterConditions = "";
-    if (item.hasFilter()) {
-      String conditions = extractFiltersAsSql(item, colName);
+    String additionalCols = "";
+
+    if (isStageOuDimension(item)) {
+      // For stage.ou dimensions, use uidlevelX columns instead of raw ou
+      StageOuCteContext stageOuContext = buildStageOuCteContext(item, params);
+      effectiveColName = stageOuContext.valueColumn();
+      additionalCols = " " + stageOuContext.additionalSelectColumns();
+      if (!stageOuContext.filterCondition().isEmpty()) {
+        filterConditions = " and " + stageOuContext.filterCondition();
+      }
+    } else if (item.hasFilter()) {
+      // For non-stage.ou dimensions, use the existing filter extraction logic
+      String conditions = extractFiltersAsSql(item, colName, params);
       if (!conditions.isEmpty()) {
         filterConditions = " and " + conditions;
       }
     }
 
     Map<String, String> values = new HashMap<>();
-    values.put("colName", colName);
+    values.put("colName", effectiveColName);
+    values.put("additionalCols", additionalCols);
     values.put("rowContext", hasRowContext ? " eventstatus," : "");
     values.put("eventTableName", eventTableName);
     values.put("programStageUid", item.getProgramStage().getUid());

@@ -107,7 +107,35 @@
     },
     {
       "name": "stageAndEventDate2021",
-      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021&desc=enrollmentdate",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021&desc=enrollmentdate",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndScheduledDate",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,A03MvHHogjR.scheduleddate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.SCHEDULED_DATE:2021&desc=enrollmentdate,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndSimpleOu",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,ZzYYXq4fJie.ou&displayProperty=NAME&totalPages=false&pageSize=100&page=1&dimension=ZzYYXq4fJie.ou:DiszpKrYNg8,pe:202301&desc=enrollmentdate,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndMultipleOu",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,ZzYYXq4fJie.ou&displayProperty=NAME&totalPages=false&pageSize=100&page=1&dimension=ZzYYXq4fJie.ou:DiszpKrYNg8;PMa2VCrupOd,pe:202301&desc=enrollmentdate,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndLevelAndUserOrg",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,ZzYYXq4fJie.oucode,ZzYYXq4fJie.ouname&displayProperty=NAME&totalPages=false&pageSize=100&page=1&dimension=ZzYYXq4fJie.ou:LEVEL-tTUf91fCytl;USER_ORGUNIT;cgqkFdShPzg,pe:202301&desc=enrollmentdate,ouname",
       "version": {
         "min": 43
       }
