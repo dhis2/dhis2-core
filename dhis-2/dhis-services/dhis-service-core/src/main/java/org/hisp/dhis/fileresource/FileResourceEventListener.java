@@ -56,7 +56,7 @@ public class FileResourceEventListener {
   private final FileResourceService fileResourceService;
 
   private final FileResourceContentStore fileResourceContentStore;
-  
+
   private final ImageProcessingService imageProcessingService;
 
   @TransactionalEventListener
