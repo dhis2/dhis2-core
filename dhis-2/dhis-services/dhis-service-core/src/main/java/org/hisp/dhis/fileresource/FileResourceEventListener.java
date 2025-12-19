@@ -39,7 +39,6 @@ import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.hisp.dhis.user.AuthenticationService;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
@@ -57,9 +56,7 @@ public class FileResourceEventListener {
   private final FileResourceService fileResourceService;
 
   private final FileResourceContentStore fileResourceContentStore;
-
-  private final AuthenticationService authenticationService;
-
+  
   private final ImageProcessingService imageProcessingService;
 
   @TransactionalEventListener
