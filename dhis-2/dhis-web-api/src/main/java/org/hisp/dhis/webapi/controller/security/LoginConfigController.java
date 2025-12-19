@@ -45,8 +45,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.User;
-import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContext;
-import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,6 +70,13 @@ public class LoginConfigController {
   private final ConfigurationService configurationService;
   private final SystemService systemService;
   private final DhisOidcProviderRepository oidcProviderRepository;
+
+  /**
+   * Authorization server settings - optional dependency, only available when the OAuth2
+   * Authorization Server is enabled. Injected separately since it's conditional.
+   */
+  @Autowired(required = false)
+  private AuthorizationServerSettings authorizationServerSettings;
 
   private String getTranslatableString(String key, String locale) {
     return settingsTranslationService
@@ -108,32 +114,40 @@ public class LoginConfigController {
         .build();
   }
 
-  private static List<String> getAudience() {
-    AuthorizationServerContext authorizationServerContext =
-        AuthorizationServerContextHolder.getContext();
-    if (!StringUtils.hasText(authorizationServerContext.getIssuer())) {
+  /**
+   * Returns the list of valid audience values for JWT client assertions. This matches the audience
+   * validation in Spring Authorization Server's {@link
+   * org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionDecoderFactory}.
+   *
+   * <p>The audience list includes:
+   *
+   * <ul>
+   *   <li>The issuer URL
+   *   <li>Token endpoint URL
+   *   <li>Token introspection endpoint URL
+   *   <li>Token revocation endpoint URL
+   *   <li>Pushed authorization request endpoint URL
+   * </ul>
+   *
+   * @return list of valid audience values, or empty list if authorization server is not configured
+   */
+  private List<String> getAudience() {
+    if (authorizationServerSettings == null) {
       return Collections.emptyList();
     }
-    AuthorizationServerSettings authorizationServerSettings =
-        authorizationServerContext.getAuthorizationServerSettings();
+
+    String issuer = authorizationServerSettings.getIssuer();
+    if (!StringUtils.hasText(issuer)) {
+      return Collections.emptyList();
+    }
+
     List<String> audience = new ArrayList<>();
-    audience.add(authorizationServerContext.getIssuer());
+    audience.add(issuer);
+    audience.add(asUrl(issuer, authorizationServerSettings.getTokenEndpoint()));
+    audience.add(asUrl(issuer, authorizationServerSettings.getTokenIntrospectionEndpoint()));
+    audience.add(asUrl(issuer, authorizationServerSettings.getTokenRevocationEndpoint()));
     audience.add(
-        asUrl(
-            authorizationServerContext.getIssuer(),
-            authorizationServerSettings.getTokenEndpoint()));
-    audience.add(
-        asUrl(
-            authorizationServerContext.getIssuer(),
-            authorizationServerSettings.getTokenIntrospectionEndpoint()));
-    audience.add(
-        asUrl(
-            authorizationServerContext.getIssuer(),
-            authorizationServerSettings.getTokenRevocationEndpoint()));
-    audience.add(
-        asUrl(
-            authorizationServerContext.getIssuer(),
-            authorizationServerSettings.getPushedAuthorizationRequestEndpoint()));
+        asUrl(issuer, authorizationServerSettings.getPushedAuthorizationRequestEndpoint()));
     return audience;
   }
 
