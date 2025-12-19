@@ -139,6 +139,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndOuGroup",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,ZzYYXq4fJie.ouname,ZzYYXq4fJie.oucode&displayProperty=NAME&totalPages=false&pageSize=100&page=1&dimension=ZzYYXq4fJie.ou:OU_GROUP-CXw2yu5fodb,pe:202301&desc=enrollmentdate,ouname",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

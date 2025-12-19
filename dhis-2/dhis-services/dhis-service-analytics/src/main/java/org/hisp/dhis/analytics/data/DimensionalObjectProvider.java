@@ -456,6 +456,14 @@ public class DimensionalObjectProvider {
               .toList());
     }
 
+    // Expand groups to actual org units (needed for SQL uidlevelX filtering)
+    if (!groups.isEmpty()) {
+      result.addAll(
+          organisationUnitService.getOrganisationUnits(groups, ousList).stream()
+              .map(OrganisationUnit::getUid)
+              .toList());
+    }
+
     return result.stream().distinct().toList();
   }
 

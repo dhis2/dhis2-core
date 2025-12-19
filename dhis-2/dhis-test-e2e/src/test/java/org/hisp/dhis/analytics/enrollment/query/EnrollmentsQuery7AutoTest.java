@@ -525,6 +525,158 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void stageAndOuGroup() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=ouname,enrollmentdate,ZzYYXq4fJie.ouname,ZzYYXq4fJie.oucode")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZzYYXq4fJie.ou:OU_GROUP-CXw2yu5fodb,pe:202301")
+            .add("desc=enrollmentdate,ouname");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        100,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"FNnj3jKGS7i\":{\"uid\":\"FNnj3jKGS7i\",\"code\":\"OU_260387\",\"name\":\"Bandajuma Clinic CHC\"},\"Q2USZSJmcNK\":{\"uid\":\"Q2USZSJmcNK\",\"code\":\"OU_268195\",\"name\":\"Bumbuna CHC\"},\"sLKHXoBIqSs\":{\"uid\":\"sLKHXoBIqSs\",\"code\":\"OU_233362\",\"name\":\"Njagbwema Fiama CHC\"},\"mwN7QuEfT8m\":{\"uid\":\"mwN7QuEfT8m\",\"code\":\"OU_820\",\"name\":\"Koribondo CHC\"},\"jGYT5U5qJP6\":{\"uid\":\"jGYT5U5qJP6\",\"code\":\"OU_653\",\"name\":\"Gbaiima CHC\"},\"agM0BKQlTh3\":{\"uid\":\"agM0BKQlTh3\",\"code\":\"OU_193303\",\"name\":\"Batkanu CHC\"},\"MuZJ8lprGqK\":{\"uid\":\"MuZJ8lprGqK\",\"code\":\"OU_247089\",\"name\":\"Moyamba Junction CHC\"},\"e2WgqiasKnD\":{\"uid\":\"e2WgqiasKnD\",\"code\":\"OU_246997\",\"name\":\"Taiama (Kori) CHC\"},\"KcCbIDzRcui\":{\"uid\":\"KcCbIDzRcui\",\"code\":\"OU_268221\",\"name\":\"Matotoka CHC\"},\"Jyv7sjpl9bA\":{\"uid\":\"Jyv7sjpl9bA\",\"code\":\"OU_222650\",\"name\":\"Sendumei CHC\"},\"mshIal30ffW\":{\"uid\":\"mshIal30ffW\",\"code\":\"OU_193301\",\"name\":\"Mapaki CHC\"},\"zEsMdeJOty4\":{\"uid\":\"zEsMdeJOty4\",\"code\":\"OU_278331\",\"name\":\"Moyiba CHC\"},\"uFp0ztDOFbI\":{\"uid\":\"uFp0ztDOFbI\",\"code\":\"OU_197430\",\"name\":\"Bendu CHC\"},\"scc4QyxenJd\":{\"uid\":\"scc4QyxenJd\",\"code\":\"OU_268215\",\"name\":\"Makali CHC\"},\"aHs9PLxIdbr\":{\"uid\":\"aHs9PLxIdbr\",\"code\":\"OU_268203\",\"name\":\"Mayepoh CHC\"},\"PA1spYiNZfv\":{\"uid\":\"PA1spYiNZfv\",\"code\":\"OU_233398\",\"name\":\"Yengema CHC\"},\"LnToY3ExKxL\":{\"uid\":\"LnToY3ExKxL\",\"code\":\"OU_255018\",\"name\":\"Mahera CHC\"},\"IlMQTFvcq9r\":{\"uid\":\"IlMQTFvcq9r\",\"code\":\"OU_222656\",\"name\":\"Lowoma CHC\"},\"jhtj3eQa1pM\":{\"uid\":\"jhtj3eQa1pM\",\"code\":\"OU_1100\",\"name\":\"Gondama (Tikonko) CHC\"},\"QsAwd531Cpd\":{\"uid\":\"QsAwd531Cpd\",\"code\":\"OU_1038\",\"name\":\"Njala CHC\"},\"pNPmNeqyrim\":{\"uid\":\"pNPmNeqyrim\",\"code\":\"OU_222666\",\"name\":\"Foindu (Lower Bamabara) CHC\"},\"K00jR5dmoFZ\":{\"uid\":\"K00jR5dmoFZ\",\"code\":\"OU_260399\",\"name\":\"Karlu CHC\"},\"xa4F6gesVJm\":{\"uid\":\"xa4F6gesVJm\",\"code\":\"OU_278400\",\"name\":\"York CHC\"},\"zQpYVEyAM2t\":{\"uid\":\"zQpYVEyAM2t\",\"code\":\"OU_278377\",\"name\":\"Hastings Health Centre\"},\"hzf90qz08AW\":{\"uid\":\"hzf90qz08AW\",\"code\":\"OU_247034\",\"name\":\"Njama CHC\"},\"CFPrsD3dNeb\":{\"uid\":\"CFPrsD3dNeb\",\"code\":\"OU_197423\",\"name\":\"Tissana CHC\"},\"MpcMjLmbATv\":{\"uid\":\"MpcMjLmbATv\",\"code\":\"OU_204938\",\"name\":\"Bandajuma Yawei CHC\"},\"KYXbIQBQgP1\":{\"uid\":\"KYXbIQBQgP1\",\"code\":\"OU_1103\",\"name\":\"Tikonko CHC\"},\"lxxASQqPUqd\":{\"uid\":\"lxxASQqPUqd\",\"code\":\"OU_233341\",\"name\":\"Tombodu CHC\"},\"oRncQGhLYNE\":{\"uid\":\"oRncQGhLYNE\",\"code\":\"OU_278376\",\"name\":\"Regent (RWA) CHC\"},\"RhJbg8UD75Q\":{\"uid\":\"RhJbg8UD75Q\",\"code\":\"OU_1027\",\"name\":\"Yemoh Town CHC\"},\"EUUkKEDoNsf\":{\"uid\":\"EUUkKEDoNsf\",\"code\":\"OU_278343\",\"name\":\"Wilberforce CHC\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"FbD5Z8z22Yb\":{\"uid\":\"FbD5Z8z22Yb\",\"code\":\"OU_260385\",\"name\":\"Geoma Jagor CHC\"},\"ua5GXy2uhBR\":{\"uid\":\"ua5GXy2uhBR\",\"code\":\"OU_197412\",\"name\":\"Tihun CHC\"},\"QpRIPul20Sb\":{\"uid\":\"QpRIPul20Sb\",\"code\":\"OU_222637\",\"name\":\"Gorahun CHC\"},\"mt47bcb0Rcj\":{\"uid\":\"mt47bcb0Rcj\",\"code\":\"OU_193231\",\"name\":\"Kamabai CHC\"},\"uDzWmUDHKeR\":{\"uid\":\"uDzWmUDHKeR\",\"code\":\"OU_260389\",\"name\":\"Futa CHC\"},\"ZzYYXq4fJie.ou\":{\"name\":\"Organisation unit, Baby Postnatal\"},\"OjXNuYyLaCJ\":{\"uid\":\"OjXNuYyLaCJ\",\"code\":\"OU_255004\",\"name\":\"Sendugu CHC\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZdPkczYqeIY\":{\"uid\":\"ZdPkczYqeIY\",\"code\":\"OU_247092\",\"name\":\"Gandorhun CHC\"},\"p310xqwAJge\":{\"uid\":\"p310xqwAJge\",\"code\":\"OU_226268\",\"name\":\"Kondembaia CHC\"},\"HcB2W6Fgp7i\":{\"uid\":\"HcB2W6Fgp7i\",\"code\":\"OU_255065\",\"name\":\"Melekuray CHC\"},\"lOv6IFgr6Fs\":{\"uid\":\"lOv6IFgr6Fs\",\"code\":\"OU_832\",\"name\":\"Manjama Shellmingo CHC\"},\"amgb83zVxp5\":{\"uid\":\"amgb83zVxp5\",\"code\":\"OU_222674\",\"name\":\"Bendu Mameima CHC\"},\"K6oyIMh7Lee\":{\"uid\":\"K6oyIMh7Lee\",\"code\":\"OU_226224\",\"name\":\"Fadugu CHC\"},\"m0XorV4WWg0\":{\"uid\":\"m0XorV4WWg0\",\"code\":\"OU_278361\",\"name\":\"Ginger Hall Health Centre\"},\"bSj2UnYhTFb\":{\"uid\":\"bSj2UnYhTFb\",\"code\":\"OU_193218\",\"name\":\"Kamaranka CHC\"},\"CvBAqD6RzLZ\":{\"uid\":\"CvBAqD6RzLZ\",\"code\":\"OU_595\",\"name\":\"Ngalu CHC\"},\"k6lOze3vTzP\":{\"uid\":\"k6lOze3vTzP\",\"code\":\"OU_260435\",\"name\":\"Potoru CHC\"},\"p9KfD6eaRvu\":{\"uid\":\"p9KfD6eaRvu\",\"code\":\"OU_247069\",\"name\":\"Shenge CHC\"},\"K3jhn3TXF3a\":{\"uid\":\"K3jhn3TXF3a\",\"code\":\"OU_222665\",\"name\":\"Tongo Field CHC\"},\"HNv1aLPdMYb\":{\"uid\":\"HNv1aLPdMYb\",\"code\":\"OU_193242\",\"name\":\"Kamalo CHC\"},\"yMCshbaVExv\":{\"uid\":\"yMCshbaVExv\",\"code\":\"OU_254991\",\"name\":\"Babara CHC\"},\"pJv8NJlJNhU\":{\"uid\":\"pJv8NJlJNhU\",\"code\":\"OU_204916\",\"name\":\"Pendembu CHC\"},\"YAuJ3fyoEuI\":{\"uid\":\"YAuJ3fyoEuI\",\"code\":\"OU_193281\",\"name\":\"Gbendembu Wesleyan CHC\"},\"g5A3hiJlwmI\":{\"uid\":\"g5A3hiJlwmI\",\"code\":\"OU_233397\",\"name\":\"UMC Mitchener Memorial Maternity & Health Centre\"},\"jKZ0U8Og5aV\":{\"uid\":\"jKZ0U8Og5aV\",\"code\":\"OU_222683\",\"name\":\"Dodo CHC\"},\"EXbPGmEUdnc\":{\"uid\":\"EXbPGmEUdnc\",\"code\":\"OU_193197\",\"name\":\"Mateboi CHC\"},\"nX05QLraDhO\":{\"uid\":\"nX05QLraDhO\",\"code\":\"OU_585\",\"name\":\"Yamandu CHC\"},\"Umh4HKqqFp6\":{\"uid\":\"Umh4HKqqFp6\",\"code\":\"OU_578\",\"name\":\"Jembe CHC\"},\"ubsjwFFBaJM\":{\"uid\":\"ubsjwFFBaJM\",\"code\":\"OU_247016\",\"name\":\"Gbangbatoke CHC\"},\"rm60vuHyQXj\":{\"uid\":\"rm60vuHyQXj\",\"code\":\"OU_1082\",\"name\":\"Nengbema CHC\"},\"iOA3z6Y3cq5\":{\"uid\":\"iOA3z6Y3cq5\",\"code\":\"OU_222699\",\"name\":\"Largo CHC\"},\"sIVFEyNfOg4\":{\"uid\":\"sIVFEyNfOg4\",\"code\":\"OU_247073\",\"name\":\"Mokandor CHP\"},\"k8ZPul89UDm\":{\"uid\":\"k8ZPul89UDm\",\"code\":\"OU_233370\",\"name\":\"Kayima CHC\"},\"iMZihUMzH92\":{\"uid\":\"iMZihUMzH92\",\"code\":\"OU_247083\",\"name\":\"Bauya (Kongbora) CHC\"},\"MXdbul7bBqV\":{\"uid\":\"MXdbul7bBqV\",\"code\":\"OU_204912\",\"name\":\"Mobai CHC\"},\"dkmpOuVhBba\":{\"uid\":\"dkmpOuVhBba\",\"code\":\"OU_268226\",\"name\":\"Mathoir CHC\"},\"q56204kKXgZ\":{\"uid\":\"q56204kKXgZ\",\"code\":\"OU_255057\",\"name\":\"Lunsar CHC\"},\"kuqKh33SPgg\":{\"uid\":\"kuqKh33SPgg\",\"code\":\"OU_226230\",\"name\":\"Falaba CHC\"},\"NjyJYiIuKIG\":{\"uid\":\"NjyJYiIuKIG\",\"code\":\"OU_193291\",\"name\":\"Kathanta Yimbor CHC\"},\"fAsj6a4nudH\":{\"uid\":\"fAsj6a4nudH\",\"code\":\"OU_197398\",\"name\":\"Yoni CHC\"},\"a04CZxe0PSe\":{\"uid\":\"a04CZxe0PSe\",\"code\":\"OU_278333\",\"name\":\"Murray Town CHC\"},\"qxbsDd9QYv6\":{\"uid\":\"qxbsDd9QYv6\",\"code\":\"OU_226274\",\"name\":\"Yiffin CHC\"},\"Mi4dWRtfIOC\":{\"uid\":\"Mi4dWRtfIOC\",\"code\":\"OU_204860\",\"name\":\"Sandaru CHC\"},\"QzPf0qKBU4n\":{\"uid\":\"QzPf0qKBU4n\",\"code\":\"OU_260411\",\"name\":\"Jendema CHC\"},\"mzsOsz0NwNY\":{\"uid\":\"mzsOsz0NwNY\",\"code\":\"OU_836\",\"name\":\"New Police Barracks CHC\"},\"vELbGdEphPd\":{\"uid\":\"vELbGdEphPd\",\"code\":\"OU_614\",\"name\":\"Jimmi CHC\"},\"qVvitxEF2ck\":{\"uid\":\"qVvitxEF2ck\",\"code\":\"OU_254949\",\"name\":\"Rogbere CHC\"},\"RAsstekPRco\":{\"uid\":\"RAsstekPRco\",\"code\":\"OU_211269\",\"name\":\"Mambolo CHC\"},\"va2lE4FiVVb\":{\"uid\":\"va2lE4FiVVb\",\"code\":\"OU_247019\",\"name\":\"Mano CHC\"},\"cNAp6CJeLxk\":{\"uid\":\"cNAp6CJeLxk\",\"code\":\"OU_247015\",\"name\":\"Mokanji CHC\"},\"wByqtWCCuDJ\":{\"uid\":\"wByqtWCCuDJ\",\"code\":\"OU_1095\",\"name\":\"Damballa CHC\"},\"PcADvhvcaI2\":{\"uid\":\"PcADvhvcaI2\",\"code\":\"OU_211253\",\"name\":\"Kychom CHC\"},\"n7wN9gMFfZ5\":{\"uid\":\"n7wN9gMFfZ5\",\"code\":\"OU_197435\",\"name\":\"Benduma CHC\"},\"kUzpbgPCwVA\":{\"uid\":\"kUzpbgPCwVA\",\"code\":\"OU_222624\",\"name\":\"Blama CHC\"},\"rCKWdLr4B8K\":{\"uid\":\"rCKWdLr4B8K\",\"code\":\"OU_197427\",\"name\":\"Motuo CHC\"},\"DMxw0SASFih\":{\"uid\":\"DMxw0SASFih\",\"code\":\"OU_204941\",\"name\":\"Koindu CHC\"},\"PQEpIeuSTCN\":{\"uid\":\"PQEpIeuSTCN\",\"code\":\"OU_222623\",\"name\":\"Tobanda CHC\"},\"inpc5QsFRTm\":{\"uid\":\"inpc5QsFRTm\",\"code\":\"OU_211274\",\"name\":\"Kamassasa CHC\"},\"aSxNNRxPuBP\":{\"uid\":\"aSxNNRxPuBP\",\"code\":\"OU_193278\",\"name\":\"Kalangba CHC\"},\"O1KFJmM6HUx\":{\"uid\":\"O1KFJmM6HUx\",\"code\":\"OU_260438\",\"name\":\"Mano Gbonjeima CHC\"},\"s5aXfzOL456\":{\"uid\":\"s5aXfzOL456\",\"code\":\"OU_197437\",\"name\":\"Talia CHC\"},\"tSBcgrTDdB8\":{\"uid\":\"tSBcgrTDdB8\",\"code\":\"OU_834\",\"name\":\"Paramedical CHC\"},\"KiheEgvUZ0i\":{\"uid\":\"KiheEgvUZ0i\",\"code\":\"OU_278357\",\"name\":\"Calaba town CHC\"},\"d9zRBAoM8OC\":{\"uid\":\"d9zRBAoM8OC\",\"code\":\"OU_260423\",\"name\":\"Bumpeh Perri CHC\"},\"sesv0eXljBq\":{\"uid\":\"sesv0eXljBq\",\"code\":\"OU_268207\",\"name\":\"Yele CHC\"},\"L4Tw4NlaMjn\":{\"uid\":\"L4Tw4NlaMjn\",\"code\":\"OU_222705\",\"name\":\"Nekabo CHC\"},\"sznCEDMABa2\":{\"uid\":\"sznCEDMABa2\",\"code\":\"OU_204903\",\"name\":\"Ngiehun CHC\"},\"E497Rk80ivZ\":{\"uid\":\"E497Rk80ivZ\",\"code\":\"OU_651\",\"name\":\"Bumpe CHC\"},\"CXw2yu5fodb\":{\"uid\":\"CXw2yu5fodb\",\"code\":\"CHC\",\"name\":\"CHC\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"W7ekX3gi0ut\":{\"uid\":\"W7ekX3gi0ut\",\"code\":\"OU_233333\",\"name\":\"Jaiama Sewafe CHC\"},\"roGdTjEqLZQ\":{\"uid\":\"roGdTjEqLZQ\",\"code\":\"OU_233371\",\"name\":\"Yormandu CHC\"},\"Jiymtq0A01x\":{\"uid\":\"Jiymtq0A01x\",\"code\":\"OU_226243\",\"name\":\"Bafodia CHC\"},\"aIsnJuZbmVA\":{\"uid\":\"aIsnJuZbmVA\",\"code\":\"OU_226256\",\"name\":\"Dogoloya CHP\"},\"IlnqGuxfQAw\":{\"uid\":\"IlnqGuxfQAw\",\"code\":\"OU_226216\",\"name\":\"Sinkunia CHC\"},\"lpQvlm9czYE\":{\"uid\":\"lpQvlm9czYE\",\"code\":\"OU_222631\",\"name\":\"Tungie CHC\"},\"uedNhvYPMNu\":{\"uid\":\"uedNhvYPMNu\",\"code\":\"OU_193216\",\"name\":\"Gbanti CHC\"},\"KKoPh1lDd9j\":{\"uid\":\"KKoPh1lDd9j\",\"code\":\"OU_233321\",\"name\":\"Kainkordu CHC\"},\"xKaB8tfbTzm\":{\"uid\":\"xKaB8tfbTzm\",\"code\":\"OU_193247\",\"name\":\"Fintonia CHC\"},\"TEVtOFKcLAP\":{\"uid\":\"TEVtOFKcLAP\",\"code\":\"OU_197447\",\"name\":\"Gbap CHC\"},\"pXDcgDRz8Od\":{\"uid\":\"pXDcgDRz8Od\",\"code\":\"OU_278402\",\"name\":\"Songo CHC\"},\"NaVzm59XKGf\":{\"uid\":\"NaVzm59XKGf\",\"code\":\"OU_254980\",\"name\":\"Gbinti CHC\"},\"Ahh47q8AkId\":{\"uid\":\"Ahh47q8AkId\",\"code\":\"OU_268167\",\"name\":\"Mabang CHC\"},\"QZtMuEEV9Vv\":{\"uid\":\"QZtMuEEV9Vv\",\"code\":\"OU_211237\",\"name\":\"Rokupr CHC\"},\"U4FzUXMvbI8\":{\"uid\":\"U4FzUXMvbI8\",\"code\":\"OU_255009\",\"name\":\"Conakry Dee CHC\"},\"o0BgK1dLhF8\":{\"uid\":\"o0BgK1dLhF8\",\"code\":\"OU_268170\",\"name\":\"Bendugu CHC\"},\"agEKP19IUKI\":{\"uid\":\"agEKP19IUKI\",\"code\":\"OU_193280\",\"name\":\"Tambiama CHC\"},\"qIpBLa1SCZt\":{\"uid\":\"qIpBLa1SCZt\",\"code\":\"OU_222714\",\"name\":\"Talia (Nongowa) CHC\"},\"H97XE5Ea089\":{\"uid\":\"H97XE5Ea089\",\"code\":\"OU_247045\",\"name\":\"Bomotoke CHC\"},\"nv41sOz8IVM\":{\"uid\":\"nv41sOz8IVM\",\"code\":\"OU_204927\",\"name\":\"Pejewa CHC\"},\"202301\":{\"name\":\"January 2023\"},\"NMcx2jmra3c\":{\"uid\":\"NMcx2jmra3c\",\"code\":\"OU_226273\",\"name\":\"Firawa CHC\"},\"m3VnSQbE8CD\":{\"uid\":\"m3VnSQbE8CD\",\"code\":\"OU_278382\",\"name\":\"Newton CHC\"},\"OY7mYDATra3\":{\"uid\":\"OY7mYDATra3\",\"code\":\"OU_268176\",\"name\":\"Massingbi CHC\"},\"RQgXBKxgvHf\":{\"uid\":\"RQgXBKxgvHf\",\"code\":\"OU_211248\",\"name\":\"Mapotolon CHC\"},\"YvwYw7GilkP\":{\"uid\":\"YvwYw7GilkP\",\"code\":\"OU_222726\",\"name\":\"Levuma (Kandu Lep) CHC\"},\"PduUQmdt0pB\":{\"uid\":\"PduUQmdt0pB\",\"code\":\"OU_211273\",\"name\":\"Numea CHC\"},\"U514Dz4v9pv\":{\"uid\":\"U514Dz4v9pv\",\"code\":\"OU_278330\",\"name\":\"George Brook Health Centre\"},\"PuZOFApTSeo\":{\"uid\":\"PuZOFApTSeo\",\"code\":\"OU_952\",\"name\":\"Sahn CHC\"},\"wUmVUKhnPuy\":{\"uid\":\"wUmVUKhnPuy\",\"code\":\"OU_247057\",\"name\":\"Kangahun CHC\"},\"RaQGHRti7JM\":{\"uid\":\"RaQGHRti7JM\",\"code\":\"OU_278335\",\"name\":\"Gods Favour health Center\"},\"xMn4Wki9doK\":{\"uid\":\"xMn4Wki9doK\",\"code\":\"OU_197417\",\"name\":\"Moriba Town CHC\"},\"JQJjsXvHE5M\":{\"uid\":\"JQJjsXvHE5M\",\"code\":\"OU_247007\",\"name\":\"Mokelleh CHC\"},\"m5BX6CvJ6Ex\":{\"uid\":\"m5BX6CvJ6Ex\",\"code\":\"OU_204865\",\"name\":\"Daru CHC\"},\"D2rB1GRuh8C\":{\"uid\":\"D2rB1GRuh8C\",\"code\":\"OU_197418\",\"name\":\"Gbamgbama CHC\"},\"Gm7YUjhVi9Q\":{\"uid\":\"Gm7YUjhVi9Q\",\"code\":\"OU_260415\",\"name\":\"Fairo CHC\"},\"gE3gEGZbQMi\":{\"uid\":\"gE3gEGZbQMi\",\"code\":\"OU_197407\",\"name\":\"Madina (BUM) CHC\"},\"zuXW98AEbE7\":{\"uid\":\"zuXW98AEbE7\",\"code\":\"OU_255023\",\"name\":\"Kamasondo CHC\"},\"TjZwphhxCuV\":{\"uid\":\"TjZwphhxCuV\",\"code\":\"OU_193225\",\"name\":\"Kagbere CHC\"},\"g5lonXJ9ndA\":{\"uid\":\"g5lonXJ9ndA\",\"code\":\"OU_268237\",\"name\":\"Hinistas CHC\"},\"r5WWF9WDzoa\":{\"uid\":\"r5WWF9WDzoa\",\"code\":\"OU_222681\",\"name\":\"Baama CHC\"},\"VhRX5JDVo7R\":{\"uid\":\"VhRX5JDVo7R\",\"code\":\"OU_278397\",\"name\":\"Waterloo CHC\"},\"PMsF64R6OJX\":{\"uid\":\"PMsF64R6OJX\",\"code\":\"OU_226248\",\"name\":\"Bendugu (Mongo) CHC\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"azRICFoILuh\":{\"uid\":\"azRICFoILuh\",\"code\":\"OU_577\",\"name\":\"Golu MCHP\"},\"HQoxFu4lYPS\":{\"uid\":\"HQoxFu4lYPS\",\"code\":\"OU_204868\",\"name\":\"Pellie CHC\"},\"JrSIoCOdTH2\":{\"uid\":\"JrSIoCOdTH2\",\"code\":\"OU_278403\",\"name\":\"Tombo CHC\"},\"ke2gwHKHP3z\":{\"uid\":\"ke2gwHKHP3z\",\"code\":\"OU_254983\",\"name\":\"Petifu CHC\"},\"TSyzvBiovKh\":{\"uid\":\"TSyzvBiovKh\",\"code\":\"OU_576\",\"name\":\"Gerehun CHC\"},\"g10jm7jPdzf\":{\"uid\":\"g10jm7jPdzf\",\"code\":\"OU_222707\",\"name\":\"Hangha CHC\"},\"DiszpKrYNg8\":{\"uid\":\"DiszpKrYNg8\",\"code\":\"OU_559\",\"name\":\"Ngelehun CHC\"},\"bPqP6eRfkyn\":{\"uid\":\"bPqP6eRfkyn\",\"code\":\"OU_278318\",\"name\":\"Ross Road Health Centre\"},\"EURoFVjowXs\":{\"uid\":\"EURoFVjowXs\",\"code\":\"OU_254964\",\"name\":\"Masiaka CHC\"},\"ii2KMnWMx2L\":{\"uid\":\"ii2KMnWMx2L\",\"code\":\"OU_233392\",\"name\":\"Gandorhun (Gbane) CHC\"},\"J42QfNe0GJZ\":{\"uid\":\"J42QfNe0GJZ\",\"code\":\"OU_268185\",\"name\":\"Mara CHC\"},\"gUPhNWkSXvD\":{\"uid\":\"gUPhNWkSXvD\",\"code\":\"OU_247032\",\"name\":\"Rotifunk CHC\"},\"FLjwMPWLrL2\":{\"uid\":\"FLjwMPWLrL2\",\"code\":\"OU_1126\",\"name\":\"Baomahun CHC\"},\"FclfbEFMcf3\":{\"uid\":\"FclfbEFMcf3\",\"code\":\"OU_278340\",\"name\":\"Kissy Health Centre\"},\"lL2LBkhlsmV\":{\"uid\":\"lL2LBkhlsmV\",\"code\":\"OU_278336\",\"name\":\"Grassfield CHC\"},\"NRPCjDljVtu\":{\"uid\":\"NRPCjDljVtu\",\"code\":\"OU_278404\",\"name\":\"Lakka\\/Ogoo Farm CHC\"},\"egjrZ1PHNtT\":{\"uid\":\"egjrZ1PHNtT\",\"code\":\"OU_247053\",\"name\":\"Sembehun CHC\"},\"PC3Ag91n82e\":{\"uid\":\"PC3Ag91n82e\",\"code\":\"OU_1122\",\"name\":\"Mongere CHC\"},\"X79FDd4EAgo\":{\"uid\":\"X79FDd4EAgo\",\"code\":\"OU_193196\",\"name\":\"Rokulan CHC\"},\"sM0Us0NkSez\":{\"uid\":\"sM0Us0NkSez\",\"code\":\"OU_278359\",\"name\":\"Kroo Bay CHC\"},\"bHcw141PTsE\":{\"uid\":\"bHcw141PTsE\",\"code\":\"OU_260407\",\"name\":\"Gbondapi CHC\"},\"O63vIA5MVn6\":{\"uid\":\"O63vIA5MVn6\",\"code\":\"OU_255014\",\"name\":\"Tagrin CHC\"},\"HWXk4EBHUyk\":{\"uid\":\"HWXk4EBHUyk\",\"code\":\"OU_260393\",\"name\":\"Sahn (Malen) CHC\"},\"W2KnxOMvmgE\":{\"uid\":\"W2KnxOMvmgE\",\"code\":\"OU_1050\",\"name\":\"Sumbuya CHC\"},\"tO01bqIipeD\":{\"uid\":\"tO01bqIipeD\",\"code\":\"OU_204892\",\"name\":\"Buedu CHC\"},\"w3mBVfrWhXl\":{\"uid\":\"w3mBVfrWhXl\",\"code\":\"OU_255043\",\"name\":\"Mange CHC\"},\"TljiT6C5D0J\":{\"uid\":\"TljiT6C5D0J\",\"code\":\"OU_222740\",\"name\":\"Kpandebu CHC\"},\"TmCsvdJLHoX\":{\"uid\":\"TmCsvdJLHoX\",\"code\":\"OU_193195\",\"name\":\"Mabunduka CHC\"},\"BNFrspDBKel\":{\"uid\":\"BNFrspDBKel\",\"code\":\"OU_260382\",\"name\":\"Zimmi CHC\"},\"N3tpEjZcPm9\":{\"uid\":\"N3tpEjZcPm9\",\"code\":\"OU_204879\",\"name\":\"Laleihun Kovoma CHC\"},\"Qc9lf4VM9bD\":{\"uid\":\"Qc9lf4VM9bD\",\"code\":\"OU_278317\",\"name\":\"Wellington Health Centre\"},\"cMFi8lYbXHY\":{\"uid\":\"cMFi8lYbXHY\",\"code\":\"OU_233402\",\"name\":\"Bumpeh (Nimikoro) CHC\"},\"P4upLKrpkHP\":{\"uid\":\"P4upLKrpkHP\",\"code\":\"OU_222641\",\"name\":\"Ngegbwema CHC\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"Yj2ni275yPJ\":{\"uid\":\"Yj2ni275yPJ\",\"code\":\"OU_222647\",\"name\":\"Baoma (Koya) CHC\"},\"SnCrOCRrxGX\":{\"uid\":\"SnCrOCRrxGX\",\"code\":\"OU_233327\",\"name\":\"Koakoyima CHC\"},\"Z9ny6QeqsgX\":{\"uid\":\"Z9ny6QeqsgX\",\"code\":\"OU_969\",\"name\":\"Manjama UMC CHC\"},\"wtdBuXDwZYQ\":{\"uid\":\"wtdBuXDwZYQ\",\"code\":\"OU_1006\",\"name\":\"Praise Foundation CHC\"},\"oLuhRyYPxRO\":{\"uid\":\"oLuhRyYPxRO\",\"code\":\"OU_247011\",\"name\":\"Senehun CHC\"},\"PaNv9VyD06n\":{\"uid\":\"PaNv9VyD06n\",\"code\":\"OU_204930\",\"name\":\"Manowa CHC\"},\"uRQj8WRK0Py\":{\"uid\":\"uRQj8WRK0Py\",\"code\":\"OU_193255\",\"name\":\"Masongbo CHC\"},\"Y8foq27WLti\":{\"uid\":\"Y8foq27WLti\",\"code\":\"OU_222728\",\"name\":\"Baoma Oil Mill CHC\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"mepHuAA9l51\":{\"uid\":\"mepHuAA9l51\",\"code\":\"OU_193205\",\"name\":\"Rokonta CHC\"},\"k1Y0oNqPlmy\":{\"uid\":\"k1Y0oNqPlmy\",\"code\":\"OU_1161\",\"name\":\"Gboyama CHC\"},\"UOJlcpPnBat\":{\"uid\":\"UOJlcpPnBat\",\"code\":\"OU_172174\",\"name\":\"Needy CHC\"},\"CKkE4GBJekz\":{\"uid\":\"CKkE4GBJekz\",\"code\":\"OU_222671\",\"name\":\"Weima CHC\"},\"GHHvGp7tgtZ\":{\"uid\":\"GHHvGp7tgtZ\",\"code\":\"OU_193275\",\"name\":\"Binkolo CHC\"},\"dQggcljEImF\":{\"uid\":\"dQggcljEImF\",\"code\":\"OU_278392\",\"name\":\"Goderich Health Centre\"},\"DvzKyuC0G4w\":{\"uid\":\"DvzKyuC0G4w\",\"code\":\"OU_204872\",\"name\":\"Jojoima CHC\"},\"Luv2kmWWgoG\":{\"uid\":\"Luv2kmWWgoG\",\"code\":\"OU_222632\",\"name\":\"Mondema CHC\"},\"cw0Wm1QTHRq\":{\"uid\":\"cw0Wm1QTHRq\",\"code\":\"OU_222750\",\"name\":\"Joru CHC\"},\"Ep5iWL1UKvF\":{\"uid\":\"Ep5iWL1UKvF\",\"code\":\"OU_226276\",\"name\":\"Kurubonla CHC\"},\"EH0dXLB4nZg\":{\"uid\":\"EH0dXLB4nZg\",\"code\":\"OU_255032\",\"name\":\"Masimera CHC\"},\"L5gENbBNNup\":{\"uid\":\"L5gENbBNNup\",\"code\":\"OU_222689\",\"name\":\"Boajibu CHC\"}},\"dimensions\":{\"ZzYYXq4fJie.ou\":[\"r5WWF9WDzoa\",\"yMCshbaVExv\",\"Jiymtq0A01x\",\"FNnj3jKGS7i\",\"MpcMjLmbATv\",\"Yj2ni275yPJ\",\"Y8foq27WLti\",\"FLjwMPWLrL2\",\"agM0BKQlTh3\",\"iMZihUMzH92\",\"uFp0ztDOFbI\",\"amgb83zVxp5\",\"PMsF64R6OJX\",\"o0BgK1dLhF8\",\"n7wN9gMFfZ5\",\"GHHvGp7tgtZ\",\"kUzpbgPCwVA\",\"L5gENbBNNup\",\"H97XE5Ea089\",\"tO01bqIipeD\",\"Q2USZSJmcNK\",\"E497Rk80ivZ\",\"cMFi8lYbXHY\",\"d9zRBAoM8OC\",\"KiheEgvUZ0i\",\"U4FzUXMvbI8\",\"wByqtWCCuDJ\",\"m5BX6CvJ6Ex\",\"jKZ0U8Og5aV\",\"aIsnJuZbmVA\",\"K6oyIMh7Lee\",\"Gm7YUjhVi9Q\",\"kuqKh33SPgg\",\"xKaB8tfbTzm\",\"NMcx2jmra3c\",\"pNPmNeqyrim\",\"uDzWmUDHKeR\",\"ii2KMnWMx2L\",\"ZdPkczYqeIY\",\"jGYT5U5qJP6\",\"D2rB1GRuh8C\",\"ubsjwFFBaJM\",\"uedNhvYPMNu\",\"TEVtOFKcLAP\",\"YAuJ3fyoEuI\",\"NaVzm59XKGf\",\"bHcw141PTsE\",\"k1Y0oNqPlmy\",\"FbD5Z8z22Yb\",\"U514Dz4v9pv\",\"TSyzvBiovKh\",\"m0XorV4WWg0\",\"dQggcljEImF\",\"RaQGHRti7JM\",\"azRICFoILuh\",\"jhtj3eQa1pM\",\"QpRIPul20Sb\",\"lL2LBkhlsmV\",\"g10jm7jPdzf\",\"zQpYVEyAM2t\",\"g5lonXJ9ndA\",\"W7ekX3gi0ut\",\"Umh4HKqqFp6\",\"QzPf0qKBU4n\",\"vELbGdEphPd\",\"DvzKyuC0G4w\",\"cw0Wm1QTHRq\",\"TjZwphhxCuV\",\"KKoPh1lDd9j\",\"aSxNNRxPuBP\",\"mt47bcb0Rcj\",\"HNv1aLPdMYb\",\"bSj2UnYhTFb\",\"zuXW98AEbE7\",\"inpc5QsFRTm\",\"wUmVUKhnPuy\",\"K00jR5dmoFZ\",\"NjyJYiIuKIG\",\"k8ZPul89UDm\",\"FclfbEFMcf3\",\"SnCrOCRrxGX\",\"DMxw0SASFih\",\"p310xqwAJge\",\"mwN7QuEfT8m\",\"TljiT6C5D0J\",\"sM0Us0NkSez\",\"Ep5iWL1UKvF\",\"PcADvhvcaI2\",\"NRPCjDljVtu\",\"N3tpEjZcPm9\",\"iOA3z6Y3cq5\",\"YvwYw7GilkP\",\"IlMQTFvcq9r\",\"q56204kKXgZ\",\"Ahh47q8AkId\",\"TmCsvdJLHoX\",\"gE3gEGZbQMi\",\"LnToY3ExKxL\",\"scc4QyxenJd\",\"RAsstekPRco\",\"w3mBVfrWhXl\",\"lOv6IFgr6Fs\",\"Z9ny6QeqsgX\",\"va2lE4FiVVb\",\"O1KFJmM6HUx\",\"PaNv9VyD06n\",\"mshIal30ffW\",\"RQgXBKxgvHf\",\"J42QfNe0GJZ\",\"EURoFVjowXs\",\"EH0dXLB4nZg\",\"uRQj8WRK0Py\",\"OY7mYDATra3\",\"EXbPGmEUdnc\",\"dkmpOuVhBba\",\"KcCbIDzRcui\",\"aHs9PLxIdbr\",\"HcB2W6Fgp7i\",\"MXdbul7bBqV\",\"sIVFEyNfOg4\",\"cNAp6CJeLxk\",\"JQJjsXvHE5M\",\"Luv2kmWWgoG\",\"PC3Ag91n82e\",\"xMn4Wki9doK\",\"rCKWdLr4B8K\",\"MuZJ8lprGqK\",\"zEsMdeJOty4\",\"a04CZxe0PSe\",\"UOJlcpPnBat\",\"L4Tw4NlaMjn\",\"rm60vuHyQXj\",\"mzsOsz0NwNY\",\"m3VnSQbE8CD\",\"CvBAqD6RzLZ\",\"P4upLKrpkHP\",\"DiszpKrYNg8\",\"sznCEDMABa2\",\"sLKHXoBIqSs\",\"QsAwd531Cpd\",\"hzf90qz08AW\",\"PduUQmdt0pB\",\"tSBcgrTDdB8\",\"nv41sOz8IVM\",\"HQoxFu4lYPS\",\"pJv8NJlJNhU\",\"ke2gwHKHP3z\",\"k6lOze3vTzP\",\"wtdBuXDwZYQ\",\"oRncQGhLYNE\",\"qVvitxEF2ck\",\"mepHuAA9l51\",\"X79FDd4EAgo\",\"QZtMuEEV9Vv\",\"bPqP6eRfkyn\",\"gUPhNWkSXvD\",\"HWXk4EBHUyk\",\"PuZOFApTSeo\",\"Mi4dWRtfIOC\",\"egjrZ1PHNtT\",\"OjXNuYyLaCJ\",\"Jyv7sjpl9bA\",\"oLuhRyYPxRO\",\"p9KfD6eaRvu\",\"IlnqGuxfQAw\",\"pXDcgDRz8Od\",\"W2KnxOMvmgE\",\"O63vIA5MVn6\",\"e2WgqiasKnD\",\"qIpBLa1SCZt\",\"s5aXfzOL456\",\"agEKP19IUKI\",\"ua5GXy2uhBR\",\"KYXbIQBQgP1\",\"CFPrsD3dNeb\",\"PQEpIeuSTCN\",\"JrSIoCOdTH2\",\"lxxASQqPUqd\",\"K3jhn3TXF3a\",\"lpQvlm9czYE\",\"g5A3hiJlwmI\",\"VhRX5JDVo7R\",\"CKkE4GBJekz\",\"Qc9lf4VM9bD\",\"EUUkKEDoNsf\",\"nX05QLraDhO\",\"sesv0eXljBq\",\"RhJbg8UD75Q\",\"PA1spYiNZfv\",\"qxbsDd9QYv6\",\"fAsj6a4nudH\",\"xa4F6gesVJm\",\"roGdTjEqLZQ\",\"BNFrspDBKel\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ZzYYXq4fJie.ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ZzYYXq4fJie.oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
+    if (!expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Rogbere CHC");
+    validateRowValueByName(response, actualHeaders, 0, "ZzYYXq4fJie.oucode", "OU_254949");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2023-01-31 12:05:00.0");
+
+    // Validate selected values for row index 9
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Kurubonla CHC");
+    validateRowValueByName(response, actualHeaders, 9, "ZzYYXq4fJie.oucode", "OU_226276");
+    validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2023-01-29 12:05:00.0");
+
+    // Validate selected values for row index 18
+    validateRowValueByName(response, actualHeaders, 18, "ouname", "Tongo Field CHC");
+    validateRowValueByName(response, actualHeaders, 18, "ZzYYXq4fJie.oucode", "OU_222665");
+    validateRowValueByName(response, actualHeaders, 18, "enrollmentdate", "2023-01-26 12:05:00.0");
+
+    // Validate selected values for row index 27
+    validateRowValueByName(response, actualHeaders, 27, "ouname", "Rokupr CHC");
+    validateRowValueByName(response, actualHeaders, 27, "ZzYYXq4fJie.oucode", "OU_211237");
+    validateRowValueByName(response, actualHeaders, 27, "enrollmentdate", "2023-01-24 12:05:00.0");
+
+    // Validate selected values for row index 36
+    validateRowValueByName(response, actualHeaders, 36, "ouname", "Ginger Hall Health Centre");
+    validateRowValueByName(response, actualHeaders, 36, "ZzYYXq4fJie.oucode", "OU_278361");
+    validateRowValueByName(response, actualHeaders, 36, "enrollmentdate", "2023-01-21 12:05:00.0");
+
+    // Validate selected values for row index 45
+    validateRowValueByName(response, actualHeaders, 45, "ouname", "Karlu CHC");
+    validateRowValueByName(response, actualHeaders, 45, "ZzYYXq4fJie.oucode", "OU_260399");
+    validateRowValueByName(response, actualHeaders, 45, "enrollmentdate", "2023-01-18 12:05:00.0");
+
+    // Validate selected values for row index 54
+    validateRowValueByName(response, actualHeaders, 54, "ouname", "Bumpeh Perri CHC");
+    validateRowValueByName(response, actualHeaders, 54, "ZzYYXq4fJie.oucode", "OU_260423");
+    validateRowValueByName(response, actualHeaders, 54, "enrollmentdate", "2023-01-16 12:05:00.0");
+
+    // Validate selected values for row index 63
+    validateRowValueByName(response, actualHeaders, 63, "ouname", "Praise Foundation CHC");
+    validateRowValueByName(response, actualHeaders, 63, "ZzYYXq4fJie.oucode", "OU_1006");
+    validateRowValueByName(response, actualHeaders, 63, "enrollmentdate", "2023-01-12 12:05:00.0");
+
+    // Validate selected values for row index 72
+    validateRowValueByName(response, actualHeaders, 72, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 72, "ZzYYXq4fJie.oucode", "OU_559");
+    validateRowValueByName(response, actualHeaders, 72, "enrollmentdate", "2023-01-09 12:05:00.0");
+
+    // Validate selected values for row index 81
+    validateRowValueByName(response, actualHeaders, 81, "ouname", "Rokupr CHC");
+    validateRowValueByName(response, actualHeaders, 81, "ZzYYXq4fJie.oucode", "OU_211237");
+    validateRowValueByName(response, actualHeaders, 81, "enrollmentdate", "2023-01-06 12:05:00.0");
+
+    // Validate selected values for row index 90
+    validateRowValueByName(response, actualHeaders, 90, "ouname", "Bendugu CHC");
+    validateRowValueByName(response, actualHeaders, 90, "ZzYYXq4fJie.oucode", "OU_268170");
+    validateRowValueByName(response, actualHeaders, 90, "enrollmentdate", "2023-01-04 12:05:00.0");
+
+    // Validate selected values for row index 99
+    validateRowValueByName(response, actualHeaders, 99, "ouname", "Gerehun CHC");
+    validateRowValueByName(response, actualHeaders, 99, "ZzYYXq4fJie.oucode", "OU_576");
+    validateRowValueByName(response, actualHeaders, 99, "enrollmentdate", "2023-01-02 12:05:00.0");
+  }
+
+  @Test
   public void queryRandom4() throws JSONException {
     // Given
     QueryParamsBuilder params =
@@ -541,27 +693,6 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
             .add("dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE,pe:2022")
             // .add("relativePeriodDate=2023-07-14")
             .add("desc=enrollmentdate");
-
-    // When
-    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-  }
-
-  @Test
-  public void stageAndOuLevel() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = isPostgres();
-
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("includeMetadataDetails=true")
-            .add("headers=ouname,enrollmentdate,ZzYYXq4fJie.ou")
-            .add("displayProperty=NAME")
-            .add("totalPages=false")
-            .add("pageSize=100")
-            .add("page=1")
-            .add("dimension=ZzYYXq4fJie.ou:LEVEL-4,pe:202301")
-            .add("desc=enrollmentdate,ouname");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
