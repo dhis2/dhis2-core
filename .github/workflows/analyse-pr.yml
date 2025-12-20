@@ -34,6 +34,13 @@ jobs:
           distribution: temurin
           cache: maven
 
+      - name: Check Sonar token
+        run: |
+          if [ -z "${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}" ]; then
+            echo "SONAR_TOKEN is not set"
+            exit 1
+          fi
+
       - name: Analyse PR
         env:
           BASE_BRANCH: ${{ github.base_ref }}
