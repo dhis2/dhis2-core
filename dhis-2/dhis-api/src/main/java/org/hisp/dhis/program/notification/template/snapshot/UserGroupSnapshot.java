@@ -27,40 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.program.notification.snapshot;
+package org.hisp.dhis.program.notification.template.snapshot;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectSnapshot;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot {
-
-  @JsonProperty private NotificationTrigger notificationTrigger;
-
-  @JsonProperty private ProgramNotificationRecipient notificationRecipient;
-
-  private IdentifiableObjectSnapshot recipientDataElement;
-
-  private IdentifiableObjectSnapshot recipientProgramAttribute;
-
-  private UserGroupSnapshot recipientUserGroup;
-
-  @JsonProperty private String subjectTemplate;
-
-  @JsonProperty private String messageTemplate;
-
-  @JsonProperty private Set<DeliveryChannel> deliveryChannels;
-
-  private Boolean notifyUsersInHierarchyOnly;
-
-  private Boolean notifyParentOrganisationUnitOnly;
-
-  @JsonProperty private boolean sendRepeatable;
+public class UserGroupSnapshot extends IdentifiableObjectSnapshot {
+  private Set<UserSnapshot> members = new HashSet<>();
 }

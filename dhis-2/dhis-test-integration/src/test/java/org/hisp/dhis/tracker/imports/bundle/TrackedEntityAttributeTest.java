@@ -206,6 +206,16 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertTrigramIndexableFlag(trackedEntityAttributes, "TsfP85GKsU5", false);
   }
 
+  @Test
+  void shouldSetSkipAnalyticsFlagFromImportOrDefaultToFalseIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertSkipAnalytics(trackedEntityAttributes, "sTGqP5JNy6E", true);
+    assertSkipAnalytics(trackedEntityAttributes, "sYn3tkL3XKa", false);
+    assertSkipAnalytics(trackedEntityAttributes, "TsfP85GKsU5", false);
+  }
+
   private void assertMinCharactersToSearch(
       List<TrackedEntityAttribute> teas, String uid, int expected) {
     TrackedEntityAttribute tea =
@@ -279,5 +289,20 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         expected,
         tea.getTrigramIndexable(),
         "Expected trigram indexable flag for UID " + uid + " to be " + expected);
+  }
+
+  private void assertSkipAnalytics(
+      List<TrackedEntityAttribute> attributeValues, String uid, boolean expected) {
+    TrackedEntityAttribute tea =
+        attributeValues.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.isSkipAnalytics(),
+        "Expected skip individual analytics flag for UID " + uid + " to be " + expected);
   }
 }

@@ -27,47 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.monitoring.metrics.jdbc;
+package org.hisp.dhis.analytics.event.data.queryitem;
 
-import javax.sql.DataSource;
+import java.util.List;
+import org.hisp.dhis.common.QueryItem;
+import org.springframework.stereotype.Component;
 
 /**
- * A base {@link PoolMetadata} implementation.
+ * Registry that selects the appropriate {@link QueryItemFilterHandler} for a given query item.
  *
- * @param <T> the data source type
- * @author Stephane Nicoll
- * @since 2.0.0
+ * <p>Note that the order of the handlers is important: specific handlers are registered first, with
+ * the generic fallback handler registered last (it always matches).
  */
-public abstract class AbstractPoolMetadata<T extends DataSource> implements PoolMetadata {
+@Component
+public class QueryItemFilterHandlerRegistry {
 
-  private final T dataSource;
+  private final List<QueryItemFilterHandler> handlers;
+
+  public QueryItemFilterHandlerRegistry() {
+    // Order matters: specific handlers first, generic last
+    handlers =
+        List.of(
+            new DateFilterHandler(),
+            new EventStatusFilterHandler(),
+            new OrgUnitFilterHandler(),
+            new GenericFilterHandler()); // Must be last (always matches)
+  }
 
   /**
-   * Create an instance with the data source to use.
+   * Finds the appropriate handler for the given query item.
    *
-   * @param dataSource the data source
+   * @param queryItem the query item to find a handler for
+   * @return the matching handler (GenericFilterHandler as fallback, never null)
    */
-  protected AbstractPoolMetadata(T dataSource) {
-    this.dataSource = dataSource;
-  }
-
-  @Override
-  public Float getUsage() {
-    Integer maxSize = getMax();
-    Integer currentSize = getActive();
-    if (maxSize == null || currentSize == null) {
-      return null;
-    }
-    if (maxSize < 0) {
-      return -1F;
-    }
-    if (currentSize == 0) {
-      return 0F;
-    }
-    return (float) currentSize / (float) maxSize;
-  }
-
-  protected final T getDataSource() {
-    return this.dataSource;
+  public QueryItemFilterHandler handlerFor(QueryItem queryItem) {
+    return handlers.stream()
+        .filter(h -> h.supports(queryItem))
+        .findFirst()
+        .orElseThrow(); // GenericFilterHandler always matches, so this won't throw
   }
 }

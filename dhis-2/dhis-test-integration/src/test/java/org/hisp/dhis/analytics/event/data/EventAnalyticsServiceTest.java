@@ -267,6 +267,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws ConflictException {
+    createPeriodTypes();
+
     // Organisation Units
     //
     // A -> B -> D,E,F,G
@@ -675,6 +677,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @AfterAll
   public void tearDown() {
+    cleanPeriodTypes();
+
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }

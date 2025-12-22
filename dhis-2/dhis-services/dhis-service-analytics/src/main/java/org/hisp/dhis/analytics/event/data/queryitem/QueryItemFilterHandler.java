@@ -27,44 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.monitoring.prometheus.config;
+package org.hisp.dhis.analytics.event.data.queryitem;
 
-import io.micrometer.core.instrument.Clock;
-import io.micrometer.prometheusmetrics.PrometheusConfig;
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-import io.prometheus.metrics.model.registry.PrometheusRegistry;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.Date;
+import org.hisp.dhis.common.QueryItem;
 
 /**
- * @author Luciano Fiandesio
+ * Strategy interface for handling filter application to QueryItem based on item type. Follows the
+ * same pattern as {@link
+ * org.hisp.dhis.analytics.event.data.programindicator.ctefactory.CteSqlFactory}.
+ *
+ * <p>Implementations handle specific types of query items (e.g., date fields, event status, org
+ * units) with their own filter parsing and validation logic.
  */
-@Configuration
-public class PrometheusMonitoringConfig {
-  @Bean
-  public Clock micrometerClock() {
-    return Clock.SYSTEM;
-  }
+public interface QueryItemFilterHandler {
 
-  @Bean
-  public PrometheusProperties defaultProperties() {
-    return new PrometheusProperties();
-  }
+  /**
+   * Returns {@code true} when this handler can process filters for the given QueryItem.
+   *
+   * @param queryItem the query item to check
+   * @return true if this handler supports the query item type
+   */
+  boolean supports(QueryItem queryItem);
 
-  @Bean
-  public PrometheusConfig prometheusConfig(PrometheusProperties prometheusProperties) {
-    return new PrometheusPropertiesConfigAdapter(prometheusProperties);
-  }
-
-  @Bean
-  public PrometheusMeterRegistry prometheusMeterRegistry(
-      PrometheusConfig prometheusConfig, PrometheusRegistry prometheusRegistry, Clock clock) {
-    return new io.micrometer.prometheusmetrics.PrometheusMeterRegistry(
-        prometheusConfig, prometheusRegistry, clock);
-  }
-
-  @Bean
-  public PrometheusRegistry prometheusRegistry() {
-    return new PrometheusRegistry();
-  }
+  /**
+   * Applies filters from the dimension string parts to the query item.
+   *
+   * @param queryItem the query item to add filters to
+   * @param filterParts the split dimension string (index 0 is item ID, 1+ are filters)
+   * @param dimensionString original dimension string for error messages
+   * @param relativePeriodDate reference date for relative period calculations (may be null)
+   */
+  void applyFilters(
+      QueryItem queryItem, String[] filterParts, String dimensionString, Date relativePeriodDate);
 }
