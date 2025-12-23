@@ -57,10 +57,10 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
-import static org.hisp.dhis.tracker.TrackerTestBase.createEnrollment;
-import static org.hisp.dhis.tracker.TrackerTestBase.createEvent;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -267,6 +267,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws ConflictException {
+    createPeriodTypes();
+
     // Organisation Units
     //
     // A -> B -> D,E,F,G
@@ -675,6 +677,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @AfterAll
   public void tearDown() {
+    cleanPeriodTypes();
+
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }

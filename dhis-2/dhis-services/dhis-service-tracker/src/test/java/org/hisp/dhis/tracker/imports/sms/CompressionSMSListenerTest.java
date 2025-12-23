@@ -36,7 +36,7 @@ import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsSubmissionWriter;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.tracker.TrackerTestBase;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 
 abstract class CompressionSMSListenerTest extends TrackerTestBase {

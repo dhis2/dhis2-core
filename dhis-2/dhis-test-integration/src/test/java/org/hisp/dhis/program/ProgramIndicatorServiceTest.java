@@ -36,9 +36,9 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
-import static org.hisp.dhis.tracker.TrackerTestBase.createEnrollment;
-import static org.hisp.dhis.tracker.TrackerTestBase.createEvent;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -69,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -277,15 +278,13 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    org.hisp.dhis.tracker.model.TrackerEvent eventA =
-        createEvent(psA, enrollment, organisationUnit);
+    TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
     eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
-    org.hisp.dhis.tracker.model.TrackerEvent eventB =
-        createEvent(psB, enrollment, organisationUnit);
+    TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
     eventB.setOccurredDate(occurredDate);
     manager.save(eventB);
-    Set<org.hisp.dhis.tracker.model.TrackerEvent> events = new HashSet<>();
+    Set<TrackerEvent> events = new HashSet<>();
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------

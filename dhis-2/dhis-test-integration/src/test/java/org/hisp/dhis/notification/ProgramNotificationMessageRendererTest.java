@@ -30,9 +30,9 @@
 package org.hisp.dhis.notification;
 
 import static org.hisp.dhis.notification.BaseNotificationMessageRenderer.formatDate;
-import static org.hisp.dhis.tracker.TrackerTestBase.createEnrollment;
-import static org.hisp.dhis.tracker.TrackerTestBase.createEvent;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
@@ -70,6 +70,7 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.tracker.program.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -152,9 +153,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired
-  private org.hisp.dhis.tracker.program.notification.ProgramNotificationMessageRenderer
-      programNotificationMessageRenderer;
+  @Autowired private ProgramNotificationMessageRenderer programNotificationMessageRenderer;
 
   @Autowired
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;

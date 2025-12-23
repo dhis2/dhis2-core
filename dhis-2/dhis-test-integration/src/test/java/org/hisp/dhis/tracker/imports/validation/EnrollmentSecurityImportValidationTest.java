@@ -32,9 +32,9 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;

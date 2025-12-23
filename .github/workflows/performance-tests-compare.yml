@@ -211,7 +211,7 @@ jobs:
 
     - name: Upload Gatling report
       if: always()
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }}
         path: dhis-2/dhis-test-performance/target/gatling/

@@ -164,7 +164,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         useExperimentalAnalyticsQueryEngine()
             ? buildAnalyticsQuery(params, maxLimit)
             : getAggregatedEnrollmentsSql(params, maxLimit);
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -534,7 +533,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Periods
     // ---------------------------------------------------------------------
 
-    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+    // Skip global time field filter when stage-specific date items are present,
+    // as they already include their own date filters with program stage conditions
+    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
+        && !params.hasStageDateItem()) {
       String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
       if (StringUtils.isNotBlank(timeFieldSql)) {
         sql += hlp.whereAnd() + " " + timeFieldSql;
@@ -547,35 +549,40 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     OrgUnitField orgUnitField = params.getOrgUnitField();
 
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
-      String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
+    // Use regular OU clause only if stage.ou QueryItems don't cover all org units (avoid
+    // duplicates)
+    if (useRegularOuClause(params)) {
+      if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+        String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
 
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + orgUnitCol
-              + OPEN_IN
-              + sqlBuilder.singleQuotedCommaDelimited(
-                  getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
-              + ") ";
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-      String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
+        sql +=
+            hlp.whereAnd()
+                + " "
+                + orgUnitCol
+                + OPEN_IN
+                + sqlBuilder.singleQuotedCommaDelimited(
+                    getUids(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)))
+                + ") ";
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+        String orgUnitCol = orgUnitField.getOrgUnitWhereCol(getAnalyticsType());
 
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + orgUnitCol
-              + OPEN_IN
-              + sqlBuilder.singleQuotedCommaDelimited(getUids(params.getOrganisationUnitChildren()))
-              + ") ";
-    } else // Descendants
-    {
-      String sqlSnippet =
-          getOrgUnitDescendantsClause(
-              orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
+        sql +=
+            hlp.whereAnd()
+                + " "
+                + orgUnitCol
+                + OPEN_IN
+                + sqlBuilder.singleQuotedCommaDelimited(
+                    getUids(params.getOrganisationUnitChildren()))
+                + ") ";
+      } else // Descendants
+      {
+        String sqlSnippet =
+            getOrgUnitDescendantsClause(
+                orgUnitField, params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
 
-      if (isNotEmpty(sqlSnippet)) {
-        sql += hlp.whereAnd() + " " + sqlSnippet;
+        if (isNotEmpty(sqlSnippet)) {
+          sql += hlp.whereAnd() + " " + sqlSnippet;
+        }
       }
     }
 
@@ -814,6 +821,38 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         .filter(unit -> isNotEmpty(unit.getUid()))
         .map(unit -> "'" + unit.getUid() + "'")
         .collect(joining(",", orgUnit + OPEN_IN, ") "));
+  }
+
+  /**
+   * Check if the regular OU clause should be used. Returns false if all org units in ORGUNIT_DIM_ID
+   * are fully covered by stage.ou QueryItems, to avoid duplicates.
+   *
+   * @param params the {@link EventQueryParams}
+   * @return true if the regular OU clause should be used
+   */
+  private boolean useRegularOuClause(EventQueryParams params) {
+    // Get org unit UIDs from stage.ou QueryItems
+    Set<String> stageOuUids =
+        params.getItems().stream()
+            .filter(
+                item ->
+                    EventAnalyticsColumnName.OU_COLUMN_NAME.equals(item.getItemId())
+                        && item.hasProgramStage())
+            .flatMap(item -> organisationUnitResolver.resolveOrgUnits(params, item).stream())
+            .collect(Collectors.toSet());
+
+    if (stageOuUids.isEmpty()) {
+      return true; // No stage.ou items, use regular OU clause
+    }
+
+    // Get org unit UIDs from ORGUNIT_DIM_ID
+    Set<String> regularOuUids =
+        params.getDimensionOrFilterItems(ORGUNIT_DIM_ID).stream()
+            .map(DimensionalItemObject::getUid)
+            .collect(Collectors.toSet());
+
+    // Use regular OU clause only if NOT all regular OU UIDs are covered by stage.ou
+    return !stageOuUids.containsAll(regularOuUids);
   }
 
   /**

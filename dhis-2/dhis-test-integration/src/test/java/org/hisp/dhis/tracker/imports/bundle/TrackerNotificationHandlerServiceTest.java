@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 
 import java.time.Instant;
 import java.util.HashSet;

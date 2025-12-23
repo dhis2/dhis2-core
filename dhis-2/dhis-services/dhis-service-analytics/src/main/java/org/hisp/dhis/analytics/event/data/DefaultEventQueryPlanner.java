@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
@@ -132,10 +133,20 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
       partitionManager.filterNonExistingPartitions(partitions, tableName);
     }
 
-    return new EventQueryParams.Builder(params)
-        .withTableName(tableName)
-        .withPartitions(partitions)
-        .build();
+    EventQueryParams.Builder builder =
+        new EventQueryParams.Builder(params).withTableName(tableName).withPartitions(partitions);
+
+    boolean hasEventDateItem =
+        params.getItems().stream()
+            .anyMatch(
+                item ->
+                    EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId()));
+
+    if (hasEventDateItem) {
+      builder.withSkipPartitioning(true);
+    }
+
+    return builder.build();
   }
 
   /**

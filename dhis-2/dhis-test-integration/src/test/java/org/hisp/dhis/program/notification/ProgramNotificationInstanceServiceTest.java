@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.hisp.dhis.tracker.TrackerTestBase.createEnrollment;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;

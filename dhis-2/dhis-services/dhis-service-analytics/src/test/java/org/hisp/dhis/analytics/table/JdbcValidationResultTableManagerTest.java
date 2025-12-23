@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.period.PeriodType.PERIOD_TYPES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,6 +54,8 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -97,6 +101,10 @@ class JdbcValidationResultTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
+  @Mock private ConfigurationService configurationService;
+
+  @Mock private Configuration configuration;
+
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcValidationResultTableManager subject;
@@ -128,7 +136,8 @@ class JdbcValidationResultTableManagerTest {
             jdbcTemplate,
             analyticsTableSettings,
             periodDataProvider,
-            sqlBuilder);
+            sqlBuilder,
+            configurationService);
   }
 
   @Test
@@ -155,6 +164,7 @@ class JdbcValidationResultTableManagerTest {
       "Regular update path builds partitions for each data year returned by getDataYears()")
   void testGetAnalyticsTablesWithYearsCreatesPartitions() {
     when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of(2020, 2021));
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
 
@@ -173,6 +183,8 @@ class JdbcValidationResultTableManagerTest {
             .lastYears(org.hisp.dhis.analytics.table.model.AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
+    whenConfigurationPeriodSettings();
+
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
     assertEquals(0, tables.size());
   }
@@ -185,6 +197,8 @@ class JdbcValidationResultTableManagerTest {
         AnalyticsTableUpdateParams.newBuilder()
             .lastYears(org.hisp.dhis.analytics.table.model.AnalyticsTablePartition.LATEST_PARTITION)
             .build();
+
+    whenConfigurationPeriodSettings();
 
     // Call method; even if latest returns empty list, getColumns() should run
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -201,6 +215,7 @@ class JdbcValidationResultTableManagerTest {
   void testGetAnalyticsTablesRegularIncludesExpectedColumns() {
     // One data year so we build one table with columns from getColumns()
     when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of(2022));
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
 
@@ -230,6 +245,7 @@ class JdbcValidationResultTableManagerTest {
       "populateTable generates expected SELECT and JOINs with time filters and OU alignment")
   void testPopulateTableBuildsExpectedSql() {
     when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of(2021));
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
@@ -265,6 +281,7 @@ class JdbcValidationResultTableManagerTest {
   void testGetAnalyticsTablesAddsFromDateClauseWhenLastYearsSpecified() {
     // Make getDataYears run and capture the SQL
     when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of());
+    whenConfigurationPeriodSettings();
 
     Date today = new DateTime(2021, 6, 15, 0, 0).toDate();
     AnalyticsTableUpdateParams params =
@@ -297,6 +314,7 @@ class JdbcValidationResultTableManagerTest {
     // Force declarative partitioning and verify no 'ps.year = ...' in SQL
     when(jdbcTemplate.queryForList(anyString(), eq(Integer.class))).thenReturn(List.of(2021));
     when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(true);
+    whenConfigurationPeriodSettings();
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
@@ -311,5 +329,11 @@ class JdbcValidationResultTableManagerTest {
 
     String sql = sqlCaptor.getValue();
     assertThat(sql, org.hamcrest.Matchers.not(containsString("ps.year = 2021")));
+  }
+
+  private void whenConfigurationPeriodSettings() {
+    when(configurationService.getConfiguration()).thenReturn(configuration);
+    when(configuration.getDataOutputPeriodTypes())
+        .thenReturn(PERIOD_TYPES.stream().collect(toUnmodifiableSet()));
   }
 }

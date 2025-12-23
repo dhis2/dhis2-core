@@ -40,10 +40,10 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.hisp.dhis.tracker.program.notification.snapshot.ProgramNotificationTemplateSnapshot;
 
 /**
  * @author Zubair Asghar

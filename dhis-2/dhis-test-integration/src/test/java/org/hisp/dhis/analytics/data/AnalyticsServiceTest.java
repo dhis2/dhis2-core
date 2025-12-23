@@ -261,7 +261,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws Exception {
-
+    createPeriodTypes();
     setUpMetadata();
     setUpDataValues();
     setUpValidation();
@@ -560,6 +560,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @AfterAll
   void tearDown() {
+    cleanPeriodTypes();
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }

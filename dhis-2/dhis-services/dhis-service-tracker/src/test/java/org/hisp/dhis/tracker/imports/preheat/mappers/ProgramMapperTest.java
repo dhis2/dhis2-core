@@ -43,7 +43,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerTestBase;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.junit.jupiter.api.Test;
 
 class ProgramMapperTest extends TrackerTestBase {

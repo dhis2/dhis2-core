@@ -31,8 +31,8 @@ package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

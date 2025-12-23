@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.reservedvalue.hibernate;
 
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntityAttributeValue;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
-import static org.hisp.dhis.tracker.TrackerTestBase.createTeToTeRelationship;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

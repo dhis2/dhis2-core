@@ -119,6 +119,9 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   @Transient private Boolean trigramIndexed = false;
 
+  @OpenApi.Description("Indicates whether this attribute should be excluded from analytics.")
+  private boolean skipAnalytics;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -447,6 +450,16 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   public void setTrigramIndexed(Boolean trigramIndexed) {
     this.trigramIndexed = trigramIndexed;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipAnalytics() {
+    return skipAnalytics;
+  }
+
+  public void setSkipAnalytics(boolean skipAnalytics) {
+    this.skipAnalytics = skipAnalytics;
   }
 
   @Override

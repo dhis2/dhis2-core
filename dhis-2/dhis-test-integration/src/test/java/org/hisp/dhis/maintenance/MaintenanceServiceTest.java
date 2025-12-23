@@ -31,9 +31,9 @@ package org.hisp.dhis.maintenance;
 
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.tracker.TrackerTestBase.createSingleEvent;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTeToTeRelationship;
-import static org.hisp.dhis.tracker.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -72,7 +72,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.RelationshipUtils;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -91,6 +90,7 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
+import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -585,14 +585,14 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1,
         audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.tracker.model.Enrollment"))
+            .filter(a -> a.getKlass().equals("org.hisp.dhis.program.Enrollment"))
             .count());
     assertEquals(
         1, audits.stream().filter(a -> a.getKlass().equals("org.hisp.dhis.program.Event")).count());
     assertEquals(
         1,
         audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.tracker.model.TrackedEntity"))
+            .filter(a -> a.getKlass().equals("org.hisp.dhis.trackedentity.TrackedEntity"))
             .count());
     audits.forEach(a -> assertEquals(AuditType.DELETE, a.getAuditType()));
   }
