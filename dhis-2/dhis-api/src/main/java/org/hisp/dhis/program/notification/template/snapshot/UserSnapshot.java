@@ -27,35 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.program.notification.snapshot;
+package org.hisp.dhis.program.notification.template.snapshot;
 
-import java.util.Date;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Service;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.tracker.program.notification.snapshot.NotificationTemplateService")
-public class NotificationTemplateService {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class UserSnapshot extends IdentifiableObjectSnapshot {
+  private String name;
 
-  private final NotificationTemplateMapper mapper;
+  private String username;
 
-  public ProgramNotificationInstance createNotificationInstance(
-      ProgramNotificationTemplate template, String date) {
-    return createNotificationInstance(template, DateUtils.parseDate(date));
-  }
+  private String email;
 
-  public ProgramNotificationInstance createNotificationInstance(
-      ProgramNotificationTemplate template, Date date) {
-    ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
-    notificationInstance.setAutoFields();
-    notificationInstance.setName(template.getName());
-    notificationInstance.setScheduledAt(date);
-    notificationInstance.setProgramNotificationTemplateSnapshot(
-        mapper.toProgramNotificationTemplateSnapshot(template));
-
-    return notificationInstance;
-  }
+  private String phoneNumber;
 }

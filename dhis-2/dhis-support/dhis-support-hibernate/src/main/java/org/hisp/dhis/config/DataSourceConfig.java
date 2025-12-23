@@ -30,6 +30,7 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -67,6 +68,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @RequiredArgsConstructor
 public class DataSourceConfig {
 
+  private final MeterRegistry meterRegistry;
+
   @Primary
   @Bean
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
@@ -98,7 +101,7 @@ public class DataSourceConfig {
   @Bean
   public JdbcTemplate readOnlyJdbcTemplate(
       DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -121,7 +124,7 @@ public class DataSourceConfig {
     }
 
     DbPoolConfig dbPoolConfig =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("read_replica")
             .dhisConfig(config)
             .jdbcUrl(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))
             .username(config.getProperty(ConfigurationKey.CONNECTION_USERNAME))
@@ -131,7 +134,8 @@ public class DataSourceConfig {
             .build();
 
     try {
-      return createLoggingDataSource(config, DatabasePoolUtils.createDbPool(dbPoolConfig));
+      return createLoggingDataSource(
+          config, DatabasePoolUtils.createDbPool(dbPoolConfig, meterRegistry));
     } catch (PropertyVetoException | SQLException e) {
       String message =
           String.format(
@@ -147,10 +151,10 @@ public class DataSourceConfig {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
+        DbPoolConfig.builder("actual").dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(

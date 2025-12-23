@@ -15,7 +15,7 @@
     <maven-surefire-junit5-tree-reporter.version>1.5.1</maven-surefire-junit5-tree-reporter.version>
     <junit.version>6.0.1</junit.version>
     <gson.version>2.13.2</gson.version>
-    <log4j.version>2.25.2</log4j.version>
+    <log4j.version>2.25.3</log4j.version>
     <rest-assured.version>5.5.6</rest-assured.version>
     <jackson.version.databind>2.20.1</jackson.version.databind>
     <jackson.version.annotation>2.20</jackson.version.annotation>
@@ -34,7 +34,7 @@
     <selenium-java.version>4.39.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
-    <httpclient5.version>5.5.1</httpclient5.version>
+    <httpclient5.version>5.6</httpclient5.version>
     <commons-io.version>2.21.0</commons-io.version>
     <spring.version>7.0.2</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>

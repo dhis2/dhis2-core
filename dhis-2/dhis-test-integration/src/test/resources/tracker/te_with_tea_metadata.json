@@ -59,6 +59,7 @@
       "preferredSearchOperator": "IN",
       "blockedSearchOperators": ["SW", "EW", "LIKE"],
       "trigramIndexable": true,
+      "skipAnalytics": true,
       "sharing": {
         "public": "rw------",
         "external": false,
@@ -96,6 +97,7 @@
       "preferredSearchOperator": "EQ",
       "blockedSearchOperators": ["SW", "EW", "LIKE"],
       "trigramIndexable": false,
+      "skipAnalytics": false,
       "sharing": {
         "public": "rw------",
         "external": false,
