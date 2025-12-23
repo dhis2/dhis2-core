@@ -36,6 +36,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
@@ -383,7 +384,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             // INNER JOIN on constraints
             .append(joinPrograms(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
-            .append(getFromSubQueryJoinOrgUnitConditions(params))
+            .append(getFromSubQueryJoinOrgUnitConditions(params, sqlParameters))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on and/or filter by.
@@ -596,27 +597,38 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *
    * @return a SQL INNER JOIN for organisation units
    */
-  private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
+  private String getFromSubQueryJoinOrgUnitConditions(
+      TrackedEntityQueryParams params, MapSqlParameterSource sqlParameters) {
     StringBuilder orgUnits = new StringBuilder();
+    String orgUnitTableAlias = "ou";
+    String programTableAlias = "p";
 
     handleOrganisationUnits(params);
 
     orgUnits
-        .append(" INNER JOIN organisationunit OU ")
-        .append("ON OU.organisationunitid = ")
+        .append(" inner join organisationunit ")
+        .append(orgUnitTableAlias)
+        .append(" on ou.organisationunitid = ")
         .append(getOwnerOrgUnit(params));
 
-    if (!params.hasOrganisationUnits()) {
-      return orgUnits.toString();
+    if (params.hasOrganisationUnits()) {
+      if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
+        orgUnits.append(getDescendantsQuery(params));
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+        orgUnits.append(getChildrenQuery(params));
+      } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+        orgUnits.append(getSelectedQuery(params));
+      }
     }
 
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-      orgUnits.append(getDescendantsQuery(params));
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-      orgUnits.append(getChildrenQuery(params));
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
-      orgUnits.append(getSelectedQuery(params));
-    }
+    buildOwnershipClause(
+        orgUnits,
+        sqlParameters,
+        params.getOrgUnitMode(),
+        programTableAlias,
+        orgUnitTableAlias,
+        MAIN_QUERY_ALIAS,
+        () -> "and ");
 
     return orgUnits.toString();
   }
