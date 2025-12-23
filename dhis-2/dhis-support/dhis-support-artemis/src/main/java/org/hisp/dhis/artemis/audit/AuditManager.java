@@ -158,10 +158,6 @@ public class AuditManager {
       return attrs.toObjectJson();
     }
 
-    if (value instanceof RelationshipItemAuditable auditableValue) {
-      return auditableValue.getAuditableValue();
-    }
-
     return value;
   }
 }

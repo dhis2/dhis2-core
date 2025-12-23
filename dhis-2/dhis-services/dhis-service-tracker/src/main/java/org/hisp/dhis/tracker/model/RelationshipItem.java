@@ -32,9 +32,7 @@ package org.hisp.dhis.tracker.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hisp.dhis.artemis.audit.RelationshipItemAuditable;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * @author Stian Sandvold
@@ -42,7 +40,7 @@ import org.hisp.dhis.util.ObjectUtils;
 @Setter
 @Getter
 @NoArgsConstructor
-public class RelationshipItem implements EmbeddedObject, RelationshipItemAuditable {
+public class RelationshipItem implements EmbeddedObject {
   private int id;
 
   private Relationship relationship;
@@ -54,11 +52,4 @@ public class RelationshipItem implements EmbeddedObject, RelationshipItemAuditab
   private TrackerEvent trackerEvent;
 
   private SingleEvent singleEvent;
-
-  @Override
-  public String getAuditableValue() {
-    return ObjectUtils.firstNonNull(
-            this.trackedEntity, this.enrollment, this.trackerEvent, this.singleEvent)
-        .getUid();
-  }
 }
