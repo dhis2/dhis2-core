@@ -55,7 +55,6 @@ import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleInstant;
 import org.hisp.dhis.rules.models.RuleLocalDate;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -63,11 +62,12 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RuleEngineRuleEngineMapperTest extends TestBase {
+class RuleEngineRuleEngineMapperTest extends TrackerTestBase {
   private static final String SAMPLE_VALUE_A = "textValueA";
 
   private static final Date NOW = new Date();

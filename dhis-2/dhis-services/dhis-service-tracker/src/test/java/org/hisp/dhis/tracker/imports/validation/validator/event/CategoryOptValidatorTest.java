@@ -47,7 +47,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.mock.MockI18nFormat;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -56,6 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class CategoryOptValidatorTest extends TestBase {
+class CategoryOptValidatorTest extends TrackerTestBase {
 
   @Mock private I18nManager i18nManager;
 

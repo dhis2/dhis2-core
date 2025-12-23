@@ -36,10 +36,10 @@ import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsSubmissionWriter;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 
-abstract class CompressionSMSListenerTest extends TestBase {
+abstract class CompressionSMSListenerTest extends TrackerTestBase {
   protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
   protected static final String NOVALUES_MESSAGE =

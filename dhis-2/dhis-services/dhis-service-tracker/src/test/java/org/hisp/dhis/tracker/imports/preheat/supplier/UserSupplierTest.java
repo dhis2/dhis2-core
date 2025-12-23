@@ -42,12 +42,12 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class UserSupplierTest extends TestBase {
+class UserSupplierTest extends TrackerTestBase {
 
   @InjectMocks private UserSupplier supplier;
 

@@ -74,9 +74,9 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,7 +93,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class DataSetNotificationServiceTest extends TestBase {
+class DataSetNotificationServiceTest extends TrackerTestBase {
   public static final String TEMPALTE_A_UID = "smsTemplateA";
 
   public static final String TEMPALTE_B_UID = "emailTemplateB";

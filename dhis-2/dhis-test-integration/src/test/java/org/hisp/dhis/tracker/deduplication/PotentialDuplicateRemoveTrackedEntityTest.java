@@ -31,6 +31,9 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -124,7 +127,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteTrackedEntity() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntityFromAttribute(trackedEntityAttribute);
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
@@ -134,7 +137,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteTeAndAttributeValues() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntityFromAttribute(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
@@ -218,7 +221,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
-  private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
+  private TrackedEntity createTrackedEntityFromAttribute(
+      TrackedEntityAttribute trackedEntityAttribute) {
     TrackedEntity trackedEntity =
         createTrackedEntity('T', organisationUnit, trackedEntityAttribute, trackedEntityType);
     manager.save(trackedEntity);

@@ -30,6 +30,9 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -82,9 +85,9 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   private ProgramMessageQueryParams params;
 
-  private TrackerEvent eventA;
+  private org.hisp.dhis.program.TrackerEvent eventA;
 
-  private SingleEvent singleEvent;
+  private org.hisp.dhis.program.SingleEvent singleEvent;
 
   private ProgramMessage programMessageA;
   private ProgramMessage programMessageB;

@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
