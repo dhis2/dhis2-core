@@ -63,6 +63,7 @@ import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 
 /**
@@ -82,6 +83,7 @@ public enum JobType {
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
   SINGLE_EVENT_DATA_SYNC(SingleEventDataSynchronizationJobParameters.class),
+  TRACKED_ENTITY_DATA_SYNC(TrackerDataSynchronizationJobParameters.class),
   DATA_SYNC(DataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
@@ -205,7 +207,8 @@ public enum JobType {
     return this == HTML_PUSH_ANALYTICS
         || this == AGGREGATE_DATA_EXCHANGE
         || this == META_DATA_SYNC
-        || this == SINGLE_EVENT_DATA_SYNC;
+        || this == SINGLE_EVENT_DATA_SYNC
+        || this == TRACKED_ENTITY_DATA_SYNC;
   }
 
   /**
@@ -225,6 +228,7 @@ public enum JobType {
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == DATA_SYNC
         || this == SINGLE_EVENT_DATA_SYNC
+        || this == TRACKED_ENTITY_DATA_SYNC
         || this == SMS_SEND
         || this == PUSH_ANALYSIS
         || this == PREDICTOR

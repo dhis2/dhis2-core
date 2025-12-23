@@ -144,6 +144,9 @@ public class TrackedEntityOperationParams {
   /** Indicates whether the search is for synchronization purposes (for Program Data sync job). */
   private boolean synchronizationQuery;
 
+  /** Timestamp before which changed data is ignored, mainly used for Program Data sync. */
+  private Date skipChangedBefore;
+
   /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not

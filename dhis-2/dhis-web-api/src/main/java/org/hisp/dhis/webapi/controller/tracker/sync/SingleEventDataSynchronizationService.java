@@ -121,7 +121,12 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   @Override
-  public SynchronizationResult synchronizeTrackerData(
+  public SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress) {
+    return null;
+  }
+
+  @Override
+  public SynchronizationResult synchronizeSingleEventData(
       int pageSize, JobProgress progress, @Nonnull String programUid) {
     progress.startingProcess(PROCESS_NAME);
 
