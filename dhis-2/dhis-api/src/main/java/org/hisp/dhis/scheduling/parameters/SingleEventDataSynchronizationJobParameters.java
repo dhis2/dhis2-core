@@ -30,6 +30,8 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,9 +56,9 @@ public class SingleEventDataSynchronizationJobParameters implements JobParameter
 
   @JsonProperty private int pageSize = 60;
 
-  @OpenApi.Property({UID.class, Program.class})
+  @OpenApi.Property({UID[].class, Program.class})
   @JsonProperty(required = true)
-  private String program;
+  private List<String> programs = new ArrayList<>();
 
   @Override
   public Optional<ErrorReport> validate() {
