@@ -763,39 +763,6 @@
           "userAccesses": []
         },
         {
-          "lastUpdated": "2019-01-28T11:23:20.853",
-          "id": "elrpmODPeIz",
-          "created": "2019-01-28T11:23:20.853",
-          "displayInReports": false,
-          "skipSynchronization": false,
-          "externalAccess": false,
-          "renderOptionsAsRadio": false,
-          "allowFutureDate": false,
-          "compulsory": false,
-          "allowProvidedElsewhere": false,
-          "sortOrder": 20,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "programStage": {
-            "id": "NpsdDv6kKSO"
-          },
-          "dataElement": {
-            "id": "IrEJvSSO2wL"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        },
-        {
           "lastUpdated": "2019-01-28T11:23:20.854",
           "id": "PuSutCsvpZQ",
           "created": "2019-01-28T11:23:20.854",
@@ -1623,33 +1590,6 @@
       "domainType": "TRACKER",
       "publicAccess": "rw------",
       "valueType": "TIME",
-      "zeroIsSignificant": false,
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "lastUpdatedBy": {
-        "id": "tTgjgobT1oS"
-      },
-      "user": {
-        "id": "tTgjgobT1oS"
-      },
-      "translations": [],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": [],
-      "aggregationLevels": []
-    },
-    {
-      "lastUpdated": "2019-01-28T11:17:34.761",
-      "id": "IrEJvSSO2wL",
-      "created": "2019-01-28T11:17:34.761",
-      "name": "DE TrackerAssociate",
-      "shortName": "DE TrackerAssociate",
-      "aggregationType": "NONE",
-      "domainType": "TRACKER",
-      "publicAccess": "rw------",
-      "valueType": "TRACKER_ASSOCIATE",
       "zeroIsSignificant": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"

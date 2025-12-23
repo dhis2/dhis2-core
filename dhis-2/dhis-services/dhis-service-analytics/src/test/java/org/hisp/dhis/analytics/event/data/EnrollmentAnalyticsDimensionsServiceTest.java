@@ -126,7 +126,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
             .toList();
 
     // Verify that disallowed value types (COORDINATE, FILE_RESOURCE, GEOJSON, IMAGE,
-    // MULTI_TEXT, REFERENCE, TRACKER_ASSOCIATE) are NOT returned
+    // MULTI_TEXT, REFERENCE) are NOT returned
     assertTrue(
         analyticsDimensions.stream()
             .filter(b -> b instanceof ProgramStageDataElement)
