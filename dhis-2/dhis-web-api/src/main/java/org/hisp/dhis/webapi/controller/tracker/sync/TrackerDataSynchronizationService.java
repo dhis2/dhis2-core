@@ -327,7 +327,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       Date syncTime) {
     List<String> trackedEntityUids =
         trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
-    trackedEntityService.updateTrackedEntitiesSyncTimestamp(trackedEntityUids, syncTime);
+
+    trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
   }
 
   private SynchronizationResult endProcess(JobProgress progress, String message) {

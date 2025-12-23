@@ -260,8 +260,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   @Transactional
   public void updateTrackedEntitiesSyncTimestamp(
-      @Nonnull List<String> trackedEntitiesUid, @Nonnull Date lastSynchronized) {
-    trackedEntityStore.updateTrackedEntitiesSyncTimestamp(trackedEntitiesUid, lastSynchronized);
+      @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized) {
+    trackedEntityStore.updateTrackedEntitiesSyncTimestamp(trackedEntities, lastSynchronized);
   }
 
   private List<TrackedEntity> findTrackedEntities(
@@ -303,6 +303,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, BadRequestException {
     UserDetails user = getCurrentUserDetails();

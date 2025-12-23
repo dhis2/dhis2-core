@@ -151,9 +151,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
 
-  public void updateTrackedEntitiesSyncTimestamp(
-      List<String> trackedEntitiesUid, Date lastSynchronized) {
-    if (trackedEntitiesUid.isEmpty()) {
+  public void updateTrackedEntitiesSyncTimestamp(Set<UID> trackedEntities, Date lastSynchronized) {
+    if (trackedEntities.isEmpty()) {
       return;
     }
 
@@ -165,7 +164,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     MapSqlParameterSource parameters =
         new MapSqlParameterSource()
             .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
-            .addValue("uids", trackedEntitiesUid);
+            .addValue("uids", trackedEntities.stream().map(UID::toString).toList());
 
     namedParameterJdbcTemplate.update(sql, parameters);
   }

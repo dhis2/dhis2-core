@@ -48,7 +48,7 @@ public class TrackerDataSynchronizationJob implements Job {
 
   @Override
   public JobType getJobType() {
-    return JobType.TRACKER_DATA_SYNC;
+    return JobType.TRACKED_ENTITY_DATA_SYNC;
   }
 
   @Override

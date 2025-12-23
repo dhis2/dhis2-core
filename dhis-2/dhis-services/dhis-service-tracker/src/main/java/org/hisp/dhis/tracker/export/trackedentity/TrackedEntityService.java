@@ -129,10 +129,9 @@ public interface TrackedEntityService {
   /**
    * Updates the last synchronization timestamp for the specified tracked entities.
    *
-   * @param trackedEntitiesUid list of tracked entity UIDs whose sync timestamp should be updated
+   * @param trackedEntities list of tracked entity UIDs whose sync timestamp should be updated
    * @param lastSynchronized the timestamp to set as the entities' last synchronization time
-   * @throws IllegalArgumentException if the UID list is empty or the timestamp is null
    */
   void updateTrackedEntitiesSyncTimestamp(
-      @Nonnull List<String> trackedEntitiesUid, @Nonnull Date lastSynchronized);
+      @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized);
 }

@@ -296,7 +296,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
             name = "SINGLE_EVENT_DATA_SYNC"),
         @JsonSubTypes.Type(
             value = TrackerDataSynchronizationJobParameters.class,
-            name = "TRACKER_DATA_SYNC"),
+            name = "TRACKED_ENTITY_DATA_SYNC"),
         @JsonSubTypes.Type(
             value = DisableInactiveUsersJobParameters.class,
             name = "DISABLE_INACTIVE_USERS"),
