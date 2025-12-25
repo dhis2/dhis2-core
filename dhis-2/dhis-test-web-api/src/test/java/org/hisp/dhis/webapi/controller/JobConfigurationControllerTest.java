@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -50,6 +51,7 @@ import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -215,42 +217,42 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
   void testSINGLE_EVENT_DATA_SYNC_Success() throws JsonProcessingException {
     createProgram(EVENT_PROGRAM_UID, ProgramType.WITHOUT_REGISTRATION);
 
-    // language=JSON
-    String json =
-        """
-        {
-          "name": "test",
-          "jobType": "SINGLE_EVENT_DATA_SYNC",
-          "jobParameters": {
-            "program": "%s",
-            "pageSize": 100
-          },
-          "cronExpression": "0 0 6 ? * *"
-        }"""
-            .formatted(EVENT_PROGRAM_UID);
+    Map<String, Object> jobParameters = new HashMap<>();
+    jobParameters.put("programs", List.of(EVENT_PROGRAM_UID));
+    jobParameters.put("pageSize", 100);
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("name", "test");
+    payload.put("jobType", "SINGLE_EVENT_DATA_SYNC");
+    payload.put("jobParameters", jobParameters);
+    payload.put("cronExpression", "0 0 6 ? * *");
+
+    String json = new ObjectMapper().writeValueAsString(payload);
 
     String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "SINGLE_EVENT_DATA_SYNC");
 
-    assertEquals(EVENT_PROGRAM_UID, parameters.getString("program").string());
+    assertEquals(
+        EVENT_PROGRAM_UID, parameters.getList("programs", JsonString.class).get(0).string());
     assertEquals(100, parameters.getNumber("pageSize").intValue());
   }
 
   @Test
   void testSINGLE_EVENT_DATA_SYNC_FailsWithTrackerProgram() throws JsonProcessingException {
     createProgram(TRACKER_PROGRAM_UID, ProgramType.WITH_REGISTRATION);
-    // language=JSON
-    String json =
-        """
-        {
-          "name": "test",
-          "jobType": "SINGLE_EVENT_DATA_SYNC",
-          "jobParameters": {
-            "program": "%s"
-          },
-          "cronExpression": "0 0 7 ? * *"
-        }"""
-            .formatted(TRACKER_PROGRAM_UID);
+
+    Map<String, Object> jobParameters = new HashMap<>();
+    jobParameters.put("programs", List.of(TRACKER_PROGRAM_UID));
+    jobParameters.put("pageSize", 100);
+
+    Map<String, Object> payload = new HashMap<>();
+    payload.put("name", "test");
+    payload.put("jobType", "SINGLE_EVENT_DATA_SYNC");
+    payload.put("jobParameters", jobParameters);
+    payload.put("cronExpression", "0 0 6 ? * *");
+
+    String json = new ObjectMapper().writeValueAsString(payload);
+
     JsonImportSummary response =
         POST("/jobConfigurations", json)
             .content(HttpStatus.CONFLICT)
@@ -272,7 +274,7 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
           "name": "test",
           "jobType": "SINGLE_EVENT_DATA_SYNC",
           "jobParameters": {
-            "program": "NON_EXISTENT_UID"
+            "programs": ["NON_EXISTENT_UID"]
           },
           "cronExpression": "0 0 8 ? * *"
         }""";
