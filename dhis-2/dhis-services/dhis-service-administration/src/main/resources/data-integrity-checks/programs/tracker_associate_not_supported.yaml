@@ -1,0 +1,102 @@
+# Copyright (c) 2004-2025, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: tracker_associate_not_supported
+description: TRACKER_ASSOCIATE value type is not supported
+section: Programs
+section_order: 5
+summary_sql: >-
+  WITH rs AS (
+    SELECT de.uid AS uid, de.name AS name
+    FROM dataelement de
+    WHERE valuetype = 'TRACKER_ASSOCIATE'
+    UNION
+    SELECT tea.uid AS uid, tea.name AS name
+    FROM trackedentityattribute tea
+    WHERE valuetype = 'TRACKER_ASSOCIATE'
+  ),
+  allvaluetypes AS (
+    SELECT uid
+    FROM dataelement
+    UNION
+    SELECT uid
+    FROM trackedentityattribute
+  )
+  SELECT COUNT(*) AS value,
+    100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM allvaluetypes), 0) AS percent
+  FROM rs;
+details_sql: >-
+  SELECT de.uid AS uid, de.name AS name, 'Data Element' AS comment
+  FROM dataelement de
+  WHERE valuetype = 'TRACKER_ASSOCIATE'
+  UNION
+  SELECT tea.uid AS uid, tea.name AS name, 'Tracked Entity Attribute' AS comment
+  FROM trackedentityattribute tea
+  WHERE valuetype = 'TRACKER_ASSOCIATE';
+severity: SEVERE
+introduction: >
+  The TRACKER_ASSOCIATE value type is no longer supported in DHIS2.
+  This check identifies data elements and tracked entity attributes that
+  still use this deprecated value type. Having elements with TRACKER_ASSOCIATE
+  value type will block the upgrade to version v43.
+details_id_type: dataElements
+recommendation: >-
+  You will need to either delete the data elements or tracked entity attributes
+  flagged by this check or change their value type to a supported type.
+
+  If you want to change the value type, you can do so through the DHIS2 UI
+  in the Maintenance app. Navigate to the data element or tracked entity attribute
+  and change its value type to a supported type such as TEXT, NUMBER, or another
+  appropriate value type based on your data requirements.
+
+  Alternatively, you can update the value type directly in the database.
+  To change a data element's value type, use:
+
+  UPDATE dataelement SET valuetype = '<new_value_type>'
+  WHERE uid = '<data_element_uid>';
+
+  To change a tracked entity attribute's value type, use:
+
+  UPDATE trackedentityattribute SET valuetype = '<new_value_type>'
+  WHERE uid = '<tracked_entity_attribute_uid>';
+
+  Be sure to replace `<new_value_type>` with an appropriate value type
+  (such as 'TEXT', 'NUMBER', etc.) and `<data_element_uid>` or
+  `<tracked_entity_attribute_uid>` with the UID of the element you want to update.
+
+  As always with direct database manipulation, ensure you have a backup
+  of your database before running these commands, ensure DHIS2 is not running,
+  and perform the change in a test environment first.
+
+  If the data element or tracked entity attribute is not needed, you can delete it
+  through the Maintenance app or via the API.
+
+  After making changes, restart DHIS2 and re-run this integrity check to ensure
+  the TRACKER_ASSOCIATE value types have been resolved.
+
+  If you are unsure how to proceed or encounter issues, please reach out
+  on the DHIS2 Community of Practice forum at https://community.dhis2.org.
