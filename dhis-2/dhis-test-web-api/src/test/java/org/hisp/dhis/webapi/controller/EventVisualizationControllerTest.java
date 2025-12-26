@@ -1085,4 +1085,38 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
     assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
   }
+
+  @Test
+  void testPostForEnrollmentOu() {
+    // Given
+    String enrollmentOuDimension = "enrollmentOu";
+    String enrollmentOuBody =
+        "{'dimension': '"
+            + enrollmentOuDimension
+            + "',"
+            + "'items': [{'id': 'USER_ORGUNIT'}],"
+            + "'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}}";
+
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': ["
+            + enrollmentOuBody
+            + "]}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response =
+        GET("/eventVisualizations/" + uid + "?fields=*,rows[:all,items[:all],program[id]]")
+            .content();
+
+    assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
+    assertThat(response.get("simpleDimensions").toString(), containsString("USER_ORGUNIT"));
+    assertThat(response.get("rows").toString(), containsString(enrollmentOuDimension));
+    assertThat(response.get("rows").toString(), containsString(mockProgram.getUid()));
+  }
 }
