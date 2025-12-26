@@ -32,8 +32,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static java.util.Map.entry;
 
 import java.util.Map;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.MetadataMapper;
@@ -62,7 +62,7 @@ interface TrackedEntityMapper {
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
-   * org.hisp.dhis.trackedentity.TrackedEntity}.
+   * org.hisp.dhis.tracker.model.TrackedEntity}.
    */
   Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(

@@ -39,11 +39,11 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

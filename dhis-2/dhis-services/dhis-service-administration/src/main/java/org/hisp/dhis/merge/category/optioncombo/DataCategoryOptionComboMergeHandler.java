@@ -60,10 +60,10 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.SingleEventStore;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.TrackerEventStore;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.SingleEventStore;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEventStore;
 import org.springframework.stereotype.Component;
 
 /**

@@ -98,7 +98,7 @@ class EnrollmentsExportController {
       PageParams pageParams =
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
-      org.hisp.dhis.tracker.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.model.Enrollment> enrollmentsPage =
           enrollmentService.findEnrollments(operationParams, pageParams);
 
       org.hisp.dhis.tracker.Page<Enrollment> page =
@@ -120,7 +120,8 @@ class EnrollmentsExportController {
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}")
   public FilteredEntity<Enrollment> getEnrollmentByUid(
-      @OpenApi.Param({UID.class, org.hisp.dhis.program.Enrollment.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.Enrollment.class}) @PathVariable
+          UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           Fields fields)
       throws NotFoundException {

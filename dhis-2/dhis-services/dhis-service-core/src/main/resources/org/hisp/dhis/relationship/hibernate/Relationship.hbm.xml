@@ -5,7 +5,7 @@
         [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
         >
 <hibernate-mapping>
-    <class name="org.hisp.dhis.relationship.Relationship" table="relationship">
+    <class name="org.hisp.dhis.tracker.model.Relationship" table="relationship">
 
         <cache usage="read-write"/>
 
@@ -23,14 +23,14 @@
                      foreign-key="fk_relationship_relationshiptypeid"
                      not-null="true"/>
 
-        <many-to-one name="from" class="org.hisp.dhis.relationship.RelationshipItem"
+        <many-to-one name="from" class="org.hisp.dhis.tracker.model.RelationshipItem"
                      column="from_relationshipitemid"
                      foreign-key="fk_relationship_from_relationshipitemid"
                      not-null="false"
                      unique="true"
                      cascade="all-delete-orphan"/>
 
-        <many-to-one name="to" class="org.hisp.dhis.relationship.RelationshipItem"
+        <many-to-one name="to" class="org.hisp.dhis.tracker.model.RelationshipItem"
                      column="to_relationshipitemid"
                      foreign-key="fk_relationship_to_relationshipitemid"
                      not-null="false"

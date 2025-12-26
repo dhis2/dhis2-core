@@ -27,43 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.model;
 
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.EmbeddedObject;
 
-@Component
-@RequiredArgsConstructor
-public class SingleEventDeletionHandler extends IdObjectDeletionHandler<SingleEvent> {
-  @Override
-  protected void registerHandler() {
-    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
-    whenVetoing(Program.class, this::allowDeleteProgram);
-    whenVetoing(DataElement.class, this::allowDeleteDataElement);
-  }
+/**
+ * @author Stian Sandvold
+ */
+@Setter
+@Getter
+@NoArgsConstructor
+public class RelationshipItem implements EmbeddedObject {
+  private int id;
 
-  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from singleevent where programstageid = :id limit 1",
-        Map.of("id", programStage.getId()));
-  }
+  private Relationship relationship;
 
-  private DeletionVeto allowDeleteProgram(Program program) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from singleevent ev join programstage ps on ps.programstageid=ev.programstageid where ps.programid = :id limit 1",
-        Map.of("id", program.getId()));
-  }
+  private TrackedEntity trackedEntity;
 
-  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from singleevent where eventdatavalues ?? :uid limit 1",
-        Map.of("uid", dataElement.getUid()));
-  }
+  private Enrollment enrollment;
+
+  private TrackerEvent trackerEvent;
+
+  private SingleEvent singleEvent;
 }

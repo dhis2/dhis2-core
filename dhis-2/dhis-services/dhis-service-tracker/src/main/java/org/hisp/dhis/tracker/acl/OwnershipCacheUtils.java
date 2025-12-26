@@ -30,7 +30,7 @@
 package org.hisp.dhis.tracker.acl;
 
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 class OwnershipCacheUtils {
 

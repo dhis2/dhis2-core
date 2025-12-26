@@ -41,7 +41,7 @@
 
     <component name="recipients" class="org.hisp.dhis.tracker.program.message.ProgramMessageRecipients">
 
-     <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+     <many-to-one name="trackedEntity" class="org.hisp.dhis.tracker.model.TrackedEntity"
       column="trackedEntityId" foreign-key="fk_programmessage_trackedentityinstanceid" not-null="false" />
 
      <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
@@ -59,13 +59,13 @@
 
     </component>
 
-    <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
+    <many-to-one name="enrollment" class="org.hisp.dhis.tracker.model.Enrollment"
                  column="enrollmentid" foreign-key="fk_programmessage_programinstanceid" not-null="false" />
 
-    <many-to-one name="trackerEvent" class="org.hisp.dhis.program.TrackerEvent"
+    <many-to-one name="trackerEvent" class="org.hisp.dhis.tracker.model.TrackerEvent"
                  column="trackereventid" foreign-key="fk_programmessage_trackereventid" not-null="false" />
 
-      <many-to-one name="singleEvent" class="org.hisp.dhis.program.SingleEvent"
+      <many-to-one name="singleEvent" class="org.hisp.dhis.tracker.model.SingleEvent"
                    column="singleeventid" foreign-key="fk_programmessage_singleeventid" not-null="false" />
 
   </class>

@@ -63,11 +63,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -276,13 +278,13 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    org.hisp.dhis.program.TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
+    TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
     eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
-    org.hisp.dhis.program.TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
+    TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
     eventB.setOccurredDate(occurredDate);
     manager.save(eventB);
-    Set<org.hisp.dhis.program.TrackerEvent> events = new HashSet<>();
+    Set<TrackerEvent> events = new HashSet<>();
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------
