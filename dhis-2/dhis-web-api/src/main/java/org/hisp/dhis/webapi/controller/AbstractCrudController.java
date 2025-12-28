@@ -141,6 +141,8 @@ public abstract class AbstractCrudController<
   @Qualifier("xmlMapper")
   protected ObjectMapper xmlMapper;
 
+  @Autowired protected ObjectMapper jsonMapper;
+
   @Autowired protected UserService userService;
 
   @Autowired protected SharingService sharingService;
