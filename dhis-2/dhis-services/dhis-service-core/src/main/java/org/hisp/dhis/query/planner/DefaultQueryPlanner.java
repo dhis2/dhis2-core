@@ -120,10 +120,17 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    return path != null
-        && path.isPersisted()
-        && !path.haveAlias()
-        && !Attribute.ObjectType.isValidType(path.getPath());
+    if (path == null || !path.isPersisted()) return false;
+    if (Attribute.ObjectType.isValidType(path.getPath())) return false;
+
+    // Allow aliased paths (e.g., "parent.id") when:
+    // 1. The final property is simple (not a collection)
+    // 2. The path represents a persisted relationship traversal
+    // JPA Criteria API can handle these via dot notation (root.get("parent.id"))
+    if (path.haveAlias()) {
+      return path.getProperty().isSimple();
+    }
+    return true;
   }
 
   private boolean isDisplayProperty(String propertyName) {

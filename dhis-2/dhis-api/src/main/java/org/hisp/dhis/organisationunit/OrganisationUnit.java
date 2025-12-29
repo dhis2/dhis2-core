@@ -154,7 +154,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   public OrganisationUnit() {
     // Must be set to get UID and have getPath work properly
-    setAutoFields();
+    //    setAutoFields();
   }
 
   public OrganisationUnit(String name) {
@@ -432,6 +432,12 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * Returns the list of ancestor organisation units for this organisation unit. Does not include
    * itself. The list is ordered by root first.
    *
+   * <p>This method is optimized to use the stored {@code path} when available, avoiding N+1 queries
+   * when serializing collections of organisation units. Since ancestors are serialized as {@link
+   * BaseIdentifiableObject} (only id/uid), we create lightweight stub objects from the path UIDs.
+   *
+   * <p>Falls back to parent chain traversal only when path is not available (new entities).
+   *
    * @throws IllegalStateException if circular parent relationships is detected.
    */
   @JsonProperty("ancestors")
@@ -439,6 +445,37 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   @JacksonXmlElementWrapper(localName = "ancestors", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
   public List<OrganisationUnit> getAncestors() {
+    // Optimization: Use stored path to avoid N+1 queries during serialization
+    // Path format: /rootUid/level2Uid/.../parentUid/thisUid
+    if (isNotEmpty(path)) {
+      return getAncestorsFromPath();
+    }
+    // Fallback: traverse parent chain for new/transient entities
+    return getAncestorsByTraversal();
+  }
+
+  /**
+   * Creates ancestor list from the stored path string. Since ancestors are serialized as {@link
+   * BaseIdentifiableObject}, we only need stub objects with UIDs set.
+   */
+  private List<OrganisationUnit> getAncestorsFromPath() {
+    List<OrganisationUnit> ancestors = new ArrayList<>();
+    // Path format: /uid1/uid2/uid3/thisUid - split and exclude empty first element and this unit
+    String[] pathParts = path.split(PATH_SEP);
+    // Skip index 0 (empty before first /) and last element (this unit's uid)
+    for (int i = 1; i < pathParts.length - 1; i++) {
+      OrganisationUnit ancestor = new OrganisationUnit();
+      ancestor.setUid(pathParts[i]);
+      ancestors.add(ancestor);
+    }
+    return ancestors;
+  }
+
+  /**
+   * Traverses parent chain to build ancestor list. Used for new/transient entities where path is
+   * not yet available.
+   */
+  private List<OrganisationUnit> getAncestorsByTraversal() {
     List<OrganisationUnit> units = new ArrayList<>();
     Set<OrganisationUnit> visitedUnits = new HashSet<>();
 
@@ -762,15 +799,36 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Note that the {@code path} property is mapped with the "property access" mode. This method will
-   * calculate and return the path property value based on the org unit ancestors. To access the
-   * {@code path} property directly, use {@link OrganisationUnit#getStoredPath}.
+   * Returns the path for this organisation unit. The path is a string of UIDs separated by "/" from
+   * the root to this unit.
+   *
+   * <p>If the path has been persisted (loaded from database), the stored value is returned directly
+   * to avoid N+1 queries when serializing collections of organisation units. For new/transient
+   * entities where the path is not yet set, it is calculated by traversing the parent chain.
+   *
+   * <p>Note: The {@code path} property is mapped with Hibernate "property access" mode.
    *
    * @return the path.
    */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
+    // Return stored path if available (avoids N+1 queries during serialization)
+    if (isNotEmpty(path)) {
+      return path;
+    }
+    // Calculate path for new/transient entities
+    return calculatePath();
+  }
+
+  /**
+   * Calculates the path by traversing the parent chain. This method always traverses ancestors and
+   * should only be used when the path needs to be recalculated (e.g., for new entities or after
+   * parent changes).
+   *
+   * @return the calculated path.
+   */
+  private String calculatePath() {
     List<String> pathList = new ArrayList<>();
     Set<String> visitedSet = new HashSet<>();
     OrganisationUnit unit = parent;
@@ -793,17 +851,15 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Note that the {@code path} property is mapped with the "property access" mode. This method will
-   * return the persisted {@code path} property value directly. If the path is not defined,
-   * typically as part of an integration test where the state is not yet flushed to the database,
-   * the calculated path based on the org unit ancestors is returned. To get the calculated path
-   * value explicitly, use {@link OrganisationUnit#getPath}.
+   * Returns the persisted path value directly, or calculates it if not yet persisted.
+   *
+   * <p>This method is equivalent to {@link #getPath()} and exists for backward compatibility.
    *
    * @return the path.
    */
   @JsonIgnore
   public String getStoredPath() {
-    return isNotEmpty(path) ? path : getPath();
+    return getPath();
   }
 
   /**
@@ -815,11 +871,13 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   /**
-   * Note that the {@code path} property is mapped with the "property access" mode. This method is
-   * for unit testing purposes only.
+   * Recalculates and updates the path by traversing the parent chain. Use this method when the
+   * parent has changed and the path needs to be refreshed.
+   *
+   * <p>Note: The {@code path} property is mapped with Hibernate "property access" mode.
    */
   public void updatePath() {
-    setPath(getPath());
+    setPath(calculatePath());
   }
 
   /**

@@ -50,10 +50,11 @@ public class NotEmptyOperator<T extends Comparable<T>> extends Operator<T> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
-    if (path.getProperty().isRelation()) return builder.isNotEmpty(root.get(path.getPath()));
+    if (path.getProperty().isRelation()) return builder.isNotEmpty(getPropertyPath(root, path));
     // JSONB column backed collections
-    Path<Object> p = root.get(path.getPath());
+    Path<Object> p = (Path<Object>) getPropertyPath(root, path);
     Expression<String> pathAsText = p.as(String.class);
     return builder.and(
         builder.isNotNull(p),

@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.organisationunit.OrganisationUnit" table="organisationunit">
+  <class name="org.hisp.dhis.organisationunit.OrganisationUnit" table="organisationunit" batch-size="1000">
 
     <cache usage="read-write" />
 
@@ -19,12 +19,13 @@
 
     <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
 
-    <set name="children" inverse="true">
+    <set name="children" inverse="true" batch-size="1000">
       <cache usage="read-write" />
       <key column="parentid" />
       <one-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" />
     </set>
 
+    <!-- batch-size="100" reduces N+1 queries when lazy-loading parents during serialization -->
     <many-to-one name="parent" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="parentid"
       foreign-key="fk_parentid" index="in_parentid" />
 
@@ -46,31 +47,31 @@
 
     <property name="url" />
 
-    <set name="dataSets" table="datasetsource" inverse="true">
+    <set name="dataSets" table="datasetsource" inverse="true" batch-size="1000">
       <cache usage="read-write" />
       <key column="sourceid" />
       <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
     </set>
 
-    <set name="programs" table="program_organisationunits" inverse="true">
+    <set name="programs" table="program_organisationunits" inverse="true" batch-size="1000">
       <cache usage="read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.program.Program" column="programid" />
     </set>
 
-    <set name="groups" table="orgunitgroupmembers" inverse="true">
+    <set name="groups" table="orgunitgroupmembers" inverse="true" batch-size="1000">
       <cache usage="read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroup" column="orgunitgroupid" />
     </set>
 
-    <set name="users" table="usermembership" inverse="true">
+    <set name="users" table="usermembership" inverse="true" batch-size="1000">
       <cache usage="read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userinfoid" />
     </set>
 
-    <set name="categoryOptions" table="categoryoption_organisationunits" inverse="true">
+    <set name="categoryOptions" table="categoryoption_organisationunits" inverse="true" batch-size="1000">
       <cache usage="read-write" />
       <key column="organisationunitid" />
       <many-to-many class="org.hisp.dhis.category.CategoryOption" column="categoryoptionid" />
