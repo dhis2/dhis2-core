@@ -125,12 +125,32 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     // Allow aliased paths (e.g., "parent.id") when:
     // 1. The final property is simple (not a collection)
-    // 2. The path represents a persisted relationship traversal
-    // JPA Criteria API can handle these via dot notation (root.get("parent.id"))
+    // 2. The path does NOT go through a collection (collections require JOINs)
+    // JPA Criteria API can handle simple many-to-one traversals via chained get() calls
     if (path.haveAlias()) {
+      // Check if the path goes through a collection - if so, use in-memory filtering
+      if (pathGoesThroughCollection(query.getObjectType(), path.getAlias())) {
+        return false;
+      }
       return path.getProperty().isSimple();
     }
     return true;
+  }
+
+  /**
+   * Checks if any property in the alias path is a collection. Collection paths require JOINs in JPA
+   * which our simple get() chaining doesn't support.
+   */
+  private boolean pathGoesThroughCollection(Class<?> klass, String[] aliases) {
+    Schema schema = schemaService.getDynamicSchema(klass);
+    for (String alias : aliases) {
+      var property = schema.getProperty(alias);
+      if (property == null) return true; // Unknown property, fall back to in-memory
+      if (property.isCollection()) return true;
+      // Navigate to next schema for non-collection relationships
+      schema = schemaService.getDynamicSchema(property.getKlass());
+    }
+    return false;
   }
 
   private boolean isDisplayProperty(String propertyName) {
