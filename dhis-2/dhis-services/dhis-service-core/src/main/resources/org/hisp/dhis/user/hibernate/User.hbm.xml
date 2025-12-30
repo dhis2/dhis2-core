@@ -81,22 +81,21 @@
       <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />
     </set>
 
-    <!-- batch-size="1000" reduces N+1 queries when user has many org units assigned -->
-    <set name="organisationUnits" table="usermembership" batch-size="1000">
+    <set name="organisationUnits" table="usermembership">
       <cache usage="read-write" />
       <key column="userinfoid" foreign-key="fk_usermembership_userinfoid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_userinfo_organisationunitid" />
     </set>
 
-    <set name="dataViewOrganisationUnits" table="userdatavieworgunits" batch-size="1000">
+    <set name="dataViewOrganisationUnits" table="userdatavieworgunits">
       <cache usage="read-write" />
       <key column="userinfoid" foreign-key="fk_userdatavieworgunits_userinfoid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
         foreign-key="fk_userdatavieworgunits_organisationunitid" />
     </set>
 
-    <set name="teiSearchOrganisationUnits" table="userteisearchorgunits" batch-size="1000">
+    <set name="teiSearchOrganisationUnits" table="userteisearchorgunits">
       <cache usage="read-write" />
       <key column="userinfoid" foreign-key="fk_userteisearchorgunits_userinfoid" />
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
