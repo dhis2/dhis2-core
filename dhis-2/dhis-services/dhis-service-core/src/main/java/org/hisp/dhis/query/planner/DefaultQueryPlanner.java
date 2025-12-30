@@ -125,11 +125,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     // Allow aliased paths (e.g., "parent.id") when:
     // 1. The final property is simple (not a collection)
-    // 2. The path does NOT go through a collection (collections require JOINs)
+    // 2. The path does NOT go through a collection or embedded object
     // JPA Criteria API can handle simple many-to-one traversals via chained get() calls
     if (path.haveAlias()) {
-      // Check if the path goes through a collection - if so, use in-memory filtering
-      if (pathGoesThroughCollection(query.getObjectType(), path.getAlias())) {
+      // Check if the path goes through a collection or embedded object - if so, use in-memory
+      if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
         return false;
       }
       return path.getProperty().isSimple();
@@ -138,15 +138,21 @@ public class DefaultQueryPlanner implements QueryPlanner {
   }
 
   /**
-   * Checks if any property in the alias path is a collection. Collection paths require JOINs in JPA
-   * which our simple get() chaining doesn't support.
+   * Checks if any property in the alias path requires in-memory filtering. This includes:
+   *
+   * <ul>
+   *   <li>Collection paths - require JOINs which our simple get() chaining doesn't support
+   *   <li>Embedded object paths - JPA navigation through embedded objects followed by relationships
+   *       can be problematic
+   * </ul>
    */
-  private boolean pathGoesThroughCollection(Class<?> klass, String[] aliases) {
+  private boolean pathRequiresInMemoryFiltering(Class<?> klass, String[] aliases) {
     Schema schema = schemaService.getDynamicSchema(klass);
     for (String alias : aliases) {
       var property = schema.getProperty(alias);
       if (property == null) return true; // Unknown property, fall back to in-memory
       if (property.isCollection()) return true;
+      if (property.isEmbeddedObject()) return true;
       // Navigate to next schema for non-collection relationships
       schema = schemaService.getDynamicSchema(property.getKlass());
     }
