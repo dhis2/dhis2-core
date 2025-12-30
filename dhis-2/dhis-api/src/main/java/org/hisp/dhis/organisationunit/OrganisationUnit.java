@@ -427,77 +427,40 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
     return builder.toString();
   }
-//
-//  /**
-//   * Returns the list of ancestor organisation units for this organisation unit. Does not include
-//   * itself. The list is ordered by root first.
-//   *
-//   * <p>This method is optimized to use the stored {@code path} when available, avoiding N+1 queries
-//   * when serializing collections of organisation units. Since ancestors are serialized as {@link
-//   * BaseIdentifiableObject} (only id/uid), we create lightweight stub objects from the path UIDs.
-//   *
-//   * <p>Falls back to parent chain traversal only when path is not available (new entities).
-//   *
-//   * @throws IllegalStateException if circular parent relationships is detected.
-//   */
-//  @JsonProperty("ancestors")
-//  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-//  @JacksonXmlElementWrapper(localName = "ancestors", namespace = DxfNamespaces.DXF_2_0)
-//  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
-//  public List<OrganisationUnit> getAncestors() {
-//    // Optimization: Use stored path to avoid N+1 queries during serialization
-//    // Path format: /rootUid/level2Uid/.../parentUid/thisUid
-//    if (isNotEmpty(path)) {
-//      return getAncestorsFromPath();
-//    }
-//    // Fallback: traverse parent chain for new/transient entities
-//    return getAncestorsByTraversal();
-//  }
-//
-//  /**
-//   * Creates ancestor list from the stored path string. Since ancestors are serialized as {@link
-//   * BaseIdentifiableObject}, we only need stub objects with UIDs set.
-//   */
-//  private List<OrganisationUnit> getAncestorsFromPath() {
-//    List<OrganisationUnit> ancestors = new ArrayList<>();
-//    // Path format: /uid1/uid2/uid3/thisUid - split and exclude empty first element and this unit
-//    String[] pathParts = path.split(PATH_SEP);
-//    // Skip index 0 (empty before first /) and last element (this unit's uid)
-//    for (int i = 1; i < pathParts.length - 1; i++) {
-//      OrganisationUnit ancestor = new OrganisationUnit();
-//      ancestor.setUid(pathParts[i]);
-//      ancestors.add(ancestor);
-//    }
-//    return ancestors;
-//  }
-//
-//  /**
-//   * Traverses parent chain to build ancestor list. Used for new/transient entities where path is
-//   * not yet available.
-//   */
-//  private List<OrganisationUnit> getAncestorsByTraversal() {
-//    List<OrganisationUnit> units = new ArrayList<>();
-//    Set<OrganisationUnit> visitedUnits = new HashSet<>();
-//
-//    OrganisationUnit unit = parent;
-//
-//    while (unit != null) {
-//      if (!visitedUnits.add(unit)) {
-//        throw new IllegalStateException(
-//            "Organisation unit '"
-//                + this.toString()
-//                + "' has circular parent relationships: '"
-//                + unit
-//                + "'");
-//      }
-//
-//      units.add(unit);
-//      unit = unit.getParent();
-//    }
-//
-//    Collections.reverse(units);
-//    return units;
-//  }
+
+  /**
+   * Returns the list of ancestor organisation units for this organisation unit. Does not include
+   * itself. The list is ordered by root first.
+   *
+   * @throws IllegalStateException if circular parent relationships is detected.
+   */
+  @JsonProperty("ancestors")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "ancestors", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
+  public List<OrganisationUnit> getAncestors() {
+    List<OrganisationUnit> units = new ArrayList<>();
+    Set<OrganisationUnit> visitedUnits = new HashSet<>();
+
+    OrganisationUnit unit = parent;
+
+    while (unit != null) {
+      if (!visitedUnits.add(unit)) {
+        throw new IllegalStateException(
+            "Organisation unit '"
+                + this.toString()
+                + "' has circular parent relationships: '"
+                + unit
+                + "'");
+      }
+
+      units.add(unit);
+      unit = unit.getParent();
+    }
+
+    Collections.reverse(units);
+    return units;
+  }
 
   /**
    * Returns the list of ancestor organisation units up to any of the given roots for this
@@ -798,122 +761,13 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.children = children;
   }
 
-
-//  --------------------------------------
-//
-//  /**
-//   * Returns the path for this organisation unit. The path is a string of UIDs separated by "/" from
-//   * the root to this unit.
-//   *
-//   * <p>If the path has been persisted (loaded from database), the stored value is returned directly
-//   * to avoid N+1 queries when serializing collections of organisation units. For new/transient
-//   * entities where the path is not yet set, it is calculated by traversing the parent chain.
-//   *
-//   * <p>Note: The {@code path} property is mapped with Hibernate "property access" mode.
-//   *
-//   * @return the path.
-//   */
-//  @JsonProperty
-//  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-//  public String getPath() {
-//    // Return stored path if available (avoids N+1 queries during serialization)
-//    if (isNotEmpty(path)) {
-//      return path;
-//    }
-//    // Calculate path for new/transient entities
-//    return calculatePath();
-//  }
-//
-//  /**
-//   * Calculates the path by traversing the parent chain. This method always traverses ancestors and
-//   * should only be used when the path needs to be recalculated (e.g., for new entities or after
-//   * parent changes).
-//   *
-//   * @return the calculated path.
-//   */
-//  private String calculatePath() {
-//    List<String> pathList = new ArrayList<>();
-//    Set<String> visitedSet = new HashSet<>();
-//    OrganisationUnit unit = parent;
-//
-//    pathList.add(uid);
-//
-//    while (unit != null) {
-//      if (!visitedSet.contains(unit.getUid())) {
-//        pathList.add(unit.getUid());
-//        visitedSet.add(unit.getUid());
-//        unit = unit.getParent();
-//      } else {
-//        unit = null; // Protect against cyclic org unit graphs
-//      }
-//    }
-//
-//    Collections.reverse(pathList);
-//
-//    return PATH_SEP + StringUtils.join(pathList, PATH_SEP);
-//  }
-//
-//  /**
-//   * Returns the persisted path value directly, or calculates it if not yet persisted.
-//   *
-//   * <p>This method is equivalent to {@link #getPath()} and exists for backward compatibility.
-//   *
-//   * @return the path.
-//   */
-//  @JsonIgnore
-//  public String getStoredPath() {
-//    return getPath();
-//  }
-//
-//  /**
-//   * Note that the {@code path} property is mapped with the "property access" mode. Do not set
-//   * directly, this property is managed by the persistence layer.
-//   */
-//  public void setPath(String path) {
-//    this.path = path;
-//  }
-//
-//  /**
-//   * Recalculates and updates the path by traversing the parent chain. Use this method when the
-//   * parent has changed and the path needs to be refreshed.
-//   *
-//   * <p>Note: The {@code path} property is mapped with Hibernate "property access" mode.
-//   */
-//  public void updatePath() {
-//    setPath(calculatePath());
-//  }
-
-//--------------------------------------
-
-
-  @JsonProperty("ancestors")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "ancestors", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
-  public List<OrganisationUnit> getAncestors() {
-    List<OrganisationUnit> units = new ArrayList<>();
-    Set<OrganisationUnit> visitedUnits = new HashSet<>();
-
-    OrganisationUnit unit = parent;
-
-    while (unit != null) {
-      if (!visitedUnits.add(unit)) {
-        throw new IllegalStateException(
-            "Organisation unit '"
-                + this.toString()
-                + "' has circular parent relationships: '"
-                + unit
-                + "'");
-      }
-
-      units.add(unit);
-      unit = unit.getParent();
-    }
-
-    Collections.reverse(units);
-    return units;
-  }
-
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. This method will
+   * calculate and return the path property value based on the org unit ancestors. To access the
+   * {@code path} property directly, use {@link OrganisationUnit#getStoredPath}.
+   *
+   * @return the path.
+   */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getPath() {
@@ -938,22 +792,35 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return PATH_SEP + StringUtils.join(pathList, PATH_SEP);
   }
 
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. This method will
+   * return the persisted {@code path} property value directly. If the path is not defined,
+   * typically as part of an integration test where the state is not yet flushed to the database,
+   * the calculated path based on the org unit ancestors is returned. To get the calculated path
+   * value explicitly, use {@link OrganisationUnit#getPath}.
+   *
+   * @return the path.
+   */
   @JsonIgnore
   public String getStoredPath() {
     return isNotEmpty(path) ? path : getPath();
   }
-  //--------------------------------------
 
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. Do not set
+   * directly, this property is managed by the persistence layer.
+   */
   public void setPath(String path) {
     this.path = path;
   }
 
-
+  /**
+   * Note that the {@code path} property is mapped with the "property access" mode. This method is
+   * for unit testing purposes only.
+   */
   public void updatePath() {
     setPath(getPath());
   }
-
-
 
   /**
    * Used by persistence layer. Purpose is to have a column for use in database queries. For
