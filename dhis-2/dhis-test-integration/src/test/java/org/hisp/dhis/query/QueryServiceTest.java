@@ -47,7 +47,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.MatchMode;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -595,6 +600,71 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     query.add(Filters.eq("dataElements.id", "does-not-exist"));
     List<DataElementGroup> objects = queryService.query(query);
     assertEquals(1, objects.size());
+  }
+
+  /**
+   * Tests filtering on embedded object paths like fromConstraint.trackedEntityType.id. These paths
+   * should use in-memory filtering since JPA navigation through embedded objects followed by
+   * relationships requires special handling.
+   */
+  @Test
+  void testFilterOnEmbeddedObjectPath() {
+    // Create TrackedEntityTypes
+    TrackedEntityType tetA = createTrackedEntityType('X');
+    TrackedEntityType tetB = createTrackedEntityType('Y');
+    identifiableObjectManager.save(tetA);
+    identifiableObjectManager.save(tetB);
+
+    // Create RelationshipType A with fromConstraint pointing to tetA
+    RelationshipType relTypeA = new RelationshipType();
+    relTypeA.setAutoFields();
+    relTypeA.setName("RelTypeA");
+    relTypeA.setFromToName("from_A");
+    relTypeA.setToFromName("to_A");
+    RelationshipConstraint fromConstraintA = new RelationshipConstraint();
+    fromConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    fromConstraintA.setTrackedEntityType(tetA);
+    fromConstraintA.setTrackerDataView(TrackerDataView.builder().build());
+    RelationshipConstraint toConstraintA = new RelationshipConstraint();
+    toConstraintA.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    toConstraintA.setTrackerDataView(TrackerDataView.builder().build());
+    relTypeA.setFromConstraint(fromConstraintA);
+    relTypeA.setToConstraint(toConstraintA);
+    identifiableObjectManager.save(relTypeA);
+
+    // Create RelationshipType B with fromConstraint pointing to tetB
+    RelationshipType relTypeB = new RelationshipType();
+    relTypeB.setAutoFields();
+    relTypeB.setName("RelTypeB");
+    relTypeB.setFromToName("from_B");
+    relTypeB.setToFromName("to_B");
+    RelationshipConstraint fromConstraintB = new RelationshipConstraint();
+    fromConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    fromConstraintB.setTrackedEntityType(tetB);
+    fromConstraintB.setTrackerDataView(TrackerDataView.builder().build());
+    RelationshipConstraint toConstraintB = new RelationshipConstraint();
+    toConstraintB.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    toConstraintB.setTrackerDataView(TrackerDataView.builder().build());
+    relTypeB.setFromConstraint(fromConstraintB);
+    relTypeB.setToConstraint(toConstraintB);
+    identifiableObjectManager.save(relTypeB);
+
+    // Query filtering by embedded object path: fromConstraint.trackedEntityType.id
+    Query<RelationshipType> query = Query.of(RelationshipType.class);
+    query.add(Filters.eq("fromConstraint.trackedEntityType.id", tetA.getUid()));
+    List<RelationshipType> results = queryService.query(query);
+
+    // Should find only relTypeA
+    assertEquals(1, results.size());
+    assertEquals(relTypeA.getUid(), results.get(0).getUid());
+
+    // Also test filtering by embedded object's simple property: fromConstraint.relationshipEntity
+    Query<RelationshipType> query2 = Query.of(RelationshipType.class);
+    query2.add(Filters.eq("fromConstraint.relationshipEntity", "TRACKED_ENTITY_INSTANCE"));
+    List<RelationshipType> results2 = queryService.query(query2);
+
+    // Should find both relationship types
+    assertEquals(2, results2.size());
   }
 
   @Test
