@@ -146,6 +146,7 @@ public class MeController {
   @Nonnull private final DataApprovalLevelService approvalLevelService;
   @Nonnull private final FileResourceService fileResourceService;
   @Nonnull private ApiTokenService apiTokenService;
+
   @Value("${dhis.cache.me.max-age:3600}")
   private long cacheMaxAgeSeconds;
 
