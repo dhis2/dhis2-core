@@ -59,7 +59,7 @@ public class NotTokenOperator<T extends Comparable<T>> extends Operator<T> {
         builder.function(
             JsonbFunctions.REGEXP_SEARCH,
             Boolean.class,
-            root.get(path.getPath()),
+            getPropertyPath(root, path),
             builder.literal(TokenUtils.createRegex(value).toString())),
         false);
   }

@@ -62,10 +62,10 @@ public class GreaterEqualOperator<T extends Comparable<T>> extends Operator<T> {
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return builder.greaterThanOrEqualTo(builder.size(root.get(path.getPath())), value);
+      return builder.greaterThanOrEqualTo(builder.size(getPropertyPath(root, path)), value);
     }
 
-    return builder.greaterThanOrEqualTo(root.get(path.getPath()), args.get(0));
+    return builder.greaterThanOrEqualTo(getPropertyPath(root, path), args.get(0));
   }
 
   @Override

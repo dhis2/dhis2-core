@@ -30,6 +30,7 @@
 package org.hisp.dhis.query.operators;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
@@ -129,6 +130,32 @@ public abstract class Operator<T extends Comparable<T>> {
       CriteriaBuilder builder, Root<Y> root, PropertyPath path);
 
   public abstract boolean test(Object value);
+
+  /**
+   * Navigates through the property path to get the JPA Path expression. Handles nested paths like
+   * "parent.uid" by chaining get() calls: root.get("parent").get("uid").
+   *
+   * @param root the JPA root
+   * @param propertyPath the property path containing aliases and final property
+   * @return the JPA Path expression for the property
+   */
+  @SuppressWarnings("rawtypes")
+  protected <Y> Path getPropertyPath(Root<Y> root, PropertyPath propertyPath) {
+    String[] aliases = propertyPath.getAlias();
+    Path<?> path = root;
+
+    // Navigate through aliases (e.g., "parent" in "parent.uid")
+    for (String alias : aliases) {
+      path = path.get(alias);
+    }
+
+    // Get the final property (e.g., "uid")
+    String fieldName = propertyPath.getProperty().getFieldName();
+    if (fieldName == null) {
+      fieldName = propertyPath.getProperty().getName();
+    }
+    return path.get(fieldName);
+  }
 
   org.hibernate.criterion.MatchMode getMatchMode(MatchMode matchMode) {
     return switch (matchMode) {

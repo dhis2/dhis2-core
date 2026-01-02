@@ -56,11 +56,11 @@ public class InOperator<T extends Comparable<T>> extends Operator<T> {
     Property property = path.getProperty();
 
     if (property.isCollection()) {
-      return root.get(path.getPath())
+      return getPropertyPath(root, path)
           .in(getValue(Collection.class, path.getProperty().getItemKlass(), getArgs()));
     }
 
-    return root.get(path.getPath()).in(getArgs());
+    return getPropertyPath(root, path).in(getArgs());
   }
 
   @Override

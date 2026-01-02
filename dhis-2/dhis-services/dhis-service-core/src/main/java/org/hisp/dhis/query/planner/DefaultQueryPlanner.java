@@ -120,10 +120,43 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    return path != null
-        && path.isPersisted()
-        && !path.haveAlias()
-        && !Attribute.ObjectType.isValidType(path.getPath());
+    if (path == null || !path.isPersisted()) return false;
+    if (Attribute.ObjectType.isValidType(path.getPath())) return false;
+
+    // Allow aliased paths (e.g., "parent.id") when:
+    // 1. The final property is simple (not a collection)
+    // 2. The path does NOT go through a collection or embedded object
+    // JPA Criteria API can handle simple many-to-one traversals via chained get() calls
+    if (path.haveAlias()) {
+      // Check if the path goes through a collection or embedded object - if so, use in-memory
+      if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
+        return false;
+      }
+      return path.getProperty().isSimple();
+    }
+    return true;
+  }
+
+  /**
+   * Checks if any property in the alias path requires in-memory filtering. This includes:
+   *
+   * <ul>
+   *   <li>Collection paths - require JOINs which our simple get() chaining doesn't support
+   *   <li>Embedded object paths - JPA navigation through embedded objects followed by relationships
+   *       can be problematic
+   * </ul>
+   */
+  private boolean pathRequiresInMemoryFiltering(Class<?> klass, String[] aliases) {
+    Schema schema = schemaService.getDynamicSchema(klass);
+    for (String alias : aliases) {
+      var property = schema.getProperty(alias);
+      if (property == null) return true; // Unknown property, fall back to in-memory
+      if (property.isCollection()) return true;
+      if (property.isEmbeddedObject()) return true;
+      // Navigate to next schema for non-collection relationships
+      schema = schemaService.getDynamicSchema(property.getKlass());
+    }
+    return false;
   }
 
   private boolean isDisplayProperty(String propertyName) {
