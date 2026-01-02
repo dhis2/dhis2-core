@@ -82,6 +82,7 @@ import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -111,6 +112,9 @@ public class OrganisationUnitController
   @Autowired private VersionService versionService;
   @Autowired private OrgUnitSplitService orgUnitSplitService;
   @Autowired private OrgUnitMergeService orgUnitMergeService;
+
+  @Value("${dhis.cache.organisationunit.max-age:3600}")
+  private long cacheMaxAgeSeconds;
 
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_SPLIT)
@@ -345,19 +349,24 @@ public class OrganisationUnitController
   }
 
   @Override
-  protected boolean shouldCachePrivate(HttpServletRequest request) {
-    if (request == null) {
-      return true;
+  protected void applyCacheHeaders(HttpServletRequest request, HttpServletResponse response) {
+    if (request != null && "GET".equalsIgnoreCase(request.getMethod())) {
+      String path = request.getRequestURI();
+      String contextPath = request.getContextPath();
+      if (!contextPath.isEmpty() && path.startsWith(contextPath)) {
+        path = path.substring(contextPath.length());
+      }
+      if (ORG_UNIT_SINGLE_PATH.matcher(path).matches()) {
+        response.setHeader(
+            "Cache-Control",
+            "public, max-age=" + cacheMaxAgeSeconds + ", s-maxage=" + cacheMaxAgeSeconds);
+        response.setHeader("Vary", "Accept-Encoding");
+        response.setDateHeader(
+            "Expires", System.currentTimeMillis() + (cacheMaxAgeSeconds * 1000L));
+        return;
+      }
     }
-    if (!"GET".equalsIgnoreCase(request.getMethod())) {
-      return true;
-    }
-    String path = request.getRequestURI();
-    String contextPath = request.getContextPath();
-    if (!contextPath.isEmpty() && path.startsWith(contextPath)) {
-      path = path.substring(contextPath.length());
-    }
-    return !ORG_UNIT_SINGLE_PATH.matcher(path).matches();
+    super.applyCacheHeaders(request, response);
   }
 
   @Override

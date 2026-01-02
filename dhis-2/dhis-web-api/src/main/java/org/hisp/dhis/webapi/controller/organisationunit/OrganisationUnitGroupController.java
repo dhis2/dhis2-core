@@ -29,10 +29,14 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.regex.Pattern;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -43,4 +47,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/organisationUnitGroups")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class OrganisationUnitGroupController
-    extends AbstractCrudController<OrganisationUnitGroup, GetObjectListParams> {}
+    extends AbstractCrudController<OrganisationUnitGroup, GetObjectListParams> {
+
+  private static final Pattern ORG_UNIT_GROUP_SINGLE_PATH =
+      Pattern.compile("^/api(?:/\\d+)?/organisationUnitGroups/[^/]+(?:\\.[^/]+)?$");
+
+  @Value("${dhis.cache.organisationunitgroup.max-age:3600}")
+  private long cacheMaxAgeSeconds;
+
+  @Override
+  protected void applyCacheHeaders(HttpServletRequest request, HttpServletResponse response) {
+    if (request != null && "GET".equalsIgnoreCase(request.getMethod())) {
+      String path = request.getRequestURI();
+      String contextPath = request.getContextPath();
+      if (!contextPath.isEmpty() && path.startsWith(contextPath)) {
+        path = path.substring(contextPath.length());
+      }
+      if (ORG_UNIT_GROUP_SINGLE_PATH.matcher(path).matches()) {
+        response.setHeader(
+            "Cache-Control",
+            "public, max-age=" + cacheMaxAgeSeconds + ", s-maxage=" + cacheMaxAgeSeconds);
+        response.setHeader("Vary", "Accept-Encoding");
+        response.setDateHeader(
+            "Expires", System.currentTimeMillis() + (cacheMaxAgeSeconds * 1000L));
+        return;
+      }
+    }
+    super.applyCacheHeaders(request, response);
+  }
+}

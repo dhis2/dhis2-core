@@ -92,12 +92,12 @@ import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
  * Base controller for APIs that only want to offer read only access through both Gist API and full
@@ -219,7 +219,7 @@ public abstract class AbstractFullReadOnlyController<
       linkService.generatePagerLinks(pager, getEntityClass());
     }
 
-    cachePrivate(response);
+    applyCacheHeaders(response);
     return ResponseEntity.ok(
         new StreamingJsonRoot<>(
             pager,
@@ -408,7 +408,7 @@ public abstract class AbstractFullReadOnlyController<
           "You don't have the proper permissions to read objects of this type.");
     }
 
-    cachePrivate(response);
+    applyCacheHeaders(response);
 
     T entity = getEntity(pvUid);
 
@@ -451,7 +451,7 @@ public abstract class AbstractFullReadOnlyController<
 
     String fieldFilter = "[" + Joiner.on(',').join(fields) + "]";
 
-    cachePrivate(response);
+    applyCacheHeaders(response);
 
     GetObjectParams params = new GetObjectParams();
     params.addField(pvProperty + fieldFilter);
@@ -520,20 +520,18 @@ public abstract class AbstractFullReadOnlyController<
     }
   }
 
-  private void cachePrivate(HttpServletResponse response) {
+  private void applyCacheHeaders(HttpServletResponse response) {
     HttpServletRequest request = null;
-    if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+    if (RequestContextHolder.getRequestAttributes()
+        instanceof ServletRequestAttributes attributes) {
       request = attributes.getRequest();
     }
-    if (!shouldCachePrivate(request)) {
-      return;
-    }
-    response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
+    applyCacheHeaders(request, response);
   }
 
-  protected boolean shouldCachePrivate(HttpServletRequest request) {
-    return true;
+  protected void applyCacheHeaders(HttpServletRequest request, HttpServletResponse response) {
+    response.setHeader(
+        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
   private boolean hasHref(List<String> fields) {

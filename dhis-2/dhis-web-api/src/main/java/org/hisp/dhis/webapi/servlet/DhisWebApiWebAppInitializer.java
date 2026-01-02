@@ -174,13 +174,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    //API specific filters and interceptors
-    context
-        .addFilter(
-            "organisationUnitCacheFilter",
-            new DelegatingFilterProxy("organisationUnitCacheFilter"))
-        .addMappingForUrlPatterns(null, true, "/api/*");
-
     String profile = System.getProperty("spring.profiles.active");
     if (profile == null || !profile.equals("embeddedJetty")) {
       RequestContextListener requestContextListener = new RequestContextListener();
