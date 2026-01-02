@@ -64,9 +64,7 @@ public class OrganisationUnitGroupController
         path = path.substring(contextPath.length());
       }
       if (ORG_UNIT_GROUP_SINGLE_PATH.matcher(path).matches()) {
-        response.setHeader(
-            "Cache-Control",
-            "public, max-age=" + cacheMaxAgeSeconds + ", s-maxage=" + cacheMaxAgeSeconds);
+        response.setHeader("Cache-Control", "private, max-age=" + cacheMaxAgeSeconds);
         response.setHeader("Vary", "Accept-Encoding");
         response.setDateHeader(
             "Expires", System.currentTimeMillis() + (cacheMaxAgeSeconds * 1000L));
