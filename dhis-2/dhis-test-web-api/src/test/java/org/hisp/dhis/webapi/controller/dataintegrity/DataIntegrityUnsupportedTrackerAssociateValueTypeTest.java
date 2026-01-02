@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityUnsupportedTrackerAssociateValueTypeTest
     extends AbstractDataIntegrityIntegrationTest {
 
-  private static final String CHECK = "tracker_associate_not_supported";
+  private static final String CHECK = "tracker_associate_is_deprecated";
 
   private static final String DETAILS_ID_TYPE = "dataElements";
 
