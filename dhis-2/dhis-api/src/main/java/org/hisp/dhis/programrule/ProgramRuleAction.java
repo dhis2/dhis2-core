@@ -39,6 +39,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -188,6 +189,11 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    * a null priority)
    */
   private Integer priority;
+
+  /**
+   * The legend set applied to this program rule action (only applies to key-value pair actions).
+   */
+  private LegendSet legendSet;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -465,6 +471,16 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   public void setPriority(Integer priority) {
     this.priority = priority;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendSet getLegendSet() {
+    return legendSet;
+  }
+
+  public void setLegendSet(LegendSet legendSet) {
+    this.legendSet = legendSet;
   }
 
   @JsonProperty

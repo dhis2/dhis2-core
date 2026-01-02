@@ -71,6 +71,9 @@
 
     <property name="priority" />
 
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+                 foreign-key="fk_programruleaction_legendsetid" />
+
   </class>
 
 </hibernate-mapping>
