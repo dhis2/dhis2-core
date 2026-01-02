@@ -69,7 +69,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
-  private org.hisp.dhis.relationship.Relationship convertedRelationship;
+  private org.hisp.dhis.tracker.model.Relationship convertedRelationship;
 
   private Reporter reporter;
 

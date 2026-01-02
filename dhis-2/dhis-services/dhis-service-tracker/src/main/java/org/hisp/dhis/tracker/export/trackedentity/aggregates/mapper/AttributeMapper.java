@@ -45,8 +45,8 @@ import java.sql.SQLException;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 
 public interface AttributeMapper {
   default TrackedEntityAttributeValue getAttribute(ResultSet rs) throws SQLException {

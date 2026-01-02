@@ -32,8 +32,8 @@ package org.hisp.dhis.tracker.audit;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.audit.AuditOperationType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com

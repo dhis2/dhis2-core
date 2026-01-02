@@ -54,7 +54,6 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -63,6 +62,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
@@ -233,8 +233,8 @@ class SmsImportMapperTest extends TrackerTestBase {
     tea1.setUid("uE1OF7DDawz");
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid("cCR4QVathUM");
-    org.hisp.dhis.trackedentity.TrackedEntity trackedEntity =
-        new org.hisp.dhis.trackedentity.TrackedEntity();
+    org.hisp.dhis.tracker.model.TrackedEntity trackedEntity =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
     trackedEntity.setUid(CodeGenerator.generateUid());
     trackedEntity.setTrackedEntityAttributeValues(
         Set.of(

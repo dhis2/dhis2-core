@@ -27,44 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.model;
 
-import java.util.Collection;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.UID;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Abyot Asalefew
+ * @author Quang Nguyen
  */
-public interface TrackerEventStore extends IdentifiableObjectStore<TrackerEvent> {
+@Component
+@RequiredArgsConstructor
+public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
 
-  /**
-   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
-   * used to determine which event data value is kept when merging. Any remaining source
-   * eventDataValues are then deleted.
-   *
-   * @param sourceDataElements dataElements to determine which eventDataValues to merge
-   * @param targetDataElement dataElement to use when merging source eventDataValues
-   */
-  void mergeEventDataValuesWithDataElement(
-      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
+  @Override
+  protected void registerHandler() {
+    whenVetoing(Program.class, this::allowDeleteProgram);
+  }
 
-  /**
-   * delete all eventDataValues which have any of the sourceDataElements
-   *
-   * @param sourceDataElements dataElements to determine which eventDataValues to delete
-   */
-  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
-
-  /**
-   * Updates all {@link TrackerEvent}s with references to {@link CategoryOptionCombo}s, to use the
-   * coc reference.
-   *
-   * @param cocs {@link CategoryOptionCombo}s to update
-   * @param coc {@link CategoryOptionCombo} to use as the new value
-   */
-  void setAttributeOptionCombo(Set<Long> cocs, long coc);
+  private DeletionVeto allowDeleteProgram(Program program) {
+    String sql = "select 1 from enrollment where programid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
+  }
 }

@@ -49,7 +49,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -61,6 +60,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -70,7 +70,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SingleEventPersister
     extends AbstractTrackerPersister<
-        org.hisp.dhis.tracker.imports.domain.SingleEvent, org.hisp.dhis.program.SingleEvent> {
+        org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
   private final SingleEventChangeLogService singleEventChangeLogService;
 
   public SingleEventPersister(

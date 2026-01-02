@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.junit.jupiter.api.Test;
 
 class EnrollmentMapperTest {

@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification;
+package org.hisp.dhis.tracker.program.notification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -40,11 +40,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.notification.BaseNotificationMessageRenderer;
+import org.hisp.dhis.notification.TemplateVariable;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
 
 /**

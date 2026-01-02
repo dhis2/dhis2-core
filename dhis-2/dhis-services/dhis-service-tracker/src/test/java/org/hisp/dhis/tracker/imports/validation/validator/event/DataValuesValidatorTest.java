@@ -553,7 +553,8 @@ class DataValuesValidatorTest {
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
-    when(preheat.getTrackerEvent(eventUid)).thenReturn(new org.hisp.dhis.program.TrackerEvent());
+    when(preheat.getTrackerEvent(eventUid))
+        .thenReturn(new org.hisp.dhis.tracker.model.TrackerEvent());
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
@@ -1085,9 +1086,9 @@ class DataValuesValidatorTest {
     assertHasError(reporter, event, ValidationCode.E1302);
   }
 
-  private org.hisp.dhis.program.TrackerEvent event(
+  private org.hisp.dhis.tracker.model.TrackerEvent event(
       UID uid, EventStatus status, Set<String> dataElements) {
-    org.hisp.dhis.program.TrackerEvent event = new org.hisp.dhis.program.TrackerEvent();
+    org.hisp.dhis.tracker.model.TrackerEvent event = new org.hisp.dhis.tracker.model.TrackerEvent();
     event.setUid(uid.getValue());
     event.setStatus(status);
     event.setEventDataValues(
@@ -1097,8 +1098,8 @@ class DataValuesValidatorTest {
     return event;
   }
 
-  private org.hisp.dhis.program.TrackerEvent event(UID uid, EventStatus status) {
-    org.hisp.dhis.program.TrackerEvent event = new org.hisp.dhis.program.TrackerEvent();
+  private org.hisp.dhis.tracker.model.TrackerEvent event(UID uid, EventStatus status) {
+    org.hisp.dhis.tracker.model.TrackerEvent event = new org.hisp.dhis.tracker.model.TrackerEvent();
     event.setUid(uid.getValue());
     event.setStatus(status);
     return event;
