@@ -36,6 +36,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,10 +65,7 @@ public class OrganisationUnitGroupController
         path = path.substring(contextPath.length());
       }
       if (ORG_UNIT_GROUP_SINGLE_PATH.matcher(path).matches()) {
-        response.setHeader("Cache-Control", "private, max-age=" + cacheMaxAgeSeconds);
-        response.setHeader("Vary", "Accept-Encoding");
-        response.setDateHeader(
-            "Expires", System.currentTimeMillis() + (cacheMaxAgeSeconds * 1000L));
+        ContextUtils.setPrivateCache(response, cacheMaxAgeSeconds);
         return;
       }
     }

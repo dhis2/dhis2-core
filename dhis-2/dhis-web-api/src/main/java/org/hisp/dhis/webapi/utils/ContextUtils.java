@@ -208,6 +208,13 @@ public class ContextUtils {
     return response;
   }
 
+  public static HttpServletResponse setPrivateCache(HttpServletResponse response, long maxAgeSeconds) {
+    response.setHeader(HEADER_CACHE_CONTROL, "private, max-age=" + maxAgeSeconds);
+    response.setHeader("Vary", "Accept-Encoding");
+    response.setDateHeader("Expires", System.currentTimeMillis() + (maxAgeSeconds * 1000L));
+    return response;
+  }
+
   @CheckForNull
   public static HttpServletRequest getRequest() {
     ServletRequestAttributes attributes =

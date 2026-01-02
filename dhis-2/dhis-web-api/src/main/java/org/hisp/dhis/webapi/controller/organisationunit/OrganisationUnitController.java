@@ -80,6 +80,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -357,10 +358,7 @@ public class OrganisationUnitController
         path = path.substring(contextPath.length());
       }
       if (ORG_UNIT_SINGLE_PATH.matcher(path).matches()) {
-        response.setHeader("Cache-Control", "private, max-age=" + cacheMaxAgeSeconds);
-        response.setHeader("Vary", "Accept-Encoding");
-        response.setDateHeader(
-            "Expires", System.currentTimeMillis() + (cacheMaxAgeSeconds * 1000L));
+        ContextUtils.setPrivateCache(response, cacheMaxAgeSeconds);
         return;
       }
     }

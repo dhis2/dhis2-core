@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.fieldfiltering.FieldFilterParams.*;
 import static org.hisp.dhis.webapi.controller.security.ImpersonateUserController.hasAllowListedIp;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setPrivateCache;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -96,6 +97,7 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -144,12 +146,17 @@ public class MeController {
   @Nonnull private final DataApprovalLevelService approvalLevelService;
   @Nonnull private final FileResourceService fileResourceService;
   @Nonnull private ApiTokenService apiTokenService;
+  @Value("${dhis.cache.me.max-age:3600}")
+  private long cacheMaxAgeSeconds;
 
   @GetMapping
   @OpenApi.Response(MeDto.class)
   @OpenApi.EntityType(MeDto.class)
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
-      @CurrentUser(required = true) User user, GetObjectParams params, HttpServletRequest request) {
+      @CurrentUser(required = true) User user,
+      GetObjectParams params,
+      HttpServletRequest request,
+      HttpServletResponse response) {
 
     List<String> fields = params.getFields();
     if (fields == null || fields.isEmpty()) fields = List.of("*");
@@ -197,6 +204,7 @@ public class MeController {
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
 
+    setPrivateCache(response, cacheMaxAgeSeconds);
     return ResponseEntity.ok(jsonNodes);
   }
 
