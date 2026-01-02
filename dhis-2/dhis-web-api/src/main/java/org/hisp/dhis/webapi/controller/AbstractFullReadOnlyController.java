@@ -92,6 +92,8 @@ import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -519,8 +521,19 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   private void cachePrivate(HttpServletResponse response) {
+    HttpServletRequest request = null;
+    if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+      request = attributes.getRequest();
+    }
+    if (!shouldCachePrivate(request)) {
+      return;
+    }
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
+  }
+
+  protected boolean shouldCachePrivate(HttpServletRequest request) {
+    return true;
   }
 
   private boolean hasHref(List<String> fields) {

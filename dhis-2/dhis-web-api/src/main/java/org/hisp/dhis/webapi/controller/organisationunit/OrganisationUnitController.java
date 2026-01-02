@@ -44,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -101,6 +103,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class OrganisationUnitController
     extends AbstractCrudController<
         OrganisationUnit, OrganisationUnitController.GetOrganisationUnitObjectListParams> {
+
+  private static final Pattern ORG_UNIT_SINGLE_PATH =
+      Pattern.compile("^/api(?:/\\d+)?/organisationUnits/[^/]+(?:\\.[^/]+)?$");
 
   @Autowired private OrganisationUnitService organisationUnitService;
   @Autowired private VersionService versionService;
@@ -337,6 +342,22 @@ public class OrganisationUnitController
     Filter parents = in("path", parentPaths);
     params.addOrder("level:asc");
     return getObjectListWith(params, response, currentUser, List.of(parents));
+  }
+
+  @Override
+  protected boolean shouldCachePrivate(HttpServletRequest request) {
+    if (request == null) {
+      return true;
+    }
+    if (!"GET".equalsIgnoreCase(request.getMethod())) {
+      return true;
+    }
+    String path = request.getRequestURI();
+    String contextPath = request.getContextPath();
+    if (!contextPath.isEmpty() && path.startsWith(contextPath)) {
+      path = path.substring(contextPath.length());
+    }
+    return !ORG_UNIT_SINGLE_PATH.matcher(path).matches();
   }
 
   @Override
