@@ -71,7 +71,6 @@ public enum ValueType {
   INTEGER_POSITIVE(Integer.class, true),
   INTEGER_NEGATIVE(Integer.class, true),
   INTEGER_ZERO_OR_POSITIVE(Integer.class, true),
-  TRACKER_ASSOCIATE(Object.class, false),
   USERNAME(String.class, true),
   COORDINATE(Point.class, true),
   ORGANISATION_UNIT(OrganisationUnit.class, false),
