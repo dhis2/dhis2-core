@@ -25,8 +25,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: tracker_associate_not_supported
-description: TRACKER_ASSOCIATE value type is not supported
+name: tracker_associate_is_deprecated
+description: TRACKER_ASSOCIATE value type is deprecated
 section: Programs
 section_order: 5
 summary_sql: >-
@@ -59,7 +59,7 @@ details_sql: >-
   WHERE valuetype = 'TRACKER_ASSOCIATE';
 severity: SEVERE
 introduction: >
-  The TRACKER_ASSOCIATE value type is no longer supported in DHIS2.
+  The TRACKER_ASSOCIATE value type is deprecated and will be no longer supported in DHIS2 from v43.
   This check identifies data elements and tracked entity attributes that
   still use this deprecated value type. Having elements with TRACKER_ASSOCIATE
   value type will block the upgrade to version v43.
