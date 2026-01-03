@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL;
+import static org.hisp.dhis.external.conf.DhisConfigurationProvider.DISABLED_VALUE;
 import static org.springframework.http.CacheControl.noCache;
 
 import com.fasterxml.jackson.databind.SequenceWriter;
@@ -523,7 +524,10 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   protected void cachePrivate(HttpServletResponse response) {
-    response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, getPrivateCacheControlHeader());
+    String headerValue = getPrivateCacheControlHeader();
+    if (headerValue != null) {
+      response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, headerValue);
+    }
   }
 
   protected String getPrivateCacheControlHeader() {
@@ -532,9 +536,16 @@ public abstract class AbstractFullReadOnlyController<
     }
 
     String headerValue = dhisConfig.getProperty(HTTP_PRIVATE_CACHE_CONTROL);
-    return headerValue == null || headerValue.isBlank()
-        ? noCache().cachePrivate().getHeaderValue()
-        : headerValue;
+    if (headerValue == null || headerValue.isBlank()) {
+      return noCache().cachePrivate().getHeaderValue();
+    }
+
+    String normalized = headerValue.trim();
+    if (DISABLED_VALUE.equalsIgnoreCase(normalized)) {
+      return null;
+    }
+
+    return normalized;
   }
 
   private boolean hasHref(List<String> fields) {
