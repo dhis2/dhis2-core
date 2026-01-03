@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL;
+import static org.hisp.dhis.external.conf.DhisConfigurationProvider.DISABLED_VALUE;
 import static org.springframework.http.CacheControl.noCache;
 
 import com.fasterxml.jackson.databind.SequenceWriter;
@@ -62,6 +64,7 @@ import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -128,6 +131,8 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected AttributeService attributeService;
 
   @Autowired protected CsvMapper csvMapper;
+
+  @Autowired protected DhisConfigurationProvider dhisConfig;
 
   // --------------------------------------------------------------------------
   // Hooks
@@ -518,9 +523,29 @@ public abstract class AbstractFullReadOnlyController<
     }
   }
 
-  private void cachePrivate(HttpServletResponse response) {
-    response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
+  protected void cachePrivate(HttpServletResponse response) {
+    String headerValue = getPrivateCacheControlHeader();
+    if (headerValue != null) {
+      response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, headerValue);
+    }
+  }
+
+  protected String getPrivateCacheControlHeader() {
+    if (dhisConfig == null) {
+      return noCache().cachePrivate().getHeaderValue();
+    }
+
+    String headerValue = dhisConfig.getProperty(HTTP_PRIVATE_CACHE_CONTROL);
+    if (headerValue == null || headerValue.isBlank()) {
+      return noCache().cachePrivate().getHeaderValue();
+    }
+
+    String normalized = headerValue.trim();
+    if (DISABLED_VALUE.equalsIgnoreCase(normalized)) {
+      return null;
+    }
+
+    return normalized;
   }
 
   private boolean hasHref(List<String> fields) {
