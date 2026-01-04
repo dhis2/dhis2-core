@@ -513,7 +513,7 @@ public class ValidationUtils {
 
     // Value type checks
     return switch (valueType) {
-      case TEXT, LONG_TEXT, MULTI_TEXT, TRACKER_ASSOCIATE, REFERENCE, GEOJSON -> null;
+      case TEXT, LONG_TEXT, MULTI_TEXT, REFERENCE, GEOJSON -> null;
       case LETTER -> !isValidLetter(value) ? "value_not_valid_letter" : null;
       case NUMBER -> !isNumeric(value) ? "value_not_numeric" : null;
       case UNIT_INTERVAL -> !isUnitInterval(value) ? "value_not_unit_interval" : null;
