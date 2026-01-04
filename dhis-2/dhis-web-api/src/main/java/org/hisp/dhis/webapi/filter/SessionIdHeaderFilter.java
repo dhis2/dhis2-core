@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID_HEADER_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID_ENCRYPTION_KEY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID_HEADER_ENABLED;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -58,8 +58,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * users. The header value is reversible using the configured key, allowing downstream systems to
  * correlate requests to a user session.
  *
- * <p>Enabled when {@code logging.session_id_header.enabled} is true and
- * {@code logging.session_id_encryption_key} is set.
+ * <p>Enabled when {@code logging.session_id_header.enabled} is true and {@code
+ * logging.session_id_encryption_key} is set.
  */
 @Slf4j
 @Component("sessionIdHeaderFilter")
@@ -118,8 +118,7 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
     byte[] combined = new byte[iv.length + ciphertext.length];
     System.arraycopy(iv, 0, combined, 0, iv.length);
     System.arraycopy(ciphertext, 0, combined, iv.length, ciphertext.length);
-    return HEADER_VERSION_PREFIX
-        + Base64.getUrlEncoder().withoutPadding().encodeToString(combined);
+    return HEADER_VERSION_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(combined);
   }
 
   private static byte[] deriveKey(String token) {

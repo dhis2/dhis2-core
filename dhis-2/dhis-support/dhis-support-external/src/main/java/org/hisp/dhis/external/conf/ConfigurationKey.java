@@ -536,8 +536,7 @@ public enum ConfigurationKey {
   LOGGING_REQUEST_ID_ENABLED("logging.request_id.enabled", Constants.ON, false),
 
   /**
-   * Adds an encrypted session/user identifier to the X-Session-ID response header.
-   * (default: off).
+   * Adds an encrypted session/user identifier to the X-Session-ID response header. (default: off).
    */
   LOGGING_SESSION_ID_HEADER_ENABLED("logging.session_id_header.enabled", Constants.OFF, false),
 
