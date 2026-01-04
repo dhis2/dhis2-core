@@ -35,11 +35,15 @@ import static org.hisp.dhis.test.utils.CsvUtils.getValueFromCsv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.CacheControl.noCache;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
@@ -58,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
+  @Autowired private DhisConfigurationProvider dhisConfig;
 
   @Test
   void testGetObjectList_QueryUsers() {
@@ -130,10 +135,46 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(10, rowCount);
   }
 
+  @Test
+  void testCacheControlHeader_DefaultWhenBlank() {
+    setPrivateCacheControl("");
+    createDataElements(1);
+
+    String header = GET("/dataElements?fields=id").header("Cache-Control");
+
+    assertEquals(noCache().cachePrivate().getHeaderValue(), header);
+  }
+
+  @Test
+  void testCacheControlHeader_OffDisablesHeader() {
+    setPrivateCacheControl("off");
+    createDataElements(1);
+
+    String header = GET("/dataElements?fields=id").header("Cache-Control");
+
+    assertNull(header);
+  }
+
+  @Test
+  void testCacheControlHeader_CustomValue() {
+    setPrivateCacheControl("private, max-age=3600");
+    createDataElements(1);
+
+    String header = GET("/dataElements?fields=id").header("Cache-Control");
+
+    assertEquals("private, max-age=3600", header);
+  }
+
   private void createDataElements(int count) {
     for (int i = 0; i < count; ++i) {
       DataElement dataElement = createDataElement(Character.forDigit(i, 36));
       dataElementService.addDataElement(dataElement);
     }
+  }
+
+  private void setPrivateCacheControl(String value) {
+    dhisConfig
+        .getProperties()
+        .setProperty(ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL.getKey(), value);
   }
 }
