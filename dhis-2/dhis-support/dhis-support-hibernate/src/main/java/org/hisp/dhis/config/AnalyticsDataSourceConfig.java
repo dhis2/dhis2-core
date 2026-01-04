@@ -35,6 +35,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
@@ -70,6 +71,8 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
   private final SqlBuilderSettings sqlBuilderSettings;
 
   private final ApplicationContext applicationContext;
+
+  private final MeterRegistry meterRegistry;
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")
@@ -129,7 +132,7 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("analyticsDataSource") DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
     DataSource ds = MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource);
     return getJdbcTemplate(ds);
   }
@@ -177,7 +180,7 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
     final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder()
+        DbPoolConfig.builder("analytics")
             .driverClassName(driverClassName)
             .dhisConfig(config)
             .mapper(ANALYTICS)
@@ -185,7 +188,7 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
             .build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException ex) {
       String message =
           TextUtils.format(

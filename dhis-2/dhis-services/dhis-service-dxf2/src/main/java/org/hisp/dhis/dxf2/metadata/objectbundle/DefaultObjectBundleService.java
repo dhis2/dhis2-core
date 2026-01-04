@@ -68,7 +68,6 @@ import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -226,15 +225,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
           preheatService.connectReferences(
               object, bundle.getPreheat(), bundle.getPreheatIdentifier());
 
-          if (bundle.getOverrideUser() != null) {
-            object.setCreatedBy(session.getReference(User.class, bundle.getOverrideUser().getId()));
-
-            if (object instanceof User) {
-              (object)
-                  .setCreatedBy(session.getReference(User.class, bundle.getOverrideUser().getId()));
-            }
-          }
-
           session.save(object);
 
           bundle.getPreheat().replace(bundle.getPreheatIdentifier(), object);
@@ -311,16 +301,6 @@ public class DefaultObjectBundleService implements ObjectBundleService {
                   .setMergeMode(MergeMode.REPLACE)
                   .setSkipSharing(bundle.isSkipSharing())
                   .setSkipTranslation(bundle.isSkipTranslation()));
-
-          if (bundle.getOverrideUser() != null) {
-            persistedObject.setCreatedBy(
-                session.getReference(User.class, bundle.getOverrideUser().getId()));
-
-            if (object instanceof User) {
-              (object)
-                  .setCreatedBy(session.getReference(User.class, bundle.getOverrideUser().getId()));
-            }
-          }
 
           session.update(persistedObject);
 

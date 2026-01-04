@@ -51,7 +51,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -440,30 +442,36 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
-    List<String> jsonAttributes =
+    Map<String, JsonAttribute> jsonAttributes =
         relationships.get(0).getTo().getEnrollment().getAttributes().stream()
-            .map(JsonAttribute::getAttribute)
-            .toList();
+            .collect(Collectors.toMap(JsonAttribute::getAttribute, Function.identity()));
 
-    Set<String> expectedAttributes =
+    List<Attribute> expectedEnrollmentAttributes =
         getEnrollment(UID.of(relationships.get(0).getTo().getEnrollment().getEnrollment()))
-            .getAttributes()
-            .stream()
-            .map(Attribute::getAttribute)
-            .map(MetadataIdentifier::getIdentifier)
-            .collect(Collectors.toSet());
-    Set<String> expectedTETAttributes =
+            .getAttributes();
+    List<Attribute> expectedTETAttributes =
         getTrackedEntity(UID.of(relationships.get(0).getTo().getEnrollment().getTrackedEntity()))
-            .getAttributes()
-            .stream()
-            .map(Attribute::getAttribute)
-            .map(MetadataIdentifier::getIdentifier)
-            .collect(Collectors.toSet());
+            .getAttributes();
 
-    assertContainsOnly(
-        Stream.concat(expectedAttributes.stream(), expectedTETAttributes.stream())
-            .collect(Collectors.toSet()),
-        jsonAttributes);
+    Map<String, Attribute> expectedAttributes =
+        Stream.concat(expectedEnrollmentAttributes.stream(), expectedTETAttributes.stream())
+            .distinct()
+            .collect(
+                Collectors.toMap(att -> att.getAttribute().getIdentifier(), Function.identity()));
+
+    assertContainsOnly(expectedAttributes.keySet(), jsonAttributes.keySet());
+
+    for (Attribute expectedAttribute : expectedAttributes.values()) {
+      String expectedValue = expectedAttribute.getValue();
+
+      JsonAttribute matchingJsonAttribute =
+          jsonAttributes.get(expectedAttribute.getAttribute().getIdentifier());
+
+      assertEquals(
+          expectedValue,
+          matchingJsonAttribute.getValue(),
+          "Value mismatch for attribute " + expectedAttribute);
+    }
   }
 
   @Test

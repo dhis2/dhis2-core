@@ -79,6 +79,7 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
             new Column("dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL));
 
     UniqueNameContext nameContext = new UniqueNameContext();
+
     for (DataElementGroupSet groupSet : groupSets) {
       columns.addAll(
           List.of(

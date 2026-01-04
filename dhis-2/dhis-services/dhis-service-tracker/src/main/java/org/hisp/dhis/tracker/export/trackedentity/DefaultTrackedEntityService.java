@@ -30,13 +30,11 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -277,28 +275,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
 
-    // TODO(tracker): Push this filter into the store because it is breaking pagination
-    return trackedEntities.stream()
-        .filter(filterAccessibleTrackedEntities(user, queryParams))
-        .toList();
+    return trackedEntities;
   }
 
   @Override
   public Set<String> getOrderableFields() {
     return trackedEntityStore.getOrderableFields();
-  }
-
-  private Predicate<TrackedEntity> filterAccessibleTrackedEntities(
-      UserDetails user, TrackedEntityQueryParams queryParams) {
-    boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
-
-    if (queryParams.hasEnrolledInTrackerProgram()) {
-      return skipOwnershipCheck
-          ? te -> true
-          : te ->
-              ownershipAccessManager.hasAccess(user, te, queryParams.getEnrolledInTrackerProgram());
-    }
-
-    return te -> trackerAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();
   }
 }

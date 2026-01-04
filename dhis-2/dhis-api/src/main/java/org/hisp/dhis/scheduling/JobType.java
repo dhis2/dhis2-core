@@ -30,6 +30,7 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobType.Defaults.daily1am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.daily2am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.daily7am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.dailyRandomBetween3and5;
@@ -57,6 +58,7 @@ import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
@@ -79,6 +81,7 @@ public enum JobType {
   RESOURCE_TABLE(),
   ANALYTICS_TABLE(AnalyticsJobParameters.class),
   CONTINUOUS_ANALYTICS_TABLE(ContinuousAnalyticsJobParameters.class),
+  SINGLE_EVENT_DATA_SYNC(SingleEventDataSynchronizationJobParameters.class),
   DATA_SYNC(DataSynchronizationJobParameters.class),
   META_DATA_SYNC(MetadataSyncJobParameters.class),
   AGGREGATE_DATA_EXCHANGE(AggregateDataExchangeJobParameters.class),
@@ -115,6 +118,7 @@ public enum JobType {
   System Jobs
   */
   HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
+  DATA_VALUE_TRIM(daily1am("D2datatrim8", "Data value trim")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),
   CREDENTIALS_EXPIRY_ALERT(daily2am("sHMedQF7VYa", "Credentials expiry alert")),
   DATA_STATISTICS(daily2am("BFa3jDsbtdO", "Data statistics")),
@@ -149,6 +153,10 @@ public enum JobType {
       return new Defaults(UID.of(uid), "0 0 2 ? * *", null, name);
     }
 
+    static Defaults daily1am(String uid, String name) {
+      return new Defaults(UID.of(uid), "0 0 1 ? * *", null, name);
+    }
+
     static Defaults daily7am(String uid, String name) {
       return new Defaults(UID.of(uid), "0 0 7 ? * *", null, name);
     }
@@ -166,6 +174,8 @@ public enum JobType {
   }
 
   @CheckForNull private final Class<? extends JobParameters> jobParameters;
+
+  /** A job with defaults is a system job and gets spawned automatically if it does not yet exist */
   @CheckForNull private final Defaults defaults;
 
   JobType() {
@@ -192,7 +202,10 @@ public enum JobType {
    *     (System User will not work).
    */
   public boolean isValidUserRequiredForJob() {
-    return this == HTML_PUSH_ANALYTICS || this == AGGREGATE_DATA_EXCHANGE || this == META_DATA_SYNC;
+    return this == HTML_PUSH_ANALYTICS
+        || this == AGGREGATE_DATA_EXCHANGE
+        || this == META_DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC;
   }
 
   /**
@@ -211,6 +224,7 @@ public enum JobType {
         || this == VALIDATION_RESULTS_NOTIFICATION
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == DATA_SYNC
+        || this == SINGLE_EVENT_DATA_SYNC
         || this == SMS_SEND
         || this == PUSH_ANALYSIS
         || this == PREDICTOR
@@ -242,8 +256,6 @@ public enum JobType {
    */
   public boolean isUsingContinuousExecution() {
     return this == METADATA_IMPORT
-        || this == RESOURCE_TABLE
-        || this == ANALYTICS_TABLE
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
         || this == DATA_INTEGRITY_DETAILS

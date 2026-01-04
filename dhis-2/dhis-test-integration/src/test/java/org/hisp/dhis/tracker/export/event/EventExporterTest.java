@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
@@ -45,6 +47,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
@@ -52,16 +55,23 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -164,6 +174,47 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     assertNotes(pTzf9KYMk72.getNotes(), events.get(0).getNotes());
+  }
+
+  @Test
+  void shouldFetchEventsExcludingDataValuesMarkedSkipSync()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .programType(ProgramType.WITHOUT_REGISTRATION)
+            .program(UID.of("iS7eutanDry"))
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .withSkipSyncDataElements(Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
+            .build();
+
+    Page<Event> events = eventService.findEvents(params, PageParams.of(1, 10, false));
+
+    Assertions.assertContainsOnly(
+        List.of(
+            "cadc5eGj0j7",
+            "lumVtWwwy0O",
+            "ck7DzdxqLqA",
+            "OTmjvJDn0Fu",
+            "kWjSezkXHVp",
+            "QRYjLTiJTrA"),
+        uids(events.getItems()));
+
+    events.getItems().stream()
+        .filter(event -> !event.getEventDataValues().isEmpty())
+        .forEach(
+            event -> {
+              Assertions.assertHasSize(
+                  1,
+                  event.getEventDataValues(),
+                  "Event " + event.getUid() + " should have exactly one data value");
+
+              EventDataValue dataValue = event.getEventDataValues().iterator().next();
+              assertEquals(
+                  "GieVkTxp4HG",
+                  dataValue.getDataElement(),
+                  "Event " + event.getUid() + " should have data element GieVkTxp4HG");
+            });
   }
 
   @Test
@@ -595,6 +646,52 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    EventOperationParamsBuilder operationParams =
+        EventOperationParams.builder().events(Set.of(UID.of("D9PbzJY8bJM")));
+
+    updatePublicAccessSharing(program, DATA_READ);
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgram()
+      throws ForbiddenException, BadRequestException {
+    Program program = get(Program.class, programStage.getProgram().getUid());
+    EventOperationParamsBuilder operationParams =
+        EventOperationParams.builder().events(Set.of(UID.of("D9PbzJY8bJM")));
+
+    updatePublicAccessSharing(program, READ);
+
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParams.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoMetadataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, DATA_READ);
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
+  @Test
+  void shouldNotReturnEventsWhenUserHasNoDataReadAccessToProgramStage()
+      throws ForbiddenException, BadRequestException {
+    updatePublicAccessSharing(programStage, READ);
+    injectSecurityContextUser(userService.getUser("Z7870757a75"));
+
+    assertIsEmpty(getEvents(operationParamsBuilder.build()));
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -612,5 +709,11 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
     return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  }
+
+  private void updatePublicAccessSharing(
+      IdentifiableObject identifiableObject, String publicAccess) {
+    identifiableObject.getSharing().setPublicAccess(publicAccess);
+    manager.save(identifiableObject);
   }
 }

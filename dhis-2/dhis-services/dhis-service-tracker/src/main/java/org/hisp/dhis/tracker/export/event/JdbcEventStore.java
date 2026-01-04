@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
@@ -43,12 +44,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -170,6 +171,7 @@ class JdbcEventStore {
   private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES =
       "coc_attributevalues";
   private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
+  private static final String COLUMN_EVENT_LAST_UPDATED_GT = " ev.lastupdated >= ";
   private static final String COLUMN_EVENT_DELETED = "ev_deleted";
   private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
@@ -236,9 +238,26 @@ class JdbcEventStore {
     return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
+  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
+    if (eventUids.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        """
+        UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+        """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", eventUids);
+
+    jdbcTemplate.update(sql, parameters);
+  }
+
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, queryParams);
 
     Map<String, Event> eventsByUid;
     if (pageParams == null) {
@@ -502,9 +521,8 @@ class JdbcEventStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private long getEventCount(EventQueryParams params) {
+  public long getEventCount(EventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    setAccessiblePrograms(currentUser, params);
 
     String sql;
 
@@ -684,7 +702,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(COLUMN_EVENT_OCCURRED_DATE)
             .append(", ev.scheduleddate as ")
             .append(COLUMN_EVENT_SCHEDULED_DATE)
-            .append(", ev.eventdatavalues as ")
+            .append(", ")
+            .append(getEventDataValuesProjectionForSelectClause(params, mapSqlParameterSource))
+            .append(" as ")
             .append(COLUMN_EVENT_DATAVALUES)
             .append(", ev.completedby as ")
             .append(COLUMN_EVENT_COMPLETED_BY)
@@ -818,13 +838,25 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    if (params.getProgram() != null) {
-      sqlParameters.addValue("programid", params.getProgram().getId());
+    if (params.hasEnrolledInProgram()) {
+      sqlParameters.addValue("programid", params.getEnrolledInProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programid",
+          params.getAccessiblePrograms().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessiblePrograms()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" p.programid in (")
+          .append(":programid")
+          .append(") ");
     }
 
-    if (params.getProgramStage() != null) {
+    if (params.hasProgramStage()) {
       sqlParameters.addValue("programstageid", params.getProgramStage().getId());
 
       fromBuilder
@@ -832,6 +864,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ps.programstageid = ")
           .append(":programstageid")
           .append(" ");
+    } else {
+      sqlParameters.addValue(
+          "programstageid",
+          params.getAccessibleProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleProgramStages()));
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" ps.programstageid in (")
+          .append(":programstageid")
+          .append(") ");
     }
 
     if (params.getEnrollmentStatus() != null) {
@@ -854,6 +898,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder
           .append(hlp.whereAnd())
           .append(" (en.enrollmentdate >= :enrollmentEnrolledAfter ) ");
+    }
+
+    if (params.isSynchronizationQuery()) {
+      fromBuilder.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
+    }
+
+    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
+      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
+
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(COLUMN_EVENT_LAST_UPDATED_GT)
+          .append(":skipChangedBefore ");
     }
 
     if (params.getEnrollmentOccurredBefore() != null) {
@@ -959,32 +1016,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
     }
 
-    if (params.hasSecurityFilter()) {
-      sqlParameters.addValue(
-          "program_uid",
-          params.getAccessiblePrograms().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessiblePrograms()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (p.uid in (")
-          .append(":program_uid")
-          .append(")) ");
-
-      sqlParameters.addValue(
-          "programstage_uid",
-          params.getAccessibleProgramStages().isEmpty()
-              ? null
-              : UID.toValueSet(params.getAccessibleProgramStages()));
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ps.uid in (")
-          .append(":programstage_uid")
-          .append(")) ");
-    }
-
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
       sqlParameters.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
 
@@ -992,6 +1023,49 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     return fromBuilder;
+  }
+
+  /**
+   * Returns either the original event data values or a filtered version, depending on the "skip
+   * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
+   * event synchronization.
+   */
+  private String getEventDataValuesProjectionForSelectClause(
+      EventQueryParams params, MapSqlParameterSource sqlParameters) {
+    if (!params.isSynchronizationQuery()
+        || params.getSkipSyncDataElementsByProgramStage() == null
+        || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
+
+      return "ev.eventdatavalues";
+    }
+
+    StringBuilder caseStatement = new StringBuilder("CASE ");
+
+    int caseCounter = 0;
+    for (Map.Entry<String, Set<String>> entry :
+        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
+      String programStageUid = entry.getKey();
+      Set<String> dataElementUids = entry.getValue();
+
+      if (!dataElementUids.isEmpty()) {
+        String paramName = "filter_de_" + caseCounter++;
+        sqlParameters.addValue(paramName, new ArrayList<>(dataElementUids));
+
+        caseStatement
+            .append("WHEN ps.uid = '")
+            .append(programStageUid)
+            .append("' THEN ")
+            .append("(SELECT jsonb_object_agg(key, value) ")
+            .append("FROM jsonb_each(ev.eventdatavalues) ")
+            .append("WHERE key NOT IN (:")
+            .append(paramName)
+            .append(")) ");
+      }
+    }
+
+    caseStatement.append("ELSE ev.eventdatavalues END");
+
+    return caseStatement.toString();
   }
 
   private String getOrgUnitSql(
@@ -1014,7 +1088,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String createAccessibleSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
 
-    if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
+    if (isProgramRestricted(params.getEnrolledInProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, params, mapSqlParameterSource);
     }
 
@@ -1027,7 +1101,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       return createCaptureScopeQuery(
           user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
@@ -1048,7 +1122,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + (params.getOrgUnit().getHierarchyLevel() + 1)
             + " ) ";
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       return createCaptureScopeQuery(
           user,
           params,
@@ -1072,7 +1146,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + AND
             + USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY;
 
-    if (isProgramRestricted(params.getProgram())) {
+    if (isProgramRestricted(params.getEnrolledInProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
       return createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
     }
@@ -1352,18 +1426,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } catch (IOException e) {
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
-    }
-  }
-
-  private void setAccessiblePrograms(UserDetails user, EventQueryParams params) {
-    if (isNotSuperUser(user)) {
-      params.setAccessiblePrograms(
-          manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
-
-      params.setAccessibleProgramStages(
-          manager.getDataReadAll(ProgramStage.class).stream()
-              .map(UID::of)
-              .collect(Collectors.toSet()));
     }
   }
 }

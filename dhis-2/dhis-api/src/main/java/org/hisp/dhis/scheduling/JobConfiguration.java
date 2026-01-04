@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
@@ -63,6 +64,7 @@ import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
@@ -194,6 +196,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     this(name, type, null);
   }
 
+  /** The largest timestamp values that has already been used */
+  private static final AtomicLong mostRecentUsedTimeMilli = new AtomicLong(0L);
+
   /**
    * Constructor to use for any type of {@link SchedulingType#ONCE_ASAP} execution.
    *
@@ -204,12 +209,15 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   public JobConfiguration(
       @CheckForNull String name, @Nonnull JobType type, @CheckForNull String executedBy) {
     this.name =
-        name == null || name.isEmpty()
-            ? "%s (%d)".formatted(type.name(), Instant.now().toEpochMilli())
-            : name;
+        name == null || name.isEmpty() ? "%s (%d)".formatted(type.name(), nowUnique()) : name;
     this.jobType = type;
     this.executedBy = executedBy;
     setAutoFields();
+  }
+
+  static long nowUnique() {
+    long now = System.currentTimeMillis();
+    return mostRecentUsedTimeMilli.updateAndGet(val -> Math.max(val + 1, now));
   }
 
   // -------------------------------------------------------------------------
@@ -282,6 +290,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(value = SmsJobParameters.class, name = "SMS_SEND"),
         @JsonSubTypes.Type(value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC"),
         @JsonSubTypes.Type(value = DataSynchronizationJobParameters.class, name = "DATA_SYNC"),
+        @JsonSubTypes.Type(
+            value = SingleEventDataSynchronizationJobParameters.class,
+            name = "SINGLE_EVENT_DATA_SYNC"),
         @JsonSubTypes.Type(
             value = DisableInactiveUsersJobParameters.class,
             name = "DISABLE_INACTIVE_USERS"),

@@ -689,6 +689,10 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean userNonExpired(User user) {
+    if (user == null) {
+      return true;
+    }
+
     int credentialsExpires = settingsProvider.getCurrentSettings().getCredentialsExpires();
 
     if (credentialsExpires == 0) {
@@ -819,6 +823,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays) {
     return userStore.getExpiringUserAccounts(inDays);
   }
@@ -877,6 +882,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<User> getUsersWithAuthority(String authority) {
     return userStore.getHasAuthority(authority);
   }
@@ -1529,6 +1535,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<User> getUsersWithOrgUnits(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids) {
     return userStore.getUsersWithOrgUnit(orgUnitProperty, uids);

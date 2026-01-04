@@ -294,7 +294,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
    * @param baseFormat the base SQL format string.
    * @return the format string, optionally wrapped with ST_Centroid.
    */
-  private String wrapWithCentroid(String column, String baseFormat) {
+  protected String wrapWithCentroid(String column, String baseFormat) {
     return column.equals("geometry")
             && this.settingsProvider.getCurrentSettings().getOrgUnitCentroidsInEventsAnalytics()
         ? "ST_Centroid(" + baseFormat + ")"
