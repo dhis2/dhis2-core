@@ -401,5 +401,10 @@ public interface HttpClientAdapter {
     public String getContentType() {
       return response.getContentType();
     }
+
+    @CheckForNull
+    public String getHeader(String headerName) {
+      return header(headerName);
+    }
   }
 }
