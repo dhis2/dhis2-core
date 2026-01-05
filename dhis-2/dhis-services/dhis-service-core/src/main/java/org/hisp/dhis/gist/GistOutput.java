@@ -79,7 +79,8 @@ public final class GistOutput {
       // and then navigating to the value,
       // so we use the same code to write the actual values
       Stream<IntFunction<Object>> values = Stream.of(i -> obj.values()[i]);
-      JsonNode array = JsonBuilder.createArray(FORMAT, arr -> addArrayElements(arr, properties, values));
+      JsonNode array =
+          JsonBuilder.createArray(FORMAT, arr -> addArrayElements(arr, properties, values));
       JsonValue value = JsonMixed.of(array).getObject(0).get(properties.get(0).path());
       try (PrintWriter json = new PrintWriter(out)) {
         json.append(value.toJson());
@@ -112,8 +113,7 @@ public final class GistOutput {
                   p.addString("prevPage", pager.prevPage());
                   p.addString("nextPage", pager.nextPage());
                 });
-          obj.addArray(
-              list.collectionName(), addObjectListElements(list, values));
+          obj.addArray(list.collectionName(), addObjectListElements(list, values));
         });
   }
 
@@ -127,7 +127,8 @@ public final class GistOutput {
         // to do that, first list objects but to written to a string
         // then iterate the values from the array
         String path = properties.get(0).path();
-        JsonNode array = JsonBuilder.createArray(temp -> addArrayElements(temp, properties, values));
+        JsonNode array =
+            JsonBuilder.createArray(temp -> addArrayElements(temp, properties, values));
         array.elements().forEach(e -> arr.addElement(e.get(path)));
       } else {
         // list each as an object with the given properties

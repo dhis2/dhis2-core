@@ -123,15 +123,15 @@ public class DefaultGistService implements GistService {
     RelativePropertyContext context = createPropertyContext(query);
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
     for (GistQuery.Field f : query.getFields()) {
-      String path = f.getPropertyPath();
+      String name = f.getName();
       if (f.isAttribute()) {
-        res.add(new ObjectOutput.Property(path, ObjectOutput.Type.STRING));
+        res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING));
       } else if (GistQuery.Field.REFS_PATH.equals(f.getPropertyPath())) {
         res.add(
             new ObjectOutput.Property(
                 "apiEndpoints", new ObjectOutput.Type(Map.class, String.class)));
       } else {
-        Property p = context.resolveMandatory(path);
+        Property p = context.resolveMandatory(f.getPropertyPath());
         ObjectOutput.Type type =
             switch (f.getTransformation()) {
               case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
@@ -140,7 +140,7 @@ public class DefaultGistService implements GistService {
               case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
               default -> type(p);
             };
-        res.add(new ObjectOutput.Property(path, type));
+        res.add(new ObjectOutput.Property(name, type));
       }
     }
     return res;
