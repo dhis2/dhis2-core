@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 
 /**
  * @author Ameen Mohamed
