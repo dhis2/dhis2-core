@@ -540,7 +540,7 @@ public enum ConfigurationKey {
    */
   LOGGING_SESSION_ID_HEADER_ENABLED("logging.session_id_header.enabled", Constants.OFF, false),
 
-  /** Encryption key for X-Session-ID header value (sensitive). */
+  /** Base64-encoded 32-byte encryption key for X-Session-ID header value (sensitive). */
   LOGGING_SESSION_ID_ENCRYPTION_KEY("logging.session_id_encryption_key", "", true),
 
   /** Base URL to the DHIS 2 instance. */

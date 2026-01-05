@@ -58,6 +58,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @ExtendWith(MockitoExtension.class)
 class SessionIdHeaderFilterUnitTest {
   private static final String HEADER_NAME = "X-Session-ID";
+  private static final String ENCRYPTION_KEY = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -112,7 +113,7 @@ class SessionIdHeaderFilterUnitTest {
     when(dhisConfigurationProvider.isEnabled(LOGGING_SESSION_ID_HEADER_ENABLED))
         .thenReturn(enabled);
     when(dhisConfigurationProvider.getProperty(LOGGING_SESSION_ID_ENCRYPTION_KEY))
-        .thenReturn("test-key");
+        .thenReturn(ENCRYPTION_KEY);
     return new SessionIdHeaderFilter(dhisConfigurationProvider);
   }
 

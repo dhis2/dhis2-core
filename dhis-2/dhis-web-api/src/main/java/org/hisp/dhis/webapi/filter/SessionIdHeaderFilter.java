@@ -44,9 +44,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -72,10 +70,7 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
   private static final int GCM_TAG_LENGTH_BITS = 128;
   private static final String CIPHER_ALGO = "AES/GCM/NoPadding";
   private static final String HASH_ALGO = "SHA-256";
-  private static final String KDF_ALGO = "PBKDF2WithHmacSHA256";
-  private static final int KDF_ITERATIONS = 10000;
-  private static final int KEY_LENGTH_BITS = 256;
-  private static final byte[] KDF_SALT = "dhis2-session-id-header".getBytes(StandardCharsets.UTF_8);
+  private static final int KEY_LENGTH_BYTES = 32;
 
   private final boolean enabled;
   private final byte[] keyBytes;
@@ -90,8 +85,16 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
       this.enabled = false;
       this.keyBytes = new byte[0];
     } else {
-      this.enabled = configEnabled;
-      this.keyBytes = token == null ? new byte[0] : deriveKey(token);
+      byte[] decodedKey = token == null ? new byte[0] : decodeKey(token);
+      if (decodedKey.length != KEY_LENGTH_BYTES) {
+        log.warn(
+            "Session ID header logging enabled, but logging.session_id_encryption_key must be a base64-encoded 32-byte key.");
+        this.enabled = false;
+        this.keyBytes = new byte[0];
+      } else {
+        this.enabled = configEnabled;
+        this.keyBytes = decodedKey;
+      }
     }
   }
 
@@ -127,14 +130,11 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
     return HEADER_VERSION_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(combined);
   }
 
-  private static byte[] deriveKey(String token) {
+  private static byte[] decodeKey(String token) {
     try {
-      PBEKeySpec spec =
-          new PBEKeySpec(token.toCharArray(), KDF_SALT, KDF_ITERATIONS, KEY_LENGTH_BITS);
-      SecretKeyFactory factory = SecretKeyFactory.getInstance(KDF_ALGO);
-      return factory.generateSecret(spec).getEncoded();
-    } catch (GeneralSecurityException ex) {
-      throw new IllegalStateException("Unable to derive session header key", ex);
+      return Base64.getDecoder().decode(token);
+    } catch (IllegalArgumentException ex) {
+      return new byte[0];
     }
   }
 
