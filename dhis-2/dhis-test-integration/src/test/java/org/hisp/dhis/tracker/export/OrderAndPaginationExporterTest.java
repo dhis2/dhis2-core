@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -209,6 +210,25 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
+  void shouldPaginateTrackedEntitiesWhenOrgUnitNotSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(userService.getUser("fZidJVYpWWE"));
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .trackedEntities(
+                Set.of(UID.of("woitxQbWYNq"), UID.of("QesgJkTyTCk"), UID.of("guVNoAerxWo")))
+            .build();
+
+    Page<String> paginatedEntities =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 10, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertContainsOnly(List.of("woitxQbWYNq", "guVNoAerxWo"), paginatedEntities.getItems());
+    assertEquals(2, paginatedEntities.getTotal());
   }
 
   @Test
