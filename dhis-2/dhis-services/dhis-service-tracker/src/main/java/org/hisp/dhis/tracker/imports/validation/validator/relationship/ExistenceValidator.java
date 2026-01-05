@@ -46,7 +46,7 @@ class ExistenceValidator implements Validator<Relationship> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
 
-    org.hisp.dhis.relationship.Relationship existingRelationship =
+    org.hisp.dhis.tracker.model.Relationship existingRelationship =
         bundle.getPreheat().getRelationship(relationship.getRelationship());
     TrackerImportStrategy importStrategy = bundle.getStrategy(relationship);
 
@@ -60,7 +60,7 @@ class ExistenceValidator implements Validator<Relationship> {
 
   private void validateRelationshipNotDeleted(
       Reporter reporter,
-      org.hisp.dhis.relationship.Relationship existingRelationship,
+      org.hisp.dhis.tracker.model.Relationship existingRelationship,
       Relationship relationship) {
     reporter.addErrorIf(
         () -> existingRelationship != null && existingRelationship.isDeleted(),
@@ -71,7 +71,7 @@ class ExistenceValidator implements Validator<Relationship> {
 
   private void validateRelationshipNotUpdated(
       Reporter reporter,
-      org.hisp.dhis.relationship.Relationship existingRelationship,
+      org.hisp.dhis.tracker.model.Relationship existingRelationship,
       Relationship relationship,
       TrackerImportStrategy importStrategy) {
     reporter.addWarningIf(
@@ -86,7 +86,7 @@ class ExistenceValidator implements Validator<Relationship> {
 
   private void validateNewRelationshipNotExistAlready(
       Reporter reporter,
-      org.hisp.dhis.relationship.Relationship existingRelationship,
+      org.hisp.dhis.tracker.model.Relationship existingRelationship,
       Relationship relationship,
       TrackerImportStrategy importStrategy) {
     reporter.addErrorIf(
@@ -101,7 +101,7 @@ class ExistenceValidator implements Validator<Relationship> {
 
   private void validateUpdatedOrDeletedRelationshipExists(
       Reporter reporter,
-      org.hisp.dhis.relationship.Relationship existingRelationship,
+      org.hisp.dhis.tracker.model.Relationship existingRelationship,
       Relationship relationship,
       TrackerImportStrategy importStrategy) {
     reporter.addErrorIf(

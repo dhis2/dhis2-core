@@ -27,13 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -46,9 +44,7 @@ import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -57,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  * @author Abyot Asalefew
  */
 @Auditable(scope = AuditScope.TRACKER)
-@JacksonXmlRootElement(localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0)
 @Accessors(chain = true)
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -115,14 +110,12 @@ public class TrackedEntityAttributeValue implements Serializable {
 
   @AuditAttribute
   @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
   public Date getCreated() {
     return created;
   }
 
   @AuditAttribute
   @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
   public Date getLastUpdated() {
     return lastUpdated;
   }
@@ -176,7 +169,6 @@ public class TrackedEntityAttributeValue implements Serializable {
    */
   @AuditAttribute
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @EqualsAndHashCode.Include
   public String getValue() {
     return (getAttribute().getConfidential() ? this.getEncryptedValue() : this.getPlainValue());
@@ -204,21 +196,18 @@ public class TrackedEntityAttributeValue implements Serializable {
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getStoredBy() {
     return storedBy;
   }
 
   @JsonProperty("trackedEntityAttribute")
   @JsonSerialize(as = IdentifiableObject.class)
-  @JacksonXmlProperty(localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0)
   public TrackedEntityAttribute getAttribute() {
     return attribute;
   }
 
   @JsonProperty("trackedEntityInstance")
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;
   }

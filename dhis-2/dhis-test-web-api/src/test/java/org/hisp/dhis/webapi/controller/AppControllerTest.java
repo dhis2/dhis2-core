@@ -31,7 +31,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
 import static org.hisp.dhis.util.ZipFileUtils.MAX_ENTRIES;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;

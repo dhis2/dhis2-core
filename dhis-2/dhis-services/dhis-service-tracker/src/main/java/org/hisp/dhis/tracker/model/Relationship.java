@@ -27,13 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+package org.hisp.dhis.tracker.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -43,17 +41,16 @@ import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.relationship.RelationshipType;
 
 /**
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement(localName = "relationship", namespace = DxfNamespaces.DXF_2_0)
 @Auditable(scope = AuditScope.TRACKER)
 public class Relationship extends SoftDeletableObject implements Serializable, SoftDeletableEntity {
   /** Determines if a de-serialized file is compatible with this class. */
@@ -122,7 +119,6 @@ public class Relationship extends SoftDeletableObject implements Serializable, S
    */
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public RelationshipType getRelationshipType() {
     return relationshipType;
   }
@@ -135,7 +131,6 @@ public class Relationship extends SoftDeletableObject implements Serializable, S
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ObjectStyle getStyle() {
     return style;
   }
@@ -145,7 +140,6 @@ public class Relationship extends SoftDeletableObject implements Serializable, S
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFormName() {
     return formName;
   }
@@ -155,7 +149,6 @@ public class Relationship extends SoftDeletableObject implements Serializable, S
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDescription() {
     return description;
   }
@@ -165,7 +158,6 @@ public class Relationship extends SoftDeletableObject implements Serializable, S
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public RelationshipItem getFrom() {
     return from;
   }
@@ -175,7 +167,6 @@ public class Relationship extends SoftDeletableObject implements Serializable, S
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public RelationshipItem getTo() {
     return to;
   }

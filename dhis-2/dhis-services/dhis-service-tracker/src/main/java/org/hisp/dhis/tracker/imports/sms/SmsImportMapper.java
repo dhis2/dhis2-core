@@ -69,7 +69,6 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -77,6 +76,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -121,7 +121,7 @@ class SmsImportMapper {
   static TrackerObjects map(
       @Nonnull EnrollmentSmsSubmission submission,
       @Nonnull Program program,
-      @CheckForNull org.hisp.dhis.trackedentity.TrackedEntity trackedEntity,
+      @CheckForNull org.hisp.dhis.tracker.model.TrackedEntity trackedEntity,
       @Nonnull String username) {
     Set<String> programAttributes =
         emptyIfNull(program.getProgramAttributes()).stream()
