@@ -43,6 +43,8 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -71,6 +73,10 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
   private static final String CIPHER_ALGO = "AES/GCM/NoPadding";
   private static final String HASH_ALGO = "SHA-256";
   private static final int KEY_LENGTH_BYTES = 32;
+  private static final long CACHE_TTL_MILLIS = TimeUnit.MINUTES.toMillis(5);
+  private static final int MAX_CACHE_SIZE = 10_000;
+  private static final ConcurrentHashMap<String, CacheEntry> HEADER_CACHE =
+      new ConcurrentHashMap<>();
 
   private final boolean enabled;
   private final byte[] keyBytes;
@@ -107,8 +113,10 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
         UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
         HttpSession session = request.getSession(false);
         if (session != null) {
-          String payload = userDetails.getUid() + ":" + hashSessionId(session.getId());
-          response.addHeader(HEADER_NAME, encrypt(payload));
+          String sessionHash = hashSessionId(session.getId());
+          String cacheKey = userDetails.getUid() + ":" + sessionHash;
+          String headerValue = getOrCreateHeaderValue(cacheKey);
+          response.addHeader(HEADER_NAME, headerValue);
         }
       } catch (GeneralSecurityException ex) {
         log.error("Failed to encrypt session header payload", ex);
@@ -130,6 +138,31 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
     return HEADER_VERSION_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(combined);
   }
 
+  private String getOrCreateHeaderValue(String cacheKey) throws GeneralSecurityException {
+    long now = System.currentTimeMillis();
+    CacheEntry cached = HEADER_CACHE.get(cacheKey);
+    if (cached != null && cached.expiresAtMillis > now) {
+      return cached.headerValue;
+    }
+
+    if (cached != null) {
+      HEADER_CACHE.remove(cacheKey, cached);
+    }
+
+    String headerValue = encrypt(cacheKey);
+    CacheEntry entry = new CacheEntry(headerValue, now + CACHE_TTL_MILLIS);
+    HEADER_CACHE.put(cacheKey, entry);
+
+    if (HEADER_CACHE.size() > MAX_CACHE_SIZE) {
+      HEADER_CACHE.entrySet().removeIf(e -> e.getValue().expiresAtMillis <= now);
+      if (HEADER_CACHE.size() > MAX_CACHE_SIZE) {
+        HEADER_CACHE.clear();
+      }
+    }
+
+    return headerValue;
+  }
+
   private static byte[] decodeKey(String token) {
     try {
       return Base64.getDecoder().decode(token);
@@ -143,4 +176,6 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
     byte[] hashed = digest.digest(sessionId.getBytes(StandardCharsets.UTF_8));
     return Base64.getUrlEncoder().withoutPadding().encodeToString(hashed);
   }
+
+  private record CacheEntry(String headerValue, long expiresAtMillis) {}
 }
