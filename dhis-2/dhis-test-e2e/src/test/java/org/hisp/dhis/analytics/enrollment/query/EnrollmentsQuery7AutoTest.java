@@ -41,6 +41,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/enrollments/query" endpoint. */
@@ -677,21 +678,44 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Disabled
   public void queryRandom4() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("headers=ouname,enrollmentdate,uIuxlbV1vRT,Bpx0589u8y0")
+            .add("headers=ouname,enrollmentdate")
             .add("displayProperty=NAME")
             .add("totalPages=false")
-            .add("enrollmentDate=2021")
+            // .add("enrollmentDate=2021")
             .add("outputType=ENROLLMENT")
             .add("pageSize=100")
             .add("page=1")
             // .add("dimension=ou:ImspTQPwCqd")
             .add("dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE,pe:2022")
             // .add("relativePeriodDate=2023-07-14")
+            .add("desc=enrollmentdate");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+    System.out.println(response.prettyPrint());
+  }
+
+  @Test
+  @Disabled
+  public void queryRandom5() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=ouname,enrollmentdate,ZzYYXq4fJie.eventstatus, A03MvHHogjR.eventdate")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZzYYXq4fJie.EVENT_STATUS:ACTIVE")
+            .add("dimension=A03MvHHogjR.EVENT_DATE:2021")
             .add("desc=enrollmentdate");
 
     // When

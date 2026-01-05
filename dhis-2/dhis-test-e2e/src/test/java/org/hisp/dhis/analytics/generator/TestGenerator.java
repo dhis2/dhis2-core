@@ -34,7 +34,7 @@ import org.hisp.dhis.analytics.generator.impl.EnrollmentQueryGenerator;
 /** This class simply hold the generator implementation to be used during the code generation. */
 public class TestGenerator {
   static Generator get() {
-    return new EnrollmentQueryGenerator("stageAndEventDate2021");
+    return new EnrollmentQueryGenerator("stageAndOuGroup");
 
     // To generate all e2e tests just return the default constructor.
     // ie.: return new TeiQueryGenerator();

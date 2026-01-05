@@ -79,12 +79,14 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
@@ -157,6 +159,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.InQueryFilter;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -2032,9 +2035,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String extractFiltersAsSql(QueryItem item, String columnName) {
     return item.getFilters().stream()
-        .map(
-            f ->
-                "%s %s %s".formatted(columnName, f.getOperator().getValue(), getSqlFilter(f, item)))
+        .map(f -> buildFilterCondition(f, item, columnName, f.getFilter()))
         .collect(Collectors.joining(" and "));
   }
 
@@ -2059,8 +2060,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                       ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
                       : f.getFilter();
 
-              String sqlFilterValue = getSqlFilterWithResolvedValue(f, item, resolvedFilter);
-              return "%s %s %s".formatted(columnName, f.getOperator().getValue(), sqlFilterValue);
+              return buildFilterCondition(f, item, columnName, resolvedFilter);
             })
         .collect(Collectors.joining(" and "));
   }
@@ -2195,6 +2195,138 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       QueryFilter queryFilter, QueryItem item, String resolvedFilter) {
     String filter = getFilter(resolvedFilter, item);
     return item.getSqlFilter(queryFilter, sqlBuilder.escape(filter), true);
+  }
+
+  /**
+   * Builds a SQL filter condition for the given filter, handling NV (null value) for IN operator.
+   * For IN operator with NV: generates IS NULL condition. For IN operator without NV: generates
+   * standard IN clause. For mixed NV and values: generates (column IN (...) OR column IS NULL).
+   *
+   * @param queryFilter the {@link QueryFilter}.
+   * @param item the {@link QueryItem}.
+   * @param columnName the column name.
+   * @param filterValue the filter value (may be resolved for org units).
+   * @return the SQL condition string.
+   */
+  private String buildFilterCondition(
+      QueryFilter queryFilter, QueryItem item, String columnName, String filterValue) {
+    if (queryFilter.getOperator() == IN) {
+      return buildInFilterCondition(item, columnName, filterValue);
+    }
+
+    String sqlFilterValue = getSqlFilterWithResolvedValue(queryFilter, item, filterValue);
+    return "%s %s %s".formatted(columnName, queryFilter.getOperator().getValue(), sqlFilterValue);
+  }
+
+  /**
+   * Builds a SQL IN filter condition, properly handling NV (null value).
+   *
+   * @param item the {@link QueryItem}.
+   * @param columnName the column name.
+   * @param filterValue the filter value.
+   * @return the SQL IN condition with proper NV handling.
+   */
+  private String buildInFilterCondition(QueryItem item, String columnName, String filterValue) {
+    List<String> filterItems = QueryFilter.getFilterItems(filterValue);
+
+    boolean hasNv = filterItems.stream().anyMatch(NV::equals);
+    List<String> nonNvItems = filterItems.stream().filter(v -> !NV.equals(v)).toList();
+
+    if (nonNvItems.isEmpty() && hasNv) {
+      // Only NV: generate IS NULL
+      return "%s is null".formatted(columnName);
+    } else if (!nonNvItems.isEmpty() && hasNv) {
+      // Mixed: generate (column IN (...) OR column IS NULL)
+      String inClause = buildInClause(item, columnName, nonNvItems);
+      return "(%s or %s is null)".formatted(inClause, columnName);
+    } else {
+      // No NV: standard IN clause
+      return buildInClause(item, columnName, nonNvItems);
+    }
+  }
+
+  /**
+   * Builds a SQL IN clause for the given items.
+   *
+   * @param item the {@link QueryItem}.
+   * @param columnName the column name.
+   * @param values the list of values for the IN clause.
+   * @return the SQL IN clause.
+   */
+  private String buildInClause(QueryItem item, String columnName, List<String> values) {
+    String quotedValues =
+        values.stream()
+            .map(v -> item.isNumeric() ? v : "'" + sqlBuilder.escape(v) + "'")
+            .collect(Collectors.joining(","));
+    return "%s in (%s)".formatted(columnName, quotedValues);
+  }
+
+  /**
+   * Checks if the item has filters that contain non-NV values. NV (null value) filters should NOT
+   * be pushed into CTEs because the semantics require checking if the most recent event's value is
+   * null, not finding events with null values.
+   *
+   * @param item the query item
+   * @return true if the item has filters with non-NV values
+   */
+  private boolean hasNonNvFilter(QueryItem item) {
+    if (!item.hasFilter()) {
+      return false;
+    }
+    return item.getFilters().stream()
+        .anyMatch(
+            filter -> {
+              List<String> filterItems = QueryFilter.getFilterItems(filter.getFilter());
+              return filterItems.stream().anyMatch(v -> !NV.equals(v));
+            });
+  }
+
+  /**
+   * Extracts filters as SQL, excluding NV-only filters. For mixed filters (non-NV + NV), only the
+   * non-NV values are included. NV filters should remain in the WHERE clause, not in the CTE.
+   *
+   * @param item the query item
+   * @param columnName the column name
+   * @param params the event query parameters
+   * @return SQL conditions for non-NV filters only
+   */
+  private String extractNonNvFiltersAsSql(
+      QueryItem item, String columnName, EventQueryParams params) {
+    return item.getFilters().stream()
+        .filter(f -> hasNonNvValues(f))
+        .map(
+            f -> {
+              boolean needsResolution = requiresOrgUnitResolution(item);
+              String resolvedFilter =
+                  needsResolution
+                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
+                      : f.getFilter();
+
+              // For IN operator with mixed values, only include non-NV values
+              if (f.getOperator() == IN) {
+                List<String> filterItems = QueryFilter.getFilterItems(resolvedFilter);
+                List<String> nonNvItems = filterItems.stream().filter(v -> !NV.equals(v)).toList();
+                if (!nonNvItems.isEmpty()) {
+                  return buildInClause(item, columnName, nonNvItems);
+                }
+                return "";
+              }
+
+              return buildFilterCondition(f, item, columnName, resolvedFilter);
+            })
+        .filter(s -> !s.isEmpty())
+        .collect(Collectors.joining(" and "));
+  }
+
+  /**
+   * Checks if a filter has any non-NV values.
+   *
+   * @param filter the query filter
+   * @return true if the filter contains at least one non-NV value
+   */
+  private boolean hasNonNvValues(QueryFilter filter) {
+    List<String> filterItems = QueryFilter.getFilterItems(filter.getFilter());
+    return filterItems.stream().anyMatch(v -> !NV.equals(v));
   }
 
   /**
@@ -2856,7 +2988,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String alias = cteDef.getAlias(offset);
       String joinCondition =
           alias + ".enrollment = ax.enrollment and " + alias + ".rn = " + (offset + 1);
-      builder.leftJoin(itemUid, alias, tableAlias -> joinCondition);
+      // Use INNER JOIN when the query item has a filter, since the WHERE clause
+      // will require non-null values from the CTE anyway. This helps the optimizer
+      // choose more efficient join strategies.
+      if (cteDef.isHasFilter()) {
+        builder.innerJoin(itemUid, alias, tableAlias -> joinCondition);
+      } else {
+        builder.leftJoin(itemUid, alias, tableAlias -> joinCondition);
+      }
     }
   }
 
@@ -3087,8 +3226,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       if (cteContext.containsCte(cteName)) {
         processedItems.add(item);
-        conditions.addAll(
-            buildItemConditions(item, cteContext.getDefinitionByItemUid(cteName), params));
+        CteDefinition cteDef = cteContext.getDefinitionByItemUid(cteName);
+        // Skip adding WHERE clause conditions when the filter is already applied inside
+        // the CTE and we're using INNER JOIN (hasFilter=true). The INNER JOIN guarantees
+        // only matching rows are returned, making the WHERE condition redundant.
+        if (!cteDef.isHasFilter()) {
+          conditions.addAll(buildItemConditions(item, cteDef, params));
+        }
       }
     }
 
@@ -3412,6 +3556,78 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Builds an enrollment pre-filter SQL clause that restricts events to only those whose
+   * enrollments match the query's org unit constraints. This optimization prevents nested loop
+   * explosion where CTEs process all events before the enrollment org unit filter is applied.
+   *
+   * <p>This optimization is only applied when:
+   *
+   * <ul>
+   *   <li>The query has stage-specific items (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, ou)
+   *   <li>The query has org unit filters
+   *   <li>The query is for enrollment analytics
+   * </ul>
+   *
+   * @param params the {@link EventQueryParams}
+   * @return the enrollment pre-filter SQL clause, or empty string if not applicable
+   */
+  private String buildEnrollmentPrefilterSql(EventQueryParams params) {
+    List<DimensionalItemObject> orgUnits = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+
+    if (!params.hasStageSpecificItem()
+        || orgUnits.isEmpty()
+        || getAnalyticsType() != AnalyticsType.ENROLLMENT) {
+      return "";
+    }
+
+    String orgUnitCondition = buildOrgUnitCondition(params, orgUnits);
+    if (orgUnitCondition.isEmpty()) {
+      return "";
+    }
+
+    return " and enrollment in (select enrollment from "
+        + params.getTableName()
+        + " where "
+        + orgUnitCondition
+        + ")";
+  }
+
+  /**
+   * Builds the org unit filter condition for the enrollment pre-filter subquery.
+   *
+   * <p>For SELECTED/CHILDREN modes: {@code ou in ('uid1', 'uid2')}
+   *
+   * <p>For DESCENDANTS mode: {@code ("uidlevel1" = 'uid1' or "uidlevel2" = 'uid2')}
+   *
+   * @param params the {@link EventQueryParams}
+   * @param orgUnits the list of org unit dimension items
+   * @return the org unit filter condition, or empty string if no org units
+   */
+  private String buildOrgUnitCondition(
+      EventQueryParams params, List<DimensionalItemObject> orgUnits) {
+    if (orgUnits.isEmpty()) {
+      return "";
+    }
+
+    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+      return "ou in (" + getQuotedCommaDelimitedString(getUids(orgUnits)) + ")";
+    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+      return "ou in ("
+          + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnitChildren()))
+          + ")";
+    } else {
+      // Descendants mode - use uidlevelX columns
+      StringJoiner conditions = new StringJoiner(" or ");
+      for (DimensionalItemObject object : orgUnits) {
+        OrganisationUnit unit = (OrganisationUnit) object;
+        conditions.add(quote("uidlevel" + unit.getLevel()) + " = '" + unit.getUid() + "'");
+      }
+      String result = conditions.toString();
+      return result.isEmpty() ? "" : "(" + result + ")";
+    }
+  }
+
+  /**
    * Builds the main CTE SQL.
    *
    * @param eventTableName the event table name
@@ -3443,7 +3659,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 order by occurreddate ${orderDirection}, created ${orderDirection}
             ) as rn
         from ${eventTableName}
-        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'${filterConditions}
+        where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'${filterConditions}${enrollmentPrefilter}
         """;
 
     // Determine the effective column name and filter conditions
@@ -3459,13 +3675,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (!stageOuContext.filterCondition().isEmpty()) {
         filterConditions = " and " + stageOuContext.filterCondition();
       }
-    } else if (item.hasFilter()) {
-      // For non-stage.ou dimensions, use the existing filter extraction logic
-      String conditions = extractFiltersAsSql(item, colName, params);
+    } else if (hasNonNvFilter(item)) {
+      // For non-stage.ou dimensions with non-NV filters, add filter to CTE.
+      // NV (null value) filters are NOT added here - they stay in the WHERE clause
+      // because NV semantics require checking if the most recent event's value is null,
+      // not finding events with null values.
+      String conditions = extractNonNvFiltersAsSql(item, colName, params);
       if (!conditions.isEmpty()) {
         filterConditions = " and " + conditions;
       }
     }
+
+    // Build enrollment pre-filter for performance optimization
+    String enrollmentPrefilter = buildEnrollmentPrefilterSql(params);
 
     Map<String, String> values = new HashMap<>();
     values.put("colName", effectiveColName);
@@ -3475,6 +3697,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("programStageUid", item.getProgramStage().getUid());
     values.put("orderDirection", orderDirection);
     values.put("filterConditions", filterConditions);
+    values.put("enrollmentPrefilter", enrollmentPrefilter);
 
     return new StringSubstitutor(values).replace(template);
   }
