@@ -44,7 +44,9 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -70,6 +72,10 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
   private static final int GCM_TAG_LENGTH_BITS = 128;
   private static final String CIPHER_ALGO = "AES/GCM/NoPadding";
   private static final String HASH_ALGO = "SHA-256";
+  private static final String KDF_ALGO = "PBKDF2WithHmacSHA256";
+  private static final int KDF_ITERATIONS = 10000;
+  private static final int KEY_LENGTH_BITS = 256;
+  private static final byte[] KDF_SALT = "dhis2-session-id-header".getBytes(StandardCharsets.UTF_8);
 
   private final boolean enabled;
   private final byte[] keyBytes;
@@ -123,8 +129,10 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
 
   private static byte[] deriveKey(String token) {
     try {
-      MessageDigest digest = MessageDigest.getInstance(HASH_ALGO);
-      return digest.digest(token.getBytes(StandardCharsets.UTF_8));
+      PBEKeySpec spec =
+          new PBEKeySpec(token.toCharArray(), KDF_SALT, KDF_ITERATIONS, KEY_LENGTH_BITS);
+      SecretKeyFactory factory = SecretKeyFactory.getInstance(KDF_ALGO);
+      return factory.generateSecret(spec).getEncoded();
     } catch (GeneralSecurityException ex) {
       throw new IllegalStateException("Unable to derive session header key", ex);
     }

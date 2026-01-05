@@ -39,7 +39,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
 import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.H2DhisConfigurationProvider;
@@ -60,6 +62,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 class SessionIdHeaderFilterTest extends H2ControllerIntegrationTestBase {
   private static final String ENCRYPTION_KEY = "test-session-header-key";
   private static final String HEADER_NAME = "X-Session-ID";
+  private static final String KDF_ALGO = "PBKDF2WithHmacSHA256";
+  private static final int KDF_ITERATIONS = 10000;
+  private static final int KEY_LENGTH_BITS = 256;
+  private static final byte[] KDF_SALT = "dhis2-session-id-header".getBytes(StandardCharsets.UTF_8);
 
   @Autowired private RequestIdFilter requestIdFilter;
   @Autowired private ApiVersionFilter apiVersionFilter;
@@ -90,8 +96,9 @@ class SessionIdHeaderFilterTest extends H2ControllerIntegrationTestBase {
     byte[] combined = Base64.getUrlDecoder().decode(header.substring(3));
     byte[] iv = Arrays.copyOfRange(combined, 0, 12);
     byte[] cipherText = Arrays.copyOfRange(combined, 12, combined.length);
-    byte[] keyBytes =
-        MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8));
+    PBEKeySpec spec = new PBEKeySpec(key.toCharArray(), KDF_SALT, KDF_ITERATIONS, KEY_LENGTH_BITS);
+    SecretKeyFactory factory = SecretKeyFactory.getInstance(KDF_ALGO);
+    byte[] keyBytes = factory.generateSecret(spec).getEncoded();
     Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
     cipher.init(
         Cipher.DECRYPT_MODE, new SecretKeySpec(keyBytes, "AES"), new GCMParameterSpec(128, iv));
