@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
@@ -44,15 +43,13 @@ public abstract class TrackerDataSynchronizationWithPaging
     implements DataSynchronizationWithPaging {
 
   /**
-   * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
+   * Synchronize tracker data (events, enrollments, tracked entities etc.)
    *
    * @param pageSize number of records per page
    * @param progress job progress reporter
-   * @param programUid uid of the program whose tracker data should be synchronized
    * @return result of synchronization
    */
-  public abstract SynchronizationResult synchronizeTrackerData(
-      int pageSize, JobProgress progress, @Nonnull String programUid);
+  public abstract SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress);
 
   /**
    * This method from {@link DataSynchronizationWithPaging} is not directly used here.

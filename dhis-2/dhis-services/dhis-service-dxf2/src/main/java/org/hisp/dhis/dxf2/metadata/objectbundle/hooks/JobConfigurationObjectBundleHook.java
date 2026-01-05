@@ -39,20 +39,16 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
-import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.support.CronExpression;
@@ -158,7 +154,6 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
 
     if (tempJobConfiguration.getJobParameters() != null) {
       tempJobConfiguration.getJobParameters().validate().ifPresent(addReports);
-      validateSingleEventDataSyncJobParameters(jobConfiguration, addReports);
     } else {
       // Report error if JobType requires JobParameters, but it does not
       // exist in JobConfiguration
@@ -259,49 +254,5 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
     return persistedJobConfiguration.getExecutedBy() != null
         && updatedJobConfiguration.getExecutedBy() == null
         && jobType.isValidUserRequiredForJob();
-  }
-
-  private void validateSingleEventDataSyncJobParameters(
-      JobConfiguration jobConfiguration, Consumer<ErrorReport> addReports) {
-    if (jobConfiguration.getJobType() != JobType.SINGLE_EVENT_DATA_SYNC) {
-      return;
-    }
-
-    JobParameters params = jobConfiguration.getJobParameters();
-
-    if (!(params instanceof SingleEventDataSynchronizationJobParameters syncParams)) {
-      return;
-    }
-
-    List<String> programUids = syncParams.getPrograms();
-
-    if (programUids == null || programUids.isEmpty()) {
-      addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4081));
-      return;
-    }
-
-    programUids.forEach(
-        programUid -> {
-          if (StringUtils.isBlank(programUid)) {
-            addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4081));
-            return;
-          }
-
-          Program program = programService.getProgram(programUid);
-
-          if (program == null) {
-            addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4082, programUid));
-            return;
-          }
-
-          if (program.isRegistration()) {
-            addReports.accept(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4083,
-                    program.getUid(),
-                    ProgramType.WITHOUT_REGISTRATION));
-          }
-        });
   }
 }
