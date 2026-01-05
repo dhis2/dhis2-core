@@ -216,14 +216,6 @@ public final class GistQuery {
     return asList(value.split(splitRegex));
   }
 
-  public GistQuery withOwner(Owner owner) {
-    return toBuilder().owner(owner).build();
-  }
-
-  public GistQuery withFilter(Filter filter) {
-    return toBuilder().filters(List.of(filter)).build();
-  }
-
   public GistQuery withoutTypedAttributeValues() {
     return toBuilder().typedAttributeValues(false).build();
   }

@@ -193,6 +193,7 @@ public class GistPipeline {
         .translationLocale(getTranslationLocale(params.getLocale()))
         .typedAttributeValues(true)
         .translate(params.isTranslate())
+        .references(params.isReferences())
         .absoluteUrls(params.isAbsoluteUrls())
         .fields(GistQuery.Field.ofList(input.params().fields))
         .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
@@ -200,7 +201,8 @@ public class GistPipeline {
   }
 
   private GistQuery createPropertyListQuery(
-      GistObjectProperty.Input input, Class<? extends PrimaryKeyObject> collectionItemType) {
+      GistObjectProperty.Input input, Class<? extends PrimaryKeyObject> collectionItemType)
+      throws BadRequestException {
     GistObjectPropertyParams params = input.params();
     int page = abs(params.getPage());
     int size = Math.min(1000, abs(params.getPageSize()));
@@ -211,11 +213,14 @@ public class GistPipeline {
         .requestURL(input.requestURL())
         .translationLocale(getTranslationLocale(params.getLocale()))
         .typedAttributeValues(true)
+        .total(params.isCountTotalPages())
         .paging(true)
         .pageSize(size)
         .pageOffset(Math.max(0, page - 1) * size)
         .translate(params.isTranslate())
         .absoluteUrls(params.isAbsoluteUrls())
+        .headless(params.isHeadless())
+        .references(params.isReferences())
         .inverse(params.isInverse())
         .filters(GistQuery.Filter.ofList(params.getFilter()))
         .fields(GistQuery.Field.ofList(input.params().getFields()))
