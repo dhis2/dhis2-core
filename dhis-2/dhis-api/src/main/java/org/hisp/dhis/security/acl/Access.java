@@ -162,11 +162,11 @@ public class Access implements EmbeddedObject, JsonBuilder.JsonEncodable {
         .addBoolean("write", isWrite())
         .addBoolean("read", isRead())
         .addBoolean("update", isUpdate())
-        .addBoolean("delete", isDelete())
-        .addObject(
-            "data",
-            data ->
-                data.addBoolean("read", getData().isRead())
-                    .addBoolean("write", getData().isWrite()));
+        .addBoolean("delete", isDelete());
+    if (getData() != null)
+      obj.addObject(
+          "data",
+          data ->
+              data.addBoolean("read", getData().isRead()).addBoolean("write", getData().isWrite()));
   }
 }

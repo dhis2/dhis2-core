@@ -202,16 +202,23 @@ public class GistPipeline {
   private GistQuery createPropertyListQuery(
       GistObjectProperty.Input input, Class<? extends PrimaryKeyObject> collectionItemType) {
     GistObjectPropertyParams params = input.params();
+    int page = abs(params.getPage());
+    int size = Math.min(1000, abs(params.getPageSize()));
     return GistQuery.builder()
         .elementType(collectionItemType)
         .autoType(params.getAuto(GistAutoType.M))
+        .contextRoot(input.contextRoot())
+        .requestURL(input.requestURL())
         .translationLocale(getTranslationLocale(params.getLocale()))
         .typedAttributeValues(true)
+        .paging(true)
+        .pageSize(size)
+        .pageOffset(Math.max(0, page - 1) * size)
         .translate(params.isTranslate())
         .absoluteUrls(params.isAbsoluteUrls())
         .inverse(params.isInverse())
-        .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
-        .fields(GistQuery.Field.ofList(input.property()))
+        .filters(GistQuery.Filter.ofList(params.getFilter()))
+        .fields(GistQuery.Field.ofList(input.params().getFields()))
         .owner(
             GistQuery.Owner.builder()
                 .id(input.id().getValue())

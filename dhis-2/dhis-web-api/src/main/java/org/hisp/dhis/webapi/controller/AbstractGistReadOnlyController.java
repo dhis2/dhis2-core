@@ -138,10 +138,12 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
       GistObjectPropertyParams params,
+      HttpServletRequest request,
       HttpServletResponse response)
       throws BadRequestException, NotFoundException {
     GistObjectProperty.Input input =
-        new GistObjectProperty.Input(getEntityClass(), uid, property, params);
+        new GistObjectProperty.Input(
+            getEntityClass(), uid, property, getRootPath(request), getRequestURL(request), params);
     gistPipeline.exportPropertyAsJson(input, lazyOutputStream("application/json", response));
   }
 
@@ -153,10 +155,12 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
       GistObjectPropertyParams params,
+      HttpServletRequest request,
       HttpServletResponse response)
       throws BadRequestException, NotFoundException {
     GistObjectProperty.Input input =
-        new GistObjectProperty.Input(getEntityClass(), uid, property, params);
+        new GistObjectProperty.Input(
+            getEntityClass(), uid, property, getRootPath(request), getRequestURL(request), params);
     gistPipeline.exportPropertyAsCsv(input, lazyOutputStream("text/csv", response));
   }
 

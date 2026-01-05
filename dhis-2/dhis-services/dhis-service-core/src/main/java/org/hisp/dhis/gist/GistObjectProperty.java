@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import static java.util.Objects.requireNonNull;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
@@ -41,6 +42,8 @@ public record GistObjectProperty() {
       @Nonnull Class<? extends PrimaryKeyObject> objectType,
       @Nonnull UID id,
       @Nonnull String property,
+      @CheckForNull String contextRoot,
+      @CheckForNull String requestURL,
       @Nonnull GistObjectPropertyParams params) {
 
     public Input {
