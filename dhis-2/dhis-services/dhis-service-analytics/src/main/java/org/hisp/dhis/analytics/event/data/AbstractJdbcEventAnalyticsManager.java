@@ -2293,7 +2293,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String extractNonNvFiltersAsSql(
       QueryItem item, String columnName, EventQueryParams params) {
     return item.getFilters().stream()
-        .filter(f -> hasNonNvValues(f))
+        .filter(this::hasNonNvValues)
         .map(
             f -> {
               boolean needsResolution = requiresOrgUnitResolution(item);
