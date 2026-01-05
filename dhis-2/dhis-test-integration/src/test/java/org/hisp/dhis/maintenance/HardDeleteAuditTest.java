@@ -30,6 +30,7 @@
 package org.hisp.dhis.maintenance;
 
 import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;

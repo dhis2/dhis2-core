@@ -1,0 +1,124 @@
+{
+  "users": [
+    {
+      "id": "UserUid0001",
+      "firstName": "Platform-User-1",
+      "surname": "test",
+      "username": "PlatformUser1",
+      "password": "Test111!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0002",
+      "firstName": "Platform-User-2",
+      "surname": "test",
+      "username": "PlatformUser2",
+      "password": "Test222!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0003",
+      "firstName": "Platform-User-3",
+      "surname": "test",
+      "username": "PlatformUser3",
+      "password": "Test333!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0004",
+      "firstName": "Platform-User-4",
+      "surname": "test",
+      "username": "PlatformUser4",
+      "password": "Test444!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0005",
+      "firstName": "Platform-User-5",
+      "surname": "test",
+      "username": "PlatformUser5",
+      "password": "Test555!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0006",
+      "firstName": "Platform-User-6",
+      "surname": "test",
+      "username": "PlatformUser6",
+      "password": "Test666!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0007",
+      "firstName": "Platform-User-7",
+      "surname": "test",
+      "username": "PlatformUser7",
+      "password": "Test777!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0008",
+      "firstName": "Platform-User-8",
+      "surname": "test",
+      "username": "PlatformUser8",
+      "password": "Test888!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0009",
+      "firstName": "Platform-User-9",
+      "surname": "test",
+      "username": "PlatformUser9",
+      "password": "Test999!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    },
+    {
+      "id": "UserUid0010",
+      "firstName": "Platform-User-10",
+      "surname": "test",
+      "username": "PlatformUser10",
+      "password": "Test101010!",
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ]
+    }
+  ]
+}

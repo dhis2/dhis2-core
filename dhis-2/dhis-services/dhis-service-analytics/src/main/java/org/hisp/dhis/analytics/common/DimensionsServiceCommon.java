@@ -43,7 +43,6 @@ import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.PERCENTAGE;
 import static org.hisp.dhis.common.ValueType.REFERENCE;
-import static org.hisp.dhis.common.ValueType.TRACKER_ASSOCIATE;
 import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 
@@ -65,7 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class DimensionsServiceCommon {
 
   protected static final EnumSet<ValueType> QUERY_DISALLOWED_VALUE_TYPES =
-      EnumSet.of(IMAGE, FILE_RESOURCE, TRACKER_ASSOCIATE);
+      EnumSet.of(IMAGE, FILE_RESOURCE);
 
   protected static final EnumSet<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES =
       EnumSet.of(
@@ -80,8 +79,7 @@ public class DimensionsServiceCommon {
           TRUE_ONLY);
 
   protected static final EnumSet<ValueType> ENROLLMENT_AGGREGATE_DISALLOWED_VALUE_TYPES =
-      EnumSet.of(
-          COORDINATE, FILE_RESOURCE, GEOJSON, IMAGE, MULTI_TEXT, REFERENCE, TRACKER_ASSOCIATE);
+      EnumSet.of(COORDINATE, FILE_RESOURCE, GEOJSON, IMAGE, MULTI_TEXT, REFERENCE);
 
   private static final Map<OperationType, Predicate<ValueType>> OPERATION_FILTER =
       Map.of(

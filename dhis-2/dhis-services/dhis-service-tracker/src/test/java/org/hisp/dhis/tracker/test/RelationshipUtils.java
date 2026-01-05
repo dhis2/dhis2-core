@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.utils;
+package org.hisp.dhis.tracker.test;
 
 import java.util.Objects;
 import org.apache.commons.lang3.ObjectUtils;

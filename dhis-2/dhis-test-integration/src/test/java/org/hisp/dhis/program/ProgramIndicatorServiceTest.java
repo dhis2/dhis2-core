@@ -36,6 +36,9 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -273,13 +276,13 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
+    org.hisp.dhis.program.TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
     eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
-    TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
+    org.hisp.dhis.program.TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
     eventB.setOccurredDate(occurredDate);
     manager.save(eventB);
-    Set<TrackerEvent> events = new HashSet<>();
+    Set<org.hisp.dhis.program.TrackerEvent> events = new HashSet<>();
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------

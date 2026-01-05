@@ -72,12 +72,12 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,7 +93,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-class ProgramNotificationServiceTest extends TestBase {
+class ProgramNotificationServiceTest extends TrackerTestBase {
 
   private static final String SUBJECT = "subject";
 
