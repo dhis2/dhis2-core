@@ -194,6 +194,7 @@ public class GistPipeline {
         .typedAttributeValues(true)
         .translate(params.isTranslate())
         .absoluteUrls(params.isAbsoluteUrls())
+        .fields(GistQuery.Field.ofList(input.params().fields))
         .filters(List.of(new GistQuery.Filter("id", EQ, input.id().getValue())))
         .build();
   }
