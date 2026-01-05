@@ -280,30 +280,28 @@ public class JobConfigurationObjectBundleHook extends AbstractObjectBundleHook<J
       return;
     }
 
-    programUids.stream()
-        .filter(Objects::nonNull)
-        .forEach(
-            programUid -> {
-              if (StringUtils.isBlank(programUid)) {
-                addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4081));
-                return;
-              }
+    programUids.forEach(
+        programUid -> {
+          if (StringUtils.isBlank(programUid)) {
+            addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4081));
+            return;
+          }
 
-              Program program = programService.getProgram(programUid);
+          Program program = programService.getProgram(programUid);
 
-              if (program == null) {
-                addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4082, programUid));
-                return;
-              }
+          if (program == null) {
+            addReports.accept(new ErrorReport(this.getClass(), ErrorCode.E4082, programUid));
+            return;
+          }
 
-              if (program.isRegistration()) {
-                addReports.accept(
-                    new ErrorReport(
-                        this.getClass(),
-                        ErrorCode.E4083,
-                        program.getUid(),
-                        ProgramType.WITHOUT_REGISTRATION));
-              }
-            });
+          if (program.isRegistration()) {
+            addReports.accept(
+                new ErrorReport(
+                    this.getClass(),
+                    ErrorCode.E4083,
+                    program.getUid(),
+                    ProgramType.WITHOUT_REGISTRATION));
+          }
+        });
   }
 }
