@@ -146,6 +146,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndEventStatusActiveAndEventDate2021",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,ZzYYXq4fJie.eventstatus,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=ZzYYXq4fJie.EVENT_STATUS:ACTIVE&dimension=A03MvHHogjR.EVENT_DATE:2021&desc=enrollmentdate",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

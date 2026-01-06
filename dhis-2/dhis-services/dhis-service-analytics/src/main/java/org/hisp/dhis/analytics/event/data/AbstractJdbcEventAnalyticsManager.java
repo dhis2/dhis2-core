@@ -1334,7 +1334,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addNumberValue(
       Grid grid, GridHeader header, EventQueryParams params, Number number) {
-    double doubleValue = number.doubleValue();
+    Double doubleValue = number.doubleValue();
 
     // NaN (Not-a-Number) is also treated as an empty/invalid value in this context.
     if (!Double.isNaN(doubleValue)) {
@@ -3328,7 +3328,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     String orgUnitCondition = buildOrgUnitCondition(params, orgUnits);
-    if (orgUnitCondition.isEmpty()) {
+    if (isBlank(orgUnitCondition)) {
       return "";
     }
 
@@ -3370,7 +3370,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         conditions.add(quote("uidlevel" + unit.getLevel()) + " = '" + unit.getUid() + "'");
       }
       String result = conditions.toString();
-      return result.isEmpty() ? "" : "(" + result + ")";
+      return isBlank(result) ? "" : "(" + result + ")";
     }
   }
 
@@ -3420,7 +3420,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           buildStageOuCteContext(item, params);
       effectiveColName = stageOuContext.valueColumn();
       additionalCols = " " + stageOuContext.additionalSelectColumns();
-      if (!stageOuContext.filterCondition().isEmpty()) {
+      if (isNotBlank(stageOuContext.filterCondition())) {
         filterConditions = " and " + stageOuContext.filterCondition();
       }
     } else if (filterBuilder.hasNonNvFilter(item)) {
@@ -3429,7 +3429,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       // because NV semantics require checking if the most recent event's value is null,
       // not finding events with null values.
       String conditions = filterBuilder.extractNonNvFiltersAsSql(item, colName, params);
-      if (!conditions.isEmpty()) {
+      if (isNotBlank(conditions)) {
         filterConditions = " and " + conditions;
       }
     }
