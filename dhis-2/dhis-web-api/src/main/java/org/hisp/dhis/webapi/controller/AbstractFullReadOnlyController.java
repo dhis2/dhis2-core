@@ -550,6 +550,7 @@ public abstract class AbstractFullReadOnlyController<
         return "private, max-age=" + maxAgeSeconds;
       }
     } catch (NumberFormatException ignored) {
+      // continue to log warning below and return default
     }
     log.warn(
         "Invalid value '{}' for config key '{}'; using default Cache-Control",
