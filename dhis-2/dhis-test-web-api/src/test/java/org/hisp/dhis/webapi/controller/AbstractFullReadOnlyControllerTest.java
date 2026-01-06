@@ -35,7 +35,6 @@ import static org.hisp.dhis.test.utils.CsvUtils.getValueFromCsv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.CacheControl.noCache;
 
@@ -146,23 +145,23 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  void testCacheControlHeader_OffDisablesHeader() {
-    setPrivateCacheControl("off");
-    createDataElements(1);
-
-    String header = GET("/dataElements?fields=id").header("Cache-Control");
-
-    assertNull(header);
-  }
-
-  @Test
   void testCacheControlHeader_CustomValue() {
-    setPrivateCacheControl("private, max-age=3600");
+    setPrivateCacheControl("3600");
     createDataElements(1);
 
     String header = GET("/dataElements?fields=id").header("Cache-Control");
 
     assertEquals("private, max-age=3600", header);
+  }
+
+  @Test
+  void testCacheControlHeader_TooLargeFallsBackToDefault() {
+    setPrivateCacheControl("31536001");
+    createDataElements(1);
+
+    String header = GET("/dataElements?fields=id").header("Cache-Control");
+
+    assertEquals(noCache().cachePrivate().getHeaderValue(), header);
   }
 
   private void createDataElements(int count) {
@@ -175,6 +174,6 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
   private void setPrivateCacheControl(String value) {
     dhisConfig
         .getProperties()
-        .setProperty(ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL.getKey(), value);
+        .setProperty(ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL_TTL.getKey(), value);
   }
 }

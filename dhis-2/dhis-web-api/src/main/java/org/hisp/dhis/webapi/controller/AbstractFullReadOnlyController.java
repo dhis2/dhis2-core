@@ -29,8 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL;
-import static org.hisp.dhis.external.conf.DhisConfigurationProvider.DISABLED_VALUE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL_TTL;
 import static org.springframework.http.CacheControl.noCache;
 
 import com.fasterxml.jackson.databind.SequenceWriter;
@@ -87,6 +86,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -106,11 +106,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @Maturity.Stable
 @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractFullReadOnlyController<
         T extends IdentifiableObject, P extends GetObjectListParams>
     extends AbstractGistReadOnlyController<T> {
+
+  private static final int MAX_CACHE_CONTROL_SECONDS = 31_536_000;
 
   @Autowired protected IdentifiableObjectManager manager;
 
@@ -535,17 +538,24 @@ public abstract class AbstractFullReadOnlyController<
       return noCache().cachePrivate().getHeaderValue();
     }
 
-    String headerValue = dhisConfig.getProperty(HTTP_PRIVATE_CACHE_CONTROL);
+    String headerValue = dhisConfig.getProperty(HTTP_PRIVATE_CACHE_CONTROL_TTL);
     if (headerValue == null || headerValue.isBlank()) {
       return noCache().cachePrivate().getHeaderValue();
     }
 
     String normalized = headerValue.trim();
-    if (DISABLED_VALUE.equalsIgnoreCase(normalized)) {
-      return null;
-    }
+    try {
+      int maxAgeSeconds = Integer.parseInt(normalized);
+      if (maxAgeSeconds > 0 && maxAgeSeconds <= MAX_CACHE_CONTROL_SECONDS) {
+        return "private, max-age=" + maxAgeSeconds;
+      }
+    } catch (NumberFormatException ignored) {}
+    log.warn(
+        "Invalid value '{}' for config key '{}'; using default Cache-Control",
+        normalized,
+        HTTP_PRIVATE_CACHE_CONTROL_TTL.getKey());
 
-    return normalized;
+    return noCache().cachePrivate().getHeaderValue();
   }
 
   private boolean hasHref(List<String> fields) {
