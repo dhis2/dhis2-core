@@ -666,11 +666,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (isStageOuDimension(item)) {
       String stageUid = item.getProgramStage().getUid();
       columns.add(
-          "%s.ev_ouname as %s"
-              .formatted(cteDef.getAlias(programStageOffset), quote(stageUid + ".ouname")));
+          "%s.%s as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  STAGE_OU_NAME_COLUMN,
+                  quote(stageUid + ".ouname")));
       columns.add(
-          "%s.ev_oucode as %s"
-              .formatted(cteDef.getAlias(programStageOffset), quote(stageUid + ".oucode")));
+          "%s.%s as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  STAGE_OU_CODE_COLUMN,
+                  quote(stageUid + ".oucode")));
     }
 
     if (cteDef.isRowContext()) {

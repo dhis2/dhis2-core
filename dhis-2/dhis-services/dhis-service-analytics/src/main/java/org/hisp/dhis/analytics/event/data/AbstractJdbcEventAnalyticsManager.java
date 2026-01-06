@@ -237,6 +237,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
+  protected static final String STAGE_OU_NAME_COLUMN = "ev_ouname";
+
+  protected static final String STAGE_OU_CODE_COLUMN = "ev_oucode";
+
   static final String COL_VALUE = "value";
 
   static final String OUTER_SQL_ALIAS = "t1";
@@ -2113,7 +2117,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // Additional columns for stage.ou: ouname and oucode
     String additionalSelectColumns =
-        quote("ouname") + " as ev_ouname, " + quote("oucode") + " as ev_oucode,";
+        quote("ouname")
+            + " as "
+            + STAGE_OU_NAME_COLUMN
+            + ", "
+            + quote("oucode")
+            + " as "
+            + STAGE_OU_CODE_COLUMN
+            + ",";
 
     if (orgUnitsByLevel.isEmpty()) {
       return new StageOuCteContext(
@@ -3411,7 +3422,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                 // Inner select needs the raw columns with aliases
                 innerAdditionalCols = " " + stageOuContext.additionalSelectColumns();
                 // Outer select references the aliased columns
-                outerAdditionalCols = ", ev_ouname, ev_oucode";
+                outerAdditionalCols = ", " + STAGE_OU_NAME_COLUMN + ", " + STAGE_OU_CODE_COLUMN;
               } else {
                 effectiveColName = quote(item.getItemName());
                 filterConditions = extractFiltersAsSql(item, effectiveColName, params);
@@ -3503,9 +3514,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       effectiveColName = stageOuContext.valueColumn();
       // Inner select needs evt. prefix for raw columns
       innerAdditionalCols =
-          " evt." + quote("ouname") + " as ev_ouname, evt." + quote("oucode") + " as ev_oucode,";
+          " evt."
+              + quote("ouname")
+              + " as "
+              + STAGE_OU_NAME_COLUMN
+              + ", evt."
+              + quote("oucode")
+              + " as "
+              + STAGE_OU_CODE_COLUMN
+              + ",";
       // Outer select references the aliased columns from inner subquery
-      outerAdditionalCols = ", evt.ev_ouname, evt.ev_oucode";
+      outerAdditionalCols = ", evt." + STAGE_OU_NAME_COLUMN + ", evt." + STAGE_OU_CODE_COLUMN;
       if (!stageOuContext.filterCondition().isEmpty()) {
         // Add evt. prefix to each uidlevel column reference
         String prefixedCondition =

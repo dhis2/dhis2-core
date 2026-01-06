@@ -30,7 +30,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
@@ -42,10 +45,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -144,7 +150,35 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Test
   void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter() {
+    String numericValues = String.join(OPTION_SEP, "10", "11", "12");
+    String inClause = " in (" + String.join(",", numericValues.split(OPTION_SEP)) + ")";
+
+    // Non-NV filters are now pushed into the CTE for better query performance
     String cte =
+        noEof(
+                """
+                ( select enrollment,
+                         "fWIAEtYVEGk" as value,
+                         row_number() over (
+                            partition by enrollment order by occurreddate desc, created desc ) as rn
+                  from analytics_event_%s
+                  where eventstatus != 'SCHEDULE' and ps = '%s' and "fWIAEtYVEGk"%s )
+                """)
+            .formatted(programA.getUid(), programStage.getUid(), inClause);
+
+    Collection<Consumer<String>> assertions =
+        Arrays.asList(
+            sql -> assertThat(sql, containsString(cte)),
+            sql -> assertThat(sql, containsString(inClause)));
+
+    testIt(IN, numericValues, assertions);
+  }
+
+  @Test
+  void verifyGetEnrollmentsWithNvOnlyFilterKeepsNvInWhereClause() {
+    // NV-only filters should NOT be pushed into CTE - they stay in WHERE clause
+    // because NV semantics require checking if the most recent event's value is null
+    String cteWithoutNvFilter =
         noEof(
                 """
                 ( select enrollment,
@@ -156,24 +190,103 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
                 """)
             .formatted(programA.getUid(), programStage.getUid());
 
-    String numericValues = String.join(OPTION_SEP, "10", "11", "12");
-    String inClause = " in (" + String.join(",", numericValues.split(OPTION_SEP)) + ")";
+    Collection<Consumer<String>> assertions =
+        Arrays.asList(
+            // CTE should NOT contain NV filter condition
+            sql -> assertThat(sql, containsString(cteWithoutNvFilter)),
+            // NV filter should be in WHERE clause as IS NULL check
+            sql -> assertThat(sql, containsString("is null")));
+
+    testIt(IN, NV, assertions);
+  }
+
+  @Test
+  void verifyGetEnrollmentsWithMixedNvAndNumericValuesInFilter() {
+    // Mixed filters: non-NV values go to CTE, NV is stripped from CTE filter
+    String numericValues = String.join(OPTION_SEP, "10", "11", NV);
+    String nonNvInClause = " in (10,11)";
+
+    // CTE should only contain non-NV values (NV is stripped)
+    String cteWithNonNvFilter =
+        noEof(
+                """
+                ( select enrollment,
+                         "fWIAEtYVEGk" as value,
+                         row_number() over (
+                            partition by enrollment order by occurreddate desc, created desc ) as rn
+                  from analytics_event_%s
+                  where eventstatus != 'SCHEDULE' and ps = '%s' and "fWIAEtYVEGk"%s )
+                """)
+            .formatted(programA.getUid(), programStage.getUid(), nonNvInClause);
+
+    Collection<Consumer<String>> assertions =
+        Arrays.asList(
+            sql -> assertThat(sql, containsString(cteWithNonNvFilter)),
+            // Non-NV values should be in CTE
+            sql -> assertThat(sql, containsString(nonNvInClause)),
+            // NV should NOT appear in CTE filter - it's stripped
+            sql -> assertThat(sql, not(containsString("in (10,11," + NV + ")"))));
+
+    testIt(IN, numericValues, assertions);
+  }
+
+  @Test
+  void verifyGetEnrollmentsWithTextValuesInFilter() {
+    String textValues = String.join(OPTION_SEP, "ValueA", "ValueB", "ValueC");
+    String inClause = " in ('ValueA','ValueB','ValueC')";
+
+    // Text filters are also pushed into CTE
+    String cte =
+        noEof(
+                """
+                ( select enrollment,
+                         "fWIAEtYVEGk" as value,
+                         row_number() over (
+                            partition by enrollment order by occurreddate desc, created desc ) as rn
+                  from analytics_event_%s
+                  where eventstatus != 'SCHEDULE' and ps = '%s' and "fWIAEtYVEGk"%s )
+                """)
+            .formatted(programA.getUid(), programStage.getUid(), inClause);
 
     Collection<Consumer<String>> assertions =
         Arrays.asList(
             sql -> assertThat(sql, containsString(cte)),
-            sql -> {
-              // check that the IN clause is in the root query where condition
-              var whereToOrderBy =
-                  sql.toLowerCase()
-                      .substring(
-                          sql.toLowerCase().lastIndexOf("where"),
-                          sql.toLowerCase().lastIndexOf("limit"));
-              assertThat(whereToOrderBy, containsString(inClause));
-            },
             sql -> assertThat(sql, containsString(inClause)));
 
-    testIt(IN, numericValues, assertions);
+    testIt(IN, textValues, ValueType.TEXT, assertions);
+  }
+
+  @Test
+  void verifyGetEnrollmentsWithStageOuDimensionIncludesOuNameAndCode() {
+    // Stage.ou dimensions should include ev_ouname and ev_oucode columns
+    // This tests the STAGE_OU_NAME_COLUMN and STAGE_OU_CODE_COLUMN constants
+    EventQueryParams params = createStageOuRequestParams();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    // Verify CTE includes ev_ouname and ev_oucode columns
+    assertThat(generatedSql, containsString("ev_ouname"));
+    assertThat(generatedSql, containsString("ev_oucode"));
+    // Verify output aliases use stage UID prefix
+    assertThat(generatedSql, containsString(programStage.getUid() + ".ouname"));
+    assertThat(generatedSql, containsString(programStage.getUid() + ".oucode"));
+  }
+
+  private EventQueryParams createStageOuRequestParams() {
+    // Create a stage.ou dimension query item
+    BaseDimensionalItemObject ouItem = new BaseDimensionalItemObject(OU_COLUMN_NAME);
+    QueryItem queryItem = new QueryItem(ouItem);
+    queryItem.setItem(ouItem);
+    queryItem.setProgramStage(programStage);
+    queryItem.setProgram(programA);
+    queryItem.setValueType(ValueType.ORGANISATION_UNIT);
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(queryItem);
+    return params.build();
   }
 
   @Override
@@ -183,8 +296,16 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   private void testIt(
       QueryOperator operator, String filter, Collection<Consumer<String>> assertions) {
+    testIt(operator, filter, ValueType.INTEGER, assertions);
+  }
+
+  private void testIt(
+      QueryOperator operator,
+      String filter,
+      ValueType valueType,
+      Collection<Consumer<String>> assertions) {
     subject.getEnrollments(
-        createRequestParamsWithFilter(programStage, ValueType.INTEGER, operator, filter),
+        createRequestParamsWithFilter(programStage, valueType, operator, filter),
         new ListGrid(),
         10000);
     verify(jdbcTemplate).queryForRowSet(sql.capture());
