@@ -69,6 +69,8 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeader
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
@@ -101,7 +103,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -237,10 +238,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-  protected static final String STAGE_OU_NAME_COLUMN = "ev_ouname";
-
-  protected static final String STAGE_OU_CODE_COLUMN = "ev_oucode";
-
   static final String COL_VALUE = "value";
 
   static final String OUTER_SQL_ALIAS = "t1";
@@ -277,6 +274,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final OrganisationUnitResolver organisationUnitResolver;
 
   protected final ColumnMapper columnMapper;
+
+  protected final QueryItemFilterBuilder filterBuilder;
 
   static final String ANALYTICS_EVENT = "analytics_event_";
 
@@ -1335,7 +1334,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addNumberValue(
       Grid grid, GridHeader header, EventQueryParams params, Number number) {
-    Double doubleValue = number.doubleValue();
+    double doubleValue = number.doubleValue();
 
     // NaN (Not-a-Number) is also treated as an empty/invalid value in this context.
     if (!Double.isNaN(doubleValue)) {
@@ -1440,10 +1439,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     final int largerScale = 10;
     Double roundedValue =
         skipDefaultRounding ? getRoundedObject(number, largerScale) : getRoundedObject(number);
-    String noTrailingZerosValue =
-        BigDecimal.valueOf(roundedValue).stripTrailingZeros().toPlainString();
 
-    return noTrailingZerosValue;
+    return BigDecimal.valueOf(roundedValue).stripTrailingZeros().toPlainString();
   }
 
   protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper helper) {
@@ -2028,22 +2025,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Transforms the query item filters into an "and" separated SQL string. For instance, if the
-   * query item has filters with values "a" and "b" and the operator is "eq", the resulting SQL
-   * string will be "column = 'a' and column = 'b'". If the query item has no filters, an empty
-   * string is returned.
-   *
-   * @param item the {@link QueryItem}.
-   * @param columnName the column name.
-   * @return the SQL string.
-   */
-  protected String extractFiltersAsSql(QueryItem item, String columnName) {
-    return item.getFilters().stream()
-        .map(f -> buildFilterCondition(f, item, columnName, f.getFilter()))
-        .collect(Collectors.joining(" and "));
-  }
-
-  /**
    * Transforms the query item filters into an "and" separated SQL string, resolving special
    * organisation unit keywords like USER_ORGUNIT. For instance, if the query item has filters with
    * values "a" and "b" and the operator is "eq", the resulting SQL string will be "column = 'a' and
@@ -2055,37 +2036,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the SQL string.
    */
   protected String extractFiltersAsSql(QueryItem item, String columnName, EventQueryParams params) {
-    return item.getFilters().stream()
-        .map(
-            f -> {
-              boolean needsResolution = requiresOrgUnitResolution(item);
-              String resolvedFilter =
-                  needsResolution
-                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
-                      : f.getFilter();
-
-              return buildFilterCondition(f, item, columnName, resolvedFilter);
-            })
-        .collect(Collectors.joining(" and "));
-  }
-
-  /**
-   * Checks if the query item requires organisation unit resolution.
-   *
-   * @param item the {@link QueryItem}.
-   * @return true if the item is either a stage.ou dimension or a data element of type
-   *     ORGANISATION_UNIT.
-   */
-  private boolean requiresOrgUnitResolution(QueryItem item) {
-    // Data element of type ORGANISATION_UNIT (this catches stage.ou dimension as well
-    // since it's created with ValueType.ORGANISATION_UNIT in DefaultQueryItemLocator)
-    if (item.getValueType() == ValueType.ORGANISATION_UNIT) {
-      return true;
-    }
-    // Also check the item ID/name for robustness (stage.ou dimension)
-    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
-    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
-        && item.hasProgramStage();
+    return filterBuilder.extractFiltersAsSql(item, columnName, params);
   }
 
   /**
@@ -2097,9 +2048,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the item is a stage.ou dimension
    */
   protected boolean isStageOuDimension(QueryItem item) {
-    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
-    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
-        && item.hasProgramStage();
+    return OrganisationUnitResolver.isStageOuDimension(item);
   }
 
   /**
@@ -2109,235 +2058,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *
    * @param item the {@link QueryItem} representing the stage.ou dimension
    * @param params the {@link EventQueryParams} used to resolve org unit keywords
-   * @return a {@link StageOuCteContext} containing the value column and filter condition
+   * @return a {@link OrganisationUnitResolver.StageOuCteContext} containing the value column and
+   *     filter condition
    */
-  private StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
-    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
-        organisationUnitResolver.resolveOrgUnitsGroupedByLevel(params, item);
-
-    // Additional columns for stage.ou: ouname and oucode
-    String additionalSelectColumns =
-        quote("ouname")
-            + " as "
-            + STAGE_OU_NAME_COLUMN
-            + ", "
-            + quote("oucode")
-            + " as "
-            + STAGE_OU_CODE_COLUMN
-            + ",";
-
-    if (orgUnitsByLevel.isEmpty()) {
-      return new StageOuCteContext(
-          quote("ou"), "", additionalSelectColumns); // fallback to raw ou column
-    }
-
-    // Sort levels from most specific (highest) to least specific (lowest)
-    List<Integer> sortedLevels =
-        orgUnitsByLevel.keySet().stream().sorted(Comparator.reverseOrder()).toList();
-
-    // Build value column expression
-    String valueColumn;
-    if (sortedLevels.size() == 1) {
-      // Single level: just use the column directly
-      valueColumn = quote("uidlevel" + sortedLevels.get(0));
-    } else {
-      // Multiple levels: use CASE to return the matching value
-      StringBuilder caseExpr = new StringBuilder("case");
-      for (int level : sortedLevels) {
-        List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
-        String column = quote("uidlevel" + level);
-        String quotedUids =
-            orgUnits.stream()
-                .map(OrganisationUnit::getUid)
-                .filter(StringUtils::isNotEmpty)
-                .map(uid -> "'" + uid + "'")
-                .collect(joining(","));
-        caseExpr
-            .append(" when ")
-            .append(column)
-            .append(" in (")
-            .append(quotedUids)
-            .append(") THEN ")
-            .append(column);
-      }
-      caseExpr.append(" end");
-      valueColumn = caseExpr.toString();
-    }
-
-    // Build WHERE conditions for each level (OR'd together since we want rows matching any org
-    // unit)
-    StringJoiner conditions = new StringJoiner(" or ");
-    for (int level : sortedLevels) {
-      List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
-      String column = quote("uidlevel" + level);
-      String quotedUids =
-          orgUnits.stream()
-              .map(OrganisationUnit::getUid)
-              .filter(StringUtils::isNotEmpty)
-              .map(uid -> "'" + uid + "'")
-              .collect(joining(","));
-      conditions.add(column + " in (" + quotedUids + ")");
-    }
-
-    // Wrap in parentheses to ensure proper grouping when combined with other conditions
-    String filterCondition =
-        sortedLevels.size() > 1 ? "(" + conditions + ")" : conditions.toString();
-
-    return new StageOuCteContext(valueColumn, filterCondition, additionalSelectColumns);
-  }
-
-  /**
-   * Contains the column name to use in SELECT (most specific level), the WHERE condition string
-   * with proper uidlevelX comparisons, and additional columns (ouname, oucode) for stage.ou
-   * dimensions.
-   */
-  private record StageOuCteContext(
-      String valueColumn, String filterCondition, String additionalSelectColumns) {}
-
-  /**
-   * Returns the SQL filter value using a pre-resolved filter string.
-   *
-   * @param queryFilter the {@link QueryFilter}.
-   * @param item the {@link QueryItem}.
-   * @param resolvedFilter the resolved filter value.
-   * @return the SQL filter string.
-   */
-  private String getSqlFilterWithResolvedValue(
-      QueryFilter queryFilter, QueryItem item, String resolvedFilter) {
-    String filter = getFilter(resolvedFilter, item);
-    return item.getSqlFilter(queryFilter, sqlBuilder.escape(filter), true);
-  }
-
-  /**
-   * Builds a SQL filter condition for the given filter, handling NV (null value) for IN operator.
-   * For IN operator with NV: generates IS NULL condition. For IN operator without NV: generates
-   * standard IN clause. For mixed NV and values: generates (column IN (...) OR column IS NULL).
-   *
-   * @param queryFilter the {@link QueryFilter}.
-   * @param item the {@link QueryItem}.
-   * @param columnName the column name.
-   * @param filterValue the filter value (may be resolved for org units).
-   * @return the SQL condition string.
-   */
-  private String buildFilterCondition(
-      QueryFilter queryFilter, QueryItem item, String columnName, String filterValue) {
-    if (queryFilter.getOperator() == IN) {
-      return buildInFilterCondition(item, columnName, filterValue);
-    }
-
-    String sqlFilterValue = getSqlFilterWithResolvedValue(queryFilter, item, filterValue);
-    return "%s %s %s".formatted(columnName, queryFilter.getOperator().getValue(), sqlFilterValue);
-  }
-
-  /**
-   * Builds a SQL IN filter condition, properly handling NV (null value).
-   *
-   * @param item the {@link QueryItem}.
-   * @param columnName the column name.
-   * @param filterValue the filter value.
-   * @return the SQL IN condition with proper NV handling.
-   */
-  private String buildInFilterCondition(QueryItem item, String columnName, String filterValue) {
-    List<String> filterItems = QueryFilter.getFilterItems(filterValue);
-
-    boolean hasNv = filterItems.stream().anyMatch(NV::equals);
-    List<String> nonNvItems = filterItems.stream().filter(v -> !NV.equals(v)).toList();
-
-    if (nonNvItems.isEmpty() && hasNv) {
-      // Only NV: generate IS NULL
-      return "%s is null".formatted(columnName);
-    } else if (!nonNvItems.isEmpty() && hasNv) {
-      // Mixed: generate (column IN (...) OR column IS NULL)
-      String inClause = buildInClause(item, columnName, nonNvItems);
-      return "(%s or %s is null)".formatted(inClause, columnName);
-    } else {
-      // No NV: standard IN clause
-      return buildInClause(item, columnName, nonNvItems);
-    }
-  }
-
-  /**
-   * Builds a SQL IN clause for the given items.
-   *
-   * @param item the {@link QueryItem}.
-   * @param columnName the column name.
-   * @param values the list of values for the IN clause.
-   * @return the SQL IN clause.
-   */
-  private String buildInClause(QueryItem item, String columnName, List<String> values) {
-    String quotedValues =
-        values.stream()
-            .map(v -> item.isNumeric() ? v : "'" + sqlBuilder.escape(v) + "'")
-            .collect(Collectors.joining(","));
-    return "%s in (%s)".formatted(columnName, quotedValues);
-  }
-
-  /**
-   * Checks if the item has filters that contain non-NV values. NV (null value) filters should NOT
-   * be pushed into CTEs because the semantics require checking if the most recent event's value is
-   * null, not finding events with null values.
-   *
-   * @param item the query item
-   * @return true if the item has filters with non-NV values
-   */
-  private boolean hasNonNvFilter(QueryItem item) {
-    if (!item.hasFilter()) {
-      return false;
-    }
-    return item.getFilters().stream()
-        .anyMatch(
-            filter -> {
-              List<String> filterItems = QueryFilter.getFilterItems(filter.getFilter());
-              return filterItems.stream().anyMatch(v -> !NV.equals(v));
-            });
-  }
-
-  /**
-   * Extracts filters as SQL, excluding NV-only filters. For mixed filters (non-NV + NV), only the
-   * non-NV values are included. NV filters should remain in the WHERE clause, not in the CTE.
-   *
-   * @param item the query item
-   * @param columnName the column name
-   * @param params the event query parameters
-   * @return SQL conditions for non-NV filters only
-   */
-  private String extractNonNvFiltersAsSql(
-      QueryItem item, String columnName, EventQueryParams params) {
-    return item.getFilters().stream()
-        .filter(this::hasNonNvValues)
-        .map(
-            f -> {
-              boolean needsResolution = requiresOrgUnitResolution(item);
-              String resolvedFilter =
-                  needsResolution
-                      ? organisationUnitResolver.resolveOrgUnits(f, params.getUserOrgUnits())
-                      : f.getFilter();
-
-              // For IN operator with mixed values, only include non-NV values
-              if (f.getOperator() == IN) {
-                List<String> filterItems = QueryFilter.getFilterItems(resolvedFilter);
-                List<String> nonNvItems = filterItems.stream().filter(v -> !NV.equals(v)).toList();
-                if (!nonNvItems.isEmpty()) {
-                  return buildInClause(item, columnName, nonNvItems);
-                }
-                return "";
-              }
-
-              return buildFilterCondition(f, item, columnName, resolvedFilter);
-            })
-        .filter(s -> !s.isEmpty())
-        .collect(Collectors.joining(" and "));
-  }
-
-  /**
-   * Checks if a filter has any non-NV values.
-   *
-   * @param filter the query filter
-   * @return true if the filter contains at least one non-NV value
-   */
-  private boolean hasNonNvValues(QueryFilter filter) {
-    List<String> filterItems = QueryFilter.getFilterItems(filter.getFilter());
-    return filterItems.stream().anyMatch(v -> !NV.equals(v));
+  private OrganisationUnitResolver.StageOuCteContext buildStageOuCteContext(
+      QueryItem item, EventQueryParams params) {
+    return organisationUnitResolver.buildStageOuCteContext(item, params);
   }
 
   /**
@@ -3294,7 +3020,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       QueryFilter filter, QueryItem item, CteDefinition cteDef, EventQueryParams params) {
     // Resolve special org unit keywords like USER_ORGUNIT if applicable
     String resolvedFilter =
-        requiresOrgUnitResolution(item)
+        filterBuilder.requiresOrgUnitResolution(item)
             ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
             : filter.getFilter();
 
@@ -3345,7 +3071,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getSqlFilterValue(QueryFilter filter, QueryItem item, EventQueryParams params) {
     // Resolve special org unit keywords like USER_ORGUNIT if applicable
     String filterValue =
-        requiresOrgUnitResolution(item)
+        filterBuilder.requiresOrgUnitResolution(item)
             ? organisationUnitResolver.resolveOrgUnits(filter, params.getUserOrgUnits())
             : filter.getFilter();
 
@@ -3416,7 +3142,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
               if (isStageOuDimension(item)) {
                 // For stage.ou dimensions, use uidlevelX columns instead of raw ou
-                StageOuCteContext stageOuContext = buildStageOuCteContext(item, params);
+                OrganisationUnitResolver.StageOuCteContext stageOuContext =
+                    buildStageOuCteContext(item, params);
                 effectiveColName = stageOuContext.valueColumn();
                 filterConditions = stageOuContext.filterCondition();
                 // Inner select needs the raw columns with aliases
@@ -3510,7 +3237,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (isStageOuDimension(item)) {
       // For stage.ou dimensions, use uidlevelX columns instead of raw ou
-      StageOuCteContext stageOuContext = buildStageOuCteContext(item, params);
+      OrganisationUnitResolver.StageOuCteContext stageOuContext =
+          buildStageOuCteContext(item, params);
       effectiveColName = stageOuContext.valueColumn();
       // Inner select needs evt. prefix for raw columns
       innerAdditionalCols =
@@ -3688,18 +3416,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (isStageOuDimension(item)) {
       // For stage.ou dimensions, use uidlevelX columns instead of raw ou
-      StageOuCteContext stageOuContext = buildStageOuCteContext(item, params);
+      OrganisationUnitResolver.StageOuCteContext stageOuContext =
+          buildStageOuCteContext(item, params);
       effectiveColName = stageOuContext.valueColumn();
       additionalCols = " " + stageOuContext.additionalSelectColumns();
       if (!stageOuContext.filterCondition().isEmpty()) {
         filterConditions = " and " + stageOuContext.filterCondition();
       }
-    } else if (hasNonNvFilter(item)) {
+    } else if (filterBuilder.hasNonNvFilter(item)) {
       // For non-stage.ou dimensions with non-NV filters, add filter to CTE.
       // NV (null value) filters are NOT added here - they stay in the WHERE clause
       // because NV semantics require checking if the most recent event's value is null,
       // not finding events with null values.
-      String conditions = extractNonNvFiltersAsSql(item, colName, params);
+      String conditions = filterBuilder.extractNonNvFiltersAsSql(item, colName, params);
       if (!conditions.isEmpty()) {
         filterConditions = " and " + conditions;
       }

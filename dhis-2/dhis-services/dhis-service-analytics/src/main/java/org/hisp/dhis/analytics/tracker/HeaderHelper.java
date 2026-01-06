@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.tracker;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -41,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
@@ -156,11 +156,5 @@ public class HeaderHelper {
         }
       }
     }
-  }
-
-  private static boolean isStageOuDimension(QueryItem item) {
-    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
-    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
-        && item.hasProgramStage();
   }
 }

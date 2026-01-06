@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_N
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -106,6 +107,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
+  private QueryItemFilterBuilder filterBuilder;
+
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
@@ -124,6 +127,11 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
+    // Mock stage.ou CTE context for stage OU dimension tests
+    when(organisationUnitResolver.buildStageOuCteContext(any(), any()))
+        .thenReturn(
+            new OrganisationUnitResolver.StageOuCteContext(
+                "\"ou\"", "", "\"ouname\" as ev_ouname, \"oucode\" as ev_oucode,"));
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService,
@@ -131,6 +139,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             new PostgreSqlBuilder(),
             dataElementService);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -145,7 +154,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper);
+            columnMapper,
+            filterBuilder);
   }
 
   @Test

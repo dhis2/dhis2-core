@@ -41,6 +41,8 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeader
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
@@ -149,7 +151,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper) {
+      ColumnMapper columnMapper,
+      QueryItemFilterBuilder filterBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -161,7 +164,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper);
+        columnMapper,
+        filterBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 

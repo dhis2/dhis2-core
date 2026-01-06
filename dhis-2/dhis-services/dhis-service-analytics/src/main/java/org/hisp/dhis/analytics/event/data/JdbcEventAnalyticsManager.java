@@ -142,7 +142,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper) {
+      ColumnMapper columnMapper,
+      QueryItemFilterBuilder filterBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -154,7 +155,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper);
+        columnMapper,
+        filterBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 

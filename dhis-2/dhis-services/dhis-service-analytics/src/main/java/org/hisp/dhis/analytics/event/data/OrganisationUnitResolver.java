@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
@@ -41,14 +42,17 @@ import static org.hisp.dhis.feedback.ErrorCode.E7143;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -57,6 +61,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -67,11 +72,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrganisationUnitResolver {
 
+  /** Column alias for stage.ou organisation unit name in CTE output. */
+  public static final String STAGE_OU_NAME_COLUMN = "ev_ouname";
+
+  /** Column alias for stage.ou organisation unit code in CTE output. */
+  public static final String STAGE_OU_CODE_COLUMN = "ev_oucode";
+
   private final DimensionalObjectProvider dimensionalObjectProducer;
 
   private final OrganisationUnitService organisationUnitService;
 
   private final IdentifiableObjectManager idObjectManager;
+
+  private final AnalyticsSqlBuilder sqlBuilder;
 
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
@@ -206,4 +219,110 @@ public class OrganisationUnitResolver {
 
     return null;
   }
+
+  /**
+   * Checks if the query item is a stage-specific org unit dimension (stage.ou). This is different
+   * from general org unit resolution - it specifically identifies when a QueryItem represents a
+   * dimension like "ZzYYXq4fJie.ou:LEVEL-3" which requires special handling in CTE generation.
+   *
+   * @param item the {@link QueryItem}.
+   * @return true if the item is a stage.ou dimension
+   */
+  public static boolean isStageOuDimension(QueryItem item) {
+    String ouColumnName = EventAnalyticsColumnName.OU_COLUMN_NAME;
+    return (ouColumnName.equals(item.getItemId()) || ouColumnName.equals(item.getItemName()))
+        && item.hasProgramStage();
+  }
+
+  /**
+   * Builds stage.ou filter conditions using uidlevelX columns. Returns a record containing the
+   * column name to use in SELECT (most specific level) and the WHERE condition string with proper
+   * uidlevelX comparisons.
+   *
+   * @param item the {@link QueryItem} representing the stage.ou dimension
+   * @param params the {@link EventQueryParams} used to resolve org unit keywords
+   * @return a {@link StageOuCteContext} containing the value column and filter condition
+   */
+  public StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
+    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
+        resolveOrgUnitsGroupedByLevel(params, item);
+
+    // Additional columns for stage.ou: ouname and oucode
+    String additionalSelectColumns =
+        sqlBuilder.quote("ouname")
+            + " as "
+            + STAGE_OU_NAME_COLUMN
+            + ", "
+            + sqlBuilder.quote("oucode")
+            + " as "
+            + STAGE_OU_CODE_COLUMN
+            + ",";
+
+    if (orgUnitsByLevel.isEmpty()) {
+      return new StageOuCteContext(
+          sqlBuilder.quote("ou"), "", additionalSelectColumns); // fallback to raw ou column
+    }
+
+    // Sort levels from most specific (highest) to least specific (lowest)
+    List<Integer> sortedLevels =
+        orgUnitsByLevel.keySet().stream().sorted(Comparator.reverseOrder()).toList();
+
+    // Build value column expression
+    String valueColumn;
+    if (sortedLevels.size() == 1) {
+      // Single level: just use the column directly
+      valueColumn = sqlBuilder.quote("uidlevel" + sortedLevels.get(0));
+    } else {
+      // Multiple levels: use CASE to return the matching value
+      StringBuilder caseExpr = new StringBuilder("case");
+      for (int level : sortedLevels) {
+        List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
+        String column = sqlBuilder.quote("uidlevel" + level);
+        String quotedUids =
+            orgUnits.stream()
+                .map(OrganisationUnit::getUid)
+                .filter(StringUtils::isNotEmpty)
+                .map(uid -> "'" + uid + "'")
+                .collect(joining(","));
+        caseExpr
+            .append(" when ")
+            .append(column)
+            .append(" in (")
+            .append(quotedUids)
+            .append(") THEN ")
+            .append(column);
+      }
+      caseExpr.append(" end");
+      valueColumn = caseExpr.toString();
+    }
+
+    // Build WHERE conditions for each level (OR'd together since we want rows matching any org
+    // unit)
+    StringJoiner conditions = new StringJoiner(" or ");
+    for (int level : sortedLevels) {
+      List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
+      String column = sqlBuilder.quote("uidlevel" + level);
+      String quotedUids =
+          orgUnits.stream()
+              .map(OrganisationUnit::getUid)
+              .filter(StringUtils::isNotEmpty)
+              .map(uid -> "'" + uid + "'")
+              .collect(joining(","));
+      conditions.add(column + " in (" + quotedUids + ")");
+    }
+
+    // Wrap in parentheses to ensure proper grouping when combined with other conditions
+    String filterCondition =
+        sortedLevels.size() > 1 ? "(" + conditions + ")" : conditions.toString();
+
+    return new StageOuCteContext(valueColumn, filterCondition, additionalSelectColumns);
+  }
+
+  /**
+   * Contains the column name to use in SELECT (most specific level), the WHERE condition string
+   * with proper uidlevelX comparisons, and additional columns (ouname, oucode) for stage.ou
+   * dimensions.
+   */
+  public record StageOuCteContext(
+      String valueColumn, String filterCondition, String additionalSelectColumns) {}
 }
