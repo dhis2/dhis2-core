@@ -535,13 +535,14 @@ public enum ConfigurationKey {
    */
   LOGGING_REQUEST_ID_ENABLED("logging.request_id.enabled", Constants.ON, false),
 
-  /**
-   * Adds an encrypted session/user identifier to the X-Session-ID response header. (default: off).
-   */
+  /** Adds a hashed session identifier to the X-Session-ID response header. (default: off). */
   LOGGING_SESSION_ID_HEADER_ENABLED("logging.session_id_header.enabled", Constants.OFF, false),
 
-  /** Base64-encoded 32-byte encryption key for X-Session-ID header value (sensitive). */
-  LOGGING_SESSION_ID_ENCRYPTION_KEY("logging.session_id_encryption_key", "", true),
+  /** Adds an encrypted user identifier to the X-User-ID response header. (default: off). */
+  LOGGING_USER_ID_HEADER_ENABLED("logging.user_id_header.enabled", Constants.OFF, false),
+
+  /** Base64-encoded 32-byte encryption key for X-User-ID header value (sensitive). */
+  LOGGING_USER_ID_ENCRYPTION_KEY("logging.user_id_encryption_key", "", true),
 
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),

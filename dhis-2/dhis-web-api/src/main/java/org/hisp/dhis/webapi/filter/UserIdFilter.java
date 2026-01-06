@@ -29,18 +29,16 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID_ENCRYPTION_KEY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID_HEADER_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_USER_ID_ENCRYPTION_KEY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_USER_ID_HEADER_ENABLED;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,26 +50,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filter that adds an encrypted session/user identifier to the response headers for authenticated
- * users. The header value is reversible using the configured key, allowing downstream systems to
- * correlate requests to a user session.
+ * Filter that adds an encrypted user identifier to the response headers for authenticated users.
+ * The header value is reversible using the configured key, allowing downstream systems to correlate
+ * requests to a user.
  *
- * <p>Enabled when {@code logging.session_id_header.enabled} is true and {@code
- * logging.session_id_encryption_key} is set.
+ * <p>Enabled when {@code logging.user_id_header.enabled} is true and {@code
+ * logging.user_id_encryption_key} is set.
  */
 @Slf4j
-@Component("sessionIdHeaderFilter")
-public class SessionIdHeaderFilter extends OncePerRequestFilter {
-  private static final String HEADER_NAME = "X-Session-ID";
+@Component("userIdHeaderFilter")
+public class UserIdFilter extends OncePerRequestFilter {
+  private static final String HEADER_NAME = "X-User-ID";
+  private static final String MDC_KEY = "userUid";
   private static final String HEADER_VERSION_PREFIX = "v1.";
   private static final int GCM_IV_LENGTH_BYTES = 12;
   private static final int GCM_TAG_LENGTH_BITS = 128;
   private static final String CIPHER_ALGO = "AES/GCM/NoPadding";
-  private static final String HASH_ALGO = "SHA-256";
   private static final int KEY_LENGTH_BYTES = 32;
   private static final long CACHE_TTL_MILLIS = TimeUnit.MINUTES.toMillis(5);
   private static final int MAX_CACHE_SIZE = 10_000;
@@ -82,9 +81,9 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
   private final byte[] keyBytes;
   private final SecureRandom secureRandom = new SecureRandom();
 
-  public SessionIdHeaderFilter(DhisConfigurationProvider dhisConfig) {
-    boolean configEnabled = dhisConfig.isEnabled(LOGGING_SESSION_ID_HEADER_ENABLED);
-    String token = dhisConfig.getProperty(LOGGING_SESSION_ID_ENCRYPTION_KEY);
+  public UserIdFilter(DhisConfigurationProvider dhisConfig) {
+    boolean configEnabled = dhisConfig.isEnabled(LOGGING_USER_ID_HEADER_ENABLED);
+    String token = dhisConfig.getProperty(LOGGING_USER_ID_ENCRYPTION_KEY);
     if (configEnabled && (token == null || token.isBlank())) {
       log.warn(
           "Session ID header logging enabled, but logging.session_id_encryption_key is not set.");
@@ -94,7 +93,7 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
       byte[] decodedKey = token == null ? new byte[0] : decodeKey(token);
       if (decodedKey.length != KEY_LENGTH_BYTES) {
         log.warn(
-            "Session ID header logging enabled, but logging.session_id_encryption_key must be a base64-encoded 32-byte key.");
+            "User ID header logging enabled, but logging.user_id_encryption_key must be a base64-encoded 32-byte key.");
         this.enabled = false;
         this.keyBytes = new byte[0];
       } else {
@@ -108,21 +107,25 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws ServletException, IOException {
+    String headerValue = null;
     if (enabled && CurrentUserUtil.hasCurrentUser()) {
       try {
         UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-          String sessionHash = hashSessionId(session.getId());
-          String cacheKey = userDetails.getUid() + ":" + sessionHash;
-          String headerValue = getOrCreateHeaderValue(cacheKey);
-          response.addHeader(HEADER_NAME, headerValue);
-        }
+        headerValue = getOrCreateHeaderValue(userDetails.getUid());
+        response.addHeader(HEADER_NAME, headerValue);
+        MDC.put(MDC_KEY, headerValue);
       } catch (GeneralSecurityException ex) {
-        log.error("Failed to encrypt session header payload", ex);
+        log.error("Failed to encrypt user header payload", ex);
       }
     }
-    chain.doFilter(request, response);
+
+    try {
+      chain.doFilter(request, response);
+    } finally {
+      if (headerValue != null) {
+        MDC.remove(MDC_KEY);
+      }
+    }
   }
 
   private String encrypt(String payload) throws GeneralSecurityException {
@@ -169,12 +172,6 @@ public class SessionIdHeaderFilter extends OncePerRequestFilter {
     } catch (IllegalArgumentException ex) {
       return new byte[0];
     }
-  }
-
-  private static String hashSessionId(String sessionId) throws GeneralSecurityException {
-    MessageDigest digest = MessageDigest.getInstance(HASH_ALGO);
-    byte[] hashed = digest.digest(sessionId.getBytes(StandardCharsets.UTF_8));
-    return Base64.getUrlEncoder().withoutPadding().encodeToString(hashed);
   }
 
   private record CacheEntry(String headerValue, long expiresAtMillis) {}
