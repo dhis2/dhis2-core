@@ -145,17 +145,17 @@ class ExistenceValidatorTest {
     return Relationship.builder().relationship(RELATIONSHIP_UID).build();
   }
 
-  private org.hisp.dhis.relationship.Relationship softDeletedRelationship() {
-    org.hisp.dhis.relationship.Relationship relationship =
-        new org.hisp.dhis.relationship.Relationship();
+  private org.hisp.dhis.tracker.model.Relationship softDeletedRelationship() {
+    org.hisp.dhis.tracker.model.Relationship relationship =
+        new org.hisp.dhis.tracker.model.Relationship();
     relationship.setUid(SOFT_DELETED_RELATIONSHIP_UID.getValue());
     relationship.setDeleted(true);
     return relationship;
   }
 
-  private org.hisp.dhis.relationship.Relationship getRelationship() {
-    org.hisp.dhis.relationship.Relationship relationship =
-        new org.hisp.dhis.relationship.Relationship();
+  private org.hisp.dhis.tracker.model.Relationship getRelationship() {
+    org.hisp.dhis.tracker.model.Relationship relationship =
+        new org.hisp.dhis.tracker.model.Relationship();
     relationship.setUid(RELATIONSHIP_UID.getValue());
     return relationship;
   }

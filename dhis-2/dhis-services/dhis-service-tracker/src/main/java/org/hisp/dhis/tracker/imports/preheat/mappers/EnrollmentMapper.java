@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

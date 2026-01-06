@@ -27,29 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+package org.hisp.dhis.tracker.model;
 
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
 @Component
-@RequiredArgsConstructor
-public class RelationshipDeletionHandler extends IdObjectDeletionHandler<Relationship> {
+@AllArgsConstructor
+public class TrackedEntityAttributeValueDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO =
+      new DeletionVeto(
+          TrackedEntityAttributeValue.class, "Some values are still assigned to this attribute");
+
   @Override
-  protected void registerHandler() {
-    whenVetoing(RelationshipType.class, this::allowDeleteRelationshipType);
+  protected void register() {
+    whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
   }
 
-  private DeletionVeto allowDeleteRelationshipType(RelationshipType relationshipType) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from relationship where relationshiptypeid = :id limit 1",
-        Map.of("id", relationshipType.getId()));
+  private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    String sql =
+        "select 1 from trackedentityattributevalue where trackedentityattributeid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", attribute.getId()));
   }
 }
