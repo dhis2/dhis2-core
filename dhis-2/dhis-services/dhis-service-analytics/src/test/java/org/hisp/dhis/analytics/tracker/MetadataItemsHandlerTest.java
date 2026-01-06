@@ -127,7 +127,7 @@ class MetadataItemsHandlerTest {
   void setUp() {
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
-    programA = createProgram('A', null, null, Sets.newHashSet(orgUnitA), null);
+    programA = createProgram('A', null, null, Sets.newHashSet(orgUnitA));
 
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');

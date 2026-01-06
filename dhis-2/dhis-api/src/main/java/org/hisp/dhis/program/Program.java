@@ -147,6 +147,9 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   /** The CategoryCombo used for data attributes. */
   private CategoryCombo categoryCombo;
 
+  /** The CategoryCombo used for enrollments. */
+  private CategoryCombo enrollmentCategoryCombo;
+
   /** Property indicating whether offline storage is enabled for this program or not */
   private boolean skipOffline;
 
@@ -804,6 +807,26 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   }
 
   @JsonProperty
+  @JsonSerialize(as = IdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getEnrollmentCategoryCombo() {
+    return enrollmentCategoryCombo;
+  }
+
+  public void setEnrollmentCategoryCombo(CategoryCombo enrollmentCategoryCombo) {
+    this.enrollmentCategoryCombo = enrollmentCategoryCombo;
+  }
+
+  /**
+   * Indicates whether this program has an enrollment category combination which is different from
+   * the default category combination.
+   */
+  public boolean hasNonDefaultEnrollmentCategoryCombo() {
+    return enrollmentCategoryCombo != null
+        && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals(enrollmentCategoryCombo.getName());
+  }
+
+  @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSkipOffline() {
     return skipOffline;
@@ -983,6 +1006,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setAccessLevel(original.getAccessLevel());
     copy.setProgramAttributes(new ArrayList<>());
     copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setEnrollmentCategoryCombo(original.getEnrollmentCategoryCombo());
     copy.setCategoryMappings(copyOf(original.getCategoryMappings()));
     copy.setCompleteEventsExpiryDays(original.getCompleteEventsExpiryDays());
     copy.setDataEntryForm(original.getDataEntryForm());
