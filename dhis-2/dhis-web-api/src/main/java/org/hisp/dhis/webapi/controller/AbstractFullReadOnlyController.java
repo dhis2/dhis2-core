@@ -53,6 +53,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -86,7 +87,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -549,7 +549,8 @@ public abstract class AbstractFullReadOnlyController<
       if (maxAgeSeconds > 0 && maxAgeSeconds <= MAX_CACHE_CONTROL_SECONDS) {
         return "private, max-age=" + maxAgeSeconds;
       }
-    } catch (NumberFormatException ignored) {}
+    } catch (NumberFormatException ignored) {
+    }
     log.warn(
         "Invalid value '{}' for config key '{}'; using default Cache-Control",
         normalized,
