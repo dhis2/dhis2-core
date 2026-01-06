@@ -94,7 +94,6 @@ class UserIdHeaderFilterUnitTest {
     verify(res, never()).addHeader(eq(HEADER_NAME), anyString());
   }
 
-  @Test
   private UserIdFilter init(boolean enabled) {
     when(dhisConfigurationProvider.isEnabled(LOGGING_USER_ID_HEADER_ENABLED)).thenReturn(enabled);
     when(dhisConfigurationProvider.getProperty(LOGGING_USER_ID_ENCRYPTION_KEY))
