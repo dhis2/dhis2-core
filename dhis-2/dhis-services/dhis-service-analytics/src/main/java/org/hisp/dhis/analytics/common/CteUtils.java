@@ -37,7 +37,13 @@ public class CteUtils {
 
   public static String computeKey(QueryItem queryItem) {
     if (queryItem.hasProgramStage()) {
-      return "%s_%s".formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId());
+      // Include offset for program stage data elements and attributes
+      // to avoid key collisions when the same data element/attribute
+      // is used multiple times with different offsets.
+      // Offsets <= 0 all use DESC ordering (newest first), so normalize to 0.
+      int offset = Math.max(queryItem.getProgramStageOffset(), 0);
+      return "%s_%s_%s"
+          .formatted(queryItem.getProgramStage().getUid(), queryItem.getItemId(), offset);
     } else if (queryItem.isProgramIndicator()) {
       return queryItem.getItemId();
     }
