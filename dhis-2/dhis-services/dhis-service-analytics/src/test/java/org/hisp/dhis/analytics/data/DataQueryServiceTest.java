@@ -83,7 +83,6 @@ class DataQueryServiceTest {
 
   @Test
   void testGetUserOrgUnitsWithNoAnalyticsOrganisationUnitsDefined() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
     DataQueryParams dataQueryParams =
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
