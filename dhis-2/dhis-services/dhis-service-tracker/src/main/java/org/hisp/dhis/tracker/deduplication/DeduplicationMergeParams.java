@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.deduplication;
 
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 @Data
 @Builder

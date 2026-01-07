@@ -33,11 +33,11 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1002;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1063;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
 
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
