@@ -30,6 +30,7 @@
 package org.hisp.dhis.cache;
 
 import static java.util.Collections.emptySet;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.Assert.hasText;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -50,17 +52,17 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class RedisCache<V> implements Cache<V> {
   private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-  private RedisTemplate<String, V> redisTemplate;
+  private final RedisTemplate<String, V> redisTemplate;
 
-  private boolean refreshExpriryOnAccess;
+  private final boolean refreshExpiryOnAccess;
 
-  private long expiryInSeconds;
+  private final long expiryInSeconds;
 
-  private String cacheRegion;
+  private final String cacheRegion;
 
-  private V defaultValue;
+  private final V defaultValue;
 
-  private boolean expiryEnabled;
+  private final boolean expiryEnabled;
 
   /**
    * Constructor for instantiating RedisCache.
@@ -70,7 +72,7 @@ public class RedisCache<V> implements Cache<V> {
   @SuppressWarnings("unchecked")
   public RedisCache(ExtendedCacheBuilder<V> cacheBuilder) {
     this.redisTemplate = (RedisTemplate<String, V>) cacheBuilder.getRedisTemplate();
-    this.refreshExpriryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
+    this.refreshExpiryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
     this.expiryInSeconds = cacheBuilder.getExpiryInSeconds();
     this.cacheRegion = cacheBuilder.getRegion();
     this.defaultValue = cacheBuilder.getDefaultValue();
@@ -80,7 +82,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Optional<V> getIfPresent(String key) {
     String redisKey = generateKey(key);
-    if (expiryEnabled && refreshExpriryOnAccess) {
+    if (expiryEnabled && refreshExpiryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
     }
     return Optional.ofNullable(redisTemplate.boundValueOps(redisKey).get());
@@ -89,7 +91,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Optional<V> get(String key) {
     String redisKey = generateKey(key);
-    if (expiryEnabled && refreshExpriryOnAccess) {
+    if (expiryEnabled && refreshExpiryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
     }
     return Optional.ofNullable(
@@ -104,7 +106,7 @@ public class RedisCache<V> implements Cache<V> {
 
     String redisKey = generateKey(key);
 
-    if (expiryEnabled && refreshExpriryOnAccess) {
+    if (expiryEnabled && refreshExpiryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
     }
 
@@ -115,7 +117,7 @@ public class RedisCache<V> implements Cache<V> {
 
       if (null != value) {
         if (expiryEnabled) {
-          redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
+          setValueWithExpiry(redisKey, value, expiryInSeconds);
         } else {
           redisTemplate.boundValueOps(redisKey).set(value);
         }
@@ -128,7 +130,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Stream<V> getAll() {
     Set<String> keySet = redisTemplate.keys(getAllKeysInRegionPattern());
-    if (keySet == null) {
+    if (CollectionUtils.isEmpty(keySet)) {
       return Stream.empty();
     }
     List<V> values = redisTemplate.opsForValue().multiGet(keySet);
@@ -138,7 +140,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Set<String> keys() {
     var keys = redisTemplate.keys(getAllKeysInRegionPattern());
-    return keys == null
+    return CollectionUtils.isEmpty(keys)
         ? emptySet()
         : keys.stream().map(key -> key.substring(key.indexOf(':') + 1)).collect(toSet());
   }
@@ -151,7 +153,7 @@ public class RedisCache<V> implements Cache<V> {
 
     String redisKey = generateKey(key);
     if (expiryEnabled) {
-      redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
+      setValueWithExpiry(redisKey, value, expiryInSeconds);
     } else {
       redisTemplate.boundValueOps(redisKey).set(value);
     }
@@ -159,11 +161,14 @@ public class RedisCache<V> implements Cache<V> {
 
   @Override
   public void put(String key, V value, long ttlInSeconds) {
-    hasText(key, VALUE_CANNOT_BE_NULL);
+    hasText(key, "Key cannot be null or empty");
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
+    }
 
     String redisKey = generateKey(key);
 
-    redisTemplate.boundValueOps(redisKey).set(value, ttlInSeconds, SECONDS);
+    setValueWithExpiry(redisKey, value, ttlInSeconds);
   }
 
   @Override
@@ -175,7 +180,11 @@ public class RedisCache<V> implements Cache<V> {
 
     var ops = redisTemplate.boundValueOps(redisKey);
     if (expiryEnabled) {
-      return ops.setIfAbsent(value, expiryInSeconds, SECONDS) == Boolean.TRUE;
+      if (expiryInSeconds > 0) {
+        return ops.setIfAbsent(value, expiryInSeconds, SECONDS) == Boolean.TRUE;
+      } else {
+        return ops.setIfAbsent(value, 1, MICROSECONDS) == Boolean.TRUE;
+      }
     } else {
       return ops.setIfAbsent(value) == Boolean.TRUE;
     }
@@ -197,11 +206,33 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public void invalidateAll() {
     Set<String> keysToDelete = redisTemplate.keys(getAllKeysInRegionPattern());
-    redisTemplate.delete(keysToDelete);
+    if (CollectionUtils.isNotEmpty(keysToDelete)) {
+      redisTemplate.delete(keysToDelete);
+    }
   }
 
   @Override
   public CacheType getCacheType() {
     return CacheType.REDIS;
+  }
+
+  /**
+   * Sets a value in the cache with an expiry time.
+   *
+   * <p>If the provided TTL is greater than 0, the value is stored with that TTL in seconds.
+   * Otherwise, the value is stored with a TTL of 1 microsecond, effectively causing it to expire
+   * almost immediately.
+   *
+   * @param redisKey the fully qualified Redis key (including cache region prefix)
+   * @param value the value to store in the cache
+   * @param ttlInSeconds the time-to-live in seconds; if <= 0, a TTL of 1 microsecond is used
+   *     instead
+   */
+  private void setValueWithExpiry(String redisKey, V value, long ttlInSeconds) {
+    if (ttlInSeconds > 0) {
+      redisTemplate.boundValueOps(redisKey).set(value, ttlInSeconds, SECONDS);
+    } else {
+      redisTemplate.boundValueOps(redisKey).set(value, 1, MICROSECONDS);
+    }
   }
 }
