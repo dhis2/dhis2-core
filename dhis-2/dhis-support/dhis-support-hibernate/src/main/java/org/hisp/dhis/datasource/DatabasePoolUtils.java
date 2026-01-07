@@ -298,6 +298,9 @@ public final class DatabasePoolUtils {
     // Configure HikariCP metrics if enabled
     if (dhisConfig.isEnabled(MONITORING_DBPOOL_ENABLED)) {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
+      // Expose pool metrics via JMX for external monitoring tools (JMX Exporter, VisualVM, etc.)
+      // This allows monitoring even when /api/metrics is unreachable due to pool exhaustion
+      hc.setRegisterMbeans(true);
     }
 
     HikariDataSource ds = new HikariDataSource(hc);
