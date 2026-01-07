@@ -55,8 +55,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -75,10 +73,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final HibernateTrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
-
-  private final TrackerAccessManager trackerAccessManager;
-
-  private final TrackerOwnershipManager ownershipAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
 
@@ -242,7 +236,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional(readOnly = true)
-  public long getTrackedEntityCount(TrackedEntityOperationParams operationParams) {
+  public long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, BadRequestException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
 

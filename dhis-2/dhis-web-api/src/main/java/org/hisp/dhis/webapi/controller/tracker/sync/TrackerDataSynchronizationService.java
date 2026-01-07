@@ -135,7 +135,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         () -> createContext(pageSize, settings));
   }
 
-  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings) {
+  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
+      throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
     long trackedEntityCount = countTrackedEntitiesForSynchronization(skipChangedBefore);
@@ -150,7 +151,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         skipChangedBefore, trackedEntityCount, instance, pageSize);
   }
 
-  private long countTrackedEntitiesForSynchronization(Date skipChangedBefore) {
+  private long countTrackedEntitiesForSynchronization(Date skipChangedBefore)
+      throws ForbiddenException, BadRequestException {
     return trackedEntityService.getTrackedEntityCount(
         TrackedEntityOperationParams.builder()
             .skipChangedBefore(skipChangedBefore)
