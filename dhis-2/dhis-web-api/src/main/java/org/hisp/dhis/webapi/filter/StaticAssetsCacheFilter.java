@@ -49,7 +49,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Filter which applies cache headers to static assets like JS/CSS/images when enabled.
  *
- * @author Kai Vandivier
+ * @author Jason P. Pickering
  */
 @Component
 public class StaticAssetsCacheFilter extends OncePerRequestFilter {
