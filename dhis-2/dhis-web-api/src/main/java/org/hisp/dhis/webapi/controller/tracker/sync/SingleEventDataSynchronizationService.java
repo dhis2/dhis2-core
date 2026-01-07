@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,8 +55,6 @@ import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.render.RenderService;
@@ -92,15 +89,13 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private final RestTemplate restTemplate;
   private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
-  private final ProgramService programService;
 
   @Getter
   private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
     private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
-    private final Program program;
 
-    public EventSynchronizationContext(Date skipChangedBefore, int pageSize, Program program) {
-      this(skipChangedBefore, 0, null, pageSize, Map.of(), program);
+    public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
+      this(skipChangedBefore, 0, null, pageSize, Map.of());
     }
 
     public EventSynchronizationContext(
@@ -108,11 +103,9 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         long objectsToSynchronize,
         SystemInstance instance,
         int pageSize,
-        Map<String, Set<String>> skipSyncDataElementsByProgramStage,
-        Program program) {
+        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
       this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
-      this.program = program;
     }
 
     public boolean hasNoObjectsToSynchronize() {
@@ -121,19 +114,17 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   @Override
-  public SynchronizationResult synchronizeTrackerData(
-      int pageSize, JobProgress progress, @Nonnull String programUid) {
+  public SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress) {
     progress.startingProcess(PROCESS_NAME);
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
-    SynchronizationResult validationResult = validatePreconditions(settings, programUid, progress);
+    SynchronizationResult validationResult = validatePreconditions(settings, progress);
     if (validationResult != null) {
       return validationResult;
     }
 
-    EventSynchronizationContext context =
-        initializeContext(pageSize, progress, settings, programUid);
+    EventSynchronizationContext context = initializeContext(pageSize, progress, settings);
 
     if (context.hasNoObjectsToSynchronize()) {
       return endProcess(progress, "No events to synchronize");
@@ -147,71 +138,54 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private EventSynchronizationContext initializeContext(
-      int pageSize, JobProgress progress, SystemSettings settings, String programUid) {
+      int pageSize, JobProgress progress, SystemSettings settings) {
     return progress.runStage(
-        new EventSynchronizationContext(null, pageSize, null),
+        new EventSynchronizationContext(null, pageSize),
         ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
-        () -> createContext(pageSize, settings, programUid));
+        () -> createContext(pageSize, settings));
   }
 
   private SynchronizationResult validatePreconditions(
-      SystemSettings settings, String programUid, JobProgress progress) {
+      SystemSettings settings, JobProgress progress) {
     if (!testServerAvailability(settings, restTemplate).isAvailable()) {
       return failProcess(progress, "Remote server unavailable");
-    }
-
-    Program program = programService.getProgram(programUid);
-    if (program == null) {
-      return failProcess(progress, "Program %s not found".formatted(programUid));
-    }
-
-    if (program.getProgramType() != ProgramType.WITHOUT_REGISTRATION) {
-      return failProcess(
-          progress, "Program %s must be of type WITHOUT_REGISTRATION".formatted(programUid));
     }
 
     return null;
   }
 
-  private EventSynchronizationContext createContext(
-      int pageSize, SystemSettings settings, String programUid)
+  private EventSynchronizationContext createContext(int pageSize, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
-    Program program = programService.getProgram(programUid);
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
-    long eventCount = countEventsForSynchronization(program, skipChangedBefore);
+    long eventCount = countEventsForSynchronization(skipChangedBefore);
 
     if (eventCount == 0) {
-      return new EventSynchronizationContext(skipChangedBefore, pageSize, program);
+      return new EventSynchronizationContext(skipChangedBefore, pageSize);
     }
 
     SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
     Map<String, Set<String>> skipSyncProgramStageDataElements =
-        getSkipSyncProgramStageDataElements(program);
+        getSkipSyncProgramStageDataElements();
 
     return new EventSynchronizationContext(
-        skipChangedBefore,
-        eventCount,
-        instance,
-        pageSize,
-        skipSyncProgramStageDataElements,
-        program);
+        skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
   }
 
-  private long countEventsForSynchronization(Program program, Date skipChangedBefore)
+  private long countEventsForSynchronization(Date skipChangedBefore)
       throws ForbiddenException, BadRequestException {
     return eventService.countEvents(
         EventOperationParams.builder()
-            .program(program)
+            .programType(ProgramType.WITHOUT_REGISTRATION)
             .skipChangedBefore(skipChangedBefore)
             .includeDeleted(true)
             .synchronizationQuery(true)
             .build());
   }
 
-  private Map<String, Set<String>> getSkipSyncProgramStageDataElements(Program program) {
+  private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
     return programStageDataElementService
-        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue(program);
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
   }
 
   private boolean executeSynchronizationWithPaging(
@@ -263,7 +237,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         .findEvents(
             EventOperationParams.builder()
                 .programType(ProgramType.WITHOUT_REGISTRATION)
-                .program(context.getProgram())
                 .skipChangedBefore(context.getSkipChangedBefore())
                 .synchronizationQuery(true)
                 .includeDeleted(true)

@@ -201,8 +201,8 @@ class ProgramStageDataElementServiceTest extends PostgresIntegrationTestBase {
     programStageDataElementService.addProgramStageDataElement(stageDataElementD);
 
     Map<String, Set<String>> result =
-        programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-            programWithOutReg);
+        programStageDataElementService
+            .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 
     assertNotNull(result);
     assertTrue(result.containsKey(singleEvent.getUid()));
