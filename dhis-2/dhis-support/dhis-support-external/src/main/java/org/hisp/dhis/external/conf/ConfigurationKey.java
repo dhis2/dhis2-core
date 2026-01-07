@@ -535,6 +535,27 @@ public enum ConfigurationKey {
    */
   LOGGING_REQUEST_ID_ENABLED("logging.request_id.enabled", Constants.ON, false),
 
+  /** Adds a hashed session identifier to the X-Session-ID response header. (default: off). */
+  LOGGING_SESSION_ID_HEADER_ENABLED("logging.session_id_header.enabled", Constants.OFF, false),
+
+  /** Adds an encrypted user identifier to the X-User-ID response header. (default: off). */
+  LOGGING_USER_ID_HEADER_ENABLED("logging.user_id_header.enabled", Constants.OFF, false),
+
+  /** Base64-encoded 32-byte encryption key for X-User-ID header value (sensitive). */
+  LOGGING_USER_ID_ENCRYPTION_KEY("logging.user_id_encryption_key", "", true),
+
+  /**
+   * Cache max-age (seconds) for app HTML pages like index.html. Set to 0 to disable caching.
+   * (default: 0).
+   */
+  APP_HTML_CACHE_MAX_AGE("web.app_html.cache.max_age", "0", false),
+
+  /**
+   * Cache max-age (seconds) for static assets like JS/CSS/images. Set to 0 to disable caching.
+   * (default: 0).
+   */
+  STATIC_ASSETS_CACHE_MAX_AGE("web.static.cache.max_age", "0", false),
+
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
 

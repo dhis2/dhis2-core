@@ -29,14 +29,19 @@
  */
 package org.hisp.dhis.webapi.filter;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.APP_HTML_CACHE_MAX_AGE;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -54,6 +59,12 @@ public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
   public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
   public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
 
+  private final long maxAgeSeconds;
+
+  public AppHtmlNoCacheFilter(DhisConfigurationProvider dhisConfig) {
+    this.maxAgeSeconds = parseMaxAgeSeconds(dhisConfig.getProperty(APP_HTML_CACHE_MAX_AGE));
+  }
+
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -63,9 +74,25 @@ public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
     Matcher m = HTML_PATH_PATTERN.matcher(uri);
 
     if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
-      ContextUtils.setNoStore(response);
+      if (maxAgeSeconds > 0) {
+        ContextUtils.setCacheControl(
+            response, CacheControl.maxAge(maxAgeSeconds, TimeUnit.SECONDS).cachePublic());
+      } else {
+        ContextUtils.setNoStore(response);
+      }
     }
 
     chain.doFilter(request, response);
+  }
+
+  private static long parseMaxAgeSeconds(String value) {
+    if (value == null || value.isBlank()) {
+      return 0;
+    }
+    try {
+      return Math.max(0, Long.parseLong(value));
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
   }
 }
