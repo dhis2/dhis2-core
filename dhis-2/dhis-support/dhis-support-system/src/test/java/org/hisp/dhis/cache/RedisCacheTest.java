@@ -320,18 +320,6 @@ class RedisCacheTest {
     }
 
     @Test
-    void shouldUseMicrosecondExpiry_whenExpiryIsZeroOrNegative() {
-      when(cacheBuilder.getExpiryInSeconds()).thenReturn(0L);
-      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
-      when(boundValueOps.setIfAbsent("myValue", 1, TimeUnit.MICROSECONDS)).thenReturn(true);
-
-      boolean result = buildCache().putIfAbsent("myKey", "myValue");
-
-      assertTrue(result);
-      verify(boundValueOps).setIfAbsent("myValue", 1, TimeUnit.MICROSECONDS);
-    }
-
-    @Test
     void shouldSetWithoutExpiry_whenExpiryDisabled() {
       when(cacheBuilder.isExpiryEnabled()).thenReturn(false);
       when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);

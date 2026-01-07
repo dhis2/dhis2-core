@@ -30,7 +30,6 @@
 package org.hisp.dhis.cache;
 
 import static java.util.Collections.emptySet;
-import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.Assert.hasText;
@@ -180,11 +179,7 @@ public class RedisCache<V> implements Cache<V> {
 
     var ops = redisTemplate.boundValueOps(redisKey);
     if (expiryEnabled) {
-      if (expiryInSeconds > 0) {
-        return ops.setIfAbsent(value, expiryInSeconds, SECONDS) == Boolean.TRUE;
-      } else {
-        return ops.setIfAbsent(value, 1, MICROSECONDS) == Boolean.TRUE;
-      }
+      return ops.setIfAbsent(value, expiryInSeconds, SECONDS) == Boolean.TRUE;
     } else {
       return ops.setIfAbsent(value) == Boolean.TRUE;
     }
