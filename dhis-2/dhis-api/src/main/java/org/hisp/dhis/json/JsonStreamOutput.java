@@ -263,17 +263,7 @@ public final class JsonStreamOutput {
   }
 
   private static <T> void register(Class<T> type, AddMember<? super T> adder) {
-    AddMember<Object> guarded =
-        (obj, name, val) -> {
-          if (val != null) {
-            try {
-              adder.add(obj, name, type.cast(val));
-            } catch (ClassCastException ex) {
-              addJacksonMapped(obj, name, val);
-            }
-          }
-        };
-    ADDERS_BY_TYPE.put(type, guarded);
+    ADDERS_BY_TYPE.put(type, getGuardedAdder(type, adder));
   }
 
   static {
@@ -336,32 +326,55 @@ public final class JsonStreamOutput {
     return ADDERS_BY_TYPE.get(Object.class);
   }
 
+  @Nonnull
+  private static <T> AddMember<Object> getGuardedAdder(Class<T> type, AddMember<? super T> adder) {
+    return (obj, name, val) -> {
+      if (val != null) {
+        try {
+          adder.add(obj, name, type.cast(val));
+        } catch (ClassCastException ex) {
+          addJacksonMapped(obj, name, val);
+        }
+      }
+    };
+  }
+
   @SuppressWarnings("unchecked")
   private static AddMember<Object> createStringMapAdder() {
-    return (obj, name, val) ->
-        obj.addObject(name, map -> ((Map<String, String>) val).forEach(map::addString));
+    return getGuardedAdder(
+        Map.class,
+        (obj, name, val) ->
+            obj.addObject(name, map -> ((Map<String, String>) val).forEach(map::addString)));
   }
 
   @CheckForNull
   @SuppressWarnings("unchecked")
   private static AddMember<Object> createCollectionAdder(Class<?> elementType) {
     if (Number.class.isAssignableFrom(elementType))
-      return (obj, name, val) ->
-          obj.addArray(name, arr -> ((Collection<Number>) val).forEach(arr::addNumber));
+      return getGuardedAdder(
+          Collection.class,
+          (obj, name, val) ->
+              obj.addArray(name, arr -> ((Collection<Number>) val).forEach(arr::addNumber)));
     if (elementType == String.class)
-      return (obj, name, val) ->
-          obj.addArray(name, arr -> ((Collection<String>) val).forEach(arr::addString));
+      return getGuardedAdder(
+          Collection.class,
+          (obj, name, val) ->
+              obj.addArray(name, arr -> ((Collection<String>) val).forEach(arr::addString)));
     if (elementType.isEnum())
-      return (obj, name, val) ->
-          obj.addArray(
-              name, arr -> ((Collection<Enum<?>>) val).forEach(e -> arr.addString(e.name())));
+      return getGuardedAdder(
+          Collection.class,
+          (obj, name, val) ->
+              obj.addArray(
+                  name, arr -> ((Collection<Enum<?>>) val).forEach(e -> arr.addString(e.name()))));
     if (JsonBuilder.JsonEncodable.class.isAssignableFrom(elementType))
-      return (obj, name, val) ->
-          obj.addArray(
-              name,
-              arr ->
-                  ((Collection<? extends JsonBuilder.JsonEncodable>) val)
-                      .forEach(e -> e.addTo(arr)));
+      return getGuardedAdder(
+          Collection.class,
+          (obj, name, val) ->
+              obj.addArray(
+                  name,
+                  arr ->
+                      ((Collection<? extends JsonBuilder.JsonEncodable>) val)
+                          .forEach(e -> e.addTo(arr))));
     return null;
   }
 

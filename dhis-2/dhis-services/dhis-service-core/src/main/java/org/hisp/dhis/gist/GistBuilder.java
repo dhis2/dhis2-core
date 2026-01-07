@@ -724,7 +724,7 @@ final class GistBuilder {
     if (field.getTransformationArgument() != null) {
       return getPluckPropertyName(field, fieldType, forceTextual);
     }
-    if (fieldType == Period.class) return "iso";
+    if (fieldType == Period.class) return "isoDate";
     if (fieldType == PeriodType.class) {
       // this is how HQL refers to discriminator property, here "name"
       return "class";
