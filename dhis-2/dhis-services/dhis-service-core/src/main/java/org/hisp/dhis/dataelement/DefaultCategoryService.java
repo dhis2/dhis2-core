@@ -852,6 +852,6 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   public SetValuedMap<String, String> getCategoryOptionOrganisationUnitsAssociations(
       Set<String> uids) {
-    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids);
+    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids, false);
   }
 }
