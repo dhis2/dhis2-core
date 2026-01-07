@@ -37,6 +37,18 @@
         <!-- Connection acquisition timing - enable for connection pool analysis -->
         <Logger name="org.hisp.dhis.datasource.ConnectionLoggingDataSource" level="DEBUG" additivity="true"/>
 
+        <!-- Enhanced transaction/connection logging to prove HTTP thread holds connection for full duration -->
+        <!-- Spring transaction interceptor - shows transaction start/commit/rollback -->
+        <Logger name="org.springframework.transaction.interceptor.TransactionInterceptor" level="TRACE" additivity="true"/>
+        <!-- Spring JPA transaction manager - shows connection acquisition/release timing -->
+        <Logger name="org.springframework.orm.jpa.JpaTransactionManager" level="DEBUG" additivity="true"/>
+        <!-- Spring JDBC DataSourceUtils - shows connection binding/unbinding to thread -->
+        <Logger name="org.springframework.jdbc.datasource.DataSourceUtils" level="DEBUG" additivity="true"/>
+        <!-- Hibernate connection management -->
+        <Logger name="org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl" level="DEBUG" additivity="true"/>
+        <!-- Hibernate transaction coordinator -->
+        <Logger name="org.hibernate.resource.transaction" level="DEBUG" additivity="true"/>
+
         <Root level="WARN">
             <AppenderRef ref="console"/>
             <AppenderRef ref="file"/>
