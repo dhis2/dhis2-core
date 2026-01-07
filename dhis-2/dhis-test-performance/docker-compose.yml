@@ -8,13 +8,21 @@ services:
       # JAVA_TOOL_OPTIONS: Standard JVM environment variable, works with all image types
       JAVA_TOOL_OPTIONS:
         "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
-        -Xmx10000m -Xms10000m"
+        -Xmx10000m -Xms10000m \
+        -Dcom.sun.management.jmxremote \
+        -Dcom.sun.management.jmxremote.port=9011 \
+        -Dcom.sun.management.jmxremote.rmi.port=9011 \
+        -Dcom.sun.management.jmxremote.local.only=false \
+        -Dcom.sun.management.jmxremote.authenticate=false \
+        -Dcom.sun.management.jmxremote.ssl=false \
+        -Djava.rmi.server.hostname=web"
     volumes:
       - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/${DHIS_CONF_FILE:-dhis.conf}:/opt/dhis2/dhis.conf:ro
       - ./logs:/opt/dhis2/logs
     ports:
       - "127.0.0.1:8080:8080" # DHIS2
+      - "127.0.0.1:9011:9011" # JMX (for VisualVM)
     depends_on:
       db:
         condition: service_healthy
@@ -76,7 +84,20 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
-  # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
+  # JMX Exporter - exposes Tomcat JMX metrics as Prometheus metrics
+  # Bypasses DHIS2 HTTP layer, works even when connection pool is exhausted
+  jmx-exporter:
+    profiles: [monitoring]
+    image: bitnami/jmx-exporter:latest
+    volumes:
+      - ./docker/jmx-exporter-config.yml:/opt/bitnami/jmx-exporter/config.yml:ro
+    command: ["9404", "/opt/bitnami/jmx-exporter/config.yml"]
+    ports:
+      - "127.0.0.1:9404:9404"
+    depends_on:
+      - web
+
+  # Prometheus for scraping metrics
   prometheus:
     profiles: [monitoring]
     image: prom/prometheus:v3.5.0
@@ -88,6 +109,7 @@ services:
       - prometheus:/prometheus
     depends_on:
       - web
+      - jmx-exporter
 
 volumes:
   prometheus:
