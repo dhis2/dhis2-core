@@ -70,7 +70,9 @@ public class JdbcOrgUnitAssociationsStore {
           while (resultSet.next()) {
             String[] arr = (String[]) resultSet.getArray(2).getArray();
             List<String> values =
-                filterNulls ? Stream.of(arr).filter(Objects::nonNull).toList() : Arrays.asList(arr);
+                filterNulls
+                    ? Stream.of(arr).filter(Objects::nonNull).collect(Collectors.toList())
+                    : Arrays.asList(arr);
             setValuedMap.putAll(resultSet.getString(1), values);
           }
           return setValuedMap;
