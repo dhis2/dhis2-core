@@ -54,7 +54,7 @@ public abstract class TrackerDataSynchronizationWithPaging
    * @param progress job progress reporter
    * @return result of synchronization
    */
-  abstract SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress);
+  public abstract SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress);
 
   /**
    * This method from {@link DataSynchronizationWithPaging} is not directly used here.
