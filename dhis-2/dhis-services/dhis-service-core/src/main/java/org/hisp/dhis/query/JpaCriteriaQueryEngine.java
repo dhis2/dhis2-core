@@ -58,6 +58,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -112,7 +113,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     typedQuery.setFirstResult(query.getFirstResult());
     typedQuery.setMaxResults(query.getMaxResults());
 
-    if (query.isCacheable()) {
+    if (query.isCacheable() && shouldBeCached(objectType)) {
       typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
       typedQuery.setHint(
           QueryHints.HINT_CACHE_REGION,
@@ -120,6 +121,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     }
 
     return typedQuery.getResultList();
+  }
+
+  private static <T extends IdentifiableObject> boolean shouldBeCached(Class<T> objectType) {
+    // Skip query cache for OrganisationUnit to avoid N+1 queries during cache assembly.
+    return !OrganisationUnit.class.isAssignableFrom(objectType);
   }
 
   private <T extends IdentifiableObject> Predicate buildFilters(
