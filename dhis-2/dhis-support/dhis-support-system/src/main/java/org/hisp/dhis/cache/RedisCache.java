@@ -117,7 +117,7 @@ public class RedisCache<V> implements Cache<V> {
 
       if (null != value) {
         if (expiryEnabled) {
-          setValueWithExpiry(redisKey, value, expiryInSeconds);
+          redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
         } else {
           redisTemplate.boundValueOps(redisKey).set(value);
         }
@@ -153,7 +153,7 @@ public class RedisCache<V> implements Cache<V> {
 
     String redisKey = generateKey(key);
     if (expiryEnabled) {
-      setValueWithExpiry(redisKey, value, expiryInSeconds);
+      redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
     } else {
       redisTemplate.boundValueOps(redisKey).set(value);
     }
@@ -168,7 +168,7 @@ public class RedisCache<V> implements Cache<V> {
 
     String redisKey = generateKey(key);
 
-    setValueWithExpiry(redisKey, value, ttlInSeconds);
+    redisTemplate.boundValueOps(redisKey).set(value, ttlInSeconds, SECONDS);
   }
 
   @Override
@@ -214,25 +214,5 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public CacheType getCacheType() {
     return CacheType.REDIS;
-  }
-
-  /**
-   * Sets a value in the cache with an expiry time.
-   *
-   * <p>If the provided TTL is greater than 0, the value is stored with that TTL in seconds.
-   * Otherwise, the value is stored with a TTL of 1 microsecond, effectively causing it to expire
-   * almost immediately.
-   *
-   * @param redisKey the fully qualified Redis key (including cache region prefix)
-   * @param value the value to store in the cache
-   * @param ttlInSeconds the time-to-live in seconds; if <= 0, a TTL of 1 microsecond is used
-   *     instead
-   */
-  private void setValueWithExpiry(String redisKey, V value, long ttlInSeconds) {
-    if (ttlInSeconds > 0) {
-      redisTemplate.boundValueOps(redisKey).set(value, ttlInSeconds, SECONDS);
-    } else {
-      redisTemplate.boundValueOps(redisKey).set(value, 1, MICROSECONDS);
-    }
   }
 }

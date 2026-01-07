@@ -91,26 +91,6 @@ class RedisCacheTest {
     }
 
     @Test
-    void shouldUseMicrosecondExpiry_whenExpiryIsZero() {
-      when(cacheBuilder.getExpiryInSeconds()).thenReturn(0L);
-      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
-
-      buildCache().put("myKey", "myValue");
-
-      verify(boundValueOps).set("myValue", 1, TimeUnit.MICROSECONDS);
-    }
-
-    @Test
-    void shouldUseMicrosecondExpiry_whenExpiryIsNegative() {
-      when(cacheBuilder.getExpiryInSeconds()).thenReturn(-10L);
-      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
-
-      buildCache().put("myKey", "myValue");
-
-      verify(boundValueOps).set("myValue", 1, TimeUnit.MICROSECONDS);
-    }
-
-    @Test
     void shouldStoreWithoutExpiry_whenExpiryDisabled() {
       when(cacheBuilder.isExpiryEnabled()).thenReturn(false);
       when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
@@ -137,24 +117,6 @@ class RedisCacheTest {
       buildCache().put("myKey", "myValue", 60L);
 
       verify(boundValueOps).set("myValue", 60L, TimeUnit.SECONDS);
-    }
-
-    @Test
-    void shouldUseMicrosecondExpiry_whenCustomTtlIsZero() {
-      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
-
-      buildCache().put("myKey", "myValue", 0L);
-
-      verify(boundValueOps).set("myValue", 1, TimeUnit.MICROSECONDS);
-    }
-
-    @Test
-    void shouldUseMicrosecondExpiry_whenCustomTtlIsNegative() {
-      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
-
-      buildCache().put("myKey", "myValue", -5L);
-
-      verify(boundValueOps).set("myValue", 1, TimeUnit.MICROSECONDS);
     }
 
     @Test
@@ -279,6 +241,17 @@ class RedisCacheTest {
     }
 
     @Test
+    void shouldStoreWithoutExpiry_whenExpiryDisabled() {
+      when(cacheBuilder.isExpiryEnabled()).thenReturn(false);
+      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
+      when(boundValueOps.get()).thenReturn(null);
+
+      buildCache().get("myKey", key -> "computed");
+
+      verify(boundValueOps).set("computed");
+    }
+
+    @Test
     void shouldReturnCachedValue_whenKeyExists() {
       when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
       when(boundValueOps.get()).thenReturn("cachedValue");
@@ -319,17 +292,6 @@ class RedisCacheTest {
       RedisCache<String> cache = buildCache();
       assertThrows(IllegalArgumentException.class, () -> cache.get("myKey", null));
     }
-
-    @Test
-    void shouldUseMicrosecondExpiry_whenExpiryIsZero() {
-      when(cacheBuilder.getExpiryInSeconds()).thenReturn(0L);
-      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
-      when(boundValueOps.get()).thenReturn(null);
-
-      buildCache().get("myKey", key -> "computed");
-
-      verify(boundValueOps).set("computed", 1, TimeUnit.MICROSECONDS);
-    }
   }
 
   @Nested
@@ -358,7 +320,7 @@ class RedisCacheTest {
     }
 
     @Test
-    void shouldUseMicrosecondExpiry_whenExpiryIsZero() {
+    void shouldUseMicrosecondExpiry_whenExpiryIsZeroOrNegative() {
       when(cacheBuilder.getExpiryInSeconds()).thenReturn(0L);
       when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
       when(boundValueOps.setIfAbsent("myValue", 1, TimeUnit.MICROSECONDS)).thenReturn(true);
@@ -367,6 +329,18 @@ class RedisCacheTest {
 
       assertTrue(result);
       verify(boundValueOps).setIfAbsent("myValue", 1, TimeUnit.MICROSECONDS);
+    }
+
+    @Test
+    void shouldSetWithoutExpiry_whenExpiryDisabled() {
+      when(cacheBuilder.isExpiryEnabled()).thenReturn(false);
+      when(redisTemplate.boundValueOps(anyString())).thenReturn(boundValueOps);
+      when(boundValueOps.setIfAbsent("myValue")).thenReturn(true);
+
+      boolean result = buildCache().putIfAbsent("myKey", "myValue");
+
+      assertTrue(result);
+      verify(boundValueOps).setIfAbsent("myValue");
     }
 
     @Test
