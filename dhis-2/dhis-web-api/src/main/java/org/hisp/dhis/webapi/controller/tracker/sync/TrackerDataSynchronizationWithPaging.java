@@ -29,10 +29,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
+import static java.lang.String.format;
+import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
+
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.setting.SystemSettings;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Base class for tracker data synchronization jobs that require paging support and an associated
@@ -49,7 +54,7 @@ public abstract class TrackerDataSynchronizationWithPaging
    * @param progress job progress reporter
    * @return result of synchronization
    */
-  public abstract SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress);
+  abstract SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress);
 
   /**
    * This method from {@link DataSynchronizationWithPaging} is not directly used here.
@@ -60,5 +65,31 @@ public abstract class TrackerDataSynchronizationWithPaging
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
     throw new UnsupportedOperationException(
         "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
+  }
+
+  public SynchronizationResult endProcess(
+      JobProgress progress, String message, String processName) {
+    String fullMessage = format("%s %s", processName, message);
+    progress.completedProcess(fullMessage);
+    return SynchronizationResult.success(fullMessage);
+  }
+
+  public SynchronizationResult failProcess(
+      JobProgress progress, String reason, String processName) {
+    String fullMessage = format("%s failed. %s", processName, reason);
+    progress.failedProcess(fullMessage);
+    return SynchronizationResult.failure(fullMessage);
+  }
+
+  public SynchronizationResult validatePreconditions(
+      SystemSettings settings,
+      JobProgress progress,
+      RestTemplate restTemplate,
+      String processName) {
+    if (!testServerAvailability(settings, restTemplate).isAvailable()) {
+      return failProcess(progress, "Remote server unavailable", processName);
+    }
+
+    return null;
   }
 }

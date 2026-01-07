@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Date;
@@ -119,7 +118,8 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
-    SynchronizationResult validationResult = validatePreconditions(settings, progress);
+    SynchronizationResult validationResult =
+        validatePreconditions(settings, progress, restTemplate, PROCESS_NAME);
     if (validationResult != null) {
       return validationResult;
     }
@@ -127,14 +127,14 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     EventSynchronizationContext context = initializeContext(pageSize, progress, settings);
 
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No events to synchronize");
+      return endProcess(progress, "No events to synchronize", PROCESS_NAME);
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, settings);
 
     return success
-        ? endProcess(progress, "Completed successfully")
-        : failProcess(progress, "Page-level synchronization failed");
+        ? endProcess(progress, "Completed successfully", PROCESS_NAME)
+        : failProcess(progress, "Page-level synchronization failed", PROCESS_NAME);
   }
 
   private EventSynchronizationContext initializeContext(
@@ -143,15 +143,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         new EventSynchronizationContext(null, pageSize),
         ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
         () -> createContext(pageSize, settings));
-  }
-
-  private SynchronizationResult validatePreconditions(
-      SystemSettings settings, JobProgress progress) {
-    if (!testServerAvailability(settings, restTemplate).isAvailable()) {
-      return failProcess(progress, "Remote server unavailable");
-    }
-
-    return null;
   }
 
   private EventSynchronizationContext createContext(int pageSize, SystemSettings settings)
@@ -331,18 +322,6 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
     List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
     eventService.updateEventsSyncTimestamp(eventUids, syncTime);
-  }
-
-  private SynchronizationResult endProcess(JobProgress progress, String message) {
-    String fullMessage = format("%s %s", PROCESS_NAME, message);
-    progress.completedProcess(fullMessage);
-    return SynchronizationResult.success(fullMessage);
-  }
-
-  private SynchronizationResult failProcess(JobProgress progress, String reason) {
-    String fullMessage = format("%s failed. %s", PROCESS_NAME, reason);
-    progress.failedProcess(fullMessage);
-    return SynchronizationResult.failure(fullMessage);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(Event event) {

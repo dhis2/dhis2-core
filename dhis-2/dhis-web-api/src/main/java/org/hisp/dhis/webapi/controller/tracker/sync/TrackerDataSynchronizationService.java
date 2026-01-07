@@ -113,17 +113,23 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
+    SynchronizationResult validationResult =
+        validatePreconditions(settings, progress, restTemplate, PROCESS_NAME);
+    if (validationResult != null) {
+      return validationResult;
+    }
+
     TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
 
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No tracked entities to synchronize");
+      return endProcess(progress, "No tracked entities to synchronize", PROCESS_NAME);
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, settings);
 
     return success
-        ? endProcess(progress, "Completed successfully")
-        : failProcess(progress, "Page-level synchronization failed");
+        ? endProcess(progress, "Completed successfully", PROCESS_NAME)
+        : failProcess(progress, "Page-level synchronization failed", PROCESS_NAME);
   }
 
   private TrackerSynchronizationContext initializeContext(
@@ -322,18 +328,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
 
     trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
-  }
-
-  private SynchronizationResult endProcess(JobProgress progress, String message) {
-    String fullMessage = format("%s %s", PROCESS_NAME, message);
-    progress.completedProcess(fullMessage);
-    return SynchronizationResult.success(fullMessage);
-  }
-
-  private SynchronizationResult failProcess(JobProgress progress, String reason) {
-    String fullMessage = format("%s failed. %s", PROCESS_NAME, reason);
-    progress.failedProcess(fullMessage);
-    return SynchronizationResult.failure(fullMessage);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(
