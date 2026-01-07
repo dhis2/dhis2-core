@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -109,12 +108,6 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
   }
 
   @Override
-  public SynchronizationResult synchronizeSingleEventData(
-      int pageSize, JobProgress progress, @Nonnull String programUid) {
-    return null;
-  }
-
-  @Override
   public SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress) {
     progress.startingProcess(PROCESS_NAME);
 
@@ -142,8 +135,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         () -> createContext(pageSize, settings));
   }
 
-  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
-      throws ForbiddenException, BadRequestException {
+  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings) {
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
     long trackedEntityCount = countTrackedEntitiesForSynchronization(skipChangedBefore);
@@ -158,8 +150,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
         skipChangedBefore, trackedEntityCount, instance, pageSize);
   }
 
-  private long countTrackedEntitiesForSynchronization(Date skipChangedBefore)
-      throws ForbiddenException, BadRequestException {
+  private long countTrackedEntitiesForSynchronization(Date skipChangedBefore) {
     return trackedEntityService.getTrackedEntityCount(
         TrackedEntityOperationParams.builder()
             .skipChangedBefore(skipChangedBefore)

@@ -115,23 +115,17 @@ public interface TrackedEntityService {
   Set<String> getOrderableFields();
 
   /**
-   * Returns the total number of tracked entities matching the given operation parameters.
+   * Updates the synchronization timestamp for the given set of tracked entities.
    *
-   * @param operationParams parameters defining filters such as program, attributes, updated-after,
-   *     etc.
-   * @return the count of tracked entities that satisfy the provided criteria
-   * @throws ForbiddenException if the current user is not authorized to perform the query
-   * @throws BadRequestException if the parameters are invalid or incomplete
-   */
-  long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, BadRequestException;
-
-  /**
-   * Updates the last synchronization timestamp for the specified tracked entities.
+   * <p>The provided {@code lastSynchronized} value will be applied to all specified tracked
+   * entities to indicate the most recent successful synchronization time.
    *
-   * @param trackedEntities list of tracked entity UIDs whose sync timestamp should be updated
-   * @param lastSynchronized the timestamp to set as the entities' last synchronization time
+   * @param trackedEntities a non-null set of tracked entity UIDs whose sync timestamp should be
+   *     updated
+   * @param lastSynchronized a non-null date representing the last synchronization time
    */
   void updateTrackedEntitiesSyncTimestamp(
       @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized);
+
+  long getTrackedEntityCount(TrackedEntityOperationParams operationParams);
 }

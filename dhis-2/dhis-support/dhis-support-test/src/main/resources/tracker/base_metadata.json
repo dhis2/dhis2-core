@@ -2546,6 +2546,52 @@
         }
       ],
       "username": "childlevel3"
+    },
+    {
+      "id": "fZidJVYpWWE",
+      "access": {
+        "delete": true,
+        "externalize": true,
+        "manage": true,
+        "read": true,
+        "update": true,
+        "write": true
+      },
+      "dataViewOrganisationUnits": [
+        {
+          "id": "tSsGrtfRzjY"
+        }
+      ],
+      "firstName": "first name",
+      "surname": "surname",
+      "organisationUnits": [
+        {
+          "id": "tSsGrtfRzjY"
+        },
+        {
+          "id": "lbDXJBlvtZe"
+        }
+      ],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "RojfDTBhoGC"
+        },
+        {
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "lbDXJBlvtZe"
+        },
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "username": "user-pagination-test"
     }
   ]
 }

@@ -32,7 +32,6 @@ package org.hisp.dhis.program;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
@@ -99,10 +98,8 @@ public interface ProgramStageDataElementService {
    * the skipSynchronization flag is enabled, meaning these data elements should be excluded from
    * synchronization operations.
    *
-   * @param program the {@link Program} whose associated ProgramStageDataElements are to be filtered
    * @return a map where the key is the ProgramStage UID and the value is a set of DataElement UIDs
    *     associated with that ProgramStage that have skipSynchronization set to true
    */
-  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-      @Nonnull Program program);
+  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 }
