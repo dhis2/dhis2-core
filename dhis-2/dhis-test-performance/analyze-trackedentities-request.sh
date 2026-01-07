@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
-# OSIV Demo - Complete Request Analysis
+# TrackedEntities DB Connection Analysis
 #
-# Demonstrates connection pool behavior by analyzing a single tracker API request.
+# Analyzes DB connection pool behavior for the /api/tracker/trackedEntities endpoint.
+# Demonstrates the N×M query pattern where:
+# - N = number of tracked entities (one enrollment query per TE)
+# - M = number of enrollments (one event query per enrollment)
+#
 # Shows:
 # - Curl timing (total request time)
 # - All connection acquisitions (wait_ms, held_ms per connection)
 # - SQL query count and timings from PostgreSQL logs
 #
 # Usage:
-#   ./analyze-request.sh [search_term]
+#   ./analyze-trackedentities-request.sh [page_size]
 #
 # Examples:
-#   ./analyze-request.sh          # Default: search for "grace" (returns 1 TE)
-#   ./analyze-request.sh martha   # Search for "martha" (returns 218+ TEs)
+#   ./analyze-trackedentities-request.sh       # Default: pageSize=1
+#   ./analyze-trackedentities-request.sh 50    # pageSize=50
 #
 # Environment variables:
-#   PAGE_SIZE=50                  # Number of results per page (default: 50)
+#   PROGRAM=IpHINAT79UW           # Program UID (default: Child Programme)
+#   BASE_URL=http://localhost:8080
+#   AUTH=admin:district
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:8080}"
 AUTH="${AUTH:-admin:district}"
 DHIS2_LOG="${DHIS2_LOG:-$SCRIPT_DIR/logs/dhis.log}"
-SEARCH_TERM="${1:-grace}"
-PAGE_SIZE="${PAGE_SIZE:-50}"
+PAGE_SIZE="${1:-1}"
+PROGRAM="${PROGRAM:-IpHINAT79UW}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -36,11 +42,12 @@ NC='\033[0m'
 REQUEST_ID="$(date +%s%3N)"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}  OSIV Demo - Complete Request Analysis${NC}"
+echo -e "${BLUE}  TrackedEntities DB Connection Analysis${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${CYAN}Request ID: ${YELLOW}$REQUEST_ID${NC}"
-echo -e "${CYAN}Search Term: ${YELLOW}$SEARCH_TERM${NC}"
+echo -e "${CYAN}Program: ${YELLOW}$PROGRAM${NC}"
+echo -e "${CYAN}Page Size: ${YELLOW}$PAGE_SIZE${NC}"
 echo ""
 
 # Capture current log size to only analyze new entries
@@ -56,7 +63,7 @@ echo ""
 RESPONSE=$(curl -s -w "\n__CURL_TIMING__\ntime_total:%{time_total}\nhttp_code:%{http_code}\n" \
     -u "$AUTH" \
     -H "X-Request-ID: $REQUEST_ID" \
-    "$BASE_URL/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:${SEARCH_TERM}&fields=attributes,enrollments,trackedEntity,orgUnit&program=ur1Edk5Oe2n&page=1&pageSize=${PAGE_SIZE}&orgUnitMode=ACCESSIBLE")
+    "$BASE_URL/api/tracker/trackedEntities?fields=attributes,enrollments,trackedEntity,orgUnit&program=${PROGRAM}&page=1&pageSize=${PAGE_SIZE}&orgUnitMode=ACCESSIBLE")
 
 # Extract timing info
 CURL_TIME_SEC=$(echo "$RESPONSE" | grep "^time_total:" | cut -d: -f2)
@@ -113,7 +120,7 @@ sleep 1
 
 echo -e "${BLUE}───────────────────────────────────────────────────────────────${NC}"
 echo ""
-echo -e "${CYAN}[Step 2] Analyzing connection acquisitions...${NC}"
+echo -e "${CYAN}[Step 2] Analyzing DB connection acquisitions...${NC}"
 echo ""
 
 # Extract connection logs for this request
@@ -129,37 +136,52 @@ if [[ -f "$DHIS2_LOG" ]]; then
     else
         # Count acquisitions
         CONN_COUNT=$(echo "$CONN_LOGS" | grep "CONN_ACQUIRED" | wc -l)
-        echo -e "${GREEN}✓ Found $CONN_COUNT connection acquisitions${NC}"
+        echo -e "${GREEN}✓ Found $CONN_COUNT DB connection acquisitions${NC}"
         echo ""
 
-        # Show connection details
-        echo "Connection Timings:"
+        # Show DB connection details - chronological order (as they were released)
+        echo "DB Connection Timings (chronological):"
         echo "──────────────────────────────────────────────────────────────"
         printf "%-3s %-35s %-12s %-12s\n" "#" "Thread" "Wait (ms)" "Held (ms)"
         echo "──────────────────────────────────────────────────────────────"
 
-        # Parse acquired connections
-        INDEX=1
-        echo "$CONN_LOGS" | grep "CONN_ACQUIRED" | while read line; do
+        # Parse RELEASED events in log order (chronological)
+        echo "$CONN_LOGS" | grep "CONN_RELEASED" | nl -w3 | while read idx line; do
             THREAD=$(echo "$line" | sed -n 's/.*\[\([^]]*\)\].*/\1/p')
             WAIT_MS=$(echo "$line" | grep -oP 'wait_ms=\K[0-9]+')
-
-            # Find corresponding release
-            RELEASE_LINE=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep "\[$THREAD\]" | head -1)
-            if [[ -n "$RELEASE_LINE" ]]; then
-                HELD_MS=$(echo "$RELEASE_LINE" | grep -oP 'held_ms=\K[0-9]+')
-                printf "%-3s %-35s %-12s %-12s\n" "$INDEX" "$THREAD" "$WAIT_MS" "$HELD_MS"
-            else
-                printf "%-3s %-35s %-12s %-12s\n" "$INDEX" "$THREAD" "$WAIT_MS" "(not released)"
-            fi
-            INDEX=$((INDEX + 1))
+            HELD_MS=$(echo "$line" | grep -oP 'held_ms=\K[0-9]+')
+            printf "%-3s %-35s %-12s %-12s\n" "$idx" "$THREAD" "$WAIT_MS" "$HELD_MS"
         done
 
-        # Highlight main thread (OSIV connection)
+        # Connection statistics summary
         echo "──────────────────────────────────────────────────────────────"
-        OSIV_TIME=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep "http-nio" | head -1 | grep -oP 'held_ms=\K[0-9]+')
-        if [[ -n "$OSIV_TIME" ]]; then
-            echo -e "${YELLOW}Note: Main HTTP thread held connection for ${OSIV_TIME}ms (OSIV - entire request duration: ${CURL_TIME_MS}ms)${NC}"
+
+        # HTTP thread stats
+        HTTP_TIMES=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep "http-nio" | grep -oP 'held_ms=\K[0-9]+')
+        if [[ -n "$HTTP_TIMES" ]]; then
+            HTTP_COUNT=$(echo "$HTTP_TIMES" | wc -l)
+            HTTP_SUM=$(echo "$HTTP_TIMES" | paste -sd+ | bc)
+            HTTP_MAX=$(echo "$HTTP_TIMES" | sort -n | tail -1)
+            HTTP_MIN=$(echo "$HTTP_TIMES" | sort -n | head -1)
+            echo -e "${YELLOW}HTTP thread DB connection held: min=${HTTP_MIN}ms max=${HTTP_MAX}ms sum=${HTTP_SUM}ms count=${HTTP_COUNT}${NC}"
+        fi
+
+        # Async thread stats
+        ASYNC_TIMES=$(echo "$CONN_LOGS" | grep "CONN_RELEASED" | grep -E "TRACKER-TE-FETCH|ForkJoinPool" | grep -oP 'held_ms=\K[0-9]+')
+        if [[ -n "$ASYNC_TIMES" ]]; then
+            ASYNC_COUNT=$(echo "$ASYNC_TIMES" | wc -l)
+            ASYNC_SUM=$(echo "$ASYNC_TIMES" | paste -sd+ | bc)
+            ASYNC_MAX=$(echo "$ASYNC_TIMES" | sort -n | tail -1)
+            ASYNC_MIN=$(echo "$ASYNC_TIMES" | sort -n | head -1)
+            echo -e "${CYAN}Async threads DB connection held: min=${ASYNC_MIN}ms max=${ASYNC_MAX}ms sum=${ASYNC_SUM}ms count=${ASYNC_COUNT}${NC}"
+        fi
+
+        # Effective parallelism
+        if [[ -n "$HTTP_MAX" ]] && [[ "$HTTP_MAX" -gt 0 ]] && [[ -n "$ASYNC_SUM" ]]; then
+            PARALLELISM=$(echo "scale=1; $ASYNC_SUM / $HTTP_MAX" | bc)
+            echo ""
+            echo -e "${MAGENTA}Effective parallelism: ${PARALLELISM}x (async sum / HTTP max)${NC}"
+            echo -e "${MAGENTA}Note: @Transactional on findTrackedEntities holds DB connection while waiting for async threads${NC}"
         fi
     fi
 else
@@ -173,12 +195,13 @@ echo -e "${CYAN}[Step 3] Analyzing SQL queries...${NC}"
 echo ""
 
 # Check if PostgreSQL container is running
-if ! docker ps --format '{{.Names}}' | grep -q "demo-osiv-db-1"; then
-    echo -e "${RED}⚠ PostgreSQL container 'demo-osiv-db-1' is not running${NC}"
-    echo "  Start with: cd demo-osiv && docker compose up -d db"
+PG_CONTAINER="dhis-test-performance-db-1"
+if ! docker ps --format '{{.Names}}' | grep -q "$PG_CONTAINER"; then
+    echo -e "${RED}⚠ PostgreSQL container '$PG_CONTAINER' is not running${NC}"
+    echo "  Start with: docker compose up -d db"
 else
     # Extract SQL logs for this request
-    PG_LOGS=$(docker exec demo-osiv-db-1 cat /var/lib/postgresql/data/log/postgresql.log 2>/dev/null | grep "request_id=$REQUEST_ID")
+    PG_LOGS=$(docker exec "$PG_CONTAINER" cat /var/lib/postgresql/data/log/postgresql.log 2>/dev/null | grep "request_id=$REQUEST_ID")
 
     if [[ -z "$PG_LOGS" ]]; then
         echo -e "${YELLOW}⚠ No SQL queries found for request_id=$REQUEST_ID${NC}"
@@ -192,20 +215,29 @@ else
         echo -e "${GREEN}✓ Found $SQL_COUNT SQL queries${NC}"
         echo ""
 
-        # Extract duration lines
+        # Extract duration lines and show chronologically
         DURATIONS=$(echo "$PG_LOGS" | grep "duration:")
 
         if [[ -n "$DURATIONS" ]]; then
             DURATION_COUNT=$(echo "$DURATIONS" | wc -l)
-            echo "Query Durations (${DURATION_COUNT} queries with timing info):"
+            echo "SQL Query Durations (chronological):"
+            echo "─────────────────────────────────────────────────────────"
+            printf "%-5s %-12s %s\n" "#" "Duration" "Timestamp"
             echo "─────────────────────────────────────────────────────────"
 
-            echo "$DURATIONS" | while read line; do
+            echo "$DURATIONS" | nl -w3 | while read idx line; do
                 DURATION=$(echo "$line" | grep -oP 'duration: \K[0-9.]+')
                 TIMESTAMP=$(echo "$line" | grep -oP '^\S+ \S+')
-                echo "  ${DURATION}ms at $TIMESTAMP"
+                printf "%-5s %-12s %s\n" "$idx" "${DURATION}ms" "$TIMESTAMP"
             done
+
+            # Summary stats
             echo "─────────────────────────────────────────────────────────"
+            SQL_TIMES=$(echo "$DURATIONS" | grep -oP 'duration: \K[0-9.]+')
+            SQL_MIN=$(echo "$SQL_TIMES" | sort -n | head -1)
+            SQL_MAX=$(echo "$SQL_TIMES" | sort -n | tail -1)
+            SQL_SUM=$(echo "$SQL_TIMES" | paste -sd+ | bc)
+            echo -e "${YELLOW}SQL query duration: min=${SQL_MIN}ms max=${SQL_MAX}ms sum=${SQL_SUM}ms count=${DURATION_COUNT}${NC}"
         else
             echo -e "${YELLOW}No query duration info found (only queries >100ms are logged with durations)${NC}"
         fi
@@ -227,18 +259,31 @@ echo -e "${BLUE}═════════════════════�
 echo -e "${GREEN}Analysis complete!${NC}"
 echo ""
 echo "Summary for request_id=$REQUEST_ID:"
-echo "  • Curl total time: ${CURL_TIME_MS}ms"
-if [[ -n "$OSIV_TIME" ]]; then
-    echo "  • OSIV connection held: ${OSIV_TIME}ms"
+echo ""
+echo "  Request:"
+echo "    Total time: ${CURL_TIME_MS}ms"
+echo "    Entities: ${STAT_TES} TEs, ${STAT_EN} enrollments, ${STAT_EV} events"
+echo ""
+echo "  DB Connections:"
+if [[ -n "$HTTP_MAX" ]]; then
+    echo "    HTTP thread: min=${HTTP_MIN}ms max=${HTTP_MAX}ms sum=${HTTP_SUM}ms count=${HTTP_COUNT}"
 fi
-echo "  • Connections acquired: $CONN_COUNT"
-echo "  • SQL queries: $SQL_COUNT"
-echo "  • Entities returned: ${STAT_TES} TE, ${STAT_EN} EN, ${STAT_EV} EV (${STAT_TOTAL} total)"
-
-# Calculate connections per TE
+if [[ -n "$ASYNC_SUM" ]]; then
+    echo "    Async threads: min=${ASYNC_MIN}ms max=${ASYNC_MAX}ms sum=${ASYNC_SUM}ms count=${ASYNC_COUNT}"
+fi
+echo "    Total acquired: $CONN_COUNT"
 if [[ -n "$CONN_COUNT" ]] && [[ "$STAT_TES" -gt 0 ]]; then
     CONN_PER_TE=$(echo "scale=2; $CONN_COUNT / $STAT_TES" | bc)
-    echo "  • Connections per TE: ${CONN_PER_TE} (~2 base + ~1 per TE for EN + ~1 per EN for EV)"
+    echo "    Per TE: ${CONN_PER_TE}"
+fi
+if [[ -n "$PARALLELISM" ]]; then
+    echo "    Effective parallelism: ${PARALLELISM}x"
+fi
+echo ""
+echo "  SQL Queries:"
+echo "    Count: $SQL_COUNT"
+if [[ -n "$SQL_SUM" ]]; then
+    echo "    Duration: min=${SQL_MIN}ms max=${SQL_MAX}ms sum=${SQL_SUM}ms"
 fi
 
 echo ""
