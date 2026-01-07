@@ -32,6 +32,7 @@ package org.hisp.dhis.association.jdbc;
 import java.sql.Array;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -59,7 +60,7 @@ public class JdbcOrgUnitAssociationsStore {
   private final UserService userService;
 
   public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser(
-      Set<String> uids) {
+      Set<String> uids, boolean filterNulls) {
     if (uids.isEmpty()) {
       return new HashSetValuedHashMap<>();
     }
@@ -72,11 +73,10 @@ public class JdbcOrgUnitAssociationsStore {
         resultSet -> {
           SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
           while (resultSet.next()) {
-            setValuedMap.putAll(
-                resultSet.getString(1),
-                Stream.of((String[]) resultSet.getArray(2).getArray())
-                    .filter(Objects::nonNull)
-                    .toList());
+            String[] arr = (String[]) resultSet.getArray(2).getArray();
+            List<String> values =
+                filterNulls ? Stream.of(arr).filter(Objects::nonNull).toList() : Arrays.asList(arr);
+            setValuedMap.putAll(resultSet.getString(1), values);
           }
           return setValuedMap;
         });
