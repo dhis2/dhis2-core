@@ -49,8 +49,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 
 @Entity
 @Table(name = "trackedentitychangelog")

@@ -51,7 +51,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -66,6 +65,7 @@ import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -149,7 +149,7 @@ class TrackerIdentifierCollectorTest {
 
     assertNotNull(ids);
     assertContainsOnly(
-        Set.of(event.getUid().getValue()), ids.get(org.hisp.dhis.program.TrackerEvent.class));
+        Set.of(event.getUid().getValue()), ids.get(org.hisp.dhis.tracker.model.TrackerEvent.class));
     assertContainsOnly(Set.of(event.getUid().getValue()), ids.get(SingleEvent.class));
     assertContainsOnly(Set.of(event.getEnrollment().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
@@ -200,7 +200,7 @@ class TrackerIdentifierCollectorTest {
         Set.of(relationship.getFrom().getEnrollment().getValue()), ids.get(Enrollment.class));
     assertContainsOnly(
         Set.of(relationship.getTo().getEvent().getValue()),
-        ids.get(org.hisp.dhis.program.TrackerEvent.class));
+        ids.get(org.hisp.dhis.tracker.model.TrackerEvent.class));
     assertContainsOnly(
         Set.of(relationship.getTo().getEvent().getValue()), ids.get(SingleEvent.class));
   }
