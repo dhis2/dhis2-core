@@ -725,6 +725,9 @@ public enum ConfigurationKey {
   /** Cache-Control max-age (seconds) for private read-only responses. */
   HTTP_PRIVATE_CACHE_CONTROL_TTL("http.cache_control.private_ttl", "", false),
 
+  /** Clear-Site-Data response header value set on logout. */
+  HTTP_CLEAR_SITE_DATA("http.clear_site_data", "", false),
+
   /** Event hooks for system events. Enable or disable the feature. */
   EVENT_HOOKS_ENABLED("event_hooks.enabled", Constants.OFF, false),
 

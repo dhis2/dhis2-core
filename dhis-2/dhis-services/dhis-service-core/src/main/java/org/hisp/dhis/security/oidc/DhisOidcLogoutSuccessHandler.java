@@ -30,6 +30,7 @@
 package org.hisp.dhis.security.oidc;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_CLEAR_SITE_DATA;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_LOGOUT_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_RELOGIN_URL;
@@ -92,6 +93,11 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   public void onLogoutSuccess(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException {
+    String clearSiteDataValue = config.getProperty(HTTP_CLEAR_SITE_DATA);
+    if (!isNullOrEmpty(clearSiteDataValue)) {
+      response.setHeader("Clear-Site-Data", clearSiteDataValue);
+    }
+
     if (config.isEnabled(OIDC_OAUTH2_LOGIN_ENABLED) && config.isEnabled(LINKED_ACCOUNTS_ENABLED)) {
       handleLinkedAccountsLogout(request, response, authentication);
       return;

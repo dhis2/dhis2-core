@@ -78,6 +78,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -106,6 +107,11 @@ public class OrganisationUnitController
   @Autowired private VersionService versionService;
   @Autowired private OrgUnitSplitService orgUnitSplitService;
   @Autowired private OrgUnitMergeService orgUnitMergeService;
+
+  @Override
+  protected void cachePrivate(HttpServletResponse response) {
+    response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, getConfiguredPrivateCacheControlHeader());
+  }
 
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_SPLIT)

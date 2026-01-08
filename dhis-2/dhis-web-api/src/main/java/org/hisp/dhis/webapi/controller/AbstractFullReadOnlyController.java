@@ -527,13 +527,11 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   protected void cachePrivate(HttpServletResponse response) {
-    String headerValue = getPrivateCacheControlHeader();
-    if (headerValue != null) {
-      response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, headerValue);
-    }
+    response.setHeader(
+        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
-  protected String getPrivateCacheControlHeader() {
+  protected String getConfiguredPrivateCacheControlHeader() {
     if (dhisConfig == null) {
       return noCache().cachePrivate().getHeaderValue();
     }
