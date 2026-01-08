@@ -140,7 +140,8 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "When installing multiple versions of the same app, only the last one installed should exist.")
+      "When installing multiple versions of the same app, only the last one installed should"
+          + " exist.")
   void testInstallMultipleSameKey() throws IOException {
     // Clean up first
     Map<String, Pair<App, BundledAppInfo>> installedApps =
@@ -273,7 +274,8 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Should return the most specific language match, i.e. if the user has ar_IQ as locale, we should retrieve ar_IQ first, then ar then default (english) in this order")
+      "Should return the most specific language match, i.e. if the user has ar_IQ as locale, we"
+          + " should retrieve ar_IQ first, then ar then default (english) in this order")
   void testInstalledAppReturnsTranslatedShortcuts_WithLanguageFallback() throws IOException {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=ar_IQ");
 
@@ -360,6 +362,85 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         "App installation should fail due to zip bomb attempt");
 
     bombZip.delete();
+  }
+
+  @Test
+  @DisplayName("Resource access with path traversal sequence '..' is rejected")
+  void testResourceAccessPathTraversalRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // Direct path traversal attempt - should be rejected at application level
+    // Note: The servlet container may also reject this
+    HttpResponse response = GET("/apps/myapp/subdir/../../../etc/passwd");
+    assertEquals(
+        HttpStatus.BAD_REQUEST,
+        response.status(),
+        "Path traversal with '..' should be rejected with 400 Bad Request");
+  }
+
+  @Test
+  @DisplayName("Resource access with encoded path traversal is rejected")
+  void testResourceAccessEncodedPathTraversalRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // After URL decoding by servlet, this becomes "../" which should be rejected
+    // The servlet container decodes %2e%2e%2f to ../ before reaching our code
+    HttpResponse response = GET("/apps/myapp/%2e%2e/etc/passwd");
+    // This may return 400 from servlet container or our code - either is acceptable
+    assertTrue(
+        response.status() == HttpStatus.BAD_REQUEST || response.status() == HttpStatus.NOT_FOUND,
+        "Encoded path traversal should be rejected");
+  }
+
+  @Test
+  @DisplayName("Resource access with double-dot in middle of path is rejected")
+  void testResourceAccessDoubleDotInPathRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    HttpResponse response = GET("/apps/myapp/foo..bar/test.txt");
+    // "foo..bar" contains ".." but is not a traversal - this should be allowed or 404
+    // The key is that actual traversal like "../" is blocked
+    // This test documents expected behavior - containing ".." without "/" might be okay
+    assertTrue(
+        response.status() == HttpStatus.NOT_FOUND || response.status() == HttpStatus.BAD_REQUEST,
+        "Resource with '..' in filename should either be not found or rejected");
+  }
+
+  @Test
+  @DisplayName("Resource access with parent directory traversal '../' is rejected")
+  void testResourceAccessParentTraversalRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    HttpResponse response = GET("/apps/myapp/../otherapp/secret.txt");
+    assertEquals(
+        HttpStatus.BAD_REQUEST,
+        response.status(),
+        "Parent directory traversal '../' should be rejected");
+  }
+
+  @Test
+  @DisplayName("Legitimate nested resource path works correctly")
+  void testLegitimateNestedResourcePath() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // Normal resource access should work fine
+    HttpResponse response = GET("/apps/myapp/index.html");
+    assertEquals(HttpStatus.OK, response.status(), "Legitimate resource access should succeed");
+  }
+
+  @Test
+  @DisplayName("Resource access with semicolon bypass technique is rejected")
+  void testResourceAccessSemicolonBypassRejected() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    // Semicolon bypass technique: Nginx treats "..;" as literal folder name,
+    // but Tomcat treats ";" as path parameter delimiter and normalizes ".."
+    // This exploits the interpretation mismatch between reverse proxy and servlet container
+    HttpResponse response = GET("/apps/myapp/..;/..;/..;/etc/passwd");
+    // This may return 400 from servlet container, Spring Security, or our code
+    assertTrue(
+        response.status() == HttpStatus.BAD_REQUEST || response.status() == HttpStatus.NOT_FOUND,
+        "Semicolon bypass technique should be rejected");
   }
 
   /**
