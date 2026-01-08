@@ -53,6 +53,7 @@ import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
 import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -382,6 +383,8 @@ public final class JsonStreamOutput {
     register(Boolean.class, JsonBuilder.JsonObjectBuilder::addBoolean);
     register(boolean.class, JsonBuilder.JsonObjectBuilder::addBoolean);
     register(JsonBuilder.JsonEncodable.class, JsonBuilder.JsonObjectBuilder::addMember);
+    register(JsonNode.class, JsonBuilder.JsonObjectBuilder::addMember);
+    register(JsonValue.class, (obj, name, val) -> obj.addMember(name, val.node()));
     register(Object.class, JsonStreamOutput::addJacksonMapped);
     register(
         String[].class,
@@ -391,6 +394,15 @@ public final class JsonStreamOutput {
                 arr -> {
                   // uses for loop to avoid wrapping => defensive copying
                   for (String s : val) arr.addString(s);
+                }));
+    register(
+        JsonNode[].class,
+        (obj, name, val) ->
+            obj.addArray(
+                name,
+                arr -> {
+                  // uses for loop to avoid wrapping => defensive copying
+                  for (JsonNode s : val) arr.addElement(s);
                 }));
     register(
         JsonBuilder.JsonEncodable[].class,
@@ -440,6 +452,7 @@ public final class JsonStreamOutput {
     if (type.isEnum()) return ADDERS_BY_TYPE.get(Enum.class);
     if (JsonBuilder.JsonEncodable.class.isAssignableFrom(type))
       return ADDERS_BY_TYPE.get(JsonBuilder.JsonEncodable.class);
+    if (JsonValue.class.isAssignableFrom(type)) return ADDERS_BY_TYPE.get(JsonValue.class);
     Class<?> elementType = valueType.elementType();
     if (Collection.class.isAssignableFrom(type) && elementType != null) {
       AddMember<Object> obj = createCollectionAdder(elementType);

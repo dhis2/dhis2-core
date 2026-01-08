@@ -51,6 +51,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
@@ -136,11 +137,16 @@ public class DefaultGistService implements GistService {
             switch (f.getTransformation()) {
               case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
               case SIZE -> ObjectOutput.Type.INTEGER;
-              case IDS, PLUCK -> new ObjectOutput.Type(String[].class);
+              case IDS -> new ObjectOutput.Type(String[].class);
+              case PLUCK ->
+                  f.isMultiPluck()
+                      ? new ObjectOutput.Type(JsonNode[].class)
+                      : new ObjectOutput.Type(String[].class);
               case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
               default -> type(p);
             };
-        res.add(new ObjectOutput.Property(name, type, f.getTransformation().isArrayAggregate()));
+        boolean arrayAggregate = f.getTransformation().isArrayAggregate() && !f.isMultiPluck();
+        res.add(new ObjectOutput.Property(name, type, arrayAggregate));
       }
     }
     return res;

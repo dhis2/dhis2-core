@@ -399,6 +399,10 @@ public final class GistQuery {
       return toBuilder().attribute(true).build();
     }
 
+    public boolean isMultiPluck() {
+      return transformation == Transform.PLUCK && transformationArgument.contains(",");
+    }
+
     @Override
     public String toString() {
       return transformation == Transform.NONE
