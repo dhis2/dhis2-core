@@ -26,3 +26,9 @@ scrape_configs:
     http_headers:
       X-Request-ID:
         values: ['prometheus-scraper']
+
+  # PostgreSQL metrics via postgres_exporter
+  # Exposes pg_stat_activity (connection states), pg_stat_database, etc.
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
