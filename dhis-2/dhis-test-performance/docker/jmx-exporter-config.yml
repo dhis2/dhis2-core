@@ -105,3 +105,21 @@ rules:
       pool: "$1"
     help: "HikariCP pool config $2"
     type: GAUGE
+
+  # DHIS2 Tracker Thread Pool
+  #
+  # MBean: org.hisp.dhis:type=ThreadPool,name=TrackerTeFetch
+  #
+  # Key metrics:
+  #   ActiveCount - threads actively executing tasks
+  #   PoolSize - current number of threads in the pool
+  #   LargestPoolSize - largest number of threads that have ever been in the pool
+  #   CompletedTaskCount - approximate total number of tasks that have completed
+  #   TaskCount - approximate total number of tasks that have been scheduled
+  #   QueueSize - number of tasks waiting in the queue (always 0 for SynchronousQueue)
+  - pattern: 'org.hisp.dhis<type=ThreadPool, name=(\w+)><>(\w+):'
+    name: dhis2_threadpool_$2
+    labels:
+      pool: "$1"
+    help: "DHIS2 thread pool $2"
+    type: GAUGE
