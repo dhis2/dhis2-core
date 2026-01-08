@@ -400,7 +400,9 @@ public final class GistQuery {
     }
 
     public boolean isMultiPluck() {
-      return transformation == Transform.PLUCK && transformationArgument.contains(",");
+      return transformation == Transform.PLUCK
+          && transformationArgument != null
+          && transformationArgument.contains(",");
     }
 
     @Override

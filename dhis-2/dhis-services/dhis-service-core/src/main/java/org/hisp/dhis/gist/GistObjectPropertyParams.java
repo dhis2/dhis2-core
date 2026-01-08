@@ -34,8 +34,6 @@ import lombok.EqualsAndHashCode;
 import org.hisp.dhis.common.OpenApi;
 
 @Data
-@OpenApi.Shared
-@OpenApi.Property // all fields are public properties
 @EqualsAndHashCode(callSuper = true)
 public class GistObjectPropertyParams extends GistObjectListParams {
   @OpenApi.Description(

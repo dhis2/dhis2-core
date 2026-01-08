@@ -34,7 +34,6 @@ import org.hisp.dhis.common.OpenApi;
 
 @Data
 @OpenApi.Shared
-@OpenApi.Property // all fields are public properties
 public class GistObjectParams {
 
   @OpenApi.Description(
