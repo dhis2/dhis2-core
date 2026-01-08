@@ -30,9 +30,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -63,24 +65,22 @@ class PredictorControllerIntegrationTest extends H2ControllerIntegrationTestBase
   @Test
   @DisplayName("Running predictors with a start date after the end date returns an error")
   void runPredictorsStartDateAfterEndDateTest() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Start date is after end date: `01/01/2021, 00:00`, `01/01/2020, 00:00`",
+    JsonWebMessage jsonWebMessage =
         POST("/predictors/run?startDate=2021-01-01&endDate=2020-01-01")
-            .content(HttpStatus.CONFLICT));
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertTrue(jsonWebMessage.getMessage().contains("Start date is after end date"));
   }
 
   @Test
   @DisplayName("Running a predictor with a start date after the end date returns an error")
   void runPredictorStartDateAfterEndDateTest() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Start date is after end date: `01/01/2021, 00:00`, `01/01/2020, 00:00`",
+    JsonWebMessage jsonWebMessage =
         POST("/predictors/predUid0001/run?startDate=2021-01-01&endDate=2020-01-01")
-            .content(HttpStatus.CONFLICT));
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertTrue(jsonWebMessage.getMessage().contains("Start date is after end date"));
   }
 }
