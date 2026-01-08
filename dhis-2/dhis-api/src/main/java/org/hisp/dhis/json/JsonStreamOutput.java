@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.json;
 
+import static java.util.stream.Collectors.joining;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Timestamp;
@@ -40,7 +42,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -401,7 +402,8 @@ public final class JsonStreamOutput {
   }
 
   public static AddMember<Object> getAdder(ObjectOutput.Property property) {
-    if (!property.arrayAggregate()) return getAdder(property.type());
+    if (!property.arrayAggregate() || !property.path().contains("."))
+      return getAdder(property.type());
     return getAdder(property.type().componentType());
   }
 
@@ -412,14 +414,14 @@ public final class JsonStreamOutput {
   private static String getPath(ObjectOutput.Property property) {
     if (!property.arrayAggregate()) return property.path();
     String path = property.path();
+    if (!path.contains(".")) return path;
     String[] parts = path.split("\\.");
-    if (parts.length == 1) return path;
     if (parts.length == 2) return "[" + parts[0] + "]." + parts[1];
-    return Stream.of(parts).limit(parts.length - 2).collect(Collectors.joining("."))
-        + ".["
-        + parts[parts.length - 1]
-        + "]."
-        + parts[parts.length - 1];
+    return "%s.[%s].%s"
+        .formatted(
+            Stream.of(parts).limit(parts.length - 2).collect(joining(".")),
+            parts[parts.length - 1],
+            parts[parts.length - 1]);
   }
 
   public static AddMember<Object> getAdder(ObjectOutput.Type valueType) {
