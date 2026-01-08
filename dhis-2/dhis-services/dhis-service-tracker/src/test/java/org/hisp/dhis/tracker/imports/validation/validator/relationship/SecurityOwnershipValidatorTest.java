@@ -41,7 +41,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -51,6 +50,7 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +59,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends TestBase {
+class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private SecurityOwnershipValidator validator;
 
@@ -69,7 +69,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
-  private org.hisp.dhis.relationship.Relationship convertedRelationship;
+  private org.hisp.dhis.tracker.model.Relationship convertedRelationship;
 
   private Reporter reporter;
 

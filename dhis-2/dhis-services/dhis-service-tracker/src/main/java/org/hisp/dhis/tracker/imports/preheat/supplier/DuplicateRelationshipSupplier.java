@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -41,6 +40,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipMapper;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
+import org.hisp.dhis.tracker.model.RelationshipKey;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<org.hisp.dhis.relationship.Relationship> relationships =
+    List<org.hisp.dhis.tracker.model.Relationship> relationships =
         retrieveRelationshipKeys(trackerObjects.getRelationships(), preheat);
 
     relationships.stream()
@@ -59,7 +59,7 @@ public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
         .forEach(preheat::addExistingRelationship);
   }
 
-  private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys(
+  private List<org.hisp.dhis.tracker.model.Relationship> retrieveRelationshipKeys(
       List<Relationship> relationships, TrackerPreheat preheat) {
     List<RelationshipType> relationshipTypes = preheat.getAll(RelationshipType.class);
     List<RelationshipKey> keys =

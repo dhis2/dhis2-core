@@ -43,7 +43,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -55,6 +54,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +65,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class AssignAttributeExecutorTest extends TestBase {
+class AssignAttributeExecutorTest extends TrackerTestBase {
 
   private static final UID TRACKED_ENTITY_ID = UID.generate();
 

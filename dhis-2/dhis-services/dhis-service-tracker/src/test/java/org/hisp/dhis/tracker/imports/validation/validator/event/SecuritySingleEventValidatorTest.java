@@ -47,15 +47,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +70,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class SecuritySingleEventValidatorTest extends TestBase {
+class SecuritySingleEventValidatorTest extends TrackerTestBase {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
   private static final String PROGRAM_ID = "PROGRAM_ID";

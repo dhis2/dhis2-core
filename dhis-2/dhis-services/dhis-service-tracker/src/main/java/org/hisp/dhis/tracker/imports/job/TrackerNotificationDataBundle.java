@@ -39,13 +39,13 @@ import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
  * Class holding data necessary for implementation of notifications.

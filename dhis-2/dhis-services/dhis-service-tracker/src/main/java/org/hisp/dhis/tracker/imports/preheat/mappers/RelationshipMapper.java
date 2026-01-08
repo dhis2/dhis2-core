@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

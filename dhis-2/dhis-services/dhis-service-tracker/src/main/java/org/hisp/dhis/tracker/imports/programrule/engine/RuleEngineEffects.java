@@ -41,10 +41,10 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.util.DateUtils;
 
 /**

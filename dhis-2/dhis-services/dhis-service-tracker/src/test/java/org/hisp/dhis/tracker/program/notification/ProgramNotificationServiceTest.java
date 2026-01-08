@@ -60,24 +60,24 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageService;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,7 +93,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-class ProgramNotificationServiceTest extends TestBase {
+class ProgramNotificationServiceTest extends TrackerTestBase {
 
   private static final String SUBJECT = "subject";
 

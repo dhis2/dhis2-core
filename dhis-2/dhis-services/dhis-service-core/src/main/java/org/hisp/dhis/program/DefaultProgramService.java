@@ -172,6 +172,7 @@ public class DefaultProgramService implements ProgramService {
       Set<String> programUids) {
     idObjectManager.loadByUid(Program.class, programUids);
 
-    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(programUids);
+    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(
+        programUids, true);
   }
 }
