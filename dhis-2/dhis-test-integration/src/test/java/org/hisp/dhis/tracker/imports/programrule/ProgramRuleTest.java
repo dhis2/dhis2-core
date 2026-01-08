@@ -65,6 +65,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +127,12 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable2);
     constantService.saveConstant(constant());
+  }
+
+  @BeforeEach
+  void setupUser() {
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -420,6 +427,44 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     assertNoErrorsAndNoWarnings(importReport);
   }
 
+  @Test
+  void shouldImportWithNoWarningsWhenUserIsInUserGroup() throws IOException {
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
+    showErrorWhenUserNotInGroupRule("xfHoY6IZSWI");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
+  @Test
+  void shouldnotImportWhenUserIsNotInUserGroup() throws IOException {
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
+    showErrorWhenUserNotInGroupRule("ruTop9IZjHu");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldNotImportUserIsNotPresentInAnyUserGroup() throws IOException {
+    showErrorWhenUserNotInGroupRule("ruTop9IZjHu");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
   private void alwaysTrueErrorProgramRule() {
     storeProgramRule('A', program, ProgramRuleActionType.SHOWERROR);
   }
@@ -494,6 +539,18 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   private void conditionWithConstantEvaluatesToTrue() {
     ProgramRule programRule =
         createProgramRule('L', programWithoutRegistration, null, "C{NAgjOfWMXg6} < 10");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void showErrorWhenUserNotInGroupRule(String userGroup) {
+    ProgramRule programRule =
+        createProgramRule(
+            'M', program, programStageOnInsert, "!d2:inUserGroup('" + userGroup + "')");
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction =
         createProgramRuleAction(programRule, SHOWERROR, null, null);
