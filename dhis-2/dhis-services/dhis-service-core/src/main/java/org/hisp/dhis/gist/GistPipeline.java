@@ -285,7 +285,7 @@ public class GistPipeline {
         elementType, key -> schemaService.getSchema(key).getCollectionName());
   }
 
-  private static final Property MATCH = new Property("match", new Type(Boolean.class));
+  private static final Property MATCH = new Property("match", new Type(Boolean.class), false);
 
   /**
    * @implNote When listing OU with their ancestors the main query just matches using filters as

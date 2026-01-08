@@ -74,6 +74,10 @@ public final class ObjectOutput {
     public Type(@Nonnull Class<?> rawType) {
       this(rawType, null);
     }
+
+    public Type componentType() {
+      return !rawType.isArray() ? this : new Type(rawType.getComponentType(), elementType);
+    }
   }
 
   /**
@@ -84,12 +88,16 @@ public final class ObjectOutput {
    *     few cases.
    * @param path the name of the property (as an absolute path using dot for nesting)
    * @param type the type of the property
+   * @param arrayAggregate true for array properties that originally are simple properties array
+   *     aggregated for the parent property which itself was the original collection property
    */
-  public record Property(String path, Type type) {
+  public record Property(String path, Type type, boolean arrayAggregate) {
 
     public Property {
       requireNonNull(path);
       requireNonNull(type);
+      if (arrayAggregate && !type.rawType.isArray())
+        throw new IllegalArgumentException("Must be an array type but was: " + type);
     }
 
     /**

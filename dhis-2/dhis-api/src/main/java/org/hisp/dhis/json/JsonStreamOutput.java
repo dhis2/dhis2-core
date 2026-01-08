@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -72,13 +73,7 @@ public final class JsonStreamOutput {
       @Nonnull JsonBuilder.JsonArrayBuilder arr,
       @Nonnull List<ObjectOutput.Property> properties,
       @Nonnull Stream<IntFunction<Object>> elements) {
-    List<String> paths = properties.stream().map(ObjectOutput.Property::path).toList();
-    List<AddMember<Object>> adders =
-        properties.stream()
-            .map(ObjectOutput.Property::type)
-            .map(JsonStreamOutput::getAdder)
-            .toList();
-    addArrayElements(arr, paths, adders, elements);
+    addArrayElements(arr, getPaths(properties), getAdders(properties), elements);
   }
 
   /**
@@ -106,7 +101,7 @@ public final class JsonStreamOutput {
       @Nonnull List<AddMember<Object>> adders,
       @Nonnull Stream<IntFunction<Object>> elements) {
     checkCardinality(paths, adders);
-    JsonLayoutNode.ObjectLayoutNode element = createLayoutTree(paths, adders);
+    JsonLayoutNode element = createLayoutTree(paths, adders);
     elements.forEach(e -> arr.addObject(obj -> element.add(obj, e)));
   }
 
@@ -114,13 +109,7 @@ public final class JsonStreamOutput {
       @Nonnull JsonBuilder.JsonObjectBuilder obj,
       @Nonnull List<ObjectOutput.Property> properties,
       @Nonnull IntFunction<Object> values) {
-    List<String> paths = properties.stream().map(ObjectOutput.Property::path).toList();
-    List<AddMember<Object>> adders =
-        properties.stream()
-            .map(ObjectOutput.Property::type)
-            .map(JsonStreamOutput::getAdder)
-            .toList();
-    addObjectMembers(obj, paths, adders, values);
+    addObjectMembers(obj, getPaths(properties), getAdders(properties), values);
   }
 
   public static void addObjectMembers(
@@ -129,7 +118,7 @@ public final class JsonStreamOutput {
       @Nonnull List<AddMember<Object>> adders,
       @Nonnull IntFunction<Object> values) {
     checkCardinality(paths, adders);
-    JsonLayoutNode.ObjectLayoutNode self = createLayoutTree(paths, adders);
+    JsonLayoutNode self = createLayoutTree(paths, adders);
     self.add(obj, values);
   }
 
@@ -156,7 +145,7 @@ public final class JsonStreamOutput {
     int n = paths.size();
     if (n <= 1) return paths;
     // build tree layout (maintains insert order)
-    JsonLayoutNode.ObjectLayoutNode root = createLayoutTree(paths, List.of());
+    JsonLayoutNode root = createLayoutTree(paths, List.of());
     // flatten the tree into a list of leaf properties
     List<String> sorted = new ArrayList<>(n);
     root.flatten(sorted);
@@ -164,27 +153,30 @@ public final class JsonStreamOutput {
   }
 
   @Nonnull
-  private static JsonLayoutNode.ObjectLayoutNode createLayoutTree(
+  private static JsonLayoutNode createLayoutTree(
       List<String> paths, List<AddMember<Object>> adders) {
-    JsonLayoutNode.ObjectLayoutNode root = new JsonLayoutNode.ObjectLayoutNode("");
+    JsonLayoutNode root = new JsonLayoutNode.ObjectLayoutNode("");
     int i = 0;
     for (String path : paths) {
-      JsonLayoutNode.ObjectLayoutNode parent = root;
+      JsonLayoutNode parent = root;
       List<String> parentPath = ObjectOutput.Property.parentPath(path);
       if (!parentPath.isEmpty()) {
         for (String name : parentPath) {
-          int j = parent.indexOf(name);
-          if (j < 0) {
-            JsonLayoutNode.ObjectLayoutNode p = new JsonLayoutNode.ObjectLayoutNode(name);
-            parent.members.add(p);
+          JsonLayoutNode m = parent.getMember(name);
+          if (m == null) {
+            JsonLayoutNode p =
+                name.startsWith("[") && name.endsWith("]")
+                    ? new JsonLayoutNode.ArrayOfObjectsLayoutNode(name)
+                    : new JsonLayoutNode.ObjectLayoutNode(name);
+            parent.addMember(p);
             parent = p;
           } else {
-            parent = (JsonLayoutNode.ObjectLayoutNode) parent.members.get(j);
+            parent = m;
           }
         }
       }
       String name = ObjectOutput.Property.name(path);
-      parent.members.add(
+      parent.addMember(
           new JsonLayoutNode.PropertyLayoutNode(
               i, path, name, i < adders.size() ? adders.get(i) : null));
       i++;
@@ -204,16 +196,27 @@ public final class JsonStreamOutput {
 
     void add(JsonBuilder.JsonObjectBuilder obj, IntFunction<java.lang.Object> valueAtPathIndex);
 
+    void addMember(JsonLayoutNode member);
+
+    @CheckForNull
+    JsonLayoutNode getMember(String name);
+
     /** The layout (schema) eqivalent of a JSON object (data) */
     record ObjectLayoutNode(String name, List<JsonLayoutNode> members) implements JsonLayoutNode {
       ObjectLayoutNode(String name) {
         this(name, new ArrayList<>());
       }
 
-      int indexOf(String name) {
-        if (members.isEmpty()) return -1;
-        for (int i = 0; i < members.size(); i++) if (name.equals(members.get(i).name())) return i;
-        return -1;
+      @Override
+      public void addMember(JsonLayoutNode member) {
+        members.add(member);
+      }
+
+      @Override
+      public JsonLayoutNode getMember(String name) {
+        if (members.isEmpty()) return null;
+        for (JsonLayoutNode member : members) if (name.equals(member.name())) return member;
+        return null;
       }
 
       @Override
@@ -232,10 +235,94 @@ public final class JsonStreamOutput {
       }
     }
 
+    /**
+     * Turns an object with two or more array properties
+     *
+     * <pre>
+     *   { "sub": {
+     *     "a": [1,2,3],
+     *     "b": [4,5,6]
+     *   }}
+     * </pre>
+     *
+     * Into an array of objects
+     *
+     * <pre>
+     *   { "sub": [
+     *     {"a": 1, "b": 4}, {"a":2, "b": 5}, {"a": 3, "b": 6}
+     *   ]}
+     * </pre>
+     */
+    record ArrayOfObjectsLayoutNode(String name, List<PropertyLayoutNode> members)
+        implements JsonLayoutNode {
+
+      ArrayOfObjectsLayoutNode(String name) {
+        this(name, new ArrayList<>());
+      }
+
+      @Override
+      public void addMember(JsonLayoutNode member) {
+        if (!(member instanceof PropertyLayoutNode p))
+          throw new IllegalArgumentException("Must be a property");
+        members.add(p);
+      }
+
+      @CheckForNull
+      @Override
+      public JsonLayoutNode getMember(String name) {
+        if (members.isEmpty()) return null;
+        for (JsonLayoutNode member : members) if (name.equals(member.name())) return member;
+        return null;
+      }
+
+      @Override
+      public void flatten(List<String> into) {
+        members.forEach(m -> m.flatten(into));
+      }
+
+      @Override
+      public void add(JsonBuilder.JsonObjectBuilder obj, IntFunction<Object> valueAtPathIndex) {
+        obj.addArray(
+            name.substring(1, name.length() - 1),
+            arr -> {
+              // note: this looks like a lot of looping
+              // but, it really just transposes the shape
+              // so data given as MxN is added as NxM
+              Object[][] values = new Object[members.size()][];
+              for (int i = 0; i < values.length; i++)
+                values[i] = (Object[]) valueAtPathIndex.apply(members.get(i).index);
+              int len = 0;
+              for (Object[] value : values) if (value != null) len = Math.max(len, value.length);
+              for (int j = 0; j < len; j++) {
+                final int jFinal = j;
+                arr.addObject(
+                    e -> {
+                      for (int i = 0; i < values.length; i++) {
+                        PropertyLayoutNode p = members.get(i);
+                        Object[] value = values[i];
+                        p.adder.add(e, p.name, value.length <= jFinal ? null : value[jFinal]);
+                      }
+                    });
+              }
+            });
+      }
+    }
+
     /** The layout (schema) eqivalent of a JSON object member (data) */
     record PropertyLayoutNode(
         int index, String path, String name, AddMember<java.lang.Object> adder)
         implements JsonLayoutNode {
+
+      @Override
+      public void addMember(JsonLayoutNode member) {
+        throw new IllegalArgumentException("Cannot add members to property nodes");
+      }
+
+      @CheckForNull
+      @Override
+      public JsonLayoutNode getMember(String name) {
+        return null;
+      }
 
       @Override
       public void flatten(List<String> into) {
@@ -251,7 +338,7 @@ public final class JsonStreamOutput {
   }
 
   /*
-  Implementation of value type conversion
+  Implementation of value type conversion (adders)
    */
 
   private static final ObjectMapper FALLBACK_MAPPER = new ObjectMapper();
@@ -307,6 +394,31 @@ public final class JsonStreamOutput {
                       arr.addElement(JsonNode.NULL);
                     } else e.addTo(arr);
                 }));
+  }
+
+  private static List<AddMember<Object>> getAdders(List<ObjectOutput.Property> properties) {
+    return properties.stream().map(JsonStreamOutput::getAdder).toList();
+  }
+
+  public static AddMember<Object> getAdder(ObjectOutput.Property property) {
+    if (!property.arrayAggregate()) return getAdder(property.type());
+    return getAdder(property.type().componentType());
+  }
+
+  private static List<String> getPaths(List<ObjectOutput.Property> properties) {
+    return properties.stream().map(JsonStreamOutput::getPath).toList();
+  }
+
+  private static String getPath(ObjectOutput.Property property) {
+    if (!property.arrayAggregate()) return property.path();
+    String path = property.path();
+    String[] parts = path.split("\\.");
+    if (parts.length == 2) return "[" + parts[0] + "]." + parts[1];
+    return Stream.of(parts).limit(parts.length - 2).collect(Collectors.joining("."))
+        + ".["
+        + parts[parts.length - 1]
+        + "]."
+        + parts[parts.length - 1];
   }
 
   public static AddMember<Object> getAdder(ObjectOutput.Type valueType) {

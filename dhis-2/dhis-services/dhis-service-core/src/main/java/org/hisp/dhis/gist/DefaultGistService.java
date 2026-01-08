@@ -125,11 +125,11 @@ public class DefaultGistService implements GistService {
     for (GistQuery.Field f : query.getFields()) {
       String name = f.getName();
       if (f.isAttribute()) {
-        res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING));
+        res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING, false));
       } else if (GistQuery.Field.REFS_PATH.equals(f.getPropertyPath())) {
         res.add(
             new ObjectOutput.Property(
-                "apiEndpoints", new ObjectOutput.Type(Map.class, String.class)));
+                "apiEndpoints", new ObjectOutput.Type(Map.class, String.class), false));
       } else {
         Property p = context.resolveMandatory(f.getPropertyPath());
         ObjectOutput.Type type =
@@ -140,7 +140,7 @@ public class DefaultGistService implements GistService {
               case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
               default -> type(p);
             };
-        res.add(new ObjectOutput.Property(name, type));
+        res.add(new ObjectOutput.Property(name, type, f.getTransformation().isArrayAggregate()));
       }
     }
     return res;
