@@ -413,6 +413,7 @@ public final class JsonStreamOutput {
     if (!property.arrayAggregate()) return property.path();
     String path = property.path();
     String[] parts = path.split("\\.");
+    if (parts.length == 1) return path;
     if (parts.length == 2) return "[" + parts[0] + "]." + parts[1];
     return Stream.of(parts).limit(parts.length - 2).collect(Collectors.joining("."))
         + ".["
