@@ -98,6 +98,19 @@ services:
     depends_on:
       - web
 
+  # PostgreSQL Exporter - exposes pg_stat_activity and other PostgreSQL metrics
+  # https://github.com/prometheus-community/postgres_exporter
+  postgres-exporter:
+    profiles: [monitoring]
+    image: prometheuscommunity/postgres-exporter:v0.18.1
+    environment:
+      DATA_SOURCE_NAME: "postgresql://dhis:dhis@db:5432/dhis?sslmode=disable"
+    ports:
+      - "127.0.0.1:9187:9187"
+    depends_on:
+      db:
+        condition: service_healthy
+
   # Prometheus for scraping metrics
   prometheus:
     profiles: [monitoring]
@@ -111,6 +124,7 @@ services:
     depends_on:
       - web
       - jmx-exporter
+      - postgres-exporter
 
 volumes:
   prometheus:
