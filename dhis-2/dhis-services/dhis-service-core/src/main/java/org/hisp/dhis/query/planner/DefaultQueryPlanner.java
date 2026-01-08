@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.query.planner;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -83,13 +87,31 @@ public class DefaultQueryPlanner implements QueryPlanner {
     memoryQuery.getFilters().clear();
     Query<T> dbQuery = Query.emptyOf(query);
 
+    List<Filter> aliasedDbFilters = new ArrayList<>();
+    Set<String> distinctRootAliases = new HashSet<>();
+
     for (Filter filter : query.getFilters()) {
       if (isDbFilter(query, filter)) {
-        dbQuery.add(filter);
+        PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+        if (path != null && path.haveAlias()) {
+          aliasedDbFilters.add(filter);
+          distinctRootAliases.add(path.getAlias()[0]);
+        } else {
+          dbQuery.add(filter);
+        }
       } else {
         memoryQuery.add(filter);
       }
     }
+
+    // Handle aliased filters: if there are multiple distinct aliases, fall back to in-memory
+    // to avoid potential issues with multiple implicit JPA joins
+    if (distinctRootAliases.size() > 1) {
+      memoryQuery.getFilters().addAll(aliasedDbFilters);
+    } else {
+      dbQuery.getFilters().addAll(aliasedDbFilters);
+    }
+
     if (query.getRootJunctionType() == Junction.Type.OR
         && !memoryQuery.getFilters().isEmpty()
         && !dbQuery.getFilters().isEmpty()) {
@@ -123,12 +145,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     if (path == null || !path.isPersisted()) return false;
     if (Attribute.ObjectType.isValidType(path.getPath())) return false;
 
-    // Allow aliased paths (e.g., "parent.id") when:
-    // 1. The final property is simple (not a collection)
-    // 2. The path does NOT go through a collection or embedded object
-    // JPA Criteria API can handle simple many-to-one traversals via chained get() calls
     if (path.haveAlias()) {
-      // Check if the path goes through a collection or embedded object - if so, use in-memory
       if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
         return false;
       }
