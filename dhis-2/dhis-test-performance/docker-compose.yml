@@ -15,7 +15,7 @@ services:
         -Dcom.sun.management.jmxremote.local.only=false \
         -Dcom.sun.management.jmxremote.authenticate=false \
         -Dcom.sun.management.jmxremote.ssl=false \
-        -Djava.rmi.server.hostname=web"
+        -Djava.rmi.server.hostname=localhost"
     volumes:
       - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
       - ./docker/${DHIS_CONF_FILE:-dhis.conf}:/opt/dhis2/dhis.conf:ro
@@ -23,6 +23,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080" # DHIS2
       - "127.0.0.1:9011:9011" # JMX (for VisualVM)
+      - "127.0.0.1:9404:9404" # JMX Exporter (runs in web's network namespace)
     depends_on:
       db:
         condition: service_healthy
@@ -86,14 +87,14 @@ services:
 
   # JMX Exporter - exposes Tomcat JMX metrics as Prometheus metrics
   # Bypasses DHIS2 HTTP layer, works even when connection pool is exhausted
+  # Uses web's network namespace so it can connect to JMX on localhost:9011
   jmx-exporter:
     profiles: [monitoring]
     image: bitnami/jmx-exporter:latest
+    network_mode: service:web
     volumes:
       - ./docker/jmx-exporter-config.yml:/opt/bitnami/jmx-exporter/config.yml:ro
     command: ["9404", "/opt/bitnami/jmx-exporter/config.yml"]
-    ports:
-      - "127.0.0.1:9404:9404"
     depends_on:
       - web
 
