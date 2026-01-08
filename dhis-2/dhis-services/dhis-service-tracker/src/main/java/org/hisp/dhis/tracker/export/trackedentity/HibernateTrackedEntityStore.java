@@ -38,12 +38,14 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -150,6 +152,24 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
 
+  public void updateTrackedEntitiesSyncTimestamp(Set<UID> trackedEntities, Date lastSynchronized) {
+    if (trackedEntities.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        """
+              UPDATE trackedentity SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+              """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", trackedEntities.stream().map(UID::toString).toList());
+
+    namedParameterJdbcTemplate.update(sql, parameters);
+  }
+
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
     // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
@@ -215,7 +235,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
   }
 
-  private Long getTrackedEntityCount(TrackedEntityQueryParams params) {
+  public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -518,6 +538,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated <= '")
             .append(toLongDateWithMillis(params.getLastUpdatedEndDate()))
+            .append(SINGLE_QUOTE);
+      }
+    }
+
+    if (params.isSynchronizationQuery()) {
+      trackedEntity.append(whereAnd.whereAnd()).append(" TE.lastupdated > TE.lastsynchronized ");
+      if (params.getSkipChangedBefore() != null) {
+        trackedEntity
+            .append(" AND TE.lastupdated >= '")
+            .append(toLongDate(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
     }

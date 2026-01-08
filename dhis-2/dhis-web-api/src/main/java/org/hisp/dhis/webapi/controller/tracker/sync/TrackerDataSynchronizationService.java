@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
@@ -53,19 +52,22 @@ import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
+import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.MediaType;
@@ -79,32 +81,25 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SingleEventDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
-  private static final String PROCESS_NAME = "Single event programs data synchronization";
-  private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
+public class TrackerDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
+  private static final String PROCESS_NAME = "Tracker data synchronization";
+  private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
+      Mappers.getMapper(TrackedEntityMapper.class);
 
-  private final EventService eventService;
+  private final TrackedEntityService trackedEntityService;
   private final SystemSettingsService systemSettingsService;
   private final RestTemplate restTemplate;
   private final RenderService renderService;
-  private final ProgramStageDataElementService programStageDataElementService;
 
   @Getter
-  private static final class EventSynchronizationContext extends PagedDataSynchronisationContext {
-    private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
-
-    public EventSynchronizationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize, Map.of());
+  private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
+    public TrackerSynchronizationContext(Date skipChangedBefore, int pageSize) {
+      this(skipChangedBefore, 0, null, pageSize);
     }
 
-    public EventSynchronizationContext(
-        Date skipChangedBefore,
-        long objectsToSynchronize,
-        SystemInstance instance,
-        int pageSize,
-        Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
+    public TrackerSynchronizationContext(
+        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
       super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
-      this.skipSyncDataElementsByProgramStage = skipSyncDataElementsByProgramStage;
     }
 
     public boolean hasNoObjectsToSynchronize() {
@@ -124,10 +119,10 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       return validationResult;
     }
 
-    EventSynchronizationContext context = initializeContext(pageSize, progress, settings);
+    TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
 
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No events to synchronize", PROCESS_NAME);
+      return endProcess(progress, "No tracked entities to synchronize", PROCESS_NAME);
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, settings);
@@ -137,53 +132,46 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
         : failProcess(progress, "Page-level synchronization failed", PROCESS_NAME);
   }
 
-  private EventSynchronizationContext initializeContext(
+  private TrackerSynchronizationContext initializeContext(
       int pageSize, JobProgress progress, SystemSettings settings) {
     return progress.runStage(
-        new EventSynchronizationContext(null, pageSize),
-        ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
+        new TrackerSynchronizationContext(null, pageSize),
+        ctx ->
+            format("Tracked entities changed before %s will not sync", ctx.getSkipChangedBefore()),
         () -> createContext(pageSize, settings));
   }
 
-  private EventSynchronizationContext createContext(int pageSize, SystemSettings settings)
+  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
-    long eventCount = countEventsForSynchronization(skipChangedBefore);
+    long trackedEntityCount = countTrackedEntitiesForSynchronization(skipChangedBefore);
 
-    if (eventCount == 0) {
-      return new EventSynchronizationContext(skipChangedBefore, pageSize);
+    if (trackedEntityCount == 0) {
+      return new TrackerSynchronizationContext(skipChangedBefore, pageSize);
     }
 
     SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
-    Map<String, Set<String>> skipSyncProgramStageDataElements =
-        getSkipSyncProgramStageDataElements();
 
-    return new EventSynchronizationContext(
-        skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
+    return new TrackerSynchronizationContext(
+        skipChangedBefore, trackedEntityCount, instance, pageSize);
   }
 
-  private long countEventsForSynchronization(Date skipChangedBefore)
+  private long countTrackedEntitiesForSynchronization(Date skipChangedBefore)
       throws ForbiddenException, BadRequestException {
-    return eventService.countEvents(
-        EventOperationParams.builder()
-            .programType(ProgramType.WITHOUT_REGISTRATION)
+    return trackedEntityService.getTrackedEntityCount(
+        TrackedEntityOperationParams.builder()
             .skipChangedBefore(skipChangedBefore)
             .includeDeleted(true)
             .synchronizationQuery(true)
             .build());
   }
 
-  private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
-    return programStageDataElementService
-        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-  }
-
   private boolean executeSynchronizationWithPaging(
-      EventSynchronizationContext context, JobProgress progress, SystemSettings settings) {
+      TrackerSynchronizationContext context, JobProgress progress, SystemSettings settings) {
     String stageDescription =
         format(
-            "Found %d single events. Remote: %s. Pages: %d (size %d)",
+            "Found %d tracked entities. Remote: %s. Pages: %d (size %d)",
             context.getObjectsToSynchronize(),
             context.getInstance().getUrl(),
             context.getPages(),
@@ -200,7 +188,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private void synchronizePageSafely(
-      int page, EventSynchronizationContext context, SystemSettings settings) {
+      int page, TrackerSynchronizationContext context, SystemSettings settings) {
     try {
       synchronizePage(page, context, settings);
     } catch (Exception ex) {
@@ -211,87 +199,101 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private void synchronizePage(
-      int page, EventSynchronizationContext context, SystemSettings settings)
-      throws ForbiddenException, BadRequestException {
-    List<Event> events = fetchEventsForPage(page, context);
+      int page, TrackerSynchronizationContext context, SystemSettings settings)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    List<TrackedEntity> trackedEntities = fetchTrackedEntitiesForPage(page, context);
 
-    Map<Boolean, List<Event>> partitionedEvents = partitionEventsByDeletionStatus(events);
-    List<Event> deletedEvents = partitionedEvents.get(true);
-    List<Event> activeEvents = partitionedEvents.get(false);
+    Map<Boolean, List<TrackedEntity>> partitionedTrackedEntities =
+        partitionTrackedEntitiesByDeletionStatus(trackedEntities);
+    List<TrackedEntity> deletedTrackedEntities = partitionedTrackedEntities.get(true);
+    List<TrackedEntity> activeTrackedEntities = partitionedTrackedEntities.get(false);
 
-    syncEventsByDeletionStatus(activeEvents, deletedEvents, context, settings);
+    syncTrackedEntitiesByDeletionStatus(
+        activeTrackedEntities, deletedTrackedEntities, context, settings);
   }
 
-  private List<Event> fetchEventsForPage(int page, EventSynchronizationContext context)
-      throws ForbiddenException, BadRequestException {
-    return eventService
-        .findEvents(
-            EventOperationParams.builder()
-                .programType(ProgramType.WITHOUT_REGISTRATION)
-                .skipChangedBefore(context.getSkipChangedBefore())
-                .synchronizationQuery(true)
-                .includeDeleted(true)
-                .withSkipSyncDataElements(context.getSkipSyncDataElementsByProgramStage())
-                .build(),
-            PageParams.of(page, context.getPageSize(), false))
+  private List<TrackedEntity> fetchTrackedEntitiesForPage(
+      int page, TrackerSynchronizationContext context)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .skipChangedBefore(context.getSkipChangedBefore())
+            .synchronizationQuery(true)
+            .includeDeleted(true)
+            .fields(TrackedEntityFields.all())
+            .build();
+    return trackedEntityService
+        .findTrackedEntities(params, PageParams.of(page, context.getPageSize(), false))
         .getItems();
   }
 
-  private Map<Boolean, List<Event>> partitionEventsByDeletionStatus(List<Event> events) {
-    return events.stream().collect(Collectors.partitioningBy(Event::isDeleted));
+  private Map<Boolean, List<TrackedEntity>> partitionTrackedEntitiesByDeletionStatus(
+      List<TrackedEntity> trackedEntities) {
+    return trackedEntities.stream().collect(Collectors.partitioningBy(TrackedEntity::isDeleted));
   }
 
-  private void syncEventsByDeletionStatus(
-      List<Event> activeEvents,
-      List<Event> deletedEvents,
-      EventSynchronizationContext context,
+  private void syncTrackedEntitiesByDeletionStatus(
+      List<TrackedEntity> activeTrackedEntities,
+      List<TrackedEntity> deletedTrackedEntities,
+      TrackerSynchronizationContext context,
       SystemSettings settings) {
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
-    if (!activeEvents.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
-          activeEvents.stream().map(EVENT_MAPPER::map).toList();
-      syncEvents(
-          activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
+    TrackerIdSchemeParams idSchemeParams =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
+    MappingErrors errors = new MappingErrors(idSchemeParams);
+
+    if (!activeTrackedEntities.isEmpty()) {
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
+          activeTrackedEntities.stream()
+              .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
+              .toList();
+      syncTrackedEntities(
+          activeTrackedEntityDtos,
+          instance,
+          settings,
+          syncTime,
+          TrackerImportStrategy.CREATE_AND_UPDATE);
     }
 
-    if (!deletedEvents.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
-          deletedEvents.stream().map(this::toMinimalEvent).toList();
-      syncEvents(deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
+    if (!deletedTrackedEntities.isEmpty()) {
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
+          deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
+      syncTrackedEntities(
+          deletedTrackedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
   }
 
-  private void syncEvents(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
+  private void syncTrackedEntities(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       SystemInstance instance,
       SystemSettings settings,
       Date syncTime,
       TrackerImportStrategy importStrategy) {
     String url = instance.getUrl() + "?importStrategy=" + importStrategy;
 
-    ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
+    ImportSummary summary = sendTrackerRequest(trackedEntities, instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
-          format("Single Event sync failed for importStrategy=%s", importStrategy));
+          format("Tracked Entity sync failed for importStrategy=%s", importStrategy));
     }
 
     log.info(
-        "Single Event sync successful for importStrategy={}. Events count: {}",
+        "Tracked Entity sync successful for importStrategy={}. Tracked entities count: {}",
         importStrategy,
-        events.size());
+        trackedEntities.size());
 
-    updateEventsSyncTimestamp(events, syncTime);
+    updateTrackedEntitiesSyncTimestamp(trackedEntities, syncTime);
   }
 
   private ImportSummary sendTrackerRequest(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
       SystemInstance instance,
       SystemSettings settings,
       String url) {
-    RequestCallback requestCallback = createRequestCallback(events, instance);
+    RequestCallback requestCallback = createRequestCallback(trackedEntities, instance);
 
     Optional<WebMessageResponse> response =
         runSyncRequest(
@@ -305,7 +307,8 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   }
 
   private RequestCallback createRequestCallback(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, SystemInstance instance) {
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
+      SystemInstance instance) {
     return request -> {
       request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
       request
@@ -314,20 +317,24 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
               SyncUtils.HEADER_AUTHORIZATION,
               CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-      renderService.toJson(request.getBody(), Map.of("events", events));
+      renderService.toJson(request.getBody(), Map.of("trackedEntities", trackedEntities));
     };
   }
 
-  private void updateEventsSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
-    List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
-    eventService.updateEventsSyncTimestamp(eventUids, syncTime);
+  private void updateTrackedEntitiesSyncTimestamp(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
+      Date syncTime) {
+    List<String> trackedEntityUids =
+        trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
+
+    trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
   }
 
-  private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(Event event) {
-    org.hisp.dhis.webapi.controller.tracker.view.Event minimalEvent =
-        new org.hisp.dhis.webapi.controller.tracker.view.Event();
-    minimalEvent.setEvent(UID.of(event.getUid()));
-    return minimalEvent;
+  private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(
+      TrackedEntity trackedEntity) {
+    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity minimalTrackedEntity =
+        new org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity();
+    minimalTrackedEntity.setTrackedEntity(UID.of(trackedEntity.getUid()));
+    return minimalTrackedEntity;
   }
 }
