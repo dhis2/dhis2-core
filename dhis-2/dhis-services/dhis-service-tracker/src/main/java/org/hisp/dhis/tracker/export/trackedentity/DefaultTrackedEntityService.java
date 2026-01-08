@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -54,8 +55,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -74,10 +73,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final HibernateTrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
-
-  private final TrackerAccessManager trackerAccessManager;
-
-  private final TrackerOwnershipManager ownershipAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
 
@@ -230,6 +225,23 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
     return findTrackedEntities(ids, operationParams, queryParams, user);
+  }
+
+  @Override
+  @Transactional
+  public void updateTrackedEntitiesSyncTimestamp(
+      @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized) {
+    trackedEntityStore.updateTrackedEntitiesSyncTimestamp(trackedEntities, lastSynchronized);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, BadRequestException {
+    UserDetails user = getCurrentUserDetails();
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+
+    return trackedEntityStore.getTrackedEntityCount(queryParams);
   }
 
   @Nonnull

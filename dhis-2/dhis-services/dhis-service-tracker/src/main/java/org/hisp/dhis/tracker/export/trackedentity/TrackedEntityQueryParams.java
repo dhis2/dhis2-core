@@ -141,6 +141,12 @@ public class TrackedEntityQueryParams {
   /** Indicates whether to include soft-deleted elements. Default to false */
   @Getter private boolean includeDeleted = false;
 
+  /** Indicates whether the current query is intended for synchronization purposes. */
+  @Getter private boolean synchronizationQuery = false;
+
+  /** Specifies a cutoff date for skipping records that were changed before this timestamp. */
+  @Getter private Date skipChangedBefore;
+
   /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
@@ -338,6 +344,16 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setPotentialDuplicate(Boolean potentialDuplicate) {
     this.potentialDuplicate = potentialDuplicate;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
+    this.synchronizationQuery = synchronizationQuery;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setSkipChangedBefore(Date skipChangedBefore) {
+    this.skipChangedBefore = skipChangedBefore;
     return this;
   }
 

@@ -55,7 +55,6 @@ import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -67,8 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
-
-  @Autowired private ObjectMapper jsonMapper;
 
   private static final String UID1 = "asdflksadfjlkj";
   private static final String UID2 = "kajshdfkjahsdkfhj";
