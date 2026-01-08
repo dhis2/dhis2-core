@@ -30,18 +30,23 @@
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.lang.management.ManagementFactory;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import javax.management.ObjectName;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Exposes a static method to fetch an Executor for the Aggregates operations
  *
  * @author Luciano Fiandesio
  */
+@Slf4j
 class ThreadPoolManager {
-  // Thread factory that sets a user-defined thread name (useful for debugging
-  // purposes)
+
   private ThreadPoolManager() {
     throw new IllegalStateException("only used for its static fields");
   }
@@ -49,11 +54,99 @@ class ThreadPoolManager {
   private static final ThreadFactory threadFactory =
       new ThreadFactoryBuilder().setNameFormat("TRACKER-TE-FETCH-%d").setDaemon(true).build();
 
-  /** Cached thread pool: not bound to a size, but can reuse existing threads. */
-  private static final Executor AGGREGATE_THREAD_POOL =
-      Executors.newCachedThreadPool(threadFactory);
+  /**
+   * Cached thread pool: not bound to a size, but can reuse existing threads. Equivalent to
+   * Executors.newCachedThreadPool() but using ThreadPoolExecutor directly so we can expose it via
+   * JMX.
+   */
+  private static final ThreadPoolExecutor AGGREGATE_THREAD_POOL = createAndRegisterPool();
+
+  private static ThreadPoolExecutor createAndRegisterPool() {
+    ThreadPoolExecutor executor =
+        new ThreadPoolExecutor(
+            0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory);
+
+    try {
+      ObjectName name = new ObjectName("org.hisp.dhis:type=ThreadPool,name=TrackerTeFetch");
+      ManagementFactory.getPlatformMBeanServer()
+          .registerMBean(new ThreadPoolExecutorMXBeanImpl(executor), name);
+      log.debug("Registered TrackerTeFetch thread pool MBean");
+    } catch (Exception e) {
+      log.warn("Failed to register TrackerTeFetch thread pool MBean", e);
+    }
+
+    return executor;
+  }
 
   static Executor getPool() {
     return AGGREGATE_THREAD_POOL;
+  }
+
+  /** MXBean interface for exposing ThreadPoolExecutor metrics via JMX. */
+  public interface ThreadPoolExecutorMXBean {
+    int getActiveCount();
+
+    int getPoolSize();
+
+    int getCorePoolSize();
+
+    int getMaximumPoolSize();
+
+    int getLargestPoolSize();
+
+    long getCompletedTaskCount();
+
+    long getTaskCount();
+
+    int getQueueSize();
+  }
+
+  /** MXBean implementation that delegates to the ThreadPoolExecutor. */
+  static class ThreadPoolExecutorMXBeanImpl implements ThreadPoolExecutorMXBean {
+    private final ThreadPoolExecutor executor;
+
+    ThreadPoolExecutorMXBeanImpl(ThreadPoolExecutor executor) {
+      this.executor = executor;
+    }
+
+    @Override
+    public int getActiveCount() {
+      return executor.getActiveCount();
+    }
+
+    @Override
+    public int getPoolSize() {
+      return executor.getPoolSize();
+    }
+
+    @Override
+    public int getCorePoolSize() {
+      return executor.getCorePoolSize();
+    }
+
+    @Override
+    public int getMaximumPoolSize() {
+      return executor.getMaximumPoolSize();
+    }
+
+    @Override
+    public int getLargestPoolSize() {
+      return executor.getLargestPoolSize();
+    }
+
+    @Override
+    public long getCompletedTaskCount() {
+      return executor.getCompletedTaskCount();
+    }
+
+    @Override
+    public long getTaskCount() {
+      return executor.getTaskCount();
+    }
+
+    @Override
+    public int getQueueSize() {
+      return executor.getQueue().size();
+    }
   }
 }
