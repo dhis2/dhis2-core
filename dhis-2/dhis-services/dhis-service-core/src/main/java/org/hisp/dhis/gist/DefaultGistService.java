@@ -176,6 +176,7 @@ public class DefaultGistService implements GistService {
   }
 
   private GistPager pager(GistQuery query) {
+    if (!query.isPaging()) return null;
     int page = 1 + (query.getPageOffset() / query.getPageSize());
     Schema schema = schemaService.getDynamicSchema(query.getElementType());
     String prev = null;

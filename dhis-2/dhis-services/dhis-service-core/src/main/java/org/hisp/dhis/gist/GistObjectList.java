@@ -47,12 +47,11 @@ import org.hisp.dhis.object.ObjectOutput.Property;
  *     fields/properties
  */
 public record GistObjectList(
-    @Nonnull GistPager pager,
+    @CheckForNull GistPager pager,
     @Nonnull List<Property> properties,
     @Nonnull Stream<Object[]> values) {
 
   public GistObjectList {
-    requireNonNull(pager);
     requireNonNull(properties);
     requireNonNull(values);
   }
