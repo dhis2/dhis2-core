@@ -83,20 +83,15 @@ class DataQueryServiceTest {
 
   @Test
   void testGetUserOrgUnitsWithNoAnalyticsOrganisationUnitsDefined() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
     DataQueryParams dataQueryParams =
         DataQueryParams.newBuilder().withUserOrgUnitType(DATA_OUTPUT).build();
     User currentUser = mock(User.class);
-    when(currentUser.getOrganisationUnits()).thenReturn(Set.of(ouA));
     when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of());
     when(analyticsSecurityManager.getCurrentUser(dataQueryParams)).thenReturn(currentUser);
 
     List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
 
-    assertEquals(1, userOrgUnits.size());
-    assertThat(
-        userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
-        containsInAnyOrder("OrganisationUnitA"));
+    assertEquals(0, userOrgUnits.size());
   }
 
   @Test

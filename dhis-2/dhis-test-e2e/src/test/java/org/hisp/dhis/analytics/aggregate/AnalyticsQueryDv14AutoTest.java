@@ -338,7 +338,8 @@ public class AnalyticsQueryDv14AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
-            .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS");
+            .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS")
+            .add("relativePeriodDate=2025-07-01");
 
     // When
     ApiResponse response = actions.get(params);
@@ -387,7 +388,8 @@ public class AnalyticsQueryDv14AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
-            .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS");
+            .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS")
+            .add("relativePeriodDate=2025-07-01");
 
     // When
     ApiResponse response = actions.get(params);
@@ -437,7 +439,8 @@ public class AnalyticsQueryDv14AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
-            .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS");
+            .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS")
+            .add("relativePeriodDate=2025-07-01");
 
     // When
     ApiResponse response = actions.get(params);

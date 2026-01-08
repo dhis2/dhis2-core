@@ -130,21 +130,21 @@
     },
     {
       "name": "programIndicatorWithLimitGreaterThanData",
-      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=GT:15&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=GT:15&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
       "version": {
         "min": 42
       }
     },
     {
       "name": "programIndicatorWithLimitLowerThanData",
-      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=LT:20&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=LT:20&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
       "version": {
         "min": 42
       }
     },
     {
       "name": "programIndicatorWithLimitEqualData",
-      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=EQ:14.5454545455&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=EQ:14.5454545455&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
       "version": {
         "min": 42
       }
