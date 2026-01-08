@@ -8,9 +8,10 @@ scrape_configs:
 
   # JMX metrics via JMX Exporter - bypasses DHIS2 HTTP layer
   # Works even when connection pool is exhausted
+  # JMX Exporter runs in web's network namespace, so scrape via web:9404
   - job_name: 'jmx'
     static_configs:
-      - targets: ['jmx-exporter:9404']
+      - targets: ['web:9404']
 
   # DHIS2 native metrics (HikariCP, Hibernate, etc.)
   # May fail under heavy load when connection pool is exhausted

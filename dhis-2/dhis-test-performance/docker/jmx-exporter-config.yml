@@ -25,7 +25,7 @@
 #
 #   Result: tomcat_threadpool_currentthreadsbusy{connector="http-nio", port="8080"}
 
-hostPort: web:9011
+hostPort: localhost:9011
 lowercaseOutputName: true
 lowercaseOutputLabelNames: true
 
@@ -67,15 +67,41 @@ rules:
     type: GAUGE
 
   # HikariCP Connection Pool
-  # MBean: com.zaxxer.hikari:type=Pool (HikariPool-1)
+  #
+  # Pattern syntax explained:
+  #   JMX MBean:  com.zaxxer.hikari:type=Pool (actual)
+  #   Attribute:  ActiveConnections
+  #
+  #   Pattern: 'com.zaxxer.hikari<type=Pool \((\w+)\)><>(\w+):'
+  #            ├──────────────────────────────────────────┤├───┤
+  #            │            MBean object name             ││att│
+  #            │                                          ││   │
+  #            │   com.zaxxer.hikari<type=Pool (actual)>  ││   │
+  #            │                          ├────┤          ││   │
+  #            │                            $1            ││$2 │
+  #            └──────────────────────────────────────────┘└───┘
+  #
+  #   $1 = pool name (actual, readonly, analytics, etc.)
+  #   $2 = attribute name (ActiveConnections, IdleConnections, etc.)
+  #
+  #   Result: hikaricp_pool_activeconnections{pool="actual"}
+  #
   # Key metrics:
   #   ActiveConnections - connections currently in use
   #   IdleConnections - connections available in pool
   #   TotalConnections - active + idle
   #   ThreadsAwaitingConnection - threads blocked waiting for a connection
-  - pattern: 'com.zaxxer.hikari<type=Pool \((\w+-\d+)\)><>(\w+):'
-    name: hikaricp_$2
+  - pattern: 'com.zaxxer.hikari<type=Pool \((\w+)\)><>(\w+):'
+    name: hikaricp_pool_$2
     labels:
       pool: "$1"
-    help: "HikariCP $2"
+    help: "HikariCP pool $2"
+    type: GAUGE
+
+  # HikariCP Pool Config (optional, for debugging)
+  - pattern: 'com.zaxxer.hikari<type=PoolConfig \((\w+)\)><>(\w+):'
+    name: hikaricp_poolconfig_$2
+    labels:
+      pool: "$1"
+    help: "HikariCP pool config $2"
     type: GAUGE
