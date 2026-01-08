@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test;
  * iterate on the assertion messages. They are a copy of the {@link
  * org.junit.jupiter.api.function.Executable} in the <code>assertThrows</code> statements.
  */
-public class AssertionsTest {
+class AssertionsTest {
   @Test
   void testAssertHasOnlyErrorsFailsIfReportHasNoErrors() {
     ValidationReport report = ValidationReport.emptyReport();
@@ -101,7 +101,6 @@ public class AssertionsTest {
             List.of());
 
     assertThrows(AssertionError.class, () -> assertHasErrors(report, 3, ValidationCode.E1000));
-    // assertHasErrors( report,3, ValidationCode.E1000 );
   }
 
   @Test
@@ -134,7 +133,6 @@ public class AssertionsTest {
     ValidationReport report = ValidationReport.emptyReport();
 
     assertThrows(AssertionError.class, () -> assertHasError(report, ValidationCode.E1019));
-    // assertHasError( report, ValidationCode.E1019 );
   }
 
   @Test

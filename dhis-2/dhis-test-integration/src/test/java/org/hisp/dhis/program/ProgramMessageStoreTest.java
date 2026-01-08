@@ -47,8 +47,11 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
@@ -85,9 +88,9 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   private ProgramMessageQueryParams params;
 
-  private org.hisp.dhis.program.TrackerEvent eventA;
+  private TrackerEvent eventA;
 
-  private org.hisp.dhis.program.SingleEvent singleEvent;
+  private SingleEvent singleEvent;
 
   private ProgramMessage programMessageA;
   private ProgramMessage programMessageB;

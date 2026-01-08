@@ -27,33 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+package org.hisp.dhis.tracker.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import java.util.Collection;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Stian Sandvold
+ * @author Abyot Asalefew
  */
-@Setter
-@Getter
-@NoArgsConstructor
-public class RelationshipItem implements EmbeddedObject {
-  private int id;
+public interface TrackerEventStore extends IdentifiableObjectStore<TrackerEvent> {
 
-  private Relationship relationship;
+  /**
+   * Merges all eventDataValues which have one of the source dataElements. The lastUpdated value is
+   * used to determine which event data value is kept when merging. Any remaining source
+   * eventDataValues are then deleted.
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to merge
+   * @param targetDataElement dataElement to use when merging source eventDataValues
+   */
+  void mergeEventDataValuesWithDataElement(
+      @Nonnull Collection<UID> sourceDataElements, @Nonnull UID targetDataElement);
 
-  private TrackedEntity trackedEntity;
+  /**
+   * delete all eventDataValues which have any of the sourceDataElements
+   *
+   * @param sourceDataElements dataElements to determine which eventDataValues to delete
+   */
+  void deleteEventDataValuesWithDataElement(@Nonnull Collection<UID> sourceDataElements);
 
-  private Enrollment enrollment;
-
-  private TrackerEvent trackerEvent;
-
-  private SingleEvent singleEvent;
+  /**
+   * Updates all {@link TrackerEvent}s with references to {@link CategoryOptionCombo}s, to use the
+   * coc reference.
+   *
+   * @param cocs {@link CategoryOptionCombo}s to update
+   * @param coc {@link CategoryOptionCombo} to use as the new value
+   */
+  void setAttributeOptionCombo(Set<Long> cocs, long coc);
 }

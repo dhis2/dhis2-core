@@ -40,20 +40,20 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.RelationshipKey;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -323,7 +323,7 @@ public class TrackerObjectsMapper {
       @Nonnull org.hisp.dhis.tracker.imports.domain.Relationship relationship,
       @Nonnull UserDetails user) {
     Date now = new Date();
-    Relationship dbRelationship = new org.hisp.dhis.relationship.Relationship();
+    Relationship dbRelationship = new Relationship();
     dbRelationship.setUid(relationship.getRelationship().getValue());
     dbRelationship.setCreated(now);
     dbRelationship.setLastUpdated(now);
@@ -335,7 +335,7 @@ public class TrackerObjectsMapper {
     dbRelationship.setRelationshipType(relationshipType);
 
     // FROM
-    RelationshipItem fromItem = new org.hisp.dhis.relationship.RelationshipItem();
+    RelationshipItem fromItem = new RelationshipItem();
     fromItem.setRelationship(dbRelationship);
     switch (relationshipType.getFromConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->
@@ -351,7 +351,7 @@ public class TrackerObjectsMapper {
     dbRelationship.setFrom(fromItem);
 
     // TO
-    RelationshipItem toItem = new org.hisp.dhis.relationship.RelationshipItem();
+    RelationshipItem toItem = new RelationshipItem();
     toItem.setRelationship(dbRelationship);
     switch (relationshipType.getToConstraint().getRelationshipEntity()) {
       case TRACKED_ENTITY_INSTANCE ->

@@ -27,21 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.model;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Chau Thu Tran
- */
 @Component
 @RequiredArgsConstructor
-public class TrackerEventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> {
+public class SingleEventDeletionHandler extends IdObjectDeletionHandler<SingleEvent> {
   @Override
   protected void registerHandler() {
     whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
@@ -52,21 +51,21 @@ public class TrackerEventDeletionHandler extends IdObjectDeletionHandler<Tracker
   private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
     return vetoIfExists(
         VETO,
-        "select 1 from trackerevent where programstageid = :id limit 1",
+        "select 1 from singleevent where programstageid = :id limit 1",
         Map.of("id", programStage.getId()));
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {
     return vetoIfExists(
         VETO,
-        "select 1 from trackerevent ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
+        "select 1 from singleevent ev join programstage ps on ps.programstageid=ev.programstageid where ps.programid = :id limit 1",
         Map.of("id", program.getId()));
   }
 
   private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
     return vetoIfExists(
         VETO,
-        "select 1 from trackerevent where eventdatavalues ?? :uid limit 1",
+        "select 1 from singleevent where eventdatavalues ?? :uid limit 1",
         Map.of("uid", dataElement.getUid()));
   }
 }

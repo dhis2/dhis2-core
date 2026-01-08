@@ -47,6 +47,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.message.ProgramMessage;
 import org.hisp.dhis.tracker.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
@@ -74,8 +77,8 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   private OrganisationUnit ouB;
 
   private Enrollment enrollment;
-  private org.hisp.dhis.program.TrackerEvent trackerEvent;
-  private org.hisp.dhis.program.SingleEvent singleEvent;
+  private TrackerEvent trackerEvent;
+  private SingleEvent singleEvent;
 
   private ProgramMessageStatus messageStatus = ProgramMessageStatus.OUTBOUND;
 
@@ -101,8 +104,8 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
     testSetup.importTrackerData();
     enrollment = manager.get(Enrollment.class, "nxP7UnKhomJ");
-    trackerEvent = manager.get(org.hisp.dhis.program.TrackerEvent.class, "pTzf9KYMk72");
-    singleEvent = manager.get(org.hisp.dhis.program.SingleEvent.class, "QRYjLTiJTrA");
+    trackerEvent = manager.get(TrackerEvent.class, "pTzf9KYMk72");
+    singleEvent = manager.get(SingleEvent.class, "QRYjLTiJTrA");
 
     ouA = createOrganisationUnit('A');
     ouA.setPhoneNumber(MSISDN);

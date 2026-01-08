@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.program.SingleEvent;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
