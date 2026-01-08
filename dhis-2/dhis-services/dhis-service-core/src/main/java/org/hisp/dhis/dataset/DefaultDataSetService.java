@@ -240,7 +240,7 @@ public class DefaultDataSetService implements DataSetService {
             .map(DataSet::getUid)
             .collect(Collectors.toSet());
 
-    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids);
+    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids, true);
   }
 
   // -------------------------------------------------------------------------
