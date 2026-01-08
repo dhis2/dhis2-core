@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.joining;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +49,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder.AddMember;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -55,6 +57,7 @@ import org.hisp.dhis.object.ObjectOutput;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * A utility to support {@link Stream}-serialisation as JSON for varying property paths.
@@ -343,6 +346,12 @@ public final class JsonStreamOutput {
    */
 
   private static final ObjectMapper FALLBACK_MAPPER = new ObjectMapper();
+
+  static {
+    SimpleModule module = new SimpleModule();
+    module.addSerializer(Geometry.class, new GeometrySerializer());
+    FALLBACK_MAPPER.registerModule(module);
+  }
 
   private static final Map<Class<?>, AddMember<Object>> ADDERS_BY_TYPE = new ConcurrentHashMap<>();
 
