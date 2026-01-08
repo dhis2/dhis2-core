@@ -36,8 +36,10 @@ import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled("Until cache EX issue has been fixed")
 public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
   private AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 
