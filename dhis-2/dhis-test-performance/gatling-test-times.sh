@@ -105,17 +105,32 @@ DURATION_REMAINING_SEC=$((DURATION_SEC % 60))
 # Extract parent directory from the gatling test dir (e.g., "connection-analysis/results/off")
 OUTPUT_DIR=$(dirname "$GATLING_TEST_DIR")
 
-echo "===== Test Time Range ====="
+# Human-readable times (local timezone)
+START_HUMAN=$(date -d "@$START_SEC" "+%Y-%m-%d %H:%M:%S")
+END_HUMAN=$(date -d "@$END_SEC" "+%Y-%m-%d %H:%M:%S")
+
+# Prometheus UI format (UTC, 12h with AM/PM)
+START_PROM_UI=$(date -u -d "@$START_SEC" "+%Y-%m-%d %I:%M:%S %p")
+END_PROM_UI=$(date -u -d "@$END_SEC" "+%Y-%m-%d %I:%M:%S %p")
+
+# Colors
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
 echo ""
-echo "Start: $START_TIME ($START_MS ms)"
-echo "End:   $END_TIME ($END_MS ms)"
-echo "Duration: ${DURATION_MIN}m ${DURATION_REMAINING_SEC}s"
+echo -e "${CYAN}Test Times (local)${NC}"
+echo "  Start:    $START_HUMAN"
+echo "  End:      $END_HUMAN"
+echo "  Duration: ${DURATION_MIN}m ${DURATION_REMAINING_SEC}s"
 echo ""
-echo "Use these timestamps with analyze-connections.sh:"
+echo -e "${CYAN}Prometheus (UTC)${NC}"
+echo "  Start: $START_PROM_UI"
+echo "  End:   $END_PROM_UI"
 echo ""
+echo -e "${CYAN}analyze-connections.sh${NC}"
 echo "./connection-analysis/analyze-connections.sh \\"
-echo "\"$START_TIME\" \\"
-echo "\"$END_TIME\" \\"
-echo "\"$SIMULATION_CSV\" \\"
-echo "\"$OUTPUT_DIR\""
+echo "  \"$START_TIME\" \\"
+echo "  \"$END_TIME\" \\"
+echo "  \"$SIMULATION_CSV\" \\"
+echo "  \"$OUTPUT_DIR\""
 echo ""
