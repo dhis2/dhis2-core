@@ -36,10 +36,12 @@ import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 @EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
+@Disabled("Temporarily disabled while fixing Redis issue")
 public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
 
   private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();

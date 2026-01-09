@@ -369,11 +369,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   private String getDataElementColumn(CteContext cteContext, QueryItem item) {
-    String col = getSortColumnForDataElementDimensionType(item, false);
-    String cteKey = col.replace(".", "_");
+    String cteKey = CteUtils.computeKey(item);
     CteDefinition cte = cteContext.getDefinitionByKey(cteKey);
-
-    return (cte != null) ? cte.getAlias() + ".value" : quote(col);
+    if (cte != null) {
+      int offset = computeRowNumberOffset(item.getProgramStageOffset());
+      return cte.getAlias(offset) + ".value";
+    }
+    String col = getSortColumnForDataElementDimensionType(item, false);
+    return quote(col);
   }
 
   private String getDefaultColumn(EventQueryParams params, QueryItem item) {
@@ -2752,14 +2755,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     boolean hasRowContext = rowContextAllowedAndNeeded(params, item);
 
     // Build the main CTE SQL.
-    String cteSql = buildMainCteSql(eventTableName, colName, item, hasRowContext);
+    int programStageOffset = item.getProgramStageOffset();
+    String cteSql =
+        buildMainCteSql(eventTableName, colName, item, hasRowContext, programStageOffset);
 
     // Register this CTE in the context.
     cteContext.addCte(
         item.getProgramStage(),
         item,
         cteSql,
-        computeRowNumberOffset(item.getProgramStageOffset()),
+        computeRowNumberOffset(programStageOffset),
         hasRowContext);
 
     // If row context is needed, we add an extra "exists" CTE for event checks.
@@ -3173,10 +3178,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param colName the quoted column name for the item
    * @param item the {@link QueryItem} containing program-stage details
    * @param hasRowContext whether row context is needed
+   * @param programStageOffset the program stage offset (0 = newest, positive = nth oldest)
    * @return the main CTE SQL
    */
   private String buildMainCteSql(
-      String eventTableName, String colName, QueryItem item, boolean hasRowContext) {
+      String eventTableName,
+      String colName,
+      QueryItem item,
+      boolean hasRowContext,
+      int programStageOffset) {
+    // For offset 0 or negative: DESC (newest first, rn=1 is newest)
+    // For positive offset: ASC (oldest first, rn=1 is oldest)
+    String orderDirection = (programStageOffset <= 0) ? "desc" : "asc";
+
     String template =
         """
         select
@@ -3184,7 +3198,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             ${colName} as value,${rowContext}
             row_number() over (
                 partition by enrollment
-                order by occurreddate desc, created desc
+                order by occurreddate ${orderDirection}, created ${orderDirection}
             ) as rn
         from ${eventTableName}
         where eventstatus != 'SCHEDULE' and ps = '${programStageUid}'
@@ -3195,6 +3209,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("rowContext", hasRowContext ? " eventstatus," : "");
     values.put("eventTableName", eventTableName);
     values.put("programStageUid", item.getProgramStage().getUid());
+    values.put("orderDirection", orderDirection);
 
     return new StringSubstitutor(values).replace(template);
   }
