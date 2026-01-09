@@ -36,6 +36,15 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
+  echo "  KEEP                  Keep containers running after test (default: false)"
+  echo "                        Useful for running multiple tests without restart"
+  echo "                        Clean up manually with: docker compose down --volumes"
+  echo "  MONITORING            Enable monitoring stack (default: false)"
+  echo "                        Includes Prometheus, jmx-exporter, postgres-exporter"
+  echo "                        Access Prometheus at http://localhost:9090"
+  echo "  FLYWAY_REPAIR         Comma-separated flyway versions to delete from history"
+  echo "                        Use when DB has migrations not in your DHIS2 image"
+  echo "                        Example: FLYWAY_REPAIR=\"2.42.44,2.42.45,2.42.46,2.42.47\""
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -99,6 +108,9 @@ REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+KEEP=${KEEP:-"false"}
+MONITORING=${MONITORING:-"false"}
+FLYWAY_REPAIR=${FLYWAY_REPAIR:-""}
 
 # Validate DB_TYPE (only allow sierra-leone or hmis)
 case "$DB_TYPE" in
@@ -159,13 +171,16 @@ cleanup() {
   echo "========================================"
   post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
 
-  echo ""
-  echo "Cleaning up containers..."
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
+  if [ "$KEEP" = "true" ]; then
+    echo ""
+    echo "Keeping containers running (KEEP=true)"
+    echo "Clean up manually with: docker compose down --volumes"
+  else
+    echo ""
+    echo "Cleaning up containers..."
+    # shellcheck disable=SC2046
+    docker compose $(get_compose_args) down --volumes 2>/dev/null || true
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
 
   echo ""
   echo "========================================"
@@ -213,45 +228,102 @@ dump_container_logs() {
   echo "Collecting diagnostic information to help debug startup failure..."
   echo ""
 
-  # Determine which compose files to use
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
-  fi
+  local compose_args
+  compose_args=$(get_compose_args)
 
   echo "================================================================"
   echo "Container Status:"
   echo "================================================================"
-  docker compose "${compose_files[@]}" ps || true
+  # shellcheck disable=SC2086
+  docker compose $compose_args ps || true
 
   echo ""
   echo "================================================================"
   echo "DHIS2 Web Container Logs (last 500 lines):"
   echo "================================================================"
-  docker compose "${compose_files[@]}" logs --tail=500 web 2>&1 || echo "Failed to retrieve web logs"
+  # shellcheck disable=SC2086
+  docker compose $compose_args logs --tail=500 web 2>&1 || echo "Failed to retrieve web logs"
 
   echo ""
   echo "================================================================"
   echo "Database Container Logs (last 50 lines):"
   echo "================================================================"
-  docker compose "${compose_files[@]}" logs --tail=50 db 2>&1 || echo "Failed to retrieve db logs"
+  # shellcheck disable=SC2086
+  docker compose $compose_args logs --tail=50 db 2>&1 || echo "Failed to retrieve db logs"
+}
+
+get_compose_args() {
+  # Build compose command arguments based on configuration
+  local args=("-f" "docker-compose.yml")
+  if [ -n "$PROF_ARGS" ]; then
+    args+=("-f" "docker-compose.profile.yml")
+  fi
+  if [ "$MONITORING" = "true" ]; then
+    args+=("--profile" "monitoring")
+  fi
+  echo "${args[@]}"
+}
+
+containers_healthy() {
+  # Check if web-healthcheck container is healthy (implies web and db are ready)
+  local status
+  # shellcheck disable=SC2046
+  status=$(docker compose $(get_compose_args) ps --format json web-healthcheck 2>/dev/null | jq -r '.Health // empty' 2>/dev/null || echo "")
+  [ "$status" = "healthy" ]
+}
+
+repair_flyway() {
+  # Delete flyway_schema_history rows for migrations not in the DHIS2 image
+  # This allows running a newer DB dump with an older DHIS2 version
+  if [ -z "$FLYWAY_REPAIR" ]; then
+    return 0
+  fi
+
+  echo "Repairing flyway history (removing versions: $FLYWAY_REPAIR)..."
+
+  # Convert comma-separated list to SQL IN clause
+  local versions_sql
+  versions_sql=$(echo "$FLYWAY_REPAIR" | sed "s/,/','/g")
+
+  docker compose exec -T db psql --username=dhis --quiet dhis \
+    --command="DELETE FROM flyway_schema_history WHERE version IN ('$versions_sql');"
+
+  echo "Flyway repair complete"
 }
 
 start_containers() {
+  # Get compose arguments
+  local compose_args
+  compose_args=$(get_compose_args)
+
+  # Skip startup if containers are already healthy and KEEP is set
+  if [ "$KEEP" = "true" ] && containers_healthy; then
+    echo "Containers already running and healthy, skipping startup"
+    return 0
+  fi
+
   echo "Testing with image: $DHIS2_IMAGE"
   echo "Waiting for containers to be ready..."
 
   local start_time
   start_time=$(date +%s)
 
-  # Determine which compose files to use
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
+  # Only tear down if not keeping containers - otherwise just start/restart
+  if [ "$KEEP" != "true" ]; then
+    # shellcheck disable=SC2086
+    docker compose $compose_args down --volumes
   fi
 
-  docker compose "${compose_files[@]}" down --volumes
-  if ! docker compose "${compose_files[@]}" up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+  # If flyway repair is needed, start db first, repair, then start the rest
+  if [ -n "$FLYWAY_REPAIR" ]; then
+    echo "Starting database for flyway repair..."
+    # shellcheck disable=SC2086
+    docker compose $compose_args up --detach --wait db
+    repair_flyway
+  fi
+
+  # shellcheck disable=SC2086
+  if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
     echo "Error: Failed to start containers"
     dump_container_logs
     exit 1
