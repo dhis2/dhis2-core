@@ -696,7 +696,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
       EventQueryParams params, QueryItem queryItem) {
     if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())) {
-      return ColumnAndAlias.ofColumn(quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME));
+      return ColumnAndAlias.ofColumnAndAlias(
+          quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME),
+          EventAnalyticsColumnName.OU_NAME_COLUMN_NAME);
     }
 
     return rowContextAllowedAndNeeded(params, queryItem)
@@ -814,7 +816,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       withExceptionHandling(
           () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
-
+    System.out.println(sql);
     return grid;
   }
 
@@ -857,7 +859,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       } else {
         for (QueryItem queryItem : params.getItems()) {
-          ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, true);
+          ColumnAndAlias columnAndAlias;
+          if (queryItem.getValueType().isOrganisationUnit()) {
+            columnAndAlias = getOrgUnitQueryItemColumnAndAlias(params, queryItem);
+          } else {
+            columnAndAlias = getColumnAndAlias(queryItem, params, false, true);
+          }
           String alias = columnAndAlias.getAlias();
 
           if (isEmpty(alias)) {
