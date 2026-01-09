@@ -96,7 +96,8 @@ services:
       - ./docker/jmx-exporter-config.yml:/opt/bitnami/jmx-exporter/config.yml:ro
     command: ["9404", "/opt/bitnami/jmx-exporter/config.yml"]
     depends_on:
-      - web
+      web-healthcheck:
+        condition: service_healthy
 
   # PostgreSQL Exporter - exposes pg_stat_activity and other PostgreSQL metrics
   # https://github.com/prometheus-community/postgres_exporter
