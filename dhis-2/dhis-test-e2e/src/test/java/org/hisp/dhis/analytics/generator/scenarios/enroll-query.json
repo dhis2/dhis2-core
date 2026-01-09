@@ -97,6 +97,13 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "multipoleOffsets",
+      "query": "/api/analytics/enrollments/query/M3xtLkYBlKI?dimension=uvMKOn1oWvd[0].DX4LVYeP7bw,uvMKOn1oWvd[1].DX4LVYeP7bw,ou:USER_ORGUNIT&headers=ouname,uvMKOn1oWvd[1].DX4LVYeP7bw,uvMKOn1oWvd[0].DX4LVYeP7bw&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
+      "version": {
+        "min": 42
+      }
     }
 
   ]
