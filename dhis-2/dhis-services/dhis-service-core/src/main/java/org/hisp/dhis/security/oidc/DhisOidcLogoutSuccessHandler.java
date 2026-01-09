@@ -95,7 +95,11 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
       throws IOException, ServletException {
     String clearSiteDataValue = config.getProperty(HTTP_CLEAR_SITE_DATA);
     if (!isNullOrEmpty(clearSiteDataValue)) {
-      response.setHeader("Clear-Site-Data", clearSiteDataValue);
+      String headerValue =
+          DhisConfigurationProvider.isOn(clearSiteDataValue)
+              ? "\"cache\", \"storage\""
+              : clearSiteDataValue;
+      response.setHeader("Clear-Site-Data", headerValue);
     }
 
     if (config.isEnabled(OIDC_OAUTH2_LOGIN_ENABLED) && config.isEnabled(LINKED_ACCOUNTS_ENABLED)) {
