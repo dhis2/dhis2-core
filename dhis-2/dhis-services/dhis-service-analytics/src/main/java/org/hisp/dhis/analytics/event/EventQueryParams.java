@@ -1018,6 +1018,16 @@ public class EventQueryParams extends DataQueryParams {
     return children;
   }
 
+  @Override
+  public boolean hasOrganisationUnits() {
+    if (super.hasOrganisationUnits()) {
+      return true;
+    }
+
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && OU_COLUMN_NAME.equals(item.getItemId()));
+  }
+
   public boolean isSorting() {
     return (asc != null && !asc.isEmpty()) || (desc != null && !desc.isEmpty());
   }
