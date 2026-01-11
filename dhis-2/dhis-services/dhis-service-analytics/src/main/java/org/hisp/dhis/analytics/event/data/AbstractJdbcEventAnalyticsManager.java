@@ -1933,7 +1933,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
         } else if (!cteContext.isEventsAnalytics() && isStageOuDimension(queryItem)) {
-          // Stage.ou dimensions use CTE columns
+          // Stage.ou dimensions use CTE columns (only for enrollment analytics)
           columns.add(getColumnWithCte(queryItem, cteContext));
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
