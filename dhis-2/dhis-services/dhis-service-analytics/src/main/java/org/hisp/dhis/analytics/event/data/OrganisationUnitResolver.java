@@ -88,7 +88,8 @@ public class OrganisationUnitResolver {
 
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
-   * into a list of organisation unit dimension uids.
+   * into a list of organisation unit dimension uids. Groups and levels are expanded to their member
+   * org units for SQL filtering purposes.
    *
    * @param queryFilter the query filter containing the organisation unit filter
    * @param userOrgUnits the user organisation units
@@ -97,7 +98,7 @@ public class OrganisationUnitResolver {
   public String resolveOrgUnits(QueryFilter queryFilter, List<OrganisationUnit> userOrgUnits) {
     List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
     List<String> orgUnitDimensionUid =
-        dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits);
+        dimensionalObjectProducer.getOrgUnitDimensionUid(filterItem, userOrgUnits, true);
 
     // Throw E7143 if no valid org units were resolved (mirrors standard ou: dimension behavior)
     if (orgUnitDimensionUid.isEmpty()) {
@@ -152,7 +153,8 @@ public class OrganisationUnitResolver {
 
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
-   * into a list of organisation unit dimension uids.
+   * into a list of organisation unit dimension uids. Groups and levels are expanded to their member
+   * org units for SQL filtering purposes.
    *
    * @param params the event query parameters
    * @param item the query item
@@ -168,11 +170,32 @@ public class OrganisationUnitResolver {
   }
 
   /**
+   * Resolve organisation units for metadata purposes. Unlike {@link #resolveOrgUnits}, this method
+   * does NOT expand groups or levels to their member org units. This is used for building metadata
+   * responses where we don't want to include all members of a group.
+   *
+   * @param params the event query parameters
+   * @param item the query item
+   * @return the list of organisation unit dimension uids without group/level expansion
+   */
+  public List<String> resolveOrgUnitsForMetadata(EventQueryParams params, QueryItem item) {
+    return item.getFilters().stream()
+        .map(
+            queryFilter -> {
+              List<String> filterItem = QueryFilter.getFilterItems(queryFilter.getFilter());
+              return dimensionalObjectProducer.getOrgUnitDimensionUid(
+                  filterItem, params.getUserOrgUnits(), false);
+            })
+        .flatMap(List::stream)
+        .distinct()
+        .toList();
+  }
+
+  /**
    * Resolves organisation units from a QueryItem's filters and returns them grouped by level. This
    * is useful for generating proper uidlevelX WHERE clauses for stage.ou dimensions.
    *
-   * <p>This method handles both direct org unit UIDs and org unit group references (OU_GROUP-XXX).
-   * Groups are expanded to their member org units for SQL filtering purposes.
+   * <p>Groups and levels are expanded to their member org units via {@link #resolveOrgUnits}.
    *
    * @param params the event query parameters
    * @param item the query item containing org unit filters
@@ -181,51 +204,11 @@ public class OrganisationUnitResolver {
   public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
       EventQueryParams params, QueryItem item) {
     List<String> orgUnitUids = resolveOrgUnits(params, item);
-    List<OrganisationUnitGroup> groups = extractOrgUnitGroupsFromFilters(item);
-
-    List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-    if (!orgUnitUids.isEmpty()) {
-      orgUnits.addAll(organisationUnitService.getOrganisationUnitsByUid(orgUnitUids));
-    }
-
-    if (!groups.isEmpty()) {
-      List<OrganisationUnit> boundaries = orgUnits.isEmpty() ? null : orgUnits;
-      orgUnits.addAll(organisationUnitService.getOrganisationUnits(groups, boundaries));
-    }
-
-    if (orgUnits.isEmpty()) {
+    if (orgUnitUids.isEmpty()) {
       return Map.of();
     }
-
-    return orgUnits.stream().distinct().collect(Collectors.groupingBy(OrganisationUnit::getLevel));
-  }
-
-  /**
-   * Extracts organisation unit groups from a QueryItem's filters. Parses filter values looking for
-   * OU_GROUP-XXX patterns and loads the corresponding OrganisationUnitGroup objects.
-   *
-   * @param item the query item containing filters
-   * @return list of OrganisationUnitGroup objects found in filters
-   */
-  private List<OrganisationUnitGroup> extractOrgUnitGroupsFromFilters(QueryItem item) {
-    List<OrganisationUnitGroup> groups = new ArrayList<>();
-
-    for (QueryFilter filter : item.getFilters()) {
-      String[] filterItems = filter.getFilter().split(DimensionConstants.OPTION_SEP);
-      for (String filterItem : filterItems) {
-        if (filterItem.startsWith(KEY_ORGUNIT_GROUP)) {
-          String groupUid = substringAfterLast(filterItem, SEPARATOR);
-          OrganisationUnitGroup group =
-              idObjectManager.getObject(OrganisationUnitGroup.class, IdScheme.UID, groupUid);
-          if (group != null) {
-            groups.add(group);
-          }
-        }
-      }
-    }
-
-    return groups;
+    return organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
+        .collect(Collectors.groupingBy(OrganisationUnit::getLevel));
   }
 
   /**
