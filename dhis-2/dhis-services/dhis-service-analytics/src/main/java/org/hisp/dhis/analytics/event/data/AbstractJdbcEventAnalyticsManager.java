@@ -2796,8 +2796,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Build the main CTE SQL.
     int programStageOffset = item.getProgramStageOffset();
     String cteSql =
-            buildMainCteSql(eventTableName, colName, item, hasRowContext, programStageOffset, params);
-
+        buildMainCteSql(eventTableName, colName, item, hasRowContext, programStageOffset, params);
 
     // Register this CTE in the context.
     cteContext.addCte(
@@ -3386,12 +3385,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the main CTE SQL
    */
   private String buildMainCteSql(
-          String eventTableName,
-          String colName,
-          QueryItem item,
-          boolean hasRowContext,
-          int programStageOffset,
-          EventQueryParams params) {
+      String eventTableName,
+      String colName,
+      QueryItem item,
+      boolean hasRowContext,
+      int programStageOffset,
+      EventQueryParams params) {
     // For offset 0 or negative: DESC (newest first, rn=1 is newest)
     // For positive offset: ASC (oldest first, rn=1 is oldest)
     String orderDirection = (programStageOffset <= 0) ? "desc" : "asc";

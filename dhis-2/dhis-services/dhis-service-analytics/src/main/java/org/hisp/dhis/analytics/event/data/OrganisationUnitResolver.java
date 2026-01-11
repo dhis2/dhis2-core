@@ -171,6 +171,9 @@ public class OrganisationUnitResolver {
    * Resolves organisation units from a QueryItem's filters and returns them grouped by level. This
    * is useful for generating proper uidlevelX WHERE clauses for stage.ou dimensions.
    *
+   * <p>This method handles both direct org unit UIDs and org unit group references (OU_GROUP-XXX).
+   * Groups are expanded to their member org units for SQL filtering purposes.
+   *
    * @param params the event query parameters
    * @param item the query item containing org unit filters
    * @return a map of level to list of organisation units at that level
@@ -178,11 +181,51 @@ public class OrganisationUnitResolver {
   public Map<Integer, List<OrganisationUnit>> resolveOrgUnitsGroupedByLevel(
       EventQueryParams params, QueryItem item) {
     List<String> orgUnitUids = resolveOrgUnits(params, item);
-    if (orgUnitUids.isEmpty()) {
+    List<OrganisationUnitGroup> groups = extractOrgUnitGroupsFromFilters(item);
+
+    List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+    if (!orgUnitUids.isEmpty()) {
+      orgUnits.addAll(organisationUnitService.getOrganisationUnitsByUid(orgUnitUids));
+    }
+
+    if (!groups.isEmpty()) {
+      List<OrganisationUnit> boundaries = orgUnits.isEmpty() ? null : orgUnits;
+      orgUnits.addAll(organisationUnitService.getOrganisationUnits(groups, boundaries));
+    }
+
+    if (orgUnits.isEmpty()) {
       return Map.of();
     }
-    return organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
-        .collect(Collectors.groupingBy(OrganisationUnit::getLevel));
+
+    return orgUnits.stream().distinct().collect(Collectors.groupingBy(OrganisationUnit::getLevel));
+  }
+
+  /**
+   * Extracts organisation unit groups from a QueryItem's filters. Parses filter values looking for
+   * OU_GROUP-XXX patterns and loads the corresponding OrganisationUnitGroup objects.
+   *
+   * @param item the query item containing filters
+   * @return list of OrganisationUnitGroup objects found in filters
+   */
+  private List<OrganisationUnitGroup> extractOrgUnitGroupsFromFilters(QueryItem item) {
+    List<OrganisationUnitGroup> groups = new ArrayList<>();
+
+    for (QueryFilter filter : item.getFilters()) {
+      String[] filterItems = filter.getFilter().split(DimensionConstants.OPTION_SEP);
+      for (String filterItem : filterItems) {
+        if (filterItem.startsWith(KEY_ORGUNIT_GROUP)) {
+          String groupUid = substringAfterLast(filterItem, SEPARATOR);
+          OrganisationUnitGroup group =
+              idObjectManager.getObject(OrganisationUnitGroup.class, IdScheme.UID, groupUid);
+          if (group != null) {
+            groups.add(group);
+          }
+        }
+      }
+    }
+
+    return groups;
   }
 
   /**
