@@ -127,6 +127,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
+  private QueryItemFilterBuilder filterBuilder;
+
   @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -161,6 +163,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             new PostgreSqlBuilder(),
             dataElementService);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -175,7 +178,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper);
+            columnMapper,
+            filterBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
