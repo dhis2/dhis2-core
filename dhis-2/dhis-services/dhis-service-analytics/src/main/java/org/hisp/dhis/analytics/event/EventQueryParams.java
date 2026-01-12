@@ -782,13 +782,23 @@ public class EventQueryParams extends DataQueryParams {
 
   /**
    * Returns duplicate stage dimension identifiers (stageUid.itemId combinations). A duplicate
-   * occurs when the same stage and identifier are used more than once.
+   * occurs when the same stage and identifier are used more than once. Items with different offsets
+   * (e.g., stageUid[0].itemId vs stageUid[-1].itemId) are not considered duplicates.
    */
   public Set<String> getDuplicateStageDimensionIdentifiers() {
     Map<String, Long> counts =
         getItemsAndItemFilters().stream()
             .filter(QueryItem::hasProgramStage)
-            .map(item -> item.getProgramStage().getUid() + "." + item.getItemId())
+            .map(
+                item -> {
+                  String key = item.getProgramStage().getUid() + "." + item.getItemId();
+                  // Include offset in key when explicitly set (not default)
+                  if (item.hasRepeatableStageParams()
+                      && !item.getRepeatableStageParams().isDefaultObject()) {
+                    key += "." + item.getRepeatableStageParams().getIndex();
+                  }
+                  return key;
+                })
             .collect(groupingBy(Function.identity(), counting()));
 
     return counts.entrySet().stream()
