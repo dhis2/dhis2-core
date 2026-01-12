@@ -526,15 +526,19 @@ public abstract class AbstractFullReadOnlyController<
     }
   }
 
+  // --------------------------------------------------------------------------
+  // Note that this method has been intentionally set as protected to allow
+  // subclasses to override the caching strategy if needed. However, developers
+  // should exercise caution when modifying this behavior to avoid unintended
+  // side effects. The default implementation is designed to ensure that
+  // sensitive data is not cached by clients or intermediaries.
+  // --------------------------------------------------------------------------
   protected void cachePrivate(HttpServletResponse response) {
     response.setHeader(
         ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
   protected String getConfiguredPrivateCacheControlHeader() {
-    if (dhisConfig == null) {
-      return noCache().cachePrivate().getHeaderValue();
-    }
 
     String headerValue = dhisConfig.getProperty(HTTP_PRIVATE_CACHE_CONTROL_TTL);
     if (headerValue == null || headerValue.isBlank()) {
@@ -551,7 +555,7 @@ public abstract class AbstractFullReadOnlyController<
       // continue to log warning below and return default
     }
     log.warn(
-        "Invalid value '{}' for config key '{}'; using default Cache-Control",
+        "Invalid value '{}' for config key '{}'; using default Cache-Control TTL",
         normalized,
         HTTP_PRIVATE_CACHE_CONTROL_TTL.getKey());
 
