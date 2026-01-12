@@ -49,9 +49,6 @@ import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
@@ -73,8 +70,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final String UID1 = "asdflksadfjlkj";
   private static final String UID2 = "kajshdfkjahsdkfhj";
-  private static final String EVENT_PROGRAM_UID = "PrZMWi7rBag";
-  private static final String TRACKER_PROGRAM_UID = "PrZMWi7rBga";
 
   @Autowired private ObjectMapper jsonMapper;
 
@@ -526,16 +521,5 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private void createProgram(String uid, ProgramType type) throws JsonProcessingException {
-    OrganisationUnit organisationUnit = createOrganisationUnit('A');
-    POST("/organisationUnits", jsonMapper.writeValueAsString(organisationUnit))
-        .content(HttpStatus.CREATED);
-
-    Program program = createProgram('P');
-    program.setUid(uid);
-    program.setProgramType(type);
-    POST("/programs", jsonMapper.writeValueAsString(program)).content(HttpStatus.CREATED);
   }
 }
