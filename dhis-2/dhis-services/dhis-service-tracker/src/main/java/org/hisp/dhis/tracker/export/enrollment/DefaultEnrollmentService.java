@@ -33,8 +33,10 @@ import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -207,7 +209,10 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, @Nonnull EnrollmentFields fields, boolean includeDeleted) {
+      @Nonnull Enrollment enrollment,
+      @Nonnull EnrollmentFields fields,
+      boolean includeDeleted,
+      Map<Program, Set<String>> readableAttributesByProgram) {
     Enrollment result = new Enrollment();
     result.setUid(enrollment.getUid());
 
@@ -250,36 +255,60 @@ class DefaultEnrollmentService implements EnrollmentService {
               includeDeleted));
     }
     if (fields.isIncludesAttributes()) {
+      Set<String> readableAttributes =
+          readableAttributesByProgram.getOrDefault(enrollment.getProgram(), Set.of());
       result
           .getTrackedEntity()
-          .setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(enrollment));
+          .setTrackedEntityAttributeValues(
+              filterAttributeValues(enrollment, readableAttributes));
     }
 
     return result;
   }
 
-  private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(Enrollment enrollment) {
-    Set<String> readableAttributes =
-        trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes(List.of(enrollment.getProgram()), null)
-            .stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet());
+  private Set<TrackedEntityAttributeValue> filterAttributeValues(
+      Enrollment enrollment, Set<String> readableAttributes) {
     Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
-
     for (TrackedEntityAttributeValue trackedEntityAttributeValue :
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues()) {
       if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute().getUid())) {
         attributeValues.add(trackedEntityAttributeValue);
       }
     }
-
     return attributeValues;
   }
 
   private List<Enrollment> mapEnrollment(
       List<Enrollment> enrollments, EnrollmentFields fields, boolean includeDeleted) {
-    return enrollments.stream().map(e -> getEnrollment(e, fields, includeDeleted)).toList();
+    // Prefetch readable attributes per program to avoid N+1 queries
+    Map<Program, Set<String>> readableAttributesByProgram =
+        getReadableAttributesByProgram(enrollments, fields);
+
+    return enrollments.stream()
+        .map(e -> getEnrollment(e, fields, includeDeleted, readableAttributesByProgram))
+        .toList();
+  }
+
+  private Map<Program, Set<String>> getReadableAttributesByProgram(
+      List<Enrollment> enrollments, EnrollmentFields fields) {
+    if (!fields.isIncludesAttributes()) {
+      return Map.of();
+    }
+
+    Map<Program, Set<String>> result = new HashMap<>();
+    for (Enrollment enrollment : enrollments) {
+      Program program = enrollment.getProgram();
+      if (!result.containsKey(program)) {
+        Set<String> readableAttributes =
+            trackedEntityAttributeService
+                .getAllUserReadableTrackedEntityAttributes(List.of(program), null)
+                .stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet());
+        result.put(program, readableAttributes);
+      }
+    }
+    return result;
   }
 
   @Override
