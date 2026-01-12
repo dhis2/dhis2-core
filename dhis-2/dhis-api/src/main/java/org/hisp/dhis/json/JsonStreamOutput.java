@@ -48,6 +48,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.jsontree.JsonBuilder;
@@ -416,6 +417,14 @@ public final class JsonStreamOutput {
                       arr.addElement(JsonNode.NULL);
                     } else e.addTo(arr);
                 }));
+    register(
+        IdentifiableObject.class,
+        (obj, name, val) ->
+            obj.addObject(
+                name,
+                e ->
+                    e.addString("id", val.getUid())
+                        .addString("displayName", val.getDisplayName())));
   }
 
   private static List<AddMember<Object>> getAdders(List<ObjectOutput.Property> properties) {
@@ -453,6 +462,8 @@ public final class JsonStreamOutput {
     if (JsonBuilder.JsonEncodable.class.isAssignableFrom(type))
       return ADDERS_BY_TYPE.get(JsonBuilder.JsonEncodable.class);
     if (JsonValue.class.isAssignableFrom(type)) return ADDERS_BY_TYPE.get(JsonValue.class);
+    if (IdentifiableObject.class.isAssignableFrom(type))
+      return ADDERS_BY_TYPE.get(IdentifiableObject.class);
     Class<?> elementType = valueType.elementType();
     if (Collection.class.isAssignableFrom(type) && elementType != null) {
       AddMember<Object> obj = createCollectionAdder(elementType);
