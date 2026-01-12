@@ -82,6 +82,21 @@ public class DefaultQueryPlanner implements QueryPlanner {
     query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
   }
 
+  private <T extends IdentifiableObject> void categorizeAliasedFilters(
+      Query<T> query,
+      Filter filter,
+      Query<T> dbQuery,
+      List<Filter> aliasedDbFilters,
+      Set<String> distinctRootAliases) {
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    if (path != null && path.haveAlias()) {
+      aliasedDbFilters.add(filter);
+      distinctRootAliases.add(path.getAlias()[0]);
+    } else {
+      dbQuery.add(filter);
+    }
+  }
+
   private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
     Query<T> memoryQuery = Query.copyOf(query);
     memoryQuery.getFilters().clear();
@@ -91,17 +106,17 @@ public class DefaultQueryPlanner implements QueryPlanner {
     Set<String> distinctRootAliases = new HashSet<>();
 
     for (Filter filter : query.getFilters()) {
-      if (isDbFilter(query, filter)) {
-        PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-        if (path != null && path.haveAlias()) {
-          aliasedDbFilters.add(filter);
-          distinctRootAliases.add(path.getAlias()[0]);
-        } else {
-          dbQuery.add(filter);
-        }
-      } else {
+      if (!isDbFilter(query, filter)) {
         memoryQuery.add(filter);
+        continue;
       }
+
+      if (filter.isVirtual()) {
+        dbQuery.add(filter);
+        continue;
+      }
+
+      categorizeAliasedFilters(query, filter, dbQuery, aliasedDbFilters, distinctRootAliases);
     }
 
     // Handle aliased filters: if there are multiple distinct aliases, fall back to in-memory
