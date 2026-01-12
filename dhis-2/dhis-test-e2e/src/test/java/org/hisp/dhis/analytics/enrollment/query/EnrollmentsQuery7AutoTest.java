@@ -62,7 +62,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("page=1")
             .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.EVENT_DATE:2021")
-            .add("desc=enrollmentdate");
+            .add("desc=enrollmentdate,ouname");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -71,7 +71,12 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
     // 'expectPostgis' flag.
-    validateResponseStructure(response, expectPostgis, 100, 3, 3);
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        100,
+        6,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -81,9 +86,8 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":false,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.EVENT_DATE\":{\"name\":\"Report date, Birth\"}},\"dimensions\":{\"A03MvHHogjR.occurreddate\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.EVENT_DATE\":{\"name\":\"Report date, Birth\"}},\"dimensions\":{\"A03MvHHogjR.occurreddate\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    System.out.println(actualMetaData);
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
@@ -124,15 +128,75 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
 
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: first/last row, key columns).
+    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mambiama CHP");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Youndu CHP");
     validateRowValueByName(
         response, actualHeaders, 0, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-12-29 12:05:00.0");
 
+    // Validate selected values for row index 9
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Mokobo MCHP");
+    validateRowValueByName(
+        response, actualHeaders, 9, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2022-12-29 12:05:00.0");
+
+    // Validate selected values for row index 18
+    validateRowValueByName(response, actualHeaders, 18, "ouname", "Kalainkay MCHP");
+    validateRowValueByName(
+        response, actualHeaders, 18, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 18, "enrollmentdate", "2022-12-29 12:05:00.0");
+
+    // Validate selected values for row index 27
+    validateRowValueByName(response, actualHeaders, 27, "ouname", "Moyeamoh CHP");
+    validateRowValueByName(
+        response, actualHeaders, 27, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 27, "enrollmentdate", "2022-12-28 12:05:00.0");
+
+    // Validate selected values for row index 36
+    validateRowValueByName(response, actualHeaders, 36, "ouname", "Madina Loko CHP");
+    validateRowValueByName(
+        response, actualHeaders, 36, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 36, "enrollmentdate", "2022-12-28 12:05:00.0");
+
+    // Validate selected values for row index 45
+    validateRowValueByName(response, actualHeaders, 45, "ouname", "Kamiendor MCHP");
+    validateRowValueByName(
+        response, actualHeaders, 45, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 45, "enrollmentdate", "2022-12-28 12:05:00.0");
+
+    // Validate selected values for row index 54
+    validateRowValueByName(response, actualHeaders, 54, "ouname", "Bandajuma Sinneh MCHP");
+    validateRowValueByName(
+        response, actualHeaders, 54, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 54, "enrollmentdate", "2022-12-28 12:05:00.0");
+
+    // Validate selected values for row index 63
+    validateRowValueByName(response, actualHeaders, 63, "ouname", "Needy CHC");
+    validateRowValueByName(
+        response, actualHeaders, 63, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 63, "enrollmentdate", "2022-12-27 12:05:00.0");
+
+    // Validate selected values for row index 72
+    validateRowValueByName(response, actualHeaders, 72, "ouname", "Konda CHP");
+    validateRowValueByName(
+        response, actualHeaders, 72, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 72, "enrollmentdate", "2022-12-27 12:05:00.0");
+
+    // Validate selected values for row index 81
+    validateRowValueByName(response, actualHeaders, 81, "ouname", "Foredugu MCHP");
+    validateRowValueByName(
+        response, actualHeaders, 81, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 81, "enrollmentdate", "2022-12-27 12:05:00.0");
+
+    // Validate selected values for row index 90
+    validateRowValueByName(response, actualHeaders, 90, "ouname", "Sindadu MCHP");
+    validateRowValueByName(
+        response, actualHeaders, 90, "A03MvHHogjR.eventdate", "2021-12-26 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 90, "enrollmentdate", "2022-12-26 12:05:00.0");
+
     // Validate selected values for row index 99
-    validateRowValueByName(response, actualHeaders, 99, "ouname", "Geima CHP");
+    validateRowValueByName(response, actualHeaders, 99, "ouname", "MCH Static/U5");
     validateRowValueByName(
         response, actualHeaders, 99, "A03MvHHogjR.eventdate", "2021-12-26 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 99, "enrollmentdate", "2022-12-26 12:05:00.0");

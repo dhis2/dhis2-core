@@ -107,7 +107,7 @@
     },
     {
       "name": "stageAndEventDate2021",
-      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021&desc=enrollmentdate",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=ou:ImspTQPwCqd&dimension=A03MvHHogjR.EVENT_DATE:2021&desc=enrollmentdate,ouname",
       "version": {
         "min": 43
       }
