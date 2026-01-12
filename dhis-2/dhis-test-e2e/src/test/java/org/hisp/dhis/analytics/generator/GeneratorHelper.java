@@ -48,12 +48,15 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.ReadContext;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONObject;
-import org.apache.http.client.fluent.Content;
+import org.apache.http.HttpResponse;
 
 /** Helper class that provides auxiliary methods for the test generation. */
 public class GeneratorHelper {
@@ -187,6 +190,20 @@ public class GeneratorHelper {
         actualHeadersFromCtx = ctx.read("$.headers"); // Read headers
       } catch (PathNotFoundException e) {
         return EMPTY;
+      }
+
+      // Detect if rowContext exists and is non-empty
+      try {
+        Object rowContextObj = ctx.read("$.rowContext");
+        if (rowContextObj instanceof Map) {
+          rowContextPresent = !((Map<?, ?>) rowContextObj).isEmpty();
+        } else if (rowContextObj instanceof List) {
+          rowContextPresent = !((List<?>) rowContextObj).isEmpty();
+        } else if (rowContextObj != null) {
+          rowContextPresent = true;
+        }
+      } catch (PathNotFoundException e) {
+        rowContextPresent = false;
       }
 
       // --- Calculate Expected Header Counts based on Live Response ---
@@ -524,7 +541,7 @@ public class GeneratorHelper {
 
     // --- Always generate NAME-BASED ROW VALIDATION ---
     rowsAssertion.append(
-        "\n// 7. Assert row values by name (sample validation: first/last row, key columns).\n");
+        "\n// 7. Assert row values by name (sample validation: evenly spaced rows, key columns).\n");
 
     // Check if headers are available (needed for name-based validation)
     if (actualHeadersFromCtx == null || actualHeadersFromCtx.isEmpty()) {
@@ -532,18 +549,44 @@ public class GeneratorHelper {
       return rowsAssertion.toString();
     }
 
-    // --- Generate validation calls for the first row (index 0) ---
-    rowsAssertion.append(generateValidateRowValueByName(0, rows.get(0), actualHeadersFromCtx));
-
-    // --- Generate validation calls for the last row if there's more than one row ---
-    if (rows.size() > 1) {
-      rowsAssertion.append("\n");
+    List<Integer> sampleIndices = getSampleRowIndices(rows.size());
+    for (int i = 0; i < sampleIndices.size(); i++) {
+      int rowIndex = sampleIndices.get(i);
+      if (i > 0) {
+        rowsAssertion.append("\n");
+      }
       rowsAssertion.append(
-          generateValidateRowValueByName(
-              rows.size() - 1, rows.get(rows.size() - 1), actualHeadersFromCtx));
+          generateValidateRowValueByName(rowIndex, rows.get(rowIndex), actualHeadersFromCtx));
     }
 
     return rowsAssertion.toString();
+  }
+
+  /**
+   * Returns a list of row indices to validate, using a sqrt-based stride and a max cap of 30.
+   * Always includes the first and last rows when available.
+   */
+  private static List<Integer> getSampleRowIndices(int totalRows) {
+    if (totalRows <= 0) {
+      return List.of();
+    }
+    if (totalRows == 1) {
+      return List.of(0);
+    }
+
+    int targetCount = (int) Math.sqrt(totalRows) + 1;
+    targetCount = Math.max(2, Math.min(totalRows, targetCount));
+    targetCount = Math.min(30, targetCount);
+
+    int step = Math.max(1, (totalRows - 1) / (targetCount - 1));
+
+    Set<Integer> indices = new LinkedHashSet<>();
+    for (int i = 0; i < totalRows - 1; i += step) {
+      indices.add(i);
+    }
+    indices.add(totalRows - 1);
+
+    return new ArrayList<>(indices);
   }
 
   /**
@@ -745,14 +788,44 @@ public class GeneratorHelper {
     String authHeader = "Basic " + new String(encodedAuth);
 
     try {
-      Content response =
-          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnContent();
+      HttpResponse httpResponse =
+          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnResponse();
 
-      return response.asString();
+      int statusCode = httpResponse.getStatusLine().getStatusCode();
+      String responseBody =
+          org.apache.http.util.EntityUtils.toString(httpResponse.getEntity(), UTF_8);
+
+      if (statusCode >= 200 && statusCode < 300) {
+        return responseBody;
+      } else {
+        System.err.println("## ERROR: HTTP " + statusCode + " for query: " + query);
+        System.err.println("## Response body: " + prettyPrintJson(responseBody));
+        return EMPTY;
+      }
     } catch (IOException e) {
       System.err.println("## ERROR: " + e.getLocalizedMessage());
     }
 
     return EMPTY;
+  }
+
+  /**
+   * Attempts to pretty print a JSON string. If parsing fails, returns the original string.
+   *
+   * @param json the JSON string to format.
+   * @return the pretty printed JSON, or the original string if not valid JSON.
+   */
+  private static String prettyPrintJson(String json) {
+    if (isBlank(json)) {
+      return json;
+    }
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper mapper =
+          new com.fasterxml.jackson.databind.ObjectMapper();
+      Object jsonObject = mapper.readValue(json, Object.class);
+      return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+    } catch (Exception e) {
+      return json;
+    }
   }
 }
