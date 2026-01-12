@@ -816,7 +816,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       withExceptionHandling(
           () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
-    System.out.println(sql);
     return grid;
   }
 
