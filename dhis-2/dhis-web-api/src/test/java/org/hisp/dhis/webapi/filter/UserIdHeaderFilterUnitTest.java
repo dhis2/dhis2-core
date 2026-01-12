@@ -41,12 +41,19 @@ import static org.mockito.Mockito.when;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.util.Base64;
 import java.util.List;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -59,6 +66,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class UserIdHeaderFilterUnitTest {
   private static final String HEADER_NAME = "X-User-ID";
   private static final String ENCRYPTION_KEY = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
+  private static final String HEADER_VERSION_PREFIX = "v1.";
+  private static final int GCM_IV_LENGTH_BYTES = 12;
+  private static final int GCM_TAG_LENGTH_BITS = 128;
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -84,7 +94,7 @@ class UserIdHeaderFilterUnitTest {
   @Test
   void shouldNotAddHeaderWhenNoAuthenticatedUser() throws Exception {
     UserIdFilter filter = init(true);
-
+    SecurityContextHolder.clearContext();
     HttpServletRequest req = mock(HttpServletRequest.class);
     HttpServletResponse res = mock(HttpServletResponse.class);
     FilterChain chain = mock(FilterChain.class);
@@ -94,6 +104,27 @@ class UserIdHeaderFilterUnitTest {
     verify(res, never()).addHeader(eq(HEADER_NAME), anyString());
   }
 
+  @Test
+  void shouldAddHeaderWhenAuthenticatedUser() throws Exception {
+
+    String userUID = "uid123";
+    UserIdFilter filter = init(true);
+    UserDetails userDetails = withAuthenticatedUser();
+    when(userDetails.getUid()).thenReturn(userUID);
+
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse res = mock(HttpServletResponse.class);
+    FilterChain chain = mock(FilterChain.class);
+
+    filter.doFilter(req, res, chain);
+
+    ArgumentCaptor<String> headerValueCaptor = ArgumentCaptor.forClass(String.class);
+    verify(res).addHeader(eq(HEADER_NAME), headerValueCaptor.capture());
+    String headerValue = headerValueCaptor.getValue();
+    org.junit.jupiter.api.Assertions.assertTrue(headerValue.startsWith(HEADER_VERSION_PREFIX));
+    org.junit.jupiter.api.Assertions.assertEquals(userUID, decryptUserIDHeaderValue(headerValue));
+  }
+
   private UserIdFilter init(boolean enabled) {
     when(dhisConfigurationProvider.isEnabled(LOGGING_USER_ID_HEADER_ENABLED)).thenReturn(enabled);
     when(dhisConfigurationProvider.getProperty(LOGGING_USER_ID_ENCRYPTION_KEY))
@@ -101,7 +132,7 @@ class UserIdHeaderFilterUnitTest {
     return new UserIdFilter(dhisConfigurationProvider);
   }
 
-  private void withAuthenticatedUser() {
+  private UserDetails withAuthenticatedUser() {
     UserDetails userDetails = mock(UserDetails.class);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
@@ -109,5 +140,20 @@ class UserIdHeaderFilterUnitTest {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);
+    return userDetails;
+  }
+
+  private String decryptUserIDHeaderValue(String headerValue) throws GeneralSecurityException {
+    String token = headerValue.substring(HEADER_VERSION_PREFIX.length());
+    byte[] combined = Base64.getUrlDecoder().decode(token);
+    byte[] iv = new byte[GCM_IV_LENGTH_BYTES];
+    byte[] ciphertext = new byte[combined.length - GCM_IV_LENGTH_BYTES];
+    System.arraycopy(combined, 0, iv, 0, iv.length);
+    System.arraycopy(combined, iv.length, ciphertext, 0, ciphertext.length);
+    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    SecretKeySpec key = new SecretKeySpec(Base64.getDecoder().decode(ENCRYPTION_KEY), "AES");
+    cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
+    byte[] plaintext = cipher.doFinal(ciphertext);
+    return new String(plaintext, StandardCharsets.UTF_8);
   }
 }
