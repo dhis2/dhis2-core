@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.feedback.ErrorCode.E7229;
 import static org.hisp.dhis.feedback.ErrorCode.E7234;
@@ -43,9 +44,12 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -54,6 +58,7 @@ import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -98,9 +103,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
 
     // Check for duplicate stage dimension identifiers (must be before E7202 check)
+    // This applies to both EVENT and ENROLLMENT queries
     Set<String> duplicateStageDimensions = params.getDuplicateStageDimensionIdentifiers();
-    if (!duplicateStageDimensions.isEmpty()
-        && params.getEndpointItem().equals(RequestTypeAware.EndpointItem.EVENT)) {
+    if (!duplicateStageDimensions.isEmpty()) {
       return new ErrorMessage(ErrorCode.E7243, duplicateStageDimensions.iterator().next());
     }
 
@@ -170,7 +175,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
 
     // Period dimension cannot be used with stage-specific date dimensions
-    if (params.hasPeriods() && params.hasStageDateItem()) {
+    // Only applies when user explicitly requests period dimension (not default periods)
+    if (hasExplicitPeriodDimension(params) && params.hasStageDateItem()) {
       return new ErrorMessage(ErrorCode.E7242);
     }
 
@@ -200,6 +206,50 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
                 EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
                     || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(
                         item.getItemId()));
+  }
+
+  /**
+   * Checks if the query has an explicitly requested period dimension. Auto-added default periods
+   * should not trigger the E7242 validation. Only returns true if user explicitly requested a
+   * period dimension.
+   *
+   * <p>For enrollment queries, the system auto-adds a period with dateField=ENROLLMENT_DATE when
+   * the user doesn't specify a period. This auto-added period should not trigger E7242.
+   */
+  private boolean hasExplicitPeriodDimension(EventQueryParams params) {
+    // If no period dimension exists, it's not explicit
+    if (!EventPeriodUtils.hasPeriodDimension(params)) {
+      return false;
+    }
+
+    // Check if all periods are auto-added enrollment defaults
+    // Only enrollment queries can have auto-added periods with ENROLLMENT_DATE
+    return !hasAllEnrollmentAutoAddedPeriods(params);
+  }
+
+  /**
+   * Checks if all period items are auto-added enrollment defaults. Auto-added periods for
+   * enrollment queries have dateField=ENROLLMENT_DATE. Returns false if any period has a different
+   * dateField (including null, which indicates user-specified period).
+   */
+  private boolean hasAllEnrollmentAutoAddedPeriods(EventQueryParams params) {
+    DimensionalObject period = params.getDimension(PERIOD_DIM_ID);
+    if (period == null) {
+      return true;
+    }
+
+    for (DimensionalItemObject item : period.getItems()) {
+      PeriodDimension p = (PeriodDimension) item;
+      String dateField = p.getDateField();
+
+      // Auto-added enrollment periods have dateField=ENROLLMENT_DATE
+      // Any other value (including null) means user-specified
+      if (!TimeField.ENROLLMENT_DATE.name().equals(dateField)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
