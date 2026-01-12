@@ -33,10 +33,10 @@ import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
+import org.hisp.dhis.tracker.model.RelationshipKey;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RelationshipKeySupport {

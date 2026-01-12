@@ -27,28 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.model;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Quang Nguyen
+ * @author Chau Thu Tran
  */
 @Component
 @RequiredArgsConstructor
-public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
-
+public class TrackerEventDeletionHandler extends IdObjectDeletionHandler<TrackerEvent> {
   @Override
   protected void registerHandler() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
     whenVetoing(Program.class, this::allowDeleteProgram);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
+
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from trackerevent where programstageid = :id limit 1",
+        Map.of("id", programStage.getId()));
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {
-    String sql = "select 1 from enrollment where programid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
+    return vetoIfExists(
+        VETO,
+        "select 1 from trackerevent ev join enrollment en on en.enrollmentid=ev.enrollmentid where en.programid = :id limit 1",
+        Map.of("id", program.getId()));
+  }
+
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from trackerevent where eventdatavalues ?? :uid limit 1",
+        Map.of("uid", dataElement.getUid()));
   }
 }

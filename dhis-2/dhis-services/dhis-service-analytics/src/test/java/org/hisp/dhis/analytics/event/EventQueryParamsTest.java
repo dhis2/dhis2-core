@@ -696,4 +696,49 @@ class EventQueryParamsTest extends TestBase {
     assertEquals(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, qiScheduled.getItemId());
     assertNotEquals(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, qiOther.getItemId());
   }
+
+  @Test
+  void testHasOrganisationUnitsWithStandardOrgUnit() {
+    // Test that hasOrganisationUnits returns true when standard org unit dimension is present
+    EventQueryParams params =
+        new EventQueryParams.Builder().withOrganisationUnits(List.of(ouA, ouB)).build();
+
+    assertTrue(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithStageSpecificOrgUnit() {
+    // Test that hasOrganisationUnits returns true when stage-specific org unit QueryItem is present
+    BaseDimensionalItemObject ouItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+    QueryItem stageOuItem =
+        new QueryItem(ouItem, prA, null, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+    stageOuItem.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(stageOuItem).build();
+
+    assertTrue(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithStageSpecificOrgUnitAsFilter() {
+    // Test that hasOrganisationUnits returns true when stage-specific org unit is in itemFilters
+    BaseDimensionalItemObject ouItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+    QueryItem stageOuItem =
+        new QueryItem(ouItem, prA, null, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+    stageOuItem.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItemFilter(stageOuItem).build();
+
+    assertTrue(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithNoOrgUnit() {
+    // Test that hasOrganisationUnits returns false when no org unit is present
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    assertFalse(params.hasOrganisationUnits());
+  }
 }

@@ -555,4 +555,175 @@ public class EnrollmentsQuery6AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 4, "GxdhnY5wmHq", "4817");
     validateRowValueByName(response, actualHeaders, 4, "lastupdated", "2018-01-20 10:44:33.776");
   }
+
+  @Test
+  public void multipleOffsets() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=ouname,uvMKOn1oWvd[1].DX4LVYeP7bw,uvMKOn1oWvd[0].DX4LVYeP7bw")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("dimension=uvMKOn1oWvd[0].DX4LVYeP7bw,uvMKOn1oWvd[1].DX4LVYeP7bw,ou:USER_ORGUNIT")
+            .add("asc=lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("M3xtLkYBlKI", JSON, JSON, params);
+    System.out.println(response.prettyPrint());
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        11,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"CWaAcQYKVpq\":{\"uid\":\"CWaAcQYKVpq\",\"name\":\"Foci investigation & classification\",\"description\":\"Includes the details on the foci investigation (including information on households, population, geography, breeding sites, species types, vector behaviour) as well as its final classification at the time of the investigation. This is a repeatable stage as foci can be investigated more than once and may change their classification as time goes on. \"},\"DX4LVYeP7bw\":{\"uid\":\"DX4LVYeP7bw\",\"name\":\"People included\",\"description\":\"Number of people included\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"uvMKOn1oWvd\":{\"uid\":\"uvMKOn1oWvd\",\"name\":\"Foci response\",\"description\":\"Details the public health response conducted within the foci  (including diagnosis and treatment activities, vector control actions and the effectiveness\\/results of the response). This is a repeatable stage as multiple public health responses for the same foci can occur depending on its classification at the time of investigation.\"},\"M3xtLkYBlKI\":{\"uid\":\"M3xtLkYBlKI\",\"name\":\"Malaria focus investigation\",\"description\":\"It allows to register new focus areas in the system. Each focus area needs to be investigated and classified. Includes the relevant identifiers for the foci including the name and geographical details including the locality and its area. \"},\"uvMKOn1oWvd.DX4LVYeP7bw\":{\"uid\":\"DX4LVYeP7bw\",\"name\":\"People included\",\"description\":\"Number of people included\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"uvMKOn1oWvd.DX4LVYeP7bw\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "uvMKOn1oWvd[1].DX4LVYeP7bw",
+        "People included",
+        "INTEGER_POSITIVE",
+        "java.lang.Integer",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "uvMKOn1oWvd[0].DX4LVYeP7bw",
+        "People included",
+        "INTEGER_POSITIVE",
+        "java.lang.Integer",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+    String expectedRowContext =
+        "{\n"
+            + "        \"0\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"3\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"4\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"5\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"6\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"7\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"NS\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"NS\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"8\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"9\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"ND\"\n"
+            + "            }\n"
+            + "        },\n"
+            + "        \"10\": {\n"
+            + "            \"1\": {\n"
+            + "                \"valueStatus\": \"NS\"\n"
+            + "            },\n"
+            + "            \"2\": {\n"
+            + "                \"valueStatus\": \"NS\"\n"
+            + "            }\n"
+            + "        }\n"
+            + "    }";
+    String actualRowContext = new JSONObject((Map) response.extract("rowContext")).toString();
+    assertEquals(expectedRowContext, actualRowContext, false);
+
+    // 7. Assert row values by name (sample validation: first/last row, key columns).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Njandama MCHP");
+    validateRowValueByName(response, actualHeaders, 0, "uvMKOn1oWvd[0].DX4LVYeP7bw", "");
+
+    validateRowValueByName(response, actualHeaders, 1, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 1, "uvMKOn1oWvd[0].DX4LVYeP7bw", "50");
+    validateRowValueByName(response, actualHeaders, 1, "uvMKOn1oWvd[1].DX4LVYeP7bw", "50");
+
+    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 2, "uvMKOn1oWvd[0].DX4LVYeP7bw", "20");
+    validateRowValueByName(response, actualHeaders, 2, "uvMKOn1oWvd[1].DX4LVYeP7bw", "5");
+
+    // Validate selected values for row index 10
+    validateRowValueByName(response, actualHeaders, 10, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 10, "uvMKOn1oWvd[0].DX4LVYeP7bw", "");
+  }
 }

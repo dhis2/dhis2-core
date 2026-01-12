@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.annotation.PostConstruct;
@@ -201,6 +202,9 @@ public class DefaultLocationManager extends LogOnceLogger implements LocationMan
 
     File file = new File(directory, fileName);
 
+    // Canonical path validation to prevent path traversal attacks
+    validatePathWithinBounds(file, directory);
+
     if (!canReadFile(file)) {
       throw new LocationManagerException("File " + file.getAbsolutePath() + " cannot be read");
     }
@@ -248,7 +252,12 @@ public class DefaultLocationManager extends LogOnceLogger implements LocationMan
           "Directory " + directory.getAbsolutePath() + " cannot be created");
     }
 
-    return new File(directory, fileName);
+    File file = new File(directory, fileName);
+
+    // Canonical path validation to prevent path traversal attacks
+    validatePathWithinBounds(file, directory);
+
+    return file;
   }
 
   @Override
@@ -305,6 +314,37 @@ public class DefaultLocationManager extends LogOnceLogger implements LocationMan
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Validates that the resolved file path is within the expected base directory bounds. This is the
+   * definitive defense against path traversal attacks as it uses canonical path resolution which
+   * handles symbolic links, different path separators, and all normalization edge cases.
+   *
+   * @param file the file to validate
+   * @param baseDirectory the expected base directory
+   * @throws LocationManagerException if the file path escapes the base directory
+   */
+  private void validatePathWithinBounds(File file, File baseDirectory)
+      throws LocationManagerException {
+    try {
+      String canonicalFilePath = file.getCanonicalPath();
+      String canonicalBasePath = baseDirectory.getCanonicalPath();
+
+      // Ensure the file path starts with the base directory path
+      // The separator check prevents matching "/base/dir" with "/base/directory-other"
+      if (!canonicalFilePath.startsWith(canonicalBasePath + separator)
+          && !canonicalFilePath.equals(canonicalBasePath)) {
+        log.warn(
+            "Path traversal attempt detected: {} is outside of base directory {}",
+            canonicalFilePath,
+            canonicalBasePath);
+        throw new LocationManagerException("Invalid file path: path traversal attempt detected");
+      }
+    } catch (IOException e) {
+      log.warn("Failed to resolve canonical path for file: {}", file.getPath());
+      throw new LocationManagerException("Failed to validate file path", e);
+    }
+  }
 
   /** Tests whether the file exists and can be read by the application. */
   private boolean canReadFile(File file) {

@@ -166,7 +166,7 @@ class TrackedEntitiesExportController {
       PageParams pageParams =
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
-      org.hisp.dhis.tracker.Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntitiesPage =
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.model.TrackedEntity> trackedEntitiesPage =
           trackedEntityService.findTrackedEntities(operationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -278,7 +278,7 @@ class TrackedEntitiesExportController {
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}")
   public FilteredEntity<TrackedEntity> getTrackedEntityByUid(
-      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+      @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class}) @PathVariable
           UID uid,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
@@ -327,7 +327,7 @@ class TrackedEntitiesExportController {
 
   @GetMapping("/{trackedEntity}/attributes/{attribute}/file")
   ResponseEntity<InputStreamResource> getAttributeValueFile(
-      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+      @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class}) @PathVariable
           UID trackedEntity,
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
@@ -345,7 +345,7 @@ class TrackedEntitiesExportController {
 
   @GetMapping("/{trackedEntity}/attributes/{attribute}/image")
   ResponseEntity<InputStreamResource> getAttributeValueImage(
-      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+      @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class}) @PathVariable
           UID trackedEntity,
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
@@ -362,7 +362,7 @@ class TrackedEntitiesExportController {
   @GetMapping("/{trackedEntity}/changeLogs")
   FilteredPage<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntityChangeLog>
       getTrackedEntityChangeLog(
-          @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+          @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class}) @PathVariable
               UID trackedEntity,
           @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
           ChangeLogRequestParams requestParams,

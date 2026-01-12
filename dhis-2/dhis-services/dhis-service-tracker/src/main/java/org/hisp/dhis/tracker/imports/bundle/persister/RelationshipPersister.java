@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RelationshipPersister
-    extends AbstractTrackerPersister<Relationship, org.hisp.dhis.relationship.Relationship> {
+    extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
 
   public RelationshipPersister(
       ReservedValueService reservedValueService,
@@ -61,7 +61,7 @@ public class RelationshipPersister
   }
 
   @Override
-  protected org.hisp.dhis.relationship.Relationship convert(
+  protected org.hisp.dhis.tracker.model.Relationship convert(
       TrackerBundle bundle, Relationship trackerDto) {
     if (bundle.getStrategy(trackerDto) == TrackerImportStrategy.UPDATE) {
       return null;
@@ -75,21 +75,21 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity,
+      org.hisp.dhis.tracker.model.Relationship hibernateEntity,
       UserDetails user) {
     // NOTHING TO DO
   }
 
   @Override
   protected void updatePreheat(
-      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto) {
+      TrackerPreheat preheat, org.hisp.dhis.tracker.model.Relationship convertedDto) {
     // NOTHING TO DO
   }
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle,
-      org.hisp.dhis.relationship.Relationship entity,
+      org.hisp.dhis.tracker.model.Relationship entity,
       List<NotificationTrigger> triggers) {
     return TrackerNotificationDataBundle.builder().build();
   }
@@ -108,7 +108,7 @@ public class RelationshipPersister
   protected void persistOwnership(
       TrackerBundle bundle,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship entity) {
+      org.hisp.dhis.tracker.model.Relationship entity) {
     // NOTHING TO DO
 
   }
@@ -118,19 +118,19 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship payloadEntity,
-      org.hisp.dhis.relationship.Relationship currentEntity,
+      org.hisp.dhis.tracker.model.Relationship payloadEntity,
+      org.hisp.dhis.tracker.model.Relationship currentEntity,
       UserDetails user) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.relationship.Relationship entity) {
+  protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.tracker.model.Relationship entity) {
     return entity.getTrackedEntityOrigins();
   }
 
   @Override
-  protected org.hisp.dhis.relationship.Relationship cloneEntityProperties(
+  protected org.hisp.dhis.tracker.model.Relationship cloneEntityProperties(
       TrackerPreheat preheat, Relationship trackerDto) {
     return null;
     // NO NEED TO CLONE RELATIONSHIP PROPERTIES
