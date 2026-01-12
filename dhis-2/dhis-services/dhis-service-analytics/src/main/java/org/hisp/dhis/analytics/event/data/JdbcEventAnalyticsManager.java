@@ -42,6 +42,8 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -142,7 +144,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper) {
+      ColumnMapper columnMapper,
+      QueryItemFilterBuilder filterBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -154,7 +157,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper);
+        columnMapper,
+        filterBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -202,18 +206,19 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
       grid.addRow();
 
-      int index = 1;
+      // columnIndex tracks the actual SQL column position (1-indexed)
+      int columnIndex = 1;
 
       for (GridHeader header : grid.getHeaders()) {
         if (LONGITUDE.getItem().equals(header.getName())
             || LATITUDE.getItem().equals(header.getName())) {
-          double val = rowSet.getDouble(index);
+          double val = rowSet.getDouble(columnIndex);
           grid.addValue(Precision.round(val, COORD_DEC));
+          columnIndex++;
         } else {
-          addGridValue(grid, header, index, rowSet, params);
+          addGridValue(grid, header, columnIndex, rowSet, params);
+          columnIndex++;
         }
-
-        index++;
       }
     }
   }
@@ -381,6 +386,24 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     String alias =
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
     columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
+
+    // For stage.ou dimensions, also select the ev_ouname and ev_oucode columns
+    if (isStageOuDimension(item)) {
+      String stageUid = item.getProgramStage().getUid();
+      columns.add(
+          "%s.%s as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  STAGE_OU_NAME_COLUMN,
+                  quote(stageUid + ".ouname")));
+      columns.add(
+          "%s.%s as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  STAGE_OU_CODE_COLUMN,
+                  quote(stageUid + ".oucode")));
+    }
+
     if (cteDef.isRowContext()) {
       // Add additional status and exists columns for row context
       columns.add(
@@ -1041,14 +1064,35 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   private void addEventsItemSelectColumns(
       List<String> columns, EventQueryParams params, CteContext cteContext) {
     for (QueryItem queryItem : params.getItems()) {
-      ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
+      // Special handling for stage.ou dimensions
+      // These require 3 columns (ou, ouname, oucode) instead of 1
+      if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()
+          && OrganisationUnitResolver.isStageOuDimension(queryItem)) {
+        String stageUid = queryItem.getProgramStage().getUid();
+        // Main value column (uidlevelX from the event table)
+        OrganisationUnitResolver.StageOuCteContext stageOuContext =
+            organisationUnitResolver.buildStageOuCteContext(queryItem, params);
+        columns.add(stageOuContext.valueColumn() + " as " + quote(stageUid + ".ou"));
+        // Additional columns: ouname and oucode
+        columns.add(
+            quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+                + " as "
+                + quote(stageUid + ".ouname"));
+        columns.add(
+            quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+                + " as "
+                + quote(stageUid + ".oucode"));
+        // No row context for stage.ou dimensions in event analytics
+      } else {
+        ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
 
-      if (columnAndAlias != null && !cteContext.containsCte(columnAndAlias.alias)) {
-        columns.add(columnAndAlias.asSql());
+        if (columnAndAlias != null && !cteContext.containsCte(columnAndAlias.alias)) {
+          columns.add(columnAndAlias.asSql());
+        }
+
+        // asked for row context if allowed and needed based on column and its alias
+        handleRowContext(columns, params, queryItem, columnAndAlias);
       }
-
-      // asked for row context if allowed and needed based on column and its alias
-      handleRowContext(columns, params, queryItem, columnAndAlias);
     }
   }
 
