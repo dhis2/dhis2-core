@@ -75,7 +75,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -755,7 +755,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("page=1")
             .add("dimension=ZzYYXq4fJie.EVENT_STATUS:ACTIVE,A03MvHHogjR.EVENT_DATE:2021")
-            .add("desc=enrollmentdate");
+            .add("desc=enrollmentdate,ouname");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -832,25 +832,25 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mambiama CHP");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Youndu CHP");
     validateRowValueByName(
         response, actualHeaders, 0, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-12-29 12:05:00.0");
 
     // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Rokel (Masimera) MCHP");
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Mokobo MCHP");
     validateRowValueByName(
         response, actualHeaders, 9, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2022-12-29 12:05:00.0");
 
     // Validate selected values for row index 18
-    validateRowValueByName(response, actualHeaders, 18, "ouname", "Kurubonla CHC");
+    validateRowValueByName(response, actualHeaders, 18, "ouname", "Kalainkay MCHP");
     validateRowValueByName(
         response, actualHeaders, 18, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 18, "enrollmentdate", "2022-12-29 12:05:00.0");
 
     // Validate selected values for row index 27
-    validateRowValueByName(response, actualHeaders, 27, "ouname", "Grafton MCHP");
+    validateRowValueByName(response, actualHeaders, 27, "ouname", "Moyeamoh CHP");
     validateRowValueByName(
         response, actualHeaders, 27, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 27, "enrollmentdate", "2022-12-28 12:05:00.0");
@@ -862,43 +862,43 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 36, "enrollmentdate", "2022-12-28 12:05:00.0");
 
     // Validate selected values for row index 45
-    validateRowValueByName(response, actualHeaders, 45, "ouname", "Kpewama MCHP");
+    validateRowValueByName(response, actualHeaders, 45, "ouname", "Kamiendor MCHP");
     validateRowValueByName(
         response, actualHeaders, 45, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 45, "enrollmentdate", "2022-12-28 12:05:00.0");
 
     // Validate selected values for row index 54
-    validateRowValueByName(response, actualHeaders, 54, "ouname", "Arab Clinic");
+    validateRowValueByName(response, actualHeaders, 54, "ouname", "Bandajuma Sinneh MCHP");
     validateRowValueByName(
         response, actualHeaders, 54, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 54, "enrollmentdate", "2022-12-28 12:05:00.0");
 
     // Validate selected values for row index 63
-    validateRowValueByName(response, actualHeaders, 63, "ouname", "Kabba Ferry MCHP");
+    validateRowValueByName(response, actualHeaders, 63, "ouname", "Needy CHC");
     validateRowValueByName(
         response, actualHeaders, 63, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 63, "enrollmentdate", "2022-12-27 12:05:00.0");
 
     // Validate selected values for row index 72
-    validateRowValueByName(response, actualHeaders, 72, "ouname", "Senekedugu MCHP");
+    validateRowValueByName(response, actualHeaders, 72, "ouname", "Konda CHP");
     validateRowValueByName(
         response, actualHeaders, 72, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 72, "enrollmentdate", "2022-12-27 12:05:00.0");
 
     // Validate selected values for row index 81
-    validateRowValueByName(response, actualHeaders, 81, "ouname", "M I Room (Military)");
+    validateRowValueByName(response, actualHeaders, 81, "ouname", "Foredugu MCHP");
     validateRowValueByName(
         response, actualHeaders, 81, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 81, "enrollmentdate", "2022-12-27 12:05:00.0");
 
     // Validate selected values for row index 90
-    validateRowValueByName(response, actualHeaders, 90, "ouname", "Levuma (Kandu Lep) CHC");
+    validateRowValueByName(response, actualHeaders, 90, "ouname", "Sindadu MCHP");
     validateRowValueByName(
         response, actualHeaders, 90, "A03MvHHogjR.eventdate", "2021-12-26 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 90, "enrollmentdate", "2022-12-26 12:05:00.0");
 
     // Validate selected values for row index 99
-    validateRowValueByName(response, actualHeaders, 99, "ouname", "Geima CHP");
+    validateRowValueByName(response, actualHeaders, 99, "ouname", "MCH Static/U5");
     validateRowValueByName(
         response, actualHeaders, 99, "A03MvHHogjR.eventdate", "2021-12-26 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 99, "enrollmentdate", "2022-12-26 12:05:00.0");
