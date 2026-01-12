@@ -210,7 +210,7 @@ pull_mutable_image() {
   # This is especially important on our self-hosted runner as devs will expect their latest change
   # to be tested.
 
-  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]] && [[ "$DHIS2_IMAGE" != *:local ]]; then
     echo "========================================"
     echo "PHASE: Image Pull"
     echo "========================================"
