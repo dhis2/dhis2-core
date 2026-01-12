@@ -175,6 +175,10 @@ public class TrackedEntityAggregate {
                   Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
                   Multimap<String, TrackedEntityProgramOwner> programOwners =
                       programOwnersAsync.join();
+
+                  // Fetch once before parallelStream to avoid N+1 queries
+                  Set<String> allowedAttributeUids = getAllowedAttributeUids(ctx.getQueryParams());
+
                   // withMdcFunction ensures ForkJoinPool.commonPool workers inherit request_id
                   return trackedEntities.keySet().parallelStream()
                       .map(
@@ -182,7 +186,7 @@ public class TrackedEntityAggregate {
                               uid -> {
                                 TrackedEntity te = trackedEntities.get(uid);
                                 te.setTrackedEntityAttributeValues(
-                                    filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
+                                    filterAttributes(allowedAttributeUids, attributes.get(uid)));
                                 te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                                 te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                                 return te;
@@ -193,13 +197,7 @@ public class TrackedEntityAggregate {
         .join();
   }
 
-  private Set<TrackedEntityAttributeValue> filterAttributes(
-      TrackedEntityQueryParams params, Collection<TrackedEntityAttributeValue> attributes) {
-    if (attributes.isEmpty()) {
-      return Set.of();
-    }
-
-    // Add all tet attributes
+  private Set<String> getAllowedAttributeUids(TrackedEntityQueryParams params) {
     Set<String> allowedAttributeUids =
         trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes().stream()
             .map(IdentifiableObject::getUid)
@@ -210,6 +208,15 @@ public class TrackedEntityAggregate {
           trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
               params.getEnrolledInTrackerProgram());
       allowedAttributeUids.addAll(teasInProgram);
+    }
+
+    return allowedAttributeUids;
+  }
+
+  private Set<TrackedEntityAttributeValue> filterAttributes(
+      Set<String> allowedAttributeUids, Collection<TrackedEntityAttributeValue> attributes) {
+    if (attributes.isEmpty()) {
+      return Set.of();
     }
 
     return attributes.stream()
