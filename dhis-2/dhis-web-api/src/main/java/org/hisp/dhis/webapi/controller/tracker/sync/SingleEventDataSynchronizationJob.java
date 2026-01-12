@@ -55,6 +55,6 @@ public class SingleEventDataSynchronizationJob implements Job {
   public void execute(JobEntry config, JobProgress progress) {
     SingleEventDataSynchronizationJobParameters params =
         (SingleEventDataSynchronizationJobParameters) config.parameters();
-    eventSync.synchronizeTrackerData(params.getPageSize(), progress, params.getProgram());
+    eventSync.synchronizeTrackerData(params.getPageSize(), progress);
   }
 }

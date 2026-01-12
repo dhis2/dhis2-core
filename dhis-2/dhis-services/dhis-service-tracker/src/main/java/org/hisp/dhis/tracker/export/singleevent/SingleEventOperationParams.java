@@ -216,11 +216,9 @@ public class SingleEventOperationParams {
   }
 
   public static SingleEventOperationParamsBuilder builderForDataSync(
-      @Nonnull UID program,
       Date skipChangedBefore,
       @Nonnull Map<String, Set<String>> skipSyncDataElementsByProgramStage) {
     return new SingleEventOperationParamsBuilder()
-        .program(program)
         .skipChangedBefore(skipChangedBefore)
         .skipSyncDataElementsByProgramStage(skipSyncDataElementsByProgramStage)
         .synchronizationQuery(true)

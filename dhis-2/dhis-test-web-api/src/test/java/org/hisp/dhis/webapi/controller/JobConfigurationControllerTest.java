@@ -44,7 +44,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonBuilder.JsonObjectBuilder;
@@ -57,8 +56,6 @@ import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,84 +100,6 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
             "EVENT",
             "ENROLLMENT"),
         parameters.getArray("skipTableTypes").stringValues());
-  }
-
-  @Test
-  void testSINGLE_EVENT_DATA_SYNC_Success() throws JsonProcessingException {
-    createProgram(EVENT_PROGRAM_UID, ProgramType.WITHOUT_REGISTRATION);
-
-    // language=JSON
-    String json =
-        """
-                {
-                  "name": "test",
-                  "jobType": "SINGLE_EVENT_DATA_SYNC",
-                  "jobParameters": {
-                    "program": "%s",
-                    "pageSize": 100
-                  },
-                  "cronExpression": "0 0 6 ? * *"
-                }"""
-            .formatted(EVENT_PROGRAM_UID);
-
-    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
-    JsonObject parameters = assertJobConfigurationExists(jobId, "SINGLE_EVENT_DATA_SYNC");
-
-    assertEquals(EVENT_PROGRAM_UID, parameters.getString("program").string());
-    assertEquals(100, parameters.getNumber("pageSize").intValue());
-  }
-
-  @Test
-  void testSINGLE_EVENT_DATA_SYNC_FailsWithTrackerProgram() throws JsonProcessingException {
-    createProgram(TRACKER_PROGRAM_UID, ProgramType.WITH_REGISTRATION);
-    // language=JSON
-    String json =
-        """
-                {
-                  "name": "test",
-                  "jobType": "SINGLE_EVENT_DATA_SYNC",
-                  "jobParameters": {
-                    "program": "%s"
-                  },
-                  "cronExpression": "0 0 7 ? * *"
-                }"""
-            .formatted(TRACKER_PROGRAM_UID);
-    JsonImportSummary response =
-        POST("/jobConfigurations", json)
-            .content(HttpStatus.CONFLICT)
-            .get("response")
-            .as(JsonImportSummary.class);
-    assertEquals(
-        "Program `PrZMWi7rBga` must be of type `WITHOUT_REGISTRATION`",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4087)
-            .getMessage());
-  }
-
-  @Test
-  void testSINGLE_EVENT_DATA_SYNC_FailsWithNonExistentProgram() {
-    // language=JSON
-    String json =
-        """
-                {
-                  "name": "test",
-                  "jobType": "SINGLE_EVENT_DATA_SYNC",
-                  "jobParameters": {
-                    "program": "NON_EXISTENT_UID"
-                  },
-                  "cronExpression": "0 0 8 ? * *"
-                }""";
-
-    JsonImportSummary response =
-        POST("/jobConfigurations", json)
-            .content(HttpStatus.CONFLICT)
-            .get("response")
-            .as(JsonImportSummary.class);
-    assertEquals(
-        "Program `NON_EXISTENT_UID` does not exist",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4086)
-            .getMessage());
   }
 
   @Test
