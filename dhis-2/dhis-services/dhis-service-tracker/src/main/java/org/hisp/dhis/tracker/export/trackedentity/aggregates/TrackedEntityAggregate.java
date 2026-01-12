@@ -62,8 +62,7 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -78,8 +77,6 @@ public class TrackedEntityAggregate {
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")
   @Nonnull
   private final EnrollmentAggregate enrollmentAggregate;
-
-  private final UserService userService;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -104,15 +101,15 @@ public class TrackedEntityAggregate {
     }
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    final Optional<User> user = Optional.ofNullable(currentUser);
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     /*
      * Create a context with information which will be used to fetch the
      * entities. Use a superUser context if the user is null.
      */
     Context ctx =
-        user.map(
+        Optional.ofNullable(currentUser)
+            .map(
                 u ->
                     securityCache.get(u.getUid(), userUID -> Context.builder().build()).toBuilder()
                         .userId(u.getId())
