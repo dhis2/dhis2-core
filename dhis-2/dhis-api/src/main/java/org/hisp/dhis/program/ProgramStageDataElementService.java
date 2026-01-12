@@ -91,8 +91,7 @@ public interface ProgramStageDataElementService {
 
   /**
    * Returns a map of ProgramStages containing sets of DataElements (together forming
-   * ProgramStageDataElements) that have the skipSynchronization flag set to true, filtered by the
-   * specified {@link Program}.
+   * ProgramStageDataElements) that have the skipSynchronization flag set to true.
    *
    * <p>This method retrieves all ProgramStage–DataElement associations for the given Program where
    * the skipSynchronization flag is enabled, meaning these data elements should be excluded from
