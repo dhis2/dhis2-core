@@ -152,7 +152,7 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.getFields(),
             params.isIncludeDeleted());
 
-    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+    addTrackedEntityAudit(queryParams.getTrackedEntities(), enrollments);
 
     return enrollments;
   }
@@ -168,13 +168,17 @@ class DefaultEnrollmentService implements EnrollmentService {
     List<Enrollment> enrollments =
         mapEnrollment(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
 
-    addTrackedEntityAudit(queryParams.getTrackedEntity(), enrollments);
+    addTrackedEntityAudit(queryParams.getTrackedEntities(), enrollments);
 
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
-  private void addTrackedEntityAudit(UID trackedEntity, List<Enrollment> enrollments) {
-    if (trackedEntity != null && !enrollments.isEmpty()) {
+  /**
+   * Adds audit entries for tracked entity reads. Only audits when a single tracked entity is
+   * requested to avoid N audit entries when batching.
+   */
+  private void addTrackedEntityAudit(Set<UID> trackedEntities, List<Enrollment> enrollments) {
+    if (trackedEntities.size() == 1 && !enrollments.isEmpty()) {
       trackedEntityAuditService.addTrackedEntityAudit(
           READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
     }

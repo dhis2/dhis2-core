@@ -32,6 +32,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -65,27 +67,31 @@ class EnrollmentAggregate {
     Multimap<String, Enrollment> result = ArrayListMultimap.create();
     try {
       authenticationService.obtainAuthentication(ctx.getUserUid());
-      ids.forEach(
-          id -> {
-            EnrollmentOperationParams params =
-                EnrollmentOperationParams.builder()
-                    .fields(ctx.getFields().getEnrollmentFields())
-                    .trackedEntity(UID.of(id.uid()))
-                    .includeDeleted(ctx.getQueryParams().isIncludeDeleted())
-                    .program(ctx.getQueryParams().getEnrolledInTrackerProgram())
-                    .build();
-            try {
-              result.putAll(id.uid(), enrollmentService.findEnrollments(params));
-            } catch (BadRequestException e) {
-              throw new IllegalArgumentException(
-                  "this must be a bug in how the EnrollmentOperationParams are built");
-            } catch (ForbiddenException e) {
-              // ForbiddenExceptions are caused when mapping the EnrollmentOperationParams. These
-              // params should already have been validated as they are coming from the
-              // TrackedEntityQueryParams. Other reasons the user does not have access to data will
-              // not be shown as such items are simply not returned in collections.
-            }
-          });
+
+      Set<UID> trackedEntityUids =
+          ids.stream().map(id -> UID.of(id.uid())).collect(Collectors.toSet());
+
+      EnrollmentOperationParams params =
+          EnrollmentOperationParams.builder()
+              .fields(ctx.getFields().getEnrollmentFields())
+              .trackedEntities(trackedEntityUids)
+              .includeDeleted(ctx.getQueryParams().isIncludeDeleted())
+              .program(ctx.getQueryParams().getEnrolledInTrackerProgram())
+              .build();
+      try {
+        List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
+        for (Enrollment enrollment : enrollments) {
+          result.put(enrollment.getTrackedEntity().getUid(), enrollment);
+        }
+      } catch (BadRequestException e) {
+        throw new IllegalArgumentException(
+            "this must be a bug in how the EnrollmentOperationParams are built");
+      } catch (ForbiddenException e) {
+        // ForbiddenExceptions are caused when mapping the EnrollmentOperationParams. These
+        // params should already have been validated as they are coming from the
+        // TrackedEntityQueryParams. Other reasons the user does not have access to data will
+        // not be shown as such items are simply not returned in collections.
+      }
     } catch (NotFoundException e) {
       throw new IllegalArgumentException(
           "this must be called within a context where the user is known to exist");

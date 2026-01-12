@@ -32,10 +32,12 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -77,7 +79,7 @@ class EnrollmentOperationParamsMapper {
     params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());
     params.setProgramStartDate(operationParams.getProgramStartDate());
     params.setProgramEndDate(operationParams.getProgramEndDate());
-    params.setTrackedEntity(operationParams.getTrackedEntity());
+    params.setTrackedEntities(mergeTrackedEntities(operationParams));
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
@@ -94,5 +96,17 @@ class EnrollmentOperationParamsMapper {
     }
 
     return emptyList();
+  }
+
+  /**
+   * Merges the single trackedEntity (if set) with the trackedEntities set. This allows the API to
+   * accept a single trackedEntity parameter while internally using a set for efficient batching.
+   */
+  private static Set<UID> mergeTrackedEntities(EnrollmentOperationParams params) {
+    Set<UID> result = new HashSet<>(params.getTrackedEntities());
+    if (params.getTrackedEntity() != null) {
+      result.add(params.getTrackedEntity());
+    }
+    return result;
   }
 }
