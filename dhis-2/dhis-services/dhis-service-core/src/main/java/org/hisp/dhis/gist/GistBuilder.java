@@ -297,10 +297,6 @@ final class GistBuilder {
     return attribute != null ? support.getTypedAttributeValue(attribute, value) : value;
   }
 
-  private Map<String, String> attributeValues(Object attributeValues) {
-    return attributeValues instanceof AttributeValues attrs ? attrs.toMap() : Map.of();
-  }
-
   @SuppressWarnings("unchecked")
   private boolean isObjectTypeAttribute(String name, Object objectTypes) {
     Set<String> set = (Set<String>) objectTypes;

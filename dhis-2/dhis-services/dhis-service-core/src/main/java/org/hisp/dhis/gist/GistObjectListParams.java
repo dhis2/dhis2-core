@@ -124,7 +124,7 @@ public class GistObjectListParams extends GistObjectParams {
 
   @JsonIgnore
   public boolean isCountTotalPages() throws BadRequestException {
-    if (totalPages != null && total != null && totalPages != total)
+    if (totalPages != null && total != null && !totalPages.equals(total))
       throw new BadRequestException(
           "totalPages and total request parameters are contradicting each other");
     if (totalPages != null) return totalPages;

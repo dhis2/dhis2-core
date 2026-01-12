@@ -486,7 +486,7 @@ public final class GistQuery {
 
     @Nonnull
     public static List<Filter> ofList(String filter) {
-      return getStrings(filter, FIELD_SPLIT).stream().map(Filter::parse).collect(toList());
+      return getStrings(filter, FIELD_SPLIT).stream().map(Filter::parse).toList();
     }
 
     public Filter withPropertyPath(String path) {

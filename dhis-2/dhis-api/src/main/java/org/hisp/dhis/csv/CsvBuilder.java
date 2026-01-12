@@ -119,8 +119,8 @@ public final class CsvBuilder {
 
   private String toCsvValue(Object value) {
     if (value == null) return isNullEmpty() ? "" : "null";
-    if (value instanceof Object[]) return toCsvValue((Object[]) value);
-    if (value instanceof Collection<?>) return toCsvValue((Collection<?>) value);
+    if (value instanceof Object[] arr) return toCsvValue(arr);
+    if (value instanceof Collection<?> c) return toCsvValue(c);
     if (value instanceof Date date) return DateUtils.toIso8601(date);
     return value.toString();
   }

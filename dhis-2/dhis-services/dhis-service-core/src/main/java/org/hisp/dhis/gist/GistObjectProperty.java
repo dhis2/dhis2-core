@@ -53,6 +53,4 @@ public record GistObjectProperty() {
       requireNonNull(params);
     }
   }
-
-  public record Output() {}
 }
