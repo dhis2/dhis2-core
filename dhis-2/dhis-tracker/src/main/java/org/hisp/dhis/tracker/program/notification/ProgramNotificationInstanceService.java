@@ -53,9 +53,9 @@ public interface ProgramNotificationInstanceService {
    * can determine if there is a next page.
    */
   // TODO(tracker) ProgramNotificationInstances lives in module dhis-api which is why we
-  // cannot reuse code from the dhis-service-tracker module like org.hisp.dhis.tracker.Page. This is
+  // cannot reuse code from the dhis-tracker module like org.hisp.dhis.tracker.Page. This is
   // why we cannot return a Page here. We need to make a decision and either move this into
-  // dhis-service-tracker or use metadata patterns/code.
+  // dhis-tracker or use metadata patterns/code.
   List<ProgramNotificationInstance> getProgramNotificationInstancesPage(
       ProgramNotificationInstanceParam programNotificationInstanceParam);
 

@@ -66,13 +66,6 @@ import org.junit.jupiter.api.function.Executable;
  * "https://junit.org/junit5/docs/5.8.2/api/org.junit.jupiter.api/org/junit/jupiter/api/Assertions.html#assertAll(java.lang.String,java.util.Collection)">...</a>
  * using assertAll its documentation does not mention that it is designed for this use. Keep that in
  * mind when using the assertions in this class in tests.
- *
- * <p>Note: some assertions are duplicates of AssertValidations. This is due to a constraint in our
- * dependencies. dhis-test-integration cannot use test scope dependency on dhis-service-tracker
- * otherwise it would not report coverage for tracker code. This means we do not have access to test
- * code within dhis-service-tracker. Moving the assertions into dhis-support-test would need a
- * dependency on tracker, which would make it not a generic test module. We will have to live with
- * the duplicated assertion code until we have a better solution.
  */
 public class Assertions {
 
