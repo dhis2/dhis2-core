@@ -31,6 +31,7 @@ package org.hisp.dhis.gist;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -42,21 +43,9 @@ import org.hisp.dhis.query.Junction;
  * @author Jan Bernitt
  */
 @Data
-@OpenApi.Shared
 @OpenApi.Property // all fields are public properties
-public final class GistParams {
-
-  @OpenApi.Description(
-      """
-      Switch translation language of display names. If not specified the translation language is the one configured in the users account settings.
-      See [Gist locale parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_locale).""")
-  String locale = "";
-
-  @OpenApi.Description(
-      """
-      The extent of fields to include when no specific list of fields is provided using `fields` so that  that listed fields are automatically determined.
-      See [Gist auto parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#the-auto-parameter).""")
-  GistAutoType auto;
+@EqualsAndHashCode(callSuper = true)
+public class GistObjectListParams extends GistObjectParams {
 
   @OpenApi.Description(
       """
@@ -75,20 +64,6 @@ public final class GistParams {
       The name of the property in the response object that holds the list of response objects when a paged response is used.""")
   String pageListName;
 
-  @OpenApi.Description(
-      """
-      Fields like _name_ or _shortName_ can be translated (internationalised).
-      By default, any translatable field that has a translation is returned translated given that the user requesting the gist has an interface language configured.
-      To return the plain non-translated field use `translate=false`.
-      See [Gist translate parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_translate).""")
-  boolean translate = true;
-
-  @OpenApi.Description(
-      """
-      Inverse can be used in context of a collection field gist of the form /api/<object-type>/<object-id>/<field-name>/gist to not list all items that are contained in the member collection but all items that are not contained in the member collection.
-      See [Gist inverse parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#the-inverse-parameter).""")
-  boolean inverse = false;
-
   @OpenApi.Description("Old name for `totalPages`.")
   @Deprecated(since = "2.41", forRemoval = true)
   Boolean total;
@@ -102,24 +77,9 @@ public final class GistParams {
 
   @OpenApi.Description(
       """
-      Use absolute (`true`) or relative URLs (`false`, default) when linking to other objects in `apiEndpoints`.
-      See [Gist absoluteUrls parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_absoluteUrls).""")
-  boolean absoluteUrls = false;
-
-  @OpenApi.Description(
-      """
       Endpoints returning a list by default wrap the items with an envelope containing the pager and the list, which is named according to the type of object listed.
       See [Gist headless parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_headless).""")
   boolean headless;
-
-  @OpenApi.Description(
-      "When `true` the query is not executed but the planned execution is described back similar to using _describe_ in SQL/database context.")
-  boolean describe = false;
-
-  @OpenApi.Description(
-      """
-      By default, the Gist API includes links to referenced objects. This can be disabled by using `references=false`.""")
-  boolean references = true;
 
   @Beta
   @OpenApi.Since(43)
@@ -152,14 +112,6 @@ public final class GistParams {
 
   @OpenApi.Description(
       """
-      A comma seperated list of fields to include in the response. `*` includes all `auto` detected fields.
-      See [Gist fields parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_fields).""")
-  @OpenApi.Shared.Inline
-  @OpenApi.Property(OpenApi.PropertyNames[].class)
-  String fields;
-
-  @OpenApi.Description(
-      """
       A comma seperated list of filters.
       See [Gist filter parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_filter).""")
   String filter;
@@ -170,13 +122,9 @@ public final class GistParams {
       See [Gist order parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_order).""")
   String order;
 
-  public GistAutoType getAuto(GistAutoType defaultValue) {
-    return auto == null ? defaultValue : auto;
-  }
-
   @JsonIgnore
   public boolean isCountTotalPages() throws BadRequestException {
-    if (totalPages != null && total != null && totalPages != total)
+    if (totalPages != null && total != null && !totalPages.equals(total))
       throw new BadRequestException(
           "totalPages and total request parameters are contradicting each other");
     if (totalPages != null) return totalPages;
