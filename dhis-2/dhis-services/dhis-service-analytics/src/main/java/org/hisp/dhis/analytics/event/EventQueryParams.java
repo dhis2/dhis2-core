@@ -1163,6 +1163,17 @@ public class EventQueryParams extends DataQueryParams {
         && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
   }
 
+  /**
+   * Checks if a value dimension with a date value type exists.
+   *
+   * @return true if a value dimension with a date value type exists, false if not.
+   */
+  public boolean hasDateValueDimension() {
+    return hasValueDimension()
+        && value instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
+  }
+
   @Override
   public boolean hasProgramIndicatorDimension() {
     return programIndicator != null;
