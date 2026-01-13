@@ -195,7 +195,9 @@ pull_mutable_image() {
   # This is especially important on our self-hosted runner as devs will expect their latest change
   # to be tested.
 
-  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+  # Pull mutable tags from Docker Hub (see docker/DOCKERHUB.md for tag types).
+  # Skip images with 'local' in tag - these are locally built images for development.
+  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]] && [[ ! "$DHIS2_IMAGE" =~ local ]]; then
     echo "========================================"
     echo "PHASE: Image Pull"
     echo "========================================"
