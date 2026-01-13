@@ -38,6 +38,7 @@
 
   <modules>
     <module>dhis-api</module>
+    <module>dhis-tracker</module>
     <module>dhis-services</module>
     <module>dhis-support</module>
     <module>dhis-web-api</module>
@@ -347,7 +348,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-service-tracker</artifactId>
+        <artifactId>dhis-tracker</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

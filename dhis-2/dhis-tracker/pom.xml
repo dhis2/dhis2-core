@@ -4,15 +4,15 @@
 
   <parent>
     <groupId>org.hisp.dhis</groupId>
-    <artifactId>dhis-services</artifactId>
+    <artifactId>dhis</artifactId>
     <version>2.43-SNAPSHOT</version>
   </parent>
-  <artifactId>dhis-service-tracker</artifactId>
+  <artifactId>dhis-tracker</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS Tracker service</name>
+  <name>DHIS Tracker</name>
 
   <properties>
-    <rootDir>../../</rootDir>
+    <rootDir>../</rootDir>
   </properties>
 
   <dependencies>
