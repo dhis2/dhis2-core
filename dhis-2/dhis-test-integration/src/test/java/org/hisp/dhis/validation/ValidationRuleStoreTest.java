@@ -183,16 +183,11 @@ class ValidationRuleStoreTest extends PostgresIntegrationTestBase {
     addValidationRuleGroup('A', ruleA);
     assertContainsOnly(List.of(ruleB), validationRuleStore.getValidationRulesWithoutGroups());
   }
-  
+
   @Test
   void testShortName() {
-    ValidationRule ruleA = createValidationRule(
-        "A",
-        equal_to,
-        expressionA,
-        expressionB,
-        periodType,
-        false);
+    ValidationRule ruleA =
+        createValidationRule("A", equal_to, expressionA, expressionB, periodType, false);
     assertNull(ruleA.getShortName());
     ruleA.setShortName("VR A");
     validationRuleStore.update(ruleA);
