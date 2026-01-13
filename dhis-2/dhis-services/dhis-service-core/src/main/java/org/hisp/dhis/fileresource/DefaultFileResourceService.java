@@ -157,7 +157,6 @@ public class DefaultFileResourceService implements FileResourceService {
     FileResource fr = maybeFr.get();
     String uid = fr.getUid();
     return switch (fr.getDomain()) {
-      case PUSH_ANALYSIS -> List.of();
       case ORG_UNIT ->
           fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
               .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
@@ -199,6 +198,7 @@ public class DefaultFileResourceService implements FileResourceService {
     entityManager.flush();
 
     if (hasMultiDimensionImageSupport(fileResource)) {
+      fileResource.setHasMultipleStorageFiles(true);
       fileEventPublisher.publishEvent(
           new ImageFileSavedEvent(
               UID.of(fileResource.getUid()),

@@ -33,8 +33,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 
 /**
  * @author Luciano Fiandesio

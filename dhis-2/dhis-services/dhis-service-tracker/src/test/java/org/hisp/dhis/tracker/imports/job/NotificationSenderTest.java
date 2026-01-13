@@ -39,18 +39,16 @@ import java.util.Date;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,8 +69,6 @@ class NotificationSenderTest {
 
   @Mock private ProgramNotificationInstanceService programNotificationInstanceService;
 
-  @Mock private NotificationTemplateService notificationTemplateService;
-
   private NotificationSender notificationSender;
 
   @BeforeEach
@@ -81,7 +77,6 @@ class NotificationSenderTest {
         new NotificationSender(
             programNotificationInstanceService,
             programNotificationService,
-            notificationTemplateService,
             programNotificationTemplateService,
             notificationLoggingService);
   }
@@ -92,8 +87,6 @@ class NotificationSenderTest {
 
     notificationSender.send(scheduleMessage(), enrollment());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
@@ -108,8 +101,6 @@ class NotificationSenderTest {
         .thenReturn(notRepeatableNotificationLog());
     notificationSender.send(ruleEffect, enrollment());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
@@ -123,8 +114,6 @@ class NotificationSenderTest {
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
         .thenReturn(repeatableNotificationLog());
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.scheduledAt()))
-        .thenReturn(new ProgramNotificationInstance());
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, times(1)).save(any());
@@ -154,8 +143,6 @@ class NotificationSenderTest {
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
         .thenReturn(null);
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.scheduledAt()))
-        .thenReturn(new ProgramNotificationInstance());
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, times(1)).save(any());
@@ -182,8 +169,6 @@ class NotificationSenderTest {
 
     notificationSender.send(scheduleMessage(), event());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
@@ -198,8 +183,6 @@ class NotificationSenderTest {
         .thenReturn(notRepeatableNotificationLog());
     notificationSender.send(ruleEffect, event());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
@@ -214,8 +197,6 @@ class NotificationSenderTest {
         .thenReturn(notRepeatableNotificationLog());
     notificationSender.send(ruleEffect, event());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
     verify(programNotificationInstanceService, never()).save(any());
     verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
@@ -227,8 +208,6 @@ class NotificationSenderTest {
     ProgramNotificationTemplate template = template();
     Notification ruleEffect = scheduleMessage();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.scheduledAt()))
-        .thenReturn(new ProgramNotificationInstance());
     notificationSender.send(ruleEffect, singleEvent());
 
     verify(programNotificationInstanceService, times(1)).save(any());
@@ -257,8 +236,6 @@ class NotificationSenderTest {
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
         .thenReturn(repeatableNotificationLog());
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.scheduledAt()))
-        .thenReturn(new ProgramNotificationInstance());
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, times(1)).save(any());
@@ -288,8 +265,6 @@ class NotificationSenderTest {
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID.getValue())).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
         .thenReturn(null);
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.scheduledAt()))
-        .thenReturn(new ProgramNotificationInstance());
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, times(1)).save(any());

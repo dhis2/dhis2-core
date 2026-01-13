@@ -41,6 +41,8 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeader
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndicators;
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
@@ -149,7 +151,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       DhisConfigurationProvider config,
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
-      ColumnMapper columnMapper) {
+      ColumnMapper columnMapper,
+      QueryItemFilterBuilder filterBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -161,7 +164,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         settingsService,
         config,
         organisationUnitResolver,
-        columnMapper);
+        columnMapper,
+        filterBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -179,6 +183,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? buildAnalyticsQuery(params, maxLimit)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
+
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -387,10 +392,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Periods
     // ---------------------------------------------------------------------
 
-    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    // Skip global time field filter when stage-specific date items are present,
+    // as they already include their own date filters with program stage conditions
+    if (!params.hasStageDateItem()) {
+      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
 
-    if (StringUtils.isNotBlank(timeFieldSql)) {
-      sql += hlp.whereAnd() + " " + timeFieldSql;
+      if (StringUtils.isNotBlank(timeFieldSql)) {
+        sql += hlp.whereAnd() + " " + timeFieldSql;
+      }
     }
 
     // ---------------------------------------------------------------------
@@ -656,6 +665,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     String alias =
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
     columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
+
+    // For stage.ou dimensions, also select the ev_ouname and ev_oucode columns
+    if (isStageOuDimension(item)) {
+      String stageUid = item.getProgramStage().getUid();
+      columns.add(
+          "%s.%s as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  STAGE_OU_NAME_COLUMN,
+                  quote(stageUid + ".ouname")));
+      columns.add(
+          "%s.%s as %s"
+              .formatted(
+                  cteDef.getAlias(programStageOffset),
+                  STAGE_OU_CODE_COLUMN,
+                  quote(stageUid + ".oucode")));
+    }
+
     if (cteDef.isRowContext()) {
       // Add additional status and exists columns for row context
       columns.add(

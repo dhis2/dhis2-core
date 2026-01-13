@@ -36,16 +36,16 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
+import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +56,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationSender {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
   private final ProgramNotificationService programNotificationService;
-  private final NotificationTemplateService notificationTemplateService;
   private final ProgramNotificationTemplateService programNotificationTemplateService;
   private final NotificationLoggingService notificationLoggingService;
 
@@ -72,8 +71,7 @@ public class NotificationSender {
 
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
-          notificationTemplateService.createNotificationInstance(
-              template, notification.scheduledAt());
+          createNotificationInstance(template, notification.scheduledAt());
       notificationInstance.setEnrollment(enrollment);
 
       programNotificationInstanceService.save(notificationInstance);
@@ -97,8 +95,7 @@ public class NotificationSender {
 
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
-          notificationTemplateService.createNotificationInstance(
-              template, notification.scheduledAt());
+          createNotificationInstance(template, notification.scheduledAt());
       notificationInstance.setTrackerEvent(event);
 
       programNotificationInstanceService.save(notificationInstance);
@@ -117,8 +114,7 @@ public class NotificationSender {
 
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
-          notificationTemplateService.createNotificationInstance(
-              template, notification.scheduledAt());
+          createNotificationInstance(template, notification.scheduledAt());
 
       notificationInstance.setSingleEvent(singleEvent);
 
@@ -170,5 +166,17 @@ public class NotificationSender {
 
   private String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
     return template.getUid() + enrollment.getUid();
+  }
+
+  private ProgramNotificationInstance createNotificationInstance(
+      ProgramNotificationTemplate template, Date date) {
+    ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
+    notificationInstance.setAutoFields();
+    notificationInstance.setName(template.getName());
+    notificationInstance.setScheduledAt(date);
+    notificationInstance.setProgramNotificationTemplateSnapshot(
+        NotificationTemplateMapper.toProgramNotificationTemplateSnapshot(template));
+
+    return notificationInstance;
   }
 }

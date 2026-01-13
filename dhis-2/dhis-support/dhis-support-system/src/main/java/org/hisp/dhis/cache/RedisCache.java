@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
@@ -50,17 +51,17 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class RedisCache<V> implements Cache<V> {
   private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-  private RedisTemplate<String, V> redisTemplate;
+  private final RedisTemplate<String, V> redisTemplate;
 
-  private boolean refreshExpriryOnAccess;
+  private final boolean refreshExpiryOnAccess;
 
-  private long expiryInSeconds;
+  private final long expiryInSeconds;
 
-  private String cacheRegion;
+  private final String cacheRegion;
 
-  private V defaultValue;
+  private final V defaultValue;
 
-  private boolean expiryEnabled;
+  private final boolean expiryEnabled;
 
   /**
    * Constructor for instantiating RedisCache.
@@ -70,7 +71,7 @@ public class RedisCache<V> implements Cache<V> {
   @SuppressWarnings("unchecked")
   public RedisCache(ExtendedCacheBuilder<V> cacheBuilder) {
     this.redisTemplate = (RedisTemplate<String, V>) cacheBuilder.getRedisTemplate();
-    this.refreshExpriryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
+    this.refreshExpiryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
     this.expiryInSeconds = cacheBuilder.getExpiryInSeconds();
     this.cacheRegion = cacheBuilder.getRegion();
     this.defaultValue = cacheBuilder.getDefaultValue();
@@ -80,7 +81,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Optional<V> getIfPresent(String key) {
     String redisKey = generateKey(key);
-    if (expiryEnabled && refreshExpriryOnAccess) {
+    if (expiryEnabled && refreshExpiryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
     }
     return Optional.ofNullable(redisTemplate.boundValueOps(redisKey).get());
@@ -89,7 +90,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Optional<V> get(String key) {
     String redisKey = generateKey(key);
-    if (expiryEnabled && refreshExpriryOnAccess) {
+    if (expiryEnabled && refreshExpiryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
     }
     return Optional.ofNullable(
@@ -104,7 +105,7 @@ public class RedisCache<V> implements Cache<V> {
 
     String redisKey = generateKey(key);
 
-    if (expiryEnabled && refreshExpriryOnAccess) {
+    if (expiryEnabled && refreshExpiryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
     }
 
@@ -128,7 +129,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Stream<V> getAll() {
     Set<String> keySet = redisTemplate.keys(getAllKeysInRegionPattern());
-    if (keySet == null) {
+    if (CollectionUtils.isEmpty(keySet)) {
       return Stream.empty();
     }
     List<V> values = redisTemplate.opsForValue().multiGet(keySet);
@@ -138,7 +139,7 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public Set<String> keys() {
     var keys = redisTemplate.keys(getAllKeysInRegionPattern());
-    return keys == null
+    return CollectionUtils.isEmpty(keys)
         ? emptySet()
         : keys.stream().map(key -> key.substring(key.indexOf(':') + 1)).collect(toSet());
   }
@@ -159,7 +160,10 @@ public class RedisCache<V> implements Cache<V> {
 
   @Override
   public void put(String key, V value, long ttlInSeconds) {
-    hasText(key, VALUE_CANNOT_BE_NULL);
+    hasText(key, "Key cannot be null or empty");
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
+    }
 
     String redisKey = generateKey(key);
 
@@ -197,7 +201,9 @@ public class RedisCache<V> implements Cache<V> {
   @Override
   public void invalidateAll() {
     Set<String> keysToDelete = redisTemplate.keys(getAllKeysInRegionPattern());
-    redisTemplate.delete(keysToDelete);
+    if (CollectionUtils.isNotEmpty(keysToDelete)) {
+      redisTemplate.delete(keysToDelete);
+    }
   }
 
   @Override

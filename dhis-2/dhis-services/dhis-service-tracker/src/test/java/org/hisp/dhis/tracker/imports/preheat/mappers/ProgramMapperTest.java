@@ -42,11 +42,11 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.junit.jupiter.api.Test;
 
-class ProgramMapperTest extends TestBase {
+class ProgramMapperTest extends TrackerTestBase {
   @Test
   void testIdSchemeRelatedFieldsAreMapped() {
 

@@ -41,7 +41,9 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -55,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
@@ -70,28 +73,28 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
@@ -682,14 +685,13 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   void shouldGetEnrollmentWhenFieldsHasEnrollments() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
     assertHasSize(2, te.getEnrollments(), "test expects a tracked entity with two enrollments");
-    Enrollment enrollment = te.getEnrollments().iterator().next();
 
     JsonList<JsonEnrollment> json =
         GET("/tracker/trackedEntities/{id}?fields=enrollments", te.getUid())
             .content(HttpStatus.OK)
             .getList("enrollments", JsonEnrollment.class);
 
-    assertDefaultEnrollmentResponse(json, enrollment);
+    assertDefaultEnrollmentResponse(json, te.getEnrollments());
   }
 
   @Test
@@ -1213,6 +1215,19 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     manager.clear();
     manager.flush();
     return trackedEntity;
+  }
+
+  private void assertDefaultEnrollmentResponse(
+      JsonList<JsonEnrollment> jsonEnrollments, Set<Enrollment> enrollments) {
+    assertFalse(jsonEnrollments.isEmpty());
+    for (JsonEnrollment jsonEnrollment : jsonEnrollments) {
+      Optional<Enrollment> enrollment =
+          enrollments.stream()
+              .filter(e -> e.getUid().equals(jsonEnrollment.getEnrollment()))
+              .findFirst();
+      assertTrue(enrollment.isPresent());
+      assertDefaultEnrollmentResponse(enrollment.get(), jsonEnrollment);
+    }
   }
 
   private JsonEnrollment assertDefaultEnrollmentResponse(

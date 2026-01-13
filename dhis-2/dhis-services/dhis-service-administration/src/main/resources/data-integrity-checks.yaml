@@ -53,7 +53,6 @@ checks:
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml
   - analytical_objects/dashboards_empty.yaml
-  - analytical_objects/push_analysis_no_recipients.yaml
   - data_elements/aggregate_des_no_groups.yaml
   - data_elements/aggregate_des_abandoned.yaml
   - data_elements/aggregate_des_excess_groupset_membership.yaml

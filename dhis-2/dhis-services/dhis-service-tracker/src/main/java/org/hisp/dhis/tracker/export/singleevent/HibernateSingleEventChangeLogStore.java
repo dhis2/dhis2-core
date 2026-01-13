@@ -30,8 +30,8 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import jakarta.persistence.EntityManager;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.singleevent.HibernateSingleEventChangeLogStore")
