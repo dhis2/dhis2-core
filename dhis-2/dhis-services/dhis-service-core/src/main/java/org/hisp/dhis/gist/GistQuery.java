@@ -30,7 +30,6 @@
 package org.hisp.dhis.gist;
 
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -50,8 +49,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -176,39 +173,6 @@ public final class GistQuery {
 
   public boolean hasFilterGroups() {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
-  }
-
-  public GistQuery with(GistObjectListParams params) throws BadRequestException {
-    int page = abs(params.getPage());
-    int size = Math.min(1000, abs(params.getPageSize()));
-    boolean tree = params.isOrgUnitsTree();
-    boolean offline = params.isOrgUnitsOffline();
-    String order = tree ? "path" : params.getOrder();
-    if (offline && (order == null || order.isEmpty())) order = "level,name";
-    String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
-    // ensure tree always includes path in fields
-    if (tree) {
-      if (fields == null || fields.isEmpty()) {
-        fields = "path";
-      } else if (!(fields.contains(",path,"))
-          || fields.startsWith("path,")
-          || fields.endsWith(",path")) fields += ",path";
-    }
-    return toBuilder()
-        .paging(!offline)
-        .pageSize(size)
-        .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
-        // .inverse(params.isInverse())
-        .total(params.isCountTotalPages())
-        .absoluteUrls(params.isAbsoluteUrls())
-        .headless(params.isHeadless())
-        .references(!tree && !offline && params.isReferences())
-        .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(Field.ofList(fields))
-        .filters(Filter.ofList(params.getFilter()))
-        .orders(Order.ofList(order))
-        .build();
   }
 
   private static List<String> getStrings(String value, String splitRegex) {
