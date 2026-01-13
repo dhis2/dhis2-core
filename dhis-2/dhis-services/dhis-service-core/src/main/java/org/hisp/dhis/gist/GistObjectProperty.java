@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,28 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Objects.requireNonNull;
+
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.UID;
 
-/**
- * Pager POJO for paging gist lists.
- *
- * @author Jan Bernitt
- */
-public record GistPager(
-    int page,
-    int pageSize,
-    @CheckForNull Integer total,
-    @CheckForNull String prevPage,
-    @CheckForNull String nextPage) {
+public record GistObjectProperty() {
 
-  public Integer getPageCount() {
-    return getPageCount(total, pageSize);
-  }
+  public record Input(
+      @Nonnull Class<? extends PrimaryKeyObject> objectType,
+      @Nonnull UID id,
+      @Nonnull String property,
+      @CheckForNull String contextRoot,
+      @CheckForNull String requestURL,
+      @Nonnull GistObjectPropertyParams params) {
 
-  @CheckForNull
-  static Integer getPageCount(Integer total, int pageSize) {
-    return total == null ? null : (int) Math.ceil(total / (double) pageSize);
+    public Input {
+      requireNonNull(objectType);
+      requireNonNull(id);
+      requireNonNull(property);
+      requireNonNull(params);
+    }
   }
 }

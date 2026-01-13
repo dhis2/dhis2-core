@@ -179,6 +179,10 @@ public class Period implements Serializable {
     return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
   }
 
+  public void setIsoDate(String iso) {
+    // NOOP, just here for hibernate
+  }
+
   /**
    * It returns the ISO date for the current periodType of "this" object.
    *

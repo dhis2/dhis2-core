@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,17 @@
  */
 package org.hisp.dhis.gist;
 
-import javax.annotation.CheckForNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.OpenApi;
 
-/**
- * Pager POJO for paging gist lists.
- *
- * @author Jan Bernitt
- */
-public record GistPager(
-    int page,
-    int pageSize,
-    @CheckForNull Integer total,
-    @CheckForNull String prevPage,
-    @CheckForNull String nextPage) {
-
-  public Integer getPageCount() {
-    return getPageCount(total, pageSize);
-  }
-
-  @CheckForNull
-  static Integer getPageCount(Integer total, int pageSize) {
-    return total == null ? null : (int) Math.ceil(total / (double) pageSize);
-  }
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class GistObjectPropertyParams extends GistObjectListParams {
+  @OpenApi.Description(
+      """
+      Inverse can be used in context of a collection field gist of the form `/api/<object-type>/<object-id>/<field-name>/gist`
+      to not list all items that are contained in the member collection but all items that are not contained in the member collection.
+      See [Gist inverse parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#the-inverse-parameter).""")
+  boolean inverse = false;
 }

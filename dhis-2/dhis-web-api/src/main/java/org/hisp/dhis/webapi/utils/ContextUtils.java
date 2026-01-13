@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -229,6 +230,11 @@ public class ContextUtils {
   public static String getRequestURL() {
     HttpServletRequest request = getRequest();
     if (request == null) return null;
+    return getRequestURL(request);
+  }
+
+  @Nonnull
+  public static String getRequestURL(@Nonnull HttpServletRequest request) {
     String scheme = request.getScheme();
     String domain = request.getServerName();
     String port = ":" + request.getServerPort();
