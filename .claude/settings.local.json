@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(mvn test:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(find:*)",
+      "Bash(curl:*)",
+      "Bash(javac:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
