@@ -60,8 +60,7 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -76,8 +75,6 @@ public class TrackedEntityAggregate {
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")
   @Nonnull
   private final EnrollmentAggregate enrollmentAggregate;
-
-  private final UserService userService;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -102,15 +99,15 @@ public class TrackedEntityAggregate {
     }
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    final Optional<User> user = Optional.ofNullable(currentUser);
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     /*
      * Create a context with information which will be used to fetch the
      * entities. Use a superUser context if the user is null.
      */
     Context ctx =
-        user.map(
+        Optional.ofNullable(currentUser)
+            .map(
                 u ->
                     securityCache.get(u.getUid(), userUID -> Context.builder().build()).toBuilder()
                         .userId(u.getId())
@@ -166,12 +163,16 @@ public class TrackedEntityAggregate {
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
               Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
+
+              // Fetch once before parallelStream to avoid N+1 queries
+              Set<String> allowedAttributeUids = getAllowedAttributeUids(ctx.getQueryParams());
+
               return trackedEntities.keySet().parallelStream()
                   .map(
                       uid -> {
                         TrackedEntity te = trackedEntities.get(uid);
                         te.setTrackedEntityAttributeValues(
-                            filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
+                            filterAttributes(allowedAttributeUids, attributes.get(uid)));
                         te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
@@ -182,13 +183,7 @@ public class TrackedEntityAggregate {
         .join();
   }
 
-  private Set<TrackedEntityAttributeValue> filterAttributes(
-      TrackedEntityQueryParams params, Collection<TrackedEntityAttributeValue> attributes) {
-    if (attributes.isEmpty()) {
-      return Set.of();
-    }
-
-    // Add all tet attributes
+  private Set<String> getAllowedAttributeUids(TrackedEntityQueryParams params) {
     Set<String> allowedAttributeUids =
         trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes().stream()
             .map(IdentifiableObject::getUid)
@@ -199,6 +194,15 @@ public class TrackedEntityAggregate {
           trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
               params.getEnrolledInTrackerProgram());
       allowedAttributeUids.addAll(teasInProgram);
+    }
+
+    return allowedAttributeUids;
+  }
+
+  private Set<TrackedEntityAttributeValue> filterAttributes(
+      Set<String> allowedAttributeUids, Collection<TrackedEntityAttributeValue> attributes) {
+    if (attributes.isEmpty()) {
+      return Set.of();
     }
 
     return attributes.stream()

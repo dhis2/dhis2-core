@@ -148,7 +148,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       Page<Enrollment> enrollmentPage =
           enrollmentService.findEnrollments(
               EnrollmentOperationParams.builder()
-                  .trackedEntity(trackedEntity)
+                  .trackedEntities(trackedEntity)
                   .program(smsCommand.getProgram())
                   .enrollmentStatus(EnrollmentStatus.ACTIVE)
                   .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
