@@ -853,7 +853,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     log.debug("Event analytics aggregate SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
-
     while (rowSet.next()) {
       List<Object> row = new ArrayList<>();
 
@@ -880,11 +879,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           }
 
           String itemName = rowSet.getString(alias);
+          ValueType itemValueType = queryItem.getValueType();
+          if (itemValueType == ValueType.DATETIME || itemValueType == ValueType.DATE) {
+            itemName = sqlBuilder.renderTimestamp(itemName);
+          }
           String itemValue =
               params.isCollapseDataDimensions()
                   ? QueryItemHelper.getCollapsedDataItemValue(queryItem, itemName)
                   : itemName;
-
           if (params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME) {
             row.add(itemValue);
           } else {
@@ -909,12 +911,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       for (DimensionalObject dimension : params.getDimensions()) {
         String dimensionValue = rowSet.getString(dimension.getDimensionName());
+        ValueType dimensionValueType = dimension.getValueType();
+        if (dimensionValueType == ValueType.DATETIME || dimensionValueType == ValueType.DATE) {
+          dimensionValue = sqlBuilder.renderTimestamp(dimensionValue);
+        }
         row.add(dimensionValue);
       }
 
       if (params.hasValueDimension()) {
         if (params.hasTextValueDimension()) {
           String value = rowSet.getString(COL_VALUE);
+          row.add(value);
+        } else if (params.hasDateValueDimension()) {
+          String value = sqlBuilder.renderTimestamp(rowSet.getString(COL_VALUE));
           row.add(value);
         } else // Numeric
         {
