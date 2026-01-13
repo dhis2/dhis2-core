@@ -98,7 +98,7 @@ public abstract class AnalyticsApiTest {
   }
 
   public boolean isPostgres() {
-    return !getDataSource().equalsIgnoreCase("postgres");
+    return getDataSource().equalsIgnoreCase("postgres");
   }
 
   static boolean hasOutliersSupport() {
