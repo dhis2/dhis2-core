@@ -51,7 +51,6 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
@@ -421,21 +420,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + ") ";
     } else // Descendants
     {
-      sql += hlp.whereAnd() + " (";
+      List<DimensionalItemObject> orgUnitItems = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
 
-      for (DimensionalItemObject object : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
-        OrganisationUnit unit = (OrganisationUnit) object;
-        sql +=
-            params
-                    .getOrgUnitField()
-                    .withSqlBuilder(sqlBuilder)
-                    .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
-                + " = '"
-                + unit.getUid()
-                + "' or ";
+      String orClause =
+          orgUnitItems.stream()
+              .map(
+                  object -> {
+                    OrganisationUnit unit = (OrganisationUnit) object;
+                    return params
+                            .getOrgUnitField()
+                            .withSqlBuilder(sqlBuilder)
+                            .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
+                        + " = '"
+                        + unit.getUid()
+                        + "'";
+                  })
+              .collect(Collectors.joining(" or "));
+
+      if (!orClause.isEmpty()) {
+        sql += hlp.whereAnd() + " (" + orClause + ") ";
       }
-
-      sql = removeLastOr(sql) + ") ";
     }
 
     // ---------------------------------------------------------------------
