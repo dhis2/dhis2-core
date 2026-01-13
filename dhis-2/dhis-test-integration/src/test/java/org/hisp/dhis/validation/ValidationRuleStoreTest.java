@@ -180,6 +180,17 @@ class ValidationRuleStoreTest extends TransactionalIntegrationTest {
     assertContainsOnly(List.of(ruleB), validationRuleStore.getValidationRulesWithoutGroups());
   }
 
+  @Test
+  void testShortName() {
+    ValidationRule ruleA =
+        createValidationRule("A", equal_to, expressionA, expressionB, periodType, false);
+    assertNull(ruleA.getShortName());
+    ruleA.setShortName("VR A");
+    validationRuleStore.update(ruleA);
+    ValidationRule fetchedRuleA = validationRuleStore.get(ruleA.getId());
+    assertEquals("VR A", fetchedRuleA.getShortName());
+  }
+
   private ValidationNotificationTemplate addValidationNotificationTemplate(
       char uniqueCharacter, ValidationRule... rules) {
     ValidationNotificationTemplate template =
