@@ -1,2 +1,1 @@
-alter table validationrule
-    add column if not exists shortname character varying(50);
+alter table validationrule add column if not exists shortname character varying(50);
