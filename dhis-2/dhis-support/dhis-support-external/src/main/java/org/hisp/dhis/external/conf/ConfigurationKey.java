@@ -722,8 +722,8 @@ public enum ConfigurationKey {
   /** CSP default header value/string. Enable or disable the feature. */
   CSP_HEADER_VALUE("csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false),
 
-  /** Cache-Control max-age (seconds) for private read-only responses. */
-  HTTP_PRIVATE_CACHE_CONTROL_TTL("http.cache_control.private_ttl", "", false),
+  /** Cache-Control max-age (seconds) for private read-only responses for /api/organisationUnits. */
+  CACHE_CONTROL_PRIVATE_TTL_ORGUNITS("http.cache_control.private.ttl.orgunits", "", false),
 
   /** Event hooks for system events. Enable or disable the feature. */
   EVENT_HOOKS_ENABLED("event_hooks.enabled", Constants.OFF, false),

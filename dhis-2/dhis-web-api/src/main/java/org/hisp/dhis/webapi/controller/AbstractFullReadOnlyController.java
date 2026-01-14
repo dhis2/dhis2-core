@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL_TTL;
 import static org.springframework.http.CacheControl.noCache;
 
 import com.fasterxml.jackson.databind.SequenceWriter;
@@ -64,6 +63,7 @@ import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -538,9 +538,8 @@ public abstract class AbstractFullReadOnlyController<
         ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
-  protected String getConfiguredPrivateCacheControlHeader() {
-
-    String headerValue = dhisConfig.getProperty(HTTP_PRIVATE_CACHE_CONTROL_TTL);
+  protected String getConfiguredPrivateCacheControlHeader(ConfigurationKey cacheControlTtlKey) {
+    String headerValue = dhisConfig.getProperty(cacheControlTtlKey);
     if (headerValue == null || headerValue.isBlank()) {
       return noCache().cachePrivate().getHeaderValue();
     }
@@ -557,7 +556,7 @@ public abstract class AbstractFullReadOnlyController<
     log.warn(
         "Invalid value '{}' for config key '{}'; using default Cache-Control TTL",
         normalized,
-        HTTP_PRIVATE_CACHE_CONTROL_TTL.getKey());
+        cacheControlTtlKey.getKey());
 
     return noCache().cachePrivate().getHeaderValue();
   }

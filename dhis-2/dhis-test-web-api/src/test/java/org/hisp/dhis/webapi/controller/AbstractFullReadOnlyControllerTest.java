@@ -136,30 +136,27 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   void testCacheControlHeader_DefaultWhenBlank() {
-    setPrivateCacheControl("");
-    createDataElements(1);
+    setOrgUnitsPrivateCacheControl("");
 
-    String header = GET("/dataElements?fields=id").header("Cache-Control");
+    String header = GET("/organisationUnits?fields=id").header("Cache-Control");
 
     assertEquals(noCache().cachePrivate().getHeaderValue(), header);
   }
 
   @Test
   void testCacheControlHeader_CustomValue() {
-    setPrivateCacheControl("3600");
-    createDataElements(1);
+    setOrgUnitsPrivateCacheControl("3600");
 
-    String header = GET("/dataElements?fields=id").header("Cache-Control");
+    String header = GET("/organisationUnits?fields=id").header("Cache-Control");
 
     assertEquals("private, max-age=3600", header);
   }
 
   @Test
   void testCacheControlHeader_TooLargeFallsBackToDefault() {
-    setPrivateCacheControl("31536001");
-    createDataElements(1);
+    setOrgUnitsPrivateCacheControl("31536001");
 
-    String header = GET("/dataElements?fields=id").header("Cache-Control");
+    String header = GET("/organisationUnits?fields=id").header("Cache-Control");
 
     assertEquals(noCache().cachePrivate().getHeaderValue(), header);
   }
@@ -171,9 +168,9 @@ class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase
     }
   }
 
-  private void setPrivateCacheControl(String value) {
+  private void setOrgUnitsPrivateCacheControl(String value) {
     dhisConfig
         .getProperties()
-        .setProperty(ConfigurationKey.HTTP_PRIVATE_CACHE_CONTROL_TTL.getKey(), value);
+        .setProperty(ConfigurationKey.CACHE_CONTROL_PRIVATE_TTL_ORGUNITS.getKey(), value);
   }
 }

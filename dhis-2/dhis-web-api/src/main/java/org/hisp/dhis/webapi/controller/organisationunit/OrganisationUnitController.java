@@ -58,6 +58,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -110,7 +111,10 @@ public class OrganisationUnitController
 
   @Override
   protected void cachePrivate(HttpServletResponse response) {
-    response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, getConfiguredPrivateCacheControlHeader());
+    response.setHeader(
+        ContextUtils.HEADER_CACHE_CONTROL,
+        getConfiguredPrivateCacheControlHeader(
+            ConfigurationKey.CACHE_CONTROL_PRIVATE_TTL_ORGUNITS));
   }
 
   @ResponseStatus(HttpStatus.OK)
