@@ -85,10 +85,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String DEFAULT_ORDER = MAIN_QUERY_ALIAS + ".trackedentityid desc";
 
-  private static final String OFFSET = "OFFSET";
-
-  private static final String LIMIT = "LIMIT";
-
   private static final String ENROLLMENT_DATE_ALIAS = "en_enrollmentdate";
 
   private static final String ENROLLMENT_DATE_KEY = "enrollment.enrollmentDate";
@@ -1055,103 +1051,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     } else if (systemMaxLimit > 0) {
       sql.append("limit ").append(systemMaxLimit);
     }
-  }
-
-  /**
-   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size,
-   * page offset and the system setting KeyTrackedEntityMaxLimit.
-   *
-   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
-   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
-   * page size will always be smaller than the system limit.
-   *
-   * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
-   *
-   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be determined.
-   */
-  private String getFromSubQueryLimitAndOffset(
-      TrackedEntityQueryParams params, PageParams pageParams) {
-    StringBuilder limitOffset = new StringBuilder();
-    int limit = params.getMaxTeLimit();
-    int teQueryLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
-
-    if (limit == 0 && pageParams == null) {
-      if (teQueryLimit > 0) {
-        return limitOffset
-            .append(LIMIT)
-            .append(SPACE)
-            .append(teQueryLimit)
-            .append(SPACE)
-            .toString();
-      }
-
-      return limitOffset.toString();
-    } else if (limit == 0) {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append(pageParams.getPageSize())
-          .append(SPACE)
-          .append(OFFSET)
-          .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
-          .append(SPACE)
-          .toString();
-    } else if (pageParams != null) {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append(Math.min(limit + 1, pageParams.getPageSize()))
-          .append(SPACE)
-          .append(OFFSET)
-          .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
-          .append(SPACE)
-          .toString();
-    } else {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append(limit + 1) // We add +1, since we use this limit to
-          // restrict a user to search to wide.
-          .append(SPACE)
-          .toString();
-    }
-  }
-
-  /**
-   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size,
-   * page offset and the system setting KeyTrackedEntityMaxLimit.
-   *
-   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
-   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
-   * page size will always be smaller than the system limit.
-   *
-   * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
-   *
-   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be determined.
-   */
-  private String getFromSubQueryLimitAndOffset(PageParams pageParams) {
-    StringBuilder limitOffset = new StringBuilder();
-    int systemMaxLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
-
-    if (pageParams != null) {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
-          .append(SPACE)
-          .toString();
-    } else if (systemMaxLimit > 0) {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append(systemMaxLimit)
-          .append(SPACE)
-          .toString();
-    }
-
-    return limitOffset.toString();
   }
 
   @Override

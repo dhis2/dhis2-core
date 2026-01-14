@@ -68,6 +68,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -115,6 +116,8 @@ class TrackedEntityOperationParamsMapperTest {
   @Mock private TrackedEntityStore trackedEntityStore;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private SystemSettingManager systemSettingManager;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
