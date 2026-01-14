@@ -30,12 +30,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,7 +95,14 @@ class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetRelativePeriods_InvalidRelativePeriod() {
-    assertStatus(HttpStatus.BAD_REQUEST, GET("/relativePeriods?relativePeriod=NOT_A_PERIOD"));
+    JsonWebMessage message =
+        assertWebMessage(
+            "Bad Request",
+            400,
+            "ERROR",
+            "Relative period is invalid: `LAST_14_MONTHS`",
+            GET("/relativePeriods?relativePeriod=LAST_14_MONTHS").content(HttpStatus.BAD_REQUEST));
+    assertEquals(ErrorCode.E1133, message.getErrorCode());
   }
 
   @Test

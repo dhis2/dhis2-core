@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -60,7 +61,7 @@ public class RelativePeriodsController {
       @RequestParam(required = false) String financialYearStart)
       throws BadRequestException {
     if (!RelativePeriodEnum.contains(relativePeriod)) {
-      throw new BadRequestException("Invalid relativePeriod: " + relativePeriod);
+      throw new BadRequestException(ErrorCode.E1133, relativePeriod);
     }
 
     RelativePeriodEnum resolved = RelativePeriodEnum.valueOf(relativePeriod);
