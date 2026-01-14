@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 1s # this is aggressive, so we get enough samples to monitor during performance tests which might be short
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'dhis2'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['web:8080']
+    # DHIS2 requires authentication for metrics endpoint
+    basic_auth:
+      username: 'admin'
+      password: 'district'
+    http_headers:
+      X-Request-ID:
+        values: ['prometheus-scraper']

@@ -45,13 +45,16 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageOperationParams;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.message.ProgramMessage;
+import org.hisp.dhis.tracker.program.message.ProgramMessageOperationParams;
+import org.hisp.dhis.tracker.program.message.ProgramMessageRecipients;
+import org.hisp.dhis.tracker.program.message.ProgramMessageService;
+import org.hisp.dhis.tracker.program.message.ProgramMessageStatus;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -268,5 +271,23 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
         actual,
         retrievedProgramMessage,
         "The retrieved program message should match the saved program message");
+  }
+
+  private static ProgramMessage createProgramMessage(
+      String text,
+      String subject,
+      ProgramMessageRecipients recipients,
+      ProgramMessageStatus status,
+      Set<DeliveryChannel> channels) {
+
+    ProgramMessage pm = new ProgramMessage();
+    pm.setAutoFields();
+    pm.setText(text);
+    pm.setSubject(subject);
+    pm.setRecipients(recipients);
+    pm.setMessageStatus(status);
+    pm.setDeliveryChannels(channels);
+
+    return pm;
   }
 }

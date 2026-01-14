@@ -20,9 +20,9 @@
 #
 # Analytics test with ANALYTICS_GENERATE for sierra-leone:
 #
-# gh workflow run performance-tests-compare.yml \
+# gh workflow run performance-tests.yml \
 #   --field perf_tests_git_ref="master" \
-#   --field baseline_env='DHIS2_IMAGE=dhis2/core:2.42.0
+#   --field test_env='DHIS2_IMAGE=dhis2/core:2.42.0
 # SIMULATION_CLASS=org.hisp.dhis.test.raw.GetRawSpeedTest
 # DB_VERSION=2.42.0
 # MVN_ARGS="-Dscenario=test-scenarios/sierra-leone/analytics-ev-query-speed-get-test.json -Dversion=42.0 -Dbaseline=41.0"
@@ -140,7 +140,7 @@ jobs:
 
     - name: Upload Gatling report
       if: always()
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
         path: dhis-2/dhis-test-performance/target/gatling/
@@ -319,7 +319,9 @@ jobs:
             - type: section
               fields:
                 - type: mrkdwn
-                  text: "*Branch:*\n${{ github.ref_name }}"
+                  text: "*Test name:* ${{ inputs.test_name }}"
+                - type: mrkdwn
+                  text: "*Branch:* ${{ github.ref_name }}"
             - type: actions
               elements:
                 - type: button

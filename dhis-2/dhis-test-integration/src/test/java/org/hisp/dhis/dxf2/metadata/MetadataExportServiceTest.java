@@ -56,10 +56,7 @@ import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -272,7 +269,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     JsonNode sharing = exportedDashboard.get("sharing");
     assertNotNull(sharing, "Sharing should exist");
     assertNotNull(sharing.get("owner"), "Sharing owner id should be present");
-    assertFalse(sharing.get("external").asBoolean(), "Sharing external should be false");
     assertEquals("--------", sharing.get("public").asText(), "Sharing public should match");
     assertTrue(sharing.get("users").isObject(), "Sharing users should be an object");
     assertTrue(sharing.get("userGroups").isObject(), "Sharing userGroups should be an object");
@@ -316,7 +312,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     JsonNode access = dashboardItem.get("access");
     assertNotNull(access, "Access should exist");
     assertTrue(access.get("manage").asBoolean(), "Access manage should be true");
-    assertTrue(access.get("externalize").asBoolean(), "Access externalize should be true");
     assertTrue(access.get("write").asBoolean(), "Access write should be true");
     assertTrue(access.get("read").asBoolean(), "Access read should be true");
     assertTrue(access.get("update").asBoolean(), "Access update should be true");
@@ -373,8 +368,6 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     // Assert Visualization Sharing
     JsonNode vizSharing = viz.get("sharing");
     assertNotNull(vizSharing, "Visualization sharing should exist");
-    assertFalse(
-        vizSharing.get("external").asBoolean(), "Visualization sharing external should be false");
     assertEquals(
         "--------", vizSharing.get("public").asText(), "Visualization sharing public should match");
 
@@ -491,44 +484,5 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     dashboardItem.setName("dashboardItem" + name);
     dashboardItem.setAutoFields();
     return dashboardItem;
-  }
-
-  // @Test
-  // TODO Fix this
-  public void testSkipSharing() {
-    MetadataExportParams params = new MetadataExportParams();
-    params.setSkipSharing(true);
-    params.setClasses(Sets.newHashSet(DataElement.class));
-    User user = makeUser("A");
-    UserGroup group = createUserGroup('A', Sets.newHashSet(user));
-    DataElement de1 = createDataElement('A');
-    DataElement de2 = createDataElement('B');
-    DataElement de3 = createDataElement('C');
-    DataElement de4 = createDataElement('D');
-    DataElement de5 = createDataElement('E');
-    de1.getSharing().setUserAccesses(Sets.newHashSet(new UserAccess(user, "rwrwrwrw")));
-    de2.setPublicAccess("rwrwrwrw");
-    de3.setCreatedBy(user);
-    de4.getSharing().setUserGroupAccess(Sets.newHashSet(new UserGroupAccess(group, "rwrwrwrw")));
-    de5.setExternalAccess(true);
-    manager.save(user);
-    manager.save(group);
-    manager.save(de1);
-    manager.save(de2);
-    manager.save(de3);
-    manager.save(de4);
-    manager.save(de5);
-    Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
-        metadataExportService.getMetadata(params);
-    assertEquals(5, metadata.get(DataElement.class).size());
-    metadata.get(DataElement.class).stream().forEach(element -> checkSharingFields(element));
-  }
-
-  private void checkSharingFields(IdentifiableObject object) {
-    assertTrue(object.getSharing().getUsers().isEmpty());
-    assertEquals("--------", object.getSharing().getPublicAccess());
-    // assertNull( object.getUser() );
-    assertTrue(object.getSharing().getUserGroups().isEmpty());
-    // assertFalse( object.getExternalAccess() );
   }
 }

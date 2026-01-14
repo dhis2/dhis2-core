@@ -31,6 +31,9 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,14 +43,11 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -56,6 +56,9 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -124,7 +127,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteTrackedEntity() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntityFromAttribute(trackedEntityAttribute);
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
@@ -134,7 +137,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   void shouldDeleteTeAndAttributeValues() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntityFromAttribute(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
@@ -218,7 +221,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
-  private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
+  private TrackedEntity createTrackedEntityFromAttribute(
+      TrackedEntityAttribute trackedEntityAttribute) {
     TrackedEntity trackedEntity =
         createTrackedEntity('T', organisationUnit, trackedEntityAttribute, trackedEntityType);
     manager.save(trackedEntity);

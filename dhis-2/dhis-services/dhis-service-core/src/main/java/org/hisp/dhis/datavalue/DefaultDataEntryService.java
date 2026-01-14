@@ -68,6 +68,7 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -81,6 +82,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,8 +131,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     UnaryOperator<String> aocOf = UnaryOperator.identity();
 
     DataEntryGroup.Ids ids = group.ids();
-    String isoGroup = decodeIso(group.period());
-    if (isoGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : isoGroup;
+    String peGroup = decodeIso(group.period());
+    if (peGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : peGroup;
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
     String deGroup = group.dataElement();
@@ -164,6 +166,10 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (dataSet != null && dsStr == null) throw new BadRequestException(ErrorCode.E8005, dataSet);
     UID ds = decodeUID(dsStr);
     if (dsStr != null && ds == null) throw new BadRequestException(ErrorCode.E8004, dsStr);
+    String completionDateStr = group.completionDate();
+    Date completionDate = decodeDate(completionDateStr);
+    if (completionDateStr != null && !completionDateStr.isEmpty() && completionDate == null)
+      throw new BadRequestException(ErrorCode.E8008, completionDateStr);
     List<DataEntryValue> decoded = new ArrayList<>(values.size());
     Map<String, String> aoGroup = group.attributeOptions();
     IdProperty categories = ids == null ? IdProperty.UID : ids.categories();
@@ -175,6 +181,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       Map<Set<String>, String> aocByKey = store.getDataSetAocIdMapping(ds, categoryOptions);
       aocGroup = aocByKey.get(aocKey);
     }
+    if (completionDate != null && (dataSet == null || ouGroup == null || peGroup == null))
+      // aoc may be null to indicate "default" so we cannot validate it
+      throw new BadRequestException(ErrorCode.E8009);
     Map<String, List<String>> categoriesByDe = null;
     Map<String, Map<Set<String>, String>> cocByOptionsByDe = null;
     Map<String, Map<Set<String>, String>> aocOptionsByCc = null;
@@ -267,7 +276,20 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       // add the value
       decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, deleted));
     }
-    return new DataEntryGroup(ds, decoded);
+    DataSetCompletion completion;
+    if (completionDate == null) {
+      completion = null;
+    } else {
+      UID attributeOptionCombo = aocGroup == null ? null : UID.ofNullable(aocOf.apply(aocGroup));
+      completion =
+          new DataSetCompletion(
+              ds,
+              Period.of(peGroup),
+              UID.of(ouOf.apply(ouGroup)),
+              attributeOptionCombo,
+              completionDate);
+    }
+    return new DataEntryGroup(ds, completion, decoded);
   }
 
   @CheckForNull
@@ -285,6 +307,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (period == null || period.isEmpty()) return null;
     // normalize the format to the ISO
     return Period.of(period).getIsoDate();
+  }
+
+  @CheckForNull
+  private static Date decodeDate(@CheckForNull String date) {
+    if (date == null || date.isEmpty()) return null;
+    try {
+      return DateUtils.parseDate(date);
+    } catch (RuntimeException ex) {
+      return null;
+    }
   }
 
   @Override

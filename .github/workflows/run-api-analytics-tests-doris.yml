@@ -50,7 +50,7 @@ jobs:
             -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}
@@ -99,7 +99,7 @@ jobs:
           cd dhis-2/dhis-test-e2e
           docker compose logs web > ~/logs.txt
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: "tomcat_logs"

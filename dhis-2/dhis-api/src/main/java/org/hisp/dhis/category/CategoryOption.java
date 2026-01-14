@@ -423,7 +423,8 @@ public class CategoryOption extends BaseMetadataObject
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "formName", key = "FORM_NAME")
   public String getDisplayFormName() {
-    return translations.getTranslation("FORM_NAME", getFormName());
+    return translations.getTranslation(
+        "FORM_NAME", getFormName() != null ? getFormName() : getDisplayName());
   }
 
   @Override
@@ -637,10 +638,6 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
   // Sharing helpers
   // -------------------------------------------------------------------------
-
-  public void setExternalAccess(boolean externalAccess) {
-    getSharing().setExternal(externalAccess);
-  }
 
   public void setPublicAccess(String access) {
     getSharing().setPublicAccess(access);

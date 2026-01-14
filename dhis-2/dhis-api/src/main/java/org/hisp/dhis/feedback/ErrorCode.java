@@ -207,7 +207,6 @@ public enum ErrorCode {
   E3003("User `{0}` is not allowed to grant users access to user role `{1}`"),
   E3004("User `{0}` is not allowed to grant users access to user groups"),
   E3005("User `{0}` is not allowed to grant users access to user group `{1}`"),
-  E3006("User `{0}` is not allowed to externalize objects of type `{1}`"),
   E3008("User `{0}` is not allowed to make public objects of type `{1}`"),
   E3009("User `{0}` is not allowed to make private objects of type `{1}`"),
   E3010("Invalid access string `{0}`"),
@@ -355,6 +354,11 @@ public enum ErrorCode {
   E4083(
       "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
   E4084("ProgramStage `{0}` is not part of Program `{1}`"),
+  E4085("Program is required for tracker data synchronization job"),
+  E4086("Program `{0}` does not exist"),
+  E4087("Program `{0}` must be of type `{1}`"),
+  E4088(
+      "The operator(s) `{0}` cannot be blocked. The following operators cannot be blocked: `{1}`."),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -571,6 +575,11 @@ public enum ErrorCode {
   E7238("Sorting dimension ‘{0}’ is not a column"),
   E7239("Invalid operator for 'null' value: `{0}`"),
   E7240("Event query with org unit ownership does not support time fields"),
+  E7241("Stage parameter cannot be used with stage-specific dimension identifiers"),
+  E7242(
+      "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
+  E7243("Duplicate stage dimension identifier: `{0}`"),
+  E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
@@ -632,6 +641,9 @@ public enum ErrorCode {
   E8005("Data set not found: `${id:{0}}`"),
   E8006("PDF file error : ${error:{0}}"),
   E8007("XML file error : ${error:{0}}"),
+  E8008("Data set `completeDate` is not a valid date string: `${date:{0}}`"),
+  E8009(
+      "Data set `completeDate` requires data set, org unit, period and attribute option combo to be defined at the group level."),
 
   // set level current user access issues: Current user cannot enter...
   E8010("Current user cannot enter data for data set: `${ds:{0}}`"),

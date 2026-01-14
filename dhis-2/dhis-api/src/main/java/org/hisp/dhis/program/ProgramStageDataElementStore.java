@@ -31,6 +31,8 @@ package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
@@ -53,4 +55,20 @@ public interface ProgramStageDataElementStore
   List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
 
   List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
+
+  /**
+   * Returns a map of ProgramStages containing sets of DataElements (together forming
+   * ProgramStageDataElements) that have the skipSynchronization flag set to true, filtered by the
+   * specified {@link Program}.
+   *
+   * <p>This method retrieves all ProgramStage–DataElement associations for the given Program where
+   * the skipSynchronization flag is enabled, meaning these data elements should be excluded from
+   * synchronization operations.
+   *
+   * @param program the {@link Program} whose associated ProgramStageDataElements are to be filtered
+   * @return a map where the key is the ProgramStage UID and the value is a set of DataElement UIDs
+   *     associated with that ProgramStage that have skipSynchronization set to true
+   */
+  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
+      Program program);
 }
