@@ -524,7 +524,7 @@ public class TrackerTest extends Simulation {
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 147, Profile.LOAD, 100)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 60, Profile.LOAD, 100)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
     Request getFirstTrackedEntity =
