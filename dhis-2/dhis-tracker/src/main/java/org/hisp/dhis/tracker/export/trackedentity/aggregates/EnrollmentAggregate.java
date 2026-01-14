@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
@@ -66,22 +65,19 @@ class EnrollmentAggregate {
       List<TrackedEntityIdentifiers> ids, Context ctx) {
     Multimap<String, Enrollment> result = ArrayListMultimap.create();
     try {
-      authenticationService.obtainAuthentication(ctx.getUserUid());
+      // Set up security context on this async thread using UserDetails from HTTP thread
+      authenticationService.obtainAuthentication(ctx.userDetails());
 
       Set<UID> trackedEntityUids =
           ids.stream().map(id -> UID.of(id.uid())).collect(Collectors.toSet());
-
       EnrollmentOperationParams params =
           EnrollmentOperationParams.builder()
-              .fields(ctx.getFields().getEnrollmentFields())
+              .fields(ctx.fields().getEnrollmentFields())
               .trackedEntities(trackedEntityUids)
-              .includeDeleted(ctx.getQueryParams().isIncludeDeleted())
-              .program(ctx.getQueryParams().getEnrolledInTrackerProgram())
+              .includeDeleted(ctx.queryParams().isIncludeDeleted())
+              .program(ctx.queryParams().getEnrolledInTrackerProgram())
               .build();
       findEnrollments(params, result);
-    } catch (NotFoundException e) {
-      throw new IllegalArgumentException(
-          "this must be called within a context where the user is known to exist");
     } finally {
       authenticationService.clearAuthentication();
     }

@@ -176,8 +176,8 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   /**
-   * Adds audit entries for tracked entity reads. Only audits when a single tracked entity is
-   * requested to avoid N audit entries when batching.
+   * Adds audit entry for tracked entity read. Only audits when a single tracked entity is requested
+   * to avoid duplicate audits when called from /trackedEntities (which audits its own results).
    */
   private void addTrackedEntityAudit(Set<UID> trackedEntities, List<Enrollment> enrollments) {
     if (trackedEntities.size() == 1 && !enrollments.isEmpty()) {
@@ -273,6 +273,10 @@ class DefaultEnrollmentService implements EnrollmentService {
         .toList();
   }
 
+  /**
+   * Fetches readable attribute UIDs per program. Each program defines its own set of attributes, so
+   * we must query per program (not in batch) to filter correctly per enrollment.
+   */
   private Map<Program, Set<String>> getReadableAttributesByProgram(
       List<Enrollment> enrollments, EnrollmentFields fields) {
     if (!fields.isIncludesAttributes()) {
@@ -281,9 +285,8 @@ class DefaultEnrollmentService implements EnrollmentService {
 
     Map<Program, Set<String>> result = new HashMap<>();
     for (Enrollment enrollment : enrollments) {
-      Program program = enrollment.getProgram();
       result.computeIfAbsent(
-          program,
+          enrollment.getProgram(),
           p ->
               trackedEntityAttributeService
                   .getAllUserReadableTrackedEntityAttributes(List.of(p), null)
@@ -323,8 +326,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     // Group events by enrollment UID
     Map<String, Set<TrackerEvent>> result = new HashMap<>(enrollments.size());
     for (TrackerEvent event : allEvents) {
-      String enrollmentUid = event.getEnrollment().getUid();
-      result.computeIfAbsent(enrollmentUid, k -> new HashSet<>()).add(event);
+      result.computeIfAbsent(event.getEnrollment().getUid(), k -> new HashSet<>()).add(event);
     }
     return result;
   }
