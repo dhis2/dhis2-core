@@ -53,5 +53,5 @@ interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
 
   Long getTrackedEntityCount(TrackedEntityQueryParams params);
 
-  int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params);
+  int getTrackedEntityCountWithMaxLimit(TrackedEntityQueryParams params);
 }

@@ -70,6 +70,14 @@
             "identifier": "numericAttr"
           },
           "value": 88
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "1"
         }
       ],
       "enrollments": []
@@ -121,6 +129,14 @@
             "identifier": "numericAttr"
           },
           "value": 70
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "2"
         }
       ],
       "enrollments": []
@@ -163,6 +179,14 @@
             "identifier": "numericAttr"
           },
           "value": 72
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "3"
         }
       ],
       "enrollments": []
@@ -205,6 +229,14 @@
             "identifier": "numericAttr"
           },
           "value": 89
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "4"
         }
       ],
       "enrollments": []

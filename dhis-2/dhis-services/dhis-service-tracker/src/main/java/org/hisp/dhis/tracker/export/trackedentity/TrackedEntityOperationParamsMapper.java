@@ -53,12 +53,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,11 +89,21 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final ProgramService programService;
 
+  @Nonnull private final SystemSettingManager systemSettingManager;
+
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
+    return map(operationParams, null);
+  }
+
+  @Transactional(readOnly = true)
+  public TrackedEntityQueryParams map(
+      TrackedEntityOperationParams operationParams, PageParams pageParams)
+      throws BadRequestException, ForbiddenException {
+    validatePagination(pageParams);
     User user = operationParams.getUser();
 
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
@@ -282,12 +295,27 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
+  private void validatePagination(PageParams pageParams) throws BadRequestException {
+    if (pageParams == null) {
+      return;
+    }
+
+    int systemMaxLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+    if (systemMaxLimit > 0 && pageParams.getPageSize() > systemMaxLimit) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid page size: %d. It must not exceed the system limit of KeyTrackedEntityMaxLimit %d.",
+              pageParams.getPageSize(), systemMaxLimit));
+    }
+  }
+
   private void validateSearchOutsideCaptureScopeParameters(TrackedEntityQueryParams params)
       throws IllegalQueryException {
     if (isSearchInCaptureScope(params, params.getUser())) {
       return;
     }
 
+    params.setSearchOutsideCaptureScope(true);
     if (params.hasFilters()) {
       List<String> searchableAttributeIds = getSearchableAttributeIds(params);
       validateSearchableAttributes(params, searchableAttributeIds);
@@ -421,7 +449,7 @@ class TrackedEntityOperationParamsMapper {
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
     if (maxTeiLimit > 0) {
-      int teCount = trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params);
+      int teCount = trackedEntityStore.getTrackedEntityCountWithMaxLimit(params);
 
       if (teCount > maxTeiLimit) {
         throw new IllegalQueryException("maxteicountreached");

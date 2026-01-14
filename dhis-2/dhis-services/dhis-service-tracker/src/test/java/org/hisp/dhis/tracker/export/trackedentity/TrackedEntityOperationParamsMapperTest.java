@@ -544,7 +544,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -570,7 +570,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
     when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
         .thenReturn(trackedEntityType);
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -594,7 +594,7 @@ class TrackedEntityOperationParamsMapperTest {
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
 
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).user(user).build();

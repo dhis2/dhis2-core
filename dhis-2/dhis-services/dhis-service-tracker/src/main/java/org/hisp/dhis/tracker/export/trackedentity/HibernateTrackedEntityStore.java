@@ -157,7 +157,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
-    checkMaxTrackedEntityCountReached(params, rowSet);
+    validateMaxTeLimit(params);
 
     List<Long> ids = new ArrayList<>();
 
@@ -180,7 +180,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     String sql = getQuery(params, pageParams);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
-    checkMaxTrackedEntityCountReached(params, rowSet);
+    validateMaxTeLimit(params);
 
     List<Long> ids = new ArrayList<>();
 
@@ -211,14 +211,25 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
   }
 
-  private void checkMaxTrackedEntityCountReached(
-      TrackedEntityQueryParams params, SqlRowSet rowSet) {
-    if (params.getMaxTeLimit() > 0 && rowSet.last()) {
-      if (rowSet.getRow() > params.getMaxTeLimit()) {
-        throw new IllegalQueryException("maxteicountreached");
-      }
-      rowSet.beforeFirst();
+  private void validateMaxTeLimit(TrackedEntityQueryParams params) {
+    if (!params.isSearchOutsideCaptureScope()) {
+      return;
     }
+
+    int maxTeLimit = getMaxTeLimit(params);
+    if (maxTeLimit > 0 && getTrackedEntityCountWithMaxLimit(params) > maxTeLimit) {
+      throw new IllegalQueryException("maxteicountreached");
+    }
+  }
+
+  private int getMaxTeLimit(TrackedEntityQueryParams params) {
+    if (params.hasTrackedEntityType()) {
+      return params.getTrackedEntityType().getMaxTeiCountToReturn();
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      return params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
+    }
+
+    return 0;
   }
 
   @Override
@@ -235,7 +246,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   @Override
-  public int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params) {
+  public int getTrackedEntityCountWithMaxLimit(TrackedEntityQueryParams params) {
     // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -337,7 +348,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true, null)
-        + (params.getMaxTeLimit() > 0 ? getLimitClause(params.getMaxTeLimit() + 1) : "")
+        + getLimitClause(getMaxTeLimit(params) + 1)
         + " ) tecount";
   }
 
@@ -404,11 +415,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
     if (!isCountQuery) {
-      // SORT
-      fromSubQuery
-          .append(getQueryOrderBy(params, true))
-          // LIMIT, OFFSET
-          .append(getFromSubQueryLimitAndOffset(params, pageParams));
+      fromSubQuery.append(" ");
+      fromSubQuery.append(getQueryOrderBy(params, true));
+      fromSubQuery.append(" ");
+      addLimitAndOffset(fromSubQuery, pageParams);
     }
 
     return fromSubQuery.append(") ").append(MAIN_QUERY_ALIAS).append(" ").toString();
@@ -1024,25 +1034,40 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by several factors:
-   * 1. maxtelimit in a TET or Program 2. PageSize and Offset 3. No paging
-   * (TRACKER_TRACKED_ENTITY_QUERY_LIMIT will apply in this case)
+   * Adds the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size, page
+   * offset and the system setting KeyTrackedEntityMaxLimit.
    *
-   * <p>If maxtelimit is not 0, it means this is the hard limit of the number of results. In the
-   * case where there exists more results than maxtelimit, we should return an error to the user
-   * (This prevents snooping outside the users capture scope to some degree). 0 means no maxtelimit,
-   * or it's not applicable.
+   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
+   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
+   * page size will always be smaller than the system limit.
    *
-   * <p>If we have maxtelimit and paging on, we set the limit to maxtelimit.
+   * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
+   */
+  private void addLimitAndOffset(StringBuilder sql, PageParams pageParams) {
+    int systemMaxLimit =
+        systemSettingManager.getIntegerSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+
+    if (pageParams != null) {
+      sql.append("limit ")
+          .append(pageParams.getPageSize())
+          .append(" offset ")
+          .append((pageParams.getPage() - 1) * pageParams.getPageSize());
+    } else if (systemMaxLimit > 0) {
+      sql.append("limit ").append(systemMaxLimit);
+    }
+  }
+
+  /**
+   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size,
+   * page offset and the system setting KeyTrackedEntityMaxLimit.
    *
-   * <p>If we don't have maxtelimit, and paging on, we set normal paging parameters
-   *
-   * <p>If neither maxtelimit nor paging is set, we have no limit set by the user, so system will
-   * set the limit to TRACKED_ENTITY_MAX_LIMIT which can be configured in system settings.
+   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
+   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
+   * page size will always be smaller than the system limit.
    *
    * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
    *
-   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be deducted.
+   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be determined.
    */
   private String getFromSubQueryLimitAndOffset(
       TrackedEntityQueryParams params, PageParams pageParams) {
@@ -1092,6 +1117,41 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(SPACE)
           .toString();
     }
+  }
+
+  /**
+   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size,
+   * page offset and the system setting KeyTrackedEntityMaxLimit.
+   *
+   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
+   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
+   * page size will always be smaller than the system limit.
+   *
+   * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
+   *
+   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be determined.
+   */
+  private String getFromSubQueryLimitAndOffset(PageParams pageParams) {
+    StringBuilder limitOffset = new StringBuilder();
+    int systemMaxLimit = systemSettingManager.getIntSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT);
+
+    if (pageParams != null) {
+      return limitOffset
+          .append(LIMIT)
+          .append(SPACE)
+          .append((pageParams.getPage() - 1) * pageParams.getPageSize())
+          .append(SPACE)
+          .toString();
+    } else if (systemMaxLimit > 0) {
+      return limitOffset
+          .append(LIMIT)
+          .append(SPACE)
+          .append(systemMaxLimit)
+          .append(SPACE)
+          .toString();
+    }
+
+    return limitOffset.toString();
   }
 
   @Override

@@ -490,7 +490,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public Page<TrackedEntity> getTrackedEntities(
       TrackedEntityOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, pageParams);
     final Page<Long> ids = getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
