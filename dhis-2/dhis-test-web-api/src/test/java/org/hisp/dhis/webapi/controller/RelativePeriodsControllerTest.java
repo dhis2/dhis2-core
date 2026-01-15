@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests the {@link RelativePeriodsController} using (mocked) REST requests.
  *
- * @author DHIS2
+ * @author Jason P. Pickering
  */
 @Transactional
 class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
