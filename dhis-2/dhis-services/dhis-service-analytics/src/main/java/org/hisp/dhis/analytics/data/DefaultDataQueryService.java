@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -299,7 +298,7 @@ public class DefaultDataQueryService implements DataQueryService {
           units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(getAnalyticsOrganisationUnitsOrDefault(currentUser));
+          units.addAll(currentUser.getDataViewOrganisationUnits().stream().sorted().toList());
           break;
         case TEI_SEARCH:
           units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
@@ -312,35 +311,9 @@ public class DefaultDataQueryService implements DataQueryService {
     return units;
   }
 
-  /**
-   * Retrieve the list of organisation units to which the current user has access rights. If the
-   * user has analytics organisation units assigned, those will be returned. Otherwise, it returns
-   * the default ones (data capture organisation units).
-   *
-   * @param currentUser {@link User}
-   * @return a list of {@link OrganisationUnit}.
-   */
-  private List<OrganisationUnit> getAnalyticsOrganisationUnitsOrDefault(User currentUser) {
-    Set<OrganisationUnit> organisationUnits = currentUser.getDataViewOrganisationUnits();
-    if (organisationUnits != null && !organisationUnits.isEmpty()) {
-      return organisationUnits.stream().sorted().toList();
-    } else {
-      // If the user has no analytics permissions for any organization unit,
-      // returns data capture organization units, instead.
-      Set<OrganisationUnit> defaultOrganisationUnits = currentUser.getOrganisationUnits();
-      if (defaultOrganisationUnits != null && !defaultOrganisationUnits.isEmpty()) {
-        return defaultOrganisationUnits.stream().sorted().toList();
-      }
-    }
-
-    return new ArrayList<>();
-  }
-
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
     List<DimensionalObject> list = new ArrayList<>();
-    DataQueryParams params =
-        DataQueryParams.newBuilder().withUserOrgUnitType(request.getUserOrgUnitType()).build();
-    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(params, request.getUserOrgUnit());
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, request.getUserOrgUnit());
 
     if (request.getDimension() != null) {
       for (String param : request.getDimension()) {
