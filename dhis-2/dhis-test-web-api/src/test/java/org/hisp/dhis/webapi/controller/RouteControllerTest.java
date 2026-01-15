@@ -269,6 +269,54 @@ class RouteControllerTest extends DhisControllerIntegrationTest {
   }
 
   @Test
+  void testRunRouteWhenUserAuthorityDoesNotHaveRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserAuthorityHasRouteAuthority() throws IOException {
+    CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
+    CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
+
+    ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor =
+        ArgumentCaptor.forClass(HttpUriRequest.class);
+    when(mockHttpResponse.getAllHeaders()).thenReturn(new org.apache.http.Header[] {});
+    when(mockHttpResponse.getStatusLine())
+        .thenReturn(
+            new BasicStatusLine(
+                new ProtocolVersion("http", 1, 1), org.apache.http.HttpStatus.SC_OK, "ok"));
+    when(mockHttpClient.execute(httpUriRequestArgumentCaptor.capture(), any(HttpContext.class)))
+        .thenReturn(mockHttpResponse);
+
+    routeService.setHttpClient(mockHttpClient);
+
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("ALL"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    HttpResponse runHttpResponse =
+        GET(
+            "/routes/{id}/run",
+            postHttpResponse.content().get("response.uid").as(JsonString.class).string());
+
+    assertStatus(HttpStatus.OK, runHttpResponse);
+  }
+
+  @Test
   void testRunRouteGivenEncodedAndUnencodedCharactersUrl() throws IOException {
     CloseableHttpClient mockHttpClient = mock(CloseableHttpClient.class);
     CloseableHttpResponse mockHttpResponse = mock(CloseableHttpResponse.class);
