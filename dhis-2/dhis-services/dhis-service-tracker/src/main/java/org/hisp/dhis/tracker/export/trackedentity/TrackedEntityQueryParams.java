@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -149,6 +150,8 @@ public class TrackedEntityQueryParams {
   private Boolean potentialDuplicate;
 
   private final List<Order> order = new ArrayList<>();
+
+  @Setter private boolean isSearchOutsideCaptureScope = false;
 
   // -------------------------------------------------------------------------
   // Transient properties
@@ -606,5 +609,9 @@ public class TrackedEntityQueryParams {
       List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
+  }
+
+  public boolean isSearchOutsideCaptureScope() {
+    return isSearchOutsideCaptureScope;
   }
 }

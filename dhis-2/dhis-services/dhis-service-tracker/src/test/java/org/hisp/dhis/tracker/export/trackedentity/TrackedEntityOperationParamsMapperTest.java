@@ -68,6 +68,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -115,6 +116,8 @@ class TrackedEntityOperationParamsMapperTest {
   @Mock private TrackedEntityStore trackedEntityStore;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private SystemSettingManager systemSettingManager;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -544,7 +547,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -570,7 +573,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
     when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
         .thenReturn(trackedEntityType);
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -594,7 +597,7 @@ class TrackedEntityOperationParamsMapperTest {
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
 
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).user(user).build();
