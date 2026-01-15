@@ -190,7 +190,7 @@ public class TrackerTest extends Simulation {
     ProfileDefaults defaults =
         switch (this.profile) {
           case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(8, 30, 1, 30, 180, 1);
+          case LOAD -> new ProfileDefaults(6, 100, 1, 30, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4);
         };
     this.usersPerSec = Integer.getInteger("usersPerSec", defaults.usersPerSec());
