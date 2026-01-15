@@ -34,8 +34,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -50,35 +49,25 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jason P. Pickering
  */
+@Maturity(Maturity.Classification.BETA)
 @RestController
 @RequestMapping("/api/relativePeriods")
 public class RelativePeriodsController {
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public List<String> getRelativePeriods(
-      @RequestParam String relativePeriod,
+      @RequestParam RelativePeriodEnum relativePeriod,
       @RequestParam(required = false) Date date,
-      @RequestParam(required = false) String financialYearStart)
-      throws BadRequestException {
-    if (!RelativePeriodEnum.contains(relativePeriod)) {
-      throw new BadRequestException(ErrorCode.E1133, relativePeriod);
-    }
+      @RequestParam(required = false) AnalyticsFinancialYearStartKey financialYearStart) {
 
-    RelativePeriodEnum resolved = RelativePeriodEnum.valueOf(relativePeriod);
     Date resolvedDate = date != null ? date : new Date();
     AnalyticsFinancialYearStartKey financialYearStartKey =
-        AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
-
-    if (financialYearStart != null) {
-      try {
-        financialYearStartKey = AnalyticsFinancialYearStartKey.valueOf(financialYearStart);
-      } catch (IllegalArgumentException ex) {
-        throw new BadRequestException("Invalid financialYearStart: " + financialYearStart);
-      }
-    }
+        financialYearStart != null
+            ? financialYearStart
+            : AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 
     return RelativePeriods.getRelativePeriodsFromEnum(
-            resolved,
+            relativePeriod,
             DateField.withDefaults().withDate(resolvedDate),
             null,
             false,
