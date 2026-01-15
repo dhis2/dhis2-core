@@ -182,7 +182,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? buildAnalyticsQuery(params, maxLimit)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -914,8 +913,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     List<String> programIndicators =
         getProgramIndicators(params).stream().map(QueryItem::getItemId).toList();
 
-    // Add the columns from the headers (only the ones that are not program indicators)
+    // Add the columns from the headers (only the ones that are not program indicators
+    // and not stage date dimensions which are fetched from the latest_events CTE)
     for (String column : getHeaderColumns(headers, params)) {
+      // Check for stage-specific headers before removing table alias, since the stage UID prefix
+      // is part of the header format (e.g., stageUid.eventdate, stageUid.ou)
+      if (isStageDateHeader(column) || isStageOuHeader(column)) {
+        continue;
+      }
       String colToAdd = SqlColumnParser.removeTableAlias(column);
       if (!programIndicators.contains(colToAdd)) {
         sb.addColumnIfNotExist(quote(colToAdd));
@@ -1072,31 +1077,55 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Collect all CTE definitions for program indicators and program stages
     Map<String, CteDefinition> cteDefinitionMap = collectCteDefinitions(cteContext);
 
-    // Iterate over headerColumns and add the columns to SelectBuilder based on the order specified
-    // in the original GridHeader list
-    headerColumns.forEach(
-        headerColumn -> {
-          boolean foundMatch = false;
-          String columnWithoutAlias = SqlColumnParser.removeTableAlias(headerColumn);
+    // Get the latest_events filter CTE if present (used for stage-specific dimensions)
+    CteDefinition filterCte = cteContext.getDefinitionByItemUid("latest_events");
 
-          // First, check if there's any match in the CTE definitions
-          // If there is a match, the column is added with the alias from the CTE definition
-          for (Map.Entry<String, CteDefinition> entry : cteDefinitionMap.entrySet()) {
-            if (entry.getKey().contains(columnWithoutAlias)) {
-              CteDefinition cteDef = entry.getValue();
-              sb.addColumn(cteDef.getAlias() + ".value", "", entry.getKey());
-              sb.groupBy(entry.getKey());
-              foundMatch = true;
-              break;
-            }
-          }
+    for (String headerColumn : headerColumns) {
+      String colName = SqlColumnParser.removeTableAlias(headerColumn);
+      String quotedCol = quote(colName);
 
-          if (!foundMatch) {
-            // Otherwise, add the column as is
-            sb.addColumn(quote(columnWithoutAlias));
-            sb.groupBy(quote(columnWithoutAlias));
-          }
-        });
+      // Stage-specific dimensions (date, ou, or eventstatus) use the latest_events filter CTE
+      if (filterCte != null
+          && (isStageDateHeader(headerColumn)
+              || isStageOuHeader(headerColumn)
+              || isStageEventStatusHeader(headerColumn))) {
+        String cteValueCol = filterCte.getAlias() + ".value";
+        sb.addColumn(cteValueCol, "", quotedCol);
+        sb.groupBy(cteValueCol);
+        continue;
+      }
+
+      // Check for matching CTE definition
+      var matchingEntry =
+          cteDefinitionMap.entrySet().stream()
+              .filter(e -> e.getKey().contains(colName))
+              .findFirst()
+              .orElse(null);
+
+      if (matchingEntry != null) {
+        sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", matchingEntry.getKey());
+        sb.groupBy(matchingEntry.getKey());
+      } else {
+        sb.addColumn(quotedCol);
+        sb.groupBy(quotedCol);
+      }
+    }
+  }
+
+  /** Checks if the column represents a stage date dimension (eventdate or scheduleddate). */
+  private boolean isStageDateHeader(String column) {
+    String normalized = column.toLowerCase().replace("\"", "");
+    return normalized.endsWith(".eventdate") || normalized.endsWith(".scheduleddate");
+  }
+
+  private boolean isStageOuHeader(String column) {
+    String normalized = column.toLowerCase().replace("\"", "");
+    return normalized.endsWith(".ou");
+  }
+
+  private boolean isStageEventStatusHeader(String column) {
+    String normalized = column.toLowerCase().replace("\"", "");
+    return normalized.endsWith(".eventstatus");
   }
 
   private Map<String, CteDefinition> collectCteDefinitions(CteContext cteContext) {
