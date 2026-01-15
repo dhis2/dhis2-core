@@ -37,6 +37,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -44,9 +46,12 @@ import org.hisp.dhis.category.CategoryOptionComboService;
 import org.hisp.dhis.category.CategoryOptionComboUpdateDto;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -136,6 +141,44 @@ public class CategoryOptionComboController
 
     CategoryOptionComboUpdateDto cocUpdate =
         jsonMapper.readValue(request.getInputStream(), CategoryOptionComboUpdateDto.class);
+    categoryOptionComboService.updateCoc(persisted, cocUpdate);
+    return WebMessageUtils.ok();
+  }
+
+  /**
+   * @implNote {@link CategoryOptionCombo} needs a very specific update implementation. Only 3
+   *     fields are updatable through the PATCH endpoint: <br>
+   *     - attributeValues <br>
+   *     - code <br>
+   *     - ignoreApproval <br>
+   *     The metadata import endpoint has very different behaviour for importing {@link
+   *     CategoryOptionCombo}s and is not suitable for individual updates.
+   */
+  @Override
+  public WebMessage patchObject(
+      String pvUid,
+      Map<String, String> rpParameters,
+      UserDetails currentUser,
+      HttpServletRequest request)
+      throws NotFoundException,
+          ForbiddenException,
+          ConflictException,
+          IOException,
+          JsonPatchException {
+    CategoryOptionCombo persisted = getEntity(pvUid);
+    updatePermissionCheck(currentUser, persisted);
+    JsonPatch patch = jsonMapper.readValue(request.getInputStream(), JsonPatch.class);
+
+    if (patch.getOperations().stream()
+        .map(op -> op.getPath().getMatchingProperty())
+        .anyMatch(
+            property -> !Set.of("attributeValues", "code", "ignoreApproval").contains(property))) {
+      throw new ConflictException(ErrorCode.E1134);
+    }
+
+    CategoryOptionCombo categoryOptionCombo = doPatch(patch, persisted);
+    CategoryOptionComboUpdateDto cocUpdate =
+        jsonMapper.convertValue(categoryOptionCombo, CategoryOptionComboUpdateDto.class);
     categoryOptionComboService.updateCoc(persisted, cocUpdate);
     return WebMessageUtils.ok();
   }

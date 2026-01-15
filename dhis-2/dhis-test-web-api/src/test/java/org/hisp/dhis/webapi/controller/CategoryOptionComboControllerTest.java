@@ -468,15 +468,129 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     assertEquals("val updated", updated.getAttributeValues().get(0).getValue());
   }
 
+  @Test
+  @DisplayName("A PATCH request with updatable fields should succeed")
+  void patchValidFieldsTest() {
+    // given a COC exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("patch-valid");
+    String cocUid = categoryMetadata.coc1().getUid();
+    JsonCategoryOptionCombo coc = getCoc(cocUid);
+    assertTrue(coc.getAttributeValues().isEmpty());
+    assertNull(coc.getCode());
+    assertFalse(coc.getIgnoreApproval());
+
+    // when sending a PATCH request to replace attributeValues, code & ignoreApproval
+    String avUid = postAttributeValue("Att Val 2");
+    PATCH(
+            "/categoryOptionCombos/" + cocUid,
+            """
+            [
+                 {
+                     "op": "replace",
+                     "path": "/code",
+                     "value": "new code zzz123"
+                 },
+                 {
+                     "op": "replace",
+                     "path": "/ignoreApproval",
+                     "value": true
+                 },
+                 {
+                     "op": "replace",
+                     "path": "/attributeValues",
+                     "value": [
+                         {
+                             "value": "new alt name 12",
+                             "attribute": {
+                                 "id": "%s"
+                             }
+                         }
+                     ]
+                 }
+             ]
+            """
+                .formatted(avUid))
+        .content(HttpStatus.OK);
+
+    // then they are updated
+    JsonCategoryOptionCombo updated = getCoc(cocUid);
+    assertEquals("new code zzz123", updated.getCode());
+    assertTrue(updated.getIgnoreApproval());
+    assertEquals("new alt name 12", updated.getAttributeValues().get(0).getValue());
+
+    // and other unrelated fields are not affected
+    assertEquals(cocUid, updated.getId());
+    assertEquals(categoryMetadata.coc1().getName(), updated.getName());
+    assertEquals(
+        categoryMetadata.coc1().getCategoryOptions().stream()
+            .map(BaseMetadataObject::getUid)
+            .collect(Collectors.toSet()),
+        updated.getCategoryOptions().stream()
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()));
+  }
+
+  @Test
+  @DisplayName("A PATCH request with a non-updatable fields should fail")
+  void patchInvalidFieldsTest() {
+    // given a COC exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("patch-invalid");
+    String cocUid = categoryMetadata.coc1().getUid();
+    JsonCategoryOptionCombo coc = getCoc(cocUid);
+    assertTrue(coc.getAttributeValues().isEmpty());
+    assertNull(coc.getCode());
+    assertFalse(coc.getIgnoreApproval());
+
+    // when sending a PATCH request includes a property that is not updatable (name)
+    String avUid = postAttributeValue("Att Val 2");
+    JsonMixed response =
+        PATCH(
+                "/categoryOptionCombos/" + cocUid,
+                """
+                      [
+                           {
+                               "op": "replace",
+                               "path": "/name",
+                               "value": "new code zzz123"
+                           },
+                           {
+                               "op": "replace",
+                               "path": "/ignoreApproval",
+                               "value": true
+                           },
+                           {
+                               "op": "replace",
+                               "path": "/attributeValues",
+                               "value": [
+                                   {
+                                       "value": "new alt name 12",
+                                       "attribute": {
+                                           "id": "%s"
+                                       }
+                                   }
+                               ]
+                           }
+                       ]
+                      """
+                    .formatted(avUid))
+            .content(HttpStatus.CONFLICT);
+
+    // then the request is rejected
+    JsonCategoryOptionCombo updated = getCoc(cocUid);
+    assertEquals("new code zzz123", updated.getCode());
+    assertTrue(updated.getIgnoreApproval());
+    assertEquals("new alt name 12", updated.getAttributeValues().get(0).getValue());
+  }
+
   private String postAttributeValue(String name) {
     return POST(
             "/attributes",
             """
-                {
-                    "name": "%s",
-                    "valueType": "TEXT"
-                }
-                """
+            {
+                "name": "%s",
+                "valueType": "TEXT"
+            }
+            """
                 .formatted(name))
         .content(HttpStatus.CREATED)
         .as(JsonWebMessage.class)
@@ -505,7 +619,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
               }
             ]
           }
-      """;
+          """;
   }
 
   private String cocCcUpdated(String ccId, TestCategoryMetadata categoryMetadata) {
@@ -525,7 +639,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
               }
             ]
           }
-      """
+          """
         .formatted(ccId, categoryMetadata.co1().getUid(), categoryMetadata.co3().getUid());
   }
 
@@ -546,7 +660,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
               }
             ]
           }
-      """
+          """
         .formatted(categoryMetadata.cc1().getUid(), categoryMetadata.co1().getUid(), coId);
   }
 
@@ -556,7 +670,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
             "code": "%s",
             "ignoreApproval": %b
           }
-      """
+          """
         .formatted(newCode, ignoreApproval);
   }
 
@@ -565,7 +679,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
           {
             "code": "%s"
           }
-      """
+          """
         .formatted(newCode);
   }
 
@@ -574,7 +688,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
           {
              "ignoreApproval": %b
           }
-      """
+          """
         .formatted(ignoreApproval);
   }
 
