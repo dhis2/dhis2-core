@@ -1066,8 +1066,8 @@ public class DataQueryParams {
   }
 
   /**
-   * Retrieves the options for the the dimension or filter with the given identifier. Returns an
-   * empty list if the dimension or filter is not present.
+   * Retrieves the options for the dimension or filter with the given identifier. Returns an empty
+   * list if the dimension or filter is not present.
    */
   public List<DimensionalItemObject> getDimensionOrFilterItems(String key) {
     List<DimensionalItemObject> dimensionOptions = getDimensionOptions(key);
