@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -44,6 +44,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -280,43 +281,52 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Updating a COC CC should be rejected")
+  @DisplayName("Updating a COC CC should be ignored")
   void updateCategoryOptionComboCatComboRejectedTest() {
+    // Given a COC exists with a CC
     TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("put1");
     TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("put2");
 
-    JsonWebMessage jsonWebMessage =
-        PUT(
-                "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
-                cocCcUpdated(categoryMetadata2.cc1().getUid(), categoryMetadata1))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+    // when a COC update is submitted with a different CC
+    PUT(
+            "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
+            cocCcUpdated(categoryMetadata2.cc1().getUid(), categoryMetadata1))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
+    // then the updated COC still has it's original CC
+    JsonCategoryOptionCombo updated = getCoc(categoryMetadata1.coc1().getUid());
     assertEquals(
-        "Only fields 'code' and 'ignoreApproval' can be updated through this endpoint",
-        jsonWebMessage.getMessage());
+        categoryMetadata1.coc1().getCategoryCombo().getUid(), updated.getCategoryCombo().getId());
   }
 
   @Test
-  @DisplayName("Updating a COC CO should be ignored")
+  @DisplayName("Updating a COC COs should be ignored")
   void updateCategoryOptionComboCatOptionRejectedTest() {
+    // Given a COC exists with COs
     TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("put3");
     TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("put4");
 
-    JsonWebMessage jsonWebMessage =
-        PUT(
-                "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
-                cocCoUpdated(categoryMetadata2.co1().getUid(), categoryMetadata1))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
+    // when a COC update is submitted with different COs
+    PUT(
+            "/categoryOptionCombos/" + categoryMetadata1.coc1().getUid(),
+            cocCoUpdated(categoryMetadata2.co1().getUid(), categoryMetadata1))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
+    // then the updated COC still has it's original COs
+    JsonCategoryOptionCombo updated = getCoc(categoryMetadata1.coc1().getUid());
     assertEquals(
-        "Only fields 'code' and 'ignoreApproval' can be updated through this endpoint",
-        jsonWebMessage.getMessage());
+        categoryMetadata1.coc1().getCategoryOptions().stream()
+            .map(BaseMetadataObject::getUid)
+            .collect(Collectors.toSet()),
+        updated.getCategoryOptions().stream()
+            .map(JsonIdentifiableObject::getId)
+            .collect(Collectors.toSet()));
   }
 
   @Test
-  @DisplayName("Updating a COC's code and ignoreApproval fields should be allowed")
+  @DisplayName("Updating a COC code and ignoreApproval fields should be successful")
   void updateCategoryOptionComboCodeAndApprovalTest() {
     // given a COC exists with a code
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put5");
@@ -340,7 +350,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Updating a COC's code field only should not affect the ignoreApproval value")
+  @DisplayName("Updating a COC code field only should not affect the ignoreApproval value")
   void updateCategoryOptionComboCodeOnlyTest() {
     // given a COC exists with a code
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put6");
@@ -373,7 +383,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Updating a COC's ignoreApproval field only should not affect the code value")
+  @DisplayName("Updating a COC ignoreApproval field only should not affect the code value")
   void updateCategoryOptionComboIgnoreApprovalOnlyTest() {
     // given a COC exists with a code
     TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put7");
@@ -401,6 +411,78 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     // and the code value should not have changed
     assertEquals("code set", updated.getCode());
+  }
+
+  @Test
+  @DisplayName("Adding an attribute value to a COC is successful")
+  void addAttributeValuesTest() {
+    // given a COC exists with no attribute values
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put-attr");
+    String cocUid = categoryMetadata.coc1().getUid();
+    JsonCategoryOptionCombo coc = getCoc(cocUid);
+    assertTrue(coc.getAttributeValues().isEmpty());
+
+    // when adding new attribute values
+    POST(
+            "/attributes",
+            """
+            {
+                "id": "AttrUid0001",
+                "name": "Alt name",
+                "valueType": "TEXT"
+            }
+            """)
+        .content(HttpStatus.CREATED);
+
+    PUT("/categoryOptionCombos/" + cocUid, cocAttributeValuesOnlyUpdated("AttrUid0001", "Alt name"))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    // then they are updated
+    JsonCategoryOptionCombo updated = getCoc(cocUid);
+    assertEquals("new alt name", updated.getAttributeValues().get(0).getValue());
+  }
+
+  @Test
+  @DisplayName("Updating an attribute value for a COC is successful")
+  void updateAttributeValuesTest() {
+    // given a COC exists with an attribute value
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("put-attr2");
+    String cocUid = categoryMetadata.coc1().getUid();
+    JsonCategoryOptionCombo coc = getCoc(cocUid);
+    assertTrue(coc.getAttributeValues().isEmpty());
+
+    String avUid = postAttributeValue("Att Val 1");
+    PUT("/categoryOptionCombos/" + cocUid, cocAttributeValuesOnlyUpdated(avUid, "val created"))
+        .content(HttpStatus.OK);
+
+    JsonCategoryOptionCombo cocWithAv = getCoc(cocUid);
+    assertEquals("val created", cocWithAv.getAttributeValues().get(0).getValue());
+
+    // when updating the attribute values
+    PUT("/categoryOptionCombos/" + cocUid, cocAttributeValuesOnlyUpdated(avUid, "val updated"))
+        .content(HttpStatus.OK);
+
+    // then they are updated
+    JsonCategoryOptionCombo updated = getCoc(cocUid);
+    assertEquals("val updated", updated.getAttributeValues().get(0).getValue());
+  }
+
+  private String postAttributeValue(String name) {
+    return POST(
+            "/attributes",
+            """
+                {
+                    "name": "%s",
+                    "valueType": "TEXT"
+                }
+                """
+                .formatted(name))
+        .content(HttpStatus.CREATED)
+        .as(JsonWebMessage.class)
+        .getResponse()
+        .getString("uid")
+        .string();
   }
 
   private JsonCategoryOptionCombo getCoc(String uid) {
@@ -494,5 +576,21 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
           }
       """
         .formatted(ignoreApproval);
+  }
+
+  private String cocAttributeValuesOnlyUpdated(String id, String value) {
+    return """
+          {
+             "attributeValues": [
+                 {
+                     "value": "%s",
+                     "attribute": {
+                         "id": "%s"
+                     }
+                 }
+             ]
+          }
+          """
+        .formatted(value, id);
   }
 }

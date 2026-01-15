@@ -117,12 +117,13 @@ public class CategoryOptionComboController
   }
 
   /**
-   * When updating a single COC, only updating the code & ignoreApproval fields are allowed
-   *
-   * @param pvUid COC UID
-   * @param currentUser current user
-   * @param request request
-   * @return updated COC
+   * @implNote {@link CategoryOptionCombo} needs a very specific update implementation. Only 3
+   *     fields are updatable through the PUT endpoint: <br>
+   *     - attributeValues <br>
+   *     - code <br>
+   *     - ignoreApproval <br>
+   *     The metadata import endpoint has very different behaviour for importing {@link
+   *     CategoryOptionCombo}s and is not suitable for individual updates.
    */
   @Override
   public WebMessage putJsonObject(String pvUid, UserDetails currentUser, HttpServletRequest request)
@@ -133,7 +134,6 @@ public class CategoryOptionComboController
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
-    //    CategoryOptionComboUpdateDto cocUpdate = deserializeJsonEntity(request);
     CategoryOptionComboUpdateDto cocUpdate =
         jsonMapper.readValue(request.getInputStream(), CategoryOptionComboUpdateDto.class);
     categoryOptionComboService.updateCoc(persisted, cocUpdate);
