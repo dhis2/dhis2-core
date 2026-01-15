@@ -335,13 +335,14 @@ post_process_profiler_data() {
 
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
+  # clear JAVA_TOOL_OPTIONS to prevent jfrconv from inheriting debug agent settings from DHIS2
   # shellcheck disable=SC2086
-  if ! docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html 2>/dev/null; then
+  if ! docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html 2>/dev/null; then
     echo "Warning: Failed to generate flamegraph"
     return 1
   fi
   # shellcheck disable=SC2086
-  docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed 2>/dev/null || true
+  docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed 2>/dev/null || true
 
   if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
     echo "Warning: Failed to copy post-processed profiler data"
