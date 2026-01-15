@@ -49,8 +49,7 @@ class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetRelativePeriods_Last3Days() {
-    JsonArray response =
-        GET("/relativePeriods?relativePeriod=LAST_3_DAYS&date=2001-07-04").content();
+    JsonArray response = GET("/relativePeriods/LAST_3_DAYS?startDate=2001-07-04").content();
 
     assertEquals(List.of("20010701", "20010702", "20010703"), response.stringValues());
   }
@@ -58,8 +57,8 @@ class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetRelativePeriods_WithFinancialYearStart() {
     JsonArray response =
-        GET("/relativePeriods?relativePeriod=THIS_FINANCIAL_YEAR"
-                + "&date=2001-07-04"
+        GET("/relativePeriods/THIS_FINANCIAL_YEAR"
+                + "?startDate=2001-07-04"
                 + "&financialYearStart=FINANCIAL_YEAR_APRIL")
             .content();
 
@@ -68,8 +67,7 @@ class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetRelativePeriods_Last12Months_MidYear() {
-    JsonArray response =
-        GET("/relativePeriods?relativePeriod=LAST_12_MONTHS&date=2001-07-04").content();
+    JsonArray response = GET("/relativePeriods/LAST_12_MONTHS?startDate=2001-07-04").content();
 
     assertEquals(
         List.of(
@@ -80,8 +78,7 @@ class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetRelativePeriods_Last12Months_EarlyYear() {
-    JsonArray response =
-        GET("/relativePeriods?relativePeriod=LAST_12_MONTHS&date=2001-01-15").content();
+    JsonArray response = GET("/relativePeriods/LAST_12_MONTHS?startDate=2001-01-15").content();
 
     assertEquals(
         List.of(
@@ -92,13 +89,13 @@ class RelativePeriodsControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetRelativePeriods_InvalidRelativePeriod() {
-    assertStatus(HttpStatus.BAD_REQUEST, GET("/relativePeriods?relativePeriod=LAST_14_MONTHS"));
+    assertStatus(HttpStatus.BAD_REQUEST, GET("/relativePeriods/LAST_14_MONTHS"));
   }
 
   @Test
   void testGetRelativePeriods_InvalidFinancialYearStart() {
     assertStatus(
         HttpStatus.BAD_REQUEST,
-        GET("/relativePeriods?relativePeriod=LAST_3_DAYS&financialYearStart=NOT_A_FINANCIAL_YEAR"));
+        GET("/relativePeriods/LAST_3_DAYS?financialYearStart=NOT_A_FINANCIAL_YEAR"));
   }
 }

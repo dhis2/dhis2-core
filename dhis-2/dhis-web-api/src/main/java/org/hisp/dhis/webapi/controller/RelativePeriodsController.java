@@ -40,6 +40,7 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,18 +50,17 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jason P. Pickering
  */
-@Maturity(Maturity.Classification.BETA)
+@Maturity.Beta
 @RestController
 @RequestMapping("/api/relativePeriods")
 public class RelativePeriodsController {
 
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{relativePeriod}", produces = APPLICATION_JSON_VALUE)
   public List<String> getRelativePeriods(
-      @RequestParam RelativePeriodEnum relativePeriod,
-      @RequestParam(required = false) Date date,
+      @PathVariable RelativePeriodEnum relativePeriod,
+      @RequestParam(required = false) Date startDate,
       @RequestParam(required = false) AnalyticsFinancialYearStartKey financialYearStart) {
-
-    Date resolvedDate = date != null ? date : new Date();
+    Date resolvedDate = startDate != null ? startDate : new Date();
     AnalyticsFinancialYearStartKey financialYearStartKey =
         financialYearStart != null
             ? financialYearStart
