@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 
 import java.util.LinkedHashMap;
@@ -79,13 +80,38 @@ public class CteContext {
       String cteDefinition,
       int offset,
       boolean isRowContext) {
+    addCte(programStage, item, cteDefinition, offset, isRowContext, hasNonNvFilter(item));
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   * @param hasFilter Whether the query item has a filter requiring non-null CTE values
+   */
+  public void addCte(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter) {
     String key = computeKey(item);
     if (cteDefinitions.containsKey(key)) {
       cteDefinitions.get(key).getOffsets().add(offset);
     } else {
       var cteDef =
           new CteDefinition(
-              programStage.getUid(), item.getItemId(), cteDefinition, offset, isRowContext);
+              programStage.getUid(),
+              item.getItemId(),
+              cteDefinition,
+              offset,
+              isRowContext,
+              hasFilter);
       cteDefinitions.put(key, cteDef);
     }
   }
@@ -299,6 +325,30 @@ public class CteContext {
    */
   private boolean useKeyAsAlias(CteDefinition definition) {
     return definition.isProgramStage() || definition.isProgramIndicator() || definition.isFilter();
+  }
+
+  /**
+   * Checks if the item has filters that are not NV-only. NV (null value) filters require special
+   * handling - they should NOT be pushed into the CTE and should NOT trigger INNER JOIN
+   * optimization, because the semantics require checking if the most recent event's value is null,
+   * not finding events with null values.
+   *
+   * @param item the query item
+   * @return true if the item has filters with non-NV values
+   */
+  private boolean hasNonNvFilter(QueryItem item) {
+    if (!item.hasFilter()) {
+      return false;
+    }
+    // Check if any filter has non-NV values
+    return item.getFilters().stream()
+        .anyMatch(
+            filter -> {
+              List<String> filterItems =
+                  org.hisp.dhis.common.QueryFilter.getFilterItems(filter.getFilter());
+              // Return true if there's at least one non-NV value
+              return filterItems.stream().anyMatch(v -> !NV.equals(v));
+            });
   }
 
   public Set<String> getCteKeys() {

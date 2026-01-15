@@ -31,6 +31,7 @@ package org.hisp.dhis.program.notification.template.snapshot;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hisp.dhis.common.IdentifiableObjectSnapshot;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

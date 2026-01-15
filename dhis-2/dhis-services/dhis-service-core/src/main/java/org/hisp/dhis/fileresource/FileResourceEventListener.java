@@ -35,12 +35,10 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.hisp.dhis.user.AuthenticationService;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
@@ -58,8 +56,6 @@ public class FileResourceEventListener {
   private final FileResourceService fileResourceService;
 
   private final FileResourceContentStore fileResourceContentStore;
-
-  private final AuthenticationService authenticationService;
 
   private final ImageProcessingService imageProcessingService;
 
@@ -91,7 +87,7 @@ public class FileResourceEventListener {
    */
   @Async
   @TransactionalEventListener
-  public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) throws NotFoundException {
+  public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) {
     DateTime startTime = DateTime.now();
 
     FileResource fileResource =
@@ -106,22 +102,8 @@ public class FileResourceEventListener {
 
     Map<ImageFileDimension, File> imageFiles =
         imageProcessingService.createImages(fileResource, imageFileSavedEvent.file());
-
     String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, imageFiles);
-
-    if (storageId != null) {
-      fileResource.setHasMultipleStorageFiles(true);
-
-      try {
-        authenticationService.obtainAuthentication(imageFileSavedEvent.user().getValue());
-        fileResourceService.updateFileResource(fileResource);
-      } finally {
-        authenticationService.clearAuthentication();
-      }
-    }
-
     Period timeDiff = new Period(startTime, DateTime.now());
-
     logMessage(storageId, fileResource, timeDiff);
   }
 

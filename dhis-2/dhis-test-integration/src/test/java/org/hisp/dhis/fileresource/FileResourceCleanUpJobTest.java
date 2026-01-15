@@ -35,7 +35,6 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 import static org.hisp.dhis.fileresource.FileResourceDomain.JOB_DATA;
 import static org.hisp.dhis.fileresource.FileResourceDomain.MESSAGE_ATTACHMENT;
 import static org.hisp.dhis.fileresource.FileResourceDomain.ORG_UNIT;
-import static org.hisp.dhis.fileresource.FileResourceDomain.PUSH_ANALYSIS;
 import static org.hisp.dhis.fileresource.FileResourceDomain.USER_AVATAR;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -81,9 +80,6 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
       FileResource fr9 = createFileResource('i', MESSAGE_ATTACHMENT, false, "fr9".getBytes());
       FileResource fr10 = createFileResource('j', MESSAGE_ATTACHMENT, true, "fr10".getBytes());
 
-      FileResource fr11 = createFileResource('k', PUSH_ANALYSIS, false, "fr11".getBytes());
-      FileResource fr12 = createFileResource('l', PUSH_ANALYSIS, true, "fr12".getBytes());
-
       FileResource fr13 = createFileResource('m', JOB_DATA, false, "fr13".getBytes());
       FileResource fr14 = createFileResource('n', JOB_DATA, true, "fr14".getBytes());
 
@@ -109,12 +105,9 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
       assertNotNull(fileResourceStore.getByUid(fr14.getUid()));
       assertNotNull(fileResourceStore.getByUid(fr16.getUid()));
 
-      // and domains not to be deleted (MESSAGE_ATTACHMENT, PUSH_ANALYSIS) still exist whether
-      // assigned or not
+      // and domains not to be deleted (MESSAGE_ATTACHMENT) still exist whether assigned or not
       assertNotNull(fileResourceStore.getByUid(fr9.getUid()));
       assertNotNull(fileResourceStore.getByUid(fr10.getUid()));
-      assertNotNull(fileResourceStore.getByUid(fr11.getUid()));
-      assertNotNull(fileResourceStore.getByUid(fr12.getUid()));
     }
   }
 

@@ -40,6 +40,8 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
@@ -61,6 +63,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class PeriodTypeController {
   private final FieldFilterService fieldFilterService;
 
+  private final I18nManager i18nManager;
+
   @OpenApi.Response(
       status = Status.OK,
       object = {
@@ -70,9 +74,11 @@ public class PeriodTypeController {
   @GetMapping
   public ResponseEntity<JsonRoot> getPeriodTypes(
       @RequestParam(defaultValue = "*") List<String> fields) {
+    I18n i18n = i18nManager.getI18n();
+
     var periodTypes =
         org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes().stream()
-            .map(PeriodType::new)
+            .map(periodType -> new org.hisp.dhis.webapi.webdomain.PeriodType(periodType, i18n))
             .collect(Collectors.toList());
 
     var params = FieldFilterParams.of(periodTypes, fields);

@@ -57,7 +57,6 @@ import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
@@ -88,7 +87,6 @@ public enum JobType {
   SEND_SCHEDULED_MESSAGE(),
   PROGRAM_NOTIFICATIONS(),
   MONITORING(MonitoringJobParameters.class),
-  PUSH_ANALYSIS(PushAnalysisJobParameters.class),
   HTML_PUSH_ANALYTICS(HtmlPushAnalyticsJobParameters.class),
   TRACKER_TRIGRAM_INDEX_MAINTENANCE(TrackerTrigramIndexJobParameters.class),
   PREDICTOR(PredictorJobParameters.class),
@@ -226,7 +224,6 @@ public enum JobType {
         || this == DATA_SYNC
         || this == SINGLE_EVENT_DATA_SYNC
         || this == SMS_SEND
-        || this == PUSH_ANALYSIS
         || this == PREDICTOR
         || this == DATAVALUE_IMPORT
         || this == COMPLETE_DATA_SET_REGISTRATION_IMPORT
@@ -287,7 +284,6 @@ public enum JobType {
           Map.of(
               "relativePeriods", "/api/periodTypes/relativePeriodTypes",
               "validationRuleGroups", "/api/validationRuleGroups");
-      case PUSH_ANALYSIS -> Map.of("pushAnalysis", "/api/pushAnalysis");
       case PREDICTOR ->
           Map.of(
               "predictors", "/api/predictors",

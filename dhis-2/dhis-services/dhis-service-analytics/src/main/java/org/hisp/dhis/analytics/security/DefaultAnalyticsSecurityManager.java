@@ -321,7 +321,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     // Check if request already has organisation units specified
     // ---------------------------------------------------------------------
 
-    if (params.hasDimensionOrFilterWithItems(ORGUNIT_DIM_ID)) {
+    if (params.hasOrganisationUnits()) {
       return;
     }
 

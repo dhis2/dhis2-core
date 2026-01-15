@@ -106,8 +106,7 @@ class FileResourceServiceTest {
   @Test
   void verifySaveFile() {
     FileResource fileResource =
-        new FileResource(
-            "mycat.pdf", "application/pdf", 1000, "md5", FileResourceDomain.PUSH_ANALYSIS);
+        new FileResource("mycat.pdf", "application/pdf", 1000, "md5", FileResourceDomain.DOCUMENT);
 
     fileResource.setUid("fileRes1");
 

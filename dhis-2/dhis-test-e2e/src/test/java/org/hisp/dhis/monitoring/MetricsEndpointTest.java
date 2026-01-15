@@ -51,7 +51,7 @@ public class MetricsEndpointTest extends ApiTest {
   }
 
   @Test
-  public void shouldAccessMetricsAndReturnPrometheusFormat() {
+  public void shouldExposeJdbcConnectionMetrics() {
     loginActions.loginAsSuperUser();
 
     ApiResponse response = metricsActions.get("", "text/plain", "text/plain", null);
@@ -60,6 +60,14 @@ public class MetricsEndpointTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body(containsString("# HELP"))
-        .body(containsString("# TYPE"));
+        .body(containsString("# TYPE"))
+        // Backwards compatible metric (also available with C3P0)
+        .body(containsString("jdbc_connections_max{pool=\"actual\"}"))
+        // Counter metric
+        .body(containsString("jdbc_connections_timeout_total{pool=\"actual\"}"))
+        // HikariCP histogram bucket metrics with max bucket from PrometheusMonitoringConfig
+        .body(containsString("jdbc_connections_acquire_seconds_bucket{pool=\"actual\",le=\"0.1\""))
+        .body(containsString("jdbc_connections_creation_seconds_bucket{pool=\"actual\",le=\"0.5\""))
+        .body(containsString("jdbc_connections_usage_seconds_bucket{pool=\"actual\",le=\"10.0\""));
   }
 }

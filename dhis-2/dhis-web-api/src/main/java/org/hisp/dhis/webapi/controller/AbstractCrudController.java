@@ -98,7 +98,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -141,6 +140,8 @@ public abstract class AbstractCrudController<
   @Qualifier("xmlMapper")
   protected ObjectMapper xmlMapper;
 
+  @Autowired protected ObjectMapper jsonMapper;
+
   @Autowired protected UserService userService;
 
   @Autowired protected SharingService sharingService;
@@ -165,8 +166,6 @@ public abstract class AbstractCrudController<
    * removed.
    */
   @Beta
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(JsonPatch.class)
   @ResponseBody
   @PatchMapping(path = "/{uid}", consumes = "application/json-patch+json")
@@ -238,8 +237,6 @@ public abstract class AbstractCrudController<
     return patchedObject;
   }
 
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(BulkJsonPatch.class)
   @ResponseBody
   @PatchMapping(
