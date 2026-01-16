@@ -32,13 +32,17 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.tracker.export.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.MapperGeoUtils.resolveGeometry;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +51,22 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -97,7 +106,7 @@ class JdbcTrackedEntityStore {
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-  public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
+  public List<TrackedEntity> getTrackedEntities(TrackedEntityQueryParams params) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -111,15 +120,17 @@ class JdbcTrackedEntityStore {
     String sql = getQuery(params, null, sqlParameters);
     SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
 
-    List<TrackedEntityIdentifiers> ids = new ArrayList<>();
+    // Use LinkedHashMap to deduplicate by trackedentityid while preserving order.
+    // Duplicates can occur when ordering by enrollment date and a TE has multiple enrollments.
+    Map<Long, TrackedEntity> result = new LinkedHashMap<>();
     while (rowSet.next()) {
-      ids.add(
-          new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
+      TrackedEntity te = mapRowToTrackedEntity(rowSet, params.hasEnrolledInTrackerProgram());
+      result.putIfAbsent(te.getId(), te);
     }
-    return ids;
+    return new ArrayList<>(result.values());
   }
 
-  public Page<TrackedEntityIdentifiers> getTrackedEntityIds(
+  public Page<TrackedEntity> getTrackedEntities(
       TrackedEntityQueryParams params, PageParams pageParams) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
@@ -134,13 +145,77 @@ class JdbcTrackedEntityStore {
     String sql = getQuery(params, pageParams, sqlParameters);
     SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
 
-    List<TrackedEntityIdentifiers> ids = new ArrayList<>();
+    // Use LinkedHashMap to deduplicate by trackedentityid while preserving order.
+    // Duplicates can occur when ordering by enrollment date and a TE has multiple enrollments.
+    Map<Long, TrackedEntity> result = new LinkedHashMap<>();
     while (rowSet.next()) {
-      ids.add(
-          new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
+      TrackedEntity te = mapRowToTrackedEntity(rowSet, params.hasEnrolledInTrackerProgram());
+      result.putIfAbsent(te.getId(), te);
     }
 
-    return new Page<>(ids, pageParams, () -> getTrackedEntityCount(params));
+    return new Page<>(
+        new ArrayList<>(result.values()), pageParams, () -> getTrackedEntityCount(params));
+  }
+
+  private TrackedEntity mapRowToTrackedEntity(SqlRowSet rs, boolean hasProgramOwner) {
+    TrackedEntity te = new TrackedEntity();
+    te.setId(rs.getLong("trackedentityid"));
+    te.setUid(rs.getString("uid"));
+    te.setCreated(rs.getTimestamp("created"));
+    te.setLastUpdated(rs.getTimestamp("lastupdated"));
+    te.setCreatedAtClient(rs.getTimestamp("createdatclient"));
+    te.setLastUpdatedAtClient(rs.getTimestamp("lastupdatedatclient"));
+    te.setInactive(rs.getBoolean("inactive"));
+    te.setPotentialDuplicate(rs.getBoolean("potentialduplicate"));
+    te.setDeleted(rs.getBoolean("deleted"));
+    te.setCreatedByUserInfo(jsonToUserInfo(rs.getString("createdbyuserinfo")));
+    te.setLastUpdatedByUserInfo(jsonToUserInfo(rs.getString("lastupdatedbyuserinfo")));
+    te.setGeometry(resolveGeometry((byte[]) rs.getObject("geometry")));
+
+    // Tracked entity type
+    TrackedEntityType tet = new TrackedEntityType();
+    tet.setId(rs.getLong("tet_id"));
+    tet.setUid(rs.getString("tet_uid"));
+    tet.setCode(rs.getString("tet_code"));
+    tet.setName(rs.getString("tet_name"));
+    String tetAttrValues = rs.getString("tet_attributevalues");
+    if (tetAttrValues != null) {
+      tet.setAttributeValues(AttributeValues.of(tetAttrValues));
+    }
+    tet.setAllowAuditLog(rs.getBoolean("tet_allowauditlog"));
+    tet.setEnableChangeLog(rs.getBoolean("tet_enablechangelog"));
+    te.setTrackedEntityType(tet);
+
+    // TE's registering org unit
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(rs.getString("te_ou_uid"));
+    orgUnit.setCode(rs.getString("te_ou_code"));
+    orgUnit.setName(rs.getString("te_ou_name"));
+    orgUnit.setPath(rs.getString("te_ou_path"));
+    String orgUnitAttrValues = rs.getString("te_ou_attributevalues");
+    if (orgUnitAttrValues != null) {
+      orgUnit.setAttributeValues(AttributeValues.of(orgUnitAttrValues));
+    }
+    te.setOrganisationUnit(orgUnit);
+
+    // Program owner (only available when querying with a specific program)
+    if (hasProgramOwner) {
+      String ownerOrgUnitUid = rs.getString(PROGRAM_OWNER_OU_UID);
+      String ownerProgramUid = rs.getString(PROGRAM_OWNER_PRG_UID);
+      if (ownerOrgUnitUid != null && ownerProgramUid != null) {
+        TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
+        programOwner.setTrackedEntity(te);
+        Program program = new Program();
+        program.setUid(ownerProgramUid);
+        programOwner.setProgram(program);
+        OrganisationUnit ownerOrgUnit = new OrganisationUnit();
+        ownerOrgUnit.setUid(ownerOrgUnitUid);
+        programOwner.setOrganisationUnit(ownerOrgUnit);
+        te.setProgramOwners(new HashSet<>(Set.of(programOwner)));
+      }
+    }
+
+    return te;
   }
 
   private void validateMaxTeLimit(TrackedEntityQueryParams params) {
@@ -272,10 +347,14 @@ class JdbcTrackedEntityStore {
     return sql.toString();
   }
 
+  private static final String PROGRAM_OWNER_OU_UID = "po_ou_uid";
+  private static final String PROGRAM_OWNER_PRG_UID = "po_prg_uid";
+
   private void addSelect(StringBuilder sql, TrackedEntityQueryParams params) {
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
+                // TE core fields
                 "te.trackedentityid",
                 "te.uid",
                 "te.created",
@@ -285,7 +364,26 @@ class JdbcTrackedEntityStore {
                 "te.inactive",
                 "te.potentialduplicate",
                 "te.deleted",
-                "te.trackedentitytypeid"));
+                "te.createdbyuserinfo",
+                "te.lastupdatedbyuserinfo",
+                "te.geometry",
+                // Tracked entity type fields
+                "te.tet_id",
+                "te.tet_uid",
+                "te.tet_code",
+                "te.tet_name",
+                "te.tet_attributevalues",
+                "te.tet_allowauditlog",
+                "te.tet_enablechangelog",
+                // TE's registering org unit fields
+                "te.te_ou_uid",
+                "te.te_ou_code",
+                "te.te_ou_name",
+                "te.te_ou_path",
+                "te.te_ou_attributevalues",
+                // Program owner fields
+                PROGRAM_OWNER_OU_UID,
+                PROGRAM_OWNER_PRG_UID));
 
     // all orderable fields are already in the select. Only when ordering by enrollment date do we
     // need to add a column, so we can order by it
@@ -319,6 +417,10 @@ class JdbcTrackedEntityStore {
     sql.append(" ");
     addJoinOnOrgUnit(sql, sqlParameters, params);
     sql.append(" ");
+    // Join on TE's registering org unit (different from ou which is owner's org unit for ACL)
+    sql.append("join organisationunit te_ou on te.organisationunitid = te_ou.organisationunitid ");
+    // Join on tracked entity type for type details
+    sql.append("join trackedentitytype tet on te.trackedentitytypeid = tet.trackedentitytypeid ");
     addJoinOnEnrollment(sql, sqlParameters, params);
     sql.append(" ");
     addJoinOnAttributes(sql, params);
@@ -350,8 +452,8 @@ class JdbcTrackedEntityStore {
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
+                // TE core fields
                 "te.trackedentityid as trackedentityid",
-                "te.trackedentitytypeid as trackedentitytypeid",
                 "te.uid as uid",
                 "te.created as created",
                 "te.lastupdated as lastupdated",
@@ -359,7 +461,24 @@ class JdbcTrackedEntityStore {
                 "te.lastupdatedatclient as lastupdatedatclient",
                 "te.inactive as inactive",
                 "te.potentialduplicate as potentialduplicate",
-                "te.deleted as deleted"));
+                "te.deleted as deleted",
+                "te.createdbyuserinfo as createdbyuserinfo",
+                "te.lastupdatedbyuserinfo as lastupdatedbyuserinfo",
+                "ST_AsBinary(te.geometry) as geometry",
+                // Tracked entity type fields
+                "tet.trackedentitytypeid as tet_id",
+                "tet.uid as tet_uid",
+                "tet.code as tet_code",
+                "tet.name as tet_name",
+                "tet.attributevalues as tet_attributevalues",
+                "tet.allowauditlog as tet_allowauditlog",
+                "tet.enableChangeLog as tet_enablechangelog",
+                // TE's registering org unit fields (different from owner's org unit)
+                "te_ou.uid as te_ou_uid",
+                "te_ou.code as te_ou_code",
+                "te_ou.name as te_ou_name",
+                "te_ou.path as te_ou_path",
+                "te_ou.attributevalues as te_ou_attributevalues"));
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -383,6 +502,16 @@ class JdbcTrackedEntityStore {
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
+    }
+
+    // Program owner data is available when querying with a specific program. The ou and p tables
+    // are already joined for access control. When not querying by program, these will be null.
+    if (params.hasEnrolledInTrackerProgram()) {
+      columns.add("ou.uid as " + PROGRAM_OWNER_OU_UID);
+      columns.add("p.uid as " + PROGRAM_OWNER_PRG_UID);
+    } else {
+      columns.add("null as " + PROGRAM_OWNER_OU_UID);
+      columns.add("null as " + PROGRAM_OWNER_PRG_UID);
     }
 
     sql.append("select distinct ");
