@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -96,7 +95,6 @@ class JdbcTrackedEntityStore {
 
   private final SystemSettingsProvider settingsProvider;
 
-  @Qualifier("readOnlyNamedParameterJdbcTemplate")
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
