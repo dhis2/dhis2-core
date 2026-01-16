@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 @Slf4j
@@ -41,14 +41,14 @@ public class EventUtils {
     throw new UnsupportedOperationException("Utility class");
   }
 
-  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
-    try {
-      if (StringUtils.isNotEmpty(userInfoAsString)) {
-        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
-      }
+  public static UserInfoSnapshot jsonToUserInfo(String jsonUserInfo) {
+    if (StringUtils.isEmpty(jsonUserInfo)) {
       return null;
+    }
+    try {
+      return JsonBinaryType.MAPPER.readValue(jsonUserInfo, UserInfoSnapshot.class);
     } catch (IOException e) {
-      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
+      log.error("Parsing UserInfoSnapshot json string failed. String value: {}", jsonUserInfo);
       throw new IllegalArgumentException(e);
     }
   }

@@ -32,10 +32,11 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.tracker.export.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.MapperGeoUtils.resolveGeometry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
 import java.io.IOException;
@@ -78,17 +79,12 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.export.EventUtils;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -202,9 +198,6 @@ class JdbcSingleEventStore {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  @Qualifier("dataValueJsonMapper")
-  private final ObjectMapper jsonMapper;
-
   public List<SingleEvent> getEvents(SingleEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
@@ -316,27 +309,17 @@ class JdbcSingleEventStore {
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
               event.setCreatedByUserInfo(
-                  EventUtils.jsonToUserInfo(
-                      resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
+                  jsonToUserInfo(resultSet.getString(COLUMN_EVENT_CREATED_BY)));
               event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
               event.setLastUpdatedAtClient(
                   resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
               event.setLastUpdatedByUserInfo(
-                  EventUtils.jsonToUserInfo(
-                      resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
+                  jsonToUserInfo(resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY)));
 
               event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
               event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
 
-              if (resultSet.getObject("ev_geometry") != null) {
-                try {
-                  Geometry geom = new WKTReader().read(resultSet.getString("ev_geometry"));
-
-                  event.setGeometry(geom);
-                } catch (ParseException e) {
-                  log.error("Unable to read geometry for event: '{}'", event.getUid(), e);
-                }
-              }
+              event.setGeometry(resolveGeometry(resultSet.getBytes("ev_geometry")));
 
               if (resultSet.getObject("user_assigned") != null) {
                 User eventUser = new User();
@@ -445,16 +428,14 @@ class JdbcSingleEventStore {
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {
       eventDataValue.setCreatedByUserInfo(
-          EventUtils.jsonToUserInfo(
-              dataValueJson.getObject("createdByUserInfo").toJson(), jsonMapper));
+          jsonToUserInfo(dataValueJson.getObject("createdByUserInfo").toJson()));
     }
 
     eventDataValue.setLastUpdated(
         DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
     if (dataValueJson.has("lastUpdatedByUserInfo")) {
       eventDataValue.setLastUpdatedByUserInfo(
-          EventUtils.jsonToUserInfo(
-              dataValueJson.getObject("lastUpdatedByUserInfo").toJson(), jsonMapper));
+          jsonToUserInfo(dataValueJson.getObject("lastUpdatedByUserInfo").toJson()));
     }
 
     return eventDataValue;
@@ -633,7 +614,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(", ev.deleted as ")
             .append(COLUMN_EVENT_DELETED)
             .append(
-                ", ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName"
+                ", ST_AsBinary(ev.geometry) as ev_geometry, au.uid as user_assigned, (au.firstName"
                     + " || ' ' || au.surName) as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
             .append(",")

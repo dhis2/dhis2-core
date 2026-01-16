@@ -40,8 +40,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.stereotype.Component;
 
@@ -57,19 +57,19 @@ class EnrollmentAggregate {
   /**
    * Key: te uid , value Enrollment
    *
-   * @param ids a List of {@see TrackedEntity} Primary Keys
+   * @param trackedEntities a List of {@see TrackedEntity}
    * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
    *     Enrollment} objects
    */
   Multimap<String, Enrollment> findByTrackedEntityIds(
-      List<TrackedEntityIdentifiers> ids, Context ctx) {
+      List<TrackedEntity> trackedEntities, Context ctx) {
     Multimap<String, Enrollment> result = ArrayListMultimap.create();
     try {
       // Set up security context on this async thread using UserDetails from HTTP thread
       authenticationService.obtainAuthentication(ctx.userDetails());
 
       Set<UID> trackedEntityUids =
-          ids.stream().map(id -> UID.of(id.uid())).collect(Collectors.toSet());
+          trackedEntities.stream().map(te -> UID.of(te.getUid())).collect(Collectors.toSet());
       EnrollmentOperationParams params =
           EnrollmentOperationParams.builder()
               .fields(ctx.fields().getEnrollmentFields())

@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.JsonbToObjectHelper.setUserInfoSnapshot;
+import static org.hisp.dhis.tracker.export.EventUtils.jsonToUserInfo;
+import static org.hisp.dhis.tracker.export.MapperGeoUtils.resolveGeometry;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -82,21 +83,19 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
 
     te.setCreated(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.CREATED)));
     te.setCreatedAtClient(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.CREATEDCLIENT)));
-    setUserInfoSnapshot(
-        rs, TrackedEntityQuery.getColumnName(COLUMNS.CREATED_BY), te::setCreatedByUserInfo);
+    te.setCreatedByUserInfo(
+        jsonToUserInfo(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.CREATED_BY))));
     te.setLastUpdated(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.UPDATED)));
     te.setLastUpdatedAtClient(
         rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.UPDATEDCLIENT)));
-    setUserInfoSnapshot(
-        rs,
-        TrackedEntityQuery.getColumnName(COLUMNS.LAST_UPDATED_BY),
-        te::setLastUpdatedByUserInfo);
+    te.setLastUpdatedByUserInfo(
+        jsonToUserInfo(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.LAST_UPDATED_BY))));
     te.setInactive(rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.INACTIVE)));
     te.setDeleted(rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.DELETED)));
     te.setPotentialDuplicate(
         rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.POTENTIALDUPLICATE)));
-    MapperGeoUtils.resolveGeometry(rs.getBytes(TrackedEntityQuery.getColumnName(COLUMNS.GEOMETRY)))
-        .ifPresent(te::setGeometry);
+    te.setGeometry(
+        resolveGeometry(rs.getBytes(TrackedEntityQuery.getColumnName(COLUMNS.GEOMETRY))));
 
     return te;
   }
