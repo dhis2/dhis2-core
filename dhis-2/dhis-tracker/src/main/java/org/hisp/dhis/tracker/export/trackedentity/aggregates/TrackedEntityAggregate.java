@@ -107,7 +107,7 @@ public class TrackedEntityAggregate {
     // Wait for all async fetches to complete
     allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
 
-    // Merge results on the HTTP thread (futures are complete, .join() is instant)
+    // Merge results on the HTTP thread (futures are complete)
     Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
     Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
     Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
