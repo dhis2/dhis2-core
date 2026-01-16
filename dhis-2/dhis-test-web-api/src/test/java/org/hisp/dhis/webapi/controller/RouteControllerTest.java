@@ -699,13 +699,14 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void testRunRouteWhenUserAuthorityDoesNotHaveRouteAuthority() throws JsonProcessingException {
+  void testRunRouteWhenUserIsNotRouteOwner() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("url", "https://stub");
-    route.put("authorities", List.of("F_TEST"));
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
     HttpResponse runRouteHttpResponse =
         GET(
             "/routes/"
@@ -716,13 +717,34 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void testRunRouteWhenUserAuthorityHasRouteAuthority() throws JsonProcessingException {
+  void testRunRouteWhenUserIsNotOwnerAndDoesNotHaveRouteAuthority() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("url", "https://stub");
-    route.put("authorities", List.of("ALL"));
+    route.put("authorities", List.of("F_TEST"));
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotOwnerButHasRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser("F_TEST"));
     MvcResult mvcResult =
         webRequestWithAsyncMvcResult(
             buildMockRequest(
