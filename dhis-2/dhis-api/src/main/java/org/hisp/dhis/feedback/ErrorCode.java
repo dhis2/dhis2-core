@@ -92,7 +92,7 @@ public enum ErrorCode {
       "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
   E1133("CategoryCombo must be provided for Category option combo {0}"),
   E1134(
-      "Only fields [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
   E1135("CategoryCombo cannot be updated for Category option combo {0}"),
   E1136("CategoryOptions cannot be updated for Category option combo {0}"),
 

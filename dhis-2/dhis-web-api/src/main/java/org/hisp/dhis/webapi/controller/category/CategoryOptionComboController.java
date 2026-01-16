@@ -122,13 +122,13 @@ public class CategoryOptionComboController
   }
 
   /**
-   * @implNote {@link CategoryOptionCombo} needs a very specific update implementation. Only 3
-   *     fields are updatable through the PUT endpoint: <br>
-   *     - attributeValues <br>
-   *     - code <br>
-   *     - ignoreApproval <br>
-   *     Metadata import endpoint has very different behaviour for importing {@link
-   *     CategoryOptionCombo}s and is not suitable for individual updates.
+   * {@link CategoryOptionCombo} needs a very specific update implementation. Only 3 fields are
+   * updatable through the PUT endpoint: <br>
+   * - attributeValues <br>
+   * - code <br>
+   * - ignoreApproval <br>
+   * Metadata import endpoint has very different behaviour for importing {@link
+   * CategoryOptionCombo}s and is not suitable for individual updates.
    */
   @Override
   public WebMessage putJsonObject(String pvUid, UserDetails currentUser, HttpServletRequest request)
@@ -143,13 +143,13 @@ public class CategoryOptionComboController
   }
 
   /**
-   * @implNote {@link CategoryOptionCombo} needs a very specific update implementation. Only 3
-   *     fields are updatable through the PATCH endpoint: <br>
-   *     - attributeValues <br>
-   *     - code <br>
-   *     - ignoreApproval <br>
-   *     Metadata import has very different behaviour for importing {@link CategoryOptionCombo}s and
-   *     is not suitable for individual updates.
+   * {@link CategoryOptionCombo} needs a very specific update implementation. Only 3 fields are
+   * updatable through the PATCH endpoint: <br>
+   * - attributeValues <br>
+   * - code <br>
+   * - ignoreApproval <br>
+   * Metadata import has very different behaviour for importing {@link CategoryOptionCombo}s and is
+   * not suitable for individual updates.
    */
   @Override
   public WebMessage patchObject(

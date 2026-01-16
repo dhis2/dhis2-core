@@ -32,6 +32,11 @@ package org.hisp.dhis.category;
 import org.hisp.dhis.feedback.ConflictException;
 
 public interface CategoryOptionComboService {
+
+  /**
+   * Updates the CategoryOptionCombo with the given values from the provided DTO. The DTO uses a
+   * Boolean type for 'ignoreApproval' to prevent changing from true to false when not provided.
+   */
   void updateCoc(CategoryOptionCombo persisted, CategoryOptionComboUpdateDto cocUpdate)
       throws ConflictException;
 }
