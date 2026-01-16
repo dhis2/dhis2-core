@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 public class DefaultCategoryOptionComboService implements CategoryOptionComboService {
 
   private final IdentifiableObjectManager identifiableObjectManager;
-  
+
   @Override
   public void updateCoc(CategoryOptionCombo persisted, CategoryOptionComboUpdateDto cocUpdate) {
     if (cocUpdate.code() != null) {

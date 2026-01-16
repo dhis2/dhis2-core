@@ -336,7 +336,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     JsonCategoryOptionCombo coc = getCoc(cocUid);
 
     assertNull(coc.getCode());
-    assertEquals(false, coc.getIgnoreApproval());
+    assertFalse(coc.getIgnoreApproval());
 
     // when updating the code and ignoreApproval values
     PUT("/categoryOptionCombos/" + cocUid, cocCodeAndApprovalUpdated("new code xyz", true))
@@ -360,7 +360,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     JsonCategoryOptionCombo coc = getCoc(cocUid);
 
     assertNull(coc.getCode());
-    assertEquals(false, coc.getIgnoreApproval());
+    assertFalse(coc.getIgnoreApproval());
 
     // and the ignoreApproval value is true
     PUT("/categoryOptionCombos/" + cocUid, cocApprovalOnlyUpdated(true))
@@ -368,7 +368,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         .as(JsonWebMessage.class);
 
     JsonCategoryOptionCombo cocUpdated = getCoc(cocUid);
-    assertEquals(true, cocUpdated.getIgnoreApproval());
+    assertTrue(cocUpdated.getIgnoreApproval());
 
     // when updating the code value only
     PUT("/categoryOptionCombos/" + cocUid, cocCodeOnlyUpdated("new code xyz 1"))
@@ -380,7 +380,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     assertEquals("new code xyz 1", updated.getCode());
 
     // and the ignoreApproval field should still be true
-    assertEquals(true, updated.getIgnoreApproval());
+    assertTrue(updated.getIgnoreApproval());
   }
 
   @Test
@@ -393,7 +393,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     JsonCategoryOptionCombo coc = getCoc(cocUid);
 
     assertNull(coc.getCode());
-    assertEquals(false, coc.getIgnoreApproval());
+    assertFalse(coc.getIgnoreApproval());
 
     // and the code value is set
     PUT("/categoryOptionCombos/" + cocUid, cocCodeOnlyUpdated("code set"))
@@ -410,7 +410,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     // then the ignoreApproval value should be updated
     JsonCategoryOptionCombo updated = getCoc(cocUid);
-    assertEquals(true, updated.getIgnoreApproval());
+    assertTrue(updated.getIgnoreApproval());
 
     // and the code value should not have changed
     assertEquals("code set", updated.getCode());
@@ -550,7 +550,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         .content(HttpStatus.OK)
         .as(JsonWebMessage.class);
     JsonCategoryOptionCombo updated = getCoc(cocUid);
-    assertEquals(true, updated.getIgnoreApproval());
+    assertTrue(updated.getIgnoreApproval());
 
     // when sending a PATCH request to replace attributeValues & code
     String avUid = postAttributeValue("Att Val 2z");
@@ -636,7 +636,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     // then the request is rejected
     assertEquals(
-        "Only fields [attributeValues, code, ignoreApproval] are updatable for Category option combo",
+        "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo",
         response.getString("message").string());
     assertEquals("E1134", response.getString("errorCode").string());
 
