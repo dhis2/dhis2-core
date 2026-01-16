@@ -429,132 +429,255 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "10",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Panderu MCHP",
+            "A03MvHHogjR.oucode", "OU_222702"));
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "10");
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.oucode", "OU_222702");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "5",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Afro Arab Clinic",
+            "A03MvHHogjR.oucode", "OU_278371"));
 
-    // Validate selected values for row index 40
-    validateRowValueByName(response, actualHeaders, 40, "value", "8");
-    validateRowValueByName(response, actualHeaders, 40, "A03MvHHogjR.oucode", "OU_543045");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "11",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Air Port Centre, Lungi",
+            "A03MvHHogjR.oucode", "OU_255017"));
 
-    // Validate selected values for row index 80
-    validateRowValueByName(response, actualHeaders, 80, "value", "10");
-    validateRowValueByName(response, actualHeaders, 80, "A03MvHHogjR.oucode", "OU_193275");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "9",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Allen Town Health Post",
+            "A03MvHHogjR.oucode", "OU_278337"));
 
-    // Validate selected values for row index 120
-    validateRowValueByName(response, actualHeaders, 120, "value", "10");
-    validateRowValueByName(response, actualHeaders, 120, "A03MvHHogjR.oucode", "OU_255052");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "8",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Baama CHC",
+            "A03MvHHogjR.oucode", "OU_222681"));
 
-    // Validate selected values for row index 160
-    validateRowValueByName(response, actualHeaders, 160, "value", "8");
-    validateRowValueByName(response, actualHeaders, 160, "A03MvHHogjR.oucode", "OU_260425");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "5",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bai Bureh Memorial Hospital",
+            "A03MvHHogjR.oucode", "OU_255019"));
 
-    // Validate selected values for row index 200
-    validateRowValueByName(response, actualHeaders, 200, "value", "16");
-    validateRowValueByName(response, actualHeaders, 200, "A03MvHHogjR.oucode", "OU_222738");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "10",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bambara MCHP",
+            "A03MvHHogjR.oucode", "OU_222679"));
 
-    // Validate selected values for row index 240
-    validateRowValueByName(response, actualHeaders, 240, "value", "11");
-    validateRowValueByName(response, actualHeaders, 240, "A03MvHHogjR.oucode", "OU_222697");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "16",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bandajuma Yawei CHC",
+            "A03MvHHogjR.oucode", "OU_204938"));
 
-    // Validate selected values for row index 280
-    validateRowValueByName(response, actualHeaders, 280, "value", "8");
-    validateRowValueByName(response, actualHeaders, 280, "A03MvHHogjR.oucode", "OU_222716");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "8",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bangoma MCHP",
+            "A03MvHHogjR.oucode", "OU_543045"));
 
-    // Validate selected values for row index 320
-    validateRowValueByName(response, actualHeaders, 320, "value", "8");
-    validateRowValueByName(response, actualHeaders, 320, "A03MvHHogjR.oucode", "OU_579");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "11",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Barakuya MCHP",
+            "A03MvHHogjR.oucode", "OU_211225"));
 
-    // Validate selected values for row index 360
-    validateRowValueByName(response, actualHeaders, 360, "value", "14");
-    validateRowValueByName(response, actualHeaders, 360, "A03MvHHogjR.oucode", "OU_193290");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "12",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Batkanu CHC",
+            "A03MvHHogjR.oucode", "OU_193303"));
 
-    // Validate selected values for row index 400
-    validateRowValueByName(response, actualHeaders, 400, "value", "6");
-    validateRowValueByName(response, actualHeaders, 400, "A03MvHHogjR.oucode", "OU_247050");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "14",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Benduma MCHP",
+            "A03MvHHogjR.oucode", "OU_602"));
 
-    // Validate selected values for row index 440
-    validateRowValueByName(response, actualHeaders, 440, "value", "10");
-    validateRowValueByName(response, actualHeaders, 440, "A03MvHHogjR.oucode", "OU_255002");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "10",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Blessed Mokaba clinic",
+            "A03MvHHogjR.oucode", "OU_278342"));
 
-    // Validate selected values for row index 480
-    validateRowValueByName(response, actualHeaders, 480, "value", "8");
-    validateRowValueByName(response, actualHeaders, 480, "A03MvHHogjR.oucode", "OU_222698");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "12",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bo Govt. Hosp.",
+            "A03MvHHogjR.oucode", "OU_15"));
 
-    // Validate selected values for row index 520
-    validateRowValueByName(response, actualHeaders, 520, "value", "7");
-    validateRowValueByName(response, actualHeaders, 520, "A03MvHHogjR.oucode", "OU_222732");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "9",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bumpeh River CHP",
+            "A03MvHHogjR.oucode", "OU_247027"));
 
-    // Validate selected values for row index 560
-    validateRowValueByName(response, actualHeaders, 560, "value", "8");
-    validateRowValueByName(response, actualHeaders, 560, "A03MvHHogjR.oucode", "OU_193244");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "12",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Catholic Clinic",
+            "A03MvHHogjR.oucode", "OU_233405"));
 
-    // Validate selected values for row index 600
-    validateRowValueByName(response, actualHeaders, 600, "value", "14");
-    validateRowValueByName(response, actualHeaders, 600, "A03MvHHogjR.oucode", "OU_193253");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "10",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Connaught Hospital",
+            "A03MvHHogjR.oucode", "OU_278320"));
 
-    // Validate selected values for row index 640
-    validateRowValueByName(response, actualHeaders, 640, "value", "7");
-    validateRowValueByName(response, actualHeaders, 640, "A03MvHHogjR.oucode", "OU_193265");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "7",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Dalakuru CHP",
+            "A03MvHHogjR.oucode", "OU_758907"));
 
-    // Validate selected values for row index 680
-    validateRowValueByName(response, actualHeaders, 680, "value", "10");
-    validateRowValueByName(response, actualHeaders, 680, "A03MvHHogjR.oucode", "OU_268159");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "7",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Elshadai Clinic",
+            "A03MvHHogjR.oucode", "OU_1138230"));
 
-    // Validate selected values for row index 720
-    validateRowValueByName(response, actualHeaders, 720, "value", "11");
-    validateRowValueByName(response, actualHeaders, 720, "A03MvHHogjR.oucode", "OU_211267");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "8",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Faabu CHP",
+            "A03MvHHogjR.oucode", "OU_574"));
 
-    // Validate selected values for row index 760
-    validateRowValueByName(response, actualHeaders, 760, "value", "8");
-    validateRowValueByName(response, actualHeaders, 760, "A03MvHHogjR.oucode", "OU_247026");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "14",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Ginger Hall Health Centre",
+            "A03MvHHogjR.oucode", "OU_278361"));
 
-    // Validate selected values for row index 800
-    validateRowValueByName(response, actualHeaders, 800, "value", "14");
-    validateRowValueByName(response, actualHeaders, 800, "A03MvHHogjR.oucode", "OU_849");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "14",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Handicap Clinic",
+            "A03MvHHogjR.oucode", "OU_233385"));
 
-    // Validate selected values for row index 840
-    validateRowValueByName(response, actualHeaders, 840, "value", "6");
-    validateRowValueByName(response, actualHeaders, 840, "A03MvHHogjR.oucode", "OU_233403");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "10",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Jormu CHP",
+            "A03MvHHogjR.oucode", "OU_222708"));
 
-    // Validate selected values for row index 880
-    validateRowValueByName(response, actualHeaders, 880, "value", "12");
-    validateRowValueByName(response, actualHeaders, 880, "A03MvHHogjR.oucode", "OU_268175");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "10",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Koidu Govt. Hospital",
+            "A03MvHHogjR.oucode", "OU_233387"));
 
-    // Validate selected values for row index 920
-    validateRowValueByName(response, actualHeaders, 920, "value", "15");
-    validateRowValueByName(response, actualHeaders, 920, "A03MvHHogjR.oucode", "OU_803066");
-
-    // Validate selected values for row index 960
-    validateRowValueByName(response, actualHeaders, 960, "value", "6");
-    validateRowValueByName(response, actualHeaders, 960, "A03MvHHogjR.oucode", "OU_204860");
-
-    // Validate selected values for row index 1000
-    validateRowValueByName(response, actualHeaders, 1000, "value", "6");
-    validateRowValueByName(response, actualHeaders, 1000, "A03MvHHogjR.oucode", "OU_247069");
-
-    // Validate selected values for row index 1040
-    validateRowValueByName(response, actualHeaders, 1040, "value", "9");
-    validateRowValueByName(response, actualHeaders, 1040, "A03MvHHogjR.oucode", "OU_1050");
-
-    // Validate selected values for row index 1080
-    validateRowValueByName(response, actualHeaders, 1080, "value", "7");
-    validateRowValueByName(response, actualHeaders, 1080, "A03MvHHogjR.oucode", "OU_278403");
-
-    // Validate selected values for row index 1120
-    validateRowValueByName(response, actualHeaders, 1120, "value", "15");
-    validateRowValueByName(response, actualHeaders, 1120, "A03MvHHogjR.oucode", "OU_278397");
-
-    // Validate selected values for row index 1160
-    validateRowValueByName(response, actualHeaders, 1160, "value", "9");
-    validateRowValueByName(response, actualHeaders, 1160, "A03MvHHogjR.oucode", "OU_278400");
-
-    // Validate selected values for row index 1165
-    validateRowValueByName(response, actualHeaders, 1165, "value", "9");
-    validateRowValueByName(response, actualHeaders, 1165, "A03MvHHogjR.oucode", "OU_260382");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "15",
+            "pe", "2022",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Lungi Govt. Hospital, Port Loko",
+            "A03MvHHogjR.oucode", "OU_255010"));
   }
 
   @Test
@@ -575,7 +698,6 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
-
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
@@ -639,112 +761,255 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Adonkia CHP",
+            "A03MvHHogjR.oucode", "OU_651071"));
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.oucode", "OU_651071");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Barakuya MCHP",
+            "A03MvHHogjR.oucode", "OU_211225"));
 
-    // Validate selected values for row index 25
-    validateRowValueByName(response, actualHeaders, 25, "value", "1");
-    validateRowValueByName(response, actualHeaders, 25, "A03MvHHogjR.oucode", "OU_211225");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Bendugu CHC",
+            "A03MvHHogjR.oucode", "OU_268170"));
 
-    // Validate selected values for row index 50
-    validateRowValueByName(response, actualHeaders, 50, "value", "1");
-    validateRowValueByName(response, actualHeaders, 50, "A03MvHHogjR.oucode", "OU_204864");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Delken MCHP",
+            "A03MvHHogjR.oucode", "OU_197399"));
 
-    // Validate selected values for row index 75
-    validateRowValueByName(response, actualHeaders, 75, "value", "1");
-    validateRowValueByName(response, actualHeaders, 75, "A03MvHHogjR.oucode", "OU_1095");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Fulamansa MCHP",
+            "A03MvHHogjR.oucode", "OU_226217"));
 
-    // Validate selected values for row index 100
-    validateRowValueByName(response, actualHeaders, 100, "value", "3");
-    validateRowValueByName(response, actualHeaders, 100, "A03MvHHogjR.oucode", "OU_211217");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Gbalamuya MCHP",
+            "A03MvHHogjR.oucode", "OU_211219"));
 
-    // Validate selected values for row index 125
-    validateRowValueByName(response, actualHeaders, 125, "value", "1");
-    validateRowValueByName(response, actualHeaders, 125, "A03MvHHogjR.oucode", "OU_247016");
+    //    validateRowExists(
+    //            response,
+    //            actualHeaders,
+    //            Map.of(
+    //                    "value", "1",
+    //                    "pe", "202212",
+    //                    "A03MvHHogjR.ou", "ImspTQPwCqd",
+    //                    "A03MvHHogjR.ouname", "Gbonkomaria CHP",
+    //                    "A03MvHHogjR.oucode", "OU_211235"));
 
-    // Validate selected values for row index 150
-    validateRowValueByName(response, actualHeaders, 150, "value", "1");
-    validateRowValueByName(response, actualHeaders, 150, "A03MvHHogjR.oucode", "OU_278370");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Grafton MCHP",
+            "A03MvHHogjR.oucode", "OU_278398"));
 
-    // Validate selected values for row index 175
-    validateRowValueByName(response, actualHeaders, 175, "value", "1");
-    validateRowValueByName(response, actualHeaders, 175, "A03MvHHogjR.oucode", "OU_278353");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Jokibu MCHP",
+            "A03MvHHogjR.oucode", "OU_204926"));
 
-    // Validate selected values for row index 200
-    validateRowValueByName(response, actualHeaders, 200, "value", "1");
-    validateRowValueByName(response, actualHeaders, 200, "A03MvHHogjR.oucode", "OU_255023");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Kagbo MCHP",
+            "A03MvHHogjR.oucode", "OU_193268"));
 
-    // Validate selected values for row index 225
-    validateRowValueByName(response, actualHeaders, 225, "value", "1");
-    validateRowValueByName(response, actualHeaders, 225, "A03MvHHogjR.oucode", "OU_233330");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Kpewama MCHP",
+            "A03MvHHogjR.oucode", "OU_1156"));
 
-    // Validate selected values for row index 250
-    validateRowValueByName(response, actualHeaders, 250, "value", "1");
-    validateRowValueByName(response, actualHeaders, 250, "A03MvHHogjR.oucode", "OU_204858");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Kroo Bay CHC",
+            "A03MvHHogjR.oucode", "OU_278359"));
 
-    // Validate selected values for row index 275
-    validateRowValueByName(response, actualHeaders, 275, "value", "4");
-    validateRowValueByName(response, actualHeaders, 275, "A03MvHHogjR.oucode", "OU_222726");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Levuma Kai MCHP",
+            "A03MvHHogjR.oucode", "OU_247065"));
 
-    // Validate selected values for row index 300
-    validateRowValueByName(response, actualHeaders, 300, "value", "2");
-    validateRowValueByName(response, actualHeaders, 300, "A03MvHHogjR.oucode", "OU_204888");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Mabom CHP",
+            "A03MvHHogjR.oucode", "OU_268162"));
 
-    // Validate selected values for row index 325
-    validateRowValueByName(response, actualHeaders, 325, "value", "2");
-    validateRowValueByName(response, actualHeaders, 325, "A03MvHHogjR.oucode", "OU_278367");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Magbethy MCHP",
+            "A03MvHHogjR.oucode", "OU_211231"));
 
-    // Validate selected values for row index 350
-    validateRowValueByName(response, actualHeaders, 350, "value", "1");
-    validateRowValueByName(response, actualHeaders, 350, "A03MvHHogjR.oucode", "OU_233372");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Makona MCHP",
+            "A03MvHHogjR.oucode", "OU_651066"));
 
-    // Validate selected values for row index 375
-    validateRowValueByName(response, actualHeaders, 375, "value", "3");
-    validateRowValueByName(response, actualHeaders, 375, "A03MvHHogjR.oucode", "OU_211242");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Mamanso Sanka CHP",
+            "A03MvHHogjR.oucode", "OU_268181"));
 
-    // Validate selected values for row index 400
-    validateRowValueByName(response, actualHeaders, 400, "value", "1");
-    validateRowValueByName(response, actualHeaders, 400, "A03MvHHogjR.oucode", "OU_247038");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Mapotolon CHC",
+            "A03MvHHogjR.oucode", "OU_211248"));
 
-    // Validate selected values for row index 425
-    validateRowValueByName(response, actualHeaders, 425, "value", "3");
-    validateRowValueByName(response, actualHeaders, 425, "A03MvHHogjR.oucode", "OU_222705");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Massayeima MCHP",
+            "A03MvHHogjR.oucode", "OU_204934"));
 
-    // Validate selected values for row index 450
-    validateRowValueByName(response, actualHeaders, 450, "value", "1");
-    validateRowValueByName(response, actualHeaders, 450, "A03MvHHogjR.oucode", "OU_255040");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Mattru UBC Hospital",
+            "A03MvHHogjR.oucode", "OU_197392"));
 
-    // Validate selected values for row index 475
-    validateRowValueByName(response, actualHeaders, 475, "value", "2");
-    validateRowValueByName(response, actualHeaders, 475, "A03MvHHogjR.oucode", "OU_254970");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Njala CHP",
+            "A03MvHHogjR.oucode", "OU_233401"));
 
-    // Validate selected values for row index 500
-    validateRowValueByName(response, actualHeaders, 500, "value", "6");
-    validateRowValueByName(response, actualHeaders, 500, "A03MvHHogjR.oucode", "OU_758927");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Pejewa CHC",
+            "A03MvHHogjR.oucode", "OU_204927"));
 
-    // Validate selected values for row index 525
-    validateRowValueByName(response, actualHeaders, 525, "value", "1");
-    validateRowValueByName(response, actualHeaders, 525, "A03MvHHogjR.oucode", "OU_226238");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Royeiben MCHP",
+            "A03MvHHogjR.oucode", "OU_255038"));
 
-    // Validate selected values for row index 550
-    validateRowValueByName(response, actualHeaders, 550, "value", "1");
-    validateRowValueByName(response, actualHeaders, 550, "A03MvHHogjR.oucode", "OU_222742");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Sienga CHP",
+            "A03MvHHogjR.oucode", "OU_204921"));
 
-    // Validate selected values for row index 575
-    validateRowValueByName(response, actualHeaders, 575, "value", "2");
-    validateRowValueByName(response, actualHeaders, 575, "A03MvHHogjR.oucode", "OU_260419");
-
-    // Validate selected values for row index 600
-    validateRowValueByName(response, actualHeaders, 600, "value", "1");
-    validateRowValueByName(response, actualHeaders, 600, "A03MvHHogjR.oucode", "OU_268207");
-
-    // Validate selected values for row index 609
-    validateRowValueByName(response, actualHeaders, 609, "value", "3");
-    validateRowValueByName(response, actualHeaders, 609, "A03MvHHogjR.oucode", "OU_260382");
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "pe", "202212",
+            "A03MvHHogjR.ou", "ImspTQPwCqd",
+            "A03MvHHogjR.ouname", "Zimmi CHC",
+            "A03MvHHogjR.oucode", "OU_260382"));
   }
 
   @Test
