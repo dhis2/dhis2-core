@@ -1105,6 +1105,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       if (matchingEntry != null) {
         sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", matchingEntry.getKey());
         sb.groupBy(matchingEntry.getKey());
+      } else if (filterCte != null && isStageOuNameHeader(headerColumn)) {
+        // Stage ou name uses ev_ouname column from filter CTE
+        String cteCol = filterCte.getAlias() + ".ev_ouname";
+        sb.addColumn(cteCol, "", quotedCol);
+        sb.groupBy(cteCol);
+      } else if (filterCte != null && isStageOuCodeHeader(headerColumn)) {
+        // Stage ou code uses ev_oucode column from filter CTE
+        String cteCol = filterCte.getAlias() + ".ev_oucode";
+        sb.addColumn(cteCol, "", quotedCol);
+        sb.groupBy(cteCol);
+      } else if (filterCte != null && isStageSpecificHeader(headerColumn)) {
+        // Filtered stage items don't have separate CTEs - they use the filter CTE
+        String cteValueCol = filterCte.getAlias() + ".value";
+        sb.addColumn(cteValueCol, "", quotedCol);
+        sb.groupBy(cteValueCol);
       } else {
         sb.addColumn(quotedCol);
         sb.groupBy(quotedCol);
@@ -1126,6 +1141,22 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private boolean isStageEventStatusHeader(String column) {
     String normalized = column.toLowerCase().replace("\"", "");
     return normalized.endsWith(".eventstatus");
+  }
+
+  private boolean isStageOuNameHeader(String column) {
+    String normalized = column.toLowerCase().replace("\"", "");
+    return normalized.endsWith(".ouname");
+  }
+
+  private boolean isStageOuCodeHeader(String column) {
+    String normalized = column.toLowerCase().replace("\"", "");
+    return normalized.endsWith(".oucode");
+  }
+
+  private boolean isStageSpecificHeader(String column) {
+    String normalized = column.replace("\"", "");
+    // Stage-specific headers have format: stageUid.columnName
+    return normalized.contains(".");
   }
 
   private Map<String, CteDefinition> collectCteDefinitions(CteContext cteContext) {
