@@ -93,8 +93,6 @@ public enum ErrorCode {
   E1133("CategoryCombo must be provided for Category option combo {0}"),
   E1134(
       "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
-  E1135("CategoryCombo cannot be updated for Category option combo {0}"),
-  E1136("CategoryOptions cannot be updated for Category option combo {0}"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
