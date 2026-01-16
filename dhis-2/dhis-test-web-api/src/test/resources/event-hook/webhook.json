@@ -1,0 +1,14 @@
+{
+  "id": "bRNvL6NMQXb",
+  "name": "WebhookApiToken",
+  "source": {
+    "path": "metadata",
+    "fields": "id,name"
+  },
+  "targets": [
+    {
+      "type": "webhook",
+      "url": "http://localhost:<PORT>/api/gateway"
+    }
+  ]
+}
