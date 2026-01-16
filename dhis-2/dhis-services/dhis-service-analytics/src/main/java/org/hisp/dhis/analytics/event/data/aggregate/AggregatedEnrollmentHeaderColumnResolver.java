@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.event.data.aggregate;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
@@ -65,14 +65,14 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
    * @param cteContext CTE context with available CTE definitions
    * @param sb select builder to append columns and group-by entries to
    * @param cteDefinitionMap map of header keys to their CTE definitions
-   * @param quote function used to quote column aliases
+   * @param quote operator used to quote column aliases
    */
   public void addHeaderColumns(
       Set<String> headerColumns,
       CteContext cteContext,
       SelectBuilder sb,
       Map<String, CteDefinition> cteDefinitionMap,
-      Function<String, String> quote) {
+      UnaryOperator<String> quote) {
     CteDefinition filterCte = cteContext.getDefinitionByItemUid(LATEST_EVENTS_CTE);
 
     for (String headerColumn : headerColumns) {
