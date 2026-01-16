@@ -536,6 +536,40 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
+  @DisplayName("A PATCH request to update the code to an existing code in system should fail")
+  void patchDuplicateCodeTest() {
+    // given 2 COCs exists
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("patch-valid");
+    String cocUid1 = categoryMetadata.coc1().getUid();
+    String cocUid2 = categoryMetadata.coc2().getUid();
+
+    // and COC2 has its code value set
+    PUT("/categoryOptionCombos/" + cocUid2, cocCodeOnlyUpdated("COC2-code"))
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
+
+    // when sending a PATCH request to update the code for COC1 with COC2's code
+    JsonMixed response =
+        PATCH(
+                "/categoryOptionCombos/" + cocUid1,
+                """
+                  [
+                       {
+                           "op": "replace",
+                           "path": "/code",
+                           "value": "COC2-code"
+                       }
+                   ]
+                  """)
+            .content(HttpStatus.CONFLICT);
+
+    // then an error response is returned
+    assertTrue(
+        response.getString("message").string().contains("Unique index or primary key violation"));
+    assertTrue(response.getString("message").string().contains("categoryoptioncombo"));
+  }
+
+  @Test
   @DisplayName(
       "A valid PATCH request excluding ignoreApproval does not change its value from true to false")
   void patchIgnoreApprovalUnchangedTest() {
