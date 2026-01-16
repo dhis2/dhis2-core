@@ -484,6 +484,26 @@ public class ValidationHelper {
         .body("rowContext." + rowIndex + "." + colIndex + ".valueStatus", equalTo(valueStatus));
   }
 
+  /**
+   * Validates rowContext value status for a specific row and column identified by header name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param rowIndex The 0-based index of the row to validate.
+   * @param headerName The name of the header defining the column to validate.
+   * @param expectedValueStatus The expected valueStatus for the rowContext entry.
+   */
+  public static void validateRowContextByName(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      int rowIndex,
+      String headerName,
+      String expectedValueStatus) {
+    int colIndex = getHeaderIndexByName(actualHeaders, headerName);
+    String jsonPath = String.format("rowContext.%d.%d.valueStatus", rowIndex, colIndex);
+    response.validate().body(jsonPath, equalTo(expectedValueStatus));
+  }
+
   /** Validate/assert that all values of the given row are present in the given response. */
   public static void validateRow(ApiResponse response, int rowIndex, List<String> expectedValues) {
     try {

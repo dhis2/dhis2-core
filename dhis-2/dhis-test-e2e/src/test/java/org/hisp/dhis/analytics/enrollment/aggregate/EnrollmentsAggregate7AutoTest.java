@@ -111,51 +111,50 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "24");
-    validateRowValueByName(
-        response, actualHeaders, 0, "A03MvHHogjR.eventdate", "2022-05-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "24", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-01 00:00:00.0"));
 
-    // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "value", "16");
-    validateRowValueByName(
-        response, actualHeaders, 6, "A03MvHHogjR.eventdate", "2022-05-07 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 6, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 6
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "16", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-07 00:00:00.0"));
 
-    // Validate selected values for row index 12
-    validateRowValueByName(response, actualHeaders, 12, "value", "21");
-    validateRowValueByName(
-        response, actualHeaders, 12, "A03MvHHogjR.eventdate", "2022-05-13 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 12, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 12
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "21", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-13 00:00:00.0"));
 
-    // Validate selected values for row index 18
-    validateRowValueByName(response, actualHeaders, 18, "value", "19");
-    validateRowValueByName(
-        response, actualHeaders, 18, "A03MvHHogjR.eventdate", "2022-05-19 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 18, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 18
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "19", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-19 00:00:00.0"));
 
-    // Validate selected values for row index 24
-    validateRowValueByName(response, actualHeaders, 24, "value", "32");
-    validateRowValueByName(
-        response, actualHeaders, 24, "A03MvHHogjR.eventdate", "2022-05-25 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 24, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 24
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "32", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-25 00:00:00.0"));
 
-    // Validate selected values for row index 30
-    validateRowValueByName(response, actualHeaders, 30, "value", "27");
-    validateRowValueByName(
-        response, actualHeaders, 30, "A03MvHHogjR.eventdate", "2022-05-31 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 30, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 30
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "27", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-31 00:00:00.0"));
   }
 
   @Test
@@ -222,39 +221,36 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "24");
-    validateRowValueByName(
-        response, actualHeaders, 0, "A03MvHHogjR.eventdate", "2022-05-01 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "24", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-01 00:00:00.0"));
 
-    // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "value", "30");
-    validateRowValueByName(
-        response, actualHeaders, 3, "A03MvHHogjR.eventdate", "2022-05-04 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 3, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 3
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "30", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-04 00:00:00.0"));
 
-    // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "value", "16");
-    validateRowValueByName(
-        response, actualHeaders, 6, "A03MvHHogjR.eventdate", "2022-05-07 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 6, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 6
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "16", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-07 00:00:00.0"));
 
-    // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "value", "24");
-    validateRowValueByName(
-        response, actualHeaders, 9, "A03MvHHogjR.eventdate", "2022-05-10 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 9, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 9
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "24", "ou", "ImspTQPwCqd", "A03MvHHogjR.eventdate", "2022-05-10 00:00:00.0"));
   }
 
   @Test
@@ -331,20 +327,24 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
-
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "17");
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.oucode", "OU_211240");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "17",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "Qr41Mw2MSjo",
+            "A03MvHHogjR.ouname",
+            "Senthai MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_211240"));
   }
 
   @Test
@@ -422,262 +422,504 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
+    // rowContext not found or empty in the response, skipping assertions.
 
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "10",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Panderu MCHP",
-            "A03MvHHogjR.oucode", "OU_222702"));
+            "value",
+            "10",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Panderu MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_222702"));
 
+    // Validate row exists with values from original row index 40
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "5",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Afro Arab Clinic",
-            "A03MvHHogjR.oucode", "OU_278371"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Bangoma MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_543045"));
 
+    // Validate row exists with values from original row index 80
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "11",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Air Port Centre, Lungi",
-            "A03MvHHogjR.oucode", "OU_255017"));
+            "value",
+            "10",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Binkolo CHC",
+            "A03MvHHogjR.oucode",
+            "OU_193275"));
 
+    // Validate row exists with values from original row index 120
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "9",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Allen Town Health Post",
-            "A03MvHHogjR.oucode", "OU_278337"));
+            "value",
+            "10",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Bureh MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_255052"));
 
+    // Validate row exists with values from original row index 160
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "8",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Baama CHC",
-            "A03MvHHogjR.oucode", "OU_222681"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Falaba CHP",
+            "A03MvHHogjR.oucode",
+            "OU_260425"));
 
+    // Validate row exists with values from original row index 200
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "5",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bai Bureh Memorial Hospital",
-            "A03MvHHogjR.oucode", "OU_255019"));
+            "value",
+            "16",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Gao MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_222738"));
 
+    // Validate row exists with values from original row index 240
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "10",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bambara MCHP",
-            "A03MvHHogjR.oucode", "OU_222679"));
+            "value",
+            "11",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Gbo-Lambayama 1 MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_222697"));
 
+    // Validate row exists with values from original row index 280
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "16",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bandajuma Yawei CHC",
-            "A03MvHHogjR.oucode", "OU_204938"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Govt. Hosp. Kenema",
+            "A03MvHHogjR.oucode",
+            "OU_222716"));
 
+    // Validate row exists with values from original row index 320
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "8",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bangoma MCHP",
-            "A03MvHHogjR.oucode", "OU_543045"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Jormu MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_579"));
 
+    // Validate row exists with values from original row index 360
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "11",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Barakuya MCHP",
-            "A03MvHHogjR.oucode", "OU_211225"));
+            "value",
+            "14",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Kamawornie CHP",
+            "A03MvHHogjR.oucode",
+            "OU_193290"));
 
+    // Validate row exists with values from original row index 400
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "12",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Batkanu CHC",
-            "A03MvHHogjR.oucode", "OU_193303"));
+            "value",
+            "6",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Kawaya MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_247050"));
 
+    // Validate row exists with values from original row index 440
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "14",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Benduma MCHP",
-            "A03MvHHogjR.oucode", "OU_602"));
+            "value",
+            "10",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Komneh CHP",
+            "A03MvHHogjR.oucode",
+            "OU_255002"));
 
+    // Validate row exists with values from original row index 480
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "10",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Blessed Mokaba clinic",
-            "A03MvHHogjR.oucode", "OU_278342"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Kpetema MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_222698"));
 
+    // Validate row exists with values from original row index 520
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "12",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bo Govt. Hosp.",
-            "A03MvHHogjR.oucode", "OU_15"));
+            "value",
+            "7",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Loppa CHP",
+            "A03MvHHogjR.oucode",
+            "OU_222732"));
 
+    // Validate row exists with values from original row index 560
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "9",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bumpeh River CHP",
-            "A03MvHHogjR.oucode", "OU_247027"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Madina Fullah CHP",
+            "A03MvHHogjR.oucode",
+            "OU_193244"));
 
+    // Validate row exists with values from original row index 600
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "12",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Catholic Clinic",
-            "A03MvHHogjR.oucode", "OU_233405"));
+            "value",
+            "14",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Makarie MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_193253"));
 
+    // Validate row exists with values from original row index 640
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "10",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Connaught Hospital",
-            "A03MvHHogjR.oucode", "OU_278320"));
+            "value",
+            "7",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Mangay Loko MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_193265"));
 
+    // Validate row exists with values from original row index 680
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "7",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Dalakuru CHP",
-            "A03MvHHogjR.oucode", "OU_758907"));
+            "value",
+            "10",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Masanga Leprosy Hospital",
+            "A03MvHHogjR.oucode",
+            "OU_268159"));
 
+    // Validate row exists with values from original row index 720
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "7",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Elshadai Clinic",
-            "A03MvHHogjR.oucode", "OU_1138230"));
+            "value",
+            "11",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Mayakie MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_211267"));
 
+    // Validate row exists with values from original row index 760
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "8",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Faabu CHP",
-            "A03MvHHogjR.oucode", "OU_574"));
+            "value",
+            "8",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Mokaiyegbeh MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_247026"));
 
+    // Validate row exists with values from original row index 800
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "14",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Ginger Hall Health Centre",
-            "A03MvHHogjR.oucode", "OU_278361"));
+            "value",
+            "14",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Nafaya MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_849"));
 
+    // Validate row exists with values from original row index 840
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "14",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Handicap Clinic",
-            "A03MvHHogjR.oucode", "OU_233385"));
+            "value",
+            "6",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Njagbwema CHP",
+            "A03MvHHogjR.oucode",
+            "OU_233403"));
 
+    // Validate row exists with values from original row index 880
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "10",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Jormu CHP",
-            "A03MvHHogjR.oucode", "OU_222708"));
+            "value",
+            "12",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Petifu Line MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_268175"));
 
+    // Validate row exists with values from original row index 920
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "10",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Koidu Govt. Hospital",
-            "A03MvHHogjR.oucode", "OU_233387"));
+            "value",
+            "15",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Roktolon MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_803066"));
 
+    // Validate row exists with values from original row index 960
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "15",
-            "pe", "2022",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Lungi Govt. Hospital, Port Loko",
-            "A03MvHHogjR.oucode", "OU_255010"));
+            "value",
+            "6",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Sandaru CHC",
+            "A03MvHHogjR.oucode",
+            "OU_204860"));
+
+    // Validate row exists with values from original row index 1000
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "6",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Shenge CHC",
+            "A03MvHHogjR.oucode",
+            "OU_247069"));
+
+    // Validate row exists with values from original row index 1040
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "9",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Sumbuya CHC",
+            "A03MvHHogjR.oucode",
+            "OU_1050"));
+
+    // Validate row exists with values from original row index 1080
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "7",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Tombo CHC",
+            "A03MvHHogjR.oucode",
+            "OU_278403"));
+
+    // Validate row exists with values from original row index 1120
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "15",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Waterloo CHC",
+            "A03MvHHogjR.oucode",
+            "OU_278397"));
+
+    // Validate row exists with values from original row index 1160
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "9",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "York CHC",
+            "A03MvHHogjR.oucode",
+            "OU_278400"));
+
+    // Validate row exists with values from original row index 1165
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "9",
+            "pe",
+            "2022",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Zimmi CHC",
+            "A03MvHHogjR.oucode",
+            "OU_260382"));
   }
 
   @Test
@@ -698,6 +940,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
@@ -754,262 +997,424 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
+    // rowContext not found or empty in the response, skipping assertions.
 
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Adonkia CHP",
-            "A03MvHHogjR.oucode", "OU_651071"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Adonkia CHP",
+            "A03MvHHogjR.oucode",
+            "OU_651071"));
 
+    // Validate row exists with values from original row index 25
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Barakuya MCHP",
-            "A03MvHHogjR.oucode", "OU_211225"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Barakuya MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_211225"));
 
+    // Validate row exists with values from original row index 50
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Bendugu CHC",
-            "A03MvHHogjR.oucode", "OU_268170"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Bombohun MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_204864"));
 
+    // Validate row exists with values from original row index 75
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "3",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Delken MCHP",
-            "A03MvHHogjR.oucode", "OU_197399"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Damballa CHC",
+            "A03MvHHogjR.oucode",
+            "OU_1095"));
 
+    // Validate row exists with values from original row index 100
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Fulamansa MCHP",
-            "A03MvHHogjR.oucode", "OU_226217"));
+            "value",
+            "3",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Fodaya MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_211217"));
 
+    // Validate row exists with values from original row index 125
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Gbalamuya MCHP",
-            "A03MvHHogjR.oucode", "OU_211219"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Gbangbatoke CHC",
+            "A03MvHHogjR.oucode",
+            "OU_247016"));
 
-    //    validateRowExists(
-    //            response,
-    //            actualHeaders,
-    //            Map.of(
-    //                    "value", "1",
-    //                    "pe", "202212",
-    //                    "A03MvHHogjR.ou", "ImspTQPwCqd",
-    //                    "A03MvHHogjR.ouname", "Gbonkomaria CHP",
-    //                    "A03MvHHogjR.oucode", "OU_211235"));
-
+    // Validate row exists with values from original row index 150
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Grafton MCHP",
-            "A03MvHHogjR.oucode", "OU_278398"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Goderich MI Room",
+            "A03MvHHogjR.oucode",
+            "OU_278370"));
 
+    // Validate row exists with values from original row index 175
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Jokibu MCHP",
-            "A03MvHHogjR.oucode", "OU_204926"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Jenner Wright Clinic",
+            "A03MvHHogjR.oucode",
+            "OU_278353"));
 
+    // Validate row exists with values from original row index 200
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Kagbo MCHP",
-            "A03MvHHogjR.oucode", "OU_193268"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Kamasondo CHC",
+            "A03MvHHogjR.oucode",
+            "OU_255023"));
 
+    // Validate row exists with values from original row index 225
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Kpewama MCHP",
-            "A03MvHHogjR.oucode", "OU_1156"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Kensay MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_233330"));
 
+    // Validate row exists with values from original row index 250
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Kroo Bay CHC",
-            "A03MvHHogjR.oucode", "OU_278359"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Kono Bendu CHP",
+            "A03MvHHogjR.oucode",
+            "OU_204858"));
 
+    // Validate row exists with values from original row index 275
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Levuma Kai MCHP",
-            "A03MvHHogjR.oucode", "OU_247065"));
+            "value",
+            "4",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Levuma (Kandu Lep) CHC",
+            "A03MvHHogjR.oucode",
+            "OU_222726"));
 
+    // Validate row exists with values from original row index 300
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Mabom CHP",
-            "A03MvHHogjR.oucode", "OU_268162"));
+            "value",
+            "2",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Madopolahun MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_204888"));
 
+    // Validate row exists with values from original row index 325
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Magbethy MCHP",
-            "A03MvHHogjR.oucode", "OU_211231"));
+            "value",
+            "2",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Makonkondey MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_278367"));
 
+    // Validate row exists with values from original row index 350
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "3",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Makona MCHP",
-            "A03MvHHogjR.oucode", "OU_651066"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Mansundu (Sandor) MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_233372"));
 
+    // Validate row exists with values from original row index 375
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Mamanso Sanka CHP",
-            "A03MvHHogjR.oucode", "OU_268181"));
+            "value",
+            "3",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Mathuraneh MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_211242"));
 
+    // Validate row exists with values from original row index 400
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Mapotolon CHC",
-            "A03MvHHogjR.oucode", "OU_211248"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Mogbongisseh MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_247038"));
 
+    // Validate row exists with values from original row index 425
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Massayeima MCHP",
-            "A03MvHHogjR.oucode", "OU_204934"));
+            "value",
+            "3",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Nekabo CHC",
+            "A03MvHHogjR.oucode",
+            "OU_222705"));
 
+    // Validate row exists with values from original row index 450
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "1",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Mattru UBC Hospital",
-            "A03MvHHogjR.oucode", "OU_197392"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Nonkoba CHP",
+            "A03MvHHogjR.oucode",
+            "OU_255040"));
 
+    // Validate row exists with values from original row index 475
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Njala CHP",
-            "A03MvHHogjR.oucode", "OU_233401"));
+            "value",
+            "2",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Rofoindu CHP",
+            "A03MvHHogjR.oucode",
+            "OU_254970"));
 
+    // Validate row exists with values from original row index 500
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Pejewa CHC",
-            "A03MvHHogjR.oucode", "OU_204927"));
+            "value",
+            "6",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Samamaia MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_758927"));
 
+    // Validate row exists with values from original row index 525
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Royeiben MCHP",
-            "A03MvHHogjR.oucode", "OU_255038"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "SLRCS (Koinadugu) Clinic",
+            "A03MvHHogjR.oucode",
+            "OU_226238"));
 
+    // Validate row exists with values from original row index 550
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "2",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Sienga CHP",
-            "A03MvHHogjR.oucode", "OU_204921"));
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Tawahun MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_222742"));
 
+    // Validate row exists with values from original row index 575
     validateRowExists(
         response,
         actualHeaders,
         Map.of(
-            "value", "3",
-            "pe", "202212",
-            "A03MvHHogjR.ou", "ImspTQPwCqd",
-            "A03MvHHogjR.ouname", "Zimmi CHC",
-            "A03MvHHogjR.oucode", "OU_260382"));
+            "value",
+            "2",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Vaama  (kpanga krim) MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_260419"));
+
+    // Validate row exists with values from original row index 600
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Yele CHC",
+            "A03MvHHogjR.oucode",
+            "OU_268207"));
+
+    // Validate row exists with values from original row index 609
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.ouname",
+            "Zimmi CHC",
+            "A03MvHHogjR.oucode",
+            "OU_260382"));
   }
 
   @Test
@@ -1087,55 +1492,168 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "1");
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.oucode", "OU_678892");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Agape CHP",
+            "A03MvHHogjR.oucode",
+            "OU_678892"));
 
-    // Validate selected values for row index 7
-    validateRowValueByName(response, actualHeaders, 7, "value", "1");
-    validateRowValueByName(response, actualHeaders, 7, "A03MvHHogjR.oucode", "OU_619");
+    // Validate row exists with values from original row index 7
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Bum Kaku MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_619"));
 
-    // Validate selected values for row index 14
-    validateRowValueByName(response, actualHeaders, 14, "value", "2");
-    validateRowValueByName(response, actualHeaders, 14, "A03MvHHogjR.oucode", "OU_623");
+    // Validate row exists with values from original row index 14
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "2",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Gbangbalia MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_623"));
 
-    // Validate selected values for row index 21
-    validateRowValueByName(response, actualHeaders, 21, "value", "1");
-    validateRowValueByName(response, actualHeaders, 21, "A03MvHHogjR.oucode", "OU_1023");
+    // Validate row exists with values from original row index 21
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Harvest Time MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_1023"));
 
-    // Validate selected values for row index 28
-    validateRowValueByName(response, actualHeaders, 28, "value", "1");
-    validateRowValueByName(response, actualHeaders, 28, "A03MvHHogjR.oucode", "OU_172176");
+    // Validate row exists with values from original row index 28
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Kindoyal Hospital",
+            "A03MvHHogjR.oucode",
+            "OU_172176"));
 
-    // Validate selected values for row index 35
-    validateRowValueByName(response, actualHeaders, 35, "value", "1");
-    validateRowValueByName(response, actualHeaders, 35, "A03MvHHogjR.oucode", "OU_73733");
+    // Validate row exists with values from original row index 35
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Lyn Maternity MCHP",
+            "A03MvHHogjR.oucode",
+            "OU_73733"));
 
-    // Validate selected values for row index 42
-    validateRowValueByName(response, actualHeaders, 42, "value", "1");
-    validateRowValueByName(response, actualHeaders, 42, "A03MvHHogjR.oucode", "OU_73747");
+    // Validate row exists with values from original row index 42
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Mercy Ship Hospital",
+            "A03MvHHogjR.oucode",
+            "OU_73747"));
 
-    // Validate selected values for row index 49
-    validateRowValueByName(response, actualHeaders, 49, "value", "1");
-    validateRowValueByName(response, actualHeaders, 49, "A03MvHHogjR.oucode", "OU_678887");
+    // Validate row exists with values from original row index 49
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Ngolahun CHC",
+            "A03MvHHogjR.oucode",
+            "OU_678887"));
 
-    // Validate selected values for row index 56
-    validateRowValueByName(response, actualHeaders, 56, "value", "2");
-    validateRowValueByName(response, actualHeaders, 56, "A03MvHHogjR.oucode", "OU_824");
+    // Validate row exists with values from original row index 56
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "2",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Telu CHP",
+            "A03MvHHogjR.oucode",
+            "OU_824"));
 
-    // Validate selected values for row index 63
-    validateRowValueByName(response, actualHeaders, 63, "value", "1");
-    validateRowValueByName(response, actualHeaders, 63, "A03MvHHogjR.oucode", "OU_636");
+    // Validate row exists with values from original row index 63
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "pe",
+            "202212",
+            "A03MvHHogjR.ou",
+            "O6uvpzGd5pu",
+            "A03MvHHogjR.ouname",
+            "Yengema CHP",
+            "A03MvHHogjR.oucode",
+            "OU_636"));
   }
 
   @Test
@@ -1202,57 +1720,92 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "38");
-    validateRowValueByName(
-        response, actualHeaders, 0, "A03MvHHogjR.scheduleddate", "2021-07-01 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 0, "ou", "ImspTQPwCqd");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "38",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-01 12:05:00.0"));
 
-    // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "value", "30");
-    validateRowValueByName(
-        response, actualHeaders, 5, "A03MvHHogjR.scheduleddate", "2021-07-06 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 5, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "30",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-06 12:05:00.0"));
 
-    // Validate selected values for row index 10
-    validateRowValueByName(response, actualHeaders, 10, "value", "31");
-    validateRowValueByName(
-        response, actualHeaders, 10, "A03MvHHogjR.scheduleddate", "2021-07-11 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 10, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 10
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "31",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-11 12:05:00.0"));
 
-    // Validate selected values for row index 15
-    validateRowValueByName(response, actualHeaders, 15, "value", "40");
-    validateRowValueByName(
-        response, actualHeaders, 15, "A03MvHHogjR.scheduleddate", "2021-07-16 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 15, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 15
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "40",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-16 12:05:00.0"));
 
-    // Validate selected values for row index 20
-    validateRowValueByName(response, actualHeaders, 20, "value", "24");
-    validateRowValueByName(
-        response, actualHeaders, 20, "A03MvHHogjR.scheduleddate", "2021-07-21 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 20, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 20
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "24",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-21 12:05:00.0"));
 
-    // Validate selected values for row index 25
-    validateRowValueByName(response, actualHeaders, 25, "value", "42");
-    validateRowValueByName(
-        response, actualHeaders, 25, "A03MvHHogjR.scheduleddate", "2021-07-26 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 25, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 25
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "42",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-26 12:05:00.0"));
 
-    // Validate selected values for row index 29
-    validateRowValueByName(response, actualHeaders, 29, "value", "28");
-    validateRowValueByName(
-        response, actualHeaders, 29, "A03MvHHogjR.scheduleddate", "2021-07-30 12:05:00.0");
-    validateRowValueByName(response, actualHeaders, 29, "ou", "ImspTQPwCqd");
+    // Validate row exists with values from original row index 29
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "28",
+            "ou",
+            "ImspTQPwCqd",
+            "A03MvHHogjR.scheduleddate",
+            "2021-07-30 12:05:00.0"));
   }
 
   @Test
@@ -1312,18 +1865,13 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
     // rowContext not found or empty in the response, skipping assertions.
 
-    // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
-    // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "value", "858");
-    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.eventstatus", "ACTIVE");
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of("value", "858", "pe", "202212", "A03MvHHogjR.eventstatus", "ACTIVE"));
   }
 }
