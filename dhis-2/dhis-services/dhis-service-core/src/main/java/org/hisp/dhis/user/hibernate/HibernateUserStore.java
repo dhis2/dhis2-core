@@ -705,4 +705,19 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             })
         .collect(joining(","));
   }
+
+  @Override
+  public List<User> getUsersByCategories(Set<String> categoryUids) {
+    if (categoryUids == null || categoryUids.isEmpty()) return List.of();
+
+    return getQuery(
+            """
+            select distinct u from User u \
+            join u.catDimensionConstraints c \
+            where c.uid in :categoryUids
+            """,
+            User.class)
+        .setParameter("categoryUids", categoryUids)
+        .getResultList();
+  }
 }

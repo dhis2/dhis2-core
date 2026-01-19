@@ -244,4 +244,13 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
+
+  /**
+   * Get all {@link User}s that have category dimension constraints with the {@link
+   * org.hisp.dhis.category.Category}s provided
+   *
+   * @param categoryUids the UIDs of the categories
+   * @return list of {@link User}s
+   */
+  List<User> getUsersByCategories(Set<String> categoryUids);
 }

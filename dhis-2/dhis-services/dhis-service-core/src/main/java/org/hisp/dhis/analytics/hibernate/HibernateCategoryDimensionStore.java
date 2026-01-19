@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.hibernate;
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.CategoryDimension;
@@ -63,6 +64,19 @@ public class HibernateCategoryDimensionStore extends HibernateGenericStore<Categ
             """,
             CategoryDimension.class)
         .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
+  }
+
+  @Override
+  public List<CategoryDimension> getByCategory(@Nonnull Set<String> categoryUids) {
+    if (categoryUids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select cd from CategoryDimension cd \
+            where cd.dimension.uid in :categoryUids
+            """,
+            CategoryDimension.class)
+        .setParameter("categoryUids", categoryUids)
         .getResultList();
   }
 }
