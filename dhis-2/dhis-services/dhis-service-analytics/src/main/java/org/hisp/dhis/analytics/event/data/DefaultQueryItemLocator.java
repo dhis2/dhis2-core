@@ -137,7 +137,13 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
             new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
         QueryItem qi =
             new QueryItem(
-                item, program, legendSet, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+                    item,
+                    program,
+                    legendSet,
+                    ValueType.ORGANISATION_UNIT,
+                    AggregationType.NONE,
+                    null)
+                .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
         qi.setProgramStage(programStage);
         return Optional.of(qi);
       }
