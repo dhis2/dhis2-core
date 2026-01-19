@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -64,7 +65,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(readOnly = true)
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
 class DefaultTrackedEntityService implements TrackedEntityService {
@@ -84,6 +84,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityOperationParamsMapper mapper;
 
   @Override
+  @Transactional(readOnly = true)
   public FileResourceStream getFileResource(
       @Nonnull UID trackedEntity, @Nonnull UID attribute, @CheckForNull UID program)
       throws NotFoundException, ForbiddenException {
@@ -92,6 +93,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public FileResourceStream getFileResourceImage(
       @Nonnull UID trackedEntity,
       @Nonnull UID attribute,
@@ -144,6 +146,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException {
     return getTrackedEntity(uid, (Program) null, TrackedEntityFields.none());
@@ -151,6 +154,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid) {
     try {
       return Optional.of(getTrackedEntity(uid, (Program) null, TrackedEntityFields.none()));
@@ -161,6 +165,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public TrackedEntity getTrackedEntity(
       @Nonnull UID trackedEntityUid,
       @CheckForNull UID programIdentifier,
@@ -216,6 +221,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public List<TrackedEntity> findTrackedEntities(
       @Nonnull TrackedEntityOperationParams operationParams)
       throws ForbiddenException, BadRequestException {
@@ -228,6 +234,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public Page<TrackedEntity> findTrackedEntities(
       @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
@@ -273,7 +280,25 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return trackedEntityStore.getOrderableFields();
+  }
+
+  @Override
+  @Transactional
+  public void updateTrackedEntitiesSyncTimestamp(
+      @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized) {
+    trackedEntityStore.updateTrackedEntitiesSyncTimestamp(trackedEntities, lastSynchronized);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, BadRequestException {
+    UserDetails user = getCurrentUserDetails();
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+
+    return trackedEntityStore.getTrackedEntityCount(queryParams);
   }
 }

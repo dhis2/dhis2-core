@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -112,4 +113,20 @@ public interface TrackedEntityService {
    * #findTrackedEntities(TrackedEntityOperationParams)}.
    */
   Set<String> getOrderableFields();
+
+  /**
+   * Updates the synchronization timestamp for the given set of tracked entities.
+   *
+   * <p>The provided {@code lastSynchronized} value will be applied to all specified tracked
+   * entities to indicate the most recent successful synchronization time.
+   *
+   * @param trackedEntities a non-null set of tracked entity UIDs whose sync timestamp should be
+   *     updated
+   * @param lastSynchronized a non-null date representing the last synchronization time
+   */
+  void updateTrackedEntitiesSyncTimestamp(
+      @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized);
+
+  long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, BadRequestException;
 }

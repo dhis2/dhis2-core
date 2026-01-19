@@ -160,7 +160,25 @@ class JdbcTrackedEntityStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private Long getTrackedEntityCount(TrackedEntityQueryParams params) {
+  public void updateTrackedEntitiesSyncTimestamp(Set<UID> trackedEntities, Date lastSynchronized) {
+    if (trackedEntities.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        """
+                      UPDATE trackedentity SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+                      """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", trackedEntities.stream().map(UID::toString).toList());
+
+    namedParameterJdbcTemplate.update(sql, parameters);
+  }
+
+  public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.

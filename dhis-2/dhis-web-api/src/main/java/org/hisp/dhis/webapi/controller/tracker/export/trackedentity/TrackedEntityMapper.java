@@ -58,7 +58,7 @@ import org.mapstruct.Mapping;
       UserMapper.class,
       MetadataMapper.class
     })
-interface TrackedEntityMapper {
+public interface TrackedEntityMapper {
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
