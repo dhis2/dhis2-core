@@ -305,6 +305,9 @@ public class EventHookListenerTest {
         public void obtainAuthentication(String userId) {}
 
         @Override
+        public void obtainAuthentication(UserDetails userDetails) {}
+
+        @Override
         public void obtainSystemAuthentication() {}
 
         @Override
