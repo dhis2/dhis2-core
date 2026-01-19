@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -122,6 +123,7 @@ public class OperationsParamsValidator {
    * @throws ForbiddenException if the user has no data read access to the program or its tracked
    *     entity type
    */
+  @Transactional(readOnly = true)
   public Program validateTrackerProgram(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = validateProgramAccess(uid, user);
@@ -197,6 +199,21 @@ public class OperationsParamsValidator {
     }
 
     return trackedEntity;
+  }
+
+  /**
+   * Validates the specified tracked entity uids exist and are accessible by the supplied user.
+   *
+   * @throws BadRequestException if a tracked entity uid does not exist
+   * @throws ForbiddenException if the user has no data read access to type of the tracked entity
+   */
+  public void validateTrackedEntities(Set<UID> uids, UserDetails user, boolean includeDeleted)
+      throws BadRequestException, ForbiddenException {
+    // Only validate single item requests. Multiple items indicate an internal call from
+    // TrackedEntityAggregate where TEs have already been validated.
+    if (uids.size() == 1) {
+      validateTrackedEntity(uids.iterator().next(), user, includeDeleted);
+    }
   }
 
   /**

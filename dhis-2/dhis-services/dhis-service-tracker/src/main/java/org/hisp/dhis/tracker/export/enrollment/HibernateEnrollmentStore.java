@@ -157,8 +157,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
               + "'";
     }
 
-    if (params.hasTrackedEntity()) {
-      hql += hlp.whereAnd() + "en.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
+    if (params.hasTrackedEntities()) {
+      hql +=
+          hlp.whereAnd()
+              + "en.trackedEntity.uid in ("
+              + getQuotedCommaDelimitedString(UID.toValueList(params.getTrackedEntities()))
+              + ")";
     }
 
     if (params.hasTrackedEntityType()) {

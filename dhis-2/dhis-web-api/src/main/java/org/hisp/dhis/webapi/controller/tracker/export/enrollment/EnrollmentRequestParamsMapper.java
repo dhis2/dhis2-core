@@ -90,7 +90,10 @@ class EnrollmentRequestParamsMapper {
             .programEndDate(
                 applyIfNotNull(enrollmentRequestParams.getEnrolledBefore(), EndDateTime::toDate))
             .trackedEntityType(enrollmentRequestParams.getTrackedEntityType())
-            .trackedEntity(enrollmentRequestParams.getTrackedEntity())
+            .trackedEntities(
+                enrollmentRequestParams.getTrackedEntity() != null
+                    ? Set.of(enrollmentRequestParams.getTrackedEntity())
+                    : Set.of())
             .orgUnits(enrollmentRequestParams.getOrgUnits())
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
