@@ -143,8 +143,9 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
       TestTransaction.flagForCommit();
       HttpResponse post =
           POST(
-              "/organisationUnits",
-              "{'name':'" + "A" + "', 'shortName':'" + "A" + "', 'openingDate':'2021'" + " }");
+              "/dataElements",
+              "{'name':'A', 'shortName':'A', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
+                  + " }");
 
       TestTransaction.end();
       assertTrue(post.success());
@@ -157,7 +158,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
         TestTransaction.flagForCommit();
         assertStatus(
             HttpStatus.OK,
-            DELETE("/organisationUnits/" + post.content().getString("response.uid").string()));
+            DELETE("/dataElements/" + post.content().getString("response.uid").string()));
         TestTransaction.end();
       }
     }
