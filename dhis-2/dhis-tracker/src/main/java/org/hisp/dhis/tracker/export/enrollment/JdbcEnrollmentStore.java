@@ -296,9 +296,10 @@ class JdbcEnrollmentStore {
       EnrollmentQueryParams params,
       MapSqlParameterSource sqlParams,
       SqlHelper hlp) {
-    if (params.hasTrackedEntity()) {
-      sql.append(hlp.whereAnd()).append("te.uid = :trackedEntityUid");
-      sqlParams.addValue("trackedEntityUid", params.getTrackedEntity().getValue());
+    if (params.hasTrackedEntities()) {
+      sql.append(hlp.whereAnd()).append("te.uid in (:trackedEntityUids)");
+      sqlParams.addValue(
+          "trackedEntityUids", params.getTrackedEntities().stream().map(UID::getValue).toList());
     }
   }
 
