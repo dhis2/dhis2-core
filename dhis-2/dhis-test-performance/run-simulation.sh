@@ -36,6 +36,9 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
+  echo "  KEEP                  Keep containers running after test (default: false)"
+  echo "                        Useful for running multiple tests without restart"
+  echo "                        Clean up manually with: docker compose down --volumes"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -99,6 +102,7 @@ REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+KEEP=${KEEP:-"false"}
 
 # Validate DB_TYPE (only allow sierra-leone or hmis)
 case "$DB_TYPE" in
@@ -159,13 +163,19 @@ cleanup() {
   echo "========================================"
   post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
 
-  echo ""
-  echo "Cleaning up containers..."
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
+  if [ "$KEEP" = "true" ]; then
+    echo ""
+    echo "Keeping containers running (KEEP=true)"
+    echo "Clean up manually with: docker compose down --volumes"
+  else
+    echo ""
+    echo "Cleaning up containers..."
+    local compose_files=("-f" "docker-compose.yml")
+    if [ -n "$PROF_ARGS" ]; then
+      compose_files+=("-f" "docker-compose.profile.yml")
+    fi
+    docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
 
   echo ""
   echo "========================================"
@@ -239,20 +249,41 @@ dump_container_logs() {
   docker compose "${compose_files[@]}" logs --tail=50 db 2>&1 || echo "Failed to retrieve db logs"
 }
 
+containers_healthy() {
+  # Check if web-healthcheck sidecar container is healthy (implies web and db are ready)
+  local compose_files=("-f" "docker-compose.yml")
+  if [ -n "$PROF_ARGS" ]; then
+    compose_files+=("-f" "docker-compose.profile.yml")
+  fi
+  local status
+  status=$(docker compose "${compose_files[@]}" ps --format json web-healthcheck 2>/dev/null | jq -r '.Health // empty' 2>/dev/null || echo "")
+  [ "$status" = "healthy" ]
+}
+
 start_containers() {
-  echo "Testing with image: $DHIS2_IMAGE"
-  echo "Waiting for containers to be ready..."
-
-  local start_time
-  start_time=$(date +%s)
-
   # Determine which compose files to use
   local compose_files=("-f" "docker-compose.yml")
   if [ -n "$PROF_ARGS" ]; then
     compose_files+=("-f" "docker-compose.profile.yml")
   fi
 
-  docker compose "${compose_files[@]}" down --volumes
+  # Skip startup if containers are already healthy and KEEP is set
+  if [ "$KEEP" = "true" ] && containers_healthy; then
+    echo "Containers already running and healthy, skipping startup"
+    return 0
+  fi
+
+  echo "Testing with image: $DHIS2_IMAGE"
+  echo "Waiting for containers to be ready..."
+
+  local start_time
+  start_time=$(date +%s)
+
+  # Only tear down if not keeping containers
+  if [ "$KEEP" != "true" ]; then
+    docker compose "${compose_files[@]}" down --volumes
+  fi
+
   if ! docker compose "${compose_files[@]}" up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
     echo "Error: Failed to start containers"
     dump_container_logs
