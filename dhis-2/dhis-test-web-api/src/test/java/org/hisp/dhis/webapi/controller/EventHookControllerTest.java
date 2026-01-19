@@ -57,13 +57,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockserver.client.MockServerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TestTransaction;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -74,7 +73,37 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
  * @author Morten Olav Hansen
  */
 @Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ContextConfiguration(classes = {EventHookControllerTest.DhisConfigurationProviderTestConfig.class})
 class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
+
+  private static GenericContainer<?> targetMockServerContainer;
+  private MockServerClient targetMockServerClient;
+
+  @BeforeAll
+  static void beforeAll() {
+    targetMockServerContainer =
+        new GenericContainer<>("mockserver/mockserver")
+            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+            .withExposedPorts(1080);
+    targetMockServerContainer.start();
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    targetMockServerClient =
+        new MockServerClient("localhost", targetMockServerContainer.getFirstMappedPort());
+  }
+
+  @AfterEach
+  void afterEach() {
+    targetMockServerClient.reset();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    targetMockServerContainer.stop();
+  }
 
   public static class DhisConfigurationProviderTestConfig {
     @Bean
@@ -89,79 +118,36 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
     }
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  @Nested
-  @ContextConfiguration(classes = {DhisConfigurationProviderTestConfig.class})
-  class IntegrationTest extends PostgresControllerIntegrationTestBase {
+  @Test
+  void testWebHookTarget() throws IOException, URISyntaxException {
+    targetMockServerClient
+        .when(request().withPath("/api/gateway"))
+        .respond(org.mockserver.model.HttpResponse.response().withStatusCode(200));
 
-    private static GenericContainer<?> targetMockServerContainer;
-    private MockServerClient targetMockServerClient;
+    String body =
+        Files.readString(
+                Path.of(
+                    EventHookControllerTest.class
+                        .getClassLoader()
+                        .getResource("event-hook/webhook.json")
+                        .toURI()),
+                StandardCharsets.UTF_8)
+            .replace("<PORT>", targetMockServerContainer.getFirstMappedPort().toString());
 
-    @BeforeAll
-    static void beforeAll() {
-      targetMockServerContainer =
-          new GenericContainer<>("mockserver/mockserver")
-              .waitingFor(new HttpWaitStrategy().forStatusCode(404))
-              .withExposedPorts(1080);
-      targetMockServerContainer.start();
-    }
+    assertStatus(HttpStatus.CREATED, POST("/eventHooks", body));
 
-    @BeforeEach
-    void beforeEach() {
-      targetMockServerClient =
-          new MockServerClient("localhost", targetMockServerContainer.getFirstMappedPort());
-    }
+    TestTransaction.flagForCommit();
+    HttpResponse post =
+        POST(
+            "/dataElements",
+            "{'name':'Axsa', 'shortName':'asxA', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
+                + " }");
 
-    @AfterEach
-    void afterEach() {
-      targetMockServerClient.reset();
-    }
-
-    @AfterAll
-    static void afterAll() {
-      targetMockServerContainer.stop();
-    }
-
-    @Test
-    void testWebHookTarget() throws IOException, URISyntaxException {
-      targetMockServerClient
-          .when(request().withPath("/api/gateway"))
-          .respond(org.mockserver.model.HttpResponse.response().withStatusCode(200));
-
-      String body =
-          Files.readString(
-                  Path.of(
-                      EventHookControllerTest.class
-                          .getClassLoader()
-                          .getResource("event-hook/webhook.json")
-                          .toURI()),
-                  StandardCharsets.UTF_8)
-              .replace("<PORT>", targetMockServerContainer.getFirstMappedPort().toString());
-
-      assertStatus(HttpStatus.CREATED, POST("/eventHooks", body));
-
-      TestTransaction.flagForCommit();
-      HttpResponse post =
-          POST(
-              "/dataElements",
-              "{'name':'A', 'shortName':'A', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
-                  + " }");
-
-      TestTransaction.end();
-      assertTrue(post.success());
-      try {
-        await()
-            .atMost(Duration.ofSeconds(5))
-            .untilAsserted(() -> targetMockServerClient.verify(request().withPath("/api/gateway")));
-      } finally {
-        TestTransaction.start();
-        TestTransaction.flagForCommit();
-        assertStatus(
-            HttpStatus.OK,
-            DELETE("/dataElements/" + post.content().getString("response.uid").string()));
-        TestTransaction.end();
-      }
-    }
+    TestTransaction.end();
+    assertTrue(post.success());
+    await()
+        .atMost(Duration.ofSeconds(5))
+        .untilAsserted(() -> targetMockServerClient.verify(request().withPath("/api/gateway")));
   }
 
   @Test
