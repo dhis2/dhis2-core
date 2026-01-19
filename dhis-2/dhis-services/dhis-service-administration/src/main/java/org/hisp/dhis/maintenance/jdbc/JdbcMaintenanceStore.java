@@ -39,13 +39,14 @@ import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.maintenance.MaintenanceStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class JdbcMaintenanceStore implements MaintenanceStore {
-  private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject>
+  private static final Map<Class<? extends SoftDeletableEntity>, SoftDeletableEntity>
       ENTITY_MAPPER =
           Map.of(
               Enrollment.class, new Enrollment(),
@@ -444,13 +445,13 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
   }
 
   private void auditHardDeletedEntity(
-      List<String> deletedEntities, Class<? extends SoftDeletableObject> entity) {
+      List<String> deletedEntities, Class<? extends SoftDeletableEntity> entity) {
     if (deletedEntities == null || deletedEntities.isEmpty()) {
       return;
     }
     deletedEntities.forEach(
         deletedEntity -> {
-          SoftDeletableObject object =
+          SoftDeletableEntity object =
               ENTITY_MAPPER.getOrDefault(entity, new SoftDeletableObject());
 
           object.setUid(deletedEntity);

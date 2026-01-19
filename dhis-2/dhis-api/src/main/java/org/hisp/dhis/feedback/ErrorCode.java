@@ -90,6 +90,9 @@ public enum ErrorCode {
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
   E1132(
       "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
+  E1133("CategoryCombo must be provided for Category option combo {0}"),
+  E1134(
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -141,9 +144,9 @@ public enum ErrorCode {
   E2007("Organisation unit children cannot be included for organisation unit groups"),
   E2008("At least one organisation unit must be specified when children are included"),
   E2009("Limit cannot be less than zero: `{0}`"),
-  E2010("User is not allowed to read data for data set: `{0}`"),
-  E2011("User is not allowed to read data for attribute option combo: `{0}`"),
-  E2012("User is not allowed to view org unit: `{0}`"),
+  E2010("User is not allowed to read data for data set(s): `${ds:{0}}`"),
+  E2011("User is not allowed to read data for attribute option combo(s): `${aoc:{0}}`"),
+  E2012("User is not allowed to view org unit(s): `${ou:{0}}`"),
   E2013("At least one data set must be specified"),
   E2014("Unable to parse filter `{0}`"),
   E2015("Unable to parse order param: `{0}`"),
@@ -207,7 +210,6 @@ public enum ErrorCode {
   E3003("User `{0}` is not allowed to grant users access to user role `{1}`"),
   E3004("User `{0}` is not allowed to grant users access to user groups"),
   E3005("User `{0}` is not allowed to grant users access to user group `{1}`"),
-  E3006("User `{0}` is not allowed to externalize objects of type `{1}`"),
   E3008("User `{0}` is not allowed to make public objects of type `{1}`"),
   E3009("User `{0}` is not allowed to make private objects of type `{1}`"),
   E3010("Invalid access string `{0}`"),
@@ -355,6 +357,11 @@ public enum ErrorCode {
   E4083(
       "ProgramRule `{0}` must be associated with a Tracker Program (a program with registration)"),
   E4084("ProgramStage `{0}` is not part of Program `{1}`"),
+  E4085("Program is required for tracker data synchronization job"),
+  E4086("Program `{0}` does not exist"),
+  E4087("Program `{0}` must be of type `{1}`"),
+  E4088(
+      "The operator(s) `{0}` cannot be blocked. The following operators cannot be blocked: `{1}`."),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -571,6 +578,11 @@ public enum ErrorCode {
   E7238("Sorting dimension ‘{0}’ is not a column"),
   E7239("Invalid operator for 'null' value: `{0}`"),
   E7240("Event query with org unit ownership does not support time fields"),
+  E7241("Stage parameter cannot be used with stage-specific dimension identifiers"),
+  E7242(
+      "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
+  E7243("Duplicate stage dimension identifier: `{0}`"),
+  E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
@@ -632,6 +644,9 @@ public enum ErrorCode {
   E8005("Data set not found: `${id:{0}}`"),
   E8006("PDF file error : ${error:{0}}"),
   E8007("XML file error : ${error:{0}}"),
+  E8008("Data set `completeDate` is not a valid date string: `${date:{0}}`"),
+  E8009(
+      "Data set `completeDate` requires data set, org unit, period and attribute option combo to be defined at the group level."),
 
   // set level current user access issues: Current user cannot enter...
   E8010("Current user cannot enter data for data set: `${ds:{0}}`"),
@@ -677,6 +692,18 @@ public enum ErrorCode {
   E8127(
       "Value #${index:{0}} category combo ${combo:{1}} has no option combo for options: `${options:{2}}`"),
   E8128("Value #${indexes:{0}} all affect the same data value: `${key:{1}}`"),
+
+  /* Data export - data encoding */
+  E8200(
+      "Export as ${schema:{0}} not possible as the property is undefined for data set: `${id:{1}}`"),
+  E8201(
+      "Export as ${schema:{0}} not possible as the property is undefined for data element(s): `${ids:{1}}`"),
+  E8202(
+      "Export as ${schema:{0}} not possible as the property is undefined for org unit(s): `${ids:{1}}`"),
+  E8203(
+      "Export as ${schema:{0}} not possible as the property is undefined for category option combo(s): `${ids:{1}}`"),
+  E8204(
+      "Export as category ${schema:{0}} and category options ${schema:{1}} not possible as the property is undefined for at least one of them linked to category option combo(s): `${ids:{1}}`"),
   ;
 
   private final String message;

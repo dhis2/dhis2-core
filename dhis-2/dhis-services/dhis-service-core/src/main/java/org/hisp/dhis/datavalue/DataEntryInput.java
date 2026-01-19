@@ -56,6 +56,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
@@ -109,23 +110,32 @@ public final class DataEntryInput {
     IdSchemes schemes = options.getIdSchemes();
     if (!"dataValueSet".equals(dvs.getElementName())) dvs.moveToStartElement("dataValueSet");
     String ds = dvs.getAttributeValue("dataSet");
-    // keys that are common for all values
+    String completionDate = dvs.getAttributeValue("completeDate");
+    // group level IDs
     String ou = dvs.getAttributeValue("orgUnit");
     String pe = dvs.getAttributeValue("period");
     String aoc = dvs.getAttributeValue("attributeOptionCombo");
     String dryRun = dvs.getAttributeValue("dryRun");
     if (dryRun != null) options.setDryRun(parseBoolean(dryRun));
+
     // ID schemes
     String scheme = dvs.getAttributeValue("idScheme");
     if (scheme != null) schemes.setIdScheme(scheme);
+    scheme = dvs.getAttributeValue("dataSetIdScheme");
+    if (scheme != null) schemes.setDataSetIdScheme(scheme);
     scheme = dvs.getAttributeValue("dataElementIdScheme");
     if (scheme != null) schemes.setDataElementIdScheme(scheme);
     scheme = dvs.getAttributeValue("orgUnitIdScheme");
     if (scheme != null) schemes.setOrgUnitIdScheme(scheme);
     scheme = dvs.getAttributeValue("categoryOptionComboIdScheme");
     if (scheme != null) schemes.setCategoryOptionComboIdScheme(scheme);
-    scheme = dvs.getAttributeValue("dataSetIdScheme");
-    if (scheme != null) schemes.setDataSetIdScheme(scheme);
+    scheme = dvs.getAttributeValue("attributeOptionComboIdScheme");
+    if (scheme != null) schemes.setAttributeOptionComboIdScheme(scheme);
+    scheme = dvs.getAttributeValue("categoryIdScheme");
+    if (scheme != null) schemes.setCategoryIdScheme(scheme);
+    scheme = dvs.getAttributeValue("categoryOptionIdScheme");
+    if (scheme != null) schemes.setCategoryOptionIdScheme(scheme);
+
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
     while (dvs.moveToStartElement("dataValue", "dataValueSet")) {
@@ -147,7 +157,8 @@ public final class DataEntryInput {
               deleted == null ? null : parseBoolean(deleted)));
     }
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
-    return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values));
+    return List.of(
+        new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aoc, null, values));
   }
 
   @Nonnull
@@ -161,6 +172,7 @@ public final class DataEntryInput {
     while (dvs.moveToStartElement("group", ns)) {
       Map<String, String> group = dvs.readAttributes();
       String ds = group.get("dataSet");
+      String completionDate = group.get("completeDate");
       // keys common for all values in group
       String ou = group.get("orgUnit");
       String pe = AdxPeriod.parse(group.get("period")).getIsoDate();
@@ -197,7 +209,7 @@ public final class DataEntryInput {
                 de, ou, coc, co, null, null, null, pe, value, comment, followup, deleted));
       }
       DataEntryGroup.Input adxGroup =
-          new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, aco, values);
+          new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aoc, aco, values);
       // if this ADX group has same DS group properties...
       if (last != null && last.isSameDsAoc(adxGroup)) {
         // auto-merge ADX group into a DS group purely for faster decode
@@ -221,22 +233,34 @@ public final class DataEntryInput {
     JsonObject dvs =
         JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in))).asObject();
     String ds = dvs.getString("dataSet").string();
+    String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
     String ou = dvs.getString("orgUnit").string();
     String pe = dvs.getString("period").string();
-    String aoc = dvs.getString("attributeOptionCombo").string();
+    JsonString aoc = dvs.getString("attributeOptionCombo");
+    String aocId = aoc.isString() ? aoc.string() : null;
+    Map<String, String> aocMap =
+        aoc.isObject() ? aoc.asMap(JsonString.class).toMap(JsonString::string) : null;
     Boolean dryRun = dvs.getBoolean("dryRun").bool();
     if (dryRun != null) options.setDryRun(dryRun);
     // ID schemes
     if (!dvs.get("idScheme").isUndefined()) schemes.setIdScheme(dvs.getString("idScheme").string());
+    if (!dvs.get("dataSetIdScheme").isUndefined())
+      schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
     if (!dvs.get("dataElementIdScheme").isUndefined())
       schemes.setDataSetIdScheme(dvs.getString("dataElementIdScheme").string());
     if (!dvs.get("orgUnitIdScheme").isUndefined())
       schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
     if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
       schemes.setCategoryOptionComboIdScheme(dvs.getString("categoryOptionComboIdScheme").string());
-    if (!dvs.get("dataSetIdScheme").isUndefined())
-      schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
+    if (!dvs.get("attributeOptionComboIdScheme").isUndefined())
+      schemes.setAttributeOptionComboIdScheme(
+          dvs.getString("attributeOptionComboIdScheme").string());
+    if (!dvs.get("categoryIdScheme").isUndefined())
+      schemes.setCategoryIdScheme(dvs.getString("categoryIdScheme").string());
+    if (!dvs.get("categoryOptionIdScheme").isUndefined())
+      schemes.setCategoryOptionIdScheme(dvs.getString("categoryOptionIdScheme").string());
+
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
     // Note that this uses JsonNode API to iterate without indexing
@@ -249,12 +273,15 @@ public final class DataEntryInput {
           .forEachRemaining(
               node -> {
                 JsonObject dv = JsonMixed.of(node);
+                JsonString coc = dv.getString("categoryOptionCombo");
                 values.add(
                     new DataEntryValue.Input(
                         dv.getString("dataElement").string(),
                         dv.getString("orgUnit").string(),
-                        dv.getString("categoryOptionCombo").string(),
-                        null,
+                        coc.isString() ? coc.string() : null,
+                        coc.isObject()
+                            ? coc.asMap(JsonString.class).toMap(JsonString::string)
+                            : null,
                         dv.getString("attributeOptionCombo").string(),
                         null,
                         null,
@@ -265,7 +292,8 @@ public final class DataEntryInput {
                         dv.getBoolean("deleted").bool()));
               });
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
-    return List.of(new DataEntryGroup.Input(ids, ds, null, ou, pe, aoc, null, values));
+    return List.of(
+        new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aocId, aocMap, values));
   }
 
   @Nonnull
@@ -297,7 +325,7 @@ public final class DataEntryInput {
         }
       }
       DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
-      return List.of(new DataEntryGroup.Input(ids, null, null, ou, pe, null, null, values));
+      return List.of(new DataEntryGroup.Input(ids, null, null, null, ou, pe, null, null, values));
     } catch (InvalidPdfException ex) {
       throw new BadRequestException(ErrorCode.E8006, ex.getMessage());
     }

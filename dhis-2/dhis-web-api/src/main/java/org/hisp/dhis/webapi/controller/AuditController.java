@@ -78,12 +78,11 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.tracker.audit.TrackedEntityAudit;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -169,8 +168,7 @@ public class AuditController {
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws WebMessageException {
+      @RequestParam(required = false, defaultValue = "1") int page) {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
@@ -346,7 +344,7 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
+  private List<Period> getPeriods(List<String> isoPeriods) {
     if (isoPeriods == null) {
       return new ArrayList<>();
     }
@@ -354,13 +352,7 @@ public class AuditController {
     List<Period> periods = new ArrayList<>();
 
     for (String pe : isoPeriods) {
-      Period period = PeriodType.getPeriodFromIsoString(pe);
-
-      if (period == null) {
-        throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-      }
-
-      periods.add(period);
+      periods.add(Period.of(pe));
     }
 
     return periods;

@@ -89,8 +89,8 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -241,8 +241,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         Assert.notNull(periodKey, String.format("Period key cannot be null, key: '%s'", key));
 
         List<DimensionalItemObject> periods =
-            dataPeriodAggregationPeriodMap.get(
-                PeriodDimension.of(PeriodType.getPeriodFromIsoString(periodKey)));
+            dataPeriodAggregationPeriodMap.get(PeriodDimension.of(Period.ofNullable(periodKey)));
 
         Assert.notNull(
             periods,

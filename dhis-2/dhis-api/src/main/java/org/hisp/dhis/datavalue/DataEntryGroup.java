@@ -46,6 +46,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -60,7 +61,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
+    @CheckForNull DataSetCompletion completion,
     @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
+
+  public DataEntryGroup(@CheckForNull UID dataSet, @Nonnull List<DataEntryValue> values) {
+    this(dataSet, null, values);
+  }
 
   public DataEntryGroup {
     requireNonNull(values);
@@ -84,6 +90,7 @@ public record DataEntryGroup(
   public record Input(
       @CheckForNull Ids ids,
       @CheckForNull @OpenApi.Property({UID.class, DataSet.class}) String dataSet,
+      @CheckForNull String completionDate,
       // common dimensions (optional)
       @CheckForNull @OpenApi.Property({UID.class, DataElement.class}) String dataElement,
       @CheckForNull @OpenApi.Property({UID.class, OrganisationUnit.class}) String orgUnit,
@@ -113,7 +120,7 @@ public record DataEntryGroup(
     }
 
     public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
-      this(ids, dataSet, null, null, null, null, null, values);
+      this(ids, dataSet, null, null, null, null, null, null, values);
     }
 
     public String describe() {
@@ -133,7 +140,8 @@ public record DataEntryGroup(
       return dataSet != null
           && dataSet.equals(other.dataSet)
           && Objects.equals(attributeOptionCombo, other.attributeOptionCombo)
-          && Objects.equals(attributeOptions, other.attributeOptions);
+          && Objects.equals(attributeOptions, other.attributeOptions)
+          && Objects.equals(completionDate, other.completionDate);
     }
 
     public Input mergedSameDsAoc(Input other) {
@@ -147,7 +155,8 @@ public record DataEntryGroup(
       if (!Objects.equals(de, other.dataElement)) de = null;
       if (!Objects.equals(ou, other.orgUnit)) ou = null;
       if (!Objects.equals(pe, other.period)) pe = null;
-      return new Input(ids, dataSet, de, ou, pe, attributeOptionCombo, attributeOptions, merged);
+      return new Input(
+          ids, dataSet, completionDate, de, ou, pe, attributeOptionCombo, attributeOptions, merged);
     }
   }
 

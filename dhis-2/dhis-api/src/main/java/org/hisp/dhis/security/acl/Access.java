@@ -34,15 +34,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.jsontree.JsonBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement(localName = "access", namespace = DxfNamespaces.DXF_2_0)
-public class Access implements EmbeddedObject {
+public class Access implements EmbeddedObject, JsonBuilder.JsonEncodable {
   private boolean manage;
-
-  private boolean externalize;
 
   private boolean write;
 
@@ -58,7 +57,6 @@ public class Access implements EmbeddedObject {
 
   public Access(boolean value) {
     this.manage = value;
-    this.externalize = value;
     this.write = value;
     this.read = value;
     this.update = value;
@@ -73,17 +71,6 @@ public class Access implements EmbeddedObject {
 
   public Access setManage(boolean manage) {
     this.manage = manage;
-    return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(localName = "externalize", namespace = DxfNamespaces.DXF_2_0)
-  public boolean isExternalize() {
-    return externalize;
-  }
-
-  public Access setExternalize(boolean externalize) {
-    this.externalize = externalize;
     return this;
   }
 
@@ -147,8 +134,6 @@ public class Access implements EmbeddedObject {
     return "Access{"
         + "manage="
         + manage
-        + ", externalize="
-        + externalize
         + ", write="
         + write
         + ", read="
@@ -160,5 +145,28 @@ public class Access implements EmbeddedObject {
         + ", data="
         + data
         + '}';
+  }
+
+  @Override
+  public void addTo(JsonBuilder.JsonArrayBuilder arr) {
+    arr.addObject(this::addAsObj);
+  }
+
+  @Override
+  public void addTo(String name, JsonBuilder.JsonObjectBuilder obj) {
+    obj.addObject(name, this::addAsObj);
+  }
+
+  private void addAsObj(JsonBuilder.JsonObjectBuilder obj) {
+    obj.addBoolean("manage", isManage())
+        .addBoolean("write", isWrite())
+        .addBoolean("read", isRead())
+        .addBoolean("update", isUpdate())
+        .addBoolean("delete", isDelete());
+    if (getData() != null)
+      obj.addObject(
+          "data",
+          data ->
+              data.addBoolean("read", getData().isRead()).addBoolean("write", getData().isWrite()));
   }
 }

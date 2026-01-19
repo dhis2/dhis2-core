@@ -31,7 +31,7 @@ The software is open source and released under the [BSD 3-Clause license](https:
 ## Run DHIS2 in Docker
 
 > [!WARNING]  
-> DO NOT use this Docker Compose file in production! Use the [production-ready Docker Compose deployment](https://github.com/dhis2/docker-deployment).
+> DO NOT use this Docker Compose file in production! There is a separate docker compose setup currently under development which is aimed at [running DHIS2 using docker](https://github.com/dhis2/docker-deployment) in production. Please check it out and provide feedback. 
 
 The following guides runs DHIS2 with [Docker Compose](https://docs.docker.com/compose/install/).
 
@@ -172,3 +172,4 @@ environment:
 ```
 
 Alternatively, you can pass the system property `-Ddhis2.home` from the command line. You need to ensure that the `DHIS2_HOME` directory is writeable by the DHIS2 process.
+

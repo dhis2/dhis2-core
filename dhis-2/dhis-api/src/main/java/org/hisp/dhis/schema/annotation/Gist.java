@@ -163,5 +163,9 @@ public @interface Gist {
       }
       return AUTO;
     }
+
+    public boolean isArrayAggregate() {
+      return this == IDS || this == PLUCK || this == ID_OBJECTS;
+    }
   }
 }

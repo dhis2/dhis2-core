@@ -40,13 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
@@ -57,6 +53,10 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -271,7 +271,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
         persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReport().size());
   }
 
-  private long getNumberOfEntities(Class<? extends SoftDeletableObject> clazz) {
+  private long getNumberOfEntities(Class<? extends SoftDeletableEntity> clazz) {
     return manager.getAll(clazz).stream().filter(o -> !o.isDeleted()).count();
   }
 }

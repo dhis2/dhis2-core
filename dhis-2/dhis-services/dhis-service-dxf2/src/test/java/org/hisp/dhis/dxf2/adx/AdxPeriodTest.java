@@ -32,7 +32,7 @@ package org.hisp.dhis.dxf2.adx;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -165,6 +165,6 @@ class AdxPeriodTest {
   }
 
   private String serialize(String period) {
-    return AdxPeriod.serialize(PeriodType.getPeriodFromIsoString(period));
+    return AdxPeriod.serialize(Period.of(period));
   }
 }

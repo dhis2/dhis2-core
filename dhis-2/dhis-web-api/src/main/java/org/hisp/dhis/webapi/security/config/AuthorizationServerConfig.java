@@ -127,9 +127,15 @@ public class AuthorizationServerConfig {
    */
   @Bean
   public AuthorizationServerSettings authorizationServerSettings(DhisConfigurationProvider config) {
-    return AuthorizationServerSettings.builder()
-        .issuer(config.getProperty(ConfigurationKey.SERVER_BASE_URL))
-        .build();
+    String baseUrl = config.getProperty(ConfigurationKey.SERVER_BASE_URL);
+    if (baseUrl.isEmpty()) {
+      throw new IllegalStateException(
+          "The server base URL is not configured. Please set the 'server.base.url' property in dhis.conf.");
+    }
+    if (!baseUrl.endsWith("/")) {
+      baseUrl = baseUrl + "/";
+    }
+    return AuthorizationServerSettings.builder().issuer(baseUrl).build();
   }
 
   /**
@@ -339,8 +345,8 @@ public class AuthorizationServerConfig {
     } else {
       if (!generateIfMissing) {
         String errorMsg =
-            "Keystore configuration is missing and generation of keys is disabled. "
-                + "Configure oauth2.jwt.keystore.path or enable oauth2.jwt.keystore.generate-if-missing.";
+            "Keystore configuration is missing and generation of keys is disabled. Configure"
+                + " oauth2.jwt.keystore.path or enable oauth2.jwt.keystore.generate-if-missing.";
         log.error(errorMsg);
         throw new IllegalStateException(errorMsg);
       }

@@ -320,21 +320,8 @@ public class DataQueryRequest {
       this.request.userOrgUnit = criteria.getUserOrgUnit();
       this.request.userOrganisationUnitCriteria =
           getAnalyticsQueryCriteria(criteria.getDimension());
-      this.request.userOrgUnitType = getAnalyticsOrgUnitType(criteria.getUserOrgUnitType());
+      this.request.userOrgUnitType = criteria.getUserOrgUnitType();
       return this;
-    }
-
-    /**
-     * Retrieves default UserOrgUnitType if the type is equal null
-     *
-     * @param userOrgUnitType
-     */
-    private UserOrgUnitType getAnalyticsOrgUnitType(UserOrgUnitType userOrgUnitType) {
-      if (userOrgUnitType == null) {
-        return UserOrgUnitType.DATA_OUTPUT;
-      }
-
-      return userOrgUnitType;
     }
   }
 }

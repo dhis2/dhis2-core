@@ -41,16 +41,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
-import org.hisp.dhis.datavalue.DataExportStoreParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -77,9 +80,41 @@ public class DefaultCompleteDataSetRegistrationService
 
   private final MessageService messageService;
 
+  private final DataSetStore dataSetStore;
+
+  private final OrganisationUnitStore organisationUnitStore;
+
+  private final CategoryOptionComboStore categoryOptionComboStore;
+
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService
   // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void importCompletion(DataSetCompletion completion) throws ConflictException {
+    UID ds = completion.dataSet();
+    Period pe = completion.period();
+    UID ou = completion.orgUnit();
+    UID aoc = completion.attributeOptionCombo();
+
+    CategoryOptionCombo attributeOptionCombo =
+        aoc == null
+            ? categoryService.getDefaultCategoryOptionCombo()
+            : categoryOptionComboStore.getByUidNoAcl(aoc.getValue());
+    completeDataSetRegistrationStore.deleteCompleteDataSetRegistration(
+        ds, pe, ou, UID.of(attributeOptionCombo));
+
+    CompleteDataSetRegistration reg = new CompleteDataSetRegistration();
+    reg.setDataSet(dataSetStore.getByUidNoAcl(ds.getValue()));
+    reg.setPeriod(pe);
+    reg.setSource(organisationUnitStore.getByUidNoAcl(ou.getValue()));
+
+    reg.setAttributeOptionCombo(attributeOptionCombo);
+    reg.setDate(completion.completed());
+    reg.setCompleted(true);
+    saveCompleteDataSetRegistration(reg);
+  }
 
   @Override
   @Transactional
@@ -214,7 +249,7 @@ public class DefaultCompleteDataSetRegistrationService
     List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
 
     if (!dataSet.getCompulsoryDataElementOperands().isEmpty()) {
-      DataExportStoreParams params = new DataExportStoreParams();
+      DeflatedDataValueParams params = new DeflatedDataValueParams();
       params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
       params.setPeriods(Set.of(period));
       params.setAttributeOptionCombos(List.of(attributeOptionCombo));

@@ -36,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
@@ -50,7 +49,6 @@ import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolv
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.FilteredPageHttpMessageConverter;
@@ -96,8 +94,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableMethodSecurity
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired public DefaultRequestInfoService requestInfoService;
-
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private AuthorityInterceptor authorityInterceptor;
@@ -147,7 +143,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
@@ -199,7 +194,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
 
     registry.addInterceptor(new UserContextInterceptor());
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
   }
 

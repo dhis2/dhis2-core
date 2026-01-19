@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static java.lang.System.Logger.Level.INFO;
+import static java.lang.System.Logger.Level.DEBUG;
 import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
 import static java.util.function.Function.identity;
@@ -39,6 +39,10 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.common.IdCoder.ObjectType.COC;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DE;
+import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
+import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -59,13 +63,14 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataEntryGroup.Options;
-import org.hisp.dhis.datavalue.DataEntryStore.DecodeType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.DataEntrySummary;
@@ -77,6 +82,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,6 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataEntryService implements DataEntryService, DataDumpService {
 
   private final DataEntryStore store;
+  private final IdCoder idCoder;
 
   @Override
   @Transactional(readOnly = true)
@@ -124,8 +131,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     UnaryOperator<String> aocOf = UnaryOperator.identity();
 
     DataEntryGroup.Ids ids = group.ids();
-    String isoGroup = decodeIso(group.period());
-    if (isoGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : isoGroup;
+    String peGroup = decodeIso(group.period());
+    if (peGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : peGroup;
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
     String deGroup = group.dataElement();
@@ -133,25 +140,25 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     String aocGroup = group.attributeOptionCombo();
     if (ids != null) {
       if (dataSet != null && ids.dataSets().isNotUID())
-        dsOf = store.getIdMapping(DecodeType.DS, ids.dataSets(), Stream.of(dataSet))::get;
+        dsOf = idCoder.mapDecodedIds(DS, ids.dataSets(), Stream.of(dataSet))::get;
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
         if (deGroup != null) deIds = Stream.concat(deIds, Stream.of(deGroup));
-        deOf = store.getIdMapping(DecodeType.DE, ids.dataElements(), deIds)::get;
+        deOf = idCoder.mapDecodedIds(DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
         if (ouGroup != null) ouIds = Stream.concat(ouIds, Stream.of(ouGroup));
-        ouOf = store.getIdMapping(DecodeType.OU, ids.orgUnits(), ouIds)::get;
+        ouOf = idCoder.mapDecodedIds(OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
-        cocOf = store.getIdMapping(DecodeType.COC, ids.categoryOptionCombos(), cocIds)::get;
+        cocOf = idCoder.mapDecodedIds(COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
         if (aocGroup != null) aocIds = Stream.concat(aocIds, Stream.of(aocGroup));
-        aocOf = store.getIdMapping(DecodeType.COC, ids.attributeOptionCombos(), aocIds)::get;
+        aocOf = idCoder.mapDecodedIds(COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
     int i = 0;
@@ -159,6 +166,10 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (dataSet != null && dsStr == null) throw new BadRequestException(ErrorCode.E8005, dataSet);
     UID ds = decodeUID(dsStr);
     if (dsStr != null && ds == null) throw new BadRequestException(ErrorCode.E8004, dsStr);
+    String completionDateStr = group.completionDate();
+    Date completionDate = decodeDate(completionDateStr);
+    if (completionDateStr != null && !completionDateStr.isEmpty() && completionDate == null)
+      throw new BadRequestException(ErrorCode.E8008, completionDateStr);
     List<DataEntryValue> decoded = new ArrayList<>(values.size());
     Map<String, String> aoGroup = group.attributeOptions();
     IdProperty categories = ids == null ? IdProperty.UID : ids.categories();
@@ -170,6 +181,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       Map<Set<String>, String> aocByKey = store.getDataSetAocIdMapping(ds, categoryOptions);
       aocGroup = aocByKey.get(aocKey);
     }
+    if (completionDate != null && (dataSet == null || ouGroup == null || peGroup == null))
+      // aoc may be null to indicate "default" so we cannot validate it
+      throw new BadRequestException(ErrorCode.E8009);
     Map<String, List<String>> categoriesByDe = null;
     Map<String, Map<Set<String>, String>> cocByOptionsByDe = null;
     Map<String, Map<Set<String>, String>> aocOptionsByCc = null;
@@ -262,7 +276,20 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       // add the value
       decoded.add(new DataEntryValue(i++, de, ou, coc, aoc, pe, value, comment, followUp, deleted));
     }
-    return new DataEntryGroup(ds, decoded);
+    DataSetCompletion completion;
+    if (completionDate == null) {
+      completion = null;
+    } else {
+      UID attributeOptionCombo = aocGroup == null ? null : UID.ofNullable(aocOf.apply(aocGroup));
+      completion =
+          new DataSetCompletion(
+              ds,
+              Period.of(peGroup),
+              UID.of(ouOf.apply(ouGroup)),
+              attributeOptionCombo,
+              completionDate);
+    }
+    return new DataEntryGroup(ds, completion, decoded);
   }
 
   @CheckForNull
@@ -279,7 +306,17 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   private static String decodeIso(@CheckForNull String period) {
     if (period == null || period.isEmpty()) return null;
     // normalize the format to the ISO
-    return PeriodType.getPeriodFromIsoString(period).getIsoDate();
+    return Period.of(period).getIsoDate();
+  }
+
+  @CheckForNull
+  private static Date decodeDate(@CheckForNull String date) {
+    if (date == null || date.isEmpty()) return null;
+    try {
+      return DateUtils.parseDate(date);
+    } catch (RuntimeException ex) {
+      return null;
+    }
   }
 
   @Override
@@ -348,7 +385,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  @TimeExecution(level = INFO, name = "data value upsert")
+  @TimeExecution(level = DEBUG, name = "data value upsert")
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
@@ -385,7 +422,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  @TimeExecution(level = INFO, name = "data value deletion")
+  @TimeExecution(level = DEBUG, name = "data value deletion")
   public DataEntrySummary deleteGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
@@ -422,7 +459,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
-  public Set<UID> getNotReadableOptionCombos(Collection<UID> optionCombos) {
+  public Set<UID> getNotReadableCategoryOptions(Collection<UID> optionCombos) {
     return store.getCategoryOptionsCanNotDataRead(optionCombos.stream()).stream()
         .map(UID::of)
         .collect(toSet());
@@ -707,7 +744,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   // find the values entered outside their input period
                   .filter(
                       dv -> {
-                        Period p = PeriodType.getPeriodFromIsoString(dv.period());
+                        Period p = Period.of(dv.period());
                         // +1 because the period end date is start of day but should include that
                         // day
                         Date endOfEntryPeriod =
@@ -730,9 +767,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
           Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
           List<String> isoNotYetOpen =
-              isoPeriods.stream()
-                  .filter(iso -> PeriodType.getPeriodFromIsoString(iso).isAfter(latestOpen))
-                  .toList();
+              isoPeriods.stream().filter(iso -> Period.of(iso).isAfter(latestOpen)).toList();
           if (!isoNotYetOpen.isEmpty())
             throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
         }
@@ -803,7 +838,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                   dv -> {
                     DateRange span = entrySpanByAoc.get(dv.attributeOptionCombo().getValue());
                     if (span == null) return null;
-                    Period p = PeriodType.getPeriodFromIsoString(dv.period());
+                    Period p = Period.of(dv.period());
                     Date start = p.getStartDate();
                     Date end = p.getEndDate();
                     if (span.includes(start) && span.includes(end)) return null;

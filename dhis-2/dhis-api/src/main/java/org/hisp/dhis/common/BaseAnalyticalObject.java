@@ -99,7 +99,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.schema.annotation.Gist;
@@ -727,7 +726,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
               periodList.add(relPeriod);
             }
           } else {
-            Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+            Period isoPeriod = Period.ofNullable(period);
             boolean isIsoPeriod = isoPeriod != null;
             boolean addPeriod =
                 isIsoPeriod && periodList.stream().noneMatch(p -> p.getIsoDate().equals(period));

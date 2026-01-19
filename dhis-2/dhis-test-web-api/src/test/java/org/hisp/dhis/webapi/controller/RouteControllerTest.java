@@ -699,6 +699,45 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testRunRouteWhenUserAuthorityDoesNotHaveRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserAuthorityHasRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("ALL"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+  }
+
+  @Test
   void testRunRouteGivenEncodedAndUnencodedCharactersUrl()
       throws JsonProcessingException, UnsupportedEncodingException {
     Map<String, Object> route = new HashMap<>();
