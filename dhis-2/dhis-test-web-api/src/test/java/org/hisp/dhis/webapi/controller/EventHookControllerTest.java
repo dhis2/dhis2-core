@@ -145,13 +145,21 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
           POST(
               "/organisationUnits",
               "{'name':'" + "A" + "', 'shortName':'" + "A" + "', 'openingDate':'2021'" + " }");
+
       TestTransaction.end();
-
       assertTrue(post.success());
-
-      await()
-          .atMost(Duration.ofSeconds(5))
-          .untilAsserted(() -> targetMockServerClient.verify(request().withPath("/api/gateway")));
+      try {
+        await()
+            .atMost(Duration.ofSeconds(5))
+            .untilAsserted(() -> targetMockServerClient.verify(request().withPath("/api/gateway")));
+      } finally {
+        TestTransaction.start();
+        TestTransaction.flagForCommit();
+        assertStatus(
+            HttpStatus.OK,
+            DELETE("/organisationUnits/" + post.content().getString("response.uid").string()));
+        TestTransaction.end();
+      }
     }
   }
 
