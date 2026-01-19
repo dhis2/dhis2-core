@@ -30,6 +30,7 @@
 package org.hisp.dhis.datasource.model;
 
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper;
@@ -41,8 +42,27 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-@Builder
+@Builder(builderMethodName = "")
 public class DbPoolConfig {
+
+  /**
+   * Name identifying this datasource in metrics. Required. Must be unique across all data sources.
+   * Use meaningful names like "actual", "analytics", "read_replica", "read_1", etc. Names should
+   * follow the <a href="https://prometheus.io/docs/practices/naming/">Prometheus naming
+   * conventions</a>.
+   */
+  @Nonnull final String dataSourceName;
+
+  /**
+   * Creates a builder with the required dataSourceName.
+   *
+   * @param dataSourceName required name identifying this datasource in metrics
+   * @return a builder with the dataSourceName already set
+   */
+  public static DbPoolConfigBuilder builder(@Nonnull String dataSourceName) {
+    return new DbPoolConfigBuilder().dataSourceName(dataSourceName);
+  }
+
   private String dbPoolType;
 
   private DhisConfigurationProvider dhisConfig;
@@ -69,12 +89,6 @@ public class DbPoolConfig {
   private String maxIdleTime;
 
   private ConfigKeyMapper mapper;
-
-  /**
-   * Whether this data source should be treated as read-only. This flag is advisory. The read-only
-   * behavior will not be enforced.
-   */
-  boolean readOnly;
 
   public ConfigKeyMapper getMapper() {
     return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);

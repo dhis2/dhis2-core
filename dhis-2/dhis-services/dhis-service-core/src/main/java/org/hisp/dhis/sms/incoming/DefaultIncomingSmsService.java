@@ -58,12 +58,13 @@ public class DefaultIncomingSmsService implements IncomingSmsService {
   @Override
   @Transactional
   public String save(IncomingSms sms) {
+    Date now = new Date();
     if (sms.getReceivedDate() != null) {
       sms.setSentDate(sms.getReceivedDate());
     } else {
-      sms.setSentDate(new Date());
+      sms.setSentDate(now);
     }
-    sms.setReceivedDate(new Date());
+    sms.setReceivedDate(now);
 
     sms.setGatewayId(StringUtils.defaultIfBlank(sms.getGatewayId(), DEFAULT_GATEWAY));
 

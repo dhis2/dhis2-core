@@ -11,7 +11,7 @@ services:
         -Xmx10000m -Xms10000m"
     volumes:
       - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
-      - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+      - ./docker/${DHIS_CONF_FILE:-dhis.conf}:/opt/dhis2/dhis.conf:ro
     ports:
       - "127.0.0.1:8080:8080" # DHIS2
     depends_on:
@@ -75,3 +75,19 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+  # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.5.0
+    command: --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+    depends_on:
+      - web
+
+volumes:
+  prometheus:
+    driver: local

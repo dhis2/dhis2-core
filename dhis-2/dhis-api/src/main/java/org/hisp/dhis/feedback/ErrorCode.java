@@ -90,6 +90,9 @@ public enum ErrorCode {
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
   E1132(
       "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
+  E1133("CategoryCombo must be provided for Category option combo {0}"),
+  E1134(
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -357,6 +360,8 @@ public enum ErrorCode {
   E4085("Program is required for tracker data synchronization job"),
   E4086("Program `{0}` does not exist"),
   E4087("Program `{0}` must be of type `{1}`"),
+  E4088(
+      "The operator(s) `{0}` cannot be blocked. The following operators cannot be blocked: `{1}`."),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -573,6 +578,11 @@ public enum ErrorCode {
   E7238("Sorting dimension ‘{0}’ is not a column"),
   E7239("Invalid operator for 'null' value: `{0}`"),
   E7240("Event query with org unit ownership does not support time fields"),
+  E7241("Stage parameter cannot be used with stage-specific dimension identifiers"),
+  E7242(
+      "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
+  E7243("Duplicate stage dimension identifier: `{0}`"),
+  E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

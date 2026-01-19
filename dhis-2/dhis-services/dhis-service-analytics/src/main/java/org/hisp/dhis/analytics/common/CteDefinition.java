@@ -106,6 +106,9 @@ public class CteDefinition {
   private final Integer targetRank;
   private final CteType cteType;
 
+  /** Whether the query item has a filter that requires non-null values from this CTE */
+  private final boolean hasFilter;
+
   private CteDefinition(
       String itemId,
       String programStageUid,
@@ -118,7 +121,8 @@ public class CteDefinition {
       String aggregateWhereClause,
       String joinColumn,
       Integer targetRank,
-      CteType cteType) {
+      CteType cteType,
+      boolean hasFilter) {
     this.itemId = itemId;
     this.programStageUid = programStageUid;
     this.programIndicatorUid = programIndicatorUid;
@@ -131,6 +135,7 @@ public class CteDefinition {
     this.joinColumn = joinColumn;
     this.targetRank = targetRank;
     this.cteType = cteType;
+    this.hasFilter = hasFilter;
   }
 
   /** Creates a CTE definition for program stage data elements. */
@@ -148,7 +153,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        CteType.PROGRAM_STAGE); // Set type
+        CteType.PROGRAM_STAGE, // Set type
+        false); // hasFilter
     this.offsets.add(offset);
   }
 
@@ -159,6 +165,17 @@ public class CteDefinition {
       String cteDefinition,
       int offset,
       boolean isRowContext) {
+    this(programStageUid, queryItemId, cteDefinition, offset, isRowContext, false);
+  }
+
+  // Constructor for standard Program Stage CTEs with rowContext and hasFilter
+  public CteDefinition(
+      String programStageUid,
+      String queryItemId,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter) {
     this(
         queryItemId,
         programStageUid,
@@ -171,7 +188,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        CteType.PROGRAM_STAGE); // Set type
+        CteType.PROGRAM_STAGE, // Set type
+        hasFilter); // Pass hasFilter
     this.offsets.add(offset);
   }
 
@@ -188,7 +206,8 @@ public class CteDefinition {
         aggregateWhereClause, // Pass aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        CteType.BASE_AGGREGATION); // Set type
+        CteType.BASE_AGGREGATION, // Set type
+        false); // hasFilter
   }
 
   /** Creates a CTE definition for program indicators. */
@@ -212,7 +231,8 @@ public class CteDefinition {
         null, // targetRank
         programIndicatorType == AnalyticsType.EVENT
             ? PROGRAM_INDICATOR_EVENT
-            : PROGRAM_INDICATOR_ENROLLMENT); // Set type
+            : PROGRAM_INDICATOR_ENROLLMENT, // Set type
+        false); // hasFilter
   }
 
   /** Creates a CTE definition for filter CTEs (replacing filter subqueries). */
@@ -231,7 +251,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        CteType.FILTER); // Set type
+        CteType.FILTER, // Set type
+        false); // hasFilter
   }
 
   /**
@@ -257,7 +278,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         joinColumn, // Pass joinColumn
         null, // targetRank
-        CteType.VARIABLE); // Set type
+        CteType.VARIABLE, // Set type
+        false); // hasFilter
   }
 
   /**
@@ -278,7 +300,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         joinColumn, // Pass joinColumn
         targetRank, // Pass targetRank
-        CteType.PROGRAM_STAGE_DATE_ELEMENT); // Set type
+        CteType.PROGRAM_STAGE_DATE_ELEMENT, // Set type
+        false); // hasFilter
   }
 
   /**
@@ -303,7 +326,8 @@ public class CteDefinition {
         null,
         joinColumn,
         null, // targetRank
-        CteType.D2_FUNCTION);
+        CteType.D2_FUNCTION,
+        false); // hasFilter
   }
 
   public static CteDefinition forShadowTable(String tableName, String sql, CteType cteType) {
@@ -318,7 +342,7 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        cteType);
+        cteType, false); // hasFilter
   }
 
   public CteDefinition setExists(boolean exists) {

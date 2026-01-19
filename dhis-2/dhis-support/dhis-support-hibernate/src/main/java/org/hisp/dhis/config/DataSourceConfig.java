@@ -30,6 +30,7 @@
 package org.hisp.dhis.config;
 
 import com.google.common.base.MoreObjects;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -42,7 +43,6 @@ import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
@@ -52,7 +52,6 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -67,15 +66,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @RequiredArgsConstructor
 public class DataSourceConfig {
 
+  private final MeterRegistry meterRegistry;
+
   @Primary
   @Bean
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-    return new NamedParameterJdbcTemplate(dataSource);
-  }
-
-  @Bean
-  public NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate(
-      @Qualifier("readOnlyDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
@@ -88,17 +83,9 @@ public class DataSourceConfig {
   }
 
   @Bean
-  public JdbcTemplate primaryReadOnlyJdbcTemplate(
-      @Qualifier("readOnlyDataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
-    return jdbcTemplate;
-  }
-
-  @Bean
   public JdbcTemplate readOnlyJdbcTemplate(
       DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config, meterRegistry);
 
     JdbcTemplate jdbcTemplate =
         new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
@@ -113,44 +100,16 @@ public class DataSourceConfig {
     return createLoggingDataSource(config, actualDataSource(config));
   }
 
-  @Bean
-  public DataSource readOnlyDataSource(
-      DhisConfigurationProvider config, @Qualifier("actualDataSource") DataSource dataSource) {
-    if (StringUtils.isBlank(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))) {
-      return dataSource;
-    }
-
-    DbPoolConfig dbPoolConfig =
-        DbPoolConfig.builder()
-            .dhisConfig(config)
-            .jdbcUrl(config.getProperty(ConfigurationKey.READ_REPLICA_CONNECTION_URL))
-            .username(config.getProperty(ConfigurationKey.CONNECTION_USERNAME))
-            .password(config.getProperty(ConfigurationKey.CONNECTION_PASSWORD))
-            .dbPoolType(config.getProperty(ConfigurationKey.DB_POOL_TYPE))
-            .readOnly(true)
-            .build();
-
-    try {
-      return createLoggingDataSource(config, DatabasePoolUtils.createDbPool(dbPoolConfig));
-    } catch (PropertyVetoException | SQLException e) {
-      String message =
-          String.format(
-              "Connection test failed for read-only database pool, jdbcUrl: '%s', user: '%s'",
-              dbPoolConfig.getJdbcUrl(), dbPoolConfig.getUsername());
-      throw new IllegalStateException(message, e);
-    }
-  }
-
   private DataSource actualDataSource(DhisConfigurationProvider config) {
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-        DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
+        DbPoolConfig.builder("actual").dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
-      return DatabasePoolUtils.createDbPool(poolConfig);
+      return DatabasePoolUtils.createDbPool(poolConfig, meterRegistry);
     } catch (SQLException | PropertyVetoException e) {
       String message =
           String.format(

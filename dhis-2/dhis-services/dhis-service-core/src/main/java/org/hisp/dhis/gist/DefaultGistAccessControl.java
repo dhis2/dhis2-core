@@ -35,12 +35,12 @@ import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.security.Authorities.F_METADATA_EXPORT;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -115,15 +115,23 @@ public class DefaultGistAccessControl implements GistAccessControl {
     if (!aclService.isClassShareable(ioType)) {
       return aclService.canRead(currentUser, ioType);
     }
-    List<?> res =
-        gistService.gist(
-            GistQuery.builder()
-                .elementType(ioType)
-                .autoType(GistAutoType.M)
-                .fields(singletonList(new Field("sharing", Transform.NONE)))
-                .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
-                .build());
-    Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get(0);
+    Sharing sharing = null;
+    try {
+      Object[] res =
+          gistService
+              .exportObject(
+                  GistQuery.builder()
+                      .elementType(ioType)
+                      .autoType(GistAutoType.M)
+                      .fields(singletonList(new Field("sharing", Transform.NONE)))
+                      .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
+                      .build())
+              .values();
+      sharing = res == null ? new Sharing() : (Sharing) res[0];
+    } catch (BadRequestException ex) {
+      // programming error
+      throw new RuntimeException(ex);
+    }
     BaseIdentifiableObject object = new BaseIdentifiableObject();
     object.setSharing(sharing);
     return aclService.canRead(currentUser, object, ioType);

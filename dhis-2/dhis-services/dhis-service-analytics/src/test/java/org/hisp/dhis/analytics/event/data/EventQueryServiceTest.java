@@ -102,7 +102,7 @@ class EventQueryServiceTest {
   void testOutputSchemeWhenSchemeIsSet() {
     IdScheme codeScheme = IdScheme.CODE;
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
-    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit));
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, codeScheme);
     SchemeInfo mockSchemeInfo =
         new SchemeInfo(mockSchemeSettings(mockParams), mockDataSettings(mockParams));
@@ -120,7 +120,7 @@ class EventQueryServiceTest {
   void testOutputSchemeWhenNoSchemeIsSet() {
     IdScheme noScheme = null;
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
-    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit));
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, noScheme);
     SchemeInfo mockSchemeInfo =
         new SchemeInfo(mockSchemeSettings(mockParams), mockDataSettings(mockParams));
