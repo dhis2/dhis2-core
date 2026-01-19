@@ -331,7 +331,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
     this.orgUnitLevelName = orgUnitLevelName;
   }
 
-
   @Override
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.is(IdentifiableProperty.UID)) {

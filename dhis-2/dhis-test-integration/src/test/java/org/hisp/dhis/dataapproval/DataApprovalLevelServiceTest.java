@@ -687,18 +687,19 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
       // If we get here without exception, the service might handle duplicates differently
       // Verify that only one level with this name exists
       List<DataApprovalLevel> allLevels = dataApprovalLevelService.getAllDataApprovalLevels();
-      long countWithSameName = allLevels.stream()
-          .filter(l -> "Unique Name Test".equals(l.getName()))
-          .count();
-      assertEquals(1, countWithSameName, "Should only have one level with the name 'Unique Name Test'");
+      long countWithSameName =
+          allLevels.stream().filter(l -> "Unique Name Test".equals(l.getName())).count();
+      assertEquals(
+          1, countWithSameName, "Should only have one level with the name 'Unique Name Test'");
     } catch (Exception e) {
       // Expected: constraint violation exception
       // This is the correct behavior - unique constraint prevents duplicate names
-      assertTrue(e.getMessage().contains("unique") ||
-                 e.getMessage().contains("duplicate") ||
-                 e.getMessage().contains("constraint") ||
-                 e.getCause() != null,
-                 "Exception should be related to unique constraint violation");
+      assertTrue(
+          e.getMessage().contains("unique")
+              || e.getMessage().contains("duplicate")
+              || e.getMessage().contains("constraint")
+              || e.getCause() != null,
+          "Exception should be related to unique constraint violation");
     }
   }
 
@@ -712,7 +713,9 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
     long id1 = dataApprovalLevelService.addDataApprovalLevel(level1, 1);
     assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id1));
     assertEquals(2, dataApprovalLevelService.getDataApprovalLevel(id1).getOrgUnitLevel());
-    assertEquals("Set A", dataApprovalLevelService.getDataApprovalLevel(id1).getCategoryOptionGroupSet().getName());
+    assertEquals(
+        "Set A",
+        dataApprovalLevelService.getDataApprovalLevel(id1).getCategoryOptionGroupSet().getName());
 
     // Attempting to add second level with same orgUnitLevel and categoryOptionGroupSet should fail
     // This is enforced at database level via composite unique constraint
@@ -720,20 +723,26 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
       dataApprovalLevelService.addDataApprovalLevel(level2, 2);
       // If we get here without exception, verify that the duplicate was not actually created
       List<DataApprovalLevel> allLevels = dataApprovalLevelService.getAllDataApprovalLevels();
-      long countWithSameCombo = allLevels.stream()
-          .filter(l -> l.getOrgUnitLevel() == 2 &&
-                       l.getCategoryOptionGroupSet() != null &&
-                       l.getCategoryOptionGroupSet().equals(setA))
-          .count();
-      assertEquals(1, countWithSameCombo,
+      long countWithSameCombo =
+          allLevels.stream()
+              .filter(
+                  l ->
+                      l.getOrgUnitLevel() == 2
+                          && l.getCategoryOptionGroupSet() != null
+                          && l.getCategoryOptionGroupSet().equals(setA))
+              .count();
+      assertEquals(
+          1,
+          countWithSameCombo,
           "Should only have one level with orgUnitLevel=2 and categoryOptionGroupSet=Set A");
     } catch (Exception e) {
       // Expected: composite unique constraint violation
-      assertTrue(e.getMessage().contains("unique") ||
-                 e.getMessage().contains("duplicate") ||
-                 e.getMessage().contains("constraint") ||
-                 e.getCause() != null,
-                 "Exception should be related to composite unique constraint violation");
+      assertTrue(
+          e.getMessage().contains("unique")
+              || e.getMessage().contains("duplicate")
+              || e.getMessage().contains("constraint")
+              || e.getCause() != null,
+          "Exception should be related to composite unique constraint violation");
     }
 
     // Verify that different combinations are allowed
