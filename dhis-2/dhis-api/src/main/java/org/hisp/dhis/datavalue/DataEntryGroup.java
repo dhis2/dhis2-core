@@ -49,6 +49,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
  * Service API data structure to enter multiple values for the same dataset. This set is either
@@ -63,6 +64,8 @@ public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
     @CheckForNull DataSetCompletion completion,
     @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
+
+  public record Scope(List<UID> dataElements, List<UID> orgUnits, List<Period> periods) {}
 
   public DataEntryGroup(@CheckForNull UID dataSet, @Nonnull List<DataEntryValue> values) {
     this(dataSet, null, values);
@@ -106,6 +109,8 @@ public record DataEntryGroup(
             """)
           Map<String, String> attributeOptions,
       @Nonnull List<DataEntryValue.Input> values) {
+
+    record Scope(List<String> dataElements, List<String> orgUnits, List<String> periods) {}
 
     public Input {
       requireNonNull(values);

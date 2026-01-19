@@ -292,8 +292,8 @@ public final class DataEntryInput {
                         dv.getBoolean("deleted").bool()));
               });
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
-    return List.of(
-        new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aocId, aocMap, values));
+    DataEntryGroup.Input group = new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aocId, aocMap, values);
+    return List.of(group);
   }
 
   @Nonnull
