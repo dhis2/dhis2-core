@@ -966,9 +966,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       analyticsAggregationType =
           getOrgUnitAggregationIfAny(
-              params.getAllOrganisationUnits(),
-              aggregationType,
-              analyticsAggregationType);
+              params.getAllOrganisationUnits(), aggregationType, analyticsAggregationType);
 
       function = analyticsAggregationType.getAggregationType().getValue();
 
