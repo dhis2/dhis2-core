@@ -92,7 +92,7 @@ public class Period implements Serializable {
    * @throws IllegalArgumentException if the given ISO period is (formally or semantically) invalid
    * @implNote This got moved from {@code PeriodType#getPeriodFromIsoString}
    */
-  @Nonnull
+  @CheckForNull
   public static Period of(@Nonnull String isoPeriod) {
     PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
     try {

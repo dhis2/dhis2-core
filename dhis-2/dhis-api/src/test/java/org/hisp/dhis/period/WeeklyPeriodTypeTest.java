@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.GregorianCalendar;
@@ -357,5 +358,28 @@ class WeeklyPeriodTypeTest {
     assertEquals(
         new DateTime(2020, 1, 15, 0, 0).toDate(),
         periodType.getRewindedDate(new DateTime(2020, 1, 1, 0, 0).toDate(), -2));
+  }
+
+  @Test
+  void testWeeklySunFromString() {
+    Period w52 = Period.of("2025SunW52");
+    assertNotNull(w52);
+    assertEquals("2025-12-21", w52.getStartDateString());
+    assertEquals("2025-12-27", w52.getEndDateString());
+
+    Period w53 = Period.of("2025SunW53");
+    assertNotNull(w53);
+    assertEquals("2025-12-28", w53.getStartDateString());
+    assertEquals("2026-01-03", w53.getEndDateString());
+
+    assertNull(Period.of("2025SunW54"));
+
+    Period w01 = Period.of("2026SunW1");
+    assertNotNull(w01);
+    assertEquals("2026-01-04", w01.getStartDateString());
+    assertEquals("2026-01-10", w01.getEndDateString());
+
+    assertEquals(w52.next(), w53);
+    assertEquals(w53.next(), w01);
   }
 }
