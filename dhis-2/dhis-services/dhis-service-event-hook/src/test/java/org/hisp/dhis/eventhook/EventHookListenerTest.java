@@ -58,7 +58,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
-public class EventHookListenerTest {
+class EventHookListenerTest {
 
   private static class MockAclService implements AclService {
 

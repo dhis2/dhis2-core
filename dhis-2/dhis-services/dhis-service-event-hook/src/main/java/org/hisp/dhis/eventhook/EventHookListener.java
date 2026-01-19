@@ -98,53 +98,60 @@ public class EventHookListener {
           continue;
         }
         if (event.getObject() instanceof Collection) {
-          List<ObjectNode> objects = new ArrayList<>();
-
-          for (Object object : ((Collection<?>) event.getObject())) {
-            if (event.getObject() instanceof IdentifiableObject) {
-
-              if (aclService.canRead(eventHook.getUser(), (IdentifiableObject) event.getObject())) {
-                objects.add(
-                    fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
-              } else {
-                objects.add(
-                    fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
-              }
-            }
-          }
-
-          if (!objects.isEmpty()) {
-            filteredEvent = event.withObject(objects);
-          } else {
-            filteredEvent = null;
-          }
+          filteredEvent = filterCollectionPayload(event, eventHook);
         } else {
-          if (event.getObject() instanceof IdentifiableObject) {
-            if (aclService.canRead(eventHook.getUser(), (IdentifiableObject) event.getObject())) {
-              ObjectNode objectNode =
-                  fieldFilterService.toObjectNode(
-                      event.getObject(), eventHook.getSource().getFields());
-              filteredEvent = event.withObject(objectNode);
-            } else {
-              filteredEvent = null;
-            }
-          } else {
-            ObjectNode objectNode =
-                fieldFilterService.toObjectNode(
-                    event.getObject(), eventHook.getSource().getFields());
-            filteredEvent = event.withObject(objectNode);
-          }
+          filteredEvent = filterPayload(event, eventHook);
         }
 
-        if (filteredEvent != null) {
-          String payload = objectMapper.writeValueAsString(filteredEvent);
-          List<Handler> handlers = eventHookContext.getTarget(eventHook.getUid());
-
-          for (Handler handler : handlers) {
-            handler.run(eventHook, event, payload);
-          }
-        }
+        emit(filteredEvent, eventHook);
       }
+    }
+  }
+
+  protected void emit(Event event, EventHook eventHook) throws JsonProcessingException {
+    if (event != null) {
+      String payload = objectMapper.writeValueAsString(event);
+      List<Handler> handlers = eventHookContext.getTarget(eventHook.getUid());
+
+      for (Handler handler : handlers) {
+        handler.run(eventHook, event, payload);
+      }
+    }
+  }
+
+  protected Event filterPayload(Event event, EventHook eventHook) {
+    if (event.getObject() instanceof IdentifiableObject identifiableObjectEvent) {
+      if (aclService.canRead(eventHook.getUser(), identifiableObjectEvent)) {
+        ObjectNode objectNode =
+            fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
+        return event.withObject(objectNode);
+      } else {
+        return null;
+      }
+    } else {
+      ObjectNode objectNode =
+          fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
+      return event.withObject(objectNode);
+    }
+  }
+
+  protected Event filterCollectionPayload(Event event, EventHook eventHook) {
+    List<ObjectNode> objects = new ArrayList<>();
+
+    for (Object object : ((Collection<?>) event.getObject())) {
+      if (event.getObject() instanceof IdentifiableObject identifiableObjectEvent) {
+        if (aclService.canRead(eventHook.getUser(), identifiableObjectEvent)) {
+          objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+        }
+      } else {
+        objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+      }
+    }
+
+    if (!objects.isEmpty()) {
+      return event.withObject(objects);
+    } else {
+      return null;
     }
   }
 

@@ -98,7 +98,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
     private MockServerClient targetMockServerClient;
 
     @BeforeAll
-    public static void beforeAll() {
+    static void beforeAll() {
       targetMockServerContainer =
           new GenericContainer<>("mockserver/mockserver")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))
@@ -107,7 +107,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
     }
 
     @BeforeEach
-    public void beforeEach() {
+    void beforeEach() {
       targetMockServerClient =
           new MockServerClient("localhost", targetMockServerContainer.getFirstMappedPort());
     }
