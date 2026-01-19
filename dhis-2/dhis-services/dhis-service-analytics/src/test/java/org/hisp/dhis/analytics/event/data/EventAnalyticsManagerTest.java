@@ -127,6 +127,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
+  private QueryItemFilterBuilder filterBuilder;
+
   @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -161,6 +163,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             new PostgreSqlBuilder(),
             dataElementService);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -175,7 +178,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper);
+            columnMapper,
+            filterBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
@@ -746,6 +750,43 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "\" is not null)";
 
     assertThat(sql.getValue(), containsString(expectedFirstOrLastSubquery));
+  }
+
+  @Test
+  void verifyGetAggregatedEventDataRendersTimestampForDateQueryItem() {
+    // Given: a QueryItem with DATE value type
+    DataElement dateElement = createDataElement('D');
+    dateElement.setUid("dateElement1");
+    dateElement.setValueType(ValueType.DATE);
+
+    QueryItem dateQueryItem =
+        new QueryItem(dateElement, programA, null, ValueType.DATE, AggregationType.NONE, null);
+    dateQueryItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(createPeriodDimensions("2000Q1"), "quarterly")
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withTableName(getTable(programA.getUid()))
+            .addItem(dateQueryItem)
+            .build();
+
+    // Mock row set with a date value
+    when(rowSet.next()).thenReturn(true).thenReturn(false);
+    when(rowSet.getString("dateElement1")).thenReturn("2024-01-15");
+    when(rowSet.getString("quarterly")).thenReturn("2024Q1");
+    when(rowSet.getString("ou")).thenReturn("OrgUnit");
+    when(rowSet.getInt("value")).thenReturn(1);
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    // When
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    // Then: verify renderTimestamp was called for the date value
+    verify(sqlBuilder).renderTimestamp("2024-01-15");
   }
 
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {
