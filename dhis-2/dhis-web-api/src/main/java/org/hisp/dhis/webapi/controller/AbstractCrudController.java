@@ -181,9 +181,7 @@ public abstract class AbstractCrudController<
           ConflictException {
     final T persistedObject = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser, persistedObject)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, persistedObject);
 
     manager.resetNonOwnerProperties(persistedObject);
 
@@ -224,7 +222,7 @@ public abstract class AbstractCrudController<
     return webMessage;
   }
 
-  private T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
+  protected T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
 
     final T patchedObject = jsonPatchManager.apply(patch, persistedObject);
 
@@ -414,9 +412,7 @@ public abstract class AbstractCrudController<
           HttpRequestMethodNotSupportedException {
     T persisted = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser, persisted)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, persisted);
 
     T parsed = deserializeJsonEntity(request);
     parsed.setUid(pvUid);
@@ -456,11 +452,9 @@ public abstract class AbstractCrudController<
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    IdentifiableObject persistedObject = getEntity(pvUid);
+    T persistedObject = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser, persistedObject)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, persistedObject);
 
     T inputObject = renderService.fromJson(request.getInputStream(), getEntityClass());
 
@@ -709,9 +703,7 @@ public abstract class AbstractCrudController<
       throw new NotFoundException(getEntityClass(), uid);
     }
 
-    if (!aclService.canUpdate(currentUser, entity)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, entity);
 
     Sharing sharingObject = renderService.fromJson(request.getInputStream(), Sharing.class);
 
@@ -756,6 +748,13 @@ public abstract class AbstractCrudController<
   protected void preUpdateItems(T entity, IdentifiableObjects items) throws ConflictException {}
 
   protected void postUpdateItems(T entity, IdentifiableObjects items) {}
+
+  protected void updatePermissionCheck(UserDetails currentUser, T persistedObject)
+      throws ForbiddenException {
+    if (!aclService.canUpdate(currentUser, persistedObject)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Helpers
