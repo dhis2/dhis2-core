@@ -97,8 +97,14 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Required. Will be stored as a hash. */
   private String password;
 
+  /**
+   * 2FA secret.
+   */
   private String secret;
 
+  /**
+   * Type of 2FA authentication.
+   */
   private TwoFactorType twoFactorType;
 
   /** Date when password was changed. */
@@ -116,7 +122,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** List of previously used passwords. */
   private List<String> previousPasswords = new ArrayList<>();
 
-  /** Date of the user's last login. */
+  /** Date of last login of user account. */
   private Date lastLogin;
 
   /** The token used for a user account restore. Will be stored as a hash. */
