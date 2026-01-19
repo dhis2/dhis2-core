@@ -77,14 +77,7 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  @Type(type = "jsbAttributeValues")
-  private AttributeValues attributeValues = AttributeValues.empty();
-
   @Embedded private TranslationProperty translations = new TranslationProperty();
-
-  @Column(name = "favorites")
-  @Type(type = "jsbStringSet")
-  private Set<String> favorites = new HashSet<>();
 
   @Type(type = "jsbObjectSharing")
   @Column(name = "sharing")
@@ -230,16 +223,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   }
 
   @Override
-  public AttributeValues getAttributeValues() {
-    return attributeValues;
-  }
-
-  @Override
-  public void setAttributeValues(AttributeValues attributeValues) {
-    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
-  }
-
-  @Override
   public Set<org.hisp.dhis.translation.Translation> getTranslations() {
     if (translations == null) {
       return new HashSet<>();
@@ -253,14 +236,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
       this.translations = new TranslationProperty();
     }
     this.translations.setTranslations(translations);
-  }
-
-  public Set<String> getFavorites() {
-    return favorites;
-  }
-
-  public void setFavorites(Set<String> favorites) {
-    this.favorites = favorites;
   }
 
   @Override
@@ -357,7 +332,31 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   // -------------------------------------------------------------------------
   // IdentifiableObject interface methods - Not supported by this entity
   // These methods are implemented as no-ops to satisfy the interface contract
+  // DataApprovalLevel does not have attributeValues field in HBM mapping
   // -------------------------------------------------------------------------
+
+  /**
+   * This entity does not support attribute values.
+   *
+   * @return Empty AttributeValues
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /**
+   * This entity does not support setting attribute values.
+   *
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Not supported - no-op
+  }
 
   /**
    * This entity does not support adding attribute values.
