@@ -34,8 +34,9 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -72,17 +73,18 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
     CategoryCombo defaultCategoryCombo =
         categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
 
-    Collection<Program> programs =
-        idObjectManager.getAllNoAcl(Program.class).stream().filter(Objects::nonNull).toList();
-
-    for (Program program : programs) {
+    Set<Program> programsToUpdate = new HashSet<>();
+    for (Program program : idObjectManager.getAllNoAcl(Program.class)) {
       if (categoryCombo.equals(program.getCategoryCombo())) {
         program.setCategoryCombo(defaultCategoryCombo);
+        programsToUpdate.add(program);
       }
       if (categoryCombo.equals(program.getEnrollmentCategoryCombo())) {
         program.setEnrollmentCategoryCombo(defaultCategoryCombo);
+        programsToUpdate.add(program);
       }
-      idObjectManager.updateNoAcl(program);
+
+      programsToUpdate.forEach(idObjectManager::updateNoAcl);
     }
   }
 

@@ -144,7 +144,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private ObjectStyle style;
 
-  /** The CategoryCombo used for data attributes. */
+  /** The CategoryCombo used for tracker and single events. */
   private CategoryCombo categoryCombo;
 
   /** The CategoryCombo used for enrollments. */
