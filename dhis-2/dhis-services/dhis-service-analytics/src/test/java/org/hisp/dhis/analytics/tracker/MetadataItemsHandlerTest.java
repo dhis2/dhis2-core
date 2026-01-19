@@ -900,7 +900,7 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
-      when(organisationUnitResolver.resolveOrgUnits(
+      when(organisationUnitResolver.resolveOrgUnitsForMetadata(
               any(EventQueryParams.class), any(QueryItem.class)))
           .thenReturn(List.of(orgUnitA.getUid()));
       when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
@@ -911,7 +911,7 @@ class MetadataItemsHandlerTest {
 
       // Then
       verify(organisationUnitResolver)
-          .resolveOrgUnits(any(EventQueryParams.class), any(QueryItem.class));
+          .resolveOrgUnitsForMetadata(any(EventQueryParams.class), any(QueryItem.class));
     }
   }
 
