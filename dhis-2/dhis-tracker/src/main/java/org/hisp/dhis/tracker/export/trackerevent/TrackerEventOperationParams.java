@@ -268,6 +268,16 @@ public class TrackerEventOperationParams {
     return new TrackerEventOperationParamsBuilder().events(Set.of(event));
   }
 
+  /**
+   * Creates a builder to query events by their enrollment UIDs. This is useful when fetching events
+   * for multiple enrollments that may belong to different programs. Access control is handled via
+   * the user's accessible programs filter in the mapper.
+   */
+  public static TrackerEventOperationParamsBuilder builderForEnrollments(
+      @Nonnull Set<UID> enrollments) {
+    return new TrackerEventOperationParamsBuilder().enrollments(enrollments);
+  }
+
   // Do not remove this unused method. This hides the builder with no params which Lombok
   // creates by default.
   private static TrackerEventOperationParamsBuilder builder() {

@@ -77,7 +77,7 @@ class EnrollmentOperationParamsMapper {
     params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());
     params.setProgramStartDate(operationParams.getProgramStartDate());
     params.setProgramEndDate(operationParams.getProgramEndDate());
-    params.setTrackedEntity(operationParams.getTrackedEntity());
+    params.setTrackedEntities(operationParams.getTrackedEntities());
     params.addOrganisationUnits(orgUnits);
     params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
     params.setIncludeDeleted(operationParams.isIncludeDeleted());
