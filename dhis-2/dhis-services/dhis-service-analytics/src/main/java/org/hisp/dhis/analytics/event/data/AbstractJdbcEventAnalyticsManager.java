@@ -959,6 +959,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               params.getProgramIndicator(),
               params.getEarliestStartDate(),
               params.getLatestEndDate());
+
+      aggregationType = params.getProgramIndicator().getAggregationType();
+
+      AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
+
+      analyticsAggregationType =
+          getOrgUnitAggregationIfAny(
+              params.getAllOrganisationUnits(),
+              aggregationType,
+              analyticsAggregationType);
+
+      function = analyticsAggregationType.getAggregationType().getValue();
+
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else {
