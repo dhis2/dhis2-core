@@ -142,7 +142,7 @@ public abstract class TrackerDataSynchronizationWithPaging<E>
               SyncUtils.HEADER_AUTHORIZATION,
               CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-      renderService.toJson(request.getBody(), Map.of(getEntityName(), entities));
+      renderService.toJson(request.getBody(), Map.of(getJsonRootName(), entities));
     };
   }
 
@@ -169,7 +169,7 @@ public abstract class TrackerDataSynchronizationWithPaging<E>
     updateEntitySyncTimeStamp(entities, syncTime);
   }
 
-  public abstract String getEntityName();
+  public abstract String getJsonRootName();
 
   public abstract String getProcessName();
 

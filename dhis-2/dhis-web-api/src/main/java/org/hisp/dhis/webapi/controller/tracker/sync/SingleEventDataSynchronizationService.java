@@ -151,7 +151,7 @@ public class SingleEventDataSynchronizationService
   }
 
   @Override
-  public String getEntityName() {
+  public String getJsonRootName() {
     return "events";
   }
 

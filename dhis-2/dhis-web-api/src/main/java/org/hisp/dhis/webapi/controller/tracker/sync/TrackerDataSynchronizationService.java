@@ -142,7 +142,7 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
-  public String getEntityName() {
+  public String getJsonRootName() {
     return "trackedEntities";
   }
 
