@@ -35,13 +35,16 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
@@ -52,12 +55,14 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.Assertions;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -110,7 +115,17 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder =
-        SingleEventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+        SingleEventOperationParams.builderForProgram(UID.of("iS7eutanDry"))
+            .orgUnit(orgUnit)
+            .orgUnitMode(SELECTED);
+  }
+
+  @Test
+  void shouldThrowBadRequestWhenWhenProgramIsWithRegistration() {
+    SingleEventOperationParams params =
+        operationParamsBuilder.program(UID.of("shPjYNifvMK")).build();
+
+    assertThrows(BadRequestException.class, () -> singleEventService.findEvents(params));
   }
 
   @Test
@@ -123,6 +138,43 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
 
     assertNotNull(events.get(0).getAssignedUser());
     assertEquals("lPaILkLkgOM", events.get(0).getAssignedUser().getUid());
+  }
+
+  @Test
+  void shouldFetchEventsExcludingDataValuesMarkedSkipSync()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        SingleEventOperationParams.builderForDataSync(
+                UID.of("iS7eutanDry"), null, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
+            .build();
+
+    Page<SingleEvent> events = singleEventService.findEvents(params, PageParams.of(1, 10, false));
+
+    Assertions.assertContainsOnly(
+        List.of(
+            "cadc5eGj0j7",
+            "lumVtWwwy0O",
+            "ck7DzdxqLqA",
+            "OTmjvJDn0Fu",
+            "kWjSezkXHVp",
+            "QRYjLTiJTrA"),
+        uids(events.getItems()));
+
+    events.getItems().stream()
+        .filter(singleEvent -> !singleEvent.getEventDataValues().isEmpty())
+        .forEach(
+            singleEvent -> {
+              // Check that no event data value has data element "GieVkTxp4HH"
+              boolean hasForbiddenDataElement =
+                  singleEvent.getEventDataValues().stream()
+                      .anyMatch(dataValue -> "GieVkTxp4HH".equals(dataValue.getDataElement()));
+
+              assertFalse(
+                  hasForbiddenDataElement,
+                  "SingleEvent "
+                      + singleEvent.getUid()
+                      + " should not contain data element GieVkTxp4HH");
+            });
   }
 
   @Test
@@ -145,7 +197,7 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventsWithNotes() throws ForbiddenException, BadRequestException {
-    Event event = get(Event.class, "QRYjLTiJTrA");
+    SingleEvent event = get(SingleEvent.class, "QRYjLTiJTrA");
     SingleEventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
 

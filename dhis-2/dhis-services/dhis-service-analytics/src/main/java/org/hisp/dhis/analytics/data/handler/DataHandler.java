@@ -79,17 +79,17 @@ import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DataDimensionItemType.VALIDATION_RULE;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_GROUP_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.ATTRIBUTE_OPTION_COMBO;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_COMBO;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.convertToDimItemValueMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getAttributeOptionCombos;
@@ -157,6 +157,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.util.Timer;
@@ -371,7 +372,9 @@ public class DataHandler {
         permutationDimensionItemValueMap.getOrDefault(permKey, new ArrayList<>());
 
     List<Period> periods =
-        !filterPeriods.isEmpty() ? filterPeriods : List.of((Period) getPeriodItem(dimensionItems));
+        !filterPeriods.isEmpty()
+            ? filterPeriods
+            : List.of(((PeriodDimension) getPeriodItem(dimensionItems)).getPeriod());
 
     OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem(dimensionItems);
 

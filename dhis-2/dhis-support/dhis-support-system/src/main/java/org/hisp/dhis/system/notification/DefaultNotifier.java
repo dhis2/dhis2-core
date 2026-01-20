@@ -51,7 +51,7 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobKey;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -202,20 +202,19 @@ public class DefaultNotifier implements Notifier {
 
   @Override
   public Notifier notify(
-      JobConfiguration id,
+      JobKey key,
       @Nonnull NotificationLevel level,
       String message,
       boolean completed,
       NotificationDataType dataType,
       JsonValue data) {
-    if (id == null || level.isOff()) return this;
+    if (key == null || level.isOff()) return this;
 
     Notification n =
-        new Notification(
-            level, id.getJobType(), clock.getAsLong(), message, completed, dataType, data);
+        new Notification(level, key.type(), clock.getAsLong(), message, completed, dataType, data);
 
     try {
-      if (!pushToStore.offer(Map.entry(UID.of(id.getUid()), n), 50, TimeUnit.MILLISECONDS))
+      if (!pushToStore.offer(Map.entry(key.id(), n), 50, TimeUnit.MILLISECONDS))
         log.warn("Notification lost due to timeout: " + n);
     } catch (InterruptedException e) {
       log.warn("Notification lost due to interruption: " + n);
@@ -307,15 +306,12 @@ public class DefaultNotifier implements Notifier {
   }
 
   @Override
-  public <T> Notifier addJobSummary(
-      JobConfiguration id, NotificationLevel level, T summary, Class<T> type) {
-    if (id == null || level == null || level.isOff() || !type.equals(summary.getClass()))
+  public <T> Notifier addJobSummary(JobKey job, NotificationLevel level, T summary, Class<T> type) {
+    if (job == null || level == null || level.isOff() || !type.equals(summary.getClass()))
       return this;
 
     try {
-      store
-          .summary(id.getJobType(), UID.of(id.getUid()))
-          .set(JsonValue.of(jsonMapper.writeValueAsString(summary)));
+      store.summary(job.type(), job.id()).set(JsonValue.of(jsonMapper.writeValueAsString(summary)));
     } catch (Exception ex) {
       log.warn("Summary lost due to: " + ex.getMessage());
     }

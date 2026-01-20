@@ -30,7 +30,12 @@ The software is open source and released under the [BSD 3-Clause license](https:
 
 ## Run DHIS2 in Docker
 
+> [!WARNING]  
+> DO NOT use this Docker Compose file in production! There is a separate docker compose setup currently under development which is aimed at [running DHIS2 using docker](https://github.com/dhis2/docker-deployment) in production. Please check it out and provide feedback. 
+
 The following guides runs DHIS2 with [Docker Compose](https://docs.docker.com/compose/install/).
+
+Our Docker Compose file depends on various environment variables. See .env.example for a list of these. You can copy the file to .env and set the variables there.
 
 A database dump is downloaded automatically the first time you start DHIS2. If you switch between different DHIS2 versions or need to download a different DB dump, you will need to remove the shared volume `db-dump` with the following command.
 
@@ -76,19 +81,18 @@ DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.39/dhis2-db-sierra-
 docker compose up
 ```
 
-### Launch with Doris
+### Launch with Apache Doris
 
 ```sh
-DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 docker compose -f docker-compose.yml -f docker-compose.doris.yml up
+DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 \
+docker compose -f docker-compose.yml -f docker-compose.doris.yml up
 ```
 
-> **Note**
-> 
-> Remember, when running compose up with multiple compose files, you need to pass the same files to compose down, e.g.
-> ```
-> docker compose -f docker-compose.yml -f docker-compose.doris.yml down
-> ```
+When running compose up with multiple compose files, you need to pass the same files to compose down, e.g.
 
+```
+docker compose -f docker-compose.yml -f docker-compose.doris.yml down
+```
 
 ### Synchronization between DHIS2 instances
 
@@ -168,3 +172,4 @@ environment:
 ```
 
 Alternatively, you can pass the system property `-Ddhis2.home` from the command line. You need to ensure that the `DHIS2_HOME` directory is writeable by the DHIS2 process.
+

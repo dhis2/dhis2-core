@@ -38,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
@@ -46,6 +47,8 @@ import java.util.Objects;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -61,6 +64,8 @@ import org.hisp.dhis.user.User;
  *
  * @author Jim Grace
  */
+@Entity
+@Table(name = "dataapproval")
 public class DataApproval implements Serializable {
   public static final String AUTH_APPROVE = F_APPROVE_DATA.toString();
 
@@ -73,36 +78,56 @@ public class DataApproval implements Serializable {
   private static final long serialVersionUID = -4034531921928532366L;
 
   /** Identifies the data approval instance (required). */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "dataapprovalid")
   private long id;
 
   /** The approval level for which this approval is defined (required). */
+  @ManyToOne
+  @JoinColumn(name = "dataapprovallevelid", nullable = false)
   private DataApprovalLevel dataApprovalLevel;
 
   /** The workflow for the values being approved (required). */
+  @ManyToOne
+  @JoinColumn(name = "workflowid", nullable = false)
   private DataApprovalWorkflow workflow;
 
   /** The Period of the approval (required). */
+  @ManyToOne
+  @JoinColumn(name = "periodid", nullable = false)
   private Period period;
 
   /** The OrganisationUnit of the approval (required). */
+  @ManyToOne
+  @JoinColumn(name = "organisationunitid", nullable = false)
   private OrganisationUnit organisationUnit;
 
   /** The attribute category option combo being approved (required). */
+  @ManyToOne
+  @JoinColumn(name = "attributeoptioncomboid")
   private CategoryOptionCombo attributeOptionCombo;
 
   /** Whether the approval has been accepted (optional, usually by another user.) */
+  @Column(name = "accepted")
   private boolean accepted;
 
   /** The Date (including time) when this approval was made (required). */
+  @Column(name = "created", nullable = false)
   private Date created;
 
   /** The User who made this approval (required). */
+  @ManyToOne
+  @JoinColumn(name = "creator", nullable = false)
   private User creator;
 
   /** The Date (including time) when {@link #accepted} status of this approval was last changed */
+  @Column(name = "lastupdated")
   private Date lastUpdated;
 
   /** The User who made the last change to the {@link #accepted} status of this approval */
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
   // -------------------------------------------------------------------------
@@ -200,7 +225,7 @@ public class DataApproval implements Serializable {
         + "-"
         + workflow.getUid()
         + "-"
-        + period.getUid()
+        + period.getIsoDate()
         + "-"
         + organisationUnit.getUid()
         + "-"
@@ -237,6 +262,8 @@ public class DataApproval implements Serializable {
     this.workflow = workflow;
   }
 
+  @JsonSerialize(using = JacksonPeriodSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodDeserializer.class)
   public Period getPeriod() {
     return period;
   }
@@ -338,7 +365,7 @@ public class DataApproval implements Serializable {
         + (workflow == null ? "(null)" : workflow.getName())
         + "'"
         + ", period="
-        + (period == null ? "(null)" : period.getName())
+        + (period == null ? "(null)" : period.getIsoDate())
         + ", organisationUnit='"
         + (organisationUnit == null ? "(null)" : organisationUnit.getName())
         + "'"

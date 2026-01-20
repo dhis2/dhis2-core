@@ -29,6 +29,11 @@
  */
 package org.hisp.dhis.predictor;
 
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,12 +49,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -159,7 +164,7 @@ public class PredictionAnalyticsDataFetcher {
 
     DataQueryParams.Builder paramsBuilder =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(dimensionItems))
             .withOrganisationUnits(orgUnits);
 
@@ -169,13 +174,10 @@ public class PredictionAnalyticsDataFetcher {
 
     Grid grid = analyticsService.getAggregatedDataValues(paramsBuilder.build());
 
-    int peInx = grid.getIndexOfHeader(DimensionalObject.PERIOD_DIM_ID);
-    int dxInx = grid.getIndexOfHeader(DimensionalObject.DATA_X_DIM_ID);
-    int ouInx = grid.getIndexOfHeader(DimensionalObject.ORGUNIT_DIM_ID);
-    int aoInx =
-        hasAttributeOptions
-            ? grid.getIndexOfHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID)
-            : 0;
+    int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
+    int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
+    int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
+    int aoInx = hasAttributeOptions ? grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID) : 0;
     int vlInx = grid.getWidth() - 1;
 
     for (List<Object> row : grid.getRows()) {

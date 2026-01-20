@@ -30,12 +30,14 @@
 package org.hisp.dhis.validation.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.NotificationTemplateObject;
 import org.hisp.dhis.notification.SendStrategy;
@@ -117,6 +119,7 @@ public class ValidationNotificationTemplate extends NotificationTemplateObject
   }
 
   @JsonProperty
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<ValidationRule> getValidationRules() {
     return validationRules;

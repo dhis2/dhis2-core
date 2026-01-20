@@ -31,6 +31,9 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_COLLAPSED_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,7 +44,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
@@ -80,9 +82,9 @@ class PiDisagDataHandlerTest extends AbstractPiDisagTest {
     infoInitializer = new PiDisagInfoInitializer(mappingValidator);
 
     grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_COLLAPSED_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_COLLAPSED_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
     grid.addRow();
     grid.addValue("de1");

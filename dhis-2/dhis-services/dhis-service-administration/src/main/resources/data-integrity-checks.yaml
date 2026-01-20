@@ -42,6 +42,7 @@ checks:
   - option_sets/option_groups_empty.yaml
   - programs/programs_custom_data_entry_form_empty.yaml
   - programs/program_stages_no_programs.yaml
+  - programs/programs_inconsistent_tracked_entity_type.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
@@ -52,7 +53,6 @@ checks:
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml
   - analytical_objects/dashboards_empty.yaml
-  - analytical_objects/push_analysis_no_recipients.yaml
   - data_elements/aggregate_des_no_groups.yaml
   - data_elements/aggregate_des_abandoned.yaml
   - data_elements/aggregate_des_excess_groupset_membership.yaml
@@ -90,3 +90,6 @@ checks:
   - users/users_with_invalid_usernames.yaml
   - users/users_with_all_authority.yaml
   - file_resources/file_resources_no_icon.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_invalid_trigram_search_configuration.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_trigram_index_out_of_sync.yaml
+  - tracked_entity_attributes/tracked_entity_attributes_trigram_index_overview.yaml

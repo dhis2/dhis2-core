@@ -1,3 +1,4 @@
+.api_cache/**
 target
 *.log
 *.log.*
@@ -36,7 +37,14 @@ node_modules
 **/rebel.xml
 .vscode
 .cursor
+.claude
+CLAUDE.local.md
 # ignore generated artifact directory
 docker/artifacts
 # ignore local docker override files
 docker-compose.override.yml
+.env
+# ignore JMH benchmark results
+jmh-result*.csv
+# ignore performance test results downloaded from CI
+gatling-report-*/

@@ -32,7 +32,6 @@ package org.hisp.dhis.calendar;
 import com.google.common.base.MoreObjects;
 import java.util.Date;
 import java.util.TimeZone;
-import javax.annotation.Nonnull;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -49,13 +48,13 @@ import org.joda.time.chrono.ISOChronology;
  */
 public class DateTimeUnit {
   /** Year of date. Required. */
-  @Nonnull private int year;
+  private int year;
 
   /** Month of date. Required. */
-  @Nonnull private int month;
+  private int month;
 
   /** Day of date. Required. */
-  @Nonnull private int day;
+  private int day;
 
   /** Day of week, numbering is unspecified and left up to user. */
   private int dayOfWeek;

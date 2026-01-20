@@ -104,6 +104,8 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("GET"));
     assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("POST"));
     assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("PATCH"));
+    assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("DELETE"));
+    assertTrue(token.getMethodAllowedList().getAllowedMethods().contains("HEAD"));
     assertTrue(
         token.getRefererAllowedList().getAllowedReferrers().contains("http://hostname1.com"));
     assertTrue(
@@ -256,7 +258,7 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
         POST(
             "/apiTokens/",
             "{'attributes':[{'type': 'IpAllowedList','allowedIps':['1.1.1.1','2.2.2.2','3.3.3.3']},"
-                + "{'type':'MethodAllowedList','allowedMethods':['POST','GET','PATCH']},"
+                + "{'type':'MethodAllowedList','allowedMethods':['POST','GET','PATCH','HEAD','DELETE']},"
                 + "{'type':'RefererAllowedList','allowedReferrers':['http://hostname3.com','http://hostname2.com','http://hostname1.com']}]}");
     return assertStatus(HttpStatus.CREATED, okResponse);
   }

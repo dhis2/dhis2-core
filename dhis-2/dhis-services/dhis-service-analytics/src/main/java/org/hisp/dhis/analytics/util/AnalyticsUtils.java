@@ -29,14 +29,14 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -114,6 +114,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -185,7 +186,7 @@ public final class AnalyticsUtils {
             + "and (";
 
     for (DimensionalItemObject period : periods) {
-      Period pe = (Period) period;
+      PeriodDimension pe = (PeriodDimension) period;
       sql +=
           "(pe.startdate >= '"
               + toMediumDate(pe.getStartDate())
@@ -355,8 +356,7 @@ public final class AnalyticsUtils {
         totalType.getPropertyCount() + upperBoundaryMarginOfDimensionalObjectItems;
 
     for (Entry<String, T> entry : valueMap.entrySet()) {
-      List<String> items =
-          Lists.newArrayList(entry.getKey().split(DimensionalObject.DIMENSION_SEP));
+      List<String> items = Lists.newArrayList(entry.getKey().split(DIMENSION_SEP));
 
       if (items.size() < upperBoundaryOfDimensionalObjectItems) {
         map.put(entry.getKey(), entry.getValue());
@@ -387,9 +387,8 @@ public final class AnalyticsUtils {
 
       String operand =
           StringUtils.join(operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP);
-      String dimension = StringUtils.join(dimensions, DimensionalObject.DIMENSION_SEP);
-      dimension =
-          !dimension.isEmpty() ? (DimensionalObject.DIMENSION_SEP + dimension) : StringUtils.EMPTY;
+      String dimension = StringUtils.join(dimensions, DIMENSION_SEP);
+      dimension = !dimension.isEmpty() ? (DIMENSION_SEP + dimension) : StringUtils.EMPTY;
       String key = operand + dimension;
 
       map.put(key, entry.getValue());
@@ -768,7 +767,7 @@ public final class AnalyticsUtils {
     for (DimensionalObject dimension : dimensions) {
       for (DimensionalItemObject item : dimension.getItems()) {
         if (DimensionType.PERIOD.equals(dimension.getDimensionType()) && !calendar.isIso8601()) {
-          Period period = (Period) item;
+          PeriodDimension period = (PeriodDimension) item;
           DateTimeUnit dateTimeUnit = calendar.fromIso(period.getStartDate());
 
           map.put(period.getPeriodType().getIsoDate(dateTimeUnit), period.getDisplayName());
@@ -825,7 +824,7 @@ public final class AnalyticsUtils {
     for (DimensionalObject dimension : dimensions) {
       for (DimensionalItemObject item : dimension.getItems()) {
         if (DimensionType.PERIOD == dimension.getDimensionType() && !calendar.isIso8601()) {
-          Period period = (Period) item;
+          PeriodDimension period = (PeriodDimension) item;
           DateTimeUnit dateTimeUnit = calendar.fromIso(period.getStartDate());
           String isoDate = period.getPeriodType().getIsoDate(dateTimeUnit);
           map.put(
@@ -1133,10 +1132,11 @@ public final class AnalyticsUtils {
    * @param periods a list of {@link DimensionalItemObject} of type period.
    * @return true if the period exists in the given list.
    */
-  public static boolean isPeriodInPeriods(String period, List<DimensionalItemObject> periods) {
+  public static boolean isPeriodInPeriods(
+      String period, List<? extends DimensionalItemObject> periods) {
     return periods.stream()
-        .map(d -> (Period) d)
-        .map(Period::getIsoDate)
+        .map(d -> (PeriodDimension) d)
+        .map(PeriodDimension::getIsoDate)
         .anyMatch(date -> date.equals(period));
   }
 
@@ -1168,7 +1168,7 @@ public final class AnalyticsUtils {
   public static boolean hasPeriod(List<Object> row, int periodIndex) {
     return periodIndex < row.size()
         && row.get(periodIndex) instanceof String
-        && PeriodType.getPeriodFromIsoString((String) row.get(periodIndex)) != null;
+        && Period.ofNullable((String) row.get(periodIndex)) != null;
   }
 
   /**
@@ -1231,6 +1231,14 @@ public final class AnalyticsUtils {
       log.error("Internal runtime exception", ex);
       throw ex;
     } catch (DataIntegrityViolationException ex) {
+      // This condition is needed because the ClickHouse JDBC driver
+      // throws DataIntegrityViolationException when a table does not exist
+      if ((ex.getCause() instanceof SQLException sqlexception)
+          && (relationDoesNotExist(sqlexception))) {
+        log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        // rethrow as BadSqlGrammarException for consistent handling
+        throw new BadSqlGrammarException("", "", sqlexception);
+      }
       log.error(E7132.getMessage(), ex);
       throw new QueryRuntimeException(E7132);
     } catch (DataAccessResourceFailureException ex) {
@@ -1245,6 +1253,12 @@ public final class AnalyticsUtils {
     if (ex.getCause() instanceof SQLException sqlexception) {
       if (relationDoesNotExist(sqlexception)) {
         log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+        // This if condition is needed because the Apache Doris JDBC driver
+        // throws UncategorizedSQLException when a table does not exist
+        if (ex instanceof UncategorizedSQLException) {
+          // rethrow as BadSqlGrammarException for consistent handling
+          throw new BadSqlGrammarException("", "", sqlexception);
+        }
         throw ex;
       }
       if (!isMultipleQueries) {
@@ -1274,8 +1288,12 @@ public final class AnalyticsUtils {
   private record ElementWithOptionSet(IdentifiableObject bio, OptionSet optionSet) {
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
       ElementWithOptionSet that = (ElementWithOptionSet) o;
       return Objects.equals(
               bio != null ? bio.getUid() : null, that.bio != null ? that.bio.getUid() : null)

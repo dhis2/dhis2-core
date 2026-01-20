@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -56,6 +57,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.statement.DefaultStatementBuilder;
 import org.hisp.dhis.parser.expression.statement.StatementBuilder;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 
 /** Provides methods targeting the generation of SQL statements for periods and time fields. */
@@ -166,10 +168,10 @@ public abstract class TimeFieldSqlRenderer {
     List<String> sqlConditions = conditions.get(columnWithDateRange.column);
     if (sqlConditions == null) {
       sqlConditions = new ArrayList<>();
-      sqlConditions.add(getDateRangeCondition(columnWithDateRange));
+      sqlConditions.add(getDateRangeCondition(columnWithDateRange, eventQueryParams));
       conditions.put(columnWithDateRange.column, sqlConditions);
     } else {
-      sqlConditions.add(getDateRangeCondition(columnWithDateRange));
+      sqlConditions.add(getDateRangeCondition(columnWithDateRange, eventQueryParams));
     }
   }
 
@@ -179,13 +181,19 @@ public abstract class TimeFieldSqlRenderer {
    * @param dateRangeColumn the {@link ColumnWithDateRange}
    * @return the SQL statement
    */
-  private String getDateRangeCondition(ColumnWithDateRange dateRangeColumn) {
+  private String getDateRangeCondition(
+      ColumnWithDateRange dateRangeColumn, EventQueryParams params) {
+    String dateRangeColumnName = dateRangeColumn.getColumn();
+    if (hasEnrollmentOrgUnitFilter(params)) {
+      dateRangeColumnName = "ax." + dateRangeColumnName;
+    }
+
     return "("
-        + dateRangeColumn.getColumn()
+        + dateRangeColumnName
         + " >= '"
         + toMediumDate(dateRangeColumn.getDateRange().getStartDate())
         + "' and "
-        + dateRangeColumn.getColumn()
+        + dateRangeColumnName
         + " < '"
         + toMediumDate(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
         + "')";
@@ -205,7 +213,7 @@ public abstract class TimeFieldSqlRenderer {
             .dateRange(new DateRange(params.getStartDate(), params.getEndDate()))
             .build();
     List<String> dateRangeConditions = new ArrayList<>();
-    dateRangeConditions.add(getDateRangeCondition(defaultDateRangeColumn));
+    dateRangeConditions.add(getDateRangeCondition(defaultDateRangeColumn, params));
     conditions.put(defaultDateRangeColumn.column, dateRangeConditions);
   }
 
@@ -221,7 +229,7 @@ public abstract class TimeFieldSqlRenderer {
   }
 
   protected boolean isPeriod(DimensionalItemObject dimensionalItemObject) {
-    return dimensionalItemObject instanceof Period;
+    return dimensionalItemObject instanceof PeriodDimension;
   }
 
   @Data
@@ -291,10 +299,10 @@ public abstract class TimeFieldSqlRenderer {
   protected String getSqlForAllPeriods(String alias, List<DimensionalItemObject> periods) {
     StringBuilder sql = new StringBuilder();
 
-    Map<PeriodType, List<Period>> periodsByType =
+    Map<PeriodType, List<PeriodDimension>> periodsByType =
         periods.stream()
-            .map(Period.class::cast)
-            .collect(Collectors.groupingBy(Period::getPeriodType));
+            .map(PeriodDimension.class::cast)
+            .collect(Collectors.groupingBy(PeriodDimension::getPeriodType));
 
     List<String> periodSingleConditions =
         periodsByType.entrySet().stream().map(entry -> toSqlCondition(alias, entry)).toList();
@@ -316,7 +324,7 @@ public abstract class TimeFieldSqlRenderer {
     return periodSingleConditions.stream().findFirst().orElse(EMPTY);
   }
 
-  private String toSqlCondition(String alias, Entry<PeriodType, List<Period>> entry) {
+  private String toSqlCondition(String alias, Entry<PeriodType, List<PeriodDimension>> entry) {
     String columnName = entry.getKey().getName().toLowerCase();
     return sqlBuilder.quote(alias, columnName)
         + OPEN_IN

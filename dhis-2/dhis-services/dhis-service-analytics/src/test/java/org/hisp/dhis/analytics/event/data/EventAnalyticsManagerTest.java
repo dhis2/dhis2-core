@@ -35,10 +35,10 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -49,7 +49,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
-import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -88,8 +88,7 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -128,6 +127,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
+  private QueryItemFilterBuilder filterBuilder;
+
   @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -148,7 +149,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
+          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,"
           + "oucode,enrollmentstatus,eventstatus";
 
   @BeforeEach
@@ -162,6 +163,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             new PostgreSqlBuilder(),
             dataElementService);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -176,7 +178,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper);
+            columnMapper,
+            filterBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
@@ -199,7 +202,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,"
+            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,"
             + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -261,7 +264,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
+            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
             + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
@@ -511,6 +514,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     mockRowSet();
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -541,6 +545,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithFilter() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -592,7 +597,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withOrganisationUnits(List.of(createOrganisationUnit('A')))
-            .withPeriods(List.of(createPeriod("202201")), PeriodTypeEnum.MONTHLY.getName())
+            .withPeriods(createPeriodDimensions("202201"), PeriodTypeEnum.MONTHLY.getName())
             .addDimension(
                 new BaseDimensionalObject(
                     "jkYhtGth12t",
@@ -635,7 +640,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     piA.setUid("CCKx3gllb2P");
 
     OrganisationUnit ouA = createOrganisationUnit('A');
-    Period peA = PeriodType.getPeriodFromIsoString("201501");
+    List<PeriodDimension> periods = createPeriodDimensions("201501");
 
     DataElement deA = createDataElement('A');
     deA.setUid("ZE4cgllb2P");
@@ -653,10 +658,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             .addFilter(
                 new BaseDimensionalObject(
                     ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
-            .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, getList(peA)))
-            .addDimension(
-                new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, getList(peA)))
+            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, periods))
+            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, periods))
             .build();
 
     EventQueryParams.Builder eventQueryParamsBuilder =
@@ -684,6 +687,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithMeasureCriteria() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(rowSet.getString("ax.\"fWIAEtYVEGk\"")).thenReturn("2000");
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 
@@ -705,9 +709,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     // Verify that the Measure criteria is applied to the query
     assertThat(sql.getValue().trim(), containsString("having"));
     assertThat(
-        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) > 10.0"));
+        sql.getValue().trim(),
+        containsString("round(count(ax.\"event\"), 10) > ('10.0')::numeric(38,10)"));
     assertThat(
-        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) < 20.0"));
+        sql.getValue().trim(),
+        containsString("round(count(ax.\"event\"), 10) < ('20.0')::numeric(38,10)"));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(
@@ -744,6 +750,43 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "\" is not null)";
 
     assertThat(sql.getValue(), containsString(expectedFirstOrLastSubquery));
+  }
+
+  @Test
+  void verifyGetAggregatedEventDataRendersTimestampForDateQueryItem() {
+    // Given: a QueryItem with DATE value type
+    DataElement dateElement = createDataElement('D');
+    dateElement.setUid("dateElement1");
+    dateElement.setValueType(ValueType.DATE);
+
+    QueryItem dateQueryItem =
+        new QueryItem(dateElement, programA, null, ValueType.DATE, AggregationType.NONE, null);
+    dateQueryItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(createPeriodDimensions("2000Q1"), "quarterly")
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withTableName(getTable(programA.getUid()))
+            .addItem(dateQueryItem)
+            .build();
+
+    // Mock row set with a date value
+    when(rowSet.next()).thenReturn(true).thenReturn(false);
+    when(rowSet.getString("dateElement1")).thenReturn("2024-01-15");
+    when(rowSet.getString("quarterly")).thenReturn("2024Q1");
+    when(rowSet.getString("ou")).thenReturn("OrgUnit");
+    when(rowSet.getInt("value")).thenReturn(1);
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    // When
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    // Then: verify renderTimestamp was called for the date value
+    verify(sqlBuilder).renderTimestamp("2024-01-15");
   }
 
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {

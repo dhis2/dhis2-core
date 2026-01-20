@@ -8,11 +8,11 @@ Get events matching given query parameters.
 
 ### `getEventByUid`
 
-Get an event with given UID.
+Get an event with the specified UID.
 
 ### `getEventByUid.parameter.uid`
 
-Get an event with given UID.
+Get an event with the specified UID.
 
 ### `getEventByUid.parameter.fields`
 
@@ -25,32 +25,36 @@ NOTE: this query parameter has no effect on a response in CSV!
 
 ### `getEventDataValueFile`
 
-Get an event data value file or image for given event and data element UID. Images are returned in
-their original dimension.
+Get an event data value file or image for specified event and data element UID. Images are 
+returned in  their original dimension.
 
 ### `getEventDataValueImage`
 
-Get an event data value image for given event and data element UID. Images are returned in their
+Get an event data value image for specified event and data element UID. Images are returned in their
 original dimension by default. This endpoint is only supported for data elements of value type
 image.
 
 ### `getEventChangeLogsByUid`
 
-Get the change logs of all data elements related to that particular event UID.
+Get the change logs of all data elements belonging to the specified event UID.
 
 ## Common for all endpoints
 
 ### `*.parameter.EventRequestParams.program`
 
+Get events from the specified program.
+
 ### `*.parameter.EventRequestParams.programStage`
+
+Get events from the specified program stage.
 
 ### `*.parameter.EventRequestParams.enrollmentStatus`
 
-Get events from an enrollment in the given status.
+Get events from enrollments that have the specified enrollment status.
 
 ### `*.parameter.EventRequestParams.programStatus`
 
-Get events from an enrollment in the given status.
+Get events from enrollments that have the specified enrollment status.
 
 **DEPRECATED as of 2.42:** Use parameter `enrollmentStatus` instead.
 
@@ -58,24 +62,49 @@ See `enrollmentStatus` for details.
 
 ### `*.parameter.EventRequestParams.followUp`
 
-Get events with given follow-up status of the instance for the given program.
+Get events with specified follow-up status. When set to true, only events marked for
+follow-up will be returned. When set to false, only events not marked for follow-up will be
+returned.
 
 ### `*.parameter.EventRequestParams.trackedEntity`
 
-Get events of tracked entity with given UID.
+Get events belonging to the tracked entity with the specified UID.
 
 ### `*.parameter.EventRequestParams.orgUnit`
 
-Get events owned by given `orgUnit`.
+Get events belonging to the specified `orgUnit`.
 
 ### `*.parameter.EventRequestParams.orgUnitMode`
 
-Get events using given organisation unit mode.
+Get events belonging to the organisation units referenced by the specified organisation unit 
+mode.
+- When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
+  parameter is required to specify which events to return.
+- When `orgUnitMode=ALL` events will be returned irrespective of the organisation unit they
+  are owned by. To use this parameter, the user needs the `Search Tracked entity in all org units`
+  authority.
+- When `orgUnitMode=ACCESSIBLE` events owned by any organisation unit in the user's
+  effective search scope will be returned. Effective search scope is the union of user's defined
+  search scope and capture scope.
+- When `orgUnitMode=CAPTURE` events that have an event organisation unit in the user's
+  capture scope will be returned.
 
 ### `*.parameter.EventRequestParams.assignedUserMode`
 
 Get events assigned to users according to the specified user mode. By default,
 all events will be retrieved, regardless of whether a user is assigned.
+
+- When `assignedUserMode=ALL` or no `assignedUserMode`(default) is given, all events are
+  returned irrespective of whether they are assigned to a user or not.
+
+- When `assignedUserMode=CURRENT`, events that are assigned to the logged-in user will be returned.
+
+- When `assignedUserMode=ANY`, events that are assigned to any user will be returned.
+
+- When `assignedUserMode=NONE`, events that are not assigned to any user will be returned.
+
+- When `assignedUserMode=PROVIDED`, events that are assigned to the users specified in 
+  `assignedUsers` will be returned. `assignedUsers` is required for this mode.
 
 ### `*.parameter.EventRequestParams.assignedUsers`
 
@@ -86,50 +115,59 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.EventRequestParams.occurredAfter`
 
-Get events that occurred after given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events that occurred after given date and time. This parameter is inclusive, so results with 
+the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.occurredBefore`
 
-Get events that occurred before given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events that occurred before given date and time. This parameter is inclusive, so results 
+with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.scheduledAfter`
 
-Get events that are scheduled after given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events that are scheduled after given date and time. This parameter is inclusive, so 
+results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.scheduledBefore`
 
-Get events that are scheduled before given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events that are scheduled before given date and time. This parameter is inclusive, so 
+results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.updatedAfter`
 
-Get events updated after given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events updated after given date and time. This parameter is inclusive, so results with the 
+exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.updatedWithin`
 
-Get events updated since given ISO-8601 duration.
+Get events updated since the given duration. The supported durations are `d` (Days), `h` (Hours), 
+`m` (Minutes) and `s` Seconds. For example, `updatedWithin=2d` can be used to get events updated in 
+the last 2 days.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledAfter`
 
-Get events with enrollments that were enrolled after given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events from enrollments created after given date and time. This parameter is inclusive, so 
+results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledBefore`
 
-Get events with enrollments that were enrolled before given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get events from enrollments that were created before given date and time. This parameter is 
+inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.status`
 
+Get events with the specified event status.
+
 ### `*.parameter.EventRequestParams.attributeCategoryCombo`
+
+Get events with the specified attribute category combination UID.
 
 ### `*.parameter.EventRequestParams.attributeCategoryOptions`
 
 `<attributeCategoryOption1-uid>[,<attributeCategoryOption2-uid>...]`
+
+Get events with the specified attribute category combination UIDs. Multiple attribute category 
+option UIDs can be specified by separating them with commas.
 
 ### `*.parameter.EventRequestParams.includeDeleted`
 
@@ -140,16 +178,15 @@ default.
 
 `<event1-uid>[,<event2-uid>...]`
 
-Get events with given UID(s).
+Get events with specified UID(s).
 
 ### `*.parameter.EventRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
-Get events in given order. Events can be ordered by data elements and tracked entity attributes by
-passing a UID instead of a property name. This will order events by the values of the specified
-attribute and data element not their UIDs. Events can also be ordered by the following
-case-sensitive properties
+Get events in the specified order. Events can be ordered by data elements and tracked entity 
+attributes by passing a UID instead of a property name. Events can also be ordered by the 
+following case-sensitive properties
 
 * `assignedUser`
 * `assignedUserDisplayName`
@@ -180,7 +217,7 @@ case-sensitive properties
 Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
 defaults to `asc` for properties or UIDs without explicit `sortDirection` as in `order=scheduledAt`.
 
-Events are ordered by newest (internal id desc) by default meaning when no `order` parameter is
+Events are ordered by newest (internal id desc) by default, when no `order` parameter is
 provided.
 
 ### `*.parameter.EventRequestParams.fields`
@@ -289,3 +326,4 @@ behave in the same way.
 Valid unary operators are:
 - `null` - has no value
 - `!null` - has a value
+

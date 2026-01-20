@@ -30,8 +30,16 @@
 package org.hisp.dhis.predictor;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -43,7 +51,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,19 +58,22 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataExportService;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -72,11 +82,13 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
@@ -109,10 +121,13 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PeriodService periodService;
+  @Autowired private PeriodStore periodStore;
 
   @Autowired private DataElementService dataElementService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataExportService dataExportService;
+
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private AnalyticsService analyticsService;
 
@@ -148,6 +163,8 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
+    periodStore.invalidateCache();
+    PeriodType.invalidatePeriodCache();
     final String DATA_ELEMENT_A_UID = "DataElemenA";
     final String DATA_ELEMENT_D_UID = "DataElemenD";
     final String DATA_ELEMENT_I_UID = "DataElemenI";
@@ -227,7 +244,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
     manager.update(trackedEntity);
-    Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet, null);
+    Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet);
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', 0);
@@ -255,10 +272,10 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     trackedEntity.getEnrollments().add(enrollment);
     manager.update(trackedEntity);
 
-    Event eventA = createEvent(stageA, enrollment, orgUnitA);
+    TrackerEvent eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);
     manager.save(eventA);
-    Event eventB = createEvent(stageA, enrollment, orgUnitA);
+    TrackerEvent eventB = createEvent(stageA, enrollment, orgUnitA);
     eventB.setOccurredDate(dateApr10);
     eventB.setAttributeOptionCombo(defaultCombo);
     manager.save(eventB);
@@ -336,11 +353,9 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     User user = createAndAddUser(true, "mockUser", orgUnitASet, orgUnitASet);
     injectSecurityContextUser(user);
 
-    dataValueService.addDataValue(
-        createDataValue(dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100"));
-    dataValueService.addDataValue(
-        createDataValue(dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200"));
-    dataValueService.addDataValue(
+    addDataValues(
+        createDataValue(dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100"),
+        createDataValue(dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200"),
         createDataValue(dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300"));
   }
 
@@ -358,10 +373,10 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
    */
   private Grid newGrid(String dimensionItem, double... values) {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID));
     int month = Integer.valueOf(testYear + "03");
     for (double value : values) {
@@ -383,10 +398,12 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
    * @return the value
    */
   private String getDataValue(DataElement dataElement, Period period) {
-    DataValue dv =
-        dataValueService.getDataValue(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
-    if (dv != null) {
-      return dv.getValue();
+    DataEntryKey key = new DataEntryKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
+    try {
+      DataExportValue dv = dataExportService.exportValue(key);
+      if (dv != null) return dv.value();
+    } catch (ConflictException e) {
+      fail("Failed to read data value: " + key, e);
     }
     return null;
   }
@@ -414,5 +431,10 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
         predictorT, getDate(testYear, 4, 1), getDate(testYear, 5, 31), summary);
     assertEquals("101", getDataValue(predictorOutputT, periodApr));
     assertEquals("302", getDataValue(predictorOutputT, periodMay));
+  }
+
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValuesForJdbcTest(values) < values.length)
+      fail("Failed to upsert test data");
   }
 }

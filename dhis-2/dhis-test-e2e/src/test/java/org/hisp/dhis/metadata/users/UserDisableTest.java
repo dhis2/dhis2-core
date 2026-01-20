@@ -79,7 +79,7 @@ class UserDisableTest extends ApiTest {
     ApiResponse getResponse = userActions.get(userId);
     getResponse.validate().statusCode(200).body("disabled", is(true));
 
-    loginActions.addAuthenticationHeader(userName, password);
+    LoginActions.addAuthenticationHeader(userName, password);
     loginActions.getLoggedInUserInfo().validate().statusCode(401);
   }
 
@@ -97,7 +97,7 @@ class UserDisableTest extends ApiTest {
     ApiResponse getResponse = userActions.get(userId);
     getResponse.validate().statusCode(200).body("disabled", is(true));
 
-    loginActions.addAuthenticationHeader(userName, password);
+    LoginActions.addAuthenticationHeader(userName, password);
     loginActions.getLoggedInUserInfo().validate().statusCode(401);
 
     loginActions.loginAsSuperUser();
@@ -108,7 +108,7 @@ class UserDisableTest extends ApiTest {
     ApiResponse getAfterEnabled = userActions.get(userId);
     getAfterEnabled.validate().statusCode(200).body("disabled", is(false));
 
-    loginActions.addAuthenticationHeader(userName, password);
+    LoginActions.addAuthenticationHeader(userName, password);
     loginActions.getLoggedInUserInfo().validate().statusCode(200);
   }
 }

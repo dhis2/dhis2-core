@@ -69,6 +69,97 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "eventQueryUsingCompletedDateTimeField",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,GxdhnY5wmHq&headers=ouname,GxdhnY5wmHq,lastupdated&totalPages=false&completedDate=202111&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR&relativePeriodDate=2025-09-20",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateThisYear",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR&desc=eventdate,lastupdated&relativePeriodDate=2022-12-31",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateSpecificYear",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateRange",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:2021-03-01_2021-05-31&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventGreaterThan",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:GT:2021-05-01&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventLowerThan",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:LE:2023-05-01&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "validatePeriodAndStageWithOuNotRejected",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=pe:THIS_YEAR&dimension=Zj7UnCAulEk.ou:ImspTQPwCqd&desc=eventdate,lastupdated&relativePeriodDate=2022-12-31",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateMultipleStages",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.EVENT_DATE:2022&dimension=jdRD35YwbRH.EVENT_DATE:2023&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndSimpleOu",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:ImspTQPwCqd&dimension=pe:2022&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndOuUserOrgUnit",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT&dimension=pe:202206&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndOuUserLevel",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.ou:LEVEL-3&dimension=pe:202111&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndScheduledDate",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.SCHEDULED_DATE:202208&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndStatus",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE&dimension=pe:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

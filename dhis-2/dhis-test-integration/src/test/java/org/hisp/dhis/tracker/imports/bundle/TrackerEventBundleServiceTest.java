@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -43,6 +42,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ class TrackerEventBundleServiceTest extends PostgresIntegrationTestBase {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
-    List<Event> events = manager.getAll(Event.class);
+    List<TrackerEvent> events = manager.getAll(TrackerEvent.class);
     assertEquals(8, events.size());
   }
 
@@ -95,11 +95,11 @@ class TrackerEventBundleServiceTest extends PostgresIntegrationTestBase {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
-    assertEquals(8, manager.getAll(Event.class).size());
+    assertEquals(8, manager.getAll(TrackerEvent.class).size());
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 
-    assertEquals(8, manager.getAll(Event.class).size());
+    assertEquals(8, manager.getAll(TrackerEvent.class).size());
   }
 }

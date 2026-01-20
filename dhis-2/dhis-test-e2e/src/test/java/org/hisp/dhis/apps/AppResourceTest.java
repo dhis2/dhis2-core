@@ -32,6 +32,7 @@ package org.hisp.dhis.apps;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -72,8 +73,48 @@ class AppResourceTest extends ApiTest {
           });
 
   private static final String SERVER_BASE = "http://web:8080";
-  private static final String META_TAG_DHIS2_BASE_URL =
-      "<meta name=\"dhis2-base-url\" content=\"" + SERVER_BASE + "\">";
+
+  @Test
+  @DisplayName("Installing a bundled app should override existing app")
+  void installBundledAppShouldOverride() {
+    // given an app is installed
+    File file = new File("src/test/resources/apps/dashboard.zip");
+    given()
+        .multiPart("file", file)
+        .contentType("multipart/form-data")
+        .when()
+        .post("/apps")
+        .then()
+        .statusCode(201);
+
+    ResponseEntity<String> response = getAuthenticated("/dhis-web-dashboard" + "/index.html");
+    assertEquals(HttpStatus.FOUND, response.getStatusCode());
+
+    // Fetch all bundled apps list
+    ResponseEntity<String> allBundledApps = getAuthenticated("/api/apps?filter=bundled:eq:true");
+    assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    String unparsedJson = allBundledApps.getBody();
+    assertNotNull(unparsedJson);
+    // Make sure our overridden bundled app shows up
+    assertTrue(unparsedJson.contains("\"name\":\"Dashboard\""));
+    assertTrue(unparsedJson.contains("\"version\":\"999.9.9\""));
+
+    // Should be able to delete the overridden bundled app
+    ResponseEntity<String> deletedResponse = delete("/api/apps/dashboard");
+    assertEquals(HttpStatus.NO_CONTENT, deletedResponse.getStatusCode());
+
+    // Should not be able to delete the actual bundled app
+    ResponseEntity<String> errorResponse = delete("/api/apps/dashboard");
+    assertEquals(HttpStatus.BAD_REQUEST, errorResponse.getStatusCode());
+
+    // Should still be able to access the bundled app, but should be the original version
+    allBundledApps = getAuthenticated("/api/apps?filter=bundled:eq:true");
+    assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    unparsedJson = allBundledApps.getBody();
+    assertNotNull(unparsedJson);
+    assertTrue(unparsedJson.contains("\"name\":\"Dashboard\""));
+    assertFalse(unparsedJson.contains("\"version\":\"999.9.9\""));
+  }
 
   @Test
   @DisplayName("Redirect location should have correct format")
@@ -338,6 +379,19 @@ class AppResourceTest extends ApiTest {
   // TODO: Inaccessible apps
   // TODO: Test when global shell disabled
 
+  private ResponseEntity<String> delete(String path) {
+    HttpHeaders headers = new HttpHeaders();
+    String authHeader =
+        Base64.getUrlEncoder().encodeToString("admin:district".getBytes(StandardCharsets.UTF_8));
+    headers.set("Authorization", "Basic " + authHeader);
+    try {
+      return restTemplate.exchange(
+          SERVER_BASE + path, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+  }
+
   private ResponseEntity<String> get(String path, HttpHeaders headers) {
     try {
       return restTemplate.exchange(
@@ -345,10 +399,6 @@ class AppResourceTest extends ApiTest {
     } catch (HttpClientErrorException e) {
       return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
     }
-  }
-
-  private ResponseEntity<String> get(String path) {
-    return get(path, new HttpHeaders());
   }
 
   private ResponseEntity<String> getAuthenticated(String path, HttpHeaders headers) {

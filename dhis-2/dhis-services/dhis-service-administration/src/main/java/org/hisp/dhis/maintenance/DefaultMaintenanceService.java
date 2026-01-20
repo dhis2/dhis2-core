@@ -34,13 +34,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
@@ -71,7 +72,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final DataValueService dataValueService;
 
-  private final DataValueAuditService dataValueAuditService;
+  private final DataValueChangelogService dataValueChangelogService;
 
   private final CompleteDataSetRegistrationService completeRegistrationService;
 
@@ -159,7 +160,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
     dataApprovalService.deleteDataApprovals(organisationUnit);
     dataApprovalAuditService.deleteDataApprovalAudits(organisationUnit);
     completeRegistrationService.deleteCompleteDataSetRegistrations(organisationUnit);
-    dataValueAuditService.deleteDataValueAudits(organisationUnit);
+    dataValueChangelogService.deleteByOrgUnit(UID.of(organisationUnit));
     dataValueService.deleteDataValues(organisationUnit);
 
     log.info("Pruned data for organisation unit: " + organisationUnit);
@@ -176,7 +177,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
     singleEventChangeLogService.deleteEventChangeLog(dataElement);
     trackerEventChangeLogService.deleteEventChangeLog(dataElement);
-    dataValueAuditService.deleteDataValueAudits(dataElement);
+    dataValueChangelogService.deleteByDataElement(UID.of(dataElement));
     dataValueService.deleteDataValues(dataElement);
 
     log.info("Pruned data for data element: " + dataElement);

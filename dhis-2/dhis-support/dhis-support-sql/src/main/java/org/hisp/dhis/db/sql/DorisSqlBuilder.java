@@ -195,7 +195,17 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsUpdateForMultiKeyTable() {
+    return false;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
+    return false;
+  }
+
+  @Override
+  public boolean supportsPercentileCont() {
     return false;
   }
 
@@ -330,6 +340,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   public String variance(String expression) {
     return String.format("variance(%s)", expression);
   }
+
+  // Statements
 
   @Override
   public String createTable(Table table) {
@@ -484,12 +496,25 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * Doris supports indexes but relies on concurrency and compression for query performance instead
-   * of indexes on arbitrary columns. Read more at {@link https://t.ly/uNK5T}.
+   * of indexes on arbitrary columns. Read more at {@link https://t.ly/AHhJ1}.
    */
   @Override
   public String createIndex(Index index) {
     return notSupported();
   }
+
+  @Override
+  public String castDecimal(String expr, int precision, int scale) {
+    return String.format("cast(%s as decimal(%d,%d))", expr, precision, scale);
+  }
+
+  @Override
+  public String decimalLiteral(String literal, int precision, int scale) {
+    // Force a DECIMAL literal (avoid DOUBLE literal parsing path).
+    return String.format("cast('%s' as decimal(%d,%d))", escape(literal), precision, scale);
+  }
+
+  // Catalog
 
   /**
    * Returns a create catalog statement.
@@ -503,14 +528,13 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return replace(
         """
         create catalog ${catalog} \
-        properties (
+        properties (\
         "type" = "jdbc", \
         "user" = "${username}", \
         "password" = "${password}", \
         "jdbc_url" = "${connection_url}", \
         "driver_url" = "${driver_filename}", \
-        "driver_class" = "org.postgresql.Driver"
-        );""",
+        "driver_class" = "org.postgresql.Driver");""",
         Map.of(
             "catalog", quote(catalog),
             "username", username,

@@ -51,7 +51,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-tracker</artifactId>
+      <artifactId>dhis-tracker</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -131,10 +131,6 @@
       <artifactId>spring-security-oauth2-authorization-server</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.apache.jclouds</groupId>
-      <artifactId>jclouds-core</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.vdurmont</groupId>
       <artifactId>semver4j</artifactId>
@@ -281,10 +277,6 @@
       <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
-      <groupId>net.sourceforge.javacsv</groupId>
-      <artifactId>javacsv</artifactId>
-    </dependency>
-    <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
@@ -411,18 +403,4 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <parameters>true</parameters>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

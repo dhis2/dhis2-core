@@ -48,12 +48,15 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.ReadContext;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONObject;
-import org.apache.http.client.fluent.Content;
+import org.apache.http.HttpResponse;
 
 /** Helper class that provides auxiliary methods for the test generation. */
 public class GeneratorHelper {
@@ -92,6 +95,7 @@ public class GeneratorHelper {
         import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
         import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
         import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
+        import static org.hisp.dhis.analytics.ValidationHelper.validateRowExists;
         import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
         import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
@@ -187,6 +191,20 @@ public class GeneratorHelper {
         actualHeadersFromCtx = ctx.read("$.headers"); // Read headers
       } catch (PathNotFoundException e) {
         return EMPTY;
+      }
+
+      // Detect if rowContext exists and is non-empty
+      try {
+        Object rowContextObj = ctx.read("$.rowContext");
+        if (rowContextObj instanceof Map) {
+          rowContextPresent = !((Map<?, ?>) rowContextObj).isEmpty();
+        } else if (rowContextObj instanceof List) {
+          rowContextPresent = !((List<?>) rowContextObj).isEmpty();
+        } else if (rowContextObj != null) {
+          rowContextPresent = true;
+        }
+      } catch (PathNotFoundException e) {
+        rowContextPresent = false;
       }
 
       // --- Calculate Expected Header Counts based on Live Response ---
@@ -286,7 +304,7 @@ public class GeneratorHelper {
   private static String buildTestConfigurationBlock() {
     return """
            // Read the 'expect.postgis' system property at runtime to adapt assertions.
-           boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "false"));
+           boolean expectPostgis = isPostgres();
 
            """; // Default to false if property not set
   }
@@ -499,8 +517,84 @@ public class GeneratorHelper {
   }
 
   /**
-   * Builds the assertions for rows, always generating name-based validation calls for a sample of
-   * rows (first and last).
+   * Generates a validateRowExists() call that checks for a row with matching values regardless of
+   * position. This is used for unsorted/aggregated queries where row order is not deterministic.
+   * Includes ALL columns in the validation.
+   *
+   * @param rowIndex The row index (used only for comment purposes).
+   * @param rowData The row data values.
+   * @param headers The list of headers with metadata.
+   * @return The generated Java code string.
+   */
+  private static String generateValidateRowExists(
+      int rowIndex, List<Object> rowData, List<Map<String, Object>> headers) {
+    StringBuilder sb = new StringBuilder();
+
+    if (rowData == null || headers == null || rowData.size() != headers.size()) {
+      sb.append("// Skipping row existence generation for row ")
+          .append(rowIndex)
+          .append(" due to data mismatch.\n");
+      return sb.toString();
+    }
+
+    sb.append("// Validate row exists with values from original row index ")
+        .append(rowIndex)
+        .append("\n");
+
+    // Build the map entries
+    List<String> keys = new java.util.ArrayList<>();
+    List<String> values = new java.util.ArrayList<>();
+
+    for (int i = 0; i < headers.size(); i++) {
+      String headerName = (String) headers.get(i).get("name");
+      Object valueObj = rowData.get(i);
+
+      // Handle value based on valueType
+      String valueType = (String) headers.get(i).get("valueType");
+      String valueString;
+      if (valueObj == null) {
+        valueString = "null";
+      } else if ("BOOLEAN".equalsIgnoreCase(valueType)) {
+        valueString = Boolean.toString("true".equalsIgnoreCase(valueObj.toString()));
+      } else {
+        valueString = "\"" + escapeJava(valueObj.toString()) + "\"";
+      }
+
+      keys.add("\"" + escapeJava(headerName) + "\"");
+      values.add(valueString);
+    }
+
+    // Generate the validateRowExists call with inline Map creation
+    // Map.of() supports up to 5 pairs (10 args), use Map.ofEntries() for more
+    if (keys.size() <= 5) {
+      // Use Map.of() for cleaner syntax with <= 5 pairs
+      sb.append("validateRowExists(response, actualHeaders, Map.of(");
+      for (int i = 0; i < keys.size(); i++) {
+        sb.append(keys.get(i)).append(", ").append(values.get(i));
+        if (i < keys.size() - 1) {
+          sb.append(", ");
+        }
+      }
+      sb.append("));\n");
+    } else {
+      // Use Map.ofEntries() for > 5 pairs
+      sb.append("validateRowExists(response, actualHeaders, Map.ofEntries(");
+      for (int i = 0; i < keys.size(); i++) {
+        sb.append("Map.entry(").append(keys.get(i)).append(", ").append(values.get(i)).append(")");
+        if (i < keys.size() - 1) {
+          sb.append(", ");
+        }
+      }
+      sb.append("));\n");
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Builds the assertions for rows, generating name-based validation calls for a sample of rows.
+   * When assertRowIndex() is false, uses validateRowExists() to check for matching rows regardless
+   * of position (for unsorted results). When true, validates specific row indices.
    *
    * @param ctx ReadContext for the JSON response.
    * @param actualHeadersFromCtx The list of headers extracted from the context.
@@ -522,28 +616,68 @@ public class GeneratorHelper {
       return "\n// No rows found in response, skipping row assertions.\n";
     }
 
-    // --- Always generate NAME-BASED ROW VALIDATION ---
-    rowsAssertion.append(
-        "\n// 7. Assert row values by name (sample validation: first/last row, key columns).\n");
-
     // Check if headers are available (needed for name-based validation)
     if (actualHeadersFromCtx == null || actualHeadersFromCtx.isEmpty()) {
-      rowsAssertion.append("// Headers not found, cannot generate row assertions by name.\n");
-      return rowsAssertion.toString();
+      return "\n// Headers not found, cannot generate row assertions by name.\n";
     }
 
-    // --- Generate validation calls for the first row (index 0) ---
-    rowsAssertion.append(generateValidateRowValueByName(0, rows.get(0), actualHeadersFromCtx));
-
-    // --- Generate validation calls for the last row if there's more than one row ---
-    if (rows.size() > 1) {
-      rowsAssertion.append("\n");
+    // --- Choose validation strategy based on assertRowIndex() ---
+    if (GEN.assertRowIndex()) {
+      // Validate specific row indices (for sorted results)
       rowsAssertion.append(
-          generateValidateRowValueByName(
-              rows.size() - 1, rows.get(rows.size() - 1), actualHeadersFromCtx));
+          "\n// 7. Assert row values by name at specific indices (sorted results).\n");
+      List<Integer> sampleIndices = getSampleRowIndices(rows.size());
+      for (int i = 0; i < sampleIndices.size(); i++) {
+        int rowIndex = sampleIndices.get(i);
+        if (i > 0) {
+          rowsAssertion.append("\n");
+        }
+        rowsAssertion.append(
+            generateValidateRowValueByName(rowIndex, rows.get(rowIndex), actualHeadersFromCtx));
+      }
+    } else {
+      // Validate row existence regardless of position (for unsorted results)
+      rowsAssertion.append(
+          "\n// 7. Assert row existence by value (unsorted results - validates all columns).\n");
+      List<Integer> sampleIndices = getSampleRowIndices(rows.size());
+      for (int i = 0; i < sampleIndices.size(); i++) {
+        int rowIndex = sampleIndices.get(i);
+        if (i > 0) {
+          rowsAssertion.append("\n");
+        }
+        rowsAssertion.append(
+            generateValidateRowExists(rowIndex, rows.get(rowIndex), actualHeadersFromCtx));
+      }
     }
 
     return rowsAssertion.toString();
+  }
+
+  /**
+   * Returns a list of row indices to validate, using a sqrt-based stride and a max cap of 30.
+   * Always includes the first and last rows when available.
+   */
+  private static List<Integer> getSampleRowIndices(int totalRows) {
+    if (totalRows <= 0) {
+      return List.of();
+    }
+    if (totalRows == 1) {
+      return List.of(0);
+    }
+
+    int targetCount = (int) Math.sqrt(totalRows) + 1;
+    targetCount = Math.max(2, Math.min(totalRows, targetCount));
+    targetCount = Math.min(30, targetCount);
+
+    int step = Math.max(1, (totalRows - 1) / (targetCount - 1));
+
+    Set<Integer> indices = new LinkedHashSet<>();
+    for (int i = 0; i < totalRows - 1; i += step) {
+      indices.add(i);
+    }
+    indices.add(totalRows - 1);
+
+    return new ArrayList<>(indices);
   }
 
   /**
@@ -682,10 +816,14 @@ public class GeneratorHelper {
       }
     } // End loop through actualHeadersFromCtx
 
-    // Add assertions for *non-existence* of PostGIS headers if expectPostgis is false at runtime
+    // Add assertions for PostGIS headers existence based on expectPostgis flag
     headersAssertion.append(
-        "\n    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false\n");
-    headersAssertion.append("    if (!expectPostgis) {\n");
+        "\n    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag\n");
+    headersAssertion.append("    if (expectPostgis) {\n");
+    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"geometry\", true);\n");
+    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"longitude\", true);\n");
+    headersAssertion.append("      validateHeaderExistence(actualHeaders, \"latitude\", true);\n");
+    headersAssertion.append("    } else {\n");
     headersAssertion.append("      validateHeaderExistence(actualHeaders, \"geometry\", false);\n");
     headersAssertion.append(
         "      validateHeaderExistence(actualHeaders, \"longitude\", false);\n");
@@ -745,14 +883,44 @@ public class GeneratorHelper {
     String authHeader = "Basic " + new String(encodedAuth);
 
     try {
-      Content response =
-          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnContent();
+      HttpResponse httpResponse =
+          Get(baseUri + query).addHeader(AUTHORIZATION, authHeader).execute().returnResponse();
 
-      return response.asString();
+      int statusCode = httpResponse.getStatusLine().getStatusCode();
+      String responseBody =
+          org.apache.http.util.EntityUtils.toString(httpResponse.getEntity(), UTF_8);
+
+      if (statusCode >= 200 && statusCode < 300) {
+        return responseBody;
+      } else {
+        System.err.println("## ERROR: HTTP " + statusCode + " for query: " + query);
+        System.err.println("## Response body: " + prettyPrintJson(responseBody));
+        return EMPTY;
+      }
     } catch (IOException e) {
       System.err.println("## ERROR: " + e.getLocalizedMessage());
     }
 
     return EMPTY;
+  }
+
+  /**
+   * Attempts to pretty print a JSON string. If parsing fails, returns the original string.
+   *
+   * @param json the JSON string to format.
+   * @return the pretty printed JSON, or the original string if not valid JSON.
+   */
+  private static String prettyPrintJson(String json) {
+    if (isBlank(json)) {
+      return json;
+    }
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper mapper =
+          new com.fasterxml.jackson.databind.ObjectMapper();
+      Object jsonObject = mapper.readValue(json, Object.class);
+      return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+    } catch (Exception e) {
+      return json;
+    }
   }
 }

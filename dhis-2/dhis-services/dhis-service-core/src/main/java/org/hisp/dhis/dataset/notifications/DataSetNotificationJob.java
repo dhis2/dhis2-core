@@ -34,7 +34,7 @@ import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -54,7 +54,7 @@ public class DataSetNotificationJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("Dataset notification");
     dataSetNotificationService.sendScheduledDataSetNotificationsForDay(new Date(), progress);
     progress.completedProcess(null);

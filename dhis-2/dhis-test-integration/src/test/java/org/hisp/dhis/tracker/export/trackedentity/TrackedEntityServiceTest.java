@@ -48,6 +48,8 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -87,31 +89,31 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -175,9 +177,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramStage programStageA1;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event eventB;
+  private TrackerEvent eventB;
 
   private TrackedEntity trackedEntityA;
 
@@ -357,7 +359,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.getEnrollments().add(enrollmentA);
     manager.update(trackedEntityA);
 
-    eventA = new Event();
+    eventA = new TrackerEvent();
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
@@ -382,7 +384,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.getEnrollments().add(enrollmentB);
     manager.update(trackedEntityA);
 
-    eventB = new Event();
+    eventB = new TrackerEvent();
     eventB.setEnrollment(enrollmentB);
     eventB.setProgramStage(programStageB1);
     eventB.setOrganisationUnit(orgUnitA);
@@ -399,7 +401,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.getEnrollments().add(enrollmentC);
     manager.update(trackedEntityB);
 
-    Event eventC = new Event();
+    TrackerEvent eventC = new TrackerEvent();
     eventC.setEnrollment(enrollmentC);
     eventC.setProgramStage(programStageB1);
     eventC.setOrganisationUnit(orgUnitB);
@@ -501,7 +503,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     fromC.setRelationship(relationshipC);
     relationshipC.setFrom(fromC);
     RelationshipItem toC = new RelationshipItem();
-    toC.setEvent(eventA);
+    toC.setTrackerEvent(eventA);
     toC.setRelationship(relationshipC);
     relationshipC.setTo(toC);
     relationshipC.setKey(RelationshipUtils.generateRelationshipKey(relationshipC));
@@ -553,7 +555,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     fromE.setRelationship(relationshipE);
     relationshipE.setFrom(fromE);
     RelationshipItem toE = new RelationshipItem();
-    toE.setEvent(eventC);
+    toE.setTrackerEvent(eventC);
     toE.setRelationship(relationshipE);
     relationshipE.setTo(toE);
     relationshipE.setKey(RelationshipUtils.generateRelationshipKey(relationshipE));
@@ -1201,7 +1203,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Set<String> deletedEvents =
         trackedEntity.getEnrollments().stream()
             .flatMap(enrollment -> enrollment.getEvents().stream())
-            .filter(Event::isDeleted)
+            .filter(TrackerEvent::isDeleted)
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertIsEmpty(deletedEvents);
@@ -1223,14 +1225,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(enrollmentA.getUid()), deletedEnrollments);
 
-    Set<Event> events =
+    Set<TrackerEvent> events =
         trackedEntity.getEnrollments().stream()
             .flatMap(e -> e.getEvents().stream())
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(eventA.getUid(), eventB.getUid()), uids(events));
     deletedEvents =
         events.stream()
-            .filter(Event::isDeleted)
+            .filter(TrackerEvent::isDeleted)
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(eventA.getUid()), deletedEvents);
@@ -1329,7 +1331,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         enrollments.stream()
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
-    Set<Event> events = enrollmentA.get().getEvents();
+    Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
     assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
   }
@@ -1560,9 +1562,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .findFirst();
     assertTrue(enrollmentOpt.isPresent());
     Enrollment enrollment = enrollmentOpt.get();
-    Optional<Event> eventOpt = enrollment.getEvents().stream().findFirst();
+    Optional<TrackerEvent> eventOpt = enrollment.getEvents().stream().findFirst();
     assertTrue(eventOpt.isPresent());
-    Event event = eventOpt.get();
+    TrackerEvent event = eventOpt.get();
     assertAll(
         () -> assertEquals(eventA.getUid(), event.getUid()),
         () -> assertEquals(EventStatus.ACTIVE, event.getStatus()),
@@ -1797,7 +1799,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Relationship actual = relOpt.get().getRelationship();
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
-        () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
+        () -> assertEquals(eventA.getUid(), actual.getTo().getTrackerEvent().getUid()));
   }
 
   @Test
@@ -2236,7 +2238,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         enrollments.stream()
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
-    Set<Event> events = enrollmentA.get().getEvents();
+    Set<TrackerEvent> events = enrollmentA.get().getEvents();
     assertContainsOnly(Set.of(eventA.getUid()), uids(events));
   }
 

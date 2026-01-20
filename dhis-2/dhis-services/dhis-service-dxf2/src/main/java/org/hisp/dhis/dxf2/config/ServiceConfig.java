@@ -37,7 +37,6 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import com.google.common.base.Functions;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +60,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UpdateCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationHooksCheck;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,10 +101,8 @@ public class ServiceConfig {
 
     backOffPolicy.setInitialInterval(Long.parseLong((String) initialInterval.getObject()));
 
-    Map<Class<? extends Throwable>, Boolean> exceptionMap = new HashMap<>();
-    exceptionMap.put(MetadataSyncServiceException.class, true);
     SimpleRetryPolicy simpleRetryPolicy =
-        new SimpleRetryPolicy(Integer.parseInt((String) maxAttempts.getObject()), exceptionMap);
+        new SimpleRetryPolicy(Integer.parseInt((String) maxAttempts.getObject()));
 
     RetryTemplate retryTemplate = new RetryTemplate();
     retryTemplate.setBackOffPolicy(backOffPolicy);

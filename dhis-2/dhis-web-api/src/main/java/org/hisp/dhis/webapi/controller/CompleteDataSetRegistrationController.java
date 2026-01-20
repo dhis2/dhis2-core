@@ -42,6 +42,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -51,10 +52,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
@@ -66,11 +69,9 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -98,7 +99,7 @@ public class CompleteDataSetRegistrationController {
 
   private final CompleteDataSetRegistrationService registrationService;
 
-  private final DataSetService dataSetService;
+  private final DataEntryService dataEntryService;
 
   private final IdentifiableObjectManager manager;
 
@@ -180,20 +181,15 @@ public class CompleteDataSetRegistrationController {
       @RequestParam String ou,
       @RequestParam(required = false) String cc,
       @RequestParam(required = false) String cp,
-      @RequestParam(required = false) boolean multiOu,
-      HttpServletResponse response)
-      throws WebMessageException {
+      @RequestParam(required = false) boolean multiOu)
+      throws WebMessageException, ConflictException {
     Set<DataSet> dataSets = new HashSet<>(manager.getByUid(DataSet.class, ds));
 
     if (dataSets.size() != ds.size()) {
       throw new WebMessageException(conflict("Illegal data set identifier in this list: " + ds));
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(pe);
-
-    if (period == null) {
-      throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-    }
+    Period period = Period.of(pe);
 
     OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
 
@@ -212,19 +208,22 @@ public class CompleteDataSetRegistrationController {
     // ---------------------------------------------------------------------
     List<String> lockedDataSets = new ArrayList<>();
 
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    Collection<OrganisationUnit> orgUnitsToCheck =
+        multiOu ? organisationUnit.getChildren() : List.of(organisationUnit);
     for (DataSet dataSet : dataSets) {
-      if (!dataSetService
-          .getLockStatus(
-              dataSet,
-              period,
-              organisationUnit,
-              attributeOptionCombo,
-              currentUserDetails,
-              null,
-              multiOu)
-          .isOpen()) {
-        lockedDataSets.add(dataSet.getUid());
+      UID de =
+          UID.of(
+              dataSet
+                  .getDataElements()
+                  .iterator()
+                  .next()); // de is not relevant but required, so we use any
+      for (OrganisationUnit orgUnit : orgUnitsToCheck) {
+        DataEntryKey key =
+            new DataEntryKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), pe);
+        if (!dataEntryService.getEntryStatus(UID.of(dataSet), key).isOpen()) {
+          lockedDataSets.add(dataSet.getUid());
+          break;
+        }
       }
     }
 

@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -51,20 +53,14 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -84,108 +80,33 @@ class AggregateDataExchangeServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private DataValueSetService dataValueSetService;
+  @Mock private DataExportService dataExportService;
 
   @InjectMocks private AggregateDataExchangeService service;
 
   @Test
   @SuppressWarnings("unchecked")
-  void testExchangeData() {
-    when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
-        .thenReturn(new DataValueSet());
-    when(dataQueryService.getDimension(
-            eq(DimensionalObject.DATA_X_DIM_ID),
-            any(),
-            any(Date.class),
-            nullable(List.class),
-            anyBoolean(),
-            nullable(DisplayProperty.class),
-            nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
-    when(dataQueryService.getDimension(
-            eq(DimensionalObject.PERIOD_DIM_ID),
-            any(),
-            any(Date.class),
-            nullable(List.class),
-            anyBoolean(),
-            nullable(DisplayProperty.class),
-            nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
-    when(dataQueryService.getDimension(
-            eq(DimensionalObject.ORGUNIT_DIM_ID),
-            any(),
-            any(Date.class),
-            nullable(List.class),
-            anyBoolean(),
-            nullable(DisplayProperty.class),
-            nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
-    when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
-        .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
-    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
-        .thenReturn(true);
-
-    SourceRequest sourceRequest =
-        new SourceRequest()
-            .setName("SourceRequestA")
-            .setDx(List.of("Vz0C3i4Wy3M", "ToaOToReol6"))
-            .setPe(List.of("202101", "202102"))
-            .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN"));
-    Source source = new Source().setRequests(List.of(sourceRequest));
-    TargetRequest request =
-        new TargetRequest()
-            .setDataElementIdScheme("code")
-            .setOrgUnitIdScheme("code")
-            .setIdScheme("uid");
-    Target target = new Target().setType(TargetType.INTERNAL).setApi(new Api()).setRequest(request);
-    AggregateDataExchange exchange =
-        new AggregateDataExchange().setSource(source).setTarget(target);
-
-    ImportSummaries summaries =
-        service.exchangeData(UserDetails.fromUser(new User()), exchange, JobProgress.noop());
-
-    assertNotNull(summaries);
-    assertEquals(1, summaries.getImportSummaries().size());
-
-    ImportSummary summary = summaries.getImportSummaries().get(0);
-
-    assertNotNull(summary);
-    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
   void testToDataQueryParams() {
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.DATA_X_DIM_ID),
+            eq(DATA_X_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
             anyBoolean(),
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.PERIOD_DIM_ID),
+            eq(PERIOD_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
             anyBoolean(),
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
-        .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
     when(dataQueryService.getDimension(
-            eq(DimensionalObject.ORGUNIT_DIM_ID),
+            eq(ORGUNIT_DIM_ID),
             any(),
             any(Date.class),
             nullable(List.class),
@@ -193,8 +114,7 @@ class AggregateDataExchangeServiceTest {
             nullable(DisplayProperty.class),
             nullable(IdScheme.class)))
         .thenReturn(
-            new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
 
     SourceRequest sourceRequest =
         new SourceRequest()
@@ -210,9 +130,9 @@ class AggregateDataExchangeServiceTest {
 
     DataQueryParams query = service.toDataQueryParams(sourceRequest, new SourceDataQueryParams());
 
-    assertTrue(query.hasDimension(DimensionalObject.DATA_X_DIM_ID));
-    assertTrue(query.hasDimension(DimensionalObject.PERIOD_DIM_ID));
-    assertTrue(query.hasDimension(DimensionalObject.ORGUNIT_DIM_ID));
+    assertTrue(query.hasDimension(DATA_X_DIM_ID));
+    assertTrue(query.hasDimension(PERIOD_DIM_ID));
+    assertTrue(query.hasDimension(ORGUNIT_DIM_ID));
     assertEquals(
         new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
         query.getAggregationType());

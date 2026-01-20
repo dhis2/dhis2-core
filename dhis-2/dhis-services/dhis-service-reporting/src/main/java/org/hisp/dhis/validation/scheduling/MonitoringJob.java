@@ -47,7 +47,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -81,10 +81,10 @@ public class MonitoringJob implements Job {
 
   @Override
   @Transactional
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("Data validation");
     try {
-      MonitoringJobParameters params = (MonitoringJobParameters) config.getJobParameters();
+      MonitoringJobParameters params = (MonitoringJobParameters) config.parameters();
       List<String> groupUIDs = params.getValidationRuleGroups();
       Collection<ValidationRule> rules = getValidationRules(groupUIDs);
       progress.startingStage("Preparing analysis parameters");

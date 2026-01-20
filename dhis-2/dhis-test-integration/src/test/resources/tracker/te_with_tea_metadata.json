@@ -56,9 +56,10 @@
       "attributeValues": [],
       "legendSets": [],
       "minCharactersToSearch": 2,
-      "preferredSearchOperator": "LIKE",
-      "blockedSearchOperators": ["GE", "LE", "IN", "SW", "EW", "NULL", "NNULL"],
+      "preferredSearchOperator": "IN",
+      "blockedSearchOperators": ["SW", "EW", "LIKE"],
       "trigramIndexable": true,
+      "skipAnalytics": true,
       "sharing": {
         "public": "rw------",
         "external": false,
@@ -94,8 +95,9 @@
       "attributeValues": [],
       "legendSets": [],
       "preferredSearchOperator": "EQ",
-      "blockedSearchOperators": ["IN", "NNULL", "GT", "LT", "SW", "LE", "EW", "NULL", "GE"],
+      "blockedSearchOperators": ["SW", "EW", "LIKE"],
       "trigramIndexable": false,
+      "skipAnalytics": false,
       "sharing": {
         "public": "rw------",
         "external": false,

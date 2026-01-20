@@ -111,7 +111,8 @@ class DataItemQueryControllerTest {
         .thenReturn(itemsFound);
 
     final ResponseEntity<RootNode> actualResponse =
-        dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser);
+        dataItemQueryController.getJson(
+            anyUrlParameters, anyOrderParams, UserDetails.fromUser(anyUser));
 
     // Then
     assertThat(actualResponse, is(not(nullValue())));
@@ -139,7 +140,8 @@ class DataItemQueryControllerTest {
         .thenReturn(itemsFound);
 
     final ResponseEntity<RootNode> actualResponse =
-        dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser);
+        dataItemQueryController.getJson(
+            anyUrlParameters, anyOrderParams, UserDetails.fromUser(anyUser));
 
     // Then
     assertThat(actualResponse, is(not(nullValue())));
@@ -165,7 +167,9 @@ class DataItemQueryControllerTest {
     final IllegalQueryException ex =
         assertThrows(
             IllegalQueryException.class,
-            () -> dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser));
+            () ->
+                dataItemQueryController.getJson(
+                    anyUrlParameters, anyOrderParams, UserDetails.fromUser(anyUser)));
     assertThat(ex.getMessage(), containsString("does not have read access for object"));
   }
 }

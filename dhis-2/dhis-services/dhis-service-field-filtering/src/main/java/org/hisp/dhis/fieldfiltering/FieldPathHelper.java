@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -284,9 +285,9 @@ public class FieldPathHelper {
     for (FieldPath exclusion : exclusions) {
       excludedPaths.add(exclusion.toFullPath());
 
-      for (String path : fieldPathMap.keySet()) {
-        if (fieldEqualsRootField(path, exclusion.toFullPath())) {
-          excludedPaths.add(path);
+      for (String fieldPath : fieldPathMap.keySet()) {
+        if (fieldShouldBeExcluded(fieldPath, exclusion.toFullPath())) {
+          excludedPaths.add(fieldPath);
         }
       }
     }
@@ -298,15 +299,22 @@ public class FieldPathHelper {
   // ----------------------------------------------------------------------------------------------------------------
 
   /**
-   * Method that checks whether a field is equal to the root field. <br>
-   * examples: <br>
+   * Method that checks whether a field should be excluded or not. <br>
+   * Examples: <br>
    *
-   * <ul>
-   *   <li>fullFieldPath = "root", field = "root" -> return true
-   *   <li>fullFieldPath = "root.name", field = "root" -> return true
-   *   <li>fullFieldPath = "root.name", field = "name" -> return false
-   *   <li>fullFieldPath = "username", field = "user" -> return false
-   * </ul>
+   * <pre>
+   * fullFieldPath   | fullExclusionPath   | outcome
+   * ----------------|---------------------|--------------
+   * root            | root                | true
+   * root.name       | root                | true
+   * root.name       | root.name           | true
+   * root.name       | name.root           | false
+   * root.name       | root.name.last      | false
+   * root.name       | name                | false
+   * root.name.last  | root.name           | false
+   * username        | user                | false
+   *
+   * </pre>
    *
    * @param fullFieldPath field path that represents the full path of a given field(in dot
    *     notation). It might look like any of the following examples: <br>
@@ -316,15 +324,42 @@ public class FieldPathHelper {
    *       <li>root.name.last
    *     </ul>
    *
-   * @param field is the actual field which should be checked. This will only be 1 word (no dot
-   *     notation)
-   * @return true if the field is equal to the fullFieldPath root <br>
+   * @param fullExclusionPath is the actual full exclusion path which should be checked against. It
+   *     might look like any of the following examples: <br>
+   *     <ul>
+   *       <li>root
+   *       <li>root.name
+   *       <li>root.name.last
+   *     </ul>
+   *
+   * @return true if the field should be excluded <br>
    */
-  public static boolean fieldEqualsRootField(String fullFieldPath, String field) {
-    if (ObjectUtils.anyNull(fullFieldPath, field)) return false;
-    String root = fullFieldPath.split("\\.")[0];
-    return root.equals(field);
+  public static boolean fieldShouldBeExcluded(String fullFieldPath, String fullExclusionPath) {
+    if (ObjectUtils.anyNull(fullFieldPath, fullExclusionPath)) return false;
+
+    return fullFieldPath.equals(fullExclusionPath)
+        || exclusionIsPathOfFieldPath.test(fullFieldPath, fullExclusionPath);
   }
+
+  /** If the exclusion path is a subpath (or the same) then return true. */
+  private static final BiPredicate<String, String> exclusionIsPathOfFieldPath =
+      (fullFieldPath, fullExclusionPath) -> {
+        String[] fields = fullFieldPath.split("\\.");
+        String[] exclFields = fullExclusionPath.split("\\.");
+
+        // when the exclusion path is deeper (more '.') then the field won't be excluded
+        if (exclFields.length > fields.length) {
+          return false;
+        }
+
+        // when an exclusion path does not match a field path then it won't be excluded
+        for (int i = 0; i < exclFields.length; ++i) {
+          if (!exclFields[i].equals(fields[i])) {
+            return false;
+          }
+        }
+        return true;
+      };
 
   private boolean isReference(Property property) {
     return property.is(PropertyType.REFERENCE) || property.itemIs(PropertyType.REFERENCE);

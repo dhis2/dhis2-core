@@ -153,6 +153,13 @@ public interface DhisConfigurationProvider {
   Optional<GoogleAccessToken> getGoogleAccessToken();
 
   /**
+   * Returns the JDBC connection URL for the operation database.
+   *
+   * @return the JDBC connection URL for the operation database.
+   */
+  String getConnectionUrl();
+
+  /**
    * Indicates whether the system is set to read-only mode.
    *
    * @return true if the system is in read-only mode.

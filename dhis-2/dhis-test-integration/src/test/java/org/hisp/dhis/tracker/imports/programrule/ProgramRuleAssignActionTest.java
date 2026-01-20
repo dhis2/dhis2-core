@@ -50,7 +50,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -68,9 +67,9 @@ import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Assertions;
@@ -178,17 +177,17 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
 
     trackerObjects = testSetup.fromJson("tracker/programrule/event_with_data_value.json");
 
-    TrackerEvent trackerEvent =
-        TrackerEvent.builderFromEvent(trackerObjects.getEvents().get(0))
-            .occurredAt(DateUtils.instantFromDateAsString(eventOccurredDate))
-            .build();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent =
+        trackerObjects.getEvents().get(0);
+
+    trackerEvent.setOccurredAt(DateUtils.instantFromDateAsString(eventOccurredDate));
 
     ImportReport importReport =
         trackerImportService.importTracker(
             params, TrackerObjects.builder().events(List.of(trackerEvent)).build());
     assertHasOnlyWarnings(importReport, E1308);
 
-    Event event = manager.get(Event.class, "D9PbzJY8bZZ");
+    TrackerEvent event = manager.get(TrackerEvent.class, "D9PbzJY8bZZ");
 
     List<String> eventDataValues =
         event.getEventDataValues().stream()
@@ -344,17 +343,16 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
       throws IOException {
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/programrule/event_without_date.json");
-    TrackerEvent event =
-        TrackerEvent.builderFromEvent(trackerObjects.getEvents().get(0), eventUid)
-            .occurredAt(DateUtils.instantFromDateAsString(occurredDate))
-            .build();
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event = trackerObjects.getEvents().get(0);
+    event.setEvent(eventUid);
+    event.setOccurredAt(DateUtils.instantFromDateAsString(occurredDate));
     event.getDataValues().iterator().next().setValue(value);
 
     return TrackerObjects.builder().events(List.of(event)).build();
   }
 
   private List<String> getValueForAssignedDataElement(UID eventUid) {
-    return manager.get(Event.class, eventUid.getValue()).getEventDataValues().stream()
+    return manager.get(TrackerEvent.class, eventUid.getValue()).getEventDataValues().stream()
         .filter(dv -> dv.getDataElement().equals("DATAEL00002"))
         .map(EventDataValue::getValue)
         .toList();

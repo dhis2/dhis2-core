@@ -78,7 +78,7 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"Y14cBKFUsg4\":{\"name\":\"Follow-up vector control action details 2\"},\"ou\":{\"name\":\"Organisation unit\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"QRg7SZ6VOAV\":{\"name\":\"Local Focus ID\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"zgnTlAH4ZOk\":{\"name\":\"Follow-up vector control action details\"},\"2019\":{\"name\":\"2019\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2018\":{\"name\":\"2018\"},\"pe\":{\"name\":\"Period\"},\"ffbaoqebOT3\":{\"name\":\"Name of health facility catchment area\"},\"uvMKOn1oWvd\":{\"name\":\"Foci response\"},\"M3xtLkYBlKI\":{\"name\":\"Malaria focus investigation\"}},\"dimensions\":{\"Y14cBKFUsg4\":[],\"pe\":[\"2018\",\"2019\",\"2020\",\"2021\",\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"QRg7SZ6VOAV\":[\"like a\"],\"ffbaoqebOT3\":[],\"zgnTlAH4ZOk\":[]}}";
+        "{\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"uvMKOn1oWvd.QRg7SZ6VOAV\":{\"name\":\"Local Focus ID\"},\"2020\":{\"name\":\"2020\"},\"uvMKOn1oWvd.zgnTlAH4ZOk\":{\"name\":\"Follow-up vector control action details\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"uvMKOn1oWvd.Y14cBKFUsg4\":{\"name\":\"Follow-up vector control action details 2\"},\"2019\":{\"name\":\"2019\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2018\":{\"name\":\"2018\"},\"pe\":{\"name\":\"Period\"},\"uvMKOn1oWvd.ffbaoqebOT3\":{\"name\":\"Name of health facility catchment area\"},\"uvMKOn1oWvd\":{\"name\":\"Foci response\"},\"M3xtLkYBlKI\":{\"name\":\"Malaria focus investigation\"}},\"dimensions\":{\"Y14cBKFUsg4\":[],\"pe\":[\"2019\",\"2020\",\"2021\",\"2018\",\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"QRg7SZ6VOAV\":[\"like a\"],\"ffbaoqebOT3\":[],\"zgnTlAH4ZOk\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -120,7 +120,7 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"KmEUg2hHEtx\":{\"name\":\"Email address\"},\"sdchiIXIcCf\":{\"name\":\"WHOMCH Renal disease\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"roKuXYfw1BW\":{\"name\":\"WHOMCH Gestational age at visit\"},\"2019\":{\"name\":\"2019\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2018\":{\"name\":\"2018\"},\"pe\":{\"name\":\"Period\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"xPTngRLQTnu\":{\"name\":\"WHOMCH Other chronic condition\"},\"ZcBPrXKahq2\":{\"name\":\"Postal code\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"},\"zzGNbeMnTd6\":{\"name\":\"WHOMCH Autoimmune disease\"}},\"dimensions\":{\"WZbXY0S00lP.zzGNbeMnTd6\":[],\"WZbXY0S00lP.sdchiIXIcCf\":[],\"pe\":[\"2018\",\"2019\",\"2020\",\"2021\",\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"KmEUg2hHEtx\":[],\"WZbXY0S00lP.xPTngRLQTnu\":[],\"WZbXY0S00lP.roKuXYfw1BW\":[],\"ZcBPrXKahq2\":[\"like 1\"]}}";
+        "{\"items\":{\"WZbXY0S00lP.sdchiIXIcCf\":{\"name\":\"WHOMCH Renal disease\"},\"ou\":{\"name\":\"Organisation unit\"},\"WZbXY0S00lP.roKuXYfw1BW\":{\"name\":\"WHOMCH Gestational age at visit\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"WZbXY0S00lP.KmEUg2hHEtx\":{\"name\":\"Email address\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"WZbXY0S00lP.zzGNbeMnTd6\":{\"name\":\"WHOMCH Autoimmune disease\"},\"2019\":{\"name\":\"2019\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2018\":{\"name\":\"2018\"},\"pe\":{\"name\":\"Period\"},\"WZbXY0S00lP.xPTngRLQTnu\":{\"name\":\"WHOMCH Other chronic condition\"},\"WZbXY0S00lP\":{\"name\":\"First antenatal care visit\"},\"WSGAb5XwJ3Y\":{\"name\":\"WHO RMNCH Tracker\"},\"WZbXY0S00lP.ZcBPrXKahq2\":{\"name\":\"Postal code\"}},\"dimensions\":{\"WZbXY0S00lP.zzGNbeMnTd6\":[],\"WZbXY0S00lP.sdchiIXIcCf\":[],\"pe\":[\"2019\",\"2020\",\"2021\",\"2018\",\"2022\"],\"ou\":[\"ImspTQPwCqd\"],\"KmEUg2hHEtx\":[],\"WZbXY0S00lP.xPTngRLQTnu\":[],\"WZbXY0S00lP.roKuXYfw1BW\":[],\"ZcBPrXKahq2\":[\"like 1\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -128,7 +128,7 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         0,
-        "zzGNbeMnTd6",
+        "WZbXY0S00lP.zzGNbeMnTd6",
         "WHOMCH Autoimmune disease",
         "BOOLEAN",
         "java.lang.Boolean",
@@ -137,7 +137,7 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         1,
-        "sdchiIXIcCf",
+        "WZbXY0S00lP.sdchiIXIcCf",
         "WHOMCH Renal disease",
         "BOOLEAN",
         "java.lang.Boolean",
@@ -146,7 +146,7 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         2,
-        "xPTngRLQTnu",
+        "WZbXY0S00lP.xPTngRLQTnu",
         "WHOMCH Other chronic condition",
         "BOOLEAN",
         "java.lang.Boolean",
@@ -155,7 +155,7 @@ public class EventsAggregate8AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         3,
-        "roKuXYfw1BW",
+        "WZbXY0S00lP.roKuXYfw1BW",
         "WHOMCH Gestational age at visit",
         "INTEGER",
         "java.lang.Integer",

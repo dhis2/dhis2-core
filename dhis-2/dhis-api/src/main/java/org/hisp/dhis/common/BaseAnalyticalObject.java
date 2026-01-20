@@ -31,28 +31,28 @@ package org.hisp.dhis.common;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_COLLAPSED_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.LATITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.LONGITUDE_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asActualDimension;
 import static org.hisp.dhis.common.DimensionalObjectUtils.linkAssociations;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -68,6 +68,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,8 +81,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
+import org.hisp.dhis.common.adapter.JacksonExtendedPeriodSerializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
@@ -97,11 +98,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -126,44 +128,39 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 @JacksonXmlRootElement(localName = "analyticalObject", namespace = DxfNamespaces.DXF_2_0)
 public abstract class BaseAnalyticalObject extends BaseNameableObject implements AnalyticalObject {
 
-  private static final DimensionalItemObject USER_OU_ITEM_OBJ =
-      buildDimItemObj(KEY_USER_ORGUNIT, "User organisation unit");
-
-  private static final DimensionalItemObject USER_OU_CHILDREN_ITEM_OBJ =
-      buildDimItemObj(KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
-
-  private static final DimensionalItemObject USER_OU_GRANDCHILDREN_ITEM_OBJ =
-      buildDimItemObj(KEY_USER_ORGUNIT_GRANDCHILDREN, "User organisation unit grand children");
-
-  public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
+  private static final List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
 
   /** Line and axis labels. */
   protected String domainAxisLabel;
 
   protected String rangeAxisLabel;
+
   protected String baseLineLabel;
+
   protected String targetLineLabel;
 
   /** Line and axis values. */
   protected Double targetLineValue;
 
   protected Double baseLineValue;
+
   protected Double rangeAxisMaxValue;
+
   protected Double rangeAxisMinValue;
 
-  /** How many axis steps. */
+  /** Number of axis steps. */
   protected Integer rangeAxisSteps; // Minimum 1
 
-  /** How many axis decimals. */
+  /** Number of axis decimals. */
   protected Integer rangeAxisDecimals;
 
-  /** The regression type. */
+  /** Regression type. */
   protected RegressionType regressionType = RegressionType.NONE;
 
-  /** The display density of the text in the table. */
+  /** Display density of the text in the table. */
   protected DisplayDensity displayDensity;
 
-  /** The font size of the text in the table. */
+  /** Font size of the text in the table. */
   protected FontSize fontSize;
 
   protected RelativePeriods relatives;
@@ -184,13 +181,13 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** Indicates rendering of empty rows for the table. */
   protected boolean showHierarchy;
 
-  /** Include user org. unit. */
+  /** Include user org unit. */
   protected boolean userOrganisationUnit;
 
-  /** Include user org. unit children. */
+  /** Include user org unit children. */
   protected boolean userOrganisationUnitChildren;
 
-  /** Include user org. unit grand children. */
+  /** Include user org unit grand children. */
   protected boolean userOrganisationUnitGrandChildren;
 
   /** Include completed events only. */
@@ -206,7 +203,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
   protected List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
-  protected List<Period> periods = new ArrayList<>();
+  private List<PeriodDimension> periods = new ArrayList<>();
 
   protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -316,18 +313,29 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   /** The font size of the text in the table. */
   private boolean showDimensionLabels;
 
+  /** Interpretations of this visualization. */
+  private Set<Interpretation> interpretations = new HashSet<>();
+
   /**
    * Keeps the uids of element + program stage, so we are able to return the correct elements in
    * cases of repeated elements with distinct program stages.
    */
-  private Set<String> addedElementsProgramStages = new HashSet<>();
-
-  private Set<Interpretation> interpretations = new HashSet<>();
+  private transient Set<String> addedElementsProgramStages = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
 
+  /**
+   * Initializes this analytical object.
+   *
+   * @param user the {@link User}.
+   * @param date the {@link Date} representing the current time.
+   * @param organisationUnit the {@link OrganisationUnit}.
+   * @param organisationUnitsAtLevel the {@link OrganisationUnit} at the current level.
+   * @param organisationUnitsInGroups the {@link OrganisationUnit} part of the current groups.
+   * @param format the {@link I18nFormat}.
+   */
   public abstract void init(
       User user,
       Date date,
@@ -335,19 +343,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<OrganisationUnit> organisationUnitsAtLevel,
       List<OrganisationUnit> organisationUnitsInGroups,
       I18nFormat format);
-
-  /**
-   * Returns the dimensional item object for the given dimension and name.
-   *
-   * @param uid the dimension uid.
-   * @param name the dimension name.
-   * @return the DimensionalObject.
-   */
-  private static DimensionalItemObject buildDimItemObj(String uid, String name) {
-    BaseDimensionalItemObject itemObj = new BaseDimensionalItemObject(uid);
-    itemObj.setName(name);
-    return itemObj;
-  }
 
   @Override
   public abstract void populateAnalyticalProperties();
@@ -562,7 +557,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       if (hasRelativePeriods()) {
         items.addAll(
-            relatives.getRelativePeriods(date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER));
+            getRelatives().getRelativePeriods(date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER));
       }
 
       type = DimensionType.PERIOD;
@@ -642,7 +637,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       return linkAssociations(eventAnalyticalObject, dimensionalObject, parent);
     } else {
-      throw new IllegalArgumentException(format(NOT_A_VALID_DIMENSION, dimension));
+      throw new IllegalArgumentException(format("Not a valid dimension: %s", dimension));
     }
   }
 
@@ -709,34 +704,35 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
           new BaseDimensionalObject(
               dimension, DimensionType.DATA_X, getDataDimensionNameableObjects()));
     } else if (PERIOD_DIM_ID.equals(actualDim)) {
-      List<Period> periodList = new ArrayList<>();
+      List<PeriodDimension> periodList = new ArrayList<>();
 
       // For backward compatibility, where periods are not in the "raw" list yet.
       if (isEmpty(rawPeriods)) {
         rawPeriods = new ArrayList<>();
         rawPeriods.addAll(
             getPeriods().stream()
-                .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
-                .map(period -> period.getDimensionItem())
-                .collect(toSet()));
+                .map(PeriodDimension::getDimensionItem)
+                .filter(dimensionItem -> !rawPeriods.contains(dimensionItem))
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
       }
 
       if (isNotEmpty(rawPeriods)) {
         for (String period : rawPeriods) {
           if (RelativePeriodEnum.contains(period)) {
             RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
-            Period relPeriod = new Period(relPeriodTypeEnum);
+            PeriodDimension relPeriod = PeriodDimension.of(relPeriodTypeEnum);
 
             if (!periodList.contains(relPeriod)) {
               periodList.add(relPeriod);
             }
           } else {
-            Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+            Period isoPeriod = Period.ofNullable(period);
             boolean isIsoPeriod = isoPeriod != null;
-            boolean addPeriod = isIsoPeriod && !periodList.contains(isoPeriod);
+            boolean addPeriod =
+                isIsoPeriod && periodList.stream().noneMatch(p -> p.getIsoDate().equals(period));
 
             if (addPeriod) {
-              periodList.add(isoPeriod);
+              periodList.add(PeriodDimension.of(isoPeriod));
             }
           }
         }
@@ -754,15 +750,15 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
         ouList.addAll(transientOrganisationUnits);
 
         if (userOrganisationUnit) {
-          ouList.add(USER_OU_ITEM_OBJ);
+          ouList.add(getUserOrgUnit());
         }
 
         if (userOrganisationUnitChildren) {
-          ouList.add(USER_OU_CHILDREN_ITEM_OBJ);
+          ouList.add(getUserOrgUnitChildren());
         }
 
         if (userOrganisationUnitGrandChildren) {
-          ouList.add(USER_OU_GRANDCHILDREN_ITEM_OBJ);
+          ouList.add(getUserOrgUnitGrandChildren());
         }
 
         if (organisationUnitLevels != null && !organisationUnitLevels.isEmpty()) {
@@ -946,8 +942,9 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     return Optional.empty();
   }
 
-  private void setPeriodNames(List<Period> periods, boolean dynamicNames, I18nFormat format) {
-    for (Period period : periods) {
+  private void setPeriodNames(
+      List<PeriodDimension> periods, boolean dynamicNames, I18nFormat format) {
+    for (PeriodDimension period : periods) {
       RelativePeriods.setName(period, null, dynamicNames, format);
     }
   }
@@ -1002,6 +999,23 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
                 dim.getUid(), new MetadataItem(dim.getDisplayName(), dim.getUid(), dim.getCode())));
 
     return metaData;
+  }
+
+  private DimensionalItemObject getUserOrgUnit() {
+    return new BaseDimensionalItemObject(
+        KEY_USER_ORGUNIT, KEY_USER_ORGUNIT, "User organisation unit");
+  }
+
+  private DimensionalItemObject getUserOrgUnitChildren() {
+    return new BaseDimensionalItemObject(
+        KEY_USER_ORGUNIT_CHILDREN, KEY_USER_ORGUNIT_CHILDREN, "User organisation unit children");
+  }
+
+  private DimensionalItemObject getUserOrgUnitGrandChildren() {
+    return new BaseDimensionalItemObject(
+        KEY_USER_ORGUNIT_GRANDCHILDREN,
+        KEY_USER_ORGUNIT_GRANDCHILDREN,
+        "User organisation unit grand children");
   }
 
   /** Clear or set to false all persistent dimensional (not property) properties for this object. */
@@ -1313,17 +1327,36 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   @Override
-  @JsonProperty
-  @JsonSerialize(contentUsing = JacksonPeriodSerializer.class)
-  @JsonDeserialize(contentUsing = JacksonPeriodDeserializer.class)
-  @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
-  public List<Period> getPeriods() {
+  @JsonIgnore
+  public List<PeriodDimension> getPeriods() {
     return periods;
   }
 
-  public void setPeriods(List<Period> periods) {
+  public void setPeriods(List<PeriodDimension> periods) {
     this.periods = periods;
+  }
+
+  protected final boolean hasPeriods() {
+    return periods != null && !periods.isEmpty();
+  }
+
+  @JsonProperty("periods")
+  @JsonSerialize(contentUsing = JacksonExtendedPeriodSerializer.class)
+  @JsonDeserialize(contentUsing = JacksonPeriodDeserializer.class)
+  @Property(persisted = Property.Value.TRUE, owner = Property.Value.TRUE)
+  @JacksonXmlElementWrapper(localName = "periods", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "period", namespace = DxfNamespaces.DXF_2_0)
+  @Override
+  public List<Period> getPersistedPeriods() {
+    return periods == null ? null : periods.stream().map(PeriodDimension::getPeriod).toList();
+  }
+
+  @Override
+  public void setPersistedPeriods(List<Period> periods) {
+    this.periods =
+        periods == null
+            ? null
+            : new ArrayList<>(periods.stream().map(PeriodDimension::of).toList());
   }
 
   @JsonProperty
@@ -1372,7 +1405,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   }
 
   @JsonProperty
-  @JsonIgnore
   @JacksonXmlElementWrapper(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "rawPeriods", namespace = DxfNamespaces.DXF_2_0)
   public List<String> getRawPeriods() {
@@ -1798,7 +1830,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (this.subscribers == null) {
       this.subscribers = new HashSet<>();
     }
-
     return this.subscribers.add(user.getUid());
   }
 
@@ -1807,7 +1838,6 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     if (this.subscribers == null) {
       this.subscribers = new HashSet<>();
     }
-
     return this.subscribers.remove(user.getUid());
   }
 }

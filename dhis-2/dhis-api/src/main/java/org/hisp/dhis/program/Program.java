@@ -72,6 +72,10 @@ import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserRole;
 
 /**
+ * Programe entity object.
+ *
+ * <p>Note that "incident date" is superseded by "occurred date".
+ *
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
@@ -140,8 +144,11 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private ObjectStyle style;
 
-  /** The CategoryCombo used for data attributes. */
+  /** The CategoryCombo used for tracker and single events. */
   private CategoryCombo categoryCombo;
+
+  /** The CategoryCombo used for enrollments. */
+  private CategoryCombo enrollmentCategoryCombo;
 
   /** Property indicating whether offline storage is enabled for this program or not */
   private boolean skipOffline;
@@ -195,6 +202,9 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   /** Library of Category Mappings available to this program's program indicators */
   private Set<ProgramCategoryMapping> categoryMappings = new HashSet<>();
+
+  /** Property indicating whether change logging is enabled. */
+  private boolean enableChangeLog;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -797,6 +807,26 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   }
 
   @JsonProperty
+  @JsonSerialize(as = IdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getEnrollmentCategoryCombo() {
+    return enrollmentCategoryCombo;
+  }
+
+  public void setEnrollmentCategoryCombo(CategoryCombo enrollmentCategoryCombo) {
+    this.enrollmentCategoryCombo = enrollmentCategoryCombo;
+  }
+
+  /**
+   * Indicates whether this program has an enrollment category combination which is different from
+   * the default category combination.
+   */
+  public boolean hasNonDefaultEnrollmentCategoryCombo() {
+    return enrollmentCategoryCombo != null
+        && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals(enrollmentCategoryCombo.getName());
+  }
+
+  @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSkipOffline() {
     return skipOffline;
@@ -953,6 +983,16 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     this.categoryMappings = categoryMappings;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isEnableChangeLog() {
+    return enableChangeLog;
+  }
+
+  public void setEnableChangeLog(boolean enableChangeLog) {
+    this.enableChangeLog = enableChangeLog;
+  }
+
   public static Program shallowCopy(Program original, Map<String, String> options) {
     Program copy = new Program();
     copy.setAutoFields();
@@ -966,6 +1006,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setAccessLevel(original.getAccessLevel());
     copy.setProgramAttributes(new ArrayList<>());
     copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setEnrollmentCategoryCombo(original.getEnrollmentCategoryCombo());
     copy.setCategoryMappings(copyOf(original.getCategoryMappings()));
     copy.setCompleteEventsExpiryDays(original.getCompleteEventsExpiryDays());
     copy.setDataEntryForm(original.getDataEntryForm());
@@ -1006,6 +1047,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setProgramStageLabel(original.getProgramStageLabel());
     copy.setEventLabel(original.getEventLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
+    copy.setEnableChangeLog(original.isEnableChangeLog());
   }
 
   public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {}

@@ -29,259 +29,279 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static org.hisp.dhis.util.DateUtils.getSqlDateString;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.time.Duration;
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
+import java.util.function.BiFunction;
+import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Value;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.Maturity;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /**
- * @author Lars Helge Overland
+ * Details to describe what slice of aggregate data to export.
+ *
+ * @author Lars Helge Overland (original)
+ * @author Jan Bernitt (revised version for 2.43)
  */
-@Getter
-@Setter
+@Value
+@Builder(toBuilder = true)
 @Accessors(chain = true)
+@AllArgsConstructor
 public class DataExportParams {
-  private Set<DataElement> dataElements = new HashSet<>();
 
-  private Set<DataElementOperand> dataElementOperands = new HashSet<>();
-
-  private Set<DataSet> dataSets = new HashSet<>();
-
-  private Set<DataElementGroup> dataElementGroups = new HashSet<>();
-
-  private Set<Period> periods = new HashSet<>();
-
-  private Set<PeriodType> periodTypes = new HashSet<>();
-
-  private Date startDate;
-
-  private Date endDate;
-
-  private Date includedDate;
-
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-  private OrganisationUnitSelectionMode ouMode = SELECTED;
-
-  private Integer orgUnitLevel;
-
-  private boolean includeDescendants;
-
-  private boolean orderByOrgUnitPath;
-
-  private boolean orderByPeriod;
-
-  private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
-
-  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
-
-  private Set<CategoryOption> coDimensionConstraints;
-
-  private Set<CategoryOptionGroup> cogDimensionConstraints;
-
-  private boolean includeDeleted;
-
-  private Date lastUpdated;
-
-  private String lastUpdatedDuration;
-
-  private Integer limit;
-
-  private IdSchemes outputIdSchemes;
-
-  private BlockingQueue<DeflatedDataValue> blockingQueue;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public DataExportParams() {}
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public Set<DataElement> getAllDataElements() {
-    final Set<DataElement> elements = Sets.newHashSet();
-
-    elements.addAll(dataElements);
-    dataSets.forEach(ds -> elements.addAll(ds.getDataElements()));
-    dataElementGroups.forEach(dg -> elements.addAll(dg.getMembers()));
-
-    return ImmutableSet.copyOf(elements);
+  public enum Order {
+    DE,
+    OU,
+    PE,
+    CREATED,
+    AOC
   }
 
-  public Set<OrganisationUnit> getAllOrganisationUnits() {
-    final Set<OrganisationUnit> orgUnits = Sets.newHashSet();
-    orgUnits.addAll(organisationUnits);
+  /* what DEs to include */
+  List<UID> dataSets;
+  List<UID> dataElements;
+  List<UID> dataElementGroups;
 
-    for (OrganisationUnitGroup group : organisationUnitGroups) {
-      orgUnits.addAll(group.getMembers());
-    }
+  /* what OUs to include */
+  List<UID> organisationUnits;
+  List<UID> organisationUnitGroups;
+  Integer orgUnitLevel;
+  boolean includeDescendants;
 
-    return ImmutableSet.copyOf(orgUnits);
+  /* what timeframe to include */
+  List<Period> periods;
+  Set<PeriodType> periodTypes;
+  Date startDate;
+  Date endDate;
+  Date includedDate;
+
+  List<UID> categoryOptionCombos;
+  List<UID> attributeOptionCombos;
+
+  boolean includeDeleted;
+  List<Order> orders;
+
+  Date lastUpdated;
+  Duration lastUpdatedDuration;
+
+  /* Paging */
+  Integer limit;
+  Integer offset;
+
+  IdSchemes outputIdSchemes;
+
+  public boolean hasDataElementFilters() {
+    return notEmpty(dataSets) || notEmpty(dataElements) || notEmpty(dataElementGroups);
   }
 
-  public boolean hasDataElements() {
-    return dataElements != null && !dataElements.isEmpty();
+  public boolean hasPeriodFilters() {
+    return notEmpty(periods)
+        || notEmpty(periodTypes)
+        || (startDate != null && endDate != null)
+        || includedDate != null;
   }
 
-  public boolean hasDataSets() {
-    return dataSets != null && !dataSets.isEmpty();
-  }
-
-  public boolean hasDataElementGroups() {
-    return dataElementGroups != null && !dataElementGroups.isEmpty();
-  }
-
-  public DataSet getFirstDataSet() {
-    return hasDataSets() ? dataSets.iterator().next() : null;
-  }
-
-  public Period getFirstPeriod() {
-    return hasPeriods() ? periods.iterator().next() : null;
-  }
-
-  public boolean hasPeriods() {
-    return periods != null && !periods.isEmpty();
-  }
-
-  public boolean hasPeriodTypes() {
-    return periodTypes != null && !periodTypes.isEmpty();
-  }
-
-  public boolean hasStartEndDate() {
-    return startDate != null && endDate != null;
-  }
-
-  public boolean hasIncludedDate() {
-    return includedDate != null;
-  }
-
-  public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
-  }
-
-  public boolean isIncludeDescendantsForOrganisationUnits() {
-    return includeDescendants && hasOrganisationUnits();
-  }
-
-  public boolean hasOrgUnitLevel() {
-    return orgUnitLevel != null;
-  }
-
-  public boolean hasBlockingQueue() {
-    return blockingQueue != null;
-  }
-
-  public OrganisationUnit getFirstOrganisationUnit() {
-    return organisationUnits != null && !organisationUnits.isEmpty()
-        ? organisationUnits.iterator().next()
-        : null;
-  }
-
-  public boolean hasOrganisationUnitGroups() {
-    return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
-  }
-
-  public boolean hasCategoryOptionCombos() {
-    return categoryOptionCombos != null && !categoryOptionCombos.isEmpty();
-  }
-
-  public boolean hasAttributeOptionCombos() {
-    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
-  }
-
-  public boolean hasCoDimensionConstraints() {
-    return coDimensionConstraints != null && !coDimensionConstraints.isEmpty();
-  }
-
-  public boolean hasCogDimensionConstraints() {
-    return cogDimensionConstraints != null && !cogDimensionConstraints.isEmpty();
-  }
-
-  public boolean hasLastUpdated() {
-    return lastUpdated != null;
-  }
-
-  public boolean hasLastUpdatedDuration() {
-    return lastUpdatedDuration != null;
-  }
-
-  public boolean hasLimit() {
-    return limit != null;
-  }
-
-  public boolean needsOrgUnitDetails() {
-    return isOrderByOrgUnitPath()
-        || hasOrgUnitLevel()
-        || getOuMode() == DESCENDANTS
-        || isIncludeDescendants();
+  public boolean hasOrgUnitFilters() {
+    return notEmpty(organisationUnits) || notEmpty(organisationUnitGroups);
   }
 
   /**
-   * Indicates whether these parameters represent a single data value set, implying that it contains
-   * exactly one of data sets, periods and organisation units.
+   * @return true if the OU filters can only match units specified in {@link #organisationUnits}
    */
-  public boolean isSingleDataValueSet() {
-    return dataSets.size() == 1
-        && periods.size() == 1
-        && organisationUnits.size() == 1
-        && dataElementGroups.isEmpty();
+  public boolean isExactOrgUnitsFilter() {
+    return notEmpty(organisationUnits)
+        && !isIncludeDescendants()
+        && (organisationUnitGroups == null || organisationUnitGroups.isEmpty());
   }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("data elements", dataElements)
-        .add("data element operands", dataElementOperands)
-        .add("data sets", dataSets)
-        .add("data element groups", dataElementGroups)
-        .add("periods", periods)
-        .add("period types", periodTypes)
-        .add("start date", startDate)
-        .add("end date", endDate)
-        .add("included date", includedDate)
-        .add("org units", organisationUnits)
-        .add("org unit selection mode", ouMode)
-        .add("org unit level", orgUnitLevel)
-        .add("descendants", includeDescendants)
-        .add("order by org unit path", orderByOrgUnitPath)
-        .add("order by period", orderByPeriod)
-        .add("org unit groups", organisationUnitGroups)
-        .add("attribute option combos", attributeOptionCombos)
-        .add("category option dimension constraints", coDimensionConstraints)
-        .add("category option group dimension constraints", cogDimensionConstraints)
-        .add("deleted", includeDeleted)
-        .add("last updated", lastUpdated)
-        .add("last updated duration", lastUpdatedDuration)
-        .add("limit", limit)
-        .add("output id schemes", outputIdSchemes)
-        .add("blockingQueue", blockingQueue)
-        .toString();
+  public boolean isPeriodOverSpecified() {
+    return notEmpty(periods) && startDate != null && endDate != null;
+  }
+
+  public boolean isDateRangeOutOfBounds() {
+    return startDate != null && endDate != null && startDate.after(endDate);
+  }
+
+  public boolean isLimitOutOfBounds() {
+    return limit != null && limit < 0;
+  }
+
+  public boolean isOrgUnitGroupsOverSpecified() {
+    return notEmpty(organisationUnitGroups) && includeDescendants;
+  }
+
+  private static boolean notEmpty(Collection<?> c) {
+    return c != null && !c.isEmpty();
+  }
+
+  /**
+   * All query parameters to read data value sets as provided by user input to create {@link
+   * DataExportParams}.
+   *
+   * @author Jan Bernitt
+   */
+  @Getter
+  @Setter
+  @Builder(toBuilder = true)
+  @NoArgsConstructor
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  @OpenApi.Shared(name = "DataExportParams")
+  public static class Input {
+
+    // file output details
+    private Compression compression;
+
+    @OpenApi.Description("Optional user defined result file name")
+    private String attachment;
+
+    @OpenApi.Description("`json` or `xml` or `csv` or `adx+xml` to define the file output format")
+    private String format;
+
+    private Set<String> dataSet;
+    private Set<String> dataElement;
+    private Set<String> dataElementGroup;
+    private Set<String> period;
+    private Set<String> orgUnit;
+    private Set<String> orgUnitGroup;
+    private Set<String> categoryOptionCombo;
+    private Set<String> attributeOptionCombo;
+    private UID attributeCombo;
+    private Set<UID> attributeOptions;
+    private Date startDate;
+    private Date endDate;
+    private boolean children;
+
+    @OpenApi.Since(43)
+    @Maturity.Beta
+    @OpenApi.Description(
+        "Can be used in addition to `orgUnit` and/or `orgUnitGroup` to narrow the scope to a specific level.")
+    private Integer level;
+
+    private boolean includeDeleted;
+    private Date lastUpdated;
+    private String lastUpdatedDuration;
+    private Integer limit;
+    private Integer offset;
+
+    @OpenApi.Description(
+        "If used it has the effect of adding `PE` to `order` as 1st (most significant) order property.")
+    @Deprecated(since = "2.43")
+    private boolean orderByPeriod;
+
+    @OpenApi.Since(43)
+    @Maturity.Beta
+    private List<Order> order;
+
+    /*
+     * Input IdSchemes
+     */
+
+    /**
+     * @since 2.43
+     */
+    @OpenApi.Description(
+        """
+      When `true` and input IDs are expected to be `UID` due to being the default
+      the decoding will attempt decoding as `CODE` for IDs that cannot be resolved as `UID`.""")
+    private Boolean inputUseCodeFallback;
+
+    private IdentifiableProperty inputIdScheme;
+    private IdentifiableProperty inputOrgUnitIdScheme;
+    private IdentifiableProperty inputDataElementIdScheme;
+    private IdentifiableProperty inputDataSetIdScheme;
+    private IdentifiableProperty inputDataElementGroupIdScheme;
+
+    /*
+     * Output IdSchemes (for backwards compatibility not named with prefix
+     * output)
+     */
+
+    private String idScheme;
+    private String dataElementIdScheme;
+    private String categoryOptionComboIdScheme;
+    private String categoryOptionIdScheme;
+    private String categoryIdScheme;
+    private String orgUnitIdScheme;
+    private String programIdScheme;
+    private String programStageIdScheme;
+    private String trackedEntityAttributeIdScheme;
+    private String dataSetIdScheme;
+    private String attributeOptionComboIdScheme;
+
+    @OpenApi.Description(
+        """
+      When `true`, the category option combos and attribute option combos
+      are exported as pairs of category and category option values using
+      `categoryIdScheme` and `categoryOptionIdScheme`.
+      """)
+    @Maturity.Alpha
+    private Boolean unfoldOptionCombos;
+
+    @OpenApi.Ignore
+    public IdSchemes getOutputIdSchemes() {
+      IdSchemes schemes = new IdSchemes();
+      setNonNull(schemes, idScheme, IdSchemes::setIdScheme);
+      setNonNull(schemes, dataElementIdScheme, IdSchemes::setDataElementIdScheme);
+      setNonNull(schemes, categoryOptionComboIdScheme, IdSchemes::setCategoryOptionComboIdScheme);
+      setNonNull(schemes, categoryOptionIdScheme, IdSchemes::setCategoryOptionIdScheme);
+      setNonNull(schemes, categoryIdScheme, IdSchemes::setCategoryIdScheme);
+      setNonNull(schemes, orgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
+      setNonNull(schemes, programIdScheme, IdSchemes::setProgramIdScheme);
+      setNonNull(schemes, programStageIdScheme, IdSchemes::setProgramStageIdScheme);
+      setNonNull(
+          schemes, trackedEntityAttributeIdScheme, IdSchemes::setTrackedEntityAttributeIdScheme);
+      setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
+      setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
+      return schemes;
+    }
+
+    private static void setNonNull(
+        IdSchemes schemes, String property, BiFunction<IdSchemes, String, IdSchemes> setter) {
+      if (property != null) {
+        setter.apply(schemes, property);
+      }
+    }
+
+    @Nonnull
+    public Compression getCompression() {
+      return compression == null ? Compression.NONE : compression;
+    }
+
+    @OpenApi.Ignore
+    public String getFilename() {
+      String comp =
+          switch (getCompression()) {
+            case GZIP -> ".gz";
+            case ZIP -> ".zip";
+            default -> "";
+          };
+      String fmt = format == null ? ".json" : "." + format.replace('+', '.');
+      String name = attachment == null ? "dataValues" : attachment;
+      if (name.endsWith(comp)) name = name.substring(0, name.length() - comp.length());
+      if (name.endsWith(fmt)) name = name.substring(0, name.length() - fmt.length());
+      if (startDate != null) name += "_" + getSqlDateString(startDate);
+      if (endDate != null) name += "_" + getSqlDateString(endDate);
+      return replace("${name}${fmt}${comp}", Map.of("name", name, "fmt", fmt, "comp", comp));
+    }
   }
 }

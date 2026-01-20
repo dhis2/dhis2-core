@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   web:
@@ -10,7 +9,8 @@ services:
     volumes:
       - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
     environment:
-      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081"
+      # JAVA_TOOL_OPTIONS: Standard JVM environment variable, works with all image types
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081"
     depends_on:
       db:
         condition: service_healthy

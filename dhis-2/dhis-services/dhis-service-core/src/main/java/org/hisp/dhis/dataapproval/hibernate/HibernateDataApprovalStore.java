@@ -50,8 +50,6 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -69,7 +67,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -86,7 +83,7 @@ import org.springframework.stereotype.Repository;
  * @author Jim Grace
  */
 @Slf4j
-@Repository("org.hisp.dhis.dataapproval.DataApprovalStore")
+@Repository
 public class HibernateDataApprovalStore extends HibernateGenericStore<DataApproval>
     implements DataApprovalStore {
   private static final int MAX_APPROVAL_LEVEL = 100000000;
@@ -95,15 +92,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   private static final String SQL_CAT = SqlUtils.SINGLE_QUOTE + SQL_CONCAT + SqlUtils.SINGLE_QUOTE;
 
-  private final Cache<Boolean> isApprovedCache;
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final PeriodService periodService;
-
-  private final PeriodStore periodStore;
 
   private final UserService userService;
 
@@ -115,27 +104,21 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      CacheProvider cacheProvider,
       PeriodService periodService,
-      PeriodStore periodStore,
       CategoryService categoryService,
       SystemSettingsProvider settingsProvider,
       UserService userService) {
     super(entityManager, jdbcTemplate, publisher, DataApproval.class, false);
 
-    checkNotNull(cacheProvider);
     checkNotNull(periodService);
-    checkNotNull(periodStore);
     checkNotNull(userService);
     checkNotNull(categoryService);
     checkNotNull(settingsProvider);
 
     this.periodService = periodService;
-    this.periodStore = periodStore;
     this.userService = userService;
     this.categoryService = categoryService;
     this.settingsProvider = settingsProvider;
-    this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
   }
 
   // -------------------------------------------------------------------------
@@ -144,8 +127,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   @Override
   public void addDataApproval(DataApproval dataApproval) {
-    isApprovedCache.invalidateAll();
-
     dataApproval.setPeriod(periodService.reloadPeriod(dataApproval.getPeriod()));
 
     save(dataApproval);
@@ -153,8 +134,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   @Override
   public void updateDataApproval(DataApproval dataApproval) {
-    isApprovedCache.invalidateAll();
-
     dataApproval.setPeriod(periodService.reloadPeriod(dataApproval.getPeriod()));
 
     update(dataApproval);
@@ -162,8 +141,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   @Override
   public void deleteDataApproval(DataApproval dataApproval) {
-    isApprovedCache.invalidateAll();
-
     dataApproval.setPeriod(periodService.reloadPeriod(dataApproval.getPeriod()));
 
     delete(dataApproval);
@@ -171,8 +148,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
   @Override
   public void deleteDataApprovals(OrganisationUnit organisationUnit) {
-    isApprovedCache.invalidateAll();
-
     String hql = "delete from DataApproval d where d.organisationUnit = :unit";
 
     entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
@@ -218,7 +193,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
       Collection<OrganisationUnit> organisationUnits,
       Collection<CategoryOptionCombo> attributeOptionCombos) {
     List<Period> storedPeriods =
-        periods.stream().map(p -> periodService.reloadPeriod(p)).collect(Collectors.toList());
+        periods.stream().map(periodService::reloadPeriod).collect(Collectors.toList());
 
     CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -230,42 +205,6 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             .addPredicate(root -> root.get("period").in(storedPeriods))
             .addPredicate(root -> root.get("organisationUnit").in(organisationUnits))
             .addPredicate(root -> root.get("attributeOptionCombo").in(attributeOptionCombos)));
-  }
-
-  @Override
-  public boolean dataApprovalExists(DataApproval dataApproval) {
-    return isApprovedCache.get(
-        dataApproval.getCacheKey(), key -> dataApprovalExistsInternal(dataApproval));
-  }
-
-  private boolean dataApprovalExistsInternal(DataApproval dataApproval) {
-    Period storedPeriod = periodStore.reloadPeriod(dataApproval.getPeriod());
-
-    if (storedPeriod == null) {
-      return false;
-    }
-
-    String sql =
-        "select dataapprovalid "
-            + "from dataapproval "
-            + "where dataapprovallevelid = "
-            + dataApproval.getDataApprovalLevel().getId()
-            + " "
-            + "and workflowid = "
-            + dataApproval.getWorkflow().getId()
-            + " "
-            + "and periodid  = "
-            + storedPeriod.getId()
-            + " "
-            + "and organisationunitid = "
-            + dataApproval.getOrganisationUnit().getId()
-            + " "
-            + "and attributeoptioncomboid = "
-            + dataApproval.getAttributeOptionCombo().getId()
-            + " "
-            + "limit 1";
-
-    return jdbcTemplate.queryForList(sql).size() > 0;
   }
 
   @Override

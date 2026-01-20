@@ -31,9 +31,9 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
@@ -56,8 +56,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -212,7 +211,7 @@ class JdbcAnalyticsManagerTest {
   private DataQueryParams createParams(AggregationType aggregationType) {
     DataElement deA = createDataElement('A', ValueType.INTEGER, aggregationType);
     OrganisationUnit ouA = createOrganisationUnit('A');
-    Period peA = PeriodType.getPeriodFromIsoString("201501");
+    PeriodDimension peA = PeriodDimension.of("201501");
 
     return DataQueryParams.newBuilder()
         .withDataType(DataType.NUMERIC)

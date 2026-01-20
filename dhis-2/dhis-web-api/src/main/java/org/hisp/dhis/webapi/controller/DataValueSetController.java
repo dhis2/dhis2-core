@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -39,7 +40,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -47,37 +47,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.function.BiConsumer;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.dxf2.adx.AdxDataService;
-import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
@@ -85,7 +72,6 @@ import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -99,126 +85,34 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataValueSets")
 public class DataValueSetController {
 
-  private final DataValueSetService dataValueSetService;
-  private final AdxDataService adxDataService;
-  private final UserService userService;
+  private final DataExportPipeline dataExportPipeline;
+  private final DataEntryPipeline dataEntryPipeline;
   private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
   // Get
   // -------------------------------------------------------------------------
 
-  @OpenApi.Ignore
-  @GetMapping(params = {"format"})
+  @OpenApi.Response(DataValueSet.class)
+  @GetMapping
   public void getDataValueSet(
-      DataValueSetQueryParams params,
-      @RequestParam(required = false) String attachment,
-      @RequestParam(required = false) String compression,
-      @RequestParam(required = false) String format,
-      HttpServletResponse response) {
-    switch (format) {
-      case "xml" -> getDataValueSetXml(params, attachment, compression, response);
-      case "adx+xml" -> getDataValueSetXmlAdx(params, attachment, compression, response);
-      case "csv" -> getDataValueSetCsv(params, attachment, compression, response);
-      default -> getDataValueSetJson(params, attachment, compression, response);
+      DataExportParams.Input params, HttpServletRequest request, HttpServletResponse response)
+      throws ConflictException {
+    String format = params.getFormat();
+    if (format == null) {
+      String path = request.getPathInfo();
+      format = "json";
+      if (path.endsWith(".adx+xml")) format = "adx+xml";
+      if (path.endsWith(".xml")) format = "xml";
+      if (path.endsWith(".csv")) format = "csv";
+      params.setFormat(format);
     }
-  }
-
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_XML)
-  public void getDataValueSetXml(
-      DataValueSetQueryParams params,
-      @RequestParam(required = false) String attachment,
-      @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
-    getDataValueSet(
-        attachment,
-        compression,
-        "xml",
-        response,
-        CONTENT_TYPE_XML,
-        () -> dataValueSetService.getFromUrl(params),
-        dataValueSetService::exportDataValueSetXml);
-  }
-
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_XML_ADX)
-  public void getDataValueSetXmlAdx(
-      DataValueSetQueryParams params,
-      @RequestParam(required = false) String attachment,
-      @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
-    getDataValueSet(
-        attachment,
-        compression,
-        "xml",
-        response,
-        CONTENT_TYPE_XML_ADX,
-        () -> adxDataService.getFromUrl(params),
-        (exportParams, out) -> {
-          try {
-            adxDataService.writeDataValueSet(exportParams, out);
-          } catch (AdxException ex) {
-            // this will end up in same exception handler
-            throw new IllegalStateException(ex.getMessage(), ex);
-          }
-        });
-  }
-
-  @OpenApi.Response(DataValueSet.class)
-  @GetMapping(produces = CONTENT_TYPE_JSON)
-  public void getDataValueSetJson(
-      DataValueSetQueryParams params,
-      @RequestParam(required = false) String attachment,
-      @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
-    getDataValueSet(
-        attachment,
-        compression,
-        "json",
-        response,
-        CONTENT_TYPE_JSON,
-        () -> dataValueSetService.getFromUrl(params),
-        dataValueSetService::exportDataValueSetJson);
-  }
-
-  @OpenApi.Response(String.class)
-  @GetMapping(produces = {CONTENT_TYPE_CSV, "text/csv"})
-  public void getDataValueSetCsv(
-      DataValueSetQueryParams params,
-      @RequestParam(required = false) String attachment,
-      @RequestParam(required = false) String compression,
-      HttpServletResponse response) {
-    getDataValueSet(
-        attachment,
-        compression,
-        "csv",
-        response,
-        CONTENT_TYPE_CSV,
-        () -> dataValueSetService.getFromUrl(params),
-        (exportParams, out) ->
-            dataValueSetService.exportDataValueSetCsv(exportParams, new PrintWriter(out)));
-  }
-
-  private void getDataValueSet(
-      String attachment,
-      String compression,
-      String format,
-      HttpServletResponse response,
-      String contentType,
-      Provider<DataExportParams> createParams,
-      BiConsumer<DataExportParams, OutputStream> writeOutput) {
-    DataExportParams params = createParams.provide();
-    dataValueSetService.validate(params);
-
-    response.setContentType(contentType);
-    setNoStore(response);
-
-    try (OutputStream out =
-        compress(params, response, attachment, Compression.fromValue(compression), format)) {
-      writeOutput.accept(params, out);
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
+    switch (format) {
+      case "xml" -> dataExportPipeline.exportAsXml(params, lazyOutputStream(params, response));
+      case "adx+xml" ->
+          dataExportPipeline.exportAsXmlGroups(params, lazyOutputStream(params, response));
+      case "csv" -> dataExportPipeline.exportAsCsv(params, lazyOutputStream(params, response));
+      default -> dataExportPipeline.exportAsJson(params, lazyOutputStream(params, response));
     }
   }
 
@@ -230,31 +124,24 @@ public class DataValueSetController {
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_XML, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetXml(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/adx+xml"), request);
     }
-    ImportSummary summary =
-        adxDataService.saveDataValueSet(
-            request.getInputStream(), importOptions, JobProgress.noop());
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importXml(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -265,11 +152,8 @@ public class DataValueSetController {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_JSON, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetJson(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importJson(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = "application/csv")
@@ -280,26 +164,20 @@ public class DataValueSetController {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MimeType.valueOf("application/csv"), request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetCsv(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importCsv(request.getInputStream(), importOptions, transitory()));
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
   @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException {
+      throws IOException, ConflictException, BadRequestException {
     if (importOptions.isAsync()) {
       return startAsyncImport(importOptions, MediaType.APPLICATION_PDF, request);
     }
-    ImportSummary summary =
-        dataValueSetService.importDataValueSetPdf(request.getInputStream(), importOptions);
-    summary.setImportOptions(importOptions);
-
-    return importSummary(summary);
+    return importSummary(
+        dataEntryPipeline.importPdf(request.getInputStream(), importOptions, transitory()));
   }
 
   // -------------------------------------------------------------------------
@@ -311,8 +189,7 @@ public class DataValueSetController {
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
       throws ConflictException, IOException {
     JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    config.setExecutedBy(currentUser.getUid());
+    config.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
     config.setJobParameters(importOptions);
 
     jobExecutionService.executeOnceNow(config, mimeType, request.getInputStream());
@@ -321,89 +198,35 @@ public class DataValueSetController {
   }
 
   /**
-   * Returns an output stream with the appropriate compression based on the given {@link
-   * Compression} argument.
-   *
-   * @param response the {@link HttpServletResponse}.
-   * @param attachment the file download attachment name
-   * @param compression the Compression {@link Compression}
-   * @param format the file format, can be json, xml or csv.
-   * @return Compressed OutputStream if given compression is given, otherwise just return
-   *     uncompressed outputStream
+   * @implNote The output needs to be lazily configured and access to make sure this will always
+   *     happen after any exception could be thrown to fetch and encode the data that should be
+   *     written. Otherwise, even in case of an error the browser will download a then empty file
+   *     instead of receiving and showing the error response.
    */
-  private OutputStream compress(
-      DataExportParams params,
-      HttpServletResponse response,
-      String attachment,
-      Compression compression,
-      String format)
-      throws IOException, HttpMessageNotWritableException {
-    String fileName = getAttachmentFileName(attachment, params);
-
-    if (Compression.GZIP == compression) {
-      // make sure to remove format + gz/gzip extension if present
-      fileName = stripFormatCompressionExtension(fileName, format, "gzip");
-      fileName = stripFormatCompressionExtension(fileName, format, "gz");
-
-      response.setHeader(
-          ContextUtils.HEADER_CONTENT_DISPOSITION,
-          "attachment; filename=" + fileName + "." + format + ".gz");
-      response.setHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      return new GZIPOutputStream(response.getOutputStream());
-    } else if (Compression.ZIP == compression) {
-      // make sure to remove format + zip extension if present
-      fileName = stripFormatCompressionExtension(fileName, format, "zip");
-
-      response.setHeader(
-          ContextUtils.HEADER_CONTENT_DISPOSITION,
-          "attachment; filename=" + fileName + "." + format + ".zip");
-      response.setHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-
-      ZipOutputStream outputStream = new ZipOutputStream(response.getOutputStream());
-      outputStream.putNextEntry(new ZipEntry(fileName + "." + format));
-
-      return outputStream;
-    } else {
-      // file download only if attachment is explicitly specified for
-      // no-compression option.
-      if (!StringUtils.isEmpty(attachment)) {
-        response.addHeader(
-            ContextUtils.HEADER_CONTENT_DISPOSITION,
-            "attachment; filename=" + fileName + "." + format);
-        response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+  private Supplier<OutputStream> lazyOutputStream(
+      DataExportParams.Input params, HttpServletResponse response)
+      throws HttpMessageNotWritableException {
+    return () -> {
+      String contentType =
+          switch (params.getFormat()) {
+            case "xml" -> CONTENT_TYPE_XML;
+            case "adx+xml" -> CONTENT_TYPE_XML_ADX;
+            case "csv" -> CONTENT_TYPE_CSV;
+            default -> CONTENT_TYPE_JSON;
+          };
+      response.setContentType(contentType);
+      // file download only if attachment is explicitly specified for no-compression option.
+      if (params.getCompression() != Compression.NONE || params.getAttachment() == null) {
+        response.setHeader(
+            "Content-Disposition", "attachment; filename=\"" + params.getFilename() + "\"");
+        response.setHeader("Content-Transfer-Encoding", "binary");
       }
-
-      return response.getOutputStream();
-    }
-  }
-
-  /**
-   * Generate file name with format "dataValues_startDate_endDate" or
-   *
-   * <p>"{attachment}_startDate_endDate" if value of the attachment parameter is not empty.
-   *
-   * <p>Date format is "yyyy-mm-dd". This can only apply if the request has startDate and endDate.
-   * Otherwise, will return default file name "dataValues".
-   *
-   * @param attachment The attachment parameter.
-   * @param params {@link DataExportParams} contains startDate and endDate parameter.
-   * @return the export file name.
-   */
-  private String getAttachmentFileName(String attachment, DataExportParams params) {
-    String fileName = StringUtils.isEmpty(attachment) ? "dataValues" : attachment;
-
-    if (params.getStartDate() == null || params.getEndDate() == null) {
-      return fileName;
-    }
-
-    String dates =
-        String.join(
-            "_",
-            DateUtils.getSqlDateString(params.getStartDate()),
-            DateUtils.getSqlDateString(params.getEndDate()));
-
-    fileName = fileName.contains(".") ? fileName.substring(0, fileName.indexOf(".")) : fileName;
-
-    return String.join("_", fileName, dates);
+      setNoStore(response);
+      try {
+        return response.getOutputStream();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
   }
 }

@@ -61,7 +61,6 @@ class BaseDimensionalObjectTest {
     BaseDimensionalObject target = new BaseDimensionalObject("test-dimension");
     target.setUid("uid-999999");
     target.setDimensionType(DimensionType.DATA_X);
-    target.setDimensionName("test-dimension-name");
     target.setItems(Lists.newArrayList(buildDimensionalItemObject(), buildDimensionalItemObject()));
     target.setFilter("test-filter");
     target.setLegendSet(

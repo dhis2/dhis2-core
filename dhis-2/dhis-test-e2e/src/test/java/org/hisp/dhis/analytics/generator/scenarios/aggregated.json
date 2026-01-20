@@ -130,21 +130,21 @@
     },
     {
       "name": "programIndicatorWithLimitGreaterThanData",
-      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=GT:15&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=GT:15&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
       "version": {
         "min": 42
       }
     },
     {
       "name": "programIndicatorWithLimitLowerThanData",
-      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=LT:20&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=LT:20&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
       "version": {
         "min": 42
       }
     },
     {
       "name": "programIndicatorWithLimitEqualData",
-      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=EQ:14.5454545455&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS&filter=ou:USER_ORGUNIT&measureCriteria=EQ:14.5454545455&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true&relativePeriodDate=2025-07-01",
       "version": {
         "min": 42
       }
@@ -187,6 +187,13 @@
     {
       "name": "tableLayoutDownloadPivotTable",
       "query": "/api/analytics.json?dimension=pe:202101;202102;202103;202104;202105;202106;202107;202108;202109;202110;202111;202112;202201;202202;202203;202204;202205;202206;202207;202208;202209;202210;202211;202212;202001;202002;202003;202004;202005;202006;202007;202008;202009;202010;202011;202012&dimension=dx:FQ2o8UBlcrS;GSae40Fyppf;dSBYyCUjCXd;RUv0hqER0zV;IpHINAT79UW.cejWyOfXge6;IpHINAT79UW.wQLfBvPrXqq&dimension=ou:ImspTQPwCqd;USER_ORGUNIT_CHILDREN;USER_ORGUNIT_GRANDCHILDREN&tableLayout=true&columns=pe&rows=dx;ou&skipRounding=false&completedOnly=false",
+      "version": {
+        "min": 39
+      }
+    },
+    {
+      "name": "lastValueOrgUniDataValue",
+      "query": "/api/analytics?dimension=dx:jU1ivuoWAEp,pe:LAST_12_MONTHS&filter=ou:ImspTQPwCqd;O6uvpzGd5pu;YuQRtpLP10I&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
       "version": {
         "min": 39
       }

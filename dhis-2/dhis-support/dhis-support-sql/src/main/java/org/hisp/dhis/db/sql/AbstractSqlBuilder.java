@@ -199,6 +199,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return sql.append("from ").append(fromTable).append(";").toString();
   }
 
+  @Override
+  public String getDatabaseName() {
+    return EMPTY;
+  }
+
   // Mapping
 
   /**

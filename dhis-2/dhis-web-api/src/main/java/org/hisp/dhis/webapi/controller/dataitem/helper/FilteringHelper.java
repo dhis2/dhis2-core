@@ -86,7 +86,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
@@ -98,7 +97,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.UserSettings;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -186,7 +185,7 @@ public class FilteringHelper {
     Class<? extends IdentifiableObject> entity = null;
 
     if (filterHasPrefix(filter, DIMENSION_TYPE_EQUAL.getCombination())) {
-      String[] dimensionFilterPair = filter.split(":");
+      String[] dimensionFilterPair = filter.split(":", 3);
       boolean hasDimensionType = dimensionFilterPair.length == 3;
 
       if (hasDimensionType) {
@@ -246,7 +245,7 @@ public class FilteringHelper {
     if (CollectionUtils.isNotEmpty(filters)) {
       for (String filter : filters) {
         if (filterHasPrefix(filter, filterCombination.getCombination())) {
-          String[] array = filter.split(":");
+          String[] array = filter.split(":", 3);
           boolean hasValue = array.length == 3;
 
           if (hasValue) {
@@ -288,7 +287,10 @@ public class FilteringHelper {
    * @param currentUser the current user logged
    */
   public static void setFilteringParams(
-      Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
+      Set<String> filters,
+      WebOptions options,
+      MapSqlParameterSource paramsMap,
+      UserDetails currentUser) {
     Locale currentLocale = UserSettings.getCurrentSettings().evalUserLocale();
 
     if (currentLocale != null && isNotBlank(currentLocale.getLanguage())) {
@@ -364,12 +366,8 @@ public class FilteringHelper {
     addIfNotBlank(paramsMap, OPTION_SET_ID, optionSetId);
 
     // Add user group filtering, when present.
-    if (currentUser != null && CollectionUtils.isNotEmpty(currentUser.getGroups())) {
-      Set<String> userGroupUids =
-          currentUser.getGroups().stream()
-              .filter(Objects::nonNull)
-              .map(group -> trimToEmpty(group.getUid()))
-              .collect(toSet());
+    if (currentUser != null && CollectionUtils.isNotEmpty(currentUser.getUserGroupIds())) {
+      Set<String> userGroupUids = currentUser.getUserGroupIds();
       paramsMap.addValue(USER_GROUP_UIDS, "{" + join(",", userGroupUids) + "}");
     }
   }
@@ -515,7 +513,7 @@ public class FilteringHelper {
     String valueType = null;
 
     if (filterHasPrefix(filter, VALUE_TYPE_EQUAL.getCombination())) {
-      String[] array = filter.split(":");
+      String[] array = filter.split(":", 3);
       boolean hasValueType = array.length == 3;
 
       if (hasValueType) {

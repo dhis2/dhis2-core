@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -37,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -52,13 +50,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.SingleEvent;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -74,6 +68,11 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +108,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
   private ProgramStage programStage;
 
+  private Program eventProgram;
+
   private TrackedEntityType trackedEntityType;
 
   private TrackerEventOperationParams.TrackerEventOperationParamsBuilder
@@ -130,6 +131,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     singleEventOrgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
+    eventProgram = get(Program.class, "iS7eutanDry");
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
 
     manager.flush();
@@ -143,8 +145,10 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     trackerEventOperationParamsBuilder =
-        TrackerEventOperationParams.builder().orgUnitMode(SELECTED);
-    singleEventOperationParamsBuilder = SingleEventOperationParams.builder().orgUnitMode(SELECTED);
+        TrackerEventOperationParams.builderForProgram(UID.of(programStage.getProgram().getUid()))
+            .orgUnitMode(SELECTED);
+    singleEventOperationParamsBuilder =
+        SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -775,9 +779,9 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   void shouldOrderTrackerEventsByStatusAndByDefaultOrder()
       throws ForbiddenException, BadRequestException {
     List<String> expected =
-        Stream.of(get(Event.class, "D9PbzJY8bJM"), get(Event.class, "pTzf9KYMk72"))
-            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
-            .map(Event::getUid)
+        Stream.of(get(TrackerEvent.class, "D9PbzJY8bJM"), get(TrackerEvent.class, "pTzf9KYMk72"))
+            .sorted(Comparator.comparing(TrackerEvent::getId).reversed()) // reversed = desc
+            .map(TrackerEvent::getUid)
             .toList();
 
     TrackerEventOperationParams operationParams =
@@ -816,7 +820,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     assertEquals(
         new Page<>(List.of("pTzf9KYMk72"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
-    Page<Event> thirdPage =
+    Page<TrackerEvent> thirdPage =
         trackerEventService.findEvents(operationParams, PageParams.of(3, 1, false));
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
@@ -825,64 +829,16 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderTrackerEventsByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException {
-    Event d9PbzJY8bJM = get(Event.class, "D9PbzJY8bJM");
-    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent d9PbzJY8bJM = get(TrackerEvent.class, "D9PbzJY8bJM");
+    TrackerEvent pTzf9KYMk72 = get(TrackerEvent.class, "pTzf9KYMk72");
     List<String> expected =
         Stream.of(d9PbzJY8bJM, pTzf9KYMk72)
-            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
-            .map(Event::getUid)
+            .sorted(Comparator.comparing(TrackerEvent::getId).reversed()) // reversed = desc
+            .map(TrackerEvent::getUid)
             .toList();
 
     TrackerEventOperationParams params =
         trackerEventOperationParamsBuilder.orgUnit(orgUnit).build();
-
-    List<String> events = getTrackerEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderTrackerEventsByEnrollmentProgramUIDAsc()
-      throws ForbiddenException, BadRequestException {
-    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf
-    Event jxgFyJEMUPf = get(Event.class, "jxgFyJEMUPf"); // enrolled in program shPjYNifvMK
-    List<String> expected =
-        Stream.of(pTzf9KYMk72, jxgFyJEMUPf)
-            .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-            .map(Event::getUid)
-            .toList();
-
-    TrackerEventOperationParams params =
-        trackerEventOperationParamsBuilder
-            .orgUnitMode(ACCESSIBLE)
-            .events(UID.of("jxgFyJEMUPf", "pTzf9KYMk72"))
-            .orderBy("enrollment.program.uid", SortDirection.ASC)
-            .build();
-
-    List<String> events = getTrackerEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderTrackerEventsByEnrollmentProgramUIDDesc()
-      throws ForbiddenException, BadRequestException {
-    Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf
-    Event jxgFyJEMUPf = get(Event.class, "jxgFyJEMUPf"); // enrolled in program shPjYNifvMK
-    List<String> expected =
-        new java.util.ArrayList<>(
-            Stream.of(pTzf9KYMk72, jxgFyJEMUPf)
-                .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-                .map(Event::getUid)
-                .toList());
-    Collections.reverse(expected);
-
-    TrackerEventOperationParams params =
-        trackerEventOperationParamsBuilder
-            .orgUnitMode(ACCESSIBLE)
-            .events(UID.of("pTzf9KYMk72", "jxgFyJEMUPf"))
-            .orderBy("enrollment.program.uid", SortDirection.DESC)
-            .build();
 
     List<String> events = getTrackerEvents(params);
 
@@ -960,7 +916,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
-    List<Event> events = trackerEventService.findEvents(params);
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
 
     assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), uids(events));
     List<String> trackedEntities =
@@ -1005,28 +961,28 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   void shouldOrderTrackerEventsByProgramStageUidDesc()
       throws ForbiddenException, BadRequestException {
     TrackerEventOperationParams params =
-        trackerEventOperationParamsBuilder
-            .orgUnit(UID.of("uoNW0E3xXUy"))
+        TrackerEventOperationParams.builderForProgram(UID.of("UWRnoyBjvqi"))
+            .orgUnit(UID.of("tSsGrtfRzjY"))
             .orderBy("programStage.uid", SortDirection.DESC)
             .build();
 
     List<String> events = getTrackerEvents(params);
 
-    assertEquals(List.of("JaRDIvcEcEx", "jxgFyJEMUPf"), events);
+    assertEquals(List.of("gvULMgNiAfN", "gvULMgNiAfM"), events);
   }
 
   @Test
   void shouldOrderTrackerEventsByProgramStageUidAsc()
       throws ForbiddenException, BadRequestException {
     TrackerEventOperationParams params =
-        trackerEventOperationParamsBuilder
-            .orgUnit(UID.of("uoNW0E3xXUy"))
+        TrackerEventOperationParams.builderForProgram(UID.of("UWRnoyBjvqi"))
+            .orgUnit(UID.of("tSsGrtfRzjY"))
             .orderBy("programStage.uid", SortDirection.ASC)
             .build();
 
     List<String> events = getTrackerEvents(params);
 
-    assertEquals(List.of("jxgFyJEMUPf", "JaRDIvcEcEx"), events);
+    assertEquals(List.of("gvULMgNiAfM", "gvULMgNiAfN"), events);
   }
 
   @Test
@@ -1259,11 +1215,11 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     List<String> expected =
         Stream.of(
-                get(Event.class, "ck7DzdxqLqA"),
-                get(Event.class, "kWjSezkXHVp"),
-                get(Event.class, "OTmjvJDn0Fu"))
-            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
-            .map(Event::getUid)
+                get(SingleEvent.class, "ck7DzdxqLqA"),
+                get(SingleEvent.class, "kWjSezkXHVp"),
+                get(SingleEvent.class, "OTmjvJDn0Fu"))
+            .sorted(Comparator.comparing(SingleEvent::getId).reversed()) // reversed = desc
+            .map(SingleEvent::getUid)
             .toList();
 
     SingleEventOperationParams operationParams =
@@ -1312,67 +1268,18 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderSingleEventsByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException {
-    Event qrYjLTiJTrA = get(Event.class, "QRYjLTiJTrA");
-    Event lumVtWwwy0O = get(Event.class, "lumVtWwwy0O");
+    SingleEvent qrYjLTiJTrA = get(SingleEvent.class, "QRYjLTiJTrA");
+    SingleEvent lumVtWwwy0O = get(SingleEvent.class, "lumVtWwwy0O");
     List<String> expected =
         Stream.of(qrYjLTiJTrA, lumVtWwwy0O)
-            .sorted(Comparator.comparing(Event::getId).reversed()) // reversed = desc
-            .map(Event::getUid)
+            .sorted(Comparator.comparing(SingleEvent::getId).reversed()) // reversed = desc
+            .map(SingleEvent::getUid)
             .toList();
 
     SingleEventOperationParams params =
         singleEventOperationParamsBuilder
             .events(UID.of("QRYjLTiJTrA", "lumVtWwwy0O"))
             .orgUnit(singleEventOrgUnit)
-            .build();
-
-    List<String> events = getSingleEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderSingleEventsByEnrollmentProgramUIDAsc()
-      throws ForbiddenException, BadRequestException {
-    Event ck7DzdxqLqA = get(Event.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
-    Event g9PbzJY8bJG = get(Event.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
-    List<String> expected =
-        new java.util.ArrayList<>(
-            Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
-                .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-                .map(Event::getUid)
-                .toList());
-
-    SingleEventOperationParams params =
-        singleEventOperationParamsBuilder
-            .orgUnitMode(ACCESSIBLE)
-            .events(UID.of("G9PbzJY8bJG", "ck7DzdxqLqA"))
-            .orderBy("enrollment.program.uid", SortDirection.ASC)
-            .build();
-
-    List<String> events = getSingleEvents(params);
-
-    assertEquals(expected, events);
-  }
-
-  @Test
-  void shouldOrderSingleEventsByEnrollmentProgramUIDDesc()
-      throws ForbiddenException, BadRequestException {
-    Event ck7DzdxqLqA = get(Event.class, "ck7DzdxqLqA"); // enrolled in program iS7eutanDry
-    Event g9PbzJY8bJG = get(Event.class, "G9PbzJY8bJG"); // enrolled in program BFcipDERJng
-    List<String> expected =
-        new java.util.ArrayList<>(
-            Stream.of(ck7DzdxqLqA, g9PbzJY8bJG)
-                .sorted(Comparator.comparing(event -> event.getEnrollment().getProgram().getUid()))
-                .map(Event::getUid)
-                .toList());
-    Collections.reverse(expected);
-
-    SingleEventOperationParams params =
-        singleEventOperationParamsBuilder
-            .orgUnitMode(ACCESSIBLE)
-            .events(UID.of("ck7DzdxqLqA", "G9PbzJY8bJG"))
-            .orderBy("enrollment.program.uid", SortDirection.DESC)
             .build();
 
     List<String> events = getSingleEvents(params);
@@ -1599,20 +1506,18 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
   private static Stream<Arguments> orderByFieldInDescendingOrderWhenModeDescendants() {
     return Stream.of(
-        Arguments.of("organisationUnit.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of("programStage.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of("scheduledDate", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of("status", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of("storedBy", "SbUJzkxKYAG", "gvULMgNiAfM"));
+        Arguments.of("programStage.uid", "gvULMgNiAfN", "gvULMgNiAfM"),
+        Arguments.of("scheduledDate", "gvULMgNiAfM", "gvULMgNiAfN"),
+        Arguments.of("status", "gvULMgNiAfM", "gvULMgNiAfN"),
+        Arguments.of("storedBy", "gvULMgNiAfN", "gvULMgNiAfM"));
   }
 
   private static Stream<Arguments> orderByFieldInAscendingOrderWhenModeDescendants() {
     return Stream.of(
-        Arguments.of("organisationUnit.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of("programStage.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of("scheduledDate", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of("status", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of("storedBy", "gvULMgNiAfM", "SbUJzkxKYAG"));
+        Arguments.of("programStage.uid", "gvULMgNiAfM", "gvULMgNiAfN"),
+        Arguments.of("scheduledDate", "gvULMgNiAfN", "gvULMgNiAfM"),
+        Arguments.of("status", "gvULMgNiAfN", "gvULMgNiAfM"),
+        Arguments.of("storedBy", "gvULMgNiAfM", "gvULMgNiAfN"));
   }
 
   @ParameterizedTest
@@ -1621,11 +1526,14 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
       String field, String firstEvent, String secondEvent)
       throws ForbiddenException, BadRequestException {
 
-    trackerEventOperationParamsBuilder.orgUnitMode(DESCENDANTS);
-    trackerEventOperationParamsBuilder.orgUnit(UID.of("RojfDTBhoGC"));
-    trackerEventOperationParamsBuilder.orderBy(field, SortDirection.DESC);
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builderForProgram(UID.of("UWRnoyBjvqi"))
+            .orgUnit(UID.of("tSsGrtfRzjY"))
+            .orgUnitMode(DESCENDANTS)
+            .orderBy(field, SortDirection.DESC)
+            .build();
 
-    List<String> events = getTrackerEvents(trackerEventOperationParamsBuilder.build());
+    List<String> events = getTrackerEvents(params);
     assertEquals(List.of(firstEvent, secondEvent), events);
   }
 
@@ -1635,12 +1543,41 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
       String field, String firstEvent, String secondEvent)
       throws ForbiddenException, BadRequestException {
 
-    trackerEventOperationParamsBuilder.orgUnitMode(DESCENDANTS);
-    trackerEventOperationParamsBuilder.orgUnit(UID.of("RojfDTBhoGC"));
-    trackerEventOperationParamsBuilder.orderBy(field, SortDirection.ASC);
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builderForProgram(UID.of("UWRnoyBjvqi"))
+            .orgUnit(UID.of("tSsGrtfRzjY"))
+            .orgUnitMode(DESCENDANTS)
+            .orderBy(field, SortDirection.ASC)
+            .build();
 
-    List<String> events = getTrackerEvents(trackerEventOperationParamsBuilder.build());
+    List<String> events = getTrackerEvents(params);
     assertEquals(List.of(firstEvent, secondEvent), events);
+  }
+
+  @Test
+  void shouldOrderByOrgUnitInAscendingOrderWhenModeDescendants()
+      throws ForbiddenException, BadRequestException {
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builderForProgram(UID.of("UWRnoyBjvqi"))
+            .orgUnitMode(DESCENDANTS)
+            .orderBy("organisationUnit.uid", SortDirection.ASC)
+            .build();
+
+    List<String> events = getTrackerEvents(params);
+    assertEquals(List.of("gvULMgNiAfN", "gvULMgNiAfM"), events);
+  }
+
+  @Test
+  void shouldOrderByOrgUnitInDescendingOrderWhenModeDescendants()
+      throws ForbiddenException, BadRequestException {
+    TrackerEventOperationParams params =
+        TrackerEventOperationParams.builderForProgram(UID.of("UWRnoyBjvqi"))
+            .orgUnitMode(DESCENDANTS)
+            .orderBy("organisationUnit.uid", SortDirection.DESC)
+            .build();
+
+    List<String> events = getTrackerEvents(params);
+    assertEquals(List.of("gvULMgNiAfM", "gvULMgNiAfN"), events);
   }
 
   @Test

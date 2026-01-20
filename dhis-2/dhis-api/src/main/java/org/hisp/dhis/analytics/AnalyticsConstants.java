@@ -47,4 +47,18 @@ public class AnalyticsConstants {
   public static final String ORG_UNIT_GROUPSET_STRUCT_ALIAS = "ougs";
 
   public static final String NULL = "null";
+
+  public static final String KEY_USER_ORGUNIT = "USER_ORGUNIT";
+
+  public static final String KEY_USER_ORGUNIT_CHILDREN = "USER_ORGUNIT_CHILDREN";
+
+  public static final String KEY_USER_ORGUNIT_GRANDCHILDREN = "USER_ORGUNIT_GRANDCHILDREN";
+
+  public static final String KEY_LEVEL = "LEVEL-";
+
+  public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
+
+  public static final String KEY_DATASET = "DS-";
+
+  public static final String KEY_PROGRAM = "PR-";
 }

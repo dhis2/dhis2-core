@@ -40,6 +40,9 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -61,25 +64,26 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -104,7 +108,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  private final Date incidentDate = new Date();
+  @Autowired private TrackerProgramService trackerProgramService;
+
+  private final Date occurredDate = new Date();
 
   private User admin;
 
@@ -124,7 +130,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollmentGrandchildA;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
   private TrackedEntity trackedEntityA;
 
@@ -226,15 +232,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.update(programB);
 
     programStageA = createProgramStage('A', programA);
+    programStageA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     manager.save(programStageA, false);
     ProgramStage inaccessibleProgramStage = createProgramStage('B', programA);
     inaccessibleProgramStage.getSharing().setOwner(admin);
     inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleProgramStage, false);
-    programA.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
-    manager.save(programA, false);
-    programB.setProgramStages(Set.of(programStageA, inaccessibleProgramStage));
-    manager.save(programB, false);
 
     relationshipTypeA = createRelationshipType('A');
     relationshipTypeA
@@ -267,7 +270,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.save(relationshipA, false);
 
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
-    eventA.setOccurredDate(incidentDate);
+    eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(to));
@@ -329,7 +332,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollment);
     assertContainsOnly(
-        List.of(eventA.getUid()), enrollment.getEvents().stream().map(Event::getUid).toList());
+        List.of(eventA.getUid()),
+        enrollment.getEvents().stream().map(TrackerEvent::getUid).toList());
   }
 
   @Test
@@ -527,7 +531,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         EnrollmentOperationParams.builder()
             .orgUnits(trackedEntityA.getOrganisationUnit())
             .orgUnitMode(SELECTED)
-            .trackedEntity(trackedEntityA)
+            .trackedEntities(trackedEntityA)
             .build();
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
@@ -550,7 +554,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -586,7 +590,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -624,7 +628,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
-    assertContainsOnly(List.of(enrollmentA), enrollments);
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
   }
 
   @Test
@@ -697,7 +701,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
-        List.of(enrollmentA, enrollmentB, enrollmentChildA, enrollmentGrandchildA), enrollments);
+        List.of(
+            enrollmentA.getUid(),
+            enrollmentB.getUid(),
+            enrollmentChildA.getUid(),
+            enrollmentGrandchildA.getUid()),
+        uids(enrollments));
   }
 
   @Test
@@ -792,6 +801,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEnrollmentWithGeometry() {
     GeometryFactory geometryFactory = new GeometryFactory();
     Point point = geometryFactory.createPoint(new Coordinate(13.4050, 52.5200));
+    point.setSRID(4326);
 
     enrollmentA.setGeometry(point);
     manager.update(enrollmentA);

@@ -450,7 +450,7 @@ class OperatorTest {
 
   @Test
   void testEmptyMap() {
-    EmptyOperator operator = new EmptyOperator();
+    EmptyOperator<String> operator = new EmptyOperator<String>();
     assertTrue(operator.test(Map.of()));
     assertFalse(operator.test(Map.of("key", "value")));
   }

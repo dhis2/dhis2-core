@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.Objects;
 import java.util.stream.Collectors;

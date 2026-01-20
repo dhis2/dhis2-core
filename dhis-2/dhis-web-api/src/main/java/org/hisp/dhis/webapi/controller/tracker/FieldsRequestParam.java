@@ -29,13 +29,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
-import java.util.List;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
 
 /**
  * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
  * specify the exact fields they want in the JSON response.
  */
 public interface FieldsRequestParam {
-  List<FieldPath> getFields();
+  Fields getFields();
 }

@@ -39,7 +39,7 @@ import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
@@ -63,11 +63,11 @@ public class LockExceptionCleanupJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     progress.startingProcess("Clean up expired lock exceptions");
 
     LockExceptionCleanupJobParameters params =
-        (LockExceptionCleanupJobParameters) config.getJobParameters();
+        (LockExceptionCleanupJobParameters) config.parameters();
     Integer months = params == null ? null : params.getExpiresAfterMonths();
     int expiryAfterMonth = max(1, min(12, months == null ? DEFAULT_EXPIRY_AFTER_MONTHS : months));
     ZoneId zoneId = ZoneId.systemDefault();

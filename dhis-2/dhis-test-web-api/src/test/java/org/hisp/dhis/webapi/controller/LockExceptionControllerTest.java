@@ -34,7 +34,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
-class LockExceptionControllerTest extends H2ControllerIntegrationTestBase {
+class LockExceptionControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String ouId;
 

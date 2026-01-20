@@ -30,6 +30,9 @@
 package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
@@ -61,7 +64,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MapMap;
@@ -70,15 +72,16 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.stereotype.Component;
@@ -459,7 +462,7 @@ public class DataValidationRunner {
 
     /** Gets data elements and data element operands from the datavalue table. */
     private void getDataValueMap(List<OrganisationUnit> orgUnits) {
-      DataExportParams params = new DataExportParams();
+      DeflatedDataValueParams params = new DeflatedDataValueParams();
       params.setDataElements(periodTypeX.getDataElements());
       params.setDataElementOperands(periodTypeX.getDataElementOperands());
       params.setIncludedDate(period.getStartDate());
@@ -469,7 +472,7 @@ public class DataValidationRunner {
       params.setCogDimensionConstraints(context.getCogDimensionConstraints());
 
       if (context.getAttributeCombo() != null) {
-        params.setAttributeOptionCombos(Sets.newHashSet(context.getAttributeCombo()));
+        params.setAttributeOptionCombos(List.of(context.getAttributeCombo()));
       }
 
       List<DeflatedDataValue> dataValues = dataValueService.getDeflatedDataValues(params);
@@ -553,7 +556,7 @@ public class DataValidationRunner {
           DataQueryParams.newBuilder()
               .withDataDimensionItems(Lists.newArrayList(analyticsItems))
               .withAttributeOptionCombos(Lists.newArrayList())
-              .withFilterPeriods(Lists.newArrayList(period))
+              .withFilterPeriods(List.of(PeriodDimension.of(period)))
               .withOrganisationUnits(orgUnits);
 
       if (hasAttributeOptions) {
@@ -636,12 +639,9 @@ public class DataValidationRunner {
         return map;
       }
 
-      int dxInx = grid.getIndexOfHeader(DimensionalObject.DATA_X_DIM_ID);
-      int ouInx = grid.getIndexOfHeader(DimensionalObject.ORGUNIT_DIM_ID);
-      int aoInx =
-          hasAttributeOptions
-              ? grid.getIndexOfHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID)
-              : 0;
+      int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
+      int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
+      int aoInx = hasAttributeOptions ? grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID) : 0;
       int vlInx = grid.getWidth() - 1;
 
       Map<String, OrganisationUnit> ouLookup =

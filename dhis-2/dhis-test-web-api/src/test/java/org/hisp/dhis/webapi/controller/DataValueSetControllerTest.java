@@ -38,12 +38,16 @@ import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
@@ -51,7 +55,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -59,7 +62,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  *
  * @author Jan Bernitt
  */
-@Transactional
 class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired protected TransactionTemplate transactionTemplate;
@@ -142,48 +144,125 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPostCsvDataValueSet() {
+    String csv =
+        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted";
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Import was successful.",
-        POST("/38/dataValueSets/", Body("abc"), ContentType("application/csv"))
+        POST("/38/dataValueSets/", Body(csv), ContentType("application/csv"))
             .content(HttpStatus.OK));
   }
 
   @Test
   void testPostCsvDataValueSet_Async() {
+    String csv =
+        "dataelement,period,orgunit,categoryoptioncombo,attributeoptioncombo,value,storedby,lastupdated,comment,followup,deleted";
     JsonWebMessage msg =
         assertWebMessage(
             HttpStatus.OK,
-            POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv")));
+            POST("/dataValueSets?async=true", Body(csv), ContentType("application/csv")));
     assertStartsWith("Initiated DATAVALUE_IMPORT", msg.getMessage());
   }
 
   @Test
   void testGetDataValueSetJson() {
-    String ouId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
-                    + " 'code':'OU1'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits/",
+            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                + " 'code':'OU1'}"));
     String dsId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/dataSets/",
                 "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
-    JsonWebMessage response =
+    JsonObject ds =
         GET(
                 "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}",
                 "OU1",
                 dsId)
-            .content(HttpStatus.CONFLICT)
-            .as(JsonWebMessage.class);
-    assertEquals(
-        String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+            .content(HttpStatus.OK);
+    assertTrue(ds.isObject());
+  }
+
+  @Test
+  void testGetDataValueSetJsonDescendants() {
+
+    final String timestampPattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[+-]\\d{4}";
+
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU1'}"));
+    String childOrgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Child Unit', 'shortName':'OU2', 'openingDate': '2020-01-01',"
+                    + " 'code':'OU2', 'parent':{'id':'"
+                    + orgUnitId
+                    + "'}}"));
+
+    String deId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
+                "{'name':'My data element', 'shortName':'DE1', 'valueType':'INTEGER', 'domainType':'AGGREGATE', 'aggregationType':'SUM'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'id': 'plLC2RDEbwn', 'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly', "
+                    + "'dataSetElements':[{'dataSet':{'id':'plLC2RDEbwn'}, 'dataElement':{'id':'"
+                    + deId
+                    + "'}}]"
+                    + ", 'organisationUnits':[{'id':'"
+                    + childOrgUnitId
+                    + "'}]}"));
+
+    // Post a data value for the child org unit
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/dataValueSets/",
+            Body(
+                "{'dataValues':[{'dataElement':'"
+                    + deId
+                    + "','period':'202201','orgUnit':'"
+                    + childOrgUnitId
+                    + "','value':'10'}]}")));
+    // Fetch the data value using the parent org unit and descendants=true
+    JsonObject ds =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=202201&dataSet={ds}&children=true",
+                "OU1",
+                dsId)
+            .content(HttpStatus.OK);
+    assertTrue(ds.isObject());
+    JsonArray values = ds.getArray("dataValues");
+    assertEquals(1, values.size());
+    JsonObject dv0 = values.getObject(0);
+    assertEquals("My data element", dv0.getString("dataElement").string());
+    assertEquals("10", dv0.getString("value").string());
+    assertEquals("My Child Unit", ds.getString("orgUnit").string());
+    assertNull(
+        dv0.getString("categoryOptionCombo").string(), "default COC should given as undefined");
+    assertNull(
+        dv0.getString("attributeOptionCombo").string(), "default AOC should given as undefined");
+    assertEquals("admin", dv0.getString("storedBy").string());
+    // Confirm that the created and lastUpdated fields are timestamp-ish
+    assertTrue(dv0.getString("created").string().matches(timestampPattern));
+    assertTrue(dv0.getString("lastUpdated").string().matches(timestampPattern));
   }
 
   @Test
@@ -213,7 +292,20 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
     assertEquals(
-        String.format("User is not allowed to read data for data set: `%s`", dsId),
+        String.format("User is not allowed to read data for data set(s): `[%s]`", dsId),
         response.getMessage());
+  }
+
+  @Test
+  @DisplayName("Validation errors become CONFLICT HTTP responses")
+  void testGetDataValueSetJson_NoDataElementFilter() {
+    JsonWebMessage msg =
+        GET("/dataValueSets/?orgUnit={ou}&period=2022-01", "ou123456789")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(ErrorCode.E2001, msg.getErrorCode());
+    assertEquals(
+        "At least one data element, data set or data element group must be specified",
+        msg.getMessage());
   }
 }

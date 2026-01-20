@@ -1,0 +1,57 @@
+{
+  "categoryCombos": [
+    {
+      "created": "2016-10-10T15:41:06.551",
+      "lastUpdated": "2016-10-10T15:41:06.719",
+      "createdBy": {
+        "id": "GOLswS44mh8",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "code": "Gender",
+      "name": "Gender",
+      "categories": [
+        {
+          "id": "cX5k9anHEHd"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION",
+      "skipTotal": false,
+      "sharing": {
+        "owner": "GOLswS44mh8",
+        "external": false,
+        "users": {},
+        "userGroups": {}
+      },
+      "translations": [],
+      "displayName": "Gender",
+      "access": {
+        "manage": true,
+        "externalize": false,
+        "write": true,
+        "read": true,
+        "update": true,
+        "delete": true
+      },
+      "user": {
+        "id": "GOLswS44mh8",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "id": "dPmavA0qloX",
+      "categoryOptionCombos": [
+        {
+          "id": "qk6n4eMAdtK"
+        },
+        {
+          "id": "KQ50BVoUrd6"
+        }
+      ],
+      "isDefault": false
+    }
+  ]
+}

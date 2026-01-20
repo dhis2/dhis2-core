@@ -31,7 +31,7 @@ package org.hisp.dhis.util;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
@@ -77,6 +77,10 @@ public class PeriodCriteriaUtils {
   public static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
     return (criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+        || criteria.getDimension().stream().anyMatch(d -> d.contains(".EVENT_DATE:"))
+        || criteria.getFilter().stream().anyMatch(d -> d.contains(".EVENT_DATE:"))
+        || criteria.getDimension().stream().anyMatch(d -> d.contains(".SCHEDULED_DATE:"))
+        || criteria.getFilter().stream().anyMatch(d -> d.contains(".SCHEDULED_DATE:"))
         || !isBlank(criteria.getEventDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getEnrollmentDate())
@@ -85,6 +89,8 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
+        || !isBlank(criteria.getCreatedDate())
+        || !isBlank(criteria.getCompletedDate())
         || criteria.getRelativePeriodDate() != null;
   }
 
@@ -97,11 +103,14 @@ public class PeriodCriteriaUtils {
    */
   public static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
+        || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getLastUpdated())
+        || !isBlank(criteria.getCreatedDate())
+        || !isBlank(criteria.getCompletedDate())
         || criteria.getRelativePeriodDate() != null;
   }
 }

@@ -39,7 +39,11 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
-/** Provider of {@link SqlBuilder} implementations. */
+/**
+ * Provider of {@link SqlBuilder} implementations.
+ *
+ * @author Lars Helge Overland
+ */
 @Service
 public class SqlBuilderProvider {
   private final SqlBuilder sqlBuilder;
@@ -68,12 +72,13 @@ public class SqlBuilderProvider {
     Database database = config.getAnalyticsDatabase();
     String catalog = config.getAnalyticsDatabaseCatalog();
     String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+    String databaseName = config.getAnalyticsDatabaseName();
 
     Objects.requireNonNull(database);
 
     return switch (database) {
       case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
-      case CLICKHOUSE -> new ClickHouseSqlBuilder();
+      case CLICKHOUSE -> new ClickHouseSqlBuilder(databaseName);
       default -> new PostgreSqlBuilder();
     };
   }

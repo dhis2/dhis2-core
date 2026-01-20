@@ -39,7 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -62,14 +62,15 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfig, JobProgress progress) {
+  public void execute(JobEntry jobConfig, JobProgress progress) {
     progress.startingProcess("Complete data set registration import");
-    ImportOptions options = (ImportOptions) jobConfig.getJobParameters();
+    ImportOptions options = (ImportOptions) jobConfig.parameters();
 
     progress.startingStage("Loading file resource");
     FileResource data =
         progress.nonNullStagePostCondition(
-            progress.runStage(() -> fileResourceService.getFileResource(jobConfig.getUid())));
+            progress.runStage(
+                () -> fileResourceService.getFileResource(jobConfig.id().getValue())));
 
     progress.startingStage("Loading file content");
     try (InputStream input =
@@ -101,7 +102,7 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
           count.getUpdated(),
           count.getDeleted(),
           count.getIgnored());
-      notifier.addJobSummary(jobConfig, summary, ImportSummary.class);
+      notifier.addJobSummary(jobConfig.toKey(), summary, ImportSummary.class);
     } catch (IOException ex) {
       progress.failedProcess(ex);
     }

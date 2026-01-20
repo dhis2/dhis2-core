@@ -44,7 +44,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -54,8 +53,8 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -67,6 +66,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -285,13 +285,19 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
-    Event event = getEvent("pTzf9KYMk72");
+    TrackerEvent event = getEvent("pTzf9KYMk72");
     String dataElementUid = "DATAEL00001";
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
     trackerEventChangeLogService.addEventChangeLog(
-        event, dataElement, "previous", "current", UPDATE, deletedUser.getUsername());
+        event,
+        dataElement,
+        event.getProgramStage().getProgram(),
+        "previous",
+        "current",
+        UPDATE,
+        deletedUser.getUsername());
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
@@ -472,13 +478,13 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  TrackerEvent.builderFromEvent(e).occurredAt(newDate).scheduledAt(newDate).build();
+              e.setOccurredAt(newDate);
+              e.setScheduledAt(newDate);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -488,13 +494,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  TrackerEvent.builderFromEvent(e).scheduledAt(null).build();
+              e.setScheduledAt(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -504,13 +509,12 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  TrackerEvent.builderFromEvent(e).geometry(newGeometry).build();
+              e.setGeometry(newGeometry);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -520,18 +524,17 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(
             e -> {
-              org.hisp.dhis.tracker.imports.domain.Event ev =
-                  TrackerEvent.builderFromEvent(e).geometry(null).build();
+              e.setGeometry(null);
 
               assertNoErrors(
                   trackerImportService.importTracker(
                       TrackerImportParams.builder().build(),
-                      TrackerObjects.builder().events(List.of(ev)).build()));
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
-  private Event getEvent(String uid) {
-    Event event = manager.get(Event.class, uid);
+  private TrackerEvent getEvent(String uid) {
+    TrackerEvent event = manager.get(TrackerEvent.class, uid);
     assertNotNull(event);
     return event;
   }
@@ -667,6 +670,9 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     GeometryFactory geometryFactory = new GeometryFactory();
     Coordinate coordinate = new Coordinate(x, y);
 
-    return geometryFactory.createPoint(coordinate);
+    Point point = geometryFactory.createPoint(coordinate);
+    point.setSRID(4326);
+
+    return point;
   }
 }

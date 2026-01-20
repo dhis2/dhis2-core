@@ -49,11 +49,13 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -71,9 +73,8 @@ import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -178,7 +179,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -191,7 +193,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
   }
 
   // -------------------------------------------------------------------------
@@ -238,6 +241,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void preCreateTables(AnalyticsTableUpdateParams params) {
     if (isApprovalEnabled(null)) {
       resourceTableService.generateDataApprovalResourceTables();
+
+      if (analyticsTableSettings.isAnalyticsDatabase()) {
+        resourceTableService.replicateDataApprovalResourceTables();
+      }
     }
   }
 
@@ -362,22 +369,23 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replaceQualify(
             sqlBuilder,
             """
-        ${approvalSelectExpression} \
-        as approvallevel, \
-        ${valueExpression} * ps.daysno as daysxvalue, \
-        ps.daysno as daysno, \
-        ${valueExpression} as value, \
-        ${textValueExpression} as textvalue \
-        from ${datavalue} dv \
-        inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-        inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
-        inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-        inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
-        inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
-        inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
-        inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
-        inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-        inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            ${approvalSelectExpression} \
+            as approvallevel, \
+            ${valueExpression} * ps.daysno as daysxvalue, \
+            ps.daysno as daysno, \
+            ${valueExpression} as value, \
+            ${textValueExpression} as textvalue \
+            from ${datavalue} dv \
+            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+            inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
+            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+            inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
+            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid \
+            """,
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
@@ -422,53 +430,70 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   /**
-   * Returns the approval select expression based on the given year.
+   * Checks whether data approval is enabled for analytics for the current configuration and given
+   * data year. If enabled, returns the approval select expression based on the given year. If
+   * disabled, returns the higest possible data approval level as a string.
    *
    * @param year the year.
    * @return the approval select expression.
    */
   private String getApprovalSelectExpression(Integer year) {
     if (isApprovalEnabled(year)) {
-      return replace(
-          "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, ${approvalLevel})",
-          Map.of(
-              "approvalLevel", String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED)));
+      return getApprovalSelectExpression();
     } else {
       return String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST);
     }
   }
 
   /**
-   * Returns sub-query for approval level. First looks for approval level in data element resource
-   * table which will indicate level 0 (highest) if approval is not required. Then looks for highest
-   * level in dataapproval table.
+   * Returns a data approval select expression.
+   *
+   * @return a data approval select expression.
+   */
+  String getApprovalSelectExpression() {
+    return String.format(
+        "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, %d)",
+        DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED);
+  }
+
+  /**
+   * Checks whether data approval is enabled for analytics for the current configuration and given
+   * data year. If enabled, returns sub-query for approval level. First looks for approval level in
+   * data element resource table which will indicate level 0 (highest) if approval is not required.
+   * Then looks for highest level in dataapproval table. If disabled, returns an empty string.
    *
    * @param year the data year.
    */
   private String getApprovalJoinClause(Integer year) {
-    if (isApprovalEnabled(year)) {
-      StringBuilder sql =
-          new StringBuilder(
-              """
-              left join analytics_rs_dataapprovalminlevel da \
-              on des.workflowid=da.workflowid and da.periodid=dv.periodid \
-              and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (""");
+    return isApprovalEnabled(year) ? getApprovalJoinClause() : StringUtils.EMPTY;
+  }
 
-      Set<OrganisationUnitLevel> levels =
-          dataApprovalLevelService.getOrganisationUnitApprovalLevels();
+  /**
+   * Returns a data approval join clause.
+   *
+   * @return a data approval join clause.
+   */
+  String getApprovalJoinClause() {
+    StringBuilder sql =
+        new StringBuilder(
+            """
+            left join analytics_rs_dataapprovalminlevel da \
+            on des.workflowid=da.workflowid and da.periodid=dv.periodid \
+            and da.attributeoptioncomboid=dv.attributeoptioncomboid \
+            and (\
+            """);
 
-      for (OrganisationUnitLevel level : levels) {
-        sql.append(
-            replace(
-                "ous.idlevel ${level} = da.organisationunitid or",
-                Map.of("level", String.valueOf(level.getLevel()))));
-      }
+    List<OrganisationUnitLevel> levels =
+        dataApprovalLevelService.getOrganisationUnitApprovalLevels().stream()
+            .sorted(Comparator.comparing(OrganisationUnitLevel::getLevel))
+            .toList();
 
-      return TextUtils.removeLastOr(sql.toString()) + ") ";
-    }
+    sql.append(
+        levels.stream()
+            .map(level -> String.format("ous.idlevel%d = da.organisationunitid", level.getLevel()))
+            .collect(Collectors.joining(" or ")));
 
-    return StringUtils.EMPTY;
+    return sql.append(") ").toString();
   }
 
   /**
@@ -687,10 +712,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    // Doris does not support update statements on multikey tables
-    boolean supportsUpdate = !sqlBuilder.getDatabase().equals(Database.DORIS);
-    new AggregationLevelsHelper(jdbcTemplate, sqlBuilder)
-        .applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
+    boolean supportsUpdate = sqlBuilder.supportsUpdateForMultiKeyTable();
+    AggregationLevelsHelper helper = new AggregationLevelsHelper(jdbcTemplate, sqlBuilder);
+    helper.applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
   }
 
   /**
@@ -727,20 +751,18 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    * @return sql statement fraction of statistic basic values for the outlier identification.
    */
   private String getOutliersJoinStatement() {
-    return "left join (select t3.dataelementid, "
-        + "t3.sourceid, "
-        + "t3.categoryoptioncomboid, "
-        + "t3.attributeoptioncomboid, "
+    // spotless:off
+    return "left join (select t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, t3.attributeoptioncomboid, " +
         // median of absolute deviations "mad" (median(xi - median(xi)))
-        + "percentile_cont(0.5) "
-        + "within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, "
+        "percentile_cont(0.5) " +
+        "within group (order by abs(t3.value::double precision - t3.percentile_middle_value)) as MAD, " +
         // mean
-        + "avg(t3.value::double precision) as avg_middle_value, "
+        "avg(t3.value::double precision) as avg_middle_value, " +
         // median of the samples (median(xi))
-        + "percentile_cont(0.5) "
-        + "within group (order by t3.value::double precision) as percentile_middle_value, "
+        "percentile_cont(0.5) " +
+        "within group (order by t3.value::double precision) as percentile_middle_value, " +
         // standard deviation of the normal distribution
-        + "stddev_pop(t3.value::double precision) as std_dev "
+        "stddev_pop(t3.value::double precision) as std_dev " +
         // Table "t3" is the composition of the tables "t2" (median of xi) and "t3" (values xi).
         // For Z-Score the mean (avg_middle_value) and standard deviation (std_dev) is used ((xi -
         // mean(x))/std_dev).
@@ -748,51 +770,45 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         // deviations (mad) is used (0.6745*(xi - median(x)/mad)).
         // The factor 0.6745 is the 0.75 quartile of the normal distribution, to which the "mad"
         // converges to.
-        + "from (select t1.dataelementid, "
-        + "t1.sourceid, "
-        + "t1.categoryoptioncomboid, "
-        + "t1.attributeoptioncomboid, "
-        + "t1.percentile_middle_value, "
-        + "t2.value "
+        "from (select t1.dataelementid, " +
+        "t1.sourceid, t1.categoryoptioncomboid, t1.attributeoptioncomboid, " +
+        "t1.percentile_middle_value, t2.value " +
         // Table "t1" retrieving the median of all data element (dataelementid) values belongs to
         // the same organisation (sourceid)
         // coc and aoc.
-        + "from (select dv1.dataelementid as dataelementid, "
-        + "dv1.sourceid as sourceid, "
-        + "dv1.categoryoptioncomboid as categoryoptioncomboid, "
-        + "dv1.attributeoptioncomboid as attributeoptioncomboid, "
+        "from (select dv1.dataelementid as dataelementid, dv1.sourceid as sourceid, " +
+        "dv1.categoryoptioncomboid as categoryoptioncomboid, dv1.attributeoptioncomboid as attributeoptioncomboid, " +
         // median
-        + "percentile_cont(0.5) "
-        + "within group (order by dv1.value::double precision) as percentile_middle_value "
-        + "from datavalue dv1 "
+        "percentile_cont(0.5) " +
+        "within group (order by dv1.value::double precision) as percentile_middle_value " +
+        "from datavalue dv1 " +
         // Only numeric values (value is varchar or string) can be used for stats calculation.
-        + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
-        + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "dv1.attributeoptioncomboid) t1 "
-        + "join "
+        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
+        "dv1.attributeoptioncomboid) t1 " +
+        "join " +
         // Table "t2" is the complement of the t1 table. It contains all values belong to the
         // specific median (see t1).
         // To "group by" criteria is added the time dimension (periodid). This part of the query has
         // to be verified (maybe add TE to aggregation criteria).
-        + "(select dv1.dataelementid as dataelementid, "
-        + "dv1.sourceid as sourceid, "
-        + "dv1.categoryoptioncomboid  as categoryoptioncomboid, "
-        + "dv1.attributeoptioncomboid as attributeoptioncomboid, "
-        + "dv1.value, "
-        + "dv1.periodid "
-        + "from datavalue dv1 "
+        "(select dv1.dataelementid as dataelementid, dv1.sourceid as sourceid, " +
+        "dv1.categoryoptioncomboid  as categoryoptioncomboid, " +
+        "dv1.attributeoptioncomboid as attributeoptioncomboid, " +
+        "dv1.value, dv1.periodid " +
+        "from datavalue dv1 " +
         // Only numeric values (varchars) can be used for stats calculation.
-        + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
-        + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
-        + "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "
-        + "on t1.sourceid = t2.sourceid "
-        + "and t1.categoryoptioncomboid = t2.categoryoptioncomboid "
-        + "and t1.attributeoptioncomboid = t2.attributeoptioncomboid "
-        + "and t1.dataelementid = t2.dataelementid) as t3 "
-        + "group by t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, "
-        + "t3.attributeoptioncomboid) as stats "
-        + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
-        + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+        "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' " +
+        "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, " +
+        "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 " +
+        "on t1.sourceid = t2.sourceid " +
+        "and t1.categoryoptioncomboid = t2.categoryoptioncomboid " +
+        "and t1.attributeoptioncomboid = t2.attributeoptioncomboid " +
+        "and t1.dataelementid = t2.dataelementid) as t3 " +
+        "group by t3.dataelementid, t3.sourceid, t3.categoryoptioncomboid, " +
+        "t3.attributeoptioncomboid) as stats " +
+        "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and " +
+        "dv.categoryoptioncomboid = stats.categoryoptioncomboid and " +
+        "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+    // spotless:on
   }
 }

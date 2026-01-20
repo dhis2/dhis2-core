@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatErrorReport;
@@ -317,9 +318,8 @@ public class ReferencesCheck implements ValidationCheck {
     }
   }
 
-  private boolean skipCheck(Class<?> klass) {
-    return klass != null
-        && (Period.class.isAssignableFrom(klass) || PeriodType.class.isAssignableFrom(klass));
+  private boolean skipCheck(Class<?> type) {
+    return Period.class == type || PeriodType.class == type || PeriodDimension.class == type;
   }
 
   private PreheatErrorReport createError(

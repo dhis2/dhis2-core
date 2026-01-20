@@ -31,7 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,7 +102,7 @@ class EventQueryServiceTest {
   void testOutputSchemeWhenSchemeIsSet() {
     IdScheme codeScheme = IdScheme.CODE;
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
-    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit));
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, codeScheme);
     SchemeInfo mockSchemeInfo =
         new SchemeInfo(mockSchemeSettings(mockParams), mockDataSettings(mockParams));
@@ -120,7 +120,7 @@ class EventQueryServiceTest {
   void testOutputSchemeWhenNoSchemeIsSet() {
     IdScheme noScheme = null;
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
-    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit));
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, noScheme);
     SchemeInfo mockSchemeInfo =
         new SchemeInfo(mockSchemeSettings(mockParams), mockDataSettings(mockParams));
@@ -137,7 +137,7 @@ class EventQueryServiceTest {
   private EventQueryParams mockEventQueryParams(
       OrganisationUnit mockOrgUnit, Program mockProgram, IdScheme scheme) {
     return new EventQueryParams.Builder()
-        .withPeriods(getList(createPeriod("2000Q1")), "monthly")
+        .withPeriods(createPeriodDimensions("2000Q1"), "monthly")
         .withPartitions(new Partitions())
         .withOrganisationUnits(getList(mockOrgUnit))
         .withProgram(mockProgram)

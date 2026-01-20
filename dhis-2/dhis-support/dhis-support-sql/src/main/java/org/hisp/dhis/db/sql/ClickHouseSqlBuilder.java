@@ -57,6 +57,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   private static final String QUOTE = "\"";
 
+  private final String databaseName;
+
   // Database
 
   @Override
@@ -195,7 +197,17 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public boolean supportsUpdateForMultiKeyTable() {
+    return true;
+  }
+
+  @Override
   public boolean requiresIndexesForAnalytics() {
+    return false;
+  }
+
+  @Override
+  public boolean supportsPercentileCont() {
     return false;
   }
 
@@ -277,9 +289,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * ClickHouse standard true/false predicates against PostgreSQL tables with boolean data type
-   * columns do not work.
-   *
-   * @see https://github.com/ClickHouse/ClickHouse/issues/67080
+   * columns do not work. See this <a
+   * href="https://github.com/ClickHouse/ClickHouse/issues/67080">Clickhouse issue</a> for more
+   * info.
    */
   @Override
   public String isFalse(String alias, String column) {
@@ -413,6 +425,8 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return notSupported();
   }
 
+  // Named collection
+
   /**
    * @param name the collection name.
    * @param keyValues the map of key value pairs.
@@ -429,6 +443,21 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
    */
   public String dropNamedCollectionIfExists(String name) {
     return String.format("drop named collection if exists %s;", quote(name));
+  }
+
+  @Override
+  public String getDatabaseName() {
+    return this.databaseName;
+  }
+
+  @Override
+  public String castDecimal(String expr, int precision, int scale) {
+    return String.format("cast(%s AS decimal(%d,%d))", expr, precision, scale);
+  }
+
+  @Override
+  public String decimalLiteral(String literal, int precision, int scale) {
+    return String.format("cast('%s' AS decimal(%d,%d))", escape(literal), precision, scale);
   }
 
   /**

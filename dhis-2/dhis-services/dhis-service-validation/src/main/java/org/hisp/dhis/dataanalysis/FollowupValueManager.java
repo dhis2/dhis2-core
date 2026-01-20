@@ -39,9 +39,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -112,7 +111,7 @@ public class FollowupValueManager {
    * @return a list if {@link FollowupValue}s.
    */
   public List<FollowupValue> getFollowupDataValues(
-      User currentUser, FollowupAnalysisRequest request) {
+      UserDetails currentUser, FollowupAnalysisRequest request) {
     if (isEmpty(request.getDe()) && !isEmpty(request.getDs())) {
       request.setDe(
           entityManager
@@ -131,18 +130,17 @@ public class FollowupValueManager {
       return emptyList();
     }
     if (request.getStartDate() == null && request.getPe() != null) {
-      request.setStartDate(PeriodType.getPeriodFromIsoString(request.getPe()).getStartDate());
+      request.setStartDate(Period.of(request.getPe()).getStartDate());
     }
     if (request.getEndDate() == null && request.getPe() != null) {
-      request.setEndDate(PeriodType.getPeriodFromIsoString(request.getPe()).getEndDate());
+      request.setEndDate(Period.of(request.getPe()).getEndDate());
     }
 
     TypedQuery<FollowupValue> query =
         entityManager.createQuery(
             FOLLOWUP_VALUE_HQL.replace(
                 "<<sharing>>",
-                generateHqlQueryForSharingCheck(
-                    "de", UserDetails.fromUser(currentUser), AclService.LIKE_READ_METADATA)),
+                generateHqlQueryForSharingCheck("de", currentUser, AclService.LIKE_READ_METADATA)),
             FollowupValue.class);
 
     query.setParameter("ou_ids", request.getOu());

@@ -30,6 +30,7 @@
 package org.hisp.dhis.db.setting;
 
 import static org.hisp.dhis.commons.util.TextUtils.format;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
@@ -39,12 +40,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.util.JdbcUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
 
 /**
  * Component responsible for exposing analytics table settings related to the SqlBuilder. The source
- * of the settings are configuration files (dhis.conf) and system settings.
+ * of the settings are the configuration file <code>dhis.conf</code> and system settings.
  */
 @Component
 @RequiredArgsConstructor
@@ -58,6 +60,24 @@ public class SqlBuilderSettings {
    */
   public String getAnalyticsDatabaseCatalog() {
     return config.getProperty(ANALYTICS_DATABASE_CATALOG);
+  }
+
+  /**
+   * Returns the analytics database connection URL.
+   *
+   * @return the analytics database connection URL.
+   */
+  public String getAnalyticsConnectionUrl() {
+    return config.getProperty(ANALYTICS_CONNECTION_URL);
+  }
+
+  /**
+   * Returns the analytics database name extracted from the connection URL.
+   *
+   * @return the analytics database name.
+   */
+  public String getAnalyticsDatabaseName() {
+    return JdbcUtils.getDatabaseFromUrl(getAnalyticsConnectionUrl());
   }
 
   /**

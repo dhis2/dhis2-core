@@ -31,13 +31,14 @@ package org.hisp.dhis.fileresource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.joda.time.DateTime;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource> {
-  List<FileResource> getExpiredFileResources(DateTime expires);
+  List<FileResource> getExpiredDataValueFileResources(DateTime expires, DateTime gracePeriod);
 
   List<FileResource> getAllUnProcessedImages();
 
@@ -104,4 +105,19 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
    * @return data value(s) key combinations that have the given file resource as value.
    */
   List<DataValueKey> findDataValuesByFileResourceValue(@Nonnull String uid);
+
+  /**
+   * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
+   * config of scheduling type ONCE_ASAP.
+   *
+   * <p>The intention here is to find unassigned file resources that have no corresponding job
+   * config, of scheduling type ONCE_ASAP. We assume that this means these JOB_DATA file resources
+   * are no longer needed and should be cleaned up.
+   *
+   * @return matching FileResources
+   */
+  List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
+
+  List<FileResource> getUnassignedPassedGracePeriod(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime minus);
 }

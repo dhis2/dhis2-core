@@ -54,15 +54,16 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditStore;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventStore;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.SingleEventStore;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEventStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,10 +77,11 @@ import org.springframework.stereotype.Component;
 public class DataCategoryOptionComboMergeHandler {
 
   private final DataValueStore dataValueStore;
-  private final DataValueAuditStore dataValueAuditStore;
+  private final DataValueChangelogStore dataValueChangelogStore;
   private final DataApprovalAuditStore dataApprovalAuditStore;
   private final DataApprovalStore dataApprovalStore;
-  private final EventStore eventStore;
+  private final TrackerEventStore trackerEventStore;
+  private final SingleEventStore singleEventStore;
   private final MaintenanceStore maintenanceStore;
   private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   private final EntityManager entityManager;
@@ -102,12 +104,12 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   /**
-   * All {@link DataValueAudit}s will deleted, as source {@link CategoryOptionCombo}s are always
+   * All {@link DataValueChangelog}s will deleted, as source {@link CategoryOptionCombo}s are always
    * deleted.
    */
   public void handleDataValueAudits(@Nonnull List<CategoryOptionCombo> sources) {
     log.info("Deleting source data value audits as source CategoryOptionCombos are being deleted");
-    sources.forEach(dataValueAuditStore::deleteDataValueAudits);
+    sources.forEach(coc -> dataValueChangelogStore.deleteByOptionCombo(UID.of(coc)));
   }
 
   public void handleDataApprovals(
@@ -135,10 +137,12 @@ public class DataCategoryOptionComboMergeHandler {
           sourceDas.stream()
               .collect(Collectors.partitioningBy(dv -> dataApprovalDuplicates.test(dv, targetDas)));
 
-      if (!sourceDuplicateList.get(false).isEmpty())
+      if (!sourceDuplicateList.get(false).isEmpty()) {
         handleDaNonDuplicates(sourceDuplicateList.get(false), target);
-      if (!sourceDuplicateList.get(true).isEmpty())
+      }
+      if (!sourceDuplicateList.get(true).isEmpty()) {
         handleDaDuplicates(sourceDuplicateList.get(true), targetDas, target, sources);
+      }
     }
   }
 
@@ -153,37 +157,72 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   /**
-   * Deletes {@link Event}s if the {@link DataMergeStrategy}s is {@link DataMergeStrategy#DISCARD}.
-   * Otherwise, reassigns source {@link Event}s attributeOptionCombos to the target {@link
-   * CategoryOptionCombo} if the {@link DataMergeStrategy}s is {@link
-   * DataMergeStrategy#LAST_UPDATED}.
+   * Deletes {@link TrackerEvent}s if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#DISCARD}. Otherwise, reassigns source {@link TrackerEvent}s
+   * attributeOptionCombos to the target {@link CategoryOptionCombo} if the {@link
+   * DataMergeStrategy}s is {@link DataMergeStrategy#LAST_UPDATED}.
    */
-  public void handleEvents(
+  public void handleTrackerEvents(
       @Nonnull List<CategoryOptionCombo> sources,
       @Nonnull CategoryOptionCombo target,
       @Nonnull MergeRequest mergeRequest) {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
-      log.info("Deleting source events as dataMergeStrategy is DISCARD");
+      log.info("Deleting source tracker events as dataMergeStrategy is DISCARD");
       String aocIds =
           sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
 
       List<String> eventsToDelete =
           maintenanceStore.getDeletionEntities(
-              "(select distinct uid from event where attributeoptioncomboid in (%s))"
+              "(select distinct uid from trackerevent where attributeoptioncomboid in (%s))"
                   .formatted(aocIds));
 
       String eventSelect =
-          "(select distinct eventid from event where attributeoptioncomboid in (%s))"
+          "(select distinct eventid from trackerevent where attributeoptioncomboid in (%s))"
               .formatted(aocIds);
 
-      maintenanceStore.hardDeleteEvents(
+      maintenanceStore.hardDeleteTrackerEvents(
           eventsToDelete,
           eventSelect,
-          "delete from event where attributeoptioncomboid in (%s)".formatted(aocIds));
+          "delete from trackerevent where attributeoptioncomboid in (%s)".formatted(aocIds));
     } else {
-      log.info("Merging source events as dataMergeStrategy is LAST_UPDATED");
+      log.info("Merging source tracker events as dataMergeStrategy is LAST_UPDATED");
+      trackerEventStore.setAttributeOptionCombo(
+          sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
+          target.getId());
+    }
+  }
 
-      eventStore.setAttributeOptionCombo(
+  /**
+   * Deletes {@link SingleEvent}s if the {@link DataMergeStrategy}s is {@link
+   * DataMergeStrategy#DISCARD}. Otherwise, reassigns source {@link SingleEvent}s
+   * attributeOptionCombos to the target {@link CategoryOptionCombo} if the {@link
+   * DataMergeStrategy}s is {@link DataMergeStrategy#LAST_UPDATED}.
+   */
+  public void handleSingleEvents(
+      @Nonnull List<CategoryOptionCombo> sources,
+      @Nonnull CategoryOptionCombo target,
+      @Nonnull MergeRequest mergeRequest) {
+    if (DISCARD == mergeRequest.getDataMergeStrategy()) {
+      log.info("Deleting source single events as dataMergeStrategy is DISCARD");
+      String aocIds =
+          sources.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
+
+      List<String> eventsToDelete =
+          maintenanceStore.getDeletionEntities(
+              "(select distinct uid from singleevent where attributeoptioncomboid in (%s))"
+                  .formatted(aocIds));
+
+      String eventSelect =
+          "(select distinct eventid from singleevent where attributeoptioncomboid in (%s))"
+              .formatted(aocIds);
+
+      maintenanceStore.hardDeleteTrackerEvents(
+          eventsToDelete,
+          eventSelect,
+          "delete from singleevent where attributeoptioncomboid in (%s)".formatted(aocIds));
+    } else {
+      log.info("Merging source single events as dataMergeStrategy is LAST_UPDATED");
+      singleEventStore.setAttributeOptionCombo(
           sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
           target.getId());
     }
@@ -360,13 +399,6 @@ public class DataCategoryOptionComboMergeHandler {
     dataApprovals.forEach(sourceDataApproval -> sourceDataApproval.setAttributeOptionCombo(target));
   }
 
-  private static final Function<DataValue, String> getCocDataValueKey =
-      dv ->
-          String.valueOf(dv.getPeriod().getId())
-              + dv.getSource().getId()
-              + dv.getDataElement().getId()
-              + dv.getAttributeOptionCombo().getId();
-
   private static final Function<DataApproval, String> getDataApprovalKey =
       da ->
           String.valueOf(da.getPeriod().getId())
@@ -374,21 +406,8 @@ public class DataCategoryOptionComboMergeHandler {
               + da.getWorkflow().getId()
               + da.getOrganisationUnit().getId();
 
-  private static final BiPredicate<DataValue, Map<String, DataValue>> cocDataValueDuplicates =
-      (sourceDv, targetDvs) -> targetDvs.containsKey(getCocDataValueKey.apply(sourceDv));
-
   private static final BiPredicate<DataApproval, Map<String, DataApproval>> dataApprovalDuplicates =
       (sourceDa, targetDas) -> targetDas.containsKey(getDataApprovalKey.apply(sourceDa));
-
-  private static final Function<DataValue, String> getAocDataValueKey =
-      dv ->
-          String.valueOf(dv.getPeriod().getId())
-              + dv.getSource().getId()
-              + dv.getDataElement().getId()
-              + dv.getCategoryOptionCombo().getId();
-
-  private static final BiPredicate<DataValue, Map<String, DataValue>> aocDataValueDuplicates =
-      (sourceDv, targetDvs) -> targetDvs.containsKey(getAocDataValueKey.apply(sourceDv));
 
   private static final Function<CompleteDataSetRegistration, String> getCdsrKey =
       cdsr ->

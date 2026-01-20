@@ -42,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
@@ -49,6 +50,27 @@ import org.springframework.security.core.GrantedAuthority;
 
 public interface UserDetails
     extends org.springframework.security.core.userdetails.UserDetails, UidObject {
+
+  /**
+   * @return a {@link UserDetails} object that is all initialized to empty (no anything) but which
+   *     can be used to only set the properties that matter (for example in a test).
+   */
+  @UsageTestOnly
+  static UserDetailsImplBuilder empty() {
+    return UserDetailsImpl.builder()
+        .isSuper(false)
+        .authorities(List.of())
+        .allAuthorities(Set.of())
+        .allRestrictions(Set.of())
+        .userGroupIds(Set.of())
+        .userOrgUnitIds(Set.of())
+        .userDataOrgUnitIds(Set.of())
+        .userSearchOrgUnitIds(Set.of())
+        .userEffectiveSearchOrgUnitIds(Set.of())
+        .userRoleIds(Set.of())
+        .managedGroupLongIds(Set.of())
+        .userRoleLongIds(Set.of());
+  }
 
   /**
    * Create UserDetails from User
@@ -155,7 +177,6 @@ public interface UserDetails
                     user.getUid() == null ? Set.of() : setOfPrimaryKeys(user.getUserRoles())));
 
     if (loadOrgUnits) {
-
       Set<String> userOrgUnitIds =
           (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
 
@@ -281,10 +302,18 @@ public interface UserDetails
   void setId(Long id);
 
   default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
-    if (role == null) return false;
-    if (isSuper()) return true;
-    if (hasAnyAuthorities(List.of(Authorities.ALL))) return true;
-    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) return false;
+    if (role == null) {
+      return false;
+    }
+    if (isSuper()) {
+      return true;
+    }
+    if (hasAnyAuthorities(List.of(Authorities.ALL))) {
+      return true;
+    }
+    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) {
+      return false;
+    }
     return getAllAuthorities().containsAll(role.getAuthorities());
   }
 
@@ -313,10 +342,16 @@ public interface UserDetails
     return isInUserHierarchy(orgUnitPath, getUserDataOrgUnitIds());
   }
 
-  default boolean isInUserHierarchy(
+  static boolean isInUserHierarchy(
       @CheckForNull String orgUnitPath, @Nonnull Set<String> orgUnitIds) {
-    if (orgUnitPath == null) return false;
-    for (String uid : orgUnitPath.split("/")) if (orgUnitIds.contains(uid)) return true;
+    if (orgUnitPath == null) {
+      return false;
+    }
+    for (String uid : orgUnitPath.split("/")) {
+      if (orgUnitIds.contains(uid)) {
+        return true;
+      }
+    }
     return false;
   }
 

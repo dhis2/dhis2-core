@@ -415,9 +415,9 @@ class BinaryConditionRendererTest {
     assertInstanceOf(Collection.class, queryContext.getParametersPlaceHolder().get("1"));
 
     List<?> parameters =
-        ((Collection) queryContext.getParametersPlaceHolder().get("1")).stream().toList();
+        ((Collection<?>) queryContext.getParametersPlaceHolder().get("1")).stream().toList();
 
-    assertEquals(7, ((Collection) queryContext.getParametersPlaceHolder().get("1")).size());
+    assertEquals(7, ((Collection<?>) queryContext.getParametersPlaceHolder().get("1")).size());
     assertEquals(Boolean.TRUE, parameters.get(0));
     assertEquals(Boolean.TRUE, parameters.get(1));
     assertEquals(Boolean.FALSE, parameters.get(2));

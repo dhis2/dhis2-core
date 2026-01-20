@@ -32,7 +32,7 @@ package org.hisp.dhis.analytics.common.processing;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.common.processing.MetadataParamsHandler.getItemUid;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;

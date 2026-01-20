@@ -32,6 +32,7 @@ package org.hisp.dhis.scheduling;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.UserDetails;
 
@@ -70,13 +71,13 @@ public interface JobSchedulerLoopService {
    * @param dueInNextSeconds number of seconds from now the job should start
    * @return only jobs that should start soon within the given number of seconds
    */
-  List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds);
+  List<JobEntry> getDueJobConfigurations(int dueInNextSeconds);
 
   @CheckForNull
-  JobConfiguration getJobConfiguration(String jobId);
+  JobEntry getJobConfiguration(UID jobId);
 
   @CheckForNull
-  JobConfiguration getNextInQueue(String queue, int fromPosition);
+  JobEntry getNextInQueue(String queue, int fromPosition);
 
   /**
    * A successful update means the DB was updated and the state flipped from {@link
@@ -87,7 +88,7 @@ public interface JobSchedulerLoopService {
    * @param jobId of the job to switch to a {@link JobStatus#RUNNING} state
    * @return true, if update was successful and the execution should begin, otherwise false
    */
-  boolean tryRun(@Nonnull String jobId);
+  boolean tryRun(@Nonnull UID jobId);
 
   /**
    * Called when a run of the provided job is about to be processed.
@@ -95,7 +96,7 @@ public interface JobSchedulerLoopService {
    * @param jobId the job that will be executed
    * @return the progress tracker to use
    */
-  JobProgress startRun(@Nonnull String jobId, @CheckForNull String user, Runnable observer)
+  JobProgress startRun(@Nonnull UID jobId, @CheckForNull UID user, Runnable observer)
       throws NotFoundException;
 
   /**
@@ -110,7 +111,7 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId of the job being executed at the moment
    */
-  void updateAsRunning(@Nonnull String jobId);
+  void updateAsRunning(@Nonnull UID jobId);
 
   /**
    * Called on a successful completion of the job process.
@@ -130,7 +131,7 @@ public interface JobSchedulerLoopService {
    * @param jobId the job that finished running
    * @return true, of the status change was successful, else false
    */
-  boolean finishRunSuccess(@Nonnull String jobId);
+  boolean finishRunSuccess(@Nonnull UID jobId);
 
   /**
    * Adjusts a job after it failed before completion. The {@link JobConfiguration#getJobStatus()} is
@@ -148,7 +149,7 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId the job that failed before it could complete
    */
-  void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex);
+  void finishRunFail(@Nonnull UID jobId, @CheckForNull Exception ex);
 
   /**
    * Adjusts a job after it has been cancelled. The {@link JobConfiguration#getJobStatus()} is
@@ -166,7 +167,7 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId the job that got cancelled
    */
-  void finishRunCancel(@Nonnull String jobId);
+  void finishRunCancel(@Nonnull UID jobId);
 
   /**
    * Apply cancellation for jobs running on this node that have been marked as cancelled in the DB.

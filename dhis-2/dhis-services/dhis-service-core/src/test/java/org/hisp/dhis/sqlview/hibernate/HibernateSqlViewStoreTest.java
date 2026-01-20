@@ -32,6 +32,7 @@ package org.hisp.dhis.sqlview.hibernate;
 import static org.hisp.dhis.common.TransactionMode.READ;
 import static org.hisp.dhis.common.TransactionMode.WRITE;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,7 @@ class HibernateSqlViewStoreTest {
   HibernateSqlViewStore store;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     store =
         new HibernateSqlViewStore(
@@ -80,21 +81,21 @@ class HibernateSqlViewStoreTest {
   @DisplayName("ensure the correct jdbc template is used for an SQL view with writes")
   void sqlViewJdbcTemplateWriteTest() {
     // when
-    store.populateSqlViewGrid(grid, "sql", WRITE);
+    store.populateSqlViewGrid(grid, "sql", null, WRITE);
 
     // then
-    verify(readOnlyJdbcTemplate, times(0)).queryForRowSet(anyString());
-    verify(jdbcTemplate, times(1)).queryForRowSet(anyString());
+    verify(readOnlyJdbcTemplate, times(0)).queryForRowSet(anyString(), isNull());
+    verify(jdbcTemplate, times(1)).queryForRowSet(anyString(), isNull());
   }
 
   @Test
   @DisplayName("ensure the correct jdbc template is used for an SQL view with reads")
   void sqlViewReadOnlyJdbcTemplateReadTest() {
     // when
-    store.populateSqlViewGrid(grid, "sql", READ);
+    store.populateSqlViewGrid(grid, "sql", null, READ);
 
     // then
-    verify(readOnlyJdbcTemplate, times(1)).queryForRowSet(anyString());
-    verify(jdbcTemplate, times(0)).queryForRowSet(anyString());
+    verify(readOnlyJdbcTemplate, times(1)).queryForRowSet(anyString(), isNull());
+    verify(jdbcTemplate, times(0)).queryForRowSet(anyString(), isNull());
   }
 }

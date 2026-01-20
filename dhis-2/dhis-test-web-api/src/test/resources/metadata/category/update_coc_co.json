@@ -1,0 +1,64 @@
+{
+  "categoryOptionCombos": [
+    {
+      "name": "cat opt a1, cat opt a3",
+      "id": "CocUid000a1",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida1"
+        },
+        {
+          "id": "CatOptU8888"
+        }
+      ]
+    },
+    {
+      "name": "cat opt a1, cat opt a4",
+      "id": "CocUid000a2",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida1"
+        },
+        {
+          "id": "CatOptUida4"
+        }
+      ]
+    },
+    {
+      "name": "cat opt a2, cat opt a3",
+      "id": "CocUid000a3",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida2"
+        },
+        {
+          "id": "CatOptUida3"
+        }
+      ]
+    },
+    {
+      "name": "cat opt a2, cat opt a4",
+      "id": "CocUid000a4",
+      "categoryCombo": {
+        "id": "CatComUida1"
+      },
+      "categoryOptions": [
+        {
+          "id": "CatOptUida2"
+        },
+        {
+          "id": "CatOptUida4"
+        }
+      ]
+    }
+  ]
+}

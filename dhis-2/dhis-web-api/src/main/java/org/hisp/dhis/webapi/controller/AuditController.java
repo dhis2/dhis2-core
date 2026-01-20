@@ -58,9 +58,10 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
-import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueChangelog;
+import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
+import org.hisp.dhis.datavalue.DataValueChangelogService;
+import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -77,12 +78,11 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.tracker.audit.TrackedEntityAudit;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -105,7 +105,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuditController {
   private final IdentifiableObjectManager manager;
 
-  private final DataValueAuditService dataValueAuditService;
+  private final DataValueChangelogService dataValueChangelogService;
 
   private final DataApprovalAuditService dataApprovalAuditService;
 
@@ -156,67 +156,58 @@ public class AuditController {
   }
 
   @GetMapping("dataValue")
-  public RootNode getAggregateDataValueAudit(
-      @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<String> ds,
-      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
-          List<String> de,
+  public RootNode getAggregateDataValueChangelog(
+      @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<UID> ds,
+      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false) List<UID> de,
       @OpenApi.Param(Period[].class) @RequestParam(required = false) List<String> pe,
       @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
-          List<String> ou,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
-          String co,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false)
-          String cc,
-      @RequestParam(required = false) List<AuditOperationType> auditType,
+          List<UID> ou,
+      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID co,
+      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID cc,
+      @RequestParam(name = "auditType", required = false) List<DataValueChangelogType> type,
       @RequestParam(required = false) Boolean skipPaging,
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page)
-      throws WebMessageException {
+      @RequestParam(required = false, defaultValue = "1") int page) {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
       fields.addAll(FieldPreset.ALL.getFields());
     }
 
-    List<DataElement> dataElements = new ArrayList<>();
-    dataElements.addAll(manager.loadByUid(DataElement.class, de));
-    dataElements.addAll(getDataElementsByDataSet(ds));
-
     List<Period> periods = getPeriods(pe);
-    List<OrganisationUnit> organisationUnits = manager.loadByUid(OrganisationUnit.class, ou);
-    CategoryOptionCombo categoryOptionCombo = manager.get(CategoryOptionCombo.class, co);
-    CategoryOptionCombo attributeOptionCombo = manager.get(CategoryOptionCombo.class, cc);
-    List<AuditOperationType> auditOperationTypes = emptyIfNull(auditType);
+    List<DataValueChangelogType> types = emptyIfNull(type);
 
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
-            .setDataElements(dataElements)
+    DataValueChangelogQueryParams params =
+        new DataValueChangelogQueryParams()
+            .setDataSets(ds)
+            .setDataElements(de)
             .setPeriods(periods)
-            .setOrgUnits(organisationUnits)
-            .setCategoryOptionCombo(categoryOptionCombo)
-            .setAttributeOptionCombo(attributeOptionCombo)
-            .setAuditTypes(auditOperationTypes);
+            .setOrgUnits(ou)
+            .setCategoryOptionCombo(co)
+            .setAttributeOptionCombo(cc)
+            .setTypes(types);
 
-    List<DataValueAudit> dataValueAudits;
+    List<DataValueChangelog> entries;
     Pager pager = null;
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      dataValueAudits = dataValueAuditService.getDataValueAudits(params);
+      entries = dataValueChangelogService.getChangelogEntries(params);
     } else {
-      int total = dataValueAuditService.countDataValueAudits(params);
+      int total = dataValueChangelogService.countEntries(params);
 
       pager = new Pager(page, total, pageSize);
 
-      dataValueAudits =
-          dataValueAuditService.getDataValueAudits(
-              new DataValueAuditQueryParams()
-                  .setDataElements(dataElements)
+      entries =
+          dataValueChangelogService.getChangelogEntries(
+              new DataValueChangelogQueryParams()
+                  .setDataSets(ds)
+                  .setDataElements(de)
                   .setPeriods(periods)
-                  .setOrgUnits(organisationUnits)
-                  .setCategoryOptionCombo(categoryOptionCombo)
-                  .setAttributeOptionCombo(attributeOptionCombo)
-                  .setAuditTypes(auditOperationTypes)
+                  .setOrgUnits(ou)
+                  .setCategoryOptionCombo(co)
+                  .setAttributeOptionCombo(cc)
+                  .setTypes(types)
                   .setPager(pager));
     }
 
@@ -230,7 +221,7 @@ public class AuditController {
         rootNode.addChild(new CollectionNode("dataValueAudits", true));
     trackedEntityAttributeValueAudits.addChildren(
         fieldFilterService
-            .toCollectionNode(DataValueAudit.class, new FieldFilterParams(dataValueAudits, fields))
+            .toCollectionNode(DataValueChangelog.class, new FieldFilterParams(entries, fields))
             .getChildren());
 
     return rootNode;
@@ -353,13 +344,7 @@ public class AuditController {
   // Helpers
   // -----------------------------------------------------------------------------------------------------------------
 
-  private List<DataElement> getDataElementsByDataSet(List<String> uids) {
-    List<DataSet> dataSets = manager.loadByUid(DataSet.class, uids);
-
-    return dataSets.stream().map(DataSet::getDataElements).flatMap(Set::stream).toList();
-  }
-
-  private List<Period> getPeriods(List<String> isoPeriods) throws WebMessageException {
+  private List<Period> getPeriods(List<String> isoPeriods) {
     if (isoPeriods == null) {
       return new ArrayList<>();
     }
@@ -367,13 +352,7 @@ public class AuditController {
     List<Period> periods = new ArrayList<>();
 
     for (String pe : isoPeriods) {
-      Period period = PeriodType.getPeriodFromIsoString(pe);
-
-      if (period == null) {
-        throw new WebMessageException(conflict("Illegal period identifier: " + pe));
-      }
-
-      periods.add(period);
+      periods.add(Period.of(pe));
     }
 
     return periods;

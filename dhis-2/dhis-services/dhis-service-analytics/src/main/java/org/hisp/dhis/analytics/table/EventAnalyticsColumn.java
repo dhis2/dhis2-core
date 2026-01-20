@@ -69,16 +69,17 @@ public final class EventAnalyticsColumn {
    *
    * @param sqlBuilder the {@link SqlBuilder}.
    * @param useCentroidForOuGeometry if true, use the Postgis's ST_Centroid function for OU geometry
+   * @param isTrackerProgram indicates if the current program is a tracker program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
   public static List<AnalyticsTableColumn> getColumns(
-      SqlBuilder sqlBuilder, boolean useCentroidForOuGeometry) {
+      SqlBuilder sqlBuilder, boolean useCentroidForOuGeometry, boolean isTrackerProgram) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-    columns.addAll(getCommonColumns(sqlBuilder));
+    columns.addAll(getEventColumns(sqlBuilder, isTrackerProgram));
     columns.addAll(getJsonColumns(sqlBuilder));
 
     if (sqlBuilder.supportsGeospatialData()) {
-      columns.addAll(getGeometryColumns(useCentroidForOuGeometry));
+      columns.addAll(getGeometryColumns(useCentroidForOuGeometry, isTrackerProgram));
     }
 
     return columns;
@@ -88,9 +89,11 @@ public final class EventAnalyticsColumn {
    * Returns a list of {@link AnalyticsTableColumn}.
    *
    * @param sqlBuilder the {@link SqlBuilder}.
+   * @param isTrackerProgram indicates if the current program is a tracker program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private static List<AnalyticsTableColumn> getCommonColumns(SqlBuilder sqlBuilder) {
+  public static List<AnalyticsTableColumn> getEventColumns(
+      SqlBuilder sqlBuilder, boolean isTrackerProgram) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.EVENT_COLUMN_NAME)
@@ -101,8 +104,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("en.uid")
+            .selectExpression(getSelectExpression("en.uid", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.PS_COLUMN_NAME)
@@ -119,12 +121,12 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("en.enrollmentdate")
+            .selectExpression(getSelectExpression("en.enrollmentdate", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("en.occurreddate")
+            .selectExpression(getSelectExpression("en.occurreddate", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
@@ -134,7 +136,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME)
             .dataType(TIMESTAMP)
-            .selectExpression("ev.scheduleddate")
+            .selectExpression(getSelectExpression("ev.scheduleddate", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME)
@@ -170,7 +172,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME)
             .dataType(VARCHAR_50)
-            .selectExpression("en.status")
+            .selectExpression(getSelectExpression("en.status", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.OU_COLUMN_NAME)
@@ -197,23 +199,40 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.REGISTRATION_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("coalesce(registrationou.uid,ou.uid)")
+            .selectExpression(
+                getSelectExpression("coalesce(registrationou.uid,ou.uid)", isTrackerProgram))
             .build(),
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME)
             .dataType(CHARACTER_11)
-            .nullable(NOT_NULL)
-            .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
+            .selectExpression(
+                getSelectExpression("coalesce(enrollmentou.uid,ou.uid)", isTrackerProgram))
             .build());
+  }
+
+  /**
+   * It returns the correct SQL expression, based on the given boolean flag and expression. In
+   * certain cases, only tracker programs should have a dedicated expression, while single programs
+   * will return "null". This is the main goal of this method.
+   *
+   * @param trackerProgramExpression the expression to be returned.
+   * @param isTrackerProgram indicates if the current program is a tracker program.
+   * @return the expression.
+   */
+  private static String getSelectExpression(
+      String trackerProgramExpression, boolean isTrackerProgram) {
+    final String eventProgramExpression = "null";
+    return isTrackerProgram ? trackerProgramExpression : eventProgramExpression;
   }
 
   /**
    * Returns a list of geometry {@link AnalyticsTableColumn}.
    *
+   * @param isTrackerProgram indicates if the current program is a tracker program.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private static List<AnalyticsTableColumn> getGeometryColumns(boolean useCentroid) {
+  public static List<AnalyticsTableColumn> getGeometryColumns(
+      boolean useCentroid, boolean isTrackerProgram) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.EVENT_GEOMETRY_COLUMN_NAME)
@@ -230,7 +249,7 @@ public final class EventAnalyticsColumn {
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME)
             .dataType(GEOMETRY)
-            .selectExpression("en.geometry")
+            .selectExpression(getSelectExpression("en.geometry", isTrackerProgram))
             .indexType(IndexType.GIST)
             .build(),
         AnalyticsTableColumn.builder()
@@ -253,7 +272,7 @@ public final class EventAnalyticsColumn {
    * @param sqlBuilder the {@link SqlBuilder}.
    * @return a list of {@link AnalyticsTableColumn}.
    */
-  private static List<AnalyticsTableColumn> getJsonColumns(SqlBuilder sqlBuilder) {
+  public static List<AnalyticsTableColumn> getJsonColumns(SqlBuilder sqlBuilder) {
     return List.of(
         AnalyticsTableColumn.builder()
             .name(EventAnalyticsColumnName.CREATED_BY_USERNAME_COLUMN_NAME)

@@ -47,12 +47,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.AtomicMode;
@@ -62,6 +58,10 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -97,6 +97,8 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     testSetup.importTrackerData("tracker/ownership_enrollment.json");
 
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
+    manager.clear();
+    manager.flush();
   }
 
   @Test
@@ -127,6 +129,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(nonSuperUser);
     TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/ownership_event.json");
     manager.flush();
+    manager.clear();
     TrackerObjects teTrackerObjects = testSetup.fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
 
@@ -152,9 +155,9 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertEquals(
         DateUtils.fromInstant(enTrackerObjects.getEnrollments().get(0).getUpdatedAtClient()),
         enrollment.getLastUpdatedAtClient());
-    Set<Event> events = enrollment.getEvents();
+    Set<TrackerEvent> events = enrollment.getEvents();
     assertEquals(1, events.size());
-    Event event = events.iterator().next();
+    TrackerEvent event = events.iterator().next();
     assertNotNull(event.getCreatedAtClient());
     assertNotNull(event.getLastUpdatedAtClient());
     assertEquals(
@@ -170,7 +173,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     Enrollment enrollment =
         enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     compareEnrollmentBasicProperties(enrollment, trackerObjects.getEnrollments().get(0));
@@ -190,7 +193,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getUpdated());
     enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     enrollment = enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     compareEnrollmentBasicProperties(enrollment, updatedEnrollment);
     assertNotNull(enrollment.getCompletedBy());
@@ -202,14 +205,14 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
     enrollments = manager.getAll(Enrollment.class).stream().filter(en -> !en.isDeleted()).toList();
-    assertEquals(1, enrollments.size());
+    assertEquals(0, enrollments.size());
   }
 
   @Test
@@ -218,7 +221,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.stream().filter(en -> !en.isDeleted()).count());
+    assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     manager.clear();
     manager.flush();
@@ -226,14 +229,14 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
     enrollments = manager.getAll(Enrollment.class);
-    assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
+    assertEquals(0, enrollments.stream().filter(en -> !en.isDeleted()).count());
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getCreated());
     enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.stream().filter(en -> !en.isDeleted()).count());
+    assertEquals(1, enrollments.stream().filter(en -> !en.isDeleted()).count());
   }
 
   @Test
@@ -243,7 +246,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     List<Enrollment> enrollments = manager.getAll(Enrollment.class);
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(updatedReport);

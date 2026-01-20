@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -102,5 +103,41 @@ public class HibernateProgramRuleActionStore
             """)
         .setParameter("dataElements", dataElements)
         .list();
+  }
+
+  @Override
+  public List<String> getProgramStagesUsedInScheduleEventActions(ProgramRuleActionType type) {
+    String sql =
+        """
+            select distinct ps.uid
+            from ProgramRuleAction pra
+            join pra.programStage ps
+            where pra.programRuleActionType = :actionType
+                """;
+    return getQuery(sql, String.class).setParameter("actionType", type).getResultList();
+  }
+
+  @Override
+  public List<String> getDataElementsPresentInProgramRuleActions(
+      Set<ProgramRuleActionType> actionTypes) {
+    String sql =
+        """
+                    SELECT distinct de.uid
+                    FROM ProgramRuleAction pra JOIN pra.dataElement de
+                    WHERE pra.programRuleActionType in (:types)
+                """;
+    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
+  }
+
+  @Override
+  public List<String> getTrackedEntityAttributesPresentInProgramRuleActions(
+      Set<ProgramRuleActionType> actionTypes) {
+    String sql =
+        """
+                        SELECT distinct att.uid
+                        FROM ProgramRuleAction pra JOIN pra.attribute att
+                        WHERE pra.programRuleActionType in (:types)
+                    """;
+    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
   }
 }

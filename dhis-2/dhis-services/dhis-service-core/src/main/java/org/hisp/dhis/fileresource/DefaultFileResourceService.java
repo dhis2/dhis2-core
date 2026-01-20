@@ -38,9 +38,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -49,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -61,8 +62,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.joda.time.Duration;
-import org.joda.time.Hours;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.fileresource.FileResourceService")
 public class DefaultFileResourceService implements FileResourceService {
-  private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
+  private static final Duration UNASSIGNED_GRACE_PERIOD = Days.days(2).toStandardDuration();
 
   public static final Predicate<FileResource> IS_ORPHAN_PREDICATE = (fr -> !fr.isAssigned());
 
@@ -86,8 +87,6 @@ public class DefaultFileResourceService implements FileResourceService {
   private final PeriodService periodService;
 
   private final FileResourceContentStore fileResourceContentStore;
-
-  private final ImageProcessingService imageProcessingService;
 
   private final ApplicationEventPublisher fileEventPublisher;
 
@@ -128,12 +127,20 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<FileResource> getOrphanedFileResources() {
-    return fileResourceStore
-        .getAllLeCreated(new DateTime().minus(IS_ORPHAN_TIME_DELTA).toDate())
-        .stream()
-        .filter(IS_ORPHAN_PREDICATE)
-        .collect(Collectors.toList());
+  public List<FileResource> getExpiredFileResources(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned) {
+    return fileResourceStore.getUnassignedPassedGracePeriod(
+        domainsToDeleteWhenUnassigned, DefaultFileResourceService.getGracePeriod());
+  }
+
+  public static DateTime getGracePeriod() {
+    return new DateTime().minus(UNASSIGNED_GRACE_PERIOD);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig() {
+    return fileResourceStore.getAllUnassignedByJobDataDomainWithNoJobConfig();
   }
 
   @Override
@@ -150,7 +157,6 @@ public class DefaultFileResourceService implements FileResourceService {
     FileResource fr = maybeFr.get();
     String uid = fr.getUid();
     return switch (fr.getDomain()) {
-      case PUSH_ANALYSIS -> List.of();
       case ORG_UNIT ->
           fileResourceStore.findOrganisationUnitsByImageFileResource(uid).stream()
               .map(id -> new FileResourceOwner(FileResourceDomain.ORG_UNIT, id))
@@ -192,12 +198,12 @@ public class DefaultFileResourceService implements FileResourceService {
     entityManager.flush();
 
     if (hasMultiDimensionImageSupport(fileResource)) {
-      Map<ImageFileDimension, File> imageFiles =
-          imageProcessingService.createImages(fileResource, file);
-
+      fileResource.setHasMultipleStorageFiles(true);
       fileEventPublisher.publishEvent(
           new ImageFileSavedEvent(
-              fileResource.getUid(), imageFiles, CurrentUserUtil.getCurrentUserDetails().getUid()));
+              UID.of(fileResource.getUid()),
+              file,
+              UID.of(CurrentUserUtil.getCurrentUserDetails().getUid())));
       return;
     }
 
@@ -408,10 +414,11 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<FileResource> getExpiredFileResources(
+  public List<FileResource> getExpiredDataValueFileResources(
       FileResourceRetentionStrategy retentionStrategy) {
-    DateTime expires = DateTime.now().minus(retentionStrategy.getRetentionTime());
-    return fileResourceStore.getExpiredFileResources(expires);
+    DateTime retentionPeriod = DateTime.now().minus(retentionStrategy.getRetentionTime());
+    return fileResourceStore.getExpiredDataValueFileResources(
+        retentionPeriod, DefaultFileResourceService.getGracePeriod());
   }
 
   @Override

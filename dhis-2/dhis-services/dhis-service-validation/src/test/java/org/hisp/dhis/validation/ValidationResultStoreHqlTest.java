@@ -52,12 +52,12 @@ import java.util.Map;
 import java.util.Set;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.hisp.dhis.calendar.DateUnitType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -263,7 +263,7 @@ class ValidationResultStoreHqlTest {
     store.query(query);
     assertHQLMatches(
         "from ValidationResult vr where( ((vr.period.startDate <= :periodId1End ) and (vr.period.endDate >= :periodId1Start )))");
-    PeriodType quarterly = PeriodType.getByNameIgnoreCase(DateUnitType.QUARTERLY.getName());
+    PeriodType quarterly = PeriodType.getByNameIgnoreCase(PeriodTypeEnum.QUARTERLY.getName());
     Period q1_2017 = quarterly.createPeriod("2017Q1");
     assertNotNull(q1_2017);
     assertHQLParameter("periodId1Start", q1_2017.getStartDate());

@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -57,9 +56,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,7 +107,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminIntoSecurityContext();
-    operationParamsBuilder = SingleEventOperationParams.builder();
+    operationParamsBuilder = SingleEventOperationParams.builderForProgram(UID.of(program));
   }
 
   @Test
@@ -294,22 +293,6 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoSingleEvents()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContextUser(userService.getUser("Hop98yh65pL"));
-    SingleEventOperationParams params =
-        operationParamsBuilder
-            .program(UID.of("shPjYNifvMK"))
-            .orgUnit(orgUnit)
-            .orgUnitMode(SELECTED)
-            .build();
-
-    List<SingleEvent> events = singleEventService.findEvents(params);
-
-    assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
-  }
-
-  @Test
   void shouldReturnEventsWhenProgramClosedOuModeAccessible()
       throws ForbiddenException, BadRequestException {
     program.setAccessLevel(AccessLevel.CLOSED);
@@ -470,7 +453,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and no org unit provided");
     assertContainsOnly(
-        List.of("DiszpKrYNg8", "uoNW0E3xXUy"),
+        List.of("DiszpKrYNg8"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -488,7 +471,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
         events.isEmpty(),
         "Expected to find events when ou mode ALL no program specified and org unit provided");
     assertContainsOnly(
-        List.of("DiszpKrYNg8", "uoNW0E3xXUy"),
+        List.of("DiszpKrYNg8"),
         events.stream().map(e -> e.getOrganisationUnit().getUid()).collect(Collectors.toSet()));
   }
 
@@ -505,7 +488,7 @@ class AclSingleEventExporterTest extends PostgresIntegrationTestBase {
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
     assertContainsOnly(
-        List.of("G9PbzJY8bJG", "ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
         events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 

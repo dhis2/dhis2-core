@@ -75,20 +75,6 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> getDataElementsPresentInProgramRules() {
-    return programRuleStore.getDataElementsPresentInProgramRules(
-        ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
-    return programRuleStore.getTrackedEntityAttributesPresentInProgramRules(
-        ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     return programRuleStore.getProgramRulesByActionTypes(program, actionTypes);

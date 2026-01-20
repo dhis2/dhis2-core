@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -54,6 +54,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -150,7 +151,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     DataQueryParams aocParams =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(aocItems))
             .withOrganisationUnits(orgUnits)
             .withAttributeOptionCombos(Collections.emptyList())
@@ -226,7 +227,7 @@ class PredictionAnalyticsDataFetcherTest extends TestBase {
 
     DataQueryParams nonAocParams =
         DataQueryParams.newBuilder()
-            .withPeriods(Lists.newArrayList(periods))
+            .withPeriods(periods.stream().map(PeriodDimension::of).toList())
             .withDataDimensionItems(Lists.newArrayList(nonAocItems))
             .withOrganisationUnits(orgUnits)
             .build();

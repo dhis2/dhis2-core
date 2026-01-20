@@ -52,9 +52,9 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.util.DateUtils;
 
 public class JsonAssertions {
@@ -122,7 +122,7 @@ public class JsonAssertions {
   }
 
   public static void assertEventWithinRelationshipItem(
-      Event expected, JsonRelationshipItem actual) {
+      TrackerEvent expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
     assertFalse(jsonEvent.isEmpty(), "event should not be empty");
     assertEquals(expected.getUid().getValue(), jsonEvent.getEvent(), "event UID");

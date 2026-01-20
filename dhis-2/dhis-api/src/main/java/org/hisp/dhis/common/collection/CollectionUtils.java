@@ -136,8 +136,8 @@ public class CollectionUtils {
   }
 
   /**
-   * Returns all elements which are contained by {@code collection1} but not contained by {@code
-   * collection2} as an immutable list.
+   * Returns all elements contained in {@code collection1} but not contained in {@code collection2}
+   * as an immutable list.
    *
    * @param collection1 the first collection.
    * @param collection2 the second collection.

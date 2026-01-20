@@ -32,6 +32,15 @@ package org.hisp.dhis.dimension;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DYNAMIC_DIMENSION_CLASSES;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_ELEMENT_GROUP_SET;
@@ -50,11 +59,6 @@ import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
@@ -110,8 +114,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -162,8 +166,7 @@ public class DefaultDimensionService implements DimensionService {
   @Override
   @Transactional(readOnly = true)
   public List<DimensionalItemObject> getCanReadDimensionItems(String uid) {
-    DimensionalObject dimension =
-        idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
+    DimensionalObject dimension = idObjectManager.get(DYNAMIC_DIMENSION_CLASSES, uid);
 
     List<DimensionalItemObject> items = new ArrayList<>();
 
@@ -232,9 +235,9 @@ public class DefaultDimensionService implements DimensionService {
 
     Map<String, DimensionType> dimObjectTypeMap = new HashMap<>();
 
-    dimObjectTypeMap.put(DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X);
-    dimObjectTypeMap.put(DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD);
-    dimObjectTypeMap.put(DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT);
+    dimObjectTypeMap.put(DATA_X_DIM_ID, DimensionType.DATA_X);
+    dimObjectTypeMap.put(PERIOD_DIM_ID, DimensionType.PERIOD);
+    dimObjectTypeMap.put(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT);
 
     return dimObjectTypeMap.get(uid);
   }
@@ -322,8 +325,7 @@ public class DefaultDimensionService implements DimensionService {
   @Transactional(readOnly = true)
   public DimensionalObject getDimensionalObjectCopy(String uid, boolean filterCanRead)
       throws NotFoundException {
-    DimensionalObject dimension =
-        idObjectManager.get(DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid);
+    DimensionalObject dimension = idObjectManager.get(DYNAMIC_DIMENSION_CLASSES, uid);
     if (dimension == null) {
       throw new NotFoundException("Dimension does not exist: " + uid);
     }
@@ -559,15 +561,15 @@ public class DefaultDimensionService implements DimensionService {
             }
           }
         } else if (PERIOD.equals(type)) {
-          List<Period> periods = new UniqueArrayList<>();
+          List<PeriodDimension> periods = new UniqueArrayList<>();
           Set<String> allPeriods = new LinkedHashSet<>();
 
           for (String period : uids) {
             if (!RelativePeriodEnum.contains(period)) {
-              Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+              Period isoPeriod = Period.ofNullable(period);
 
               if (isoPeriod != null) {
-                periods.add(isoPeriod);
+                periods.add(PeriodDimension.of(isoPeriod));
               }
             }
 
@@ -575,7 +577,7 @@ public class DefaultDimensionService implements DimensionService {
           }
 
           object.setRawPeriods(new ArrayList<>(allPeriods));
-          object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
+          object.setPeriods(periods);
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {
             if (ou == null) {

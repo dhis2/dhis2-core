@@ -43,7 +43,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
 import static org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;

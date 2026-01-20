@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -83,7 +84,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -92,6 +92,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.design.Column;
@@ -116,8 +118,6 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
@@ -125,7 +125,6 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.hibernate.HibernateService;
@@ -148,6 +147,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
@@ -155,9 +156,7 @@ import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -167,9 +166,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageRecipients;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -178,10 +174,8 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
@@ -190,12 +184,9 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
@@ -254,8 +245,6 @@ public abstract class TestBase {
 
   protected static final String BASE_PR_UID = "prabcdefgh";
 
-  protected static final String BASE_TE_UID = "teibcdefgh";
-
   protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
 
   private static final String EXT_TEST_DIR =
@@ -294,13 +283,23 @@ public abstract class TestBase {
   @Autowired(required = false)
   protected CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
+  @Autowired private ConfigurationService internalConfigurationService;
+
+  @Autowired private PeriodService internalPeriodService;
+
   @Autowired protected HibernateService hibernateService;
 
-  protected static CategoryService categoryService;
+  @Autowired protected static CategoryService categoryService;
+
+  protected static ConfigurationService configurationService;
+
+  protected static PeriodService periodService;
 
   @PostConstruct
   protected void initServices() {
     categoryService = internalCategoryService;
+    configurationService = internalConfigurationService;
+    periodService = internalPeriodService;
   }
 
   static {
@@ -1129,11 +1128,8 @@ public abstract class TestBase {
    */
   public static Period createPeriod(PeriodType type, Date startDate) {
     Period period = new Period();
-    period.setAutoFields();
-
     period.setPeriodType(type);
     period.setStartDate(startDate);
-
     return period;
   }
 
@@ -1144,12 +1140,9 @@ public abstract class TestBase {
    */
   public static Period createPeriod(PeriodType type, Date startDate, Date endDate) {
     Period period = new Period();
-    period.setAutoFields();
-
     period.setPeriodType(type);
     period.setStartDate(startDate);
     period.setEndDate(endDate);
-
     return period;
   }
 
@@ -1157,16 +1150,14 @@ public abstract class TestBase {
    * @param isoPeriod the ISO period string.
    */
   public static Period createPeriod(String isoPeriod) {
-    return PeriodType.getPeriodFromIsoString(isoPeriod);
+    return Period.of(isoPeriod);
   }
 
   /**
    * @param isoPeriod the ISO period strings.
    */
   public static List<Period> createPeriods(String... isoPeriod) {
-    return Stream.of(isoPeriod)
-        .map(PeriodType::getPeriodFromIsoString)
-        .collect(Collectors.toList());
+    return Stream.of(isoPeriod).map(Period::of).collect(Collectors.toList());
   }
 
   /**
@@ -1175,13 +1166,14 @@ public abstract class TestBase {
    */
   public static Period createPeriod(Date startDate, Date endDate) {
     Period period = new Period();
-    period.setAutoFields();
-
     period.setPeriodType(new MonthlyPeriodType());
     period.setStartDate(startDate);
     period.setEndDate(endDate);
-
     return period;
+  }
+
+  public static List<PeriodDimension> createPeriodDimensions(String... isoPeriod) {
+    return createPeriods(isoPeriod).stream().map(PeriodDimension::of).toList();
   }
 
   /**
@@ -1645,15 +1637,14 @@ public abstract class TestBase {
       units.add(unit);
     }
 
-    return createProgram(uniqueCharacter, programStages, null, units, null);
+    return createProgram(uniqueCharacter, programStages, null, units);
   }
 
   public static Program createProgram(
       char uniqueCharacter,
       Set<ProgramStage> programStages,
       Set<TrackedEntityAttribute> attributes,
-      Set<OrganisationUnit> organisationUnits,
-      CategoryCombo categoryCombo) {
+      Set<OrganisationUnit> organisationUnits) {
     Program program = new Program();
     program.setAutoFields();
     program.setUid(BASE_PR_UID + uniqueCharacter);
@@ -1686,52 +1677,12 @@ public abstract class TestBase {
       program.getOrganisationUnits().addAll(organisationUnits);
     }
 
-    if (categoryCombo != null) {
-      program.setCategoryCombo(categoryCombo);
-    } else if (categoryService != null) {
+    if (categoryService != null) {
       program.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+      program.setEnrollmentCategoryCombo(categoryService.getDefaultCategoryCombo());
     }
 
     return program;
-  }
-
-  public static Enrollment createEnrollment(
-      Program program, TrackedEntity te, OrganisationUnit organisationUnit) {
-    Enrollment enrollment = new Enrollment(program, te, organisationUnit);
-    enrollment.setAutoFields();
-
-    enrollment.setProgram(program);
-    enrollment.setTrackedEntity(te);
-    enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-
-    return enrollment;
-  }
-
-  public static Event createEvent(
-      ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
-    Event event = new Event();
-    event.setAutoFields();
-    event.setProgramStage(programStage);
-    event.setEnrollment(enrollment);
-    event.setOrganisationUnit(organisationUnit);
-    if (categoryService != null) {
-      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
-    }
-    return event;
-  }
-
-  public static Event createEvent(
-      Enrollment enrollment,
-      ProgramStage programStage,
-      OrganisationUnit organisationUnit,
-      Set<EventDataValue> dataValues) {
-    Event event = createEvent(programStage, enrollment, organisationUnit);
-    event.setOccurredDate(new Date());
-    event.setStatus(EventStatus.ACTIVE);
-    event.setEventDataValues(dataValues);
-    return event;
   }
 
   public static ProgramRule createProgramRule(char uniqueCharacter, Program parentProgram) {
@@ -1894,24 +1845,6 @@ public abstract class TestBase {
     return psde;
   }
 
-  public static ProgramMessage createProgramMessage(
-      String text,
-      String subject,
-      ProgramMessageRecipients recipients,
-      ProgramMessageStatus status,
-      Set<DeliveryChannel> channels) {
-
-    ProgramMessage pm = new ProgramMessage();
-    pm.setAutoFields();
-    pm.setText(text);
-    pm.setSubject(subject);
-    pm.setRecipients(recipients);
-    pm.setMessageStatus(status);
-    pm.setDeliveryChannels(channels);
-
-    return pm;
-  }
-
   public static ProgramIndicator createProgramIndicator(
       char uniqueCharacter, Program program, String expression, String filter) {
     return createProgramIndicator(
@@ -2017,68 +1950,6 @@ public abstract class TestBase {
     return relationshipType;
   }
 
-  public static Relationship createTeToTeRelationship(
-      TrackedEntity from, TrackedEntity to, RelationshipType relationshipType) {
-    Relationship relationship = new Relationship();
-    RelationshipItem riFrom = new RelationshipItem();
-    RelationshipItem riTo = new RelationshipItem();
-
-    riFrom.setTrackedEntity(from);
-    riFrom.setRelationship(relationship);
-    riTo.setTrackedEntity(to);
-    riTo.setRelationship(relationship);
-
-    relationship.setRelationshipType(relationshipType);
-    relationship.setFrom(riFrom);
-    relationship.setTo(riTo);
-    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
-    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
-    relationship.setAutoFields();
-
-    return relationship;
-  }
-
-  public static Relationship createTeToEnrollmentRelationship(
-      TrackedEntity from, Enrollment to, RelationshipType relationshipType) {
-    Relationship relationship = new Relationship();
-    RelationshipItem riFrom = new RelationshipItem();
-    RelationshipItem riTo = new RelationshipItem();
-
-    riFrom.setTrackedEntity(from);
-    riTo.setEnrollment(to);
-
-    relationship.setRelationshipType(relationshipType);
-    relationship.setFrom(riFrom);
-    relationship.setTo(riTo);
-    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
-    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
-    relationship.setAutoFields();
-
-    return relationship;
-  }
-
-  public static Relationship createTeToEventRelationship(
-      TrackedEntity from, Event to, RelationshipType relationshipType) {
-    Relationship relationship = new Relationship();
-    RelationshipItem riFrom = new RelationshipItem();
-    RelationshipItem riTo = new RelationshipItem();
-
-    riFrom.setTrackedEntity(from);
-    riTo.setEvent(to);
-
-    relationship.setRelationshipType(relationshipType);
-    relationship.setFrom(riFrom);
-    relationship.setTo(riTo);
-    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
-    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
-
-    relationship.setAutoFields();
-
-    return relationship;
-  }
-
   public static RelationshipType createPersonToPersonRelationshipType(
       char uniqueCharacter,
       Program program,
@@ -2181,56 +2052,6 @@ public abstract class TestBase {
     return trackedEntityType;
   }
 
-  public static TrackedEntity createTrackedEntity(
-      OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setAutoFields();
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    return trackedEntity;
-  }
-
-  public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setAutoFields();
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setUid(BASE_TE_UID + uniqueChar);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    return trackedEntity;
-  }
-
-  public static TrackedEntity createTrackedEntity(
-      char uniqueChar,
-      OrganisationUnit organisationUnit,
-      TrackedEntityAttribute attribute,
-      TrackedEntityType trackedEntityType) {
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setAutoFields();
-    trackedEntity.setOrganisationUnit(organisationUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
-    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-    attributeValue.setAttribute(attribute);
-    attributeValue.setTrackedEntity(trackedEntity);
-    attributeValue.setValue("Attribute" + uniqueChar);
-    trackedEntity.getTrackedEntityAttributeValues().add(attributeValue);
-
-    return trackedEntity;
-  }
-
-  public static TrackedEntityAttributeValue createTrackedEntityAttributeValue(
-      char uniqueChar, TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
-    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-    attributeValue.setTrackedEntity(trackedEntity);
-    attributeValue.setAttribute(attribute);
-    attributeValue.setValue("Attribute" + uniqueChar);
-
-    return attributeValue;
-  }
-
   /**
    * @param uniqueChar A unique character to identify the object.
    * @return TrackedEntityAttribute
@@ -2308,21 +2129,6 @@ public abstract class TestBase {
     icon.setCustom(true);
 
     return icon;
-  }
-
-  /**
-   * @param uniqueChar A unique character to identify the object.
-   * @param content The content of the file
-   * @return an externalFileResource object
-   */
-  public static ExternalFileResource createExternalFileResource(char uniqueChar, byte[] content) {
-    FileResource fileResource = createFileResource(uniqueChar, content);
-    ExternalFileResource externalFileResource = new ExternalFileResource();
-
-    externalFileResource.setFileResource(fileResource);
-    fileResource.setAssigned(true);
-    externalFileResource.setAccessToken(String.valueOf(uniqueChar));
-    return externalFileResource;
   }
 
   /**
@@ -3072,6 +2878,39 @@ public abstract class TestBase {
     }
     layout.setColumns(columns);
     return layout;
+  }
+
+  protected static void createPeriodTypes() {
+    Set<PeriodType> periodTypes = new LinkedHashSet<>();
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.BI_MONTHLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.BI_WEEKLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.DAILY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_APRIL));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_JULY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_NOV));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_SEP));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.FINANCIAL_OCT));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.MONTHLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.QUARTERLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.QUARTERLY_NOV));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.SIX_MONTHLY_APRIL));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.SIX_MONTHLY_NOV));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.SIX_MONTHLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_SATURDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_SUNDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_THURSDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.WEEKLY_WEDNESDAY));
+    periodTypes.add(periodService.getPeriodType(PeriodTypeEnum.YEARLY));
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.setDataOutputPeriodTypes(periodTypes);
+    configurationService.setConfiguration(configuration);
+  }
+
+  public static void cleanPeriodTypes() {
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.setDataOutputPeriodTypes(new LinkedHashSet<>());
+    configurationService.setConfiguration(configuration);
   }
 
   public static User createRandomAdminUserWithEntityManager(EntityManager entityManager) {

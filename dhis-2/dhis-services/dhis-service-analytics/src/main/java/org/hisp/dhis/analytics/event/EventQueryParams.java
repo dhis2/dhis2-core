@@ -29,17 +29,27 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
@@ -55,7 +65,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -79,6 +91,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
@@ -89,7 +102,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -100,6 +113,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
 
 /**
@@ -140,6 +154,9 @@ public class EventQueryParams extends DataQueryParams {
 
   /** The dimensional object for which to produce aggregated data. */
   private DimensionalItemObject value;
+
+  /** The incoming "value" param from the request. */
+  private String requestValue;
 
   /** Program indicators specified as dimensional items of the data dimension. */
   private List<ProgramIndicator> itemProgramIndicators = new ArrayList<>();
@@ -282,6 +299,7 @@ public class EventQueryParams extends DataQueryParams {
     params.items = new ArrayList<>(this.items);
     params.itemFilters = new ArrayList<>(this.itemFilters);
     params.value = this.value;
+    params.requestValue = this.requestValue;
     params.itemProgramIndicators = new ArrayList<>(this.itemProgramIndicators);
     params.programIndicator = this.programIndicator;
     params.option = this.option;
@@ -574,7 +592,9 @@ public class EventQueryParams extends DataQueryParams {
     desc.forEach(e -> e.getItem().getUid());
 
     return key.addIgnoreNull("value", value, () -> value.getUid())
+        .addIgnoreNull("requestValue", requestValue)
         .addIgnoreNull("programIndicator", programIndicator, () -> programIndicator.getUid())
+        .addIgnoreNull("programStage", programStage, () -> programStage.getUid())
         .addIgnoreNull("organisationUnitMode", organisationUnitMode)
         .addIgnoreNull("page", page)
         .addIgnoreNull("pageSize", pageSize)
@@ -612,9 +632,9 @@ public class EventQueryParams extends DataQueryParams {
    * them.
    */
   void replacePeriodsWithDates() {
-    List<Period> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
+    List<PeriodDimension> periods = asTypedList(getDimensionOrFilterItems(PERIOD_DIM_ID));
 
-    for (Period period : periods) {
+    for (PeriodDimension period : periods) {
       Date start = period.getStartDate();
       Date end = period.getEndDate();
       DateRange dateRange = new DateRange(start, end);
@@ -650,6 +670,53 @@ public class EventQueryParams extends DataQueryParams {
       ranges.sort(Comparator.comparing(DateRange::getStartDate));
     }
     removeDimensionOrFilter(PERIOD_DIM_ID);
+
+    // Also extract dates from stage date QueryItems (stageId.EVENT_DATE, stageId.SCHEDULED_DATE)
+    extractDatesFromStageDateItems();
+  }
+
+  /**
+   * Extracts start/end dates from stage-scoped date QueryItems (e.g., stageId.EVENT_DATE:201910 or
+   * stageId.SCHEDULED_DATE:THIS_YEAR). These items store their period constraints as comparison
+   * operator filters (GE, GT, LE, LT, EQ). This is needed for partition selection.
+   */
+  private void extractDatesFromStageDateItems() {
+    for (QueryItem item : items) {
+      if (item.hasProgramStage() && isStageDateItem(item)) {
+        Date start = null;
+        Date end = null;
+
+        for (QueryFilter filter : item.getFilters()) {
+          Date filterDate = DateUtils.parseDate(filter.getFilter());
+          if (filterDate != null) {
+            switch (filter.getOperator()) {
+              case GE, GT -> start = filterDate;
+              case LE, LT -> end = filterDate;
+              case EQ -> {
+                start = filterDate;
+                end = filterDate;
+              }
+              default -> {}
+            }
+          }
+        }
+
+        if (start != null || end != null) {
+          setDates(start, end);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks if the QueryItem is a stage date item (EVENT_DATE or SCHEDULED_DATE).
+   *
+   * @param item the QueryItem to check
+   * @return true if the item is a stage date item
+   */
+  private boolean isStageDateItem(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId) || SCHEDULED_DATE_COLUMN_NAME.equals(itemId);
   }
 
   /**
@@ -675,6 +742,77 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean useStartEndDates() {
     return hasStartEndDate();
+  }
+
+  public boolean hasStageInValue() {
+    return isNotBlank(requestValue) && requestValue.contains(DIMENSION_IDENTIFIER_SEP);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific dimension identifier. This includes only the
+   * special dimensions: stageUid.EVENT_DATE, stageUid.SCHEDULED_DATE, stageUid.EVENT_STATUS, and
+   * stageUid.ou. Regular data elements with a stage prefix (e.g., stageUid.dataElementUid) are NOT
+   * considered stage-specific dimension identifiers.
+   */
+  public boolean hasStageSpecificItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageSpecificDimension(item));
+  }
+
+  /**
+   * Returns true if the item is a stage-specific dimension identifier (EVENT_DATE, SCHEDULED_DATE,
+   * ou, or EVENT_STATUS). These are special dimensions that can be prefixed with a program stage.
+   */
+  private boolean isStageSpecificDimension(QueryItem item) {
+    String itemId = item.getItemId();
+    return OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+        || SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+        || OU_COLUMN_NAME.equals(itemId)
+        || EVENT_STATUS_COLUMN_NAME.equals(itemId);
+  }
+
+  /**
+   * Returns true if any query item is a stage-specific date dimension (EVENT_DATE or
+   * SCHEDULED_DATE).
+   */
+  public boolean hasStageDateItem() {
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && isStageDateItem(item));
+  }
+
+  /**
+   * Returns duplicate stage dimension identifiers (stageUid.itemId combinations). A duplicate
+   * occurs when the same stage and identifier are used more than once. Items with different offsets
+   * (e.g., stageUid[0].itemId vs stageUid[-1].itemId) are not considered duplicates.
+   */
+  public Set<String> getDuplicateStageDimensionIdentifiers() {
+    Map<String, Long> counts =
+        getItemsAndItemFilters().stream()
+            .filter(QueryItem::hasProgramStage)
+            .map(
+                item -> {
+                  String key = item.getProgramStage().getUid() + "." + item.getItemId();
+                  // Include offset in key when explicitly set (not default)
+                  if (item.hasRepeatableStageParams()
+                      && !item.getRepeatableStageParams().isDefaultObject()) {
+                    key += "." + item.getRepeatableStageParams().getIndex();
+                  }
+                  return key;
+                })
+            .collect(groupingBy(Function.identity(), counting()));
+
+    return counts.entrySet().stream()
+        .filter(e -> e.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(toSet());
+  }
+
+  /** Returns all distinct program stages from items that have a stage prefix. */
+  public Set<ProgramStage> getDistinctStages() {
+    return getItemsAndItemFilters().stream()
+        .filter(QueryItem::hasProgramStage)
+        .map(QueryItem::getProgramStage)
+        .collect(toSet());
   }
 
   /**
@@ -715,7 +853,7 @@ public class EventQueryParams extends DataQueryParams {
         .filter(QueryItem::hasLegendSet)
         .map(i -> i.getLegendSet().getLegends())
         .flatMap(Set::stream)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /** Get options for option sets part of items and item filters. */
@@ -724,7 +862,7 @@ public class EventQueryParams extends DataQueryParams {
         .filter(QueryItem::hasOptionSet)
         .map(q -> q.getOptionSet().getOptions())
         .flatMap(List::stream)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /**
@@ -882,13 +1020,22 @@ public class EventQueryParams extends DataQueryParams {
   public Set<OrganisationUnit> getOrganisationUnitChildren() {
     Set<OrganisationUnit> children = new HashSet<>();
 
-    for (DimensionalItemObject object :
-        getDimensionOrFilterItems(DimensionalObject.ORGUNIT_DIM_ID)) {
+    for (DimensionalItemObject object : getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
       OrganisationUnit unit = (OrganisationUnit) object;
       children.addAll(unit.getChildren());
     }
 
     return children;
+  }
+
+  @Override
+  public boolean hasOrganisationUnits() {
+    if (super.hasOrganisationUnits()) {
+      return true;
+    }
+
+    return getItemsAndItemFilters().stream()
+        .anyMatch(item -> item.hasProgramStage() && OU_COLUMN_NAME.equals(item.getItemId()));
   }
 
   public boolean isSorting() {
@@ -929,6 +1076,49 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasTimeDateRanges() {
     return MapUtils.isNotEmpty(getTimeDateRanges());
+  }
+
+  /** Returns true if multiple time dimensions are active (have date ranges or constraints). */
+  public boolean hasMultipleTimeDimensions() {
+    return getActiveTimeDimensions().size() > 1;
+  }
+
+  /**
+   * Returns the set of time dimensions that are actively used in this query. A time dimension is
+   * considered active if it has date ranges defined.
+   */
+  public Set<TimeField> getActiveTimeDimensions() {
+    return timeDateRanges.keySet();
+  }
+
+  /** Returns true if the specified time dimension is active in this query. */
+  public boolean hasActiveTimeDimension(TimeField timeField) {
+    return timeDateRanges.containsKey(timeField) && isNotEmpty(timeDateRanges.get(timeField));
+  }
+
+  /**
+   * Returns a new EventQueryParams containing only the specified time dimension, removing all other
+   * time dimensions. Used for query splitting.
+   */
+  public EventQueryParams withSingleTimeDimension(TimeField timeField) {
+    EventQueryParams params = new EventQueryParams.Builder(this).build();
+
+    // Clear all time dimensions except the specified one
+    Map<TimeField, List<DateRange>> singleTimeDimension = new EnumMap<>(TimeField.class);
+    if (timeDateRanges.containsKey(timeField)) {
+      singleTimeDimension.put(timeField, timeDateRanges.get(timeField));
+    }
+    params.timeDateRanges = singleTimeDimension;
+
+    // Set the legacy timeField for backward compatibility
+    params.timeField = timeField.name();
+
+    return params;
+  }
+
+  /** Returns the number of active time dimensions in this query. */
+  public int getActiveTimeDimensionCount() {
+    return getActiveTimeDimensions().size();
   }
 
   /**
@@ -973,6 +1163,17 @@ public class EventQueryParams extends DataQueryParams {
         && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
   }
 
+  /**
+   * Checks if a value dimension with a date value type exists.
+   *
+   * @return true if a value dimension with a date value type exists, false if not.
+   */
+  public boolean hasDateValueDimension() {
+    return hasValueDimension()
+        && value instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
+  }
+
   @Override
   public boolean hasProgramIndicatorDimension() {
     return programIndicator != null;
@@ -1004,6 +1205,21 @@ public class EventQueryParams extends DataQueryParams {
    */
   public boolean hasFilterPeriods() {
     return isNotEmpty(getFilterPeriods());
+  }
+
+  /**
+   * Verifies whether there is an org. unit filter associated with a query item.
+   *
+   * @return true if the org. unit filter is present, false otherwise.
+   */
+  public boolean hasOrgUnitFilterInItem() {
+    Set<QueryItem> itemsSet =
+        Stream.concat(getItems().stream(), getItemFilters().stream())
+            .filter(QueryItem::hasFilter)
+            .filter(item -> item.getValueType() == ORGANISATION_UNIT)
+            .collect(toSet());
+
+    return isNotEmpty(itemsSet);
   }
 
   public boolean hasHeaders() {
@@ -1087,6 +1303,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public DimensionalItemObject getValue() {
     return value;
+  }
+
+  public String getRequestValue() {
+    return requestValue;
   }
 
   public List<ProgramIndicator> getItemProgramIndicators() {
@@ -1318,6 +1538,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withValue(DimensionalItemObject value) {
       this.params.value = value;
+      return this;
+    }
+
+    public Builder withRequestValue(String requestValue) {
+      this.params.requestValue = requestValue;
       return this;
     }
 

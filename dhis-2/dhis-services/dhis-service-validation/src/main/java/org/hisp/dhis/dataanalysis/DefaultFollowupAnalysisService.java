@@ -53,8 +53,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,8 +69,6 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   private final DataAnalysisStore dataAnalysisStore;
 
   private final FollowupValueManager followupValueManager;
-
-  private final UserService userService;
 
   private final I18nManager i18nManager;
 
@@ -108,7 +105,7 @@ public class DefaultFollowupAnalysisService implements FollowupAnalysisService {
   public FollowupAnalysisResponse getFollowupDataValues(FollowupAnalysisRequest request) {
     validate(request);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<FollowupValue> followupValues =
         followupValueManager.getFollowupDataValues(currentUser, request);
 

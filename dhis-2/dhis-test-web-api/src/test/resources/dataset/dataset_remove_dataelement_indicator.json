@@ -1,0 +1,32 @@
+{
+  "dataSets": [
+    {
+      "id": "dsUid0000x1",
+      "timelyDays": 15,
+      "name": "test ds 1",
+      "shortName": "test ds 1",
+      "periodType": "Monthly",
+      "dataSetElements": [
+        {
+          "dataSet": {
+            "id": "dsUid0000x1"
+          },
+          "id": "DseUid000x1",
+          "dataElement": {
+            "id": "DeUid0000x1"
+          }
+        }
+      ],
+      "indicators": [
+        {
+          "id": "IndUid000x1"
+        }
+      ],
+      "sections": [
+        {
+          "id": "SectUid00x1"
+        }
+      ]
+    }
+  ]
+}

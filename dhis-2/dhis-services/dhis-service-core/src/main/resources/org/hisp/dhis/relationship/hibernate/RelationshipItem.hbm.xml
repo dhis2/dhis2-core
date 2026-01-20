@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.relationship.RelationshipItem" table="relationshipitem">
+    <class name="org.hisp.dhis.tracker.model.RelationshipItem" table="relationshipitem">
 
         <cache usage="read-write" />
 
@@ -12,21 +12,25 @@
             <generator class="native" />
         </id>
 
-        <many-to-one name="relationship" class="org.hisp.dhis.relationship.Relationship"
+        <many-to-one name="relationship" class="org.hisp.dhis.tracker.model.Relationship"
                      column="relationshipid"
                      foreign-key="fk_relationshipitem_relationshipid"
                         cascade="delete"/>
 
-        <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+        <many-to-one name="trackedEntity" class="org.hisp.dhis.tracker.model.TrackedEntity"
                      column="trackedentityid"
                      foreign-key="fk_relationshipitem_trackedentityinstanceid"/>
 
-        <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
+        <many-to-one name="enrollment" class="org.hisp.dhis.tracker.model.Enrollment"
                      column="enrollmentid"
                      foreign-key="fk_relationshipitem_programinstanceid"/>
 
-        <many-to-one name="event" class="org.hisp.dhis.program.Event"
-                     column="eventid"
-                     foreign-key="fk_relationshipitem_programstageinstanceid"/>
+        <many-to-one name="trackerEvent" class="org.hisp.dhis.tracker.model.TrackerEvent"
+                     column="trackereventid"
+                     foreign-key="fk_relationshipitem_trackereventid"/>
+
+        <many-to-one name="singleEvent" class="org.hisp.dhis.tracker.model.SingleEvent"
+                     column="singleeventid"
+                     foreign-key="fk_relationshipitem_singleeventid"/>
     </class>
 </hibernate-mapping>

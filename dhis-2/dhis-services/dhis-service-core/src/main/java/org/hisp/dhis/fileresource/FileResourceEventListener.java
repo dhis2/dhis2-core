@@ -35,12 +35,10 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.hisp.dhis.user.AuthenticationService;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
@@ -59,7 +57,7 @@ public class FileResourceEventListener {
 
   private final FileResourceContentStore fileResourceContentStore;
 
-  private final AuthenticationService authenticationService;
+  private final ImageProcessingService imageProcessingService;
 
   @TransactionalEventListener
   @Async
@@ -78,31 +76,34 @@ public class FileResourceEventListener {
     logMessage(storageId, fileResource, timeDiff);
   }
 
-  @TransactionalEventListener
+  /**
+   * Listens for an {@link ImageFileSavedEvent}. When triggered, it will create all {@link
+   * ImageFileDimension} files and save them to storage. If the {@link FileResource} cannot be found
+   * then the operation is skipped with a warning log.
+   *
+   * <p>The process occurs on a separate thread from that which published the event.
+   *
+   * @param imageFileSavedEvent image file saved event
+   */
   @Async
-  public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) throws NotFoundException {
+  @TransactionalEventListener
+  public void saveImageFile(ImageFileSavedEvent imageFileSavedEvent) {
     DateTime startTime = DateTime.now();
 
-    Map<ImageFileDimension, File> imageFiles = imageFileSavedEvent.imageFiles();
-
     FileResource fileResource =
-        fileResourceService.getFileResource(imageFileSavedEvent.fileResource());
+        fileResourceService.getFileResource(imageFileSavedEvent.fileResource().getValue());
 
-    String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, imageFiles);
-
-    if (storageId != null) {
-      fileResource.setHasMultipleStorageFiles(true);
-
-      try {
-        authenticationService.obtainAuthentication(imageFileSavedEvent.userUid());
-        fileResourceService.updateFileResource(fileResource);
-      } finally {
-        authenticationService.clearAuthentication();
-      }
+    if (fileResource == null) {
+      log.warn(
+          "Could not find file resource for {}, skip saving image files",
+          imageFileSavedEvent.fileResource());
+      return;
     }
 
+    Map<ImageFileDimension, File> imageFiles =
+        imageProcessingService.createImages(fileResource, imageFileSavedEvent.file());
+    String storageId = fileResourceContentStore.saveFileResourceContent(fileResource, imageFiles);
     Period timeDiff = new Period(startTime, DateTime.now());
-
     logMessage(storageId, fileResource, timeDiff);
   }
 

@@ -33,9 +33,9 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COL_VALUE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.OUTER_SQL_ALIAS;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
@@ -49,7 +49,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 /** Helper class to support SQL/query handling for enrollments. */
 @NoArgsConstructor(access = PRIVATE)
@@ -136,7 +136,7 @@ public class EnrollmentQueryHelper {
     if (!params.isOrganisationUnitMode(SELECTED) && !params.isOrganisationUnitMode(CHILDREN)) {
       Set<String> levels = new LinkedHashSet<>();
 
-      for (DimensionalItemObject itemObject : params.getDimensionOrFilterItems(ORGUNIT_DIM_ID)) {
+      for (DimensionalItemObject itemObject : params.getDimensionOptions(ORGUNIT_DIM_ID)) {
         String level = LEVEL_PREFIX + ((OrganisationUnit) itemObject).getLevel();
         levels.add(level);
       }
@@ -163,7 +163,7 @@ public class EnrollmentQueryHelper {
           String column =
               OUTER_SQL_ALIAS
                   + DOT
-                  + ((Period) itemObject).getPeriodType().getPeriodTypeEnum().getName();
+                  + ((PeriodDimension) itemObject).getPeriodType().getPeriodTypeEnum().getName();
           periods.add(column);
         }
       }

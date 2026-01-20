@@ -37,7 +37,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
@@ -133,6 +133,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
+  private QueryItemFilterBuilder filterBuilder;
+
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
@@ -144,11 +146,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Captor private ArgumentCaptor<String> sql;
 
   private static final String DEFAULT_COLUMNS =
-      "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
-          + "createdbydisplayname"
-          + ","
-          + "lastupdatedbydisplayname"
-          + ",lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
+      """
+      enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,\
+      lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),\
+      longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus""";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -166,6 +167,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -180,7 +182,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             config,
             sqlBuilder,
             organisationUnitResolver,
-            columnMapper);
+            columnMapper,
+            filterBuilder);
   }
 
   @Test
@@ -201,7 +204,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (((enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) ";
+            + " as ax where (((enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA') ";
 
     assertSql(sql.getValue(), expected);
     assertTrue(grid.hasLastDataRow());
@@ -223,7 +226,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (((lastupdated >= '2017-01-01' and lastupdated < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
+            + " as ax where (((lastupdated >= '2017-01-01' and lastupdated < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA') limit 10001";
 
     assertSql(sql.getValue(), expected);
   }
@@ -274,7 +277,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + subSelect
             + "  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA') "
             + "and ps = '"
             + programStage.getUid()
             + "' limit 101";
@@ -347,7 +350,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ".status\"  "
             + "from analytics_enrollment_"
             + programUid
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA') "
             + "and ps = '"
             + programStageUid
             + "' limit 101";
@@ -379,7 +382,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + subSelect
             + "  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA') "
             + "and ps = '"
             + programStage.getUid()
             + "' and "
@@ -402,7 +405,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' )"
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA')"
             + " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
 
     assertSql(sql.getValue(), expected);
@@ -459,7 +462,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + " as \"fWIAEtYVEGk\""
             + "  from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and (ax.\"uidlevel1\" = 'ouabcdefghA') "
             + "and ps = '"
             + programStage.getUid()
             + "' and "
@@ -639,7 +642,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"  "
             + "from analytics_enrollment_"
             + programA.getUid()
-            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA') limit 101";
 
     assertSql(sql.getValue(), expected);
   }
@@ -689,7 +692,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"  "
             + "from analytics_enrollment_"
             + programA.getUid()
-            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA') limit 101";
 
     assertSql(sql.getValue(), expected);
   }
@@ -764,7 +767,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"  "
             + "from analytics_enrollment_"
             + programA.getUid()
-            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA') limit 101";
 
     assertSql(sql.getValue(), expected);
   }

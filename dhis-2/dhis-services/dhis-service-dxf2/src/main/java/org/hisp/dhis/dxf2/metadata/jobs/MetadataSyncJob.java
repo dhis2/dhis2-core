@@ -46,11 +46,12 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.util.ExceptionUtils;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -99,11 +100,11 @@ public class MetadataSyncJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
+  public void execute(JobEntry config, JobProgress progress) {
     log.info("Metadata Sync cron Job started");
 
     try {
-      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
+      MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.parameters();
       retryTemplate.execute(
           retryContext -> {
             metadataRetryContext.setRetryContext(retryContext);
@@ -118,8 +119,9 @@ public class MetadataSyncJob implements Job {
             return null;
           });
     } catch (Exception e) {
+      String helpfulMessage = ExceptionUtils.getHelpfulMessage(e);
       String customMessage =
-          "Exception occurred while executing metadata sync task." + e.getMessage();
+          "Exception occurred while executing metadata sync task." + helpfulMessage;
       log.error(customMessage, e);
     }
   }
@@ -191,9 +193,10 @@ public class MetadataSyncJob implements Job {
       MetadataSyncSummary summary = metadataSyncService.doMetadataSync(syncParams);
       progress.completedStage("" + summary.getImportReport().getStatus());
       return summary;
-    } catch (MetadataSyncServiceException | DhisVersionMismatchException ex) {
-      progress.failedStage(ex);
-      context.updateRetryContext(METADATA_SYNC, ex.getMessage(), dataVersion);
+    } catch (Exception ex) {
+      String helpfulMessage = ExceptionUtils.getHelpfulMessage(ex);
+      progress.failedStage(helpfulMessage);
+      context.updateRetryContext(METADATA_SYNC, helpfulMessage, dataVersion);
       throw ex;
     }
   }

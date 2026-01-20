@@ -41,6 +41,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -272,11 +275,9 @@ public class AppController {
       throw new WebMessageException(notFound("App does not exist: " + app));
     }
 
-    if (appToDelete.isBundled()) {
-      throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
+    if (!appManager.deleteApp(appToDelete, deleteAppData)) {
+      throw new WebMessageException(badRequest("App cannot be deleted."));
     }
-
-    appManager.deleteApp(appToDelete, deleteAppData);
   }
 
   @SuppressWarnings("unchecked")
@@ -294,7 +295,8 @@ public class AppController {
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-  private String getResourcePath(String path, App app, String contextPath) {
+  private String getResourcePath(String path, App app, String contextPath)
+      throws WebMessageException {
     String resourcePath = path;
     String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
 
@@ -312,8 +314,77 @@ public class AppController {
     // that only files inside app directory can be resolved)
     resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
 
+    // Validate for path traversal attempts
+    validateResourcePath(resourcePath);
+
     log.debug("Resource path: {} => {}", path, resourcePath);
 
     return resourcePath;
+  }
+
+  /**
+   * Validates the resource path to prevent path traversal attacks.
+   *
+   * <p>This validation provides defense-in-depth against various bypass techniques including:
+   *
+   * <ul>
+   *   <li>Direct path traversal (../)
+   *   <li>Null byte injection (%00)
+   *   <li>Semicolon path parameter bypass (/..;/) - exploits Nginx/Tomcat interpretation mismatch
+   * </ul>
+   *
+   * @param resourcePath the resource path to validate
+   * @throws WebMessageException if the path contains traversal sequences or is otherwise invalid
+   */
+  private void validateResourcePath(String resourcePath) throws WebMessageException {
+    if (resourcePath == null || resourcePath.isEmpty()) {
+      return;
+    }
+
+    // Check for null bytes which could be used to bypass validation
+    if (resourcePath.contains("\0")) {
+      log.warn("Path traversal attempt detected: null byte in path");
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
+
+    // Check for path traversal sequences - this catches ".." in any form
+    if (resourcePath.contains("..")) {
+      log.warn("Path traversal attempt detected: '..' sequence in path");
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
+
+    // Check for semicolon which can be used for path parameter bypass (/..;/)
+    // Nginx treats "..;" as literal, but Tomcat interprets ";" as path parameter delimiter
+    if (resourcePath.contains(";")) {
+      log.warn("Path traversal attempt detected: semicolon in path (potential bypass)");
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
+
+    // Strip leading slashes for normalization check (in app context, leading / is relative)
+    String pathToCheck = resourcePath;
+    while (pathToCheck.startsWith("/")) {
+      pathToCheck = pathToCheck.substring(1);
+    }
+
+    // If path is empty after stripping slashes, it's valid (refers to app root)
+    if (pathToCheck.isEmpty()) {
+      return;
+    }
+
+    try {
+      // Normalize the path and verify it doesn't escape the root
+      Path normalized = Paths.get(pathToCheck).normalize();
+      String normalizedStr = normalized.toString();
+
+      // After normalization, check again for traversal (handles edge cases)
+      if (normalizedStr.contains("..") || normalizedStr.startsWith("..")) {
+        log.warn("Path traversal attempt detected after normalization");
+        throw new WebMessageException(badRequest("Invalid resource path"));
+      }
+
+    } catch (InvalidPathException e) {
+      log.warn("Invalid path format detected: {}", e.getMessage());
+      throw new WebMessageException(badRequest("Invalid resource path"));
+    }
   }
 }

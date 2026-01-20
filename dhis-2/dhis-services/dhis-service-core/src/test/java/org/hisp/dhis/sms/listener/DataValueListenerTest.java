@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,10 +53,11 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.LockStatus;
+import org.hisp.dhis.datavalue.DataEntryKey;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -124,11 +125,11 @@ class DataValueListenerTest extends TestBase {
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 
-  @Mock private DataValueService dataValueService;
+  @Mock private DataExportService dataExportService;
 
   @Mock private SMSCommandService smsCommandService;
 
-  @Mock private DataSetService dataSetService;
+  @Mock private DataEntryService dataEntryService;
 
   @Mock private DataElementService dataElementService;
 
@@ -139,8 +140,6 @@ class DataValueListenerTest extends TestBase {
   private CompleteDataSetRegistration deletedCompleteDataSetRegistration;
 
   private DataValue fetchedDataValue;
-
-  private DataValue updatedDataValue;
 
   private DataElement dataElement;
 
@@ -200,10 +199,10 @@ class DataValueListenerTest extends TestBase {
             incomingSmsService,
             smsSender,
             registrationService,
-            dataValueService,
+            dataExportService,
             dataElementCategoryService,
             smsCommandService,
-            dataSetService,
+            dataEntryService,
             dataElementService);
 
     organisationUnitA = createOrganisationUnit('O');
@@ -312,7 +311,7 @@ class DataValueListenerTest extends TestBase {
             });
   }
 
-  private void mockServices() {
+  private void mockServices() throws ConflictException {
     // Mock for registrationService
     when(registrationService.getCompleteDataSetRegistration(any(), any(), any(), any()))
         .thenReturn(fetchedCompleteDataSetRegistration);
@@ -327,15 +326,9 @@ class DataValueListenerTest extends TestBase {
         .deleteCompleteDataSetRegistration(any());
 
     // Mock for dataValueService
-    when(dataValueService.getDataValue(any(), any(), any(), any())).thenReturn(fetchedDataValue);
-
-    doAnswer(
-            invocation -> {
-              updatedDataValue = (DataValue) invocation.getArguments()[0];
-              return updatedDataValue;
-            })
-        .when(dataValueService)
-        .updateDataValue(any());
+    doReturn(fetchedDataValue.toEntry())
+        .when(dataExportService)
+        .exportValue(any(DataEntryKey.class));
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
@@ -350,10 +343,6 @@ class DataValueListenerTest extends TestBase {
 
     // Mock for smsCommandService
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
-
-    // Mock for dataSetService
-    when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
-        .thenReturn(LockStatus.OPEN);
 
     // Mock for incomingSmsService
     doAnswer(
@@ -387,7 +376,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testReceive() {
+  void testReceive() throws ConflictException {
     mockServices();
     incomingSms.setCreatedBy(user);
     subject.receive(incomingSms, UserDetails.fromUser(user));
@@ -398,7 +387,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfDataSetIsLocked() {
+  void testIfDataSetIsLocked() throws ConflictException {
     ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass(IncomingSms.class);
 
     mockSmsSender();
@@ -406,16 +395,10 @@ class DataValueListenerTest extends TestBase {
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
 
-    // Mock for dataElementCategoryService
-    when(dataElementCategoryService.getDefaultCategoryOptionCombo())
-        .thenReturn(defaultCategoryOptionCombo);
-
     // Mock for smsCommandService
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
 
     incomingSms.setUser(user);
-    when(dataSetService.getLockStatus(any(DataSet.class), any(), any(), any()))
-        .thenReturn(LockStatus.OPEN);
     subject.receive(incomingSms, UserDetails.fromUser(user));
 
     verify(smsCommandService, times(1)).getSMSCommand(anyString(), any());
@@ -426,7 +409,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfUserHasNoOu() {
+  void testIfUserHasNoOu() throws ConflictException {
     mockSmsSender();
 
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
@@ -437,11 +420,10 @@ class DataValueListenerTest extends TestBase {
 
     assertEquals(SMSCommand.NO_USER_MESSAGE, message);
     assertNull(updatedIncomingSms);
-    verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
   }
 
   @Test
-  void testIfUserHasMultipleOUs() {
+  void testIfUserHasMultipleOUs() throws ConflictException {
     mockSmsSender();
 
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
@@ -452,7 +434,6 @@ class DataValueListenerTest extends TestBase {
 
     assertEquals(SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE, message);
     assertNull(updatedIncomingSms);
-    verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
 
     keyValueCommand.setMoreThanOneOrgUnitMessage(MORE_THAN_ONE_OU);
 
@@ -463,7 +444,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfCommandHasCorrectFormat() {
+  void testIfCommandHasCorrectFormat() throws ConflictException {
     mockSmsSender();
 
     // Mock for smsCommandService
@@ -473,7 +454,6 @@ class DataValueListenerTest extends TestBase {
 
     assertEquals(message, SMSCommand.WRONG_FORMAT_MESSAGE);
     assertNull(updatedIncomingSms);
-    verify(dataSetService, never()).getLockStatus(any(DataSet.class), any(), any(), any());
 
     keyValueCommand.setWrongFormatMessage(WRONG_FORMAT);
     subject.receive(incomingSmsForCustomSeparator, UserDetails.fromUser(user));
@@ -483,7 +463,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfMandatoryParameterMissing() {
+  void testIfMandatoryParameterMissing() throws ConflictException {
     mockSmsSender();
     mockServices();
     keyValueCommand.getCodes().add(smsCodeForcompulsory);
@@ -509,7 +489,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testIfOrgUnitNotInDataSet() {
+  void testIfOrgUnitNotInDataSet() throws ConflictException {
     when(userService.getUser(anyString())).thenReturn(user);
     when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(keyValueCommand);
     doAnswer(
@@ -529,16 +509,10 @@ class DataValueListenerTest extends TestBase {
     assertNotNull(updatedIncomingSms);
     assertEquals(SmsMessageStatus.FAILED, updatedIncomingSms.getStatus());
     assertFalse(updatedIncomingSms.isParsed());
-    verify(dataSetService, times(0))
-        .getLockStatus(
-            any(DataSet.class),
-            any(Period.class),
-            any(OrganisationUnit.class),
-            any(CategoryOptionCombo.class));
   }
 
   @Test
-  void testDefaultSeparator() {
+  void testDefaultSeparator() throws ConflictException {
     mockServices();
     keyValueCommand.setSeparator(null);
     keyValueCommand.setCodeValueSeparator(null);
@@ -552,7 +526,7 @@ class DataValueListenerTest extends TestBase {
   }
 
   @Test
-  void testCustomSeparator() {
+  void testCustomSeparator() throws ConflictException {
     mockSmsSender();
     mockServices();
     keyValueCommand.setSeparator(".");

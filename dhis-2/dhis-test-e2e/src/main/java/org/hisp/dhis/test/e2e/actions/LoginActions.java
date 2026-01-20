@@ -101,7 +101,7 @@ public class LoginActions {
    *
    * @param token
    */
-  public void loginWithToken(String token) {
+  public static void loginWithToken(String token) {
     RestAssured.authentication = oauth2(token);
   }
 

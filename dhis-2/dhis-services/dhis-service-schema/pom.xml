@@ -79,11 +79,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-commons</artifactId>
+      <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-system</artifactId>
+      <artifactId>dhis-support-commons</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

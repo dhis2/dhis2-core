@@ -36,6 +36,9 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -58,12 +61,15 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -138,8 +144,14 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramIndicator indicatorF;
 
+  @Autowired private SystemSettingsService systemSettingsService;
+
   @BeforeEach
   void setUp() {
+
+    systemSettingsService.put("experimentalAnalyticsSqlEngineEnabled", false);
+    systemSettingsService.clearCurrentSettings();
+
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------
@@ -266,13 +278,13 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    Event eventA = createEvent(psA, enrollment, organisationUnit);
+    TrackerEvent eventA = createEvent(psA, enrollment, organisationUnit);
     eventA.setOccurredDate(occurredDate);
     manager.save(eventA);
-    Event eventB = createEvent(psB, enrollment, organisationUnit);
+    TrackerEvent eventB = createEvent(psB, enrollment, organisationUnit);
     eventB.setOccurredDate(occurredDate);
     manager.save(eventB);
-    Set<Event> events = new HashSet<>();
+    Set<TrackerEvent> events = new HashSet<>();
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------

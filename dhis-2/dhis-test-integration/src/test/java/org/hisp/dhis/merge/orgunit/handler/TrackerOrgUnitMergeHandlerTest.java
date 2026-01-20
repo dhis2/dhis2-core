@@ -29,19 +29,24 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -82,11 +87,11 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollmentC;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event eventB;
+  private TrackerEvent eventB;
 
-  private Event eventC;
+  private TrackerEvent eventC;
 
   @BeforeAll
   void setUp() {
@@ -121,6 +126,13 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     manager.save(eventA);
     manager.save(eventB);
     manager.save(eventC);
+
+    SingleEvent singleEventA = createSingleEvent(psA, ouA);
+    SingleEvent singleEventB = createSingleEvent(psA, ouB);
+    SingleEvent singleEventC = createSingleEvent(psA, ouA);
+    manager.save(singleEventA);
+    manager.save(singleEventB);
+    manager.save(singleEventC);
   }
 
   @Test
@@ -128,12 +140,31 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     assertEquals(2, getEnrollmentCount(ouA));
     assertEquals(1, getEnrollmentCount(ouB));
     assertEquals(0, getEnrollmentCount(ouC));
+    assertEquals(2, getTrackerEventCount(ouA));
+    assertEquals(1, getTrackerEventCount(ouB));
+    assertEquals(0, getTrackerEventCount(ouC));
     OrgUnitMergeRequest request =
         new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
     mergeHandler.mergeEnrollments(request);
     assertEquals(0, getEnrollmentCount(ouA));
     assertEquals(0, getEnrollmentCount(ouB));
     assertEquals(3, getEnrollmentCount(ouC));
+    assertEquals(0, getTrackerEventCount(ouA));
+    assertEquals(0, getTrackerEventCount(ouB));
+    assertEquals(3, getTrackerEventCount(ouC));
+  }
+
+  @Test
+  void testMigrateSingleEvents() {
+    assertEquals(2, getSingleEventCount(ouA));
+    assertEquals(1, getSingleEventCount(ouB));
+    assertEquals(0, getSingleEventCount(ouC));
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    mergeHandler.mergeSingleEvents(request);
+    assertEquals(0, getSingleEventCount(ouA));
+    assertEquals(0, getSingleEventCount(ouB));
+    assertEquals(3, getSingleEventCount(ouC));
   }
 
   /**
@@ -147,6 +178,22 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     return (Long)
         entityManager
             .createQuery("select count(*) from Enrollment en where en.organisationUnit = :target")
+            .setParameter("target", target)
+            .getSingleResult();
+  }
+
+  private long getTrackerEventCount(OrganisationUnit target) {
+    return (Long)
+        entityManager
+            .createQuery("select count(*) from TrackerEvent ev where ev.organisationUnit = :target")
+            .setParameter("target", target)
+            .getSingleResult();
+  }
+
+  private long getSingleEventCount(OrganisationUnit target) {
+    return (Long)
+        entityManager
+            .createQuery("select count(*) from SingleEvent ev where ev.organisationUnit = :target")
             .setParameter("target", target)
             .getSingleResult();
   }

@@ -79,8 +79,9 @@ public class JdbcStatisticsProvider implements StatisticsProvider {
 
     map.put(Objects.TRACKEDENTITY, approximateCount("trackedentity"));
     map.put(Objects.ENROLLMENT, approximateCount("enrollment"));
-    map.put(Objects.EVENT, approximateCount("event"));
-
+    map.put(Objects.EVENT, approximateCount("trackerevent") + approximateCount("singleevent"));
+    map.put(Objects.TRACKEREVENT, approximateCount("trackerevent"));
+    map.put(Objects.SINGLEEVENT, approximateCount("singleevent"));
     return map;
   }
 

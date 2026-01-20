@@ -47,10 +47,10 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
@@ -179,7 +179,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
     long attributeOptionComboId = Long.parseLong(parts[3]);
 
     DataSet dataSet = idObjectManager.get(DataSet.class, dataSetId);
-    Period period = idObjectManager.get(Period.class, periodId);
+    Period period = periodService.getPeriod(periodId);
     OrganisationUnit organisationUnit = idObjectManager.get(OrganisationUnit.class, orgUnitID);
     CategoryOptionCombo categoryOptionCombo =
         idObjectManager.get(CategoryOptionCombo.class, attributeOptionComboId);

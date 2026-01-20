@@ -39,6 +39,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -65,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class CompressionSMSListener extends BaseSMSListener {
   protected abstract SmsResponse postProcess(
       IncomingSms sms, SmsSubmission submission, UserDetails smsCreatedBy)
-      throws SMSProcessingException;
+      throws SMSProcessingException, ConflictException;
 
   protected abstract boolean handlesType(SubmissionType type);
 
@@ -95,7 +96,8 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy)
+      throws ConflictException {
     SmsSubmissionReader reader = new SmsSubmissionReader();
     SmsSubmissionHeader header = getHeader(sms);
     if (header == null) {

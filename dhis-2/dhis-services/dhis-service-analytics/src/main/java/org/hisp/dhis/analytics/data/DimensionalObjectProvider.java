@@ -34,6 +34,13 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_DATASET;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_PROGRAM;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT_GROUP;
@@ -43,15 +50,15 @@ import static org.hisp.dhis.analytics.DataQueryParams.KEY_DE_GROUP;
 import static org.hisp.dhis.analytics.DataQueryParams.KEY_IN_GROUP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_CLASS_ITEM_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_GROUP_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getUidFromGroupParam;
@@ -63,17 +70,10 @@ import static org.hisp.dhis.feedback.ErrorCode.E7124;
 import static org.hisp.dhis.feedback.ErrorCode.E7143;
 import static org.hisp.dhis.feedback.ErrorCode.E7611;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedChildren;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChildren;
+import static org.hisp.dhis.period.Period.ofNullable;
 import static org.hisp.dhis.period.PeriodType.getCalendar;
-import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -105,6 +105,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -119,6 +120,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DimensionalObjectProvider {
+
   private final IdentifiableObjectManager idObjectManager;
 
   private final OrganisationUnitService organisationUnitService;
@@ -191,7 +193,7 @@ public class DimensionalObjectProvider {
    * @return a period based instance of {@link BaseDimensionalObject}.
    */
   public DimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
-    List<Period> periods = new ArrayList<>();
+    List<PeriodDimension> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
     AnalyticsFinancialYearStartKey financialYearStart =
         settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
@@ -206,10 +208,10 @@ public class DimensionalObjectProvider {
         addRelativePeriods(
             dateAndField, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
       } else {
-        Period period = getPeriodFromIsoString(isoPeriodHolder.getIsoPeriod());
+        Period period = ofNullable(isoPeriodHolder.getIsoPeriod());
 
         if (period != null) {
-          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, period);
+          addDatePeriods(periods, dimensionalKeywords, isoPeriodHolder, PeriodDimension.of(period));
         } else {
           addDailyPeriods(periods, dimensionalKeywords, isoPeriodHolder);
         }
@@ -236,14 +238,14 @@ public class DimensionalObjectProvider {
    * @param isoPeriodHolder the object where the ISO period and dates will be extracted from.
    */
   private void addDailyPeriods(
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       IsoPeriodHolder isoPeriodHolder) {
-    Optional<Period> optionalPeriod = isoPeriodHolder.toDailyPeriod();
+    Optional<PeriodDimension> optionalPeriod = isoPeriodHolder.toDailyPeriod();
 
     if (optionalPeriod.isPresent()) {
       I18nFormat format = i18nManager.getI18nFormat();
-      Period periodToAdd = optionalPeriod.get();
+      PeriodDimension periodToAdd = optionalPeriod.get();
       String startDate = format.formatDate(periodToAdd.getStartDate());
       String endDate = format.formatDate(periodToAdd.getEndDate());
 
@@ -267,10 +269,10 @@ public class DimensionalObjectProvider {
    * @param period the object to be set accordingly to the given isoPeriodHolder
    */
   private void addDatePeriods(
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       IsoPeriodHolder isoPeriodHolder,
-      Period period) {
+      PeriodDimension period) {
     I18nFormat format = i18nManager.getI18nFormat();
     I18n i18n = i18nManager.getI18n();
 
@@ -282,7 +284,7 @@ public class DimensionalObjectProvider {
     dimensionalKeywords.addKeyword(
         isoPeriodHolder.getIsoPeriod(),
         format != null
-            ? i18n.getString(format.formatPeriod(period))
+            ? i18n.getString(format.formatPeriod(period.getPeriod()))
             : isoPeriodHolder.getIsoPeriod());
 
     periods.add(period);
@@ -300,7 +302,7 @@ public class DimensionalObjectProvider {
    */
   private void addRelativePeriods(
       DateField relativePeriodDate,
-      List<Period> periods,
+      List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       AnalyticsFinancialYearStartKey financialYearStart,
       IsoPeriodHolder isoPeriodHolder) {
@@ -311,7 +313,7 @@ public class DimensionalObjectProvider {
     dimensionalKeywords.addKeyword(
         isoPeriodHolder.getIsoPeriod(), i18n.getString(isoPeriodHolder.getIsoPeriod()));
 
-    List<Period> relativePeriods =
+    List<PeriodDimension> relativePeriods =
         getRelativePeriodsFromEnum(
             relativePeriod, relativePeriodDate, format, true, financialYearStart);
 
@@ -331,18 +333,18 @@ public class DimensionalObjectProvider {
    * @param periods the {@link List} of {@link Period}s to be overridden.
    * @param calendar the base calendar where the period identifier will be extracted from.
    */
-  private void overridePeriodAttributes(List<Period> periods, Calendar calendar) {
+  private void overridePeriodAttributes(List<PeriodDimension> periods, Calendar calendar) {
     I18nFormat format = i18nManager.getI18nFormat();
 
-    for (Period period : periods) {
-      String name = format != null ? format.formatPeriod(period) : null;
-      String shortName = format != null ? format.formatPeriod(period, true) : null;
+    for (PeriodDimension period : periods) {
+      String name = format != null ? format.formatPeriod(period.getPeriod()) : null;
+      String shortName = format != null ? format.formatPeriod(period.getPeriod(), true) : null;
 
       period.setName(name);
       period.setShortName(shortName);
 
       if (!calendar.isIso8601()) {
-        period.setUid(getLocalPeriodIdentifier(period, calendar));
+        period.setUid(getLocalPeriodIdentifier(period.getPeriod(), calendar));
       }
     }
   }
@@ -427,7 +429,7 @@ public class DimensionalObjectProvider {
 
   /**
    * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
-   * user organisation units.
+   * user organisation units. Levels and groups are NOT expanded by default.
    *
    * @param items the list of items that might be included into the resulting organisation unit and
    *     its keywords.
@@ -436,11 +438,49 @@ public class DimensionalObjectProvider {
    */
   public List<String> getOrgUnitDimensionUid(
       List<String> items, List<OrganisationUnit> userOrgUnits) {
-    return getOrgUnitDimensionItems(
-            items, userOrgUnits, IdScheme.UID, new ArrayList<>(), new ArrayList<>())
-        .stream()
-        .map(DimensionalItemObject::getUid)
-        .toList();
+    return getOrgUnitDimensionUid(items, userOrgUnits, false);
+  }
+
+  /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
+   *     This is needed for SQL filtering but should be false for metadata generation.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items, List<OrganisationUnit> userOrgUnits, boolean expandGroupsAndLevels) {
+    List<Integer> levels = new ArrayList<>();
+    List<OrganisationUnitGroup> groups = new ArrayList<>();
+
+    List<DimensionalItemObject> ous =
+        getOrgUnitDimensionItems(items, userOrgUnits, IdScheme.UID, levels, groups);
+
+    List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
+
+    if (expandGroupsAndLevels) {
+      List<OrganisationUnit> ousList = asTypedList(ous);
+
+      if (!levels.isEmpty()) {
+        result.addAll(
+            organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList).stream()
+                .map(OrganisationUnit::getUid)
+                .toList());
+      }
+
+      if (!groups.isEmpty()) {
+        result.addAll(
+            organisationUnitService.getOrganisationUnits(groups, ousList).stream()
+                .map(OrganisationUnit::getUid)
+                .toList());
+      }
+    }
+
+    return result.stream().distinct().toList();
   }
 
   /**

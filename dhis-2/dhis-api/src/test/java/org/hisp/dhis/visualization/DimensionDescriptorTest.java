@@ -32,10 +32,10 @@ package org.hisp.dhis.visualization;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
 
 import java.util.List;

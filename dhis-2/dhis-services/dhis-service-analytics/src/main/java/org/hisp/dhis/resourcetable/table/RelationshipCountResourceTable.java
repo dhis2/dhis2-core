@@ -94,16 +94,16 @@ public class RelationshipCountResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-                        insert into ${tableName}
-                        (trackedentityid, relationshiptypeuid, relationship_count)
-                        select te.uid as trackedentity, rt.uid, count(*) as relationship_count
-                        from relationship r
-                        join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid
-                        join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid
-                        join trackedentity te on rifrom.trackedentityid = te.trackedentityid
-                        where r.deleted is false
-                        group by te.uid, rt.uid;
-                        """,
+            insert into ${tableName}
+            (trackedentityid, relationshiptypeuid, relationship_count)
+            select te.uid as trackedentity, rt.uid, count(*) as relationship_count
+            from relationship r
+            join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid
+            join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid
+            join trackedentity te on rifrom.trackedentityid = te.trackedentityid
+            where r.deleted is false
+            group by te.uid, rt.uid;
+            """,
             "tableName",
             toStaging(TABLE_NAME));
 

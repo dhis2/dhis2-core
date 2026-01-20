@@ -37,10 +37,8 @@ package org.hisp.dhis.common.cache;
 public enum Region {
   analyticsResponse,
   defaultObjectCache,
-  isDataApproved,
   allConstantsCache,
   inUserOrgUnitHierarchy,
-  inUserSearchOrgUnitHierarchy,
   periodIdCache,
   userAccountRecoverAttempt,
   userFailedLoginAttempt,

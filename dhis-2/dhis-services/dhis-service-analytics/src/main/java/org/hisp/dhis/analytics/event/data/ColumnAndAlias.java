@@ -30,14 +30,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 import java.util.Optional;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.system.util.SqlUtils;
 
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 class ColumnAndAlias {
   public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn("");
 
@@ -45,12 +42,26 @@ class ColumnAndAlias {
 
   protected final String alias;
 
+  protected final String postfix;
+
+  protected ColumnAndAlias(String column, String alias, String postfix) {
+    this.column = column;
+    this.alias = alias;
+    this.postfix = postfix;
+  }
+
+  protected ColumnAndAlias(String column, String alias) {
+    this.column = column;
+    this.alias = alias;
+    this.postfix = null;
+  }
+
   static ColumnAndAlias ofColumn(String column) {
     return ofColumnAndAlias(column, null);
   }
 
   static ColumnAndAlias ofColumnAndAlias(String column, String alias) {
-    return new ColumnAndAlias(column, alias);
+    return new ColumnAndAlias(column, alias, null);
   }
 
   public String asSql() {
@@ -63,5 +74,13 @@ class ColumnAndAlias {
 
   public String getQuotedAlias() {
     return Optional.ofNullable(alias).map(SqlUtils::quote).orElse(null);
+  }
+
+  ColumnAndAlias withPostfix(String postfix) {
+    return new ColumnAndAlias(column, alias, postfix);
+  }
+
+  boolean hasPostfix() {
+    return StringUtils.isNotEmpty(postfix);
   }
 }

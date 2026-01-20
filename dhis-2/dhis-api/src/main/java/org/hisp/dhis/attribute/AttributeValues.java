@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.jsontree.JsonBuilder;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -54,7 +55,8 @@ import org.intellij.lang.annotations.Language;
  * @author Jan Bernitt
  * @since 2.42
  */
-public sealed interface AttributeValues extends Iterable<Map.Entry<String, String>>, Serializable
+public sealed interface AttributeValues
+    extends Iterable<Map.Entry<String, String>>, Serializable, JsonBuilder.JsonEncodable
     permits LazyAttributeValues {
 
   /**

@@ -77,9 +77,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("datavalue");
     emptyTable("completedatasetregistration");
 
-    emptyTable("pushanalysisrecipientusergroups");
-    emptyTable("pushanalysis");
-
     emptyTable("potentialduplicate");
 
     emptyTable("dashboarditem_users");
@@ -95,6 +92,7 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("report");
     emptyTable("datastatisticsevent");
+    emptyTable("datastatistics");
 
     emptyTable("visualization_yearlyseries");
     emptyTable("visualization_rows");
@@ -218,7 +216,8 @@ public class HibernateDbmsManager implements DbmsManager {
 
     emptyTable("programnotificationinstance");
     emptyTable("trackedentitydatavalueaudit");
-    emptyTable("eventchangelog");
+    emptyTable("trackereventchangelog");
+    emptyTable("singleeventchangelog");
     emptyTable("trackedentityprogramowner");
 
     emptyTable("programmessage_phonenumbers");
@@ -226,10 +225,12 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("programmessage_deliverychannels");
     emptyTable("programmessage");
 
-    emptyTable("event_notes");
+    emptyTable("trackerevent_notes");
+    emptyTable("singleevent_notes");
     emptyTable("enrollment_notes");
     emptyTable("note");
-    emptyTable("event");
+    emptyTable("singleevent");
+    emptyTable("trackerevent");
     emptyTable("enrollment");
     emptyTable("programnotificationtemplate");
     emptyTable("programstagedataelement");

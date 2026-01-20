@@ -30,7 +30,6 @@
 package org.hisp.dhis.gist;
 
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -43,14 +42,13 @@ import java.util.Locale;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -177,63 +175,16 @@ public final class GistQuery {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
-  public GistQuery with(GistParams params) throws BadRequestException {
-    int page = abs(params.getPage());
-    int size = Math.min(1000, abs(params.getPageSize()));
-    boolean tree = params.isOrgUnitsTree();
-    boolean offline = params.isOrgUnitsOffline();
-    String order = tree ? "path" : params.getOrder();
-    if (offline && (order == null || order.isEmpty())) order = "level,name";
-    String fields = offline ? "path,displayName,children::isNotEmpty" : params.getFields();
-    // ensure tree always includes path in fields
-    if (tree) {
-      if (fields == null || fields.isEmpty()) {
-        fields = "path";
-      } else if (!(fields.contains(",path,"))
-          || fields.startsWith("path,")
-          || fields.endsWith(",path")) fields += ",path";
-    }
-    return toBuilder()
-        .paging(!offline)
-        .pageSize(size)
-        .pageOffset(Math.max(0, page - 1) * size)
-        .translate(params.isTranslate())
-        .inverse(params.isInverse())
-        .total(params.isCountTotalPages())
-        .absoluteUrls(params.isAbsoluteUrls())
-        .headless(params.isHeadless())
-        .describe(params.isDescribe())
-        .references(!tree && !offline && params.isReferences())
-        .anyFilter(params.getRootJunction() == Junction.Type.OR)
-        .fields(getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList())
-        .filters(
-            getStrings(params.getFilter(), FIELD_SPLIT).stream()
-                .map(Filter::parse)
-                .collect(toList()))
-        .orders(getStrings(order, ",").stream().map(Order::parse).toList())
-        .build();
-  }
-
   private static List<String> getStrings(String value, String splitRegex) {
-    if (value == null || value.isEmpty()) {
-      return emptyList();
-    }
+    if (value == null || value.isEmpty()) return List.of();
     return asList(value.split(splitRegex));
   }
 
-  public GistQuery withOwner(Owner owner) {
-    return toBuilder().owner(owner).build();
+  public GistQuery withoutTypedAttributeValues() {
+    return toBuilder().typedAttributeValues(false).build();
   }
 
-  public GistQuery withFilter(Filter filter) {
-    return withAddedItem(filter, getFilters(), GistQueryBuilder::filters);
-  }
-
-  public GistQuery withOrder(Order order) {
-    return withAddedItem(order, getOrders(), GistQueryBuilder::orders);
-  }
-
-  public GistQuery withField(String path) {
+  public GistQuery addField(String path) {
     return withAddedItem(
         new Field(path, getDefaultTransformation()), getFields(), GistQueryBuilder::fields);
   }
@@ -382,6 +333,11 @@ public final class GistQuery {
       this(propertyPath, transformation, "", null, false, false);
     }
 
+    @Nonnull
+    public static List<Field> ofList(String fields) {
+      return getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList();
+    }
+
     @JsonProperty
     public String getName() {
       return alias.isEmpty() ? propertyPath : alias;
@@ -405,6 +361,12 @@ public final class GistQuery {
 
     public Field asAttribute() {
       return toBuilder().attribute(true).build();
+    }
+
+    public boolean isMultiPluck() {
+      return transformation == Transform.PLUCK
+          && transformationArgument != null
+          && transformationArgument.contains(",");
     }
 
     @Override
@@ -460,6 +422,11 @@ public final class GistQuery {
       throw new IllegalArgumentException("Not a valid order expression: " + order);
     }
 
+    @Nonnull
+    public static List<Order> ofList(String order) {
+      return getStrings(order, ",").stream().map(Order::parse).toList();
+    }
+
     @Override
     public String toString() {
       return propertyPath + " " + direction.name();
@@ -479,6 +446,11 @@ public final class GistQuery {
 
     public Filter(String propertyPath, Comparison operator, String... value) {
       this(0, propertyPath, operator, value, false, false);
+    }
+
+    @Nonnull
+    public static List<Filter> ofList(String filter) {
+      return getStrings(filter, FIELD_SPLIT).stream().map(Filter::parse).toList();
     }
 
     public Filter withPropertyPath(String path) {

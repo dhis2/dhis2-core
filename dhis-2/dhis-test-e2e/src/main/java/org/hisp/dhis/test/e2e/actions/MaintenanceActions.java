@@ -68,11 +68,11 @@ public class MaintenanceActions extends RestApiActions {
         super.post(new JsonObject(), new QueryParamsBuilder().addAll(queryParams));
 
     if (validate) {
-      apiResponse.validate().statusCode(204);
+      apiResponse.validate().statusCode(200);
       return;
     }
 
-    if (apiResponse.statusCode() != 204) {
+    if (apiResponse.statusCode() != 200) {
       logger.warn(
           String.format(
               "Maintenance failed with query params %s. Response: %s",

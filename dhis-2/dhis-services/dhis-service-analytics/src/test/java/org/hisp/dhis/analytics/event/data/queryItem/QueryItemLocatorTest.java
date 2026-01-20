@@ -33,8 +33,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ITEM_SEP;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOptionSet;
@@ -56,11 +56,13 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.legend.LegendSet;
@@ -413,6 +415,305 @@ class QueryItemLocatorTest {
     assertThat(queryItem.getProgramStage(), is(nullValue()));
     assertThat(queryItem.getLegendSet(), is(nullValue()));
     assertThat(queryItem.getRelationshipType(), is(relationshipType));
+  }
+
+  @Test
+  void verifyDimensionReturnsEventDateQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "EVENT_DATE",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDimensionReturnsScheduledDateQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "SCHEDULED_DATE",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDimensionReturnsEventStatusQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "EVENT_STATUS",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.TEXT));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDimensionReturnsProgramStageOrgUnitQueryItem() {
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageA.getUid() + DIMENSION_IDENTIFIER_SEP + "ou",
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OU_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.ORGANISATION_UNIT));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyEventDateWithoutProgramStageThrows() {
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension("EVENT_DATE", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
+
+  @Test
+  void verifyScheduledDateWithoutProgramStageThrows() {
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension(
+                "SCHEDULED_DATE", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
+
+  @Test
+  void verifyEventStatusWithoutProgramStageThrows() {
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension("EVENT_STATUS", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
+
+  @Test
+  void verifyOuWithoutProgramStageThrows() {
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension("ou", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
+
+  @Test
+  void verifyDimensionReturnsTrackedEntityAttributeWithLegendSet() {
+    String legendSetUid = CodeGenerator.generateUid();
+
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttribute.setUid(dimension);
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
+
+    programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
+
+    LegendSet legendSetA = createLegendSet('A');
+
+    when(attributeService.getTrackedEntityAttribute(dimension)).thenReturn(trackedEntityAttribute);
+    when(legendSetService.getLegendSet(legendSetUid)).thenReturn(legendSetA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            dimension + ITEM_SEP + legendSetUid, programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(trackedEntityAttribute));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getLegendSet(), is(legendSetA));
+    assertThat(queryItem.getValueType(), is(ValueType.TEXT));
+  }
+
+  @Test
+  void verifyDimensionReturnsTrackedEntityAttributeWithProgramStage() {
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttribute.setUid(dimension);
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
+
+    programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
+
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programA.setProgramStages(Set.of(programStageA));
+
+    when(attributeService.getTrackedEntityAttribute(dimension)).thenReturn(trackedEntityAttribute);
+    when(programStageService.getProgramStage(programStageUid)).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageUid + DIMENSION_IDENTIFIER_SEP + dimension,
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(trackedEntityAttribute));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyDataElementTakesPrecedenceOverTrackedEntityAttribute() {
+    // When both a DataElement and TrackedEntityAttribute exist with the same dimension,
+    // DataElement should be resolved first
+    DataElement dataElementA = createDataElement('A');
+    dataElementA.setUid(dimension);
+
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttribute.setUid(dimension);
+
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programStageA.setProgramStageDataElements(
+        Set.of(createProgramStageDataElement(programStageA, dataElementA, 1)));
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
+
+    programA.setProgramStages(Set.of(programStageA));
+    programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
+
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElementA);
+    // attributeService should not be called since DataElement is found first
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+
+    verifyNoMoreInteractions(attributeService);
+    verifyNoMoreInteractions(programIndicatorService);
+  }
+
+  @Test
+  void verifyTrackedEntityAttributeTakesPrecedenceOverProgramIndicator() {
+    // When both a TrackedEntityAttribute and ProgramIndicator exist,
+    // TrackedEntityAttribute should be resolved first
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttribute.setUid(dimension);
+
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
+
+    programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
+    programA.setProgramIndicators(Set.of(programIndicatorA));
+
+    when(attributeService.getTrackedEntityAttribute(dimension)).thenReturn(trackedEntityAttribute);
+    // programIndicatorService should not be called since TEA is found first
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(trackedEntityAttribute));
+
+    verifyNoMoreInteractions(programIndicatorService);
+  }
+
+  @Test
+  void verifyProgramIndicatorTakesPrecedenceOverEventDate() {
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
+
+    programA.setProgramIndicators(Set.of(programIndicatorA));
+
+    when(programIndicatorService.getProgramIndicatorByUid(dimension)).thenReturn(programIndicatorA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(programIndicatorA));
+  }
+
+  @Test
+  void verifyProgramIndicatorWithProgramStage() {
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
+
+    ProgramStage programStageA = createProgramStage('A', programA);
+
+    programA.setProgramIndicators(Set.of(programIndicatorA));
+    programA.setProgramStages(Set.of(programStageA));
+
+    when(programIndicatorService.getProgramIndicatorByUid(dimension)).thenReturn(programIndicatorA);
+    when(programStageService.getProgramStage(programStageUid)).thenReturn(programStageA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageUid + DIMENSION_IDENTIFIER_SEP + dimension,
+            programA,
+            EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(programIndicatorA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
+
+  @Test
+  void verifyInvalidProgramStageDimensionThrows() {
+    String invalidProgramStageUid = CodeGenerator.generateUid();
+
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension(
+                invalidProgramStageUid + DIMENSION_IDENTIFIER_SEP + dimension,
+                programA,
+                EventOutputType.ENROLLMENT));
+  }
+
+  @Test
+  void verifyDataElementWithOptionSet() {
+    DataElement dataElementA = createDataElement('A');
+    OptionSet optionSetA = createOptionSet('A');
+    dataElementA.setOptionSet(optionSetA);
+
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programStageA.setProgramStageDataElements(
+        Set.of(createProgramStageDataElement(programStageA, dataElementA, 1)));
+
+    programA.setProgramStages(Set.of(programStageA));
+
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElementA);
+
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getOptionSet(), is(optionSetA));
   }
 
   private RelationshipType createRelationshipType() {

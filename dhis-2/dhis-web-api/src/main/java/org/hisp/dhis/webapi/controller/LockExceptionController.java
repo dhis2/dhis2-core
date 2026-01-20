@@ -53,15 +53,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -104,8 +101,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
   @Autowired private UserService userService;
 
   @Autowired private FieldFilterService fieldFilterService;
-
-  @Autowired private I18nManager i18nManager;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -157,12 +152,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       rootNode.addChild(NodeUtils.createPager(pager));
     }
 
-    I18nFormat format = this.i18nManager.getI18nFormat();
-
-    for (LockException lockException : lockExceptions) {
-      lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
-    }
-
     rootNode.addChild(
         fieldFilterService.toCollectionNode(
             LockException.class, new FieldFilterParams(lockExceptions, fields)));
@@ -180,11 +169,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     }
 
     List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
-    I18nFormat format = this.i18nManager.getI18nFormat();
-
-    for (LockException lockException : lockExceptions) {
-      lockException.getPeriod().setName(format.formatPeriod(lockException.getPeriod()));
-    }
 
     Collections.sort(lockExceptions, new LockExceptionNameComparator());
 
@@ -206,7 +190,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
     DataSet dataSet = dataSetService.getDataSet(ds);
 
-    Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(pe));
+    Period period = periodService.reloadPeriod(Period.of(pe));
 
     if (dataSet == null || period == null) {
       return conflict(" DataSet or Period is invalid");
@@ -272,7 +256,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       throws WebMessageException, ForbiddenException {
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
-    Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
+    Period period = periodService.reloadPeriod(Period.of(periodId));
     OrganisationUnit organisationUnit =
         organisationUnitService.getOrganisationUnit(organisationUnitId);
 

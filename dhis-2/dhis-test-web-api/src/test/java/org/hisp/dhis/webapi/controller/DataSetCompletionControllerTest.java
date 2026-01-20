@@ -29,19 +29,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.feedback.ErrorCode.E7605;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private PeriodStore periodStore;
 
   private String de;
   private String ou;
@@ -53,6 +58,7 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     de = UID.generate().getValue();
     ou = UID.generate().getValue();
     ds = UID.generate().getValue();
+    periodStore.invalidateCache();
   }
 
   @Test
@@ -72,8 +78,12 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
             .as(JsonWebMessage.class);
 
     // then it should fail
+    assertEquals(409, jsonWebMessage.getHttpStatusCode());
+    assertEquals("Conflict", jsonWebMessage.getHttpStatus());
+    assertEquals("ERROR", jsonWebMessage.getStatus());
+    assertEquals(E7605, jsonWebMessage.getErrorCode());
     assertEquals(
-        "All compulsory data element operands need to be filled: [test-de-1]",
+        "All compulsory data element operands need to be filled: `test-de-1`",
         jsonWebMessage.getMessage());
 
     // and complete dataset reg should be empty
@@ -93,13 +103,15 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     POST("/metadata", metadata(compulsoryElementsAreRequired, withCompulsoryElements()))
         .content(HttpStatus.OK);
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
+    switchContextToUser(userService.getUser(ADMIN_USER_UID));
 
     // and data exists for the compulsory data element
     POST("dataValueSets", dataValue()).content(HttpStatus.OK);
 
     // when trying to complete the data set that has missing compulsory data, it should succeed
-    assertEquals(
-        HttpStatus.OK, POST("/dataEntry/dataSetCompletion", completeDataSetReg()).status());
+    POST("/dataEntry/dataSetCompletion", completeDataSetReg())
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
@@ -127,8 +139,9 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
 
     // when trying to complete the data set that has missing compulsory data, it should succeed
-    assertEquals(
-        HttpStatus.OK, POST("/dataEntry/dataSetCompletion", completeDataSetReg()).status());
+    POST("/dataEntry/dataSetCompletion", completeDataSetReg())
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
     // and complete dataset reg should be present
     JsonMixed cdsr =
@@ -153,8 +166,9 @@ class DataSetCompletionControllerTest extends PostgresControllerIntegrationTestB
     PATCH("/users/%s".formatted(ADMIN_USER_UID), addOrgUnit());
 
     // when trying to complete the data set with no compulsory data, it should succeed
-    assertEquals(
-        HttpStatus.OK, POST("/dataEntry/dataSetCompletion", completeDataSetReg()).status());
+    POST("/dataEntry/dataSetCompletion", completeDataSetReg())
+        .content(HttpStatus.OK)
+        .as(JsonWebMessage.class);
 
     // and complete dataset reg should have 1 entry
     JsonMixed cdsr =

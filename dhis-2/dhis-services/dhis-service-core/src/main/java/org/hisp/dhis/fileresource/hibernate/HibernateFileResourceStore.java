@@ -49,6 +49,7 @@ import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
 import org.joda.time.DateTime;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -69,21 +70,22 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<FileResource> getExpiredFileResources(DateTime expires) {
+  public List<FileResource> getExpiredDataValueFileResources(
+      DateTime retentionPeriod, DateTime gracePeriod) {
+    @Language("SQL")
     String sql =
         """
         select fr.*
         from fileresource fr
-        inner join (select dva.value
-        from datavalueaudit dva
-        where dva.created < :date
-        and dva.audittype in ('DELETE', 'UPDATE')
-        and dva.dataelementid in
-        (select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva
-        on dva.value = fr.uid
-        where fr.isassigned = true;
+        where fr.isassigned = false
+        and fr.domain = 'DATA_VALUE'
+        and fr.lastupdated < :gracePeriod
+        and fr.lastupdated < :retentionPeriod
         """;
-    return nativeSynchronizedTypedQuery(sql).setParameter("date", expires.toDate()).getResultList();
+    return nativeSynchronizedTypedQuery(sql)
+        .setParameter("gracePeriod", gracePeriod.toDate())
+        .setParameter("retentionPeriod", retentionPeriod.toDate())
+        .getResultList();
   }
 
   @Override
@@ -194,5 +196,39 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
                     ((Number) col[2]).longValue(),
                     (String) col[3]))
         .collect(Collectors.toUnmodifiableList());
+  }
+
+  @Override
+  public List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig() {
+    @Language("SQL")
+    String sql =
+        """
+        select * from fileresource fr
+        where fr.isassigned = false
+        and fr.domain = 'JOB_DATA'
+        and fr.uid not in (select uid from jobconfiguration where schedulingtype = 'ONCE_ASAP')
+        """;
+
+    return nativeSynchronizedTypedQuery(sql).list();
+  }
+
+  @Override
+  public List<FileResource> getUnassignedPassedGracePeriod(
+      Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime gracePeriod) {
+    @Language("SQL")
+    String sql =
+        """
+        select fr.*
+        from fileresource fr
+        where fr.isassigned = false
+        and fr.domain in :domainsToDeleteWhenUnassigned
+        and fr.lastupdated < :gracePeriod
+        """;
+    return nativeSynchronizedTypedQuery(sql)
+        .setParameter("gracePeriod", gracePeriod.toDate())
+        .setParameter(
+            "domainsToDeleteWhenUnassigned",
+            domainsToDeleteWhenUnassigned.stream().map(Enum::name).toList())
+        .getResultList();
   }
 }

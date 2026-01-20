@@ -98,7 +98,7 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.xml.zip\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
@@ -125,14 +125,14 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.adx.xml.zip\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
     // And when unzipping it has the expected values
     String xmlString =
         mapZipEntryToStringContent(zipPayload.body().asByteArray())
-            .get("dataValues_2024-01-01_2050-01-30.xml");
+            .get("dataValues_2024-01-01_2050-01-30.adx.xml");
 
     assertTrue(xmlString.contains("adx"), "unzipped value should contain 'adx'");
   }
@@ -151,7 +151,7 @@ class DataValueSetTest extends ApiTest {
 
     // Then the expected headers & values are present
     assertEquals(
-        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.gz",
+        "attachment; filename=\"dataValues_2024-01-01_2050-01-30.xml.gz\"",
         zipPayload.getHeader("Content-Disposition"));
     assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
 
@@ -167,7 +167,7 @@ class DataValueSetTest extends ApiTest {
         .post(dataValueSetImport(), getDataValueQueryParams("NEW_AND_UPDATES"))
         .validateStatus(200)
         .validate()
-        .body("response.importCount.imported", equalTo(1));
+        .body("response.importCount.updated", equalTo(1));
   }
 
   private QueryParamsBuilder getDataValueQueryParams(String importStrategy) {
@@ -251,11 +251,12 @@ class DataValueSetTest extends ApiTest {
                                   "id": "%s"
                               }
                           }
-                      ]
+                      ],
+                      "organisationUnits": [{"id":"%s"}]
                   }
               ]
           }
           """
-        .formatted(ORG_UNIT_UID, DATA_ELEMENT_UID, DATA_SET_UID, DATA_ELEMENT_UID);
+        .formatted(ORG_UNIT_UID, DATA_ELEMENT_UID, DATA_SET_UID, DATA_ELEMENT_UID, ORG_UNIT_UID);
   }
 }

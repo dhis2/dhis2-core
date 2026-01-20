@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,17 +40,17 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -66,7 +67,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
   @Autowired TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
   private User importUser;
 
-  private Event event;
+  private TrackerEvent event;
 
   private Enrollment enrollment;
 
@@ -99,6 +100,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         .getSharing()
         .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
     manager.save(programStage, false);
+    program.getProgramStages().add(programStage);
 
     TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.setTrackedEntityType(trackedEntityType);
@@ -226,8 +228,13 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     assertEquals(noteUid.getValue(), note.getNote());
   }
 
-  private Event event(Enrollment enrollment, ProgramStage programStage, CategoryOptionCombo coc) {
-    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(
+      Enrollment enrollment, ProgramStage programStage, CategoryOptionCombo coc) {
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollment);
+    eventA.setProgramStage(programStage);
+    eventA.setOrganisationUnit(enrollment.getOrganisationUnit());
+    eventA.setAttributeOptionCombo(coc);
     eventA.setAutoFields();
     manager.save(eventA);
     return eventA;

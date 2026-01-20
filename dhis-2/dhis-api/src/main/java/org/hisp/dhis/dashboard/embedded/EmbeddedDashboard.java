@@ -37,7 +37,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Encapsulates metadata for an embedded and externally provided dashboard.
+ * Encapsulates metadata for an embedded and externally provided dashboard. An embedded dashboard is
+ * typically loaded from an external provider.
  *
  * @author Lars Helge Overland
  */
@@ -54,4 +55,7 @@ public class EmbeddedDashboard implements Serializable {
 
   /** Customization options for embedded dashboard. */
   @JsonProperty private EmbeddedOptions options;
+
+  /** Security options for embedded dashboard. */
+  @JsonProperty private EmbeddedSecurity security;
 }

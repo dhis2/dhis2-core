@@ -36,11 +36,11 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.fieldfiltering.Fields;
+import org.hisp.dhis.tracker.export.fieldfiltering.FieldsParser;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
@@ -51,6 +51,7 @@ import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 public class RelationshipRequestParams implements PageRequestParams, FieldsRequestParam {
   static final String DEFAULT_FIELDS_PARAM =
       "relationship,relationshipType,createdAtClient,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+  static final Fields DEFAULT_FIELDS_PARAM_PARSED = FieldsParser.parse(DEFAULT_FIELDS_PARAM);
 
   @OpenApi.Description(
 """
@@ -92,11 +93,11 @@ will take more time to return.**
   @OpenApi.Property({UID.class, Enrollment.class})
   private UID enrollment;
 
-  @OpenApi.Property({UID.class, Event.class})
+  @OpenApi.Property({UID.class, TrackerEvent.class})
   private UID event;
 
   @OpenApi.Property(value = String[].class)
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+  private Fields fields = DEFAULT_FIELDS_PARAM_PARSED;
 
   private boolean includeDeleted;
 }

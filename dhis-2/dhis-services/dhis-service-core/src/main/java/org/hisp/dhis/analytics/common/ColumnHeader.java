@@ -34,6 +34,7 @@ public enum ColumnHeader {
   TRACKED_ENTITY("tei", "Tracked entity"),
   ENROLLMENT("pi", "Enrollment"),
   GEOMETRY("geometry", "Geometry"),
+  ENROLLMENT_GEOMETRY("enrollmentgeometry", "Enrollment geometry"),
   ENROLLMENT_DATE("enrollmentdate", "Enrollment date"),
   /**
    * @deprecated use @Link{#OCCURRED_DATE} instead.

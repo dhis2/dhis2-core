@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -52,6 +53,13 @@ public interface JsonImportSummary extends JsonObject {
 
   default JsonList<JsonTypeReport> getTypeReports() {
     return getList("typeReports", JsonTypeReport.class);
+  }
+
+  default <T extends IdentifiableObject> JsonTypeReport getTypeReport(Class<T> clazz) {
+    return getList("typeReports", JsonTypeReport.class).stream()
+        .filter(tr -> tr.getString("klass").string().equals(clazz.getName()))
+        .findFirst()
+        .orElse(null);
   }
 
   default JsonImportCount getImportCount() {

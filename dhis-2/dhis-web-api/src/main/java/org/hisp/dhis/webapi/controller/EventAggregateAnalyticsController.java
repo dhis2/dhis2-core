@@ -64,10 +64,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
@@ -83,7 +83,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @OpenApi.Document(
-    entity = Event.class,
+    entity = TrackerEvent.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @AllArgsConstructor

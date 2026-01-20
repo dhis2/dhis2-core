@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
 import java.util.HashMap;

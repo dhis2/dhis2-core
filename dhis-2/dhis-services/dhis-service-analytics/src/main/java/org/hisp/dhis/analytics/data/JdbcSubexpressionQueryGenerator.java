@@ -48,8 +48,8 @@ import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.REPORT
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.SHIFT;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getParamsWithOffsetPeriodsWithoutData;
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.collection.CollectionUtils.addUnique;
 import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
@@ -297,7 +297,7 @@ public class JdbcSubexpressionQueryGenerator {
     if (periodType != null) {
       DimensionalObject periodDim =
           new BaseDimensionalObject(
-              DimensionalObject.PERIOD_DIM_ID,
+              PERIOD_DIM_ID,
               DimensionType.PERIOD,
               periodType.toLowerCase(),
               null,

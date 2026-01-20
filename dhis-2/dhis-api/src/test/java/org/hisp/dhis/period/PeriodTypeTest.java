@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.util.List;
 import org.hisp.dhis.calendar.Calendar;
@@ -66,13 +67,21 @@ class PeriodTypeTest {
     assertEquals(PeriodType.getPeriodTypeFromIsoString("2011April").getName(), "FinancialApril");
     assertEquals(PeriodType.getPeriodTypeFromIsoString("2011July").getName(), "FinancialJuly");
     assertEquals(PeriodType.getPeriodTypeFromIsoString("2011Oct").getName(), "FinancialOct");
-    assertNull(PeriodType.getPeriodTypeFromIsoString("201"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("20111"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("201W2"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("2011Q12"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("2011W234"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("201er2345566"));
-    assertNull(PeriodType.getPeriodTypeFromIsoString("2011Q10"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("201"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("20111"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("201W2"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("2011Q12"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("2011W234"));
+    assertThrowsExactly(
+        IllegalArgumentException.class,
+        () -> PeriodType.getPeriodTypeFromIsoString("201er2345566"));
+    assertThrowsExactly(
+        IllegalArgumentException.class, () -> PeriodType.getPeriodTypeFromIsoString("2011Q10"));
   }
 
   @Test
@@ -93,10 +102,10 @@ class PeriodTypeTest {
   @Test
   void testGetPeriodTypePeriods() {
     Calendar calendar = PeriodType.getCalendar();
-    Period jan2018 = PeriodType.getPeriodFromIsoString("201801");
-    Period q12018 = PeriodType.getPeriodFromIsoString("2018Q1");
-    Period y2018 = PeriodType.getPeriodFromIsoString("2018");
-    Period fyApril2018 = PeriodType.getPeriodFromIsoString("2018April");
+    Period jan2018 = Period.of("201801");
+    Period q12018 = Period.of("2018Q1");
+    Period y2018 = Period.of("2018");
+    Period fyApril2018 = Period.of("2018April");
     int inxMonthly = PeriodType.PERIOD_TYPES.indexOf(new MonthlyPeriodType());
     int inxQuarterly = PeriodType.PERIOD_TYPES.indexOf(new QuarterlyPeriodType());
     int inxYearly = PeriodType.PERIOD_TYPES.indexOf(new YearlyPeriodType());
@@ -131,8 +140,8 @@ class PeriodTypeTest {
 
   @Test
   void testGetShiftedPeriod() {
-    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period sep2022 = PeriodType.getPeriodFromIsoString("202209");
+    Period aug2022 = Period.of("202208");
+    Period sep2022 = Period.of("202209");
     PeriodType monthly = aug2022.getPeriodType();
 
     assertEquals(aug2022, monthly.getShiftedPeriod(aug2022, 0));
@@ -142,8 +151,8 @@ class PeriodTypeTest {
 
   @Test
   void testGetNextPeriod() {
-    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period sep2022 = PeriodType.getPeriodFromIsoString("202209");
+    Period aug2022 = Period.of("202208");
+    Period sep2022 = Period.of("202209");
     PeriodType monthly = aug2022.getPeriodType();
 
     assertEquals(sep2022, monthly.getNextPeriod(aug2022));
@@ -153,8 +162,8 @@ class PeriodTypeTest {
 
   @Test
   void testGetPreviousPeriod() {
-    Period aug2022 = PeriodType.getPeriodFromIsoString("202208");
-    Period sep2022 = PeriodType.getPeriodFromIsoString("202209");
+    Period aug2022 = Period.of("202208");
+    Period sep2022 = Period.of("202209");
     PeriodType monthly = aug2022.getPeriodType();
 
     assertEquals(aug2022, monthly.getPreviousPeriod(sep2022));

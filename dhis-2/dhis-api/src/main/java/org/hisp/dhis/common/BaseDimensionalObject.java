@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asBaseObjects;
 import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 
@@ -312,7 +313,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
     String filterItems = filter.substring(opLen, filter.length());
 
-    return new ArrayList<>(Arrays.asList(filterItems.split(DimensionalObject.OPTION_SEP)));
+    return new ArrayList<>(Arrays.asList(filterItems.split(OPTION_SEP)));
   }
 
   @Override

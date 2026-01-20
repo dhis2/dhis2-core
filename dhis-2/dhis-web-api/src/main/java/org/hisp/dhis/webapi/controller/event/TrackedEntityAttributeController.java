@@ -39,12 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.hisp.dhis.common.IdentifiableObject;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -56,7 +56,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,29 +70,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/trackedEntityAttributes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+@RequiredArgsConstructor
 public class TrackedEntityAttributeController
-    extends AbstractCrudController<
-        TrackedEntityAttribute,
-        TrackedEntityAttributeController.GetTrackedEntityAttributeObjectListParams> {
+    extends AbstractCrudController<TrackedEntityAttribute, GetObjectListParams> {
 
-  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired private TextPatternService textPatternService;
-
-  @Autowired private ReservedValueService reservedValueService;
-
-  @Autowired private ContextService context;
-
-  @Data
-  @EqualsAndHashCode(callSuper = true)
-  public static final class GetTrackedEntityAttributeObjectListParams extends GetObjectListParams {
-    @OpenApi.Description(
-        """
-      Limits the results to searchable attributes of type `TEXT`, `LONG_TEXT`, `PHONE_NUMBER`, `EMAIL`, `USERNAME`, `URL`
-      as well as unique attributes. Can be combined with further `filter`s.
-      """)
-    boolean indexableOnly;
-  }
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
+  private final TextPatternService textPatternService;
+  private final ReservedValueService reservedValueService;
+  private final ContextService context;
 
   @GetMapping(
       value = "/{id}/generateAndReserve",
@@ -189,28 +173,6 @@ public class TrackedEntityAttributeController
     return result;
   }
 
-  @Override
-  protected void addProgrammaticModifiers(GetTrackedEntityAttributeObjectListParams params) {
-    if (!params.isIndexableOnly()) return;
-
-    List<String> filters = params.getFilters();
-    if (filters != null && filters.stream().anyMatch(f -> f.startsWith("id:"))) {
-      throw new IllegalArgumentException(
-          "indexableOnly parameter cannot be set if a separate filter for id is specified");
-    }
-
-    Set<TrackedEntityAttribute> indexableTeas =
-        trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
-
-    String filter =
-        "id:in:"
-            + indexableTeas.stream()
-                .map(IdentifiableObject::getUid)
-                .collect(Collectors.joining(",", "[", "]"));
-
-    params.addFilter(filter);
-  }
-
   private TrackedEntityAttribute getTrackedEntityAttribute(String id) throws WebMessageException {
     TrackedEntityAttribute trackedEntityAttribute =
         trackedEntityAttributeService.getTrackedEntityAttribute(id);
@@ -224,5 +186,31 @@ public class TrackedEntityAttributeController
     }
 
     return trackedEntityAttribute;
+  }
+
+  @Override
+  protected void postProcessResponseEntities(
+      List<TrackedEntityAttribute> entityList, GetObjectListParams params) {
+    List<String> fields = params.getFieldsJsonList();
+
+    if (fields.contains("*") || fields.contains("trigramIndexed")) {
+      Set<UID> indexedAttributeUids =
+          trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      entityList.forEach(
+          tea -> tea.setTrigramIndexed(indexedAttributeUids.contains(UID.of(tea.getUid()))));
+    }
+  }
+
+  @Override
+  protected void postProcessResponseEntity(TrackedEntityAttribute entity, GetObjectParams params) {
+    List<String> fields = params.getFieldsJsonList();
+
+    if (fields.contains("*") || fields.contains("trigramIndexed")) {
+      Set<UID> indexedAttributeUids =
+          trackedEntityAttributeService.getAllTrigramIndexedTrackedEntityAttributes();
+
+      entity.setTrigramIndexed(indexedAttributeUids.contains(UID.of(entity.getUid())));
+    }
   }
 }

@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.getSms;
@@ -50,13 +51,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
@@ -69,10 +67,13 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.AfterEach;
@@ -109,8 +110,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   private TrackedEntityType trackedEntityType;
 
-  private Event event1;
-  private Event event2;
+  private TrackerEvent event1;
+  private TrackerEvent event2;
   private RelationshipType relType;
 
   @BeforeEach
@@ -206,8 +207,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
                   UID.of(relationshipUid), RelationshipFields.all());
           assertAll(
               () -> assertEquals(relationshipUid, relationship.getUid()),
-              () -> assertEquals(event1, relationship.getFrom().getEvent()),
-              () -> assertEquals(event2, relationship.getTo().getEvent()));
+              () -> assertEquals(event1, relationship.getFrom().getTrackerEvent()),
+              () -> assertEquals(event2, relationship.getTo().getTrackerEvent()));
         });
   }
 
@@ -291,8 +292,12 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
     return enrollment;
   }
 
-  private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(Enrollment enrollment) {
+    TrackerEvent event = new TrackerEvent();
+    event.setEnrollment(enrollment);
+    event.setProgramStage(programStage);
+    event.setOrganisationUnit(enrollment.getOrganisationUnit());
+    event.setAttributeOptionCombo(coc);
     event.setAutoFields();
     manager.save(event);
     return event;

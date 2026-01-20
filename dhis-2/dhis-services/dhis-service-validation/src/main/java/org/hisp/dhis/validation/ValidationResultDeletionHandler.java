@@ -34,7 +34,6 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
@@ -52,7 +51,6 @@ public class ValidationResultDeletionHandler extends DeletionHandler {
   @Override
   protected void register() {
     whenDeleting(ValidationRule.class, this::deleteValidationRule);
-    whenDeleting(Period.class, this::deletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
     whenVetoing(ValidationRule.class, this::allowDeleteValidationRule);
@@ -64,17 +62,6 @@ public class ValidationResultDeletionHandler extends DeletionHandler {
         .forEach(
             validationResult -> {
               if (validationResult.getValidationRule().equals(validationRule)) {
-                validationResultService.deleteValidationResult(validationResult);
-              }
-            });
-  }
-
-  private void deletePeriod(Period period) {
-    validationResultService
-        .getAllValidationResults()
-        .forEach(
-            validationResult -> {
-              if (validationResult.getPeriod().equals(period)) {
                 validationResultService.deleteValidationResult(validationResult);
               }
             });

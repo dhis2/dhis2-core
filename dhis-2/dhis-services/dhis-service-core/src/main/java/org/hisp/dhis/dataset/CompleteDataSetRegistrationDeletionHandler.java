@@ -33,7 +33,6 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -51,20 +50,12 @@ public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHand
   @Override
   protected void register() {
     whenDeleting(DataSet.class, this::deleteDataSet);
-    whenVetoing(Period.class, this::allowDeletePeriod);
     whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
     whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
   }
 
   private void deleteDataSet(DataSet dataSet) {
     completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(dataSet);
-  }
-
-  private DeletionVeto allowDeletePeriod(Period period) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from completedatasetregistration where periodid= :id limit 1",
-        Map.of("id", period.getId()));
   }
 
   private void deleteOrganisationUnit(OrganisationUnit unit) {

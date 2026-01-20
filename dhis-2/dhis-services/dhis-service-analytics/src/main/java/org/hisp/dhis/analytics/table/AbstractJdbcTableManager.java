@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -46,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -68,6 +70,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Collation;
@@ -139,6 +142,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected final PeriodDataProvider periodDataProvider;
 
   protected final SqlBuilder sqlBuilder;
+
+  private final ConfigurationService configurationService;
 
   /**
    * Encapsulates the SQL logic to get the correct date column based on the event status. If new
@@ -457,6 +462,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected Map<String, String> toVariableMap(IdentifiableObject object) {
     return Map.of(
+        "teavaluetable", qualifyWithDb("trackedentityattributevalue"),
         "id", String.valueOf(object.getId()),
         "uid", quote(object.getUid()));
   }
@@ -477,9 +483,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
       return columns;
     }
 
-    return columns.stream()
-        .filter(c -> c.getCreated() == null || c.getCreated().before(lastResourceTableUpdate))
-        .collect(Collectors.toList());
+    List<AnalyticsTableColumn> filteredColumns = new ArrayList<>();
+
+    for (AnalyticsTableColumn c : columns) {
+      if (c.getCreated() == null || c.getCreated().before(lastResourceTableUpdate)) {
+        filteredColumns.add(c);
+      }
+    }
+
+    return filteredColumns;
   }
 
   /**
@@ -489,7 +501,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return a List of {@link AnalyticsTableColumn}
    */
   protected List<AnalyticsTableColumn> getPeriodTypeColumns(String prefix) {
-    return PeriodType.getAvailablePeriodTypes().stream()
+    Set<PeriodType> periodTypes =
+        configurationService.getConfiguration().getDataOutputPeriodTypes();
+
+    return periodTypes.stream()
         .map(
             pt -> {
               String name = pt.getName().toLowerCase();
@@ -715,6 +730,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String quotedCommaDelimitedString(Collection<String> items) {
     return sqlBuilder.singleQuotedCommaDelimited(items);
+  }
+
+  /**
+   * Qualifies the given table name with the database name if any is configured.
+   *
+   * @param tableName the table name.
+   * @return the qualified table name.
+   */
+  protected String qualifyWithDb(String tableName) {
+    String database = sqlBuilder.getDatabaseName();
+    if (StringUtils.isNotEmpty(database)) {
+      return database + "." + tableName;
+    }
+    return tableName;
   }
 
   // -------------------------------------------------------------------------

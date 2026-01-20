@@ -203,11 +203,6 @@ public class FileResourceUtils {
     }
   }
 
-  public FileResource saveFileResource(MultipartFile file, FileResourceDomain domain)
-      throws IOException, ConflictException {
-    return saveFileResource(null, file, domain);
-  }
-
   public FileResource saveFileResource(String uid, MultipartFile file, FileResourceDomain domain)
       throws IOException, ConflictException {
     String filename =
@@ -308,7 +303,11 @@ public class FileResourceUtils {
           resize(
               ImageIO.read(multipartFile.getInputStream()), resizeMode, targetWidth, targetHeight);
 
-      tmpFile = Files.createTempFile("org.hisp.dhis", ".tmp").toFile();
+      tmpFile =
+          Files.createTempFile(
+                  "org.hisp.dhis",
+                  "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename()))
+              .toFile();
 
       ImageIO.write(
           resizedImage,
@@ -350,7 +349,8 @@ public class FileResourceUtils {
         multipartFile, AVATAR_TARGET_WIDTH, AVATAR_TARGET_HEIGHT, Mode.AUTOMATIC);
   }
 
-  public MultipartFile resizeOrgToDefaultSize(MultipartFile multipartFile) throws IOException {
+  public static MultipartFile resizeOrgToDefaultSize(MultipartFile multipartFile)
+      throws IOException {
     return resizeImageToCustomSize(
         multipartFile, ORGUNIT_TARGET_WIDTH, ORGUNIT_TARGET_HEIGHT, Mode.AUTOMATIC);
   }

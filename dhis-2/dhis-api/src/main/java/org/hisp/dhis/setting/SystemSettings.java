@@ -437,12 +437,12 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("keyDataImportStrictPeriods", false);
   }
 
-  default boolean getDataImportStrictDataElements() {
-    return asBoolean("keyDataImportStrictDataElements", false);
-  }
-
-  default boolean getDataImportStrictCategoryOptionCombos() {
-    return asBoolean("keyDataImportStrictCategoryOptionCombos", false);
+  /**
+   * @since 2.43
+   * @return true, when input groups without DS should be split into groups by DS
+   */
+  default boolean getDataEntryAutoGroup() {
+    return asBoolean("dataEntryAutoGroup", false);
   }
 
   default boolean getDataImportStrictOrganisationUnits() {
@@ -453,24 +453,8 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("keyDataImportStrictAttributeOptionCombos", false);
   }
 
-  default boolean getDataImportRequireCategoryOptionCombo() {
-    return asBoolean("keyDataImportRequireCategoryOptionCombo", false);
-  }
-
   default boolean getDataImportRequireAttributeOptionCombo() {
     return asBoolean("keyDataImportRequireAttributeOptionCombo", false);
-  }
-
-  default boolean getDataImportStrictDataSetApproval() {
-    return asBoolean("keyDataImportStrictDataSetApproval", true);
-  }
-
-  default boolean getDataImportStrictDataSetLocking() {
-    return asBoolean("keyDataImportStrictDataSetLocking", true);
-  }
-
-  default boolean getDataImportStrictDataSetInputPeriods() {
-    return asBoolean("keyDataImportStrictDataSetInputPeriods", true);
   }
 
   default String getCustomJs() {
@@ -512,6 +496,10 @@ public non-sealed interface SystemSettings extends Settings {
 
   default String getBingMapsApiKey() {
     return asString("keyBingMapsApiKey", "");
+  }
+
+  default String getAzureMapsApiKey() {
+    return asString("keyAzureMapsApiKey", "");
   }
 
   default Date getLastMetaDataSyncSuccess() {
@@ -796,7 +784,7 @@ public non-sealed interface SystemSettings extends Settings {
    *     This engine is only required when using ClickHouse or Doris as the analytics database.
    */
   default boolean getUseExperimentalAnalyticsQueryEngine() {
-    return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
+    return asBoolean("experimentalAnalyticsSqlEngineEnabled", true);
   }
 
   /**
@@ -824,5 +812,31 @@ public non-sealed interface SystemSettings extends Settings {
   default boolean isHideUnapprovedDataInAnalytics() {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of redirect urls that are allowed in device client enrollment and registration,
+   *     delimited by comma. Default is empty string which means all redirect urls are allowed.
+   */
+  default String getDeviceEnrollmentRedirectAllowlist() {
+    return asString("deviceEnrollmentRedirectAllowlist", "dhis2oauth://oauth");
+  }
+
+  /**
+   * @since 2.42
+   * @return a set of user groups (by name) that are allowed to enroll devices, delimited by comma.
+   *     Default is empty string which means all users can enroll devices.
+   */
+  default String getDeviceEnrollmentAllowedUserGroups() {
+    return asString("deviceEnrollmentAllowedUserGroups", "");
+  }
+
+  /**
+   * @since 2.42
+   * @return the time to live in seconds for the device enrollment IAT (issued at) claim.
+   */
+  default int getDeviceEnrollmentIATTtlSeconds() {
+    return asInt("deviceEnrollmentIATTtlSeconds", 60);
   }
 }

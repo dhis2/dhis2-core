@@ -182,6 +182,13 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   private Set<ProgramRuleActionEvaluationEnvironment> programRuleActionEvaluationEnvironments =
       ProgramRuleActionEvaluationEnvironment.getDefault();
 
+  /**
+   * The priority of the program rule action within the rule. The lower the priority, the earlier
+   * the action is run. Null means that the action is run last (together with all other actions with
+   * a null priority)
+   */
+  private Integer priority;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -448,6 +455,16 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   public void setOptionGroup(OptionGroup optionGroup) {
     this.optionGroup = optionGroup;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Integer getPriority() {
+    return priority;
+  }
+
+  public void setPriority(Integer priority) {
+    this.priority = priority;
   }
 
   @JsonProperty

@@ -47,13 +47,13 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -302,7 +302,7 @@ public class VisualizationDataController {
       @RequestParam(defaultValue = "525", required = false) int width,
       @RequestParam(defaultValue = "300", required = false) int height,
       HttpServletResponse response)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ConflictException {
     DataElement dataElement = dataElementService.getDataElement(de);
 
     if (dataElement == null) {
@@ -321,11 +321,7 @@ public class VisualizationDataController {
       throw new WebMessageException(conflict("Category option combo does not exist: " + cp));
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(pe);
-
-    if (period == null) {
-      throw new WebMessageException(conflict("Period does not exist: " + pe));
-    }
+    Period period = Period.of(pe);
 
     OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
 

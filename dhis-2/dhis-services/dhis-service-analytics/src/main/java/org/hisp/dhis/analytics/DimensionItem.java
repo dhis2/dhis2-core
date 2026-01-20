@@ -29,13 +29,14 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 
 /**
@@ -121,7 +122,7 @@ public class DimensionItem implements Serializable {
   public static DimensionalItemObject getPeriodItem(List<DimensionItem> items) {
     if (items != null && !items.isEmpty()) {
       for (DimensionItem item : items) {
-        if (DimensionalObject.PERIOD_DIM_ID.equals(item.getDimension())) {
+        if (PERIOD_DIM_ID.equals(item.getDimension())) {
           return item.getItem();
         }
       }
@@ -137,7 +138,7 @@ public class DimensionItem implements Serializable {
   public static DimensionalItemObject getOrganisationUnitItem(List<DimensionItem> items) {
     if (items != null && !items.isEmpty()) {
       for (DimensionItem item : items) {
-        if (DimensionalObject.ORGUNIT_DIM_ID.equals(item.getDimension())) {
+        if (ORGUNIT_DIM_ID.equals(item.getDimension())) {
           return item.getItem();
         }
       }

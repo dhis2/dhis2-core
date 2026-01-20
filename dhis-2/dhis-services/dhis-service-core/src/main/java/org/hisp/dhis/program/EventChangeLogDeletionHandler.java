@@ -49,6 +49,10 @@ public class EventChangeLogDeletionHandler extends JdbcDeletionHandler {
 
   private void deleteDataElement(DataElement dataElement) {
     delete(
-        "delete from eventchangelog where dataelementid = :id", Map.of("id", dataElement.getId()));
+        "delete from trackereventchangelog where dataelementid = :id",
+        Map.of("id", dataElement.getId()));
+    delete(
+        "delete from singleeventchangelog where dataelementid = :id",
+        Map.of("id", dataElement.getId()));
   }
 }

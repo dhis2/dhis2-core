@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.query.planner;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -78,18 +82,51 @@ public class DefaultQueryPlanner implements QueryPlanner {
     query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
   }
 
+  private <T extends IdentifiableObject> void categorizeAliasedFilters(
+      Query<T> query,
+      Filter filter,
+      Query<T> dbQuery,
+      List<Filter> aliasedDbFilters,
+      Set<String> distinctRootAliases) {
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    if (path != null && path.haveAlias()) {
+      aliasedDbFilters.add(filter);
+      distinctRootAliases.add(path.getAlias()[0]);
+    } else {
+      dbQuery.add(filter);
+    }
+  }
+
   private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
     Query<T> memoryQuery = Query.copyOf(query);
     memoryQuery.getFilters().clear();
     Query<T> dbQuery = Query.emptyOf(query);
 
+    List<Filter> aliasedDbFilters = new ArrayList<>();
+    Set<String> distinctRootAliases = new HashSet<>();
+
     for (Filter filter : query.getFilters()) {
-      if (isDbFilter(query, filter)) {
-        dbQuery.add(filter);
-      } else {
+      if (!isDbFilter(query, filter)) {
         memoryQuery.add(filter);
+        continue;
       }
+
+      if (filter.isVirtual()) {
+        dbQuery.add(filter);
+        continue;
+      }
+
+      categorizeAliasedFilters(query, filter, dbQuery, aliasedDbFilters, distinctRootAliases);
     }
+
+    // Handle aliased filters: if there are multiple distinct aliases, fall back to in-memory
+    // to avoid potential issues with multiple implicit JPA joins
+    if (distinctRootAliases.size() > 1) {
+      memoryQuery.getFilters().addAll(aliasedDbFilters);
+    } else {
+      dbQuery.getFilters().addAll(aliasedDbFilters);
+    }
+
     if (query.getRootJunctionType() == Junction.Type.OR
         && !memoryQuery.getFilters().isEmpty()
         && !dbQuery.getFilters().isEmpty()) {
@@ -104,7 +141,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
         query.getOrders().stream()
             .map(Order::getProperty)
             .map(schema::getProperty)
-            .allMatch(p -> p != null && p.isPersisted() && p.isSimple());
+            .allMatch(
+                p ->
+                    p != null
+                        && (p.isPersisted() || isDisplayProperty(p.getName()))
+                        && p.isSimple());
     if (dbOrdering) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
@@ -116,9 +157,41 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    return path != null
-        && path.isPersisted()
-        && !path.haveAlias()
-        && !Attribute.ObjectType.isValidType(path.getPath());
+    if (path == null || !path.isPersisted()) return false;
+    if (Attribute.ObjectType.isValidType(path.getPath())) return false;
+
+    if (path.haveAlias()) {
+      if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
+        return false;
+      }
+      return path.getProperty().isSimple();
+    }
+    return true;
+  }
+
+  /**
+   * Checks if any property in the alias path requires in-memory filtering. This includes:
+   *
+   * <ul>
+   *   <li>Collection paths - require JOINs which our simple get() chaining doesn't support
+   *   <li>Embedded object paths - JPA navigation through embedded objects followed by relationships
+   *       can be problematic
+   * </ul>
+   */
+  private boolean pathRequiresInMemoryFiltering(Class<?> klass, String[] aliases) {
+    Schema schema = schemaService.getDynamicSchema(klass);
+    for (String alias : aliases) {
+      var property = schema.getProperty(alias);
+      if (property == null) return true; // Unknown property, fall back to in-memory
+      if (property.isCollection()) return true;
+      if (property.isEmbeddedObject()) return true;
+      // Navigate to next schema for non-collection relationships
+      schema = schemaService.getDynamicSchema(property.getKlass());
+    }
+    return false;
+  }
+
+  private boolean isDisplayProperty(String propertyName) {
+    return propertyName != null && propertyName.startsWith("display");
   }
 }

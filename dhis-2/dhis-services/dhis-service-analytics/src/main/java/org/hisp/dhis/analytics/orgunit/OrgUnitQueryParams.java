@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.orgunit;
 
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,9 +73,7 @@ public class OrgUnitQueryParams {
 
   public List<DimensionalObject> getRows() {
     List<DimensionalObject> rows = new ArrayList<>();
-    rows.add(
-        new BaseDimensionalObject(
-            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits));
+    rows.add(new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits));
     rows.addAll(orgUnitGroupSets);
     rows.removeAll(columns);
     return rows;

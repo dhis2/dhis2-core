@@ -54,7 +54,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
@@ -64,6 +63,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -193,11 +193,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(
-        importReport,
-        ValidationCode.E1096,
-        ValidationCode.E1099,
-        ValidationCode.E1104,
-        ValidationCode.E1095);
+        importReport, ValidationCode.E1096, ValidationCode.E1104, ValidationCode.E1095);
   }
 
   @Test
@@ -350,7 +346,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     ImportReport importReport = createEvent("tracker/validations/events-with-notes-data.json");
     // Then
     // Fetch the UID of the newly created event
-    final Event event = getEventFromReport(importReport);
+    final TrackerEvent event = getEventFromReport(importReport);
     assertThat(event.getNotes(), hasSize(3));
     // Validate note content
     Stream.of("first note", "second note", "third note")
@@ -373,7 +369,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     ImportReport importReport =
         createEvent("tracker/validations/events-with-notes-update-data.json");
     // Then
-    final Event event = getEventFromReport(importReport);
+    final TrackerEvent event = getEventFromReport(importReport);
     assertThat(event.getNotes(), hasSize(6));
     // validate note content
     Stream.of("first note", "second note", "third note", "4th note", "5th note", "6th note")
@@ -401,7 +397,7 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
   private void testDeletedEventFails(TrackerImportStrategy importStrategy) {
     // Given -> Creates an event
     createEvent("tracker/validations/events-with-notes-data.json");
-    Event event = manager.get(Event.class, "uLxFbxfYDQE");
+    TrackerEvent event = manager.get(TrackerEvent.class, "uLxFbxfYDQE");
     assertNotNull(event);
     // When -> Soft-delete the event
     manager.delete(event);
@@ -460,10 +456,10 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     return null;
   }
 
-  private Event getEventFromReport(ImportReport importReport) {
+  private TrackerEvent getEventFromReport(ImportReport importReport) {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
     UID newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
-    return manager.get(Event.class, newEvent);
+    return manager.get(TrackerEvent.class, newEvent);
   }
 }

@@ -52,7 +52,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
@@ -82,10 +82,10 @@ public class DisableInactiveUsersJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     progress.startingProcess("Disable inactive users");
     DisableInactiveUsersJobParameters parameters =
-        (DisableInactiveUsersJobParameters) jobConfiguration.getJobParameters();
+        (DisableInactiveUsersJobParameters) jobConfiguration.parameters();
     LocalDate today = LocalDate.now();
     LocalDate since = today.minusMonths(parameters.getInactiveMonths());
     Date nMonthsAgo = Date.from(since.atStartOfDay(systemDefault()).toInstant());

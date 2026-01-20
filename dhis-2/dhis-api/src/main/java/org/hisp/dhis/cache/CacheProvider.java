@@ -50,15 +50,9 @@ public interface CacheProvider {
 
   <V> Cache<V> createDefaultObjectCache();
 
-  <V> Cache<V> createIsDataApprovedCache();
-
   <V> Cache<V> createAllConstantsCache();
 
   <V> Cache<V> createInUserOrgUnitHierarchyCache();
-
-  <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
-
-  <V> Cache<V> createPeriodIdCache();
 
   <V> Cache<V> createUserFailedLoginAttemptCache(V defaultValue);
 

@@ -31,8 +31,8 @@ package org.hisp.dhis.webapi.service;
 
 import static java.util.Map.entry;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_GROUP_DIM_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -249,7 +249,9 @@ public class GeoFeatureService {
    * @param source the {@link DimensionalItemObject} contains the coordinate values.
    */
   private void updateFeatureCoordinates(GeoFeature target, DimensionalItemObject source) {
-    if (!(source instanceof CoordinateObject coordinateObject)) return;
+    if (!(source instanceof CoordinateObject coordinateObject)) {
+      return;
+    }
 
     Integer ty =
         coordinateObject.getFeatureType() != null
@@ -277,7 +279,9 @@ public class GeoFeatureService {
       return;
     }
 
-    if (!(source instanceof OrganisationUnit organisationUnit)) return;
+    if (!(source instanceof OrganisationUnit organisationUnit)) {
+      return;
+    }
 
     String value = organisationUnit.getAttributeValues().get(geoJsonAttribute.getUid());
 

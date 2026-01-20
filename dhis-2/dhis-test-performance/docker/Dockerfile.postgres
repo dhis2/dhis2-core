@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:1
+# Dockerfile to build and restore the DB dump at build time (not runtime)
+# This significantly speeds up container startup for performance tests.
+ARG DB_TYPE
+ARG DB_VERSION
+
+FROM amazon/aws-cli:latest AS downloader
+ARG DB_TYPE
+ARG DB_VERSION
+WORKDIR /tmp
+
+RUN S3_PATH="s3://databases.dhis2.org/${DB_TYPE}/${DB_VERSION}/dhis2-db-${DB_TYPE}.sql.gz" && \
+    echo "Downloading from: $S3_PATH" && \
+    aws s3 cp --no-sign-request "$S3_PATH" dump.sql.gz
+
+FROM ghcr.io/baosystems/postgis:14-3.5 AS builder
+
+# Ensure build cache is invalidated when DB_TYPE or DB_VERSION changes so dump is restored
+ARG DB_TYPE
+ARG DB_VERSION
+
+ENV POSTGRES_USER=dhis \
+    POSTGRES_DB=dhis \
+    POSTGRES_PASSWORD=dhis \
+    PGUSER=dhis \
+    PGDATABASE=dhis \
+    PGPASSWORD=dhis
+
+COPY --from=downloader /tmp/dump.sql.gz /tmp/dump.sql.gz
+
+COPY docker-entrypoint-build.sh /usr/local/bin/
+# Initialize the database and restore the dump at build time
+# Uses a modified version of the official PostgreSQL docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
+    gosu postgres /usr/local/bin/docker-entrypoint-build.sh
+
+# Final stage with pre-populated database
+FROM ghcr.io/baosystems/postgis:14-3.5
+
+ENV POSTGRES_USER=dhis \
+    POSTGRES_DB=dhis \
+    POSTGRES_PASSWORD=dhis \
+    PGUSER=dhis \
+    PGDATABASE=dhis \
+    PGPASSWORD=dhis
+
+COPY --from=builder --chown=postgres:postgres /var/lib/postgresql/data /var/lib/postgresql/data
+

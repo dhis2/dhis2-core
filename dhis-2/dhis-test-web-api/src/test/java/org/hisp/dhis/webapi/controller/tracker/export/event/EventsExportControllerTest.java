@@ -37,6 +37,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -74,22 +75,22 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -149,9 +150,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   private DataElement deMultiText;
 
-  private Event eventRBG;
-  private Event eventRWY;
-  private Event eventNoValue;
+  private TrackerEvent eventRBG;
+  private TrackerEvent eventRWY;
+  private TrackerEvent eventNoValue;
 
   @BeforeEach
   void setUp() {
@@ -200,6 +201,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     programStage.setProgramStageDataElements(
         Sets.newHashSet(programStageDataElement, programStageDataElementMultiText));
     manager.save(programStage, false);
+    program.getProgramStages().add(programStage);
 
     dv = new EventDataValue();
     dv.setDataElement(de.getUid());
@@ -216,7 +218,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByPathIsIdenticalToQueryParam() {
     TrackedEntity to = trackedEntity();
-    Event event = event(enrollment(to));
+    TrackerEvent event = event(enrollment(to));
     event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
     relationship(event, to);
@@ -240,7 +242,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getEventById() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     switchContextToUser(user);
 
     JsonEvent json =
@@ -251,22 +253,22 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getEventByIdWithFields() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     switchContextToUser(user);
 
     JsonEvent jsonEvent =
-        GET("/tracker/events/{id}?fields=orgUnit,status", event.getUid())
+        GET("/tracker/events/{id}?fields=orgUnit,status::rename(state)", event.getUid())
             .content(HttpStatus.OK)
             .as(JsonEvent.class);
 
-    assertHasOnlyMembers(jsonEvent, "orgUnit", "status");
+    assertHasOnlyMembers(jsonEvent, "orgUnit", "state");
     assertEquals(event.getOrganisationUnit().getUid(), jsonEvent.getOrgUnit());
-    assertEquals(event.getStatus().toString(), jsonEvent.getStatus());
+    assertEquals(event.getStatus().toString(), jsonEvent.getString("state").string());
   }
 
   @Test
   void getEventByIdWithNotes() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     event.setNotes(List.of(note("oqXG28h988k", "my notes", owner.getUid())));
     manager.update(event);
     switchContextToUser(user);
@@ -284,7 +286,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getEventByIdWithDataValues() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dv);
     manager.update(event);
     switchContextToUser(user);
@@ -366,7 +368,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldGetEventWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
     TrackedEntity to = trackedEntity();
-    Event from = event(enrollment(to));
+    TrackerEvent from = event(enrollment(to));
     Relationship relationship = relationship(from, to);
     manager.delete(relationship);
     switchContextToUser(user);
@@ -387,7 +389,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldGetEventWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
     TrackedEntity to = trackedEntity();
-    Event from = event(enrollment(to));
+    TrackerEvent from = event(enrollment(to));
     Relationship relationship = relationship(from, to);
     manager.delete(relationship);
     switchContextToUser(user);
@@ -406,8 +408,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
 
     JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
-    assertEquals(relationship.getFrom().getEvent().getUid(), event.getEvent());
-    assertEquals(relationship.getFrom().getEvent().getEnrollment().getUid(), event.getEnrollment());
+    assertEquals(relationship.getFrom().getTrackerEvent().getUid(), event.getEvent());
+    assertEquals(
+        relationship.getFrom().getTrackerEvent().getEnrollment().getUid(), event.getEnrollment());
 
     JsonRelationshipItem.JsonTrackedEntity trackedEntity =
         jsonRelationship.getTo().getTrackedEntity();
@@ -424,7 +427,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldGetEventWithNoRelationshipsWhenEventIsOnTheToSideOfAUnidirectionalRelationship() {
     TrackedEntity from = trackedEntity();
-    Event to = event(enrollment(from));
+    TrackerEvent to = event(enrollment(from));
     Relationship relationship = relationship(from, to);
 
     RelationshipType relationshipType =
@@ -450,7 +453,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdWithFieldsRelationships() {
     TrackedEntity to = trackedEntity();
-    Event from = event(enrollment(to));
+    TrackerEvent from = event(enrollment(to));
     Relationship relationship = relationship(from, to);
     switchContextToUser(user);
 
@@ -463,8 +466,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
 
     JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
-    assertEquals(relationship.getFrom().getEvent().getUid(), event.getEvent());
-    assertEquals(relationship.getFrom().getEvent().getEnrollment().getUid(), event.getEnrollment());
+    assertEquals(relationship.getFrom().getTrackerEvent().getUid(), event.getEvent());
+    assertEquals(
+        relationship.getFrom().getTrackerEvent().getEnrollment().getUid(), event.getEnrollment());
 
     JsonRelationshipItem.JsonTrackedEntity trackedEntity =
         jsonRelationship.getTo().getTrackedEntity();
@@ -481,7 +485,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdRelationshipsNoAccessToRelationshipType() {
     TrackedEntity to = trackedEntity();
-    Event from = event(enrollment(to));
+    TrackerEvent from = event(enrollment(to));
     relationship(relationshipTypeNotAccessible(), from, to);
     manager.flush();
     switchContextToUser(user);
@@ -498,7 +502,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   void getEventByIdRelationshipsNoAccessToRelationshipItemTo() {
     TrackedEntityType type = trackedEntityTypeNotAccessible();
     TrackedEntity to = trackedEntity(type);
-    Event from = event(enrollment(to));
+    TrackerEvent from = event(enrollment(to));
     relationship(from, to);
     manager.flush();
     switchContextToUser(user);
@@ -514,7 +518,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getEventByIdRelationshipsNoAccessToBothRelationshipItems() {
     TrackedEntity to = trackedEntityNotInSearchScope();
-    Event from = event(enrollment(to));
+    TrackerEvent from = event(enrollment(to));
     relationship(from, to);
     manager.flush();
     switchContextToUser(user);
@@ -526,7 +530,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   void getEventByIdRelationshipsNoAccessToRelationshipItemFrom() {
     TrackedEntityType type = trackedEntityTypeNotAccessible();
     TrackedEntity from = trackedEntity(type);
-    Event to = event(enrollment(from));
+    TrackerEvent to = event(enrollment(from));
     relationship(from, to);
     manager.flush();
     switchContextToUser(user);
@@ -542,7 +546,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldGetEventsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
     TrackedEntity te = trackedEntity();
-    Event event = event(enrollment(te));
+    TrackerEvent event = event(enrollment(te));
     manager.delete(te);
     manager.delete(event);
     manager.flush();
@@ -579,7 +583,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues() {
     TrackedEntity te = trackedEntity();
     Enrollment enrollment = enrollment(te);
-    Event event = event(enrollment);
+    TrackerEvent event = event(enrollment);
     event.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     event.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
     event.setAssignedUser(user);
@@ -628,7 +632,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     FileResource file = storeFile("text/plain", "file content");
 
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
     manager.flush();
@@ -651,7 +655,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesFileByDataElementIfFileIsAnImage() throws ConflictException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
     FileResource file = storeFile("image/png", "file content");
 
@@ -678,7 +682,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     FileResource file = storeFile("text/plain", "file content");
 
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.flush();
     switchContextToUser(user);
@@ -711,7 +715,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesFileByDataElementIfDataElementIsNotFound() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
 
     String deUid = CodeGenerator.generateUid();
 
@@ -727,7 +731,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getDataValuesFileByDataElementIfUserDoesNotHaveReadAccessToDataElement()
       throws ConflictException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     // remove public access
     de.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
@@ -746,7 +750,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getDataValuesFileByDataElementIfDataElementIsNotAFile() {
     DataElement de = dataElement(ValueType.BOOLEAN);
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
 
     event.getEventDataValues().add(dataValue(de, "true"));
     manager.update(event);
@@ -765,7 +769,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesFileByDataElementIfNoDataValueExists() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
 
     switchContextToUser(user);
@@ -782,7 +786,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesFileByDataElementIfNoDataValueNull() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
 
     event.getEventDataValues().add(dataValue(de, null));
@@ -801,7 +805,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesFileByDataElementIfFileResourceIsInDbButNotInTheStore() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     FileResource file = createFileResource('A', "file content".getBytes());
     manager.save(file, false);
@@ -817,7 +821,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesFileByDataElementIfFileIsNotFound() {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     String fileUid = CodeGenerator.generateUid();
 
@@ -842,7 +846,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     FileResource file = storeFile("text/plain", "file content");
 
-    Event event = event(enrollment(trackedEntityNotInSearchScope()));
+    TrackerEvent event = event(enrollment(trackedEntityNotInSearchScope()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
     manager.flush();
@@ -854,7 +858,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesImageByDataElement() throws ConflictException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
     FileResource file = storeFile("image/png", "file content");
 
@@ -880,7 +884,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getDataValuesImageByDataElementUsingAnotherDimension(@TempDir Path tempDir)
       throws ConflictException, IOException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
     // simulating the work of the ImageResizingJob
     // original "image"
@@ -916,7 +920,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void getDataValuesImageByDataElementWithInvalidDimension() throws ConflictException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
     FileResource file = storeFile("image/png", "file content");
 
@@ -941,7 +945,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     DataElement de = dataElement(ValueType.FILE_RESOURCE);
     FileResource file = storeFile("text/plain", "file content");
 
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue(de, file.getUid()));
     manager.update(event);
     manager.flush();
@@ -961,7 +965,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void getDataValuesImageByDataElementUsingAnotherDimensionIfDoesNotHaveMultipleStoredFiles(
       @TempDir Path tempDir) throws ConflictException, IOException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
     DataElement de = dataElement(ValueType.IMAGE);
     // simulating the work of the ImageResizingJob
     // original "image"
@@ -1100,8 +1104,12 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return result;
   }
 
-  private Event event(Enrollment enrollment) {
-    Event result = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(Enrollment enrollment) {
+    TrackerEvent result = new TrackerEvent();
+    result.setEnrollment(enrollment);
+    result.setProgramStage(programStage);
+    result.setOrganisationUnit(enrollment.getOrganisationUnit());
+    result.setAttributeOptionCombo(coc);
     result.setAutoFields();
     manager.save(result);
     return result;
@@ -1137,7 +1145,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return type;
   }
 
-  private Relationship relationship(Event from, TrackedEntity to) {
+  private Relationship relationship(TrackerEvent from, TrackedEntity to) {
     return relationship(
         relationshipTypeAccessible(
             RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE),
@@ -1145,11 +1153,11 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
         to);
   }
 
-  private Relationship relationship(RelationshipType type, Event from, TrackedEntity to) {
+  private Relationship relationship(RelationshipType type, TrackerEvent from, TrackedEntity to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
-    fromItem.setEvent(from);
+    fromItem.setTrackerEvent(from);
     from.getRelationshipItems().add(fromItem);
     fromItem.setRelationship(r);
     r.setFrom(fromItem);
@@ -1169,7 +1177,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return r;
   }
 
-  private Relationship relationship(TrackedEntity from, Event to) {
+  private Relationship relationship(TrackedEntity from, TrackerEvent to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -1179,7 +1187,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     fromItem.setRelationship(r);
 
     RelationshipItem toItem = new RelationshipItem();
-    toItem.setEvent(to);
+    toItem.setTrackerEvent(to);
     to.getRelationshipItems().add(toItem);
     r.setTo(toItem);
     toItem.setRelationship(r);
@@ -1205,8 +1213,9 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return dvMultiText;
   }
 
-  private Event createEvent(EventDataValue eventDataValue, OrganisationUnit orgUnit, String uid) {
-    Event event = event(enrollment(trackedEntity()));
+  private TrackerEvent createEvent(
+      EventDataValue eventDataValue, OrganisationUnit orgUnit, String uid) {
+    TrackerEvent event = event(enrollment(trackedEntity()));
     event.setUid(uid);
     event.getEventDataValues().add(eventDataValue);
     event.setOrganisationUnit(orgUnit);
@@ -1223,7 +1232,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return note;
   }
 
-  private void assertDefaultResponse(JsonObject json, Event event) {
+  private void assertDefaultResponse(JsonObject json, TrackerEvent event) {
     // note that some fields are not included in the response because they
     // are not part of the setup
     // i.e. attributeOptionCombo, ...

@@ -31,6 +31,7 @@ package org.hisp.dhis.outlierdetection.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import java.util.Set;
@@ -41,8 +42,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -76,7 +77,7 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
 
   @Autowired private MinMaxDataElementService minMaxService;
 
-  @Autowired private DataValueService dataValueService;
+  @Autowired private DataDumpService dataDumpService;
 
   @Autowired private DefaultOutlierDetectionService subject;
 
@@ -217,7 +218,7 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
     for (MinMaxDataElement e : minMaxValues) minMaxService.importValue(MinMaxValue.of(e));
   }
 
-  private void addDataValues(DataValue... dataValues) {
-    Stream.of(dataValues).forEach(dataValueService::addDataValue);
+  private void addDataValues(DataValue... values) {
+    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }

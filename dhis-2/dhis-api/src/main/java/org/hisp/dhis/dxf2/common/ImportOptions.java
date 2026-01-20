@@ -42,6 +42,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -79,6 +80,16 @@ public class ImportOptions implements JobParameters {
   @OpenApi.Ignore
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private IdSchemes idSchemes = new IdSchemes();
+
+  @Maturity.Beta
+  @OpenApi.Since(43)
+  @OpenApi.Description(
+      """
+    A data value group is only written when all values are valid.
+    The first group that fails aborts the import.
+    Groups that have been processed successfully thus far are committed.""")
+  @JsonProperty
+  private boolean atomic;
 
   @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
   private boolean dryRun;

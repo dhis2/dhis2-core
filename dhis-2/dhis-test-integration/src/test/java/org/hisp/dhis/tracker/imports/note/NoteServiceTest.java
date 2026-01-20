@@ -40,15 +40,15 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.domain.Note;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeAll;
@@ -153,7 +153,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
     manager.clear();
     manager.flush();
 
-    Event dbEvent = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
+    TrackerEvent dbEvent = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
     assertNotes(List.of(note), dbEvent.getNotes(), userDetails);
   }
 

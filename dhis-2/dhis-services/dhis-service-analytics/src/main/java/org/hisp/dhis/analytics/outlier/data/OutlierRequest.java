@@ -47,7 +47,7 @@ import org.hisp.dhis.analytics.outlier.Order;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -58,7 +58,7 @@ import org.hisp.dhis.period.Period;
 @Builder
 @With
 public class OutlierRequest {
-  private List<Period> periods;
+  private List<PeriodDimension> periods;
 
   private Date startDate;
 

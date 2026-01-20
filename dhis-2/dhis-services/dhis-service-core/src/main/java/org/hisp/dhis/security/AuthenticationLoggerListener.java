@@ -31,12 +31,12 @@ package org.hisp.dhis.security;
 
 import static org.apache.commons.lang3.StringUtils.firstNonEmpty;
 
-import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -61,6 +61,7 @@ public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent> {
   private static final HashFunction ID_HASH_FUNCTION = Hashing.sha256();
 
+  @Override
   public void onApplicationEvent(AbstractAuthenticationEvent event) {
     if (!log.isWarnEnabled()) {
       return;
@@ -125,12 +126,12 @@ public class AuthenticationLoggerListener
     String eventClassName =
         String.format("Authentication event: %s; ", ClassUtils.getShortName(event.getClass()));
     String usernamePrefix =
-        Strings.isNullOrEmpty(authName) ? "" : String.format("username: %s; ", authName);
+        StringUtils.isEmpty(authName) ? "" : String.format("username: %s; ", authName);
     String msg =
         TextUtils.removeNonEssentialChars(
             eventClassName + usernamePrefix + ipAddress + sessionId + exceptionMessage);
 
-    log.info(StringUtils.removeEnd(msg.stripTrailing(), ";"));
+    log.info(Strings.CS.removeEnd(msg.stripTrailing(), ";"));
   }
 
   private static String formatIpAddress(String ip) {

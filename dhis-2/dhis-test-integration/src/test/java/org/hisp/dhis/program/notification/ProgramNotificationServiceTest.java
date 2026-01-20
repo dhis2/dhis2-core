@@ -32,6 +32,7 @@ package org.hisp.dhis.program.notification;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
@@ -48,9 +49,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -58,8 +56,11 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,8 +85,6 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private EventStore eventStore;
 
   @Autowired
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")
@@ -177,23 +176,38 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
     enrollmentB.setOrganisationUnit(organisationUnitB);
     manager.save(enrollmentB);
-    Event eventA = new Event(enrollmentA, stageA, organisationUnitA);
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollmentA);
+    eventA.setProgramStage(stageA);
+    eventA.setOrganisationUnit(organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
-    Event eventB = new Event(enrollmentA, stageB, organisationUnitA);
+    TrackerEvent eventB = new TrackerEvent();
+    eventB.setEnrollment(enrollmentA);
+    eventB.setProgramStage(stageB);
+    eventB.setOrganisationUnit(organisationUnitA);
     eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
     eventB.setAttributeOptionCombo(coA);
-    Event eventC = new Event(enrollmentB, stageC, organisationUnitA);
+    TrackerEvent eventC = new TrackerEvent();
+    eventC.setEnrollment(enrollmentB);
+    eventC.setProgramStage(stageC);
+    eventC.setOrganisationUnit(organisationUnitA);
     eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
     eventC.setAttributeOptionCombo(coA);
-    Event eventD1 = new Event(enrollmentB, stageD, organisationUnitA);
+    TrackerEvent eventD1 = new TrackerEvent();
+    eventD1.setEnrollment(enrollmentB);
+    eventD1.setProgramStage(stageD);
+    eventD1.setOrganisationUnit(organisationUnitA);
     eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
     eventD1.setAttributeOptionCombo(coA);
-    Event eventD2 = new Event(enrollmentB, stageD, organisationUnitA);
+    TrackerEvent eventD2 = new TrackerEvent();
+    eventD2.setEnrollment(enrollmentB);
+    eventD2.setProgramStage(stageD);
+    eventD2.setOrganisationUnit(organisationUnitA);
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
     eventD2.setAttributeOptionCombo(coA);
@@ -284,20 +298,29 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     cal.add(Calendar.DATE, -2);
     Date yesterday = cal.getTime();
     // Events
-    Event eventA = new Event(enrollmentA, stageA, organisationUnitA);
+    TrackerEvent eventA = new TrackerEvent();
+    eventA.setEnrollment(enrollmentA);
+    eventA.setProgramStage(stageA);
+    eventA.setOrganisationUnit(organisationUnitA);
     eventA.setScheduledDate(tomorrow);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
-    Event eventB = new Event(enrollmentB, stageB, organisationUnitA);
+    TrackerEvent eventB = new TrackerEvent();
+    eventB.setEnrollment(enrollmentB);
+    eventB.setProgramStage(stageB);
+    eventB.setOrganisationUnit(organisationUnitA);
     eventB.setScheduledDate(today);
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB);
-    Event eventC = new Event(enrollmentB, stageC, organisationUnitA);
+    TrackerEvent eventC = new TrackerEvent();
+    eventC.setEnrollment(enrollmentB);
+    eventC.setProgramStage(stageC);
+    eventC.setOrganisationUnit(organisationUnitA);
     eventC.setScheduledDate(yesterday);
     eventC.setAttributeOptionCombo(coA);
     manager.save(eventC);
     // Queries
-    List<Event> results;
+    List<TrackerEvent> results;
     // A
     results = programNotificationService.getWithScheduledNotifications(a1, today);
     assertEquals(1, results.size());

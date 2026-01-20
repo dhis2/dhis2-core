@@ -39,7 +39,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +53,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * Helper class to assist during the validation/assertion in e2e analytics tests.
@@ -128,12 +136,20 @@ public class ValidationHelper {
               + currentHeaders);
     }
 
+    List<String> rows = (List) response.extract("rows");
+    int expectedWidth = expectedSize;
+
+    // When "rows" size is ZERO, "width" is always ZERO.
+    if (rows.size() == 0) {
+      expectedWidth = 0;
+    }
+
     response
         .validate()
         .statusCode(200)
         .body("rows", hasSize(expectedRowCount))
         .body("height", equalTo(expectedRowCount))
-        .body("width", equalTo(expectedSize))
+        .body("width", equalTo(expectedWidth))
         .body("headerWidth", equalTo(expectedSize));
   }
 
@@ -178,7 +194,6 @@ public class ValidationHelper {
       boolean expectedMeta) {
 
     // Find the header first to ensure it exists before using index
-    Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
     int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
 
     response
@@ -215,6 +230,135 @@ public class ValidationHelper {
     // if the expected value is numeric. For simplicity, assuming string comparison works
     // for most cases or expectedValue is already formatted as a string.
     response.validate().body(jsonPath, equalTo(expectedValue));
+  }
+
+  /**
+   * Validates that a row with specific values exists somewhere in the response, regardless of row
+   * order. This is useful for non-deterministic sorting scenarios.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerNamesAndValues A map of header names to their expected values. Only specified
+   *     columns will be checked; other columns in the row are ignored.
+   * @throws AssertionError if no matching row is found.
+   */
+  public static void validateRowExists(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      Map<String, String> headerNamesAndValues) {
+
+    // Extract all rows from response
+    List<List> rawRows = response.extractList("rows", List.class);
+
+    if (rawRows == null || rawRows.isEmpty()) {
+      throw new AssertionError("No rows found in response, cannot validate row existence.");
+    }
+
+    // Build a map of header names to their column indices
+    Map<String, Integer> headerToIndex = new HashMap<>();
+    for (Map.Entry<String, String> entry : headerNamesAndValues.entrySet()) {
+      String headerName = entry.getKey();
+      int colIndex = getHeaderIndexByName(actualHeaders, headerName);
+      headerToIndex.put(headerName, colIndex);
+    }
+
+    // Check each row to see if it matches
+    boolean foundMatch = false;
+    for (List row : rawRows) {
+      boolean rowMatches = true;
+
+      for (Map.Entry<String, String> entry : headerNamesAndValues.entrySet()) {
+        String headerName = entry.getKey();
+        String expectedValue = entry.getValue();
+        int colIndex = headerToIndex.get(headerName);
+
+        // Check if column index is within bounds
+        if (colIndex >= row.size()) {
+          rowMatches = false;
+          break;
+        }
+
+        // Convert to String for comparison
+        Object actualValueObj = row.get(colIndex);
+        String actualValue = actualValueObj != null ? actualValueObj.toString() : null;
+
+        // Handle null values
+        if (!Objects.equals(actualValue, expectedValue)) {
+          rowMatches = false;
+          break;
+        }
+      }
+
+      if (rowMatches) {
+        foundMatch = true;
+        break;
+      }
+    }
+
+    if (!foundMatch) {
+      // Build error message showing what was searched for
+      StringBuilder errorMsg = new StringBuilder("No row found with values: {");
+      for (Map.Entry<String, String> entry : headerNamesAndValues.entrySet()) {
+        errorMsg.append(entry.getKey()).append("='").append(entry.getValue()).append("', ");
+      }
+      if (!headerNamesAndValues.isEmpty()) {
+        errorMsg.setLength(errorMsg.length() - 2); // Remove trailing ", "
+      }
+      errorMsg.append("}. Total rows checked: ").append(rawRows.size());
+
+      throw new AssertionError(errorMsg.toString());
+    }
+  }
+
+  /**
+   * Validates that a row with all the specified values (in header order) exists somewhere in the
+   * response, regardless of row position. This checks all columns in order.
+   *
+   * @param response The ApiResponse object.
+   * @param expectedValues List of expected values in the same order as the headers. Must match the
+   *     exact number of columns.
+   * @throws AssertionError if no matching row is found or if the size doesn't match the number of
+   *     columns.
+   */
+  public static void validateRowExists(ApiResponse response, List<String> expectedValues) {
+    // Extract all rows from response
+    List<List> rawRows = response.extractList("rows", List.class);
+
+    if (rawRows == null || rawRows.isEmpty()) {
+      throw new AssertionError("No rows found in response, cannot validate row existence.");
+    }
+
+    // Check each row to see if it matches
+    boolean foundMatch = false;
+    for (List row : rawRows) {
+      if (row.size() != expectedValues.size()) {
+        continue; // Skip rows with different column count
+      }
+
+      boolean rowMatches = true;
+      for (int i = 0; i < expectedValues.size(); i++) {
+        // Convert to String for comparison
+        Object actualValueObj = row.get(i);
+        String actualValue = actualValueObj != null ? actualValueObj.toString() : null;
+
+        if (!Objects.equals(actualValue, expectedValues.get(i))) {
+          rowMatches = false;
+          break;
+        }
+      }
+
+      if (rowMatches) {
+        foundMatch = true;
+        break;
+      }
+    }
+
+    if (!foundMatch) {
+      throw new AssertionError(
+          MessageFormat.format(
+              "No row found matching values: {0}. Total rows checked: {1}",
+              expectedValues, rawRows.size()));
+    }
   }
 
   /**
@@ -340,6 +484,26 @@ public class ValidationHelper {
         .body("rowContext." + rowIndex + "." + colIndex + ".valueStatus", equalTo(valueStatus));
   }
 
+  /**
+   * Validates rowContext value status for a specific row and column identified by header name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param rowIndex The 0-based index of the row to validate.
+   * @param headerName The name of the header defining the column to validate.
+   * @param expectedValueStatus The expected valueStatus for the rowContext entry.
+   */
+  public static void validateRowContextByName(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      int rowIndex,
+      String headerName,
+      String expectedValueStatus) {
+    int colIndex = getHeaderIndexByName(actualHeaders, headerName);
+    String jsonPath = String.format("rowContext.%d.%d.valueStatus", rowIndex, colIndex);
+    response.validate().body(jsonPath, equalTo(expectedValueStatus));
+  }
+
   /** Validate/assert that all values of the given row are present in the given response. */
   public static void validateRow(ApiResponse response, int rowIndex, List<String> expectedValues) {
     try {
@@ -454,5 +618,92 @@ public class ValidationHelper {
     return response.extractList("headers", Map.class).stream()
         .map(obj -> (Map<String, Object>) obj)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Asserts that two JSON strings representing metadata are equivalent, providing detailed
+   * diagnostics if they are not.
+   *
+   * @param expected the expected JSON string
+   * @param actual the actual JSON string
+   */
+  public static void assertJsonMetadata(String expected, String actual) {
+    try {
+      // First, try the basic comparison
+      JSONAssert.assertEquals(expected, actual, JSONCompareMode.NON_EXTENSIBLE);
+    } catch (AssertionError | JSONException e) {
+      // If it fails, provide detailed diagnostics
+      System.err.println("\n=== JSON ASSERTION FAILURE ===");
+      System.err.println("Error: " + e.getMessage());
+
+      try {
+        JSONObject expectedObj = new JSONObject(expected);
+        JSONObject actualObj = new JSONObject(actual);
+
+        // Check major sections
+        checkSection("items", expectedObj, actualObj);
+        checkSection("dimensions", expectedObj, actualObj);
+
+      } catch (JSONException jsonError) {
+        System.err.println("Additional JSON parsing error: " + jsonError.getMessage());
+      }
+
+      System.err.println("\nExpected JSON (pretty):\n" + prettyPrint(expected));
+      System.err.println("\nActual JSON (pretty):\n" + prettyPrint(actual));
+
+      throw new AssertionError("Metadata JSON comparison failed. See details above.", e);
+    }
+  }
+
+  private static void checkSection(String sectionName, JSONObject expected, JSONObject actual) {
+    if (!actual.has(sectionName)) {
+      System.err.println("MISSING SECTION: " + sectionName);
+      return;
+    }
+
+    if (!expected.has(sectionName)) {
+      System.err.println("UNEXPECTED SECTION: " + sectionName);
+      return;
+    }
+
+    try {
+      JSONObject expectedSection = expected.getJSONObject(sectionName);
+      JSONObject actualSection = actual.getJSONObject(sectionName);
+
+      // Get keys using the proper JSONObject methods
+      Set<String> expectedKeys = getKeys(expectedSection);
+      Set<String> actualKeys = getKeys(actualSection);
+
+      for (String key : expectedKeys) {
+        if (!actualKeys.contains(key)) {
+          System.err.println("MISSING KEY in " + sectionName + ": " + key);
+        }
+      }
+
+      for (String key : actualKeys) {
+        if (!expectedKeys.contains(key)) {
+          System.err.println("UNEXPECTED KEY in " + sectionName + ": " + key);
+        }
+      }
+    } catch (JSONException e) {
+      System.err.println("Error checking section " + sectionName + ": " + e.getMessage());
+    }
+  }
+
+  private static Set<String> getKeys(JSONObject jsonObject) {
+    Set<String> keys = new HashSet<>();
+    Iterator<String> iterator = jsonObject.keys();
+    while (iterator.hasNext()) {
+      keys.add(iterator.next());
+    }
+    return keys;
+  }
+
+  private static String prettyPrint(String json) {
+    try {
+      return new JSONObject(json).toString(2);
+    } catch (JSONException e) {
+      return json;
+    }
   }
 }

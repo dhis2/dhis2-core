@@ -52,7 +52,6 @@ import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
@@ -233,11 +232,7 @@ public class InterpretationController
       return conflict("Data set does not exist or is not accessible: " + dataSetUid);
     }
 
-    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
-
-    if (period == null) {
-      return conflict("Period identifier not valid: " + isoPeriod);
-    }
+    Period period = Period.of(isoPeriod);
 
     OrganisationUnit orgUnit = idObjectManager.get(OrganisationUnit.class, orgUnitUid);
 
@@ -319,7 +314,7 @@ public class InterpretationController
       return notFound("Interpretation does not exist: " + uid);
     }
 
-    if (!currentUser.equals(UserDetails.fromUser(interpretation.getCreatedBy()))
+    if (!currentUser.getUid().equals(interpretation.getCreatedBy().getUid())
         && !currentUser.isSuper()) {
       throw new ForbiddenException("You are not allowed to delete this interpretation.");
     }

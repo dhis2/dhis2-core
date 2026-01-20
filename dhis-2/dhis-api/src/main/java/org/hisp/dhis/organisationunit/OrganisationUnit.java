@@ -34,11 +34,11 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -64,6 +65,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.common.coordinate.CoordinateObject;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
@@ -77,6 +79,8 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
@@ -87,20 +91,6 @@ import org.locationtech.jts.geom.Geometry;
 public class OrganisationUnit extends BaseDimensionalItemObject
     implements MetadataObject, CoordinateObject {
   private static final String PATH_SEP = "/";
-
-  public static final String KEY_USER_ORGUNIT = "USER_ORGUNIT";
-
-  public static final String KEY_USER_ORGUNIT_CHILDREN = "USER_ORGUNIT_CHILDREN";
-
-  public static final String KEY_USER_ORGUNIT_GRANDCHILDREN = "USER_ORGUNIT_GRANDCHILDREN";
-
-  public static final String KEY_LEVEL = "LEVEL-";
-
-  public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
-
-  public static final String KEY_DATASET = "DS-";
-
-  public static final String KEY_PROGRAM = "PR-";
 
   private static final String NAME_SEPARATOR = " / ";
 
@@ -577,7 +567,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     return ancestors.stream()
         .filter(Objects::nonNull)
         .map(OrganisationUnit::getUid)
-        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
+        .anyMatch(uid -> Strings.CS.contains(this.getStoredPath(), uid));
   }
 
   /**
@@ -593,7 +583,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
     return ancestors.stream()
         .filter(Objects::nonNull)
-        .anyMatch(uid -> StringUtils.contains(this.getStoredPath(), uid));
+        .anyMatch(uid -> Strings.CS.contains(this.getStoredPath(), uid));
   }
 
   /**
@@ -607,7 +597,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
       return false;
     }
 
-    return StringUtils.contains(this.getStoredPath(), ancestor.getUid());
+    return Strings.CS.contains(this.getStoredPath(), ancestor.getUid());
   }
 
   public Set<OrganisationUnit> getChildrenThisIfEmpty() {
@@ -988,8 +978,11 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     this.programs = programs;
   }
 
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @OpenApi.Property(UserPropertyTransformer.UserDto[].class)
+  @JsonProperty("users")
+  @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
   @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "userItem", namespace = DxfNamespaces.DXF_2_0)
   public Set<User> getUsers() {
@@ -1041,6 +1034,22 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   public void setImage(FileResource image) {
+    // if new -> new assigned
+    if (this.image == null && image != null) {
+      image.setAssigned(true);
+    }
+
+    // if update -> old unassigned + new assigned
+    if (this.image != null && image != null && (!this.image.getUid().equals(image.getUid()))) {
+      this.image.setAssigned(false);
+      image.setAssigned(true);
+    }
+
+    // if delete - unassigned
+    if (this.image != null && image == null) {
+      this.image.setAssigned(false);
+    }
+
     this.image = image;
   }
 
@@ -1105,7 +1114,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
    * @param geometryAsJsonString String containing a GeoJSON JSON payload
    */
   public void setGeometryAsJson(String geometryAsJsonString) {
-    if (!Strings.isNullOrEmpty(geometryAsJsonString)) {
+    if (StringUtils.isNotEmpty(geometryAsJsonString)) {
       try {
         GeometryJSON geometryJSON = new GeometryJSON();
 

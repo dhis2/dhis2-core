@@ -38,7 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 class LockExceptionStoreTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private PeriodStore periodStore;
+  @Autowired private PeriodService periodService;
 
   @Autowired private LockExceptionStore store;
 
@@ -73,9 +73,9 @@ class LockExceptionStoreTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    pt = periodStore.getPeriodType(MonthlyPeriodType.class);
+    pt = periodService.getPeriodTypeByClass(MonthlyPeriodType.class);
     pA = createPeriod(pt, getDate(2021, 1, 1), getDate(2021, 1, 31));
-    periodStore.addPeriod(pA);
+    periodService.addPeriod(pA);
 
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');

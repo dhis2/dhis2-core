@@ -34,6 +34,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABL
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.http.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -582,6 +583,44 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName(
+      "Test that a user can also delete a user without UserRole write access, see: DHIS2-19693")
+  void testReplicateUserNoRoleAuth() {
+    settingsService.put("keyCanGrantOwnUserAuthorityGroups", true);
+
+    UserRole replicateRole =
+        createUserRole("ROLE_REPLICATE", "F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE");
+    userService.addUserRole(replicateRole);
+    String roleUid = userService.getUserRoleByName("ROLE_REPLICATE").getUid();
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleUid + "'}]}]")
+        .content(HttpStatus.OK);
+
+    peter = userService.getUser(this.peter.getUid());
+    assertTrue(
+        peter
+            .getAllAuthorities()
+            .containsAll(Set.of("F_REPLICATE_USER", "F_USER_ADD", "F_USER_DELETE")));
+    switchContextToUser(this.peter);
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "User replica created",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .content());
+
+    User peter2 = userService.getUserByUsername("peter2");
+
+    // Then
+    DELETE("/users/" + peter2.getUid()).content(OK);
+  }
+
+  @Test
   void testReplicateUser() {
     assertWebMessage(
         "Created",
@@ -1062,5 +1101,24 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     User userByUsername = userService.getUserByUsername(newUser.getUsername());
 
     assertNull(userByUsername.getSecret());
+  }
+
+  @Test
+  void testGetUserRoleUsersAreTransformed() {
+    UserRole role = createUserRole('X');
+    User user = makeUser("Y");
+    user.setEmail("y@y.org");
+    userService.addUser(user);
+    role.getMembers().add(user);
+    manager.save(role);
+
+    JsonObject userInRole =
+        GET("/userRoles/{id}?fields=users[*]", role.getUid())
+            .content(HttpStatus.OK)
+            .getArray("users")
+            .getObject(0);
+
+    assertFalse(userInRole.has("email"), "email should not be exposed");
+    assertEquals(user.getUid(), userInRole.getString("id").string());
   }
 }

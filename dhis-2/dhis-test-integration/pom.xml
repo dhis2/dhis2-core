@@ -85,8 +85,16 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-tracker</artifactId>
+      <artifactId>dhis-tracker</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-tracker</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -123,7 +131,6 @@
       <artifactId>dhis-support-jdbc</artifactId>
       <scope>compile</scope>
     </dependency>
-
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
@@ -132,6 +139,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-external</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>json-tree</artifactId>
       <scope>compile</scope>
     </dependency>
 
@@ -345,6 +357,7 @@
       <artifactId>hypersistence-utils-hibernate-55</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
@@ -366,13 +379,14 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-node</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-reporting</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-schema</ignoredNonTestScopedDependency>
-            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-tracker</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-tracker</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-validation</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-commons</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-external</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>org.hisp.dhis:json-tree</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
           <!-- If code from the following modules is accessed in tests they'll have to move up to ignoredNonTestScopedDependency -->
           <ignoredUnusedDeclaredDependencies>
@@ -387,6 +401,7 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-expression-parser</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>org.hisp.dhis:json-tree</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>

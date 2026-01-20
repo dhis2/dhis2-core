@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.MULTI_CHOICES_OPTION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.MULTI_CHOICES_OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -145,7 +145,9 @@ public class CustomDateHelper {
     String[] splitDimension = dimensionItem.split(DIMENSION_NAME_SEP);
     if (splitDimension.length > 1) {
       return splitDimension[0];
-    } else return dimensionItem;
+    } else {
+      return dimensionItem;
+    }
   }
 
   public static boolean isPeDimension(String dimension) {

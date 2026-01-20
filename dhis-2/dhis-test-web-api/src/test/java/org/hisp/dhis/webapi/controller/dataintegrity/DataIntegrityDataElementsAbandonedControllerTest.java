@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -37,9 +38,12 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for data elements which have been abandoned. This is taken to mean that there is no data
@@ -53,16 +57,17 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityDataElementsAbandonedControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private static final String check = "data_elements_aggregate_abandoned";
 
+  private static final String check = "data_elements_aggregate_abandoned";
   private static final String detailsIdType = "dataElements";
+  private static final String period = "202212";
+
+  @Autowired private DataDumpService dataDumpService;
 
   private String orgUnitId;
 
-  private static final String period = "202212";
-
   @Test
-  void testDataElementsNotAbandoned() {
+  void testDataElementsNotAbandoned() throws Exception {
 
     setUpTest();
 
@@ -76,7 +81,7 @@ class DataIntegrityDataElementsAbandonedControllerTest
   }
 
   @Test
-  void testDataElementsAbandoned() {
+  void testDataElementsAbandoned() throws Exception {
 
     setUpTest();
 
@@ -111,7 +116,7 @@ class DataIntegrityDataElementsAbandonedControllerTest
     return dataElement;
   }
 
-  void setUpTest() {
+  void setUpTest() throws Exception {
 
     // Create some data elements. created and lastUpdated default to now
     assertStatus(
@@ -143,14 +148,19 @@ class DataIntegrityDataElementsAbandonedControllerTest
             getCurrentUser().getUid(),
             HttpClientAdapter.Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
     // Add some data to dataElementB
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
+    assertEquals(
+        1,
+        dataDumpService.upsertValues(
+            new DataEntryValue.Input(
+                dataElementB, orgUnitId, null, null, period, "10", "Test Data")));
 
     // Create a data element that is 100 days old and give it some data
     DataElement dataElementC = createDataElementDaysAgo("A", 100);
-    assertStatus(
-        HttpStatus.CREATED,
-        postNewDataValue(period, "10", "Test Data", false, dataElementC.getUid(), orgUnitId));
+
+    assertEquals(
+        1,
+        dataDumpService.upsertValues(
+            new DataEntryValue.Input(
+                dataElementC.getUid(), orgUnitId, null, null, period, "10", "Test Data")));
   }
 }

@@ -29,18 +29,14 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
-import java.util.Objects;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -62,8 +58,8 @@ public class CategoryComboController
     extends AbstractCrudController<CategoryCombo, GetObjectListParams> {
 
   private final CategoryService categoryService;
-  private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
   private final DataValueService dataValueService;
+  private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
 
   @GetMapping("/{uid}/metadata")
   public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
@@ -87,24 +83,13 @@ public class CategoryComboController
   @Override
   protected void preUpdateEntity(CategoryCombo entity, CategoryCombo newEntity)
       throws ConflictException {
-    checkNoDataValueBecomesInaccessible(entity, newEntity);
+    dataValueService.checkNoDataValueBecomesInaccessible(entity, newEntity);
   }
 
   @Override
   protected void prePatchEntity(CategoryCombo entity, CategoryCombo newEntity)
       throws ConflictException {
-    checkNoDataValueBecomesInaccessible(entity, newEntity);
-  }
-
-  private void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
-      throws ConflictException {
-
-    Set<String> oldCategories = IdentifiableObjectUtils.getUidsAsSet(entity.getCategories());
-    Set<String> newCategories = IdentifiableObjectUtils.getUidsAsSet(newEntity.getCategories());
-
-    if (!Objects.equals(oldCategories, newCategories) && dataValueService.dataValueExists(entity)) {
-      throw new ConflictException(ErrorCode.E1120);
-    }
+    dataValueService.checkNoDataValueBecomesInaccessible(entity, newEntity);
   }
 
   @Override

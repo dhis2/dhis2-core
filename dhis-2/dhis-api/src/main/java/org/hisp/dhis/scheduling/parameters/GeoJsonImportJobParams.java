@@ -39,6 +39,7 @@ import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 @Builder(toBuilder = true)
 @Getter
@@ -67,5 +68,5 @@ public class GeoJsonImportJobParams implements JobParameters {
    * object when job config is being persisted (job params are persisted as JSONB). The {@link User}
    * property is used in the non-async import so is still required here.
    */
-  private User user;
+  private UserDetails user;
 }

@@ -34,7 +34,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -57,18 +57,18 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -163,11 +163,12 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   void getEnrollmentByIdWithFields(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
 
-    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "orgUnit,status");
+    JsonEnrollment jsonEnrollment =
+        getEnrollment.apply(enrollment, "orgUnit,status::rename(state)");
 
-    assertHasOnlyMembers(jsonEnrollment, "orgUnit", "status");
+    assertHasOnlyMembers(jsonEnrollment, "orgUnit", "state");
     assertEquals(enrollment.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit());
-    assertEquals(enrollment.getStatus().toString(), jsonEnrollment.getStatus());
+    assertEquals(enrollment.getStatus().toString(), jsonEnrollment.getString("state").string());
   }
 
   @ParameterizedTest
@@ -386,7 +387,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @MethodSource("getEnrollment")
   void shouldGetEnrollmentWithEventsFields(
       BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
     EventDataValue eventDataValue = event.getEventDataValues().iterator().next();
@@ -422,7 +423,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void shouldGetSoftDeletedEnrollmentWithEventsWhenIncludeDeletedIsTrue() {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     manager.delete(get(Enrollment.class, event.getEnrollment().getUid()));
 
@@ -467,7 +468,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void getEnrollmentByIdWithExcludedFields() {
-    Event event = get(Event.class, "pTzf9KYMk72");
+    TrackerEvent event = get(TrackerEvent.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     assertNotNull(
         event.getRelationshipItems(), "test expects an event with at least one relationship");

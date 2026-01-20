@@ -69,6 +69,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -113,7 +114,8 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       ColumnMapper columnMapper,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -127,9 +129,17 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
         analyticsTableSettings,
         periodDataProvider,
         columnMapper,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
+
+    /*
+     * TEA Analytics does not use Doris/Clickhouse and always defaults to Postgres SQL Builder.
+     * Since ColumnMapper is SQL Builder dependent and it's managed by Spring we need to set the
+     * "correct" SQL Builder here.
+     */
+    this.columnMapper.setSqlBuilder(sqlBuilder);
   }
 
   /**

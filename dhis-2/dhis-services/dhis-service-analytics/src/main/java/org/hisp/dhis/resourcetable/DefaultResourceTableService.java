@@ -31,6 +31,7 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
@@ -47,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -107,6 +109,8 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final PeriodDataProvider periodDataProvider;
 
+  private final ConfigurationService configurationService;
+
   @Override
   @Transactional
   public void generateResourceTables() {
@@ -128,6 +132,14 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDataApprovalResourceTables() {
     for (ResourceTable table : getApprovalResourceTables()) {
       resourceTableStore.generateResourceTable(table);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void replicateDataApprovalResourceTables() {
+    for (ResourceTable table : getApprovalResourceTables()) {
+      tableReplicationStore.replicateAnalyticsDatabaseTable(table.getMainTable());
     }
   }
 
@@ -213,22 +225,25 @@ public class DefaultResourceTableService implements ResourceTableService {
       int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
       int maxRangeAllowed = Year.now().plus(maxYearsOffset, YEARS).getValue();
 
-      boolean yearsOutOfRange =
-          yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);
+      List<Integer> yearsOutOfRange =
+          yearsToCheck.stream()
+              .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
+              .toList();
 
-      if (yearsOutOfRange) {
+      List<Integer> yearsInRange =
+          yearsToCheck.stream()
+              .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
+              .toList();
+
+      if (isNotEmpty(yearsOutOfRange)) {
         String errorMessage =
-            "Your database contains years out of the allowed offset."
-                + "\n Range of years allowed (based on your system settings and existing data): "
-                + yearsToCheck.stream()
-                    .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
-                    .toList()
-                + "."
-                + "\n Years out of range found: "
-                + yearsToCheck.stream()
-                    .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
-                    .toList()
-                + ".";
+            String.format(
+                """
+                Database contains years outside of the allowed offset. \
+                Years in allowed range: %d \
+                Years out of range: %d\
+                """,
+                yearsInRange, yearsOutOfRange);
 
         log.warn(errorMessage);
         throw new RuntimeException(errorMessage);
@@ -274,5 +289,13 @@ public class DefaultResourceTableService implements ResourceTableService {
                 .collect(Collectors.toList());
     progress.startingStage("Drop SQL views", nonQueryViews.size(), SKIP_ITEM);
     progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
+  }
+
+  @Override
+  @Transactional
+  public void updatePeriodResourceTable() {
+    Logged logged = analyticsTableSettings.getTableLogged();
+    ResourceTable table = new PeriodResourceTable(logged, periodService.getAllPeriods());
+    resourceTableStore.generateResourceTable(table);
   }
 }

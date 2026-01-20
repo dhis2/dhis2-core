@@ -25,7 +25,7 @@
                           foreign-key="fk_evisualization_organisationunits_organisationunitid"/>
         </list>
 
-        <list name="periods" table="eventvisualization_periods">
+        <list name="persistedPeriods" table="eventvisualization_periods">
             <cache usage="read-write"/>
             <key column="eventvisualizationid" foreign-key="fk_evisualization_periods_evisualizationid"/>
             <list-index column="sort_order" base="0"/>
@@ -203,6 +203,12 @@
         <property name="hideEmptyRows"/>
 
         <property name="hideNaData"/>
+
+        <property name="hideEmptyColumns"/>
+
+        <property name="fixColumnHeaders"/>
+
+        <property name="fixRowHeaders"/>
 
         <property name="showHierarchy"/>
 

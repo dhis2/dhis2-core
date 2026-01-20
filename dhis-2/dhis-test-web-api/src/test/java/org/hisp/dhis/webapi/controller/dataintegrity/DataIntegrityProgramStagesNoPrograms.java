@@ -29,12 +29,15 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -79,14 +82,33 @@ class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrat
         true);
   }
 
+  @Test
+  void shouldFindIntegrityIssuesWhenProgramStageHasNoProgramAndFindData() {
+    setUpTest();
+    ProgramStage programStageB = createProgramStage('A', (Program) null);
+    programStageB.setName("programStageB");
+    programStageService.saveProgramStage(programStageB);
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    manager.save(organisationUnit);
+    SingleEvent singleEvent = createSingleEvent(programStageB, organisationUnit);
+    manager.save(singleEvent);
+    dbmsManager.clearSession();
+
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE,
+        CHECK,
+        50,
+        programStageB.getUid(),
+        "programStageB",
+        "HAS_DATA: true",
+        true);
+  }
+
   public void setUpTest() {
 
-    Program programA = new Program();
-    programA.setAutoFields();
+    Program programA = createProgramWithoutRegistration('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programA);
 
     ProgramStage programStageA = new ProgramStage();

@@ -36,20 +36,22 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 11.08.17. */
+@Slf4j
 @Transactional
 public abstract class CommandSMSListener extends BaseSMSListener {
   private static final String DEFAULT_PATTERN = "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*+\\s*";
@@ -74,7 +76,8 @@ public abstract class CommandSMSListener extends BaseSMSListener {
   }
 
   @Override
-  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy) {
+  public void receive(@Nonnull IncomingSms sms, @Nonnull UserDetails smsCreatedBy)
+      throws ConflictException {
     // we cannot annotate getSMSCommand itself with Nonnull as it can return null but
     // receive is only called when accept returned true, which is if there is a non-null command
     SMSCommand smsCommand = getSMSCommand(sms);
@@ -86,14 +89,19 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       return;
     }
 
-    postProcess(sms, smsCreatedBy, smsCommand, codeValues);
+    try {
+      postProcess(sms, smsCreatedBy, smsCommand, codeValues);
+    } catch (ConflictException ex) {
+      log.error("Failed to handle SMS", ex);
+    }
   }
 
   protected abstract void postProcess(
       @Nonnull IncomingSms sms,
       @Nonnull UserDetails smsCreatedBy,
       @Nonnull SMSCommand smsCommand,
-      @Nonnull Map<String, String> codeValues);
+      @Nonnull Map<String, String> codeValues)
+      throws ConflictException;
 
   protected abstract SMSCommand getSMSCommand(@Nonnull IncomingSms sms);
 
@@ -197,13 +205,6 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     }
 
     return true;
-  }
-
-  static void validateUserOrgUnits(UserDetails userDetails) {
-    if (userDetails.getUserOrgUnitIds().isEmpty()) {
-      throw new SMSParserException(
-          "User is not associated with any orgunit. Please contact your supervisor.");
-    }
   }
 
   private static boolean hasOrganisationUnit(UserDetails smsCreatedBy) {

@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,8 +69,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -97,9 +98,9 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramStage psA;
 
-  private Period peA;
+  private PeriodDimension peA;
 
-  private Period peB;
+  private PeriodDimension peB;
 
   private OrganisationUnit ouA;
 
@@ -137,8 +138,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    peA = PeriodType.getPeriodFromIsoString("201401");
-    peB = PeriodType.getPeriodFromIsoString("201402");
+    peA = PeriodDimension.of("201401");
+    peB = PeriodDimension.of("201402");
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(ouA);
@@ -154,7 +155,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     atB = createTrackedEntityAttribute('B');
     attributeService.addTrackedEntityAttribute(atA);
     attributeService.addTrackedEntityAttribute(atB);
-    prA = createProgram('A', null, Sets.newHashSet(atA, atB), Sets.newHashSet(ouA, ouB), null);
+    prA = createProgram('A', null, Sets.newHashSet(atA, atB), Sets.newHashSet(ouA, ouB));
     programService.addProgram(prA);
     psA = createProgramStage('A', 0);
     psA.addDataElement(deA, 0);
@@ -208,9 +209,11 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params = dataQueryService.getFromRequest(request);
     DimensionalObject pe = params.getDimension("pe");
     assertEquals(3, pe.getItems().size());
-    assertTrue(streamOfPeriods(pe).anyMatch(Period::isDefault));
-    assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch("LAST_UPDATED"::equals));
-    assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch("INCIDENT_DATE"::equals));
+    assertTrue(streamOfPeriods(pe).anyMatch(PeriodDimension::isDefault));
+    assertTrue(
+        streamOfPeriods(pe).map(PeriodDimension::getDateField).anyMatch("LAST_UPDATED"::equals));
+    assertTrue(
+        streamOfPeriods(pe).map(PeriodDimension::getDateField).anyMatch("INCIDENT_DATE"::equals));
     assertTrue(
         streamOfPeriods(pe)
             .filter(period -> "INCIDENT_DATE".equals(period.getDateField()))
@@ -225,8 +228,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
         LocalDate.of(year, month, dayOfMonth).atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 
-  private Stream<Period> streamOfPeriods(DimensionalObject pe) {
-    return pe.getItems().stream().map(dimensionalItemObject -> (Period) dimensionalItemObject);
+  private Stream<PeriodDimension> streamOfPeriods(DimensionalObject pe) {
+    return pe.getItems().stream().map(PeriodDimension.class::cast);
   }
 
   @Test
@@ -381,8 +384,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     eventChart.setAutoFields();
     eventChart.setProgram(prA);
     eventChart.getColumnDimensions().add(atA.getUid());
-    eventChart.getRowDimensions().add(DimensionalObject.ORGUNIT_DIM_ID);
-    eventChart.getFilterDimensions().add(DimensionalObject.PERIOD_DIM_ID);
+    eventChart.getRowDimensions().add(ORGUNIT_DIM_ID);
+    eventChart.getFilterDimensions().add(PERIOD_DIM_ID);
     eventChart.getAttributeDimensions().add(new TrackedEntityAttributeDimension(atA, null, "LE:5"));
     eventChart.getPeriods().add(peA);
     eventChart.getPeriods().add(peB);
@@ -402,8 +405,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     eventChart.setProgram(prA);
     eventChart.getColumnDimensions().add(atA.getUid());
     eventChart.getColumnDimensions().add(deA.getUid());
-    eventChart.getRowDimensions().add(DimensionalObject.PERIOD_DIM_ID);
-    eventChart.getFilterDimensions().add(DimensionalObject.ORGUNIT_DIM_ID);
+    eventChart.getRowDimensions().add(PERIOD_DIM_ID);
+    eventChart.getFilterDimensions().add(ORGUNIT_DIM_ID);
     eventChart.getAttributeDimensions().add(new TrackedEntityAttributeDimension(atA, null, "LE:5"));
     eventChart
         .getDataElementDimensions()
@@ -426,8 +429,8 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     eventChart.setProgram(prA);
     eventChart.getColumnDimensions().add(deA.getUid());
     eventChart.getColumnDimensions().add(atA.getUid());
-    eventChart.getRowDimensions().add(DimensionalObject.ORGUNIT_DIM_ID);
-    eventChart.getFilterDimensions().add(DimensionalObject.PERIOD_DIM_ID);
+    eventChart.getRowDimensions().add(ORGUNIT_DIM_ID);
+    eventChart.getFilterDimensions().add(PERIOD_DIM_ID);
     eventChart
         .getDataElementDimensions()
         .add(new TrackedEntityDataElementDimension(deA, null, null, "GT:2000"));

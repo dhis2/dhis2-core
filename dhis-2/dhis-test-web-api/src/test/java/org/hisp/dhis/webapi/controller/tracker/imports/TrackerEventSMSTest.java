@@ -32,6 +32,8 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.lang.String.format;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertEqualUids;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
@@ -67,14 +69,11 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.SingleEvent;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -94,11 +93,9 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -106,6 +103,11 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -256,7 +258,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     eventProgram.addOrganisationUnit(orgUnit);
     eventProgram.getSharing().setOwner(user1);
     eventProgram.getSharing().addUserAccess(fullAccess(user1));
-    eventProgram.setTrackedEntityType(trackedEntityType);
     eventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.save(eventProgram, false);
 
@@ -270,9 +271,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     manager.save(eventProgramStage, false);
     eventProgram.getProgramStages().add(eventProgramStage);
     manager.save(eventProgram, false);
-
-    // create default enrollment for event program
-    manager.save(createEnrollment(eventProgram, null, orgUnit));
   }
 
   @AfterEach
@@ -282,7 +280,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldDeleteEvent() throws SmsCompressionException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
 
     DeleteSmsSubmission submission = new DeleteSmsSubmission();
     int submissionId = 1;
@@ -326,7 +324,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldDeleteEventViaRequestParameters() throws SmsCompressionException {
-    Event event = event(enrollment(trackedEntity()));
+    TrackerEvent event = event(enrollment(trackedEntity()));
 
     DeleteSmsSubmission submission = new DeleteSmsSubmission();
     int submissionId = 2;
@@ -459,7 +457,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertTrue(trackerEventService.exists(UID.of(eventUid)));
-    Event actual = trackerEventService.getEvent(UID.of(eventUid));
+    TrackerEvent actual = trackerEventService.getEvent(UID.of(eventUid));
     assertAll(
         "created event",
         () -> assertEquals(eventUid, actual.getUid()),
@@ -480,7 +478,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldUpdateEvent() throws SmsCompressionException, NotFoundException {
     Enrollment enrollment = enrollment(trackedEntity());
-    Event event = event(enrollment);
+    TrackerEvent event = event(enrollment);
 
     TrackerEventSmsSubmission submission = new TrackerEventSmsSubmission();
     int submissionId = 5;
@@ -527,7 +525,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
     assertTrue(trackerEventService.exists(UID.of(event)));
-    Event actual = trackerEventService.getEvent(UID.of(event.getUid()));
+    TrackerEvent actual = trackerEventService.getEvent(UID.of(event.getUid()));
     assertAll(
         "updated event",
         () -> assertEqualUids(submission.getEnrollment(), actual.getEnrollment()),
@@ -601,7 +599,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     assertAll(
         "created event",
         () -> assertEquals(eventUid, actual.getUid()),
-        () -> assertEqualUids(submission.getEventProgram(), actual.getEnrollment().getProgram()),
+        () -> assertEqualUids(submission.getEventProgram(), actual.getProgramStage().getProgram()),
         () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
@@ -662,13 +660,13 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<SingleEvent> events =
         singleEventService.findEvents(
-            SingleEventOperationParams.builder().program(eventProgram).build());
+            SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).build());
     assertHasSize(1, events);
     SingleEvent actual = events.get(0);
     assertAll(
         "created event",
         () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
-        () -> assertEqualUids(eventProgram, actual.getEnrollment().getProgram()),
+        () -> assertEqualUids(eventProgram, actual.getProgramStage().getProgram()),
         () -> assertEqualUids(eventProgramStage, actual.getProgramStage()),
         () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
@@ -726,7 +724,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
-                .trackedEntity(trackedEntity)
+                .trackedEntities(trackedEntity)
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());
@@ -739,14 +737,13 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actualEnrollment.getProgram()),
         () -> assertEquals(EnrollmentStatus.ACTIVE, actualEnrollment.getStatus()));
 
-    List<Event> events =
+    List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
-    Event actualEvent = events.get(0);
+    TrackerEvent actualEvent = events.get(0);
     assertAll(
         "created event",
         () -> assertEqualUids(orgUnit, actualEvent.getOrganisationUnit()),
@@ -807,14 +804,13 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(
                 "Command has been processed successfully", originator, smsMessageSender));
 
-    List<Event> events =
+    List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builder()
+            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
                 .trackedEntity(trackedEntity)
-                .program(trackerProgram)
                 .build());
     assertHasSize(1, events);
-    Event actual = events.get(0);
+    TrackerEvent actual = events.get(0);
     assertAll(
         "created event",
         () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
@@ -879,8 +875,12 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     return enrollment;
   }
 
-  private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, trackerProgramStage, enrollment.getOrganisationUnit(), coc);
+  private TrackerEvent event(Enrollment enrollment) {
+    TrackerEvent event = new TrackerEvent();
+    event.setEnrollment(enrollment);
+    event.setProgramStage(trackerProgramStage);
+    event.setOrganisationUnit(enrollment.getOrganisationUnit());
+    event.setAttributeOptionCombo(coc);
     event.setOccurredDate(new Date());
     event.setAutoFields();
     manager.save(event);

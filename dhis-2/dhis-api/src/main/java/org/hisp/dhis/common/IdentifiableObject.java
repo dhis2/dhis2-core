@@ -30,15 +30,23 @@
 package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 
 /**
@@ -47,18 +55,35 @@ import org.hisp.dhis.user.sharing.Sharing;
 @OpenApi.Kind("IdentifiableObject")
 public interface IdentifiableObject
     extends PrimaryKeyObject, LinkableObject, Comparable<IdentifiableObject>, Serializable {
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
   String getCode();
 
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
   String getName();
 
   String getDisplayName();
 
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
   Date getCreated();
 
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
   Date getLastUpdated();
 
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   User getLastUpdatedBy();
 
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
   AttributeValues getAttributeValues();
 
   void setAttributeValues(AttributeValues attributeValues);
@@ -67,23 +92,23 @@ public interface IdentifiableObject
 
   void removeAttributeValue(String attributeId);
 
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   Set<Translation> getTranslations();
 
   void setAccess(Access access);
-
-  Set<String> getFavorites();
-
-  boolean isFavorite();
-
-  boolean setAsFavorite(UserDetails user);
-
-  boolean removeAsFavorite(UserDetails user);
 
   // -----------------------------------------------------------------------------
   // Sharing
   // -----------------------------------------------------------------------------
 
   /** Return User who created this object This field is immutable and must not be updated */
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   User getCreatedBy();
 
   /**
@@ -102,9 +127,13 @@ public interface IdentifiableObject
   @Deprecated
   void setUser(User user);
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
   Access getAccess();
 
   /** Return all sharing settings of current object */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   Sharing getSharing();
 
   void setSharing(Sharing sharing);

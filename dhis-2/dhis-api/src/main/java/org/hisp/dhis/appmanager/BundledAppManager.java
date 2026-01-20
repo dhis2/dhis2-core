@@ -184,4 +184,18 @@ public class BundledAppManager {
       throw new RuntimeException(e);
     }
   }
+
+  public boolean isBundledApp(@Nonnull App app) {
+    return bundledAppsKeys.contains(app.getKey());
+  }
+
+  public boolean isOriginallyBundledApp(@Nonnull App app) {
+    for (Pair<App, BundledAppInfo> pair : bundledApps.values()) {
+      App originalApp = pair.getLeft();
+      if (originalApp.getKey().equals(app.getKey())) {
+        return originalApp.getVersion().equals(app.getVersion());
+      }
+    }
+    return false;
+  }
 }

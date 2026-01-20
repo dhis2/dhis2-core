@@ -34,7 +34,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryParams;
 
 /**
  * DTO which represents a complete data set registration.
@@ -52,7 +52,7 @@ public class DataSetCompletionDto {
 
   @JsonProperty private String orgUnit;
 
-  @JsonProperty private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryParams attribute;
 
   @JsonProperty private Boolean completed;
 }

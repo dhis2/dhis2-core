@@ -30,6 +30,9 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
@@ -43,21 +46,21 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.RelationshipUtils;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.RelationshipItem;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
@@ -84,9 +87,9 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   private TrackedEntity inaccessibleTe;
 
-  private Event eventA;
+  private TrackerEvent eventA;
 
-  private Event inaccessibleEvent;
+  private TrackerEvent inaccessibleEvent;
 
   private final RelationshipType teToTeType = createRelationshipType('A');
 
@@ -463,12 +466,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     return relationship;
   }
 
-  private Relationship relationship(TrackedEntity from, Event to) {
+  private Relationship relationship(TrackedEntity from, TrackerEvent to) {
     return relationship(from, to, teToEvType, new Date());
   }
 
   private Relationship relationship(
-      TrackedEntity from, Event to, RelationshipType type, Date createdAtClient) {
+      TrackedEntity from, TrackerEvent to, RelationshipType type, Date createdAtClient) {
     Relationship relationship = new Relationship();
     relationship.setUid(CodeGenerator.generateUid());
     relationship.setRelationshipType(type);
@@ -483,11 +486,11 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     return relationship;
   }
 
-  private void relationship(Event from, Event to) {
+  private void relationship(TrackerEvent from, TrackerEvent to) {
     relationship(from, to, eventToEventType);
   }
 
-  private void relationship(Event from, Event to, RelationshipType type) {
+  private void relationship(TrackerEvent from, TrackerEvent to, RelationshipType type) {
     Relationship relationship = new Relationship();
     relationship.setUid(CodeGenerator.generateUid());
     relationship.setRelationshipType(type);
@@ -511,9 +514,9 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     return relationshipItem;
   }
 
-  private RelationshipItem item(Event from) {
+  private RelationshipItem item(TrackerEvent from) {
     RelationshipItem relationshipItem = new RelationshipItem();
-    relationshipItem.setEvent(from);
+    relationshipItem.setTrackerEvent(from);
     return relationshipItem;
   }
 }

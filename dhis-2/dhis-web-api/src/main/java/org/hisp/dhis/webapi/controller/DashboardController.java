@@ -48,7 +48,7 @@ import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -128,7 +128,7 @@ public class DashboardController extends AbstractCrudController<Dashboard, GetOb
       @PathVariable("uid") String dashboardId,
       @RequestParam(required = false) boolean dryRun,
       @RequestParam(required = false) boolean atomic,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws WebMessageException {
     Dashboard dashboard = dashboardService.getDashboard(dashboardId);
 

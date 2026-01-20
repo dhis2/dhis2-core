@@ -58,6 +58,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -114,7 +115,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -127,7 +129,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
   }
 
   @Override
@@ -140,7 +143,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     AnalyticsTable table =
         params.isLatestUpdate()
             ? new AnalyticsTable(
-                AnalyticsTableType.VALIDATION_RESULT, List.of(), List.of(), Logged.LOGGED)
+                AnalyticsTableType.VALIDATION_RESULT, getColumns(), List.of(), Logged.LOGGED)
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), SORT_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();

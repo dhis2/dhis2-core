@@ -66,7 +66,6 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
-import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
@@ -96,6 +95,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -392,7 +392,7 @@ public class CrudControllerAdvice {
     return conflict(ex.getMessage());
   }
 
-  @ExceptionHandler({DataApprovalException.class, AdxException.class})
+  @ExceptionHandler({DataApprovalException.class})
   @ResponseBody
   public WebMessage dataApprovalExceptionHandler(Exception ex) {
     return conflict(ex.getMessage());
@@ -435,6 +435,13 @@ public class CrudControllerAdvice {
   @ExceptionHandler(PersistenceException.class)
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  @ResponseBody
+  public WebMessage dataIntegrityExceptionHandler(DataIntegrityViolationException ex) {
     String helpfulMessage = getHelpfulMessage(ex);
     return conflict(helpfulMessage);
   }
@@ -743,7 +750,7 @@ public class CrudControllerAdvice {
    * @return detailed message or original exception message
    */
   @Nullable
-  public static String getHelpfulMessage(PersistenceException ex) {
+  public static String getHelpfulMessage(Exception ex) {
     Throwable cause = ex.getCause();
 
     if (cause != null) {

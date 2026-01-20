@@ -35,7 +35,6 @@ import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * @author Lars Helge Overland
@@ -58,7 +57,7 @@ public interface OptionService {
    */
   void validateOptionSet(OptionSet optionSet) throws ConflictException;
 
-  ErrorMessage validateOption(OptionSet optionSet, Option option);
+  void validateOption(OptionSet optionSet, Option option) throws ConflictException;
 
   OptionSet getOptionSet(String uid);
 

@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -37,7 +37,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,16 +48,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  */
 @Transactional
-class PdfFormControllerTest extends H2ControllerIntegrationTestBase {
+class PdfFormControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testSendFormPdfDataSet_Empty() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "An error occurred, please check import summary.",
-        POST("/pdfForm/dataSet", "{}").content(HttpStatus.CONFLICT));
+    assertStatus(HttpStatus.BAD_REQUEST, POST("/pdfForm/dataSet", "{}"));
   }
 
   @Test

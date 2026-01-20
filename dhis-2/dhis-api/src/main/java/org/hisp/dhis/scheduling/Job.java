@@ -42,5 +42,5 @@ public interface Job {
 
   JobType getJobType();
 
-  void execute(JobConfiguration config, JobProgress progress);
+  void execute(JobEntry config, JobProgress progress);
 }

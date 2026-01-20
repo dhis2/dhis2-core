@@ -38,6 +38,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINE
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -119,10 +120,12 @@ public class PeriodDataProvider {
    * @return the list of distinct years found in the database, or current year.
    */
   private List<Integer> fetchAvailableYears() {
+    List<Integer> distinctYears = new UniqueArrayList<>();
+
     String dueDateOrExecutionDate =
         "(case when 'SCHEDULE' = ev.status then ev.scheduleddate else ev.occurreddate end)";
 
-    String sql =
+    String sqlTrackerEvents =
         "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
             + " union"
             + " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )"
@@ -130,18 +133,29 @@ public class PeriodDataProvider {
             + " ( select distinct (extract(year from "
             + dueDateOrExecutionDate
             + ")) as datayear"
-            + " from event ev"
+            + " from trackerevent ev"
             + " where "
             + dueDateOrExecutionDate
             + " is not null"
-            + " and ev.deleted is false ) order by datayear asc";
+            + " and ev.deleted is false )";
 
-    List<Integer> years = jdbcTemplate.queryForList(sql, Integer.class);
+    String sqlSingleEvents =
+        "( select distinct (extract(year from pe.startdate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )"
+            + " union"
+            + " ( select distinct (extract(year from ev.occurreddate)) as datayear"
+            + " from singleevent ev"
+            + " where ev.deleted is false )";
 
-    if (isEmpty(years)) {
-      years.add(now().getYear());
+    distinctYears.addAll(jdbcTemplate.queryForList(sqlTrackerEvents, Integer.class));
+    distinctYears.addAll(jdbcTemplate.queryForList(sqlSingleEvents, Integer.class));
+
+    if (isEmpty(distinctYears)) {
+      distinctYears.add(now().getYear());
     }
+    sort(distinctYears);
 
-    return years;
+    return distinctYears;
   }
 }

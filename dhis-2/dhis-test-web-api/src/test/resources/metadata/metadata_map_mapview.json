@@ -1,0 +1,27 @@
+{
+  "maps": [
+    {
+      "name": "1ANC: ANC 1st visits at chiefdom level for public CHC and CHP",
+      "mapViews": [
+        {
+          "name": "1ANC 1st visit",
+          "organisationUnitGroupSetDimensions": [
+            {
+              "organisationUnitGroupSet": {
+                "id": "J5jldMd8OHv"
+              },
+              "organisationUnitGroups": [
+                {
+                  "id": "uYxK4wmcPqA"
+                }
+              ]
+            }
+          ],
+          "layer": "thematic",
+          "id": "dAy9rtc7qV4"
+        }
+      ],
+      "id": "d7x2WOLhCA8"
+    }
+  ]
+}

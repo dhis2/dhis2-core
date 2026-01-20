@@ -52,7 +52,6 @@ import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -143,7 +142,7 @@ public abstract class AbstractHibernateListener {
 
       if (Hibernate.isInitialized(value)) {
         if (property.isCollection()
-            && BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
+            && IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
           objectMap.put(pName, IdentifiableObjectUtils.getUids((Collection) value));
         } else {
           objectMap.put(pName, getId(value));
@@ -255,7 +254,7 @@ public abstract class AbstractHibernateListener {
 
       Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) collectionValue;
 
-      if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
+      if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
         List<String> uids = IdentifiableObjectUtils.getUids(collection);
 
         if (uids != null && !uids.isEmpty()) {

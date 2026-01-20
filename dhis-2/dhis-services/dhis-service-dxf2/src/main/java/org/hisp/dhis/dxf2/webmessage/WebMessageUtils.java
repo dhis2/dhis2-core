@@ -61,26 +61,8 @@ import org.springframework.http.HttpStatus;
  */
 public final class WebMessageUtils {
 
-  public static WebMessage createWebMessage(Status status, HttpStatus httpStatus) {
-    return new WebMessage(status, httpStatus);
-  }
-
-  public static WebMessage createWebMessage(String message, Status status, HttpStatus httpStatus) {
-    return new WebMessage(status, httpStatus).setMessage(message);
-  }
-
-  public static WebMessage createWebMessage(
-      String message, Status status, HttpStatus httpStatus, ErrorCode errorCode) {
-    return new WebMessage(status, httpStatus).setErrorCode(errorCode).setMessage(message);
-  }
-
-  public static WebMessage createWebMessage(
-      String message, String devMessage, Status status, HttpStatus httpStatus) {
-    return new WebMessage(status, httpStatus).setMessage(message).setDevMessage(devMessage);
-  }
-
   public static WebMessage ok() {
-    return ok(null);
+    return createWebMessage(Status.OK, HttpStatus.OK);
   }
 
   public static WebMessage ok(String message) {
@@ -168,13 +150,31 @@ public final class WebMessageUtils {
     return createWebMessage(message, Status.ERROR, HttpStatus.UNAUTHORIZED);
   }
 
+  public static WebMessage createWebMessage(Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus);
+  }
+
+  public static WebMessage createWebMessage(String message, Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus).setMessage(message);
+  }
+
+  public static WebMessage createWebMessage(
+      String message, Status status, HttpStatus httpStatus, ErrorCode errorCode) {
+    return new WebMessage(status, httpStatus).setErrorCode(errorCode).setMessage(message);
+  }
+
+  public static WebMessage createWebMessage(
+      String message, String devMessage, Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus).setMessage(message).setDevMessage(devMessage);
+  }
+
   public static WebMessage importSummary(ImportSummary importSummary) {
     if (importSummary.isStatus(ImportStatus.ERROR)) {
       return conflict("An error occurred, please check import summary.").setResponse(importSummary);
     }
     if (importSummary.isStatus(ImportStatus.WARNING)) {
-      return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
-          .setMessage("One more conflicts encountered, please check import summary.")
+      return new WebMessage(Status.WARNING, HttpStatus.OK)
+          .setMessage("Import completed with warnings, please check import summary.")
           .setResponse(importSummary);
     }
     return ok("Import was successful.").setResponse(importSummary);

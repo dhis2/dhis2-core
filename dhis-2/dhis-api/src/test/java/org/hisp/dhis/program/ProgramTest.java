@@ -110,6 +110,7 @@ class ProgramTest {
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
     assertEquals(original.getAnalyticsDataElements(), copy.getAnalyticsDataElements());
     assertEquals(original.getCategoryCombo(), copy.getCategoryCombo());
+    assertEquals(original.getEnrollmentCategoryCombo(), copy.getEnrollmentCategoryCombo());
     assertEquals(original.getCategoryMappings(), copy.getCategoryMappings());
     assertEquals(original.getCompleteEventsExpiryDays(), copy.getCompleteEventsExpiryDays());
     assertEquals(original.getDataElements(), copy.getDataElements());
@@ -232,7 +233,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(63, allClassFieldsIncludingInherited.length);
+    assertEquals(65, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -245,6 +246,8 @@ class ProgramTest {
     p.setAccessLevel(AccessLevel.OPEN);
     p.setAutoFields();
     p.setCategoryCombo(new CategoryCombo("cat combo", DataDimensionType.ATTRIBUTE));
+    p.setEnrollmentCategoryCombo(
+        new CategoryCombo("enrollment cat combo", DataDimensionType.ATTRIBUTE));
     p.setCategoryMappings(Set.of(ProgramCategoryMapping.builder().id("UjaiJ5yiruk").build()));
     p.setCode(CodeGenerator.generateCode(CodeGenerator.UID_CODE_SIZE));
     p.setCompleteEventsExpiryDays(22);

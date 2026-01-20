@@ -30,6 +30,7 @@
 package org.hisp.dhis.test.webapi;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpAssertions.exceptionAsFail;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
@@ -37,6 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.Getter;
@@ -52,6 +54,7 @@ import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.filter.ApiVersionFilter;
+import org.hisp.dhis.webapi.filter.RequestIdFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -95,6 +98,8 @@ import org.springframework.web.context.WebApplicationContext;
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     implements HttpClientAdapter {
 
+  @Autowired private RequestIdFilter requestIdFilter;
+
   @Autowired private ApiVersionFilter apiVersionFilter;
 
   @Autowired protected WebApplicationContext webApplicationContext;
@@ -121,8 +126,13 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
   void setup() {
     renderService = _renderService;
 
+    // Filters must be explicitly added to MockMvc (not auto-discovered like in production see
+    // DhisWebApiWebAppInitializer.setupServlets()).
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilter(
+                requestIdFilter) // RequestIdFilter must run first to capture X-Request-ID for
+            // logging/MDC
             .addFilter(apiVersionFilter)
             .build();
 
@@ -322,10 +332,10 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
                 'shortName':'%s',
                 'openingDate':'2021',
                 'description':'Org desc',
-                'code':'Org code'
+                'code':'C%s'
               }
             """
-                .formatted(name, name)));
+                .formatted(name, name, name)));
   }
 
   protected final String addOrganisationUnit(String name, String parentId) {
@@ -342,5 +352,23 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
                 + parentId
                 + "'}"
                 + " }"));
+  }
+
+  protected final String addDataSet(
+      String name, String code, Collection<String> dataElementIds, Collection<String> orgUnitIds) {
+    String dataElements =
+        dataElementIds.stream().map("{'dataElement':{'id':'%s'}}"::formatted).collect(joining(","));
+    String orgUnits = orgUnitIds.stream().map("{ 'id': '%s'}"::formatted).collect(joining(","));
+
+    String json =
+        """
+      {'name':'%s',
+      'shortName':'%s',
+      'periodType':'Monthly',
+      'dataSetElements':[%s],
+      'organisationUnits': [%s]
+      }"""
+            .formatted(name, code, dataElements, orgUnits);
+    return assertStatus(HttpStatus.CREATED, POST("/dataSets/", json));
   }
 }

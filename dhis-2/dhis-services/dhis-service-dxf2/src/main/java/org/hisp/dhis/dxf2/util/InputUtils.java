@@ -43,7 +43,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -81,20 +80,6 @@ public class InputUtils {
     Set<String> options = TextUtils.splitToSet(cp, TextUtils.SEMICOLON);
 
     return getAttributeOptionCombo(cc, options, skipFallback);
-  }
-
-  /**
-   * Validates and retrieves the attribute option combo. Does not attempt to fall back to the
-   * default option combo. Throws {@link IllegalQueryException} if the attribute option combo does
-   * not exist.
-   *
-   * @param cc the category combo identifier.
-   * @param options the set of category option identifiers.
-   * @return the attribute option combo identified from the given input.
-   * @throws IllegalQueryException if the attribute option combo does not exist.
-   */
-  public CategoryOptionCombo getAttributeOptionCombo(String cc, Set<String> options) {
-    return getAttributeOptionCombo(cc, options, true);
   }
 
   /**
@@ -223,16 +208,5 @@ public class InputUtils {
     }
 
     return attrOptCombo;
-  }
-
-  /**
-   * Checks if user is authorized to force data input.
-   *
-   * @param currentUser the user attempting to force data input
-   * @param force request to force data input
-   * @return true if authorized and requested for it, otherwise false.
-   */
-  public boolean canForceDataInput(UserDetails currentUser, boolean force) {
-    return force && currentUser.isSuper();
   }
 }

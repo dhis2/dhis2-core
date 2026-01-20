@@ -35,14 +35,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -64,8 +65,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.SystemUser;
@@ -107,12 +106,12 @@ class EnrollmentAggregateServiceTest {
   @Test
   void verifyHeaderCreationBasedOnQueryItemsAndDimensions() {
     // Given
-    Period peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     OrganisationUnit ouA = createOrganisationUnit('A');
     DataElement deA = createDataElement('A', TEXT, NONE);
     DataElement deB = createDataElement('B', ValueType.ORGANISATION_UNIT, NONE);
     DataElement deC = createDataElement('C', NUMBER, COUNT);
-    DimensionalObject periods = new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA));
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("201701"));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
             ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
@@ -155,7 +154,6 @@ class EnrollmentAggregateServiceTest {
   @Test
   void verifyHeaderCreationBasedOnQueryItemsAndDimensionsWithSameNamesMultiStage() {
     // Given
-    Period peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     OrganisationUnit ouA = createOrganisationUnit('A');
 
     ProgramStage psA = new ProgramStage("ps", new Program());
@@ -174,7 +172,8 @@ class EnrollmentAggregateServiceTest {
     deF.setName("unique");
 
     DataElement deB = createDataElement('B', ValueType.ORGANISATION_UNIT, NONE);
-    DimensionalObject periods = new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA));
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("201701"));
     DimensionalObject orgUnits =
         new BaseDimensionalObject(
             ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));

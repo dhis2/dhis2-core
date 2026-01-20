@@ -1,0 +1,54 @@
+{
+  "maps": [
+    {
+      "name": "2ANC: ANC 1st visits at chiefdom level for public CHC and CHP",
+      "mapViews": [
+        {
+          "name": "2ANC 1st visit",
+          "organisationUnitGroupSetDimensions": [
+            {
+              "organisationUnitGroupSet": {
+                "id": "A5jldMd8OHv"
+              },
+              "organisationUnitGroups": [
+                {
+                  "id": "AYxK4wmcPqA"
+                }
+              ]
+            }
+          ],
+          "layer": "thematic",
+          "id": "AAy9rtc7qV4"
+        }
+      ],
+      "id": "A7x2WOLhCA8"
+    }
+  ],
+  "organisationUnitGroups": [
+    {
+      "name": "CHC2222",
+      "id": "AYxK4wmcPqA",
+      "shortName": "CHC2222",
+      "groupSets": [
+        {
+          "id": "A5jldMd8OHv"
+        }
+      ],
+      "organisationUnits": []
+    }
+  ],
+  "organisationUnitGroupSets": [
+    {
+      "name": "Facility Type2",
+      "id": "A5jldMd8OHv",
+      "shortName": "Facility Type2",
+      "description": "Facility Type2",
+      "dimensionType": "ORGANISATION_UNIT_GROUP_SET",
+      "organisationUnitGroups": [
+        {
+          "id": "AYxK4wmcPqA"
+        }
+      ]
+    }
+  ]
+}

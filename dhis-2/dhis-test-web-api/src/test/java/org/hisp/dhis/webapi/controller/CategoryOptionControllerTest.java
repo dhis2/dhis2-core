@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -140,5 +141,20 @@ class CategoryOptionControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Access is denied, requires one Authority from [F_CATEGORY_OPTION_MERGE]",
         mergeResponse.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("Should return displayFormName in the payload")
+  void testCategoryOptionFormName() {
+    // Create a category option with formName
+    String coId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptions/",
+                "{'name':'Test Category Option', 'shortName':'TCO', 'formName':'Test Form'}"));
+
+    JsonObject categoryOption = GET("/categoryOptions/{id}", coId).content().as(JsonObject.class);
+    assertEquals("Test Form", categoryOption.getString("displayFormName").string());
   }
 }

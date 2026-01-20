@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.period.Period" table="period">
+  <class name="org.hisp.dhis.period.Period" table="period" mutable="false">
 
     <cache usage="read-write" />
 
@@ -12,13 +12,11 @@
       <generator class="native" />
     </id>
 
-    <properties name="uniqueGroup" unique="true">
-      <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" lazy="false" column="periodtypeid"
-        foreign-key="fk_period_periodtypeid" />
-      <property name="startDate" not-null="true" type="date" column="startdate" />
-      <property name="endDate" not-null="true" type="date" column="enddate" />
-    </properties>
-
+    <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" lazy="false" column="periodtypeid"
+                 foreign-key="fk_period_periodtypeid" />
+    <property name="startDate" not-null="true" type="date" column="startdate" />
+    <property name="endDate" not-null="true" type="date" column="enddate" />
+    <property name="isoDate" not-null="true" column="iso" insert="false" update="false" optimistic-lock="false" generated="always" />
   </class>
 
 </hibernate-mapping>

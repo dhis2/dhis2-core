@@ -40,13 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
@@ -57,6 +53,10 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,10 +103,10 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertImportedObjects(2, persistenceReport, TrackerType.ENROLLMENT);
     assertImportedObjects(2, persistenceReport, TrackerType.EVENT);
     assertImportedObjects(2, persistenceReport, TrackerType.RELATIONSHIP);
-    assertEquals(6, getNumberOfEntities(Enrollment.class));
+    assertEquals(2, getNumberOfEntities(Enrollment.class));
     assertEquals(
         persistenceReport.getTypeReportMap().get(TrackerType.EVENT).getStats().getCreated(),
-        getNumberOfEntities(Event.class));
+        getNumberOfEntities(TrackerEvent.class));
 
     manager.clear();
   }
@@ -180,15 +180,15 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertDeletedObjects(9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
     // remaining
     assertEquals(4, getNumberOfEntities(TrackedEntity.class));
-    assertEquals(4, getNumberOfEntities(Enrollment.class));
-    assertEquals(0, getNumberOfEntities(Event.class));
+    assertEquals(0, getNumberOfEntities(Enrollment.class));
+    assertEquals(0, getNumberOfEntities(TrackerEvent.class));
     assertEquals(0, getNumberOfEntities(Relationship.class));
   }
 
   @Test
   void testEnrollmentDeletion() throws IOException {
     dbmsManager.clearSession();
-    assertEquals(2, getNumberOfEntities(Event.class));
+    assertEquals(2, getNumberOfEntities(TrackerEvent.class));
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
 
@@ -200,8 +200,8 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
     // remaining
-    assertEquals(5, getNumberOfEntities(Enrollment.class));
-    assertEquals(1, getNumberOfEntities(Event.class));
+    assertEquals(1, getNumberOfEntities(Enrollment.class));
+    assertEquals(1, getNumberOfEntities(TrackerEvent.class));
     assertEquals(2, getNumberOfEntities(Relationship.class));
   }
 
@@ -218,7 +218,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.EVENT);
     // remaining
-    assertEquals(1, getNumberOfEntities(Event.class));
+    assertEquals(1, getNumberOfEntities(TrackerEvent.class));
     assertEquals(2, getNumberOfEntities(Relationship.class));
   }
 
@@ -271,7 +271,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
         persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReport().size());
   }
 
-  private long getNumberOfEntities(Class<? extends SoftDeletableObject> clazz) {
+  private long getNumberOfEntities(Class<? extends SoftDeletableEntity> clazz) {
     return manager.getAll(clazz).stream().filter(o -> !o.isDeleted()).count();
   }
 }

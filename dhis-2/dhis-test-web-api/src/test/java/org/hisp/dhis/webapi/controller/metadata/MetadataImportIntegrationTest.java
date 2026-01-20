@@ -35,10 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.nio.file.Path;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonCategoryCombo;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,5 +117,43 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
     assertEquals(
         "User `test User testuser [HvbPAQEyXSD] (User)` is not allowed to update object `test [LloQNgtkrbt] (ProgramStage)`",
         errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("Should import CategoryCombo with 4 CategoryOptionCombos")
+  void importCategoryComboWith2CategoryOptionCombosTest() {
+    // given categories, category options & a category combo exist
+    JsonImportSummary importSummary1 =
+        POST("/metadata", Path.of("metadata/cat_catoption_catcombo.json"))
+            .content(HttpStatus.OK)
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        7, importSummary1.getObject("response").as(JsonImportSummary.class).getStats().getTotal());
+
+    // generate category option combos for category combo
+    POST("/maintenance/categoryOptionComboUpdate/categoryCombo/xBCZTtKoxWg").content(HttpStatus.OK);
+
+    // confirm cat combo has 4 category option combos
+    JsonMixed catCombo = GET("/categoryCombos/xBCZTtKoxWg").content(HttpStatus.OK);
+    JsonCategoryCombo jsonCategoryCombo = catCombo.as(JsonCategoryCombo.class);
+    assertEquals(4, jsonCategoryCombo.getCategoryOptionCombos().size());
+
+    // when importing cat combo with 4 cat opt combos
+    @Language("json5")
+    String catComboWithCatOptCombos =
+        """
+          {"categoryCombos":[%s]}"""
+            .formatted(catCombo.toJson());
+
+    HttpResponse importRepose = POST("/metadata", catComboWithCatOptCombos);
+
+    // then the import should be successful
+    importRepose.content(HttpStatus.OK).as(JsonImportSummary.class);
+
+    // and retrieving the category combo should show it still has 4 option combos
+    JsonMixed catCombo2 = GET("/categoryCombos/xBCZTtKoxWg").content(HttpStatus.OK);
+    JsonCategoryCombo jsonCategoryCombo2 = catCombo2.as(JsonCategoryCombo.class);
+    assertEquals(4, jsonCategoryCombo2.getCategoryOptionCombos().size());
   }
 }

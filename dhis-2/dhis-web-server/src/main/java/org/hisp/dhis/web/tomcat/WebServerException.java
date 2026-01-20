@@ -36,7 +36,6 @@ package org.hisp.dhis.web.tomcat;
  *
  * @author Phillip Webb
  */
-@SuppressWarnings("serial")
 public class WebServerException extends RuntimeException {
 
   public WebServerException(String message, Throwable cause) {

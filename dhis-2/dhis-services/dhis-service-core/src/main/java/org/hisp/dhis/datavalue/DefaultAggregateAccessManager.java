@@ -70,38 +70,6 @@ public class DefaultAggregateAccessManager implements AggregateAccessManager {
   // ---------------------------------------------------------------------
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails currentUser, DataValue dataValue) {
-    List<String> errors = new ArrayList<>();
-
-    if (currentUser.isSuper()) {
-      return errors;
-    }
-
-    Set<CategoryOption> options = new HashSet<>();
-
-    CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
-
-    if (categoryOptionCombo != null) {
-      options.addAll(categoryOptionCombo.getCategoryOptions());
-    }
-
-    CategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
-
-    if (attributeOptionCombo != null) {
-      options.addAll(attributeOptionCombo.getCategoryOptions());
-    }
-
-    options.forEach(
-        option -> {
-          if (!aclService.canDataRead(currentUser, option)) {
-            errors.add("User has no data read access for CategoryOption: " + option.getUid());
-          }
-        });
-
-    return errors;
-  }
-
-  @Override
   public List<String> canWrite(@Nonnull UserDetails userDetails, DataSet dataSet) {
     List<String> errors = new ArrayList<>();
 

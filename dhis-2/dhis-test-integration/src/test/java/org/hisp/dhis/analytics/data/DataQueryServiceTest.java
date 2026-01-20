@@ -32,9 +32,13 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertThrowsErrorCode;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -60,12 +64,10 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
-import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -84,7 +86,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -317,7 +319,6 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     userService.addUserRole(role);
     User user = makeUser("A");
     user.addOrganisationUnit(ouA);
-    user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
     user.getUserRoles().add(role);
 
     userService.addUser(user);
@@ -329,7 +330,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   void testGetDimensionalObjects() {
     Set<String> dimensionParams = new LinkedHashSet<>();
     dimensionParams.add(
-        DimensionalObject.DATA_X_DIM_ID
+        DATA_X_DIM_ID
             + DIMENSION_NAME_SEP
             + deA.getDimensionItem()
             + OPTION_SEP
@@ -337,7 +338,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
             + OPTION_SEP
             + rrA.getDimensionItem());
     dimensionParams.add(
-        DimensionalObject.ORGUNIT_DIM_ID
+        ORGUNIT_DIM_ID
             + DIMENSION_NAME_SEP
             + ouA.getDimensionItem()
             + OPTION_SEP
@@ -348,11 +349,11 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     DimensionalObject ouObject = dimensionalObject.get(1);
     List<DimensionalItemObject> dxItems = List.of(deA, deB, rrA);
     List<DimensionalItemObject> ouItems = List.of(ouA, ouB);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, dxObject.getDimension());
+    assertEquals(DATA_X_DIM_ID, dxObject.getDimension());
     assertEquals(DimensionType.DATA_X, dxObject.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDimensionDisplayName());
     assertContainsOnly(dxItems, dxObject.getItems());
-    assertEquals(DimensionalObject.ORGUNIT_DIM_ID, ouObject.getDimension());
+    assertEquals(ORGUNIT_DIM_ID, ouObject.getDimension());
     assertEquals(DimensionType.ORGANISATION_UNIT, ouObject.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDimensionDisplayName());
     assertContainsOnly(ouItems, ouObject.getItems());
@@ -362,7 +363,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   void testGetDimensionalObjectsReportingRates() {
     Set<String> dimensionParams = new LinkedHashSet<>();
     dimensionParams.add(
-        DimensionalObject.DATA_X_DIM_ID
+        DATA_X_DIM_ID
             + DIMENSION_NAME_SEP
             + deA.getDimensionItem()
             + OPTION_SEP
@@ -371,19 +372,18 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
             + rrB.getDimensionItem()
             + OPTION_SEP
             + rrC.getDimensionItem());
-    dimensionParams.add(
-        DimensionalObject.ORGUNIT_DIM_ID + DIMENSION_NAME_SEP + ouA.getDimensionItem());
+    dimensionParams.add(ORGUNIT_DIM_ID + DIMENSION_NAME_SEP + ouA.getDimensionItem());
     List<DimensionalObject> dimensionalObject =
         dataQueryService.getDimensionalObjects(dimensionParams, null, null, null, IdScheme.UID);
     DimensionalObject dxObject = dimensionalObject.get(0);
     DimensionalObject ouObject = dimensionalObject.get(1);
     List<DimensionalItemObject> dxItems = List.of(deA, rrA, rrB, rrC);
     List<DimensionalItemObject> ouItems = List.of(ouA);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, dxObject.getDimension());
+    assertEquals(DATA_X_DIM_ID, dxObject.getDimension());
     assertEquals(DimensionType.DATA_X, dxObject.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, dxObject.getDimensionDisplayName());
     assertContainsOnly(dxItems, dxObject.getItems());
-    assertEquals(DimensionalObject.ORGUNIT_DIM_ID, ouObject.getDimension());
+    assertEquals(ORGUNIT_DIM_ID, ouObject.getDimension());
     assertEquals(DimensionType.ORGANISATION_UNIT, ouObject.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_ORGUNIT, ouObject.getDimensionDisplayName());
     assertContainsOnly(ouItems, ouObject.getItems());
@@ -395,14 +395,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds(items);
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.DATA_X_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, actual.getDimension());
+            DATA_X_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(DATA_X_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.DATA_X, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName());
     assertContainsOnly(items, actual.getItems());
@@ -414,14 +408,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<String> itemCodes = List.of(deA.getCode(), deB.getCode(), deC.getCode());
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.DATA_X_DIM_ID,
-            itemCodes,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.CODE);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, actual.getDimension());
+            DATA_X_DIM_ID, itemCodes, (Date) null, null, false, null, IdScheme.CODE);
+    assertEquals(DATA_X_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.DATA_X, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName());
     assertContainsOnly(items, actual.getItems());
@@ -437,14 +425,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
             deC.getAttributeValue(atA.getUid()));
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.DATA_X_DIM_ID,
-            itemAttributeValues,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.from(atA));
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, actual.getDimension());
+            DATA_X_DIM_ID, itemAttributeValues, (Date) null, null, false, null, IdScheme.from(atA));
+    assertEquals(DATA_X_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.DATA_X, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName());
     assertContainsOnly(items, actual.getItems());
@@ -471,14 +453,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds(items);
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.DATA_X_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, actual.getDimension());
+            DATA_X_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(DATA_X_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.DATA_X, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName());
     assertContainsOnly(items, actual.getItems());
@@ -490,14 +466,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<String> itemUids = DimensionalObjectUtils.getDimensionalItemIds(items);
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.ORGUNIT_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension());
+            ORGUNIT_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(ORGUNIT_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.ORGANISATION_UNIT, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName());
     assertContainsOnly(items, actual.getItems());
@@ -505,18 +475,12 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetDimensionOrgUnitGroup() {
-    String ouGroupAUid = OrganisationUnit.KEY_ORGUNIT_GROUP + ouGroupA.getUid();
+    String ouGroupAUid = KEY_ORGUNIT_GROUP + ouGroupA.getUid();
     List<String> itemUids = List.of(ouGroupAUid);
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.ORGUNIT_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.ORGUNIT_DIM_ID, actual.getDimension());
+            ORGUNIT_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(ORGUNIT_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.ORGANISATION_UNIT, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_ORGUNIT, actual.getDimensionDisplayName());
     assertEquals(ouGroupA.getMembers(), Set.copyOf(actual.getItems()));
@@ -528,14 +492,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<String> itemUids = List.of(deGroupAId);
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.DATA_X_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, actual.getDimension());
+            DATA_X_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(DATA_X_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.DATA_X, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName());
     assertEquals(deGroupA.getMembers(), Set.copyOf(actual.getItems()));
@@ -547,14 +505,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<String> itemUids = List.of(inGroupAId);
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.DATA_X_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.DATA_X_DIM_ID, actual.getDimension());
+            DATA_X_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(DATA_X_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.DATA_X, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_DATA_X, actual.getDimensionDisplayName());
     assertEquals(inGroupA.getMembers(), Set.copyOf(actual.getItems()));
@@ -570,14 +522,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
             RelativePeriodEnum.THIS_YEAR.toString());
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.PERIOD_DIM_ID,
-            itemUids,
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.PERIOD_DIM_ID, actual.getDimension());
+            PERIOD_DIM_ID, itemUids, (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(PERIOD_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.PERIOD, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName());
     assertEquals(7, actual.getItems().size());
@@ -587,14 +533,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   void testGetDimensionPeriodAndStartEndDates() {
     DimensionalObject actual =
         dataQueryService.getDimension(
-            DimensionalObject.PERIOD_DIM_ID,
-            List.of(),
-            (Date) null,
-            null,
-            false,
-            null,
-            IdScheme.UID);
-    assertEquals(DimensionalObject.PERIOD_DIM_ID, actual.getDimension());
+            PERIOD_DIM_ID, List.of(), (Date) null, null, false, null, IdScheme.UID);
+    assertEquals(PERIOD_DIM_ID, actual.getDimension());
     assertEquals(DimensionType.PERIOD, actual.getDimensionType());
     assertEquals(DataQueryParams.DISPLAY_NAME_PERIOD, actual.getDimensionDisplayName());
     assertEquals(0, actual.getItems().size());
@@ -826,7 +766,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetFromUrlUserOrgUnit() {
     Set<String> dimensionParams = new HashSet<>();
-    dimensionParams.add("ou:" + OrganisationUnit.KEY_USER_ORGUNIT);
+    dimensionParams.add("ou:" + KEY_USER_ORGUNIT);
     dimensionParams.add("dx:" + deA.getDimensionItem() + ";" + deB.getDimensionItem());
     dimensionParams.add("pe:2011;2012");
     DataQueryRequest dataQueryRequest =
@@ -955,15 +895,15 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetFromAnalyticalObjectA() {
     final Visualization visualization = new Visualization();
-    visualization.setRowDimensions(Arrays.asList(DimensionalObject.ORGUNIT_DIM_ID));
-    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
-    visualization.getFilterDimensions().add(DimensionalObject.PERIOD_DIM_ID);
+    visualization.setRowDimensions(Arrays.asList(ORGUNIT_DIM_ID));
+    visualization.setColumnDimensions(Arrays.asList(DATA_X_DIM_ID));
+    visualization.getFilterDimensions().add(PERIOD_DIM_ID);
     visualization.addDataDimensionItem(deA);
     visualization.addDataDimensionItem(deB);
     visualization.addDataDimensionItem(deC);
     visualization.getOrganisationUnits().add(ouA);
     visualization.getOrganisationUnits().add(ouB);
-    visualization.getPeriods().add(PeriodType.getPeriodFromIsoString("2012"));
+    visualization.getPeriods().add(PeriodDimension.of("2012"));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(3, params.getDataElements().size());
@@ -976,9 +916,9 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetFromAnalyticalObjectB() {
     final Visualization visualization = new Visualization();
-    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
+    visualization.setColumnDimensions(Arrays.asList(DATA_X_DIM_ID));
     visualization.setRowDimensions(Arrays.asList(ouGroupSetA.getUid()));
-    visualization.getFilterDimensions().add(DimensionalObject.PERIOD_DIM_ID);
+    visualization.getFilterDimensions().add(PERIOD_DIM_ID);
     visualization.addDataDimensionItem(deA);
     visualization.addDataDimensionItem(deB);
     visualization.addDataDimensionItem(deC);
@@ -986,7 +926,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     ouGroupSetDim.setDimension(ouGroupSetA);
     ouGroupSetDim.setItems(List.of(ouGroupA, ouGroupB, ouGroupC));
     visualization.getOrganisationUnitGroupSetDimensions().add(ouGroupSetDim);
-    visualization.getPeriods().add(PeriodType.getPeriodFromIsoString("2012"));
+    visualization.getPeriods().add(PeriodDimension.of("2012"));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(3, params.getDataElements().size());
@@ -999,9 +939,9 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetFromAnalyticalObjectC() {
     final Visualization visualization = new Visualization();
-    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
+    visualization.setColumnDimensions(Arrays.asList(DATA_X_DIM_ID));
     visualization.setRowDimensions(Arrays.asList(ouGroupSetA.getUid()));
-    visualization.getFilterDimensions().add(DimensionalObject.PERIOD_DIM_ID);
+    visualization.getFilterDimensions().add(PERIOD_DIM_ID);
     visualization.addDataDimensionItem(deA);
     visualization.addDataDimensionItem(pdA);
     visualization.addDataDimensionItem(pdB);
@@ -1009,7 +949,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     ouGroupSetDim.setDimension(ouGroupSetA);
     ouGroupSetDim.setItems(List.of(ouGroupA, ouGroupB, ouGroupC));
     visualization.getOrganisationUnitGroupSetDimensions().add(ouGroupSetDim);
-    visualization.getPeriods().add(PeriodType.getPeriodFromIsoString("2012"));
+    visualization.getPeriods().add(PeriodDimension.of("2012"));
     DataQueryParams params = dataQueryService.getFromAnalyticalObject(visualization);
     assertNotNull(params);
     assertEquals(1, params.getDataElements().size());
@@ -1021,26 +961,10 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetUserOrgUnitsWithGrantedForTrackerOrganisationUnits() {
+  void testGetUserOrgUnits() {
     String ouParam = ouA.getUid() + ";" + ouB.getUid();
     List<OrganisationUnit> expected = List.of(ouA, ouB);
     assertEquals(expected, dataQueryService.getUserOrgUnits(null, ouParam));
-  }
-
-  @Test
-  void testGetUserOrgUnitsWithGrantedForAnalyticsOrganisationUnits() {
-    // given
-    DataQueryParams dataQueryParams =
-        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
-
-    // when
-    List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
-
-    // then
-    assertEquals(3, userOrgUnits.size());
-    assertThat(
-        userOrgUnits.stream().map(IdentifiableObject::getName).toList(),
-        containsInAnyOrder("OrganisationUnitB", "OrganisationUnitC", "OrganisationUnitD"));
   }
 
   @Test
@@ -1063,8 +987,8 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     assertThat(dimension.getItems(), hasSize(5));
     assertThat(
         dimension.getItems().stream()
-            .map(dimensionalItemObject -> (Period) dimensionalItemObject)
-            .map(Period::getDateField)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
             .collect(Collectors.toList()),
         containsInAnyOrder(
             "EVENT_DATE", "ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "SCHEDULED_DATE"));
@@ -1079,9 +1003,9 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(getPeriod(dimension, "SCHEDULED_DATE").getEndDate(), toMediumDate("2021-03-01"));
   }
 
-  private Period getPeriod(DimensionalObject dimension, String dateField) {
+  private PeriodDimension getPeriod(DimensionalObject dimension, String dateField) {
     return dimension.getItems().stream()
-        .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+        .map(PeriodDimension.class::cast)
         .filter(period -> period.getDateField().equals(dateField))
         .findFirst()
         .orElse(null);

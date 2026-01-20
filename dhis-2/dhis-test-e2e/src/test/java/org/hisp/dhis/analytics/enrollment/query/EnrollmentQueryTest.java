@@ -43,7 +43,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -64,7 +63,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
   public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse() throws JSONException {
     // --- Test Configuration ---
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+    boolean expectPostgis = isPostgres();
 
     // Given
     QueryParamsBuilder params =

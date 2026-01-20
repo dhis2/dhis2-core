@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -83,7 +84,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       ColumnMapper columnMapper,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -97,7 +99,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
         analyticsTableSettings,
         periodDataProvider,
         columnMapper,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
     fixedColumns = EnrollmentAnalyticsColumn.getColumns(sqlBuilder);
   }
 
@@ -170,7 +173,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
                 "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "enDeletedClause", sqlBuilder.isFalse("en", "deleted")));
 
-    populateTableInternal(partition, fromClause);
+    String tableName = partition.getName();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+
+    populateTableInternal(tableName, columns, fromClause);
   }
 
   /**

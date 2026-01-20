@@ -661,7 +661,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.updateUser(userToModify);
 
     List<ErrorReport> errors = new ArrayList<>();
-    twoFactorAuthService.privileged2FADisable(getAdminUser(), userToModify.getUid(), errors::add);
+    twoFactorAuthService.privileged2FADisable(
+        UserDetails.fromUser(getAdminUser()), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
@@ -687,7 +688,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.updateUser(currentUser);
 
     List<ErrorReport> errors = new ArrayList<>();
-    twoFactorAuthService.privileged2FADisable(currentUser, userToModify.getUid(), errors::add);
+    twoFactorAuthService.privileged2FADisable(
+        UserDetails.fromUser(currentUser), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 

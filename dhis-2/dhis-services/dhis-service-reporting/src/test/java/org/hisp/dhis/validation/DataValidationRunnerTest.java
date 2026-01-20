@@ -53,10 +53,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.datavalue.DeflatedDataValueParams;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
@@ -164,7 +164,7 @@ class DataValidationRunnerTest {
     DeflatedDataValue ddv = new DeflatedDataValue(dv);
     deflatedDataValues.add(ddv);
 
-    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenReturn(deflatedDataValues);
 
     Map<DimensionalItemObject, Object> vals = new HashMap<>();
@@ -208,7 +208,7 @@ class DataValidationRunnerTest {
     List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
 
     // Return no values!
-    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+    when(dataValueService.getDeflatedDataValues(any(DeflatedDataValueParams.class)))
         .thenReturn(deflatedDataValues);
 
     subject.run(organisationUnits, ctx);

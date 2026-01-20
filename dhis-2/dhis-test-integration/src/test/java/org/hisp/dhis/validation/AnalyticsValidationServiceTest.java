@@ -30,10 +30,16 @@
 package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,7 +60,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -72,8 +77,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -83,11 +86,13 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
@@ -205,7 +210,7 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntity);
     Program program =
         createProgram(
-            'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA), null);
+            'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA));
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', 0);
@@ -228,10 +233,10 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntity);
 
     manager.save(enrollment);
-    Event eventA = createEvent(stageA, enrollment, orgUnitA);
+    TrackerEvent eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);
     manager.save(eventA);
-    Event eventB = createEvent(stageA, enrollment, orgUnitA);
+    TrackerEvent eventB = createEvent(stageA, enrollment, orgUnitA);
     eventB.setOccurredDate(dateApr10);
     manager.save(eventB);
     categoryOptionComboGenerateService.addAndPruneAllOptionCombos();
@@ -300,9 +305,9 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   private Grid newGrid(
       double dataElementVal, double teAttributeVal, double piVal, double indicatorVal) {
     Grid grid = new ListGrid();
-    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
-    grid.addHeader(new GridHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID));
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID));
     grid.addHeader(new GridHeader(VALUE_ID));
     grid.addRow();
     grid.addValue("ProgramABCD.DataElement");

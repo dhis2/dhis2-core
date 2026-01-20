@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.InetAddressValidator;
@@ -75,10 +76,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = Icon.class,
     classifiers = {"team:platform", "purpose:support"})
 public class ApiTokenController extends AbstractCrudController<ApiToken, GetObjectListParams> {
-  public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
   private static final List<String> VALID_METHODS =
-      List.of("GET", "POST", "PATCH", "PUT", "DELETE");
+      List.of("HEAD", "GET", "POST", "PATCH", "PUT", "DELETE");
 
   public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis(30);
 
@@ -107,7 +107,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken, GetObje
 
     MetadataImportParams params =
         importService
-            .getParamsFromMap(contextService.getParameterValuesMap())
+            .getParamsFromMap(Map.of())
             .setImportReportMode(ImportReportMode.FULL)
             .setUser(UID.of(CurrentUserUtil.getCurrentUserDetails()))
             .setImportStrategy(ImportStrategy.CREATE);

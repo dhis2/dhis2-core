@@ -474,7 +474,7 @@ public class RelationshipsTests extends TrackerApiTest {
       boolean bidirectional,
       int expectedCount,
       // do not remove used for the parametrized test name
-      @SuppressWarnings("unused") String testName) {
+      String testName) {
     String relationshipTypeId =
         relationshipTypeActions
             .get(

@@ -86,7 +86,8 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
  * @author Bob Jolliffe
  */
 @JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
-public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
+public class BaseIdentifiableObject extends BaseLinkableObject
+    implements IdentifiableObject, FavoritableObject {
   /** The database internal identifier for this Object. */
   @Setter protected long id;
 
@@ -182,12 +183,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   // -------------------------------------------------------------------------
 
   @Override
-  @JsonIgnore
-  public long getId() {
-    return id;
-  }
-
-  @Override
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
   @Description("The Unique Identifier for this Object.")
@@ -195,6 +190,12 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @PropertyRange(min = 11, max = 11)
   public String getUid() {
     return uid;
+  }
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
   }
 
   @Override
@@ -528,14 +529,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   // -------------------------------------------------------------------------
   // Sharing helpers
   // -------------------------------------------------------------------------
-
-  public void setExternalAccess(boolean externalAccess) {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
-    sharing.setExternal(externalAccess);
-  }
 
   public void setPublicAccess(String access) {
     if (sharing == null) {

@@ -37,6 +37,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -72,7 +73,19 @@ public interface FileResourceService {
 
   List<FileResource> getFileResources(@Nonnull List<String> uids);
 
-  List<FileResource> getOrphanedFileResources();
+  List<FileResource> getExpiredFileResources(Set<FileResourceDomain> domainsToDeleteWhenUnassigned);
+
+  /**
+   * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job
+   * config of scheduling type ONCE_ASAP.
+   *
+   * <p>The intention here is to find unassigned file resources that have no corresponding job
+   * config, of scheduling type ONCE_ASAP. We assume that this means these JOB_DATA file resources
+   * are no longer needed and should be cleaned up.
+   *
+   * @return matching FileResources
+   */
+  List<FileResource> getAllUnassignedByJobDataDomainWithNoJobConfig();
 
   /**
    * Lookup a {@link FileResource} by storage key property.
@@ -179,7 +192,8 @@ public interface FileResourceService {
 
   URI getSignedGetFileResourceContentUri(FileResource fileResource);
 
-  List<FileResource> getExpiredFileResources(FileResourceRetentionStrategy retentionStrategy);
+  List<FileResource> getExpiredDataValueFileResources(
+      FileResourceRetentionStrategy retentionStrategy);
 
   List<FileResource> getAllUnProcessedImagesFiles();
 

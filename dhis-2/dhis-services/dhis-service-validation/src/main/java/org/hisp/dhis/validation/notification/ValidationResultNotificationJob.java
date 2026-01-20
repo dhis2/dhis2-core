@@ -31,7 +31,7 @@ package org.hisp.dhis.validation.notification;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class ValidationResultNotificationJob implements Job {
   }
 
   @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+  public void execute(JobEntry jobConfiguration, JobProgress progress) {
     progress.startingProcess("Validation result notification");
     notificationService.sendUnsentNotifications(progress);
     progress.completedProcess(null);

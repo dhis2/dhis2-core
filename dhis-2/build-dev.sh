@@ -5,9 +5,7 @@ set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-D2CLUSTER="${1:-}"
-IMAGE=dhis2/core-dev
-TAG=local
+IMAGE=${IMAGE:="dhis2/core-dev:local"}
 BUILD_REVISION=$(git --git-dir "$DIR/../.git" rev-parse HEAD)
 BUILD_BRANCH=$(git --git-dir "$DIR/../.git" branch --show-current)
 
@@ -25,13 +23,4 @@ echo "Building dhis2-core and Docker image..."
 
 export MAVEN_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
 mvn clean package --threads 2C -DskipTests -Dmaven.test.skip=true --file "${DIR}/pom.xml" --projects dhis-web-server --also-make \
-  --activate-profiles "$JIB_PROFILE" -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"
-
-if test -z "$D2CLUSTER"; then
-    echo "No cluster name specified, skipping deploy"
-else
-    echo "Deploying to d2 cluster $D2CLUSTER..."
-
-    d2 cluster up "$D2CLUSTER" --image $IMAGE:$TAG
-    d2 cluster logs "$D2CLUSTER"
-fi
+  --activate-profiles "$JIB_PROFILE" -Djib.to.image="$IMAGE" -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"

@@ -52,7 +52,7 @@ import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -91,7 +91,7 @@ public class DataItemServiceFacade {
       OrderParams orderParams) {
     List<DataItem> dataItems = new ArrayList<>();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (isNotEmpty(targetEntities)) {
       // Defining the query params map, and setting the common params.

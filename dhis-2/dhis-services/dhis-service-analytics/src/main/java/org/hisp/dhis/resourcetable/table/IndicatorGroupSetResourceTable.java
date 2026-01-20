@@ -106,9 +106,9 @@ public class IndicatorGroupSetResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-        insert into ${table_name} \
-        select i.indicatorid as indicatorid, i.name as indicatorname, \
-        """,
+            insert into ${table_name} \
+            select i.indicatorid as indicatorid, i.name as indicatorname, \
+            """,
             "table_name",
             toStaging(TABLE_NAME));
 

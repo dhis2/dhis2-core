@@ -156,7 +156,7 @@ public interface JobConfigurationService {
    *     type is already running
    * @return only jobs that should start soon within the given number of seconds
    */
-  List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds, boolean includeWaiting);
+  List<JobEntry> getDueJobConfigurations(int dueInNextSeconds, boolean includeWaiting);
 
   /**
    * Finds stale jobs.
@@ -164,7 +164,7 @@ public interface JobConfigurationService {
    * @param staleForSeconds the duration for which the job has not been updated (alive).
    * @return all jobs that appear to be stale (hanging) considering the given timeout
    */
-  List<JobConfiguration> getStaleConfigurations(int staleForSeconds);
+  List<JobEntry> getStaleConfigurations(int staleForSeconds);
 
   /**
    * @param params query parameters (criteria) to find

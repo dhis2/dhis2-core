@@ -54,15 +54,12 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory {
 
   @Override
   public Object create(AuditScope auditScope, AuditType auditType, Object object, String user) {
-    switch (auditScope) {
-      case METADATA:
-        return handleMetadataAudit(object);
-      case TRACKER:
-        return handleTracker(object);
-      case AGGREGATE:
-        return handleAggregate(object);
-    }
-    return null;
+    return switch (auditScope) {
+      case METADATA -> handleMetadataAudit(object);
+      case TRACKER -> handleTracker(object);
+      case AGGREGATE -> handleAggregate(object);
+      case API -> handleApi(object);
+    };
   }
 
   private String handleTracker(Object object) {
@@ -70,6 +67,10 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory {
   }
 
   private String handleAggregate(Object object) {
+    return toJson(object);
+  }
+
+  private String handleApi(Object object) {
     return toJson(object);
   }
 

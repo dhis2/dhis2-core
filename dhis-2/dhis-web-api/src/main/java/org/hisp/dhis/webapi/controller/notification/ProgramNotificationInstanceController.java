@@ -41,17 +41,18 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceParam;
+import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/programNotificationInstances")
 @RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
+  private static final String PLURAL = "programNotificationInstances";
+
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   private final EnrollmentService enrollmentService;
@@ -88,17 +91,19 @@ public class ProgramNotificationInstanceController {
       ProgramNotificationInstanceRequestParams requestParams, HttpServletRequest request)
       throws NotFoundException, BadRequestException {
     validatePaginationParameters(requestParams);
+    validateRequestParams(requestParams);
 
-    Event storedEvent = null;
+    TrackerEvent storedTrackerEvent = null;
+    SingleEvent storedSingleEvent = null;
     if (requestParams.getEvent() != null) {
-      // TODO(tracker) jdbc-hibernate: check the impact on performance
-      storedEvent = manager.get(Event.class, requestParams.getEvent());
-      if (storedEvent != null) {
-        if (storedEvent.getProgramStage().getProgram().isRegistration()) {
-          trackerEventService.getEvent(requestParams.getEvent());
-        } else {
-          singleEventService.getEvent(requestParams.getEvent());
-        }
+      if (trackerEventService.exists(requestParams.getEvent())) {
+        trackerEventService.getEvent(requestParams.getEvent());
+        // TODO(tracker) jdbc-hibernate: check the impact on performance
+        storedTrackerEvent = manager.get(TrackerEvent.class, requestParams.getEvent());
+      } else {
+        singleEventService.getEvent(requestParams.getEvent());
+        // TODO(tracker) jdbc-hibernate: check the impact on performance
+        storedSingleEvent = manager.get(SingleEvent.class, requestParams.getEvent());
       }
     }
     Enrollment storedEnrollment = null;
@@ -115,7 +120,8 @@ public class ProgramNotificationInstanceController {
       ProgramNotificationInstanceParam params =
           ProgramNotificationInstanceParam.builder()
               .enrollment(storedEnrollment)
-              .event(storedEvent)
+              .trackerEvent(storedTrackerEvent)
+              .singleEvent(storedSingleEvent)
               .scheduledAt(requestParams.getScheduledAt())
               .paging(true)
               .page(pageParams.getPage())
@@ -123,6 +129,9 @@ public class ProgramNotificationInstanceController {
               .build();
       List<ProgramNotificationInstance> instances =
           programNotificationInstanceService.getProgramNotificationInstancesPage(params);
+
+      instances.forEach(this::setEvent);
+
       org.hisp.dhis.tracker.Page<ProgramNotificationInstance> page =
           new org.hisp.dhis.tracker.Page<>(
               instances,
@@ -131,17 +140,14 @@ public class ProgramNotificationInstanceController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(
-              Page.withPager(
-                  ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-                  page,
-                  getRequestURL(request)));
+          .body(Page.withPager(PLURAL, page, getRequestURL(request)));
     }
 
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
             .enrollment(storedEnrollment)
-            .event(storedEvent)
+            .trackerEvent(storedTrackerEvent)
+            .singleEvent(storedSingleEvent)
             .scheduledAt(requestParams.getScheduledAt())
             .paging(false)
             .build();
@@ -150,6 +156,23 @@ public class ProgramNotificationInstanceController {
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
-        .body(Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances));
+        .body(Page.withoutPager(PLURAL, instances));
+  }
+
+  private void setEvent(ProgramNotificationInstance programNotificationInstance) {
+    TrackerEvent trackerEvent = programNotificationInstance.getTrackerEvent();
+    SingleEvent singleEvent = programNotificationInstance.getSingleEvent();
+    if (trackerEvent != null) {
+      programNotificationInstance.setEvent(trackerEvent);
+    } else if (singleEvent != null) {
+      programNotificationInstance.setEvent(TrackerObjectsMapper.map(singleEvent));
+    }
+  }
+
+  private void validateRequestParams(ProgramNotificationInstanceRequestParams requestParams)
+      throws BadRequestException {
+    if (requestParams.getEvent() == null && requestParams.getEnrollment() == null) {
+      throw new BadRequestException("Enrollment or Event must be specified.");
+    }
   }
 }

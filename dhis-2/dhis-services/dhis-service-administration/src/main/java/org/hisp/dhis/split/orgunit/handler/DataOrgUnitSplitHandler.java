@@ -52,7 +52,7 @@ public class DataOrgUnitSplitHandler {
 
   @Transactional
   public void splitData(OrgUnitSplitRequest request) {
-    migrate(request, "DataValueAudit", PARAM_ORG_UNIT);
+    migrate(request, "DataValueChangelog", PARAM_ORG_UNIT);
     migrate(request, "DataValue", PARAM_SOURCE);
     migrate(request, "DataApprovalAudit", PARAM_ORG_UNIT);
     migrate(request, "DataApproval", PARAM_ORG_UNIT);
@@ -62,7 +62,8 @@ public class DataOrgUnitSplitHandler {
     migrate(request, "Interpretation", PARAM_ORG_UNIT);
 
     migrate(request, "ProgramMessage", "recipients." + PARAM_ORG_UNIT);
-    migrate(request, "Event", PARAM_ORG_UNIT);
+    migrate(request, "TrackerEvent", PARAM_ORG_UNIT);
+    migrate(request, "SingleEvent", PARAM_ORG_UNIT);
     migrate(request, "Enrollment", PARAM_ORG_UNIT);
     migrate(request, "ProgramOwnershipHistory", PARAM_ORG_UNIT);
     migrate(request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT);

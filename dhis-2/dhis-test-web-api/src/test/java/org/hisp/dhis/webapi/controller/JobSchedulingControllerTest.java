@@ -65,14 +65,14 @@ class JobSchedulingControllerTest extends PostgresControllerIntegrationTestBase 
 
   @Test
   void testGetRunningProgress() {
-    JsonObject progress = GET("/scheduling/running/PUSH_ANALYSIS").content();
+    JsonObject progress = GET("/scheduling/running/DATA_INTEGRITY").content();
     assertTrue(progress.isObject());
     assertTrue(progress.isEmpty());
   }
 
   @Test
   void testGetCompletedProgress() {
-    JsonObject progress = GET("/scheduling/completed/PUSH_ANALYSIS").content();
+    JsonObject progress = GET("/scheduling/completed/DATA_INTEGRITY").content();
     assertTrue(progress.isObject());
     assertTrue(progress.isEmpty());
   }
