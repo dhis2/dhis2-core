@@ -49,7 +49,6 @@ import org.junit.jupiter.api.condition.EnabledIf;
 
 /** Groups e2e tests for "/analytics/outlierDetection" endpoint. */
 @EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
-@Disabled("Temporarily disabled while fixing Redis issue")
 public class OutliersDetection5AutoTest extends AnalyticsApiTest {
   private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 

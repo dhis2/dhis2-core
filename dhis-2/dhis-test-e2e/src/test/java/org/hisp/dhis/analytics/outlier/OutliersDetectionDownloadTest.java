@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 @EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
-@Disabled("Temporarily disabled while fixing Redis issue")
 public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
 
   private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
