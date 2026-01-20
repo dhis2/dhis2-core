@@ -30,13 +30,32 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
+import org.hisp.dhis.dxf2.sync.SyncEndpoint;
+import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import org.hisp.dhis.dxf2.sync.SystemInstance;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -44,8 +63,19 @@ import org.springframework.web.client.RestTemplate;
  * Program UID context. Extends {@link DataSynchronizationWithPaging} to add tracker-specific
  * synchronization behavior.
  */
-public abstract class TrackerDataSynchronizationWithPaging
+@Slf4j
+@Component
+public abstract class TrackerDataSynchronizationWithPaging<E>
     implements DataSynchronizationWithPaging {
+
+  private final RenderService renderService;
+  private final RestTemplate restTemplate;
+
+  protected TrackerDataSynchronizationWithPaging(
+      RenderService renderService, RestTemplate restTemplate) {
+    this.renderService = renderService;
+    this.restTemplate = restTemplate;
+  }
 
   /**
    * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
@@ -67,29 +97,81 @@ public abstract class TrackerDataSynchronizationWithPaging
         "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
   }
 
-  public SynchronizationResult endProcess(
-      JobProgress progress, String message, String processName) {
-    String fullMessage = format("%s %s", processName, message);
+  public SynchronizationResult endProcess(JobProgress progress, String message) {
+    String fullMessage = format("%s %s", getProcessName(), message);
     progress.completedProcess(fullMessage);
     return SynchronizationResult.success(fullMessage);
   }
 
-  public SynchronizationResult failProcess(
-      JobProgress progress, String reason, String processName) {
-    String fullMessage = format("%s failed. %s", processName, reason);
+  public SynchronizationResult failProcess(JobProgress progress, String reason) {
+    String fullMessage = format("%s failed. %s", getProcessName(), reason);
     progress.failedProcess(fullMessage);
     return SynchronizationResult.failure(fullMessage);
   }
 
   public SynchronizationResult validatePreconditions(
-      SystemSettings settings,
-      JobProgress progress,
-      RestTemplate restTemplate,
-      String processName) {
+      SystemSettings settings, JobProgress progress) {
     if (!testServerAvailability(settings, restTemplate).isAvailable()) {
-      return failProcess(progress, "Remote server unavailable", processName);
+      return failProcess(progress, "Remote server unavailable");
     }
 
     return null;
   }
+
+  public ImportSummary sendTrackerRequest(
+      List<E> entities, SystemInstance instance, SystemSettings settings, String url) {
+    RequestCallback requestCallback = createRequestCallback(entities, instance);
+
+    Optional<WebMessageResponse> response =
+        runSyncRequest(
+            restTemplate,
+            requestCallback,
+            SyncEndpoint.TRACKER_IMPORT.getKlass(),
+            url,
+            settings.getSyncMaxAttempts());
+
+    return response.map(ImportSummary.class::cast).orElse(null);
+  }
+
+  private RequestCallback createRequestCallback(List<E> entities, SystemInstance instance) {
+    return request -> {
+      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+      request
+          .getHeaders()
+          .set(
+              SyncUtils.HEADER_AUTHORIZATION,
+              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
+
+      renderService.toJson(request.getBody(), Map.of(getEntityName(), entities));
+    };
+  }
+
+  public void syncEntities(
+      List<E> entities,
+      SystemInstance instance,
+      SystemSettings settings,
+      Date syncTime,
+      TrackerImportStrategy importStrategy) {
+    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
+
+    ImportSummary summary = sendTrackerRequest(entities, instance, settings, url);
+
+    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
+      throw new MetadataSyncServiceException(
+          format("Single Event sync failed for importStrategy=%s", importStrategy));
+    }
+
+    log.info(
+        "Single Event sync successful for importStrategy={}. Events count: {}",
+        importStrategy,
+        entities.size());
+
+    updateEntitySyncTimeStamp(entities, syncTime);
+  }
+
+  public abstract String getEntityName();
+
+  public abstract String getProcessName();
+
+  public abstract void updateEntitySyncTimeStamp(List<E> entities, Date syncTime);
 }

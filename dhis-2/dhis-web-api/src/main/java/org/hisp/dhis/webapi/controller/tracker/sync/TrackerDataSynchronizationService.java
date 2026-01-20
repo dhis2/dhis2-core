@@ -30,26 +30,22 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,7 +53,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -67,11 +62,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
-import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -79,16 +71,25 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class TrackerDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
+public class TrackerDataSynchronizationService
+    extends TrackerDataSynchronizationWithPaging<
+        org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> {
   private static final String PROCESS_NAME = "Tracker data synchronization";
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 
   private final TrackedEntityService trackedEntityService;
   private final SystemSettingsService systemSettingsService;
-  private final RestTemplate restTemplate;
-  private final RenderService renderService;
+
+  public TrackerDataSynchronizationService(
+      TrackedEntityService trackedEntityService,
+      SystemSettingsService systemSettingsService,
+      RestTemplate restTemplate,
+      RenderService renderService) {
+    super(renderService, restTemplate);
+    this.trackedEntityService = trackedEntityService;
+    this.systemSettingsService = systemSettingsService;
+  }
 
   @Getter
   private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
@@ -112,8 +113,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
-    SynchronizationResult validationResult =
-        validatePreconditions(settings, progress, restTemplate, PROCESS_NAME);
+    SynchronizationResult validationResult = validatePreconditions(settings, progress);
     if (validationResult != null) {
       return validationResult;
     }
@@ -121,14 +121,34 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
 
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No tracked entities to synchronize", PROCESS_NAME);
+      return endProcess(progress, "No tracked entities to synchronize");
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, settings);
 
     return success
-        ? endProcess(progress, "Completed successfully", PROCESS_NAME)
-        : failProcess(progress, "Page-level synchronization failed", PROCESS_NAME);
+        ? endProcess(progress, "Completed successfully")
+        : failProcess(progress, "Page-level synchronization failed");
+  }
+
+  @Override
+  public void updateEntitySyncTimeStamp(
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
+      Date syncTime) {
+    List<String> trackedEntityUids =
+        trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
+
+    trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
+  }
+
+  @Override
+  public String getEntityName() {
+    return "trackedEntities";
+  }
+
+  @Override
+  public String getProcessName() {
+    return PROCESS_NAME;
   }
 
   private TrackerSynchronizationContext initializeContext(
@@ -196,7 +216,7 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
 
   private void synchronizePage(
       int page, TrackerSynchronizationContext context, SystemSettings settings)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException, NotFoundException, WebMessageException {
     List<TrackedEntity> trackedEntities = fetchTrackedEntitiesForPage(page, context);
 
     Map<Boolean, List<TrackedEntity>> partitionedTrackedEntities =
@@ -227,7 +247,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
       List<TrackedEntity> activeTrackedEntities,
       List<TrackedEntity> deletedTrackedEntities,
       TrackerSynchronizationContext context,
-      SystemSettings settings) {
+      SystemSettings settings)
+      throws WebMessageException {
     Date syncTime = context.getStartTime();
     SystemInstance instance = context.getInstance();
 
@@ -240,7 +261,8 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
           activeTrackedEntities.stream()
               .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
               .toList();
-      syncTrackedEntities(
+      ensureNoMappingErrors(errors);
+      syncEntities(
           activeTrackedEntityDtos,
           instance,
           settings,
@@ -251,74 +273,9 @@ public class TrackerDataSynchronizationService extends TrackerDataSynchronizatio
     if (!deletedTrackedEntities.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
           deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
-      syncTrackedEntities(
+      syncEntities(
           deletedTrackedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
-  }
-
-  private void syncTrackedEntities(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      SystemInstance instance,
-      SystemSettings settings,
-      Date syncTime,
-      TrackerImportStrategy importStrategy) {
-    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
-
-    ImportSummary summary = sendTrackerRequest(trackedEntities, instance, settings, url);
-
-    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
-      throw new MetadataSyncServiceException(
-          format("Tracked Entity sync failed for importStrategy=%s", importStrategy));
-    }
-
-    log.info(
-        "Tracked Entity sync successful for importStrategy={}. Tracked entities count: {}",
-        importStrategy,
-        trackedEntities.size());
-
-    updateTrackedEntitiesSyncTimestamp(trackedEntities, syncTime);
-  }
-
-  private ImportSummary sendTrackerRequest(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      SystemInstance instance,
-      SystemSettings settings,
-      String url) {
-    RequestCallback requestCallback = createRequestCallback(trackedEntities, instance);
-
-    Optional<WebMessageResponse> response =
-        runSyncRequest(
-            restTemplate,
-            requestCallback,
-            SyncEndpoint.TRACKER_IMPORT.getKlass(),
-            url,
-            settings.getSyncMaxAttempts());
-
-    return response.map(ImportSummary.class::cast).orElse(null);
-  }
-
-  private RequestCallback createRequestCallback(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      SystemInstance instance) {
-    return request -> {
-      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      request
-          .getHeaders()
-          .set(
-              SyncUtils.HEADER_AUTHORIZATION,
-              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-
-      renderService.toJson(request.getBody(), Map.of("trackedEntities", trackedEntities));
-    };
-  }
-
-  private void updateTrackedEntitiesSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
-      Date syncTime) {
-    List<String> trackedEntityUids =
-        trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
-
-    trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(

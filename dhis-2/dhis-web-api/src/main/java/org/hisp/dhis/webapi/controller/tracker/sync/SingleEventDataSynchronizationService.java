@@ -30,24 +30,18 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
@@ -61,7 +55,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -71,11 +64,9 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.mapstruct.factory.Mappers;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -83,16 +74,26 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class SingleEventDataSynchronizationService extends TrackerDataSynchronizationWithPaging {
+public class SingleEventDataSynchronizationService
+    extends TrackerDataSynchronizationWithPaging<Event> {
   private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
 
   private final SingleEventService singleEventService;
   private final SystemSettingsService systemSettingsService;
-  private final RestTemplate restTemplate;
-  private final RenderService renderService;
   private final ProgramStageDataElementService programStageDataElementService;
+
+  public SingleEventDataSynchronizationService(
+      SingleEventService singleEventService,
+      SystemSettingsService systemSettingsService,
+      ProgramStageDataElementService programStageDataElementService,
+      RestTemplate restTemplate,
+      RenderService renderService) {
+    super(renderService, restTemplate);
+    this.singleEventService = singleEventService;
+    this.systemSettingsService = systemSettingsService;
+    this.programStageDataElementService = programStageDataElementService;
+  }
 
   @Getter
   private static final class EventSynchronizationContext
@@ -124,8 +125,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
-    SynchronizationResult validationResult =
-        validatePreconditions(settings, progress, restTemplate, PROCESS_NAME);
+    SynchronizationResult validationResult = validatePreconditions(settings, progress);
     if (validationResult != null) {
       return validationResult;
     }
@@ -133,14 +133,31 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     EventSynchronizationContext context = initializeContext(pageSize, progress, settings);
 
     if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No events to synchronize", PROCESS_NAME);
+      return endProcess(progress, "No events to synchronize");
     }
 
     boolean success = executeSynchronizationWithPaging(context, progress, settings);
 
     return success
-        ? endProcess(progress, "Completed successfully", PROCESS_NAME)
-        : failProcess(progress, "Page-level synchronization failed", PROCESS_NAME);
+        ? endProcess(progress, "Completed successfully")
+        : failProcess(progress, "Page-level synchronization failed");
+  }
+
+  @Override
+  public void updateEntitySyncTimeStamp(
+      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
+    List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
+    singleEventService.updateEventsSyncTimestamp(eventUids, syncTime);
+  }
+
+  @Override
+  public String getEntityName() {
+    return "events";
+  }
+
+  @Override
+  public String getProcessName() {
+    return PROCESS_NAME;
   }
 
   private EventSynchronizationContext initializeContext(
@@ -256,76 +273,15 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> activeEventDtos =
           activeEvents.stream().map(ev -> EVENT_MAPPER.map(idSchemeParam, errors, ev)).toList();
       ensureNoMappingErrors(errors);
-      syncEvents(
+      syncEntities(
           activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
     }
 
     if (!deletedEvents.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> deletedEventDtos =
           deletedEvents.stream().map(this::toMinimalEvent).toList();
-      syncEvents(deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
+      syncEntities(deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
-  }
-
-  private void syncEvents(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
-      SystemInstance instance,
-      SystemSettings settings,
-      Date syncTime,
-      TrackerImportStrategy importStrategy) {
-    String url = instance.getUrl() + "?importStrategy=" + importStrategy;
-
-    ImportSummary summary = sendTrackerRequest(events, instance, settings, url);
-
-    if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
-      throw new MetadataSyncServiceException(
-          format("Single Event sync failed for importStrategy=%s", importStrategy));
-    }
-
-    log.info(
-        "Single Event sync successful for importStrategy={}. Events count: {}",
-        importStrategy,
-        events.size());
-
-    updateEventsSyncTimestamp(events, syncTime);
-  }
-
-  private ImportSummary sendTrackerRequest(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events,
-      SystemInstance instance,
-      SystemSettings settings,
-      String url) {
-    RequestCallback requestCallback = createRequestCallback(events, instance);
-
-    Optional<WebMessageResponse> response =
-        runSyncRequest(
-            restTemplate,
-            requestCallback,
-            SyncEndpoint.TRACKER_IMPORT.getKlass(),
-            url,
-            settings.getSyncMaxAttempts());
-
-    return response.map(ImportSummary.class::cast).orElse(null);
-  }
-
-  private RequestCallback createRequestCallback(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, SystemInstance instance) {
-    return request -> {
-      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      request
-          .getHeaders()
-          .set(
-              SyncUtils.HEADER_AUTHORIZATION,
-              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-
-      renderService.toJson(request.getBody(), Map.of("events", events));
-    };
-  }
-
-  private void updateEventsSyncTimestamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
-    List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
-    singleEventService.updateEventsSyncTimestamp(eventUids, syncTime);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEvent(
