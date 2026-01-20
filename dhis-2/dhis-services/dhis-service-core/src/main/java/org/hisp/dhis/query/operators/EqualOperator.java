@@ -67,9 +67,9 @@ public class EqualOperator<T extends Comparable<T>> extends Operator<T> {
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return builder.equal(builder.size(root.get(path.getPath())), value);
+      return builder.equal(builder.size(getPropertyPath(root, path)), value);
     }
-    return builder.equal(root.get(path.getPath()), args.get(0));
+    return builder.equal(getPropertyPath(root, path), args.get(0));
   }
 
   @Override

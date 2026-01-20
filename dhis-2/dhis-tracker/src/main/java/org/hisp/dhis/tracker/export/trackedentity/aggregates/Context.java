@@ -29,33 +29,16 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
-import java.util.List;
-import lombok.Builder;
-import lombok.Value;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.user.UserDetails;
 
 /**
- * @author Luciano Fiandesio
+ * Immutable context passed to async aggregate fetchers.
+ *
+ * @param userDetails used to set up security context on async threads
+ * @param fields specifies which fields the user wants returned
+ * @param queryParams filter parameters for tracked entities
  */
-@Value
-@Builder(toBuilder = true)
-class Context {
-  /** returns true if user is Super User */
-  boolean superUser;
-
-  /** The current user id */
-  Long userId;
-
-  /** The current user uid */
-  String userUid;
-
-  /** A list of group ID to which the user belongs */
-  List<String> userGroups;
-
-  /** Specifies the fields that the user wants to be returned. */
-  TrackedEntityFields fields;
-
-  /** The query parameters to filter tracked entities */
-  TrackedEntityQueryParams queryParams;
-}
+record Context(
+    UserDetails userDetails, TrackedEntityFields fields, TrackedEntityQueryParams queryParams) {}

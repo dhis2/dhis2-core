@@ -93,7 +93,8 @@ class EnrollmentQueryParams {
   /** End date for enrollment in the given program. */
   private Date programEndDate;
 
-  private UID trackedEntity;
+  /** Set of tracked entity uids to explicitly select. */
+  private Set<UID> trackedEntities = new HashSet<>();
 
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;
@@ -165,9 +166,9 @@ class EnrollmentQueryParams {
     return programEndDate != null;
   }
 
-  /** Indicates whether this params specifies a tracked entity. */
-  public boolean hasTrackedEntity() {
-    return this.trackedEntity != null;
+  /** Indicates whether this params specifies tracked entities. */
+  public boolean hasTrackedEntities() {
+    return isNotEmpty(this.trackedEntities);
   }
 
   public boolean hasEnrollmentUids() {
