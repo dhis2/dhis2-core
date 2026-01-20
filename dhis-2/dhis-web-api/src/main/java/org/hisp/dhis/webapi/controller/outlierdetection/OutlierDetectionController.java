@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
-import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -44,7 +43,6 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.outlierdetection.service.DefaultOutlierDetectionService;
-import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:data"})
 @RestController
 @AllArgsConstructor
-@RequiresAuthority(anyOf = F_RUN_VALIDATION)
+// @RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class OutlierDetectionController {
 
   private final DefaultOutlierDetectionService outlierService;
