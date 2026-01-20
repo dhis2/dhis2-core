@@ -42,12 +42,12 @@ import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -94,7 +94,10 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
   void shouldCreateReadAuditWhenGettingEnrollmentAndTrackedEntitySupplied()
       throws ForbiddenException, BadRequestException {
     enrollmentService.findEnrollments(
-        EnrollmentOperationParams.builder().program(program).trackedEntity(trackedEntity).build());
+        EnrollmentOperationParams.builder()
+            .program(program)
+            .trackedEntities(Set.of(trackedEntity))
+            .build());
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> auditService.getTrackedEntityAuditsCount(params) == countBeforeTest + 1);
@@ -122,7 +125,7 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
         enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .program(program)
-                .trackedEntity(trackedEntity)
+                .trackedEntities(Set.of(trackedEntity))
                 .enrollments(Set.of(UID.generate()))
                 .build());
 

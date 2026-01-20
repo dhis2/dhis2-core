@@ -103,6 +103,8 @@
 
     <property name="trigramIndexable" column="trigramindexable" not-null="true" />
 
+    <property name="skipAnalytics" column="skipanalytics"/>
+
   </class>
 
 </hibernate-mapping>

@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.program.notification;
 
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
@@ -39,14 +41,14 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.job.NotificationSender;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationInstanceService;

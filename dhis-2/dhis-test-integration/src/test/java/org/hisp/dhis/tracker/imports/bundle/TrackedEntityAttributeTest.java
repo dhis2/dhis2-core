@@ -31,16 +31,11 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.EW;
-import static org.hisp.dhis.common.QueryOperator.GE;
-import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
-import static org.hisp.dhis.common.QueryOperator.LT;
-import static org.hisp.dhis.common.QueryOperator.NNULL;
-import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.SW;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
@@ -50,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -60,16 +56,16 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -145,7 +141,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
-    assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", LIKE);
+    assertPreferredSearchOperator(trackedEntityAttributes, "sTGqP5JNy6E", IN);
     assertPreferredSearchOperator(trackedEntityAttributes, "sYn3tkL3XKa", EQ);
     assertPreferredSearchOperator(trackedEntityAttributes, "TsfP85GKsU5", null);
   }
@@ -171,7 +167,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   void shouldFailIfPreferredOperatorIsBlocked() {
     TrackedEntityAttribute tea =
         trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
-    tea.setPreferredSearchOperator(IN);
+    tea.setPreferredSearchOperator(LIKE);
 
     ImportReport report =
         metadataImportService.importMetadata(
@@ -180,7 +176,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(Status.ERROR, report.getStatus());
     assertStartsWith(
-        "The preferred search operator `IN` is blocked for the selected tracked entity attribute",
+        "The preferred search operator `LIKE` is blocked for the selected tracked entity attribute",
         getErrorMessage(report));
   }
 
@@ -189,10 +185,8 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttribute> trackedEntityAttributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
-    assertBlockedOperators(
-        trackedEntityAttributes, "sTGqP5JNy6E", List.of(LE, GE, EW, IN, SW, NULL, NNULL));
-    assertBlockedOperators(
-        trackedEntityAttributes, "sYn3tkL3XKa", List.of(IN, NNULL, GT, LT, SW, LE, EW, NULL, GE));
+    assertBlockedOperators(trackedEntityAttributes, "sTGqP5JNy6E", List.of(EW, SW, LIKE));
+    assertBlockedOperators(trackedEntityAttributes, "sYn3tkL3XKa", List.of(EW, SW, LIKE));
     assertIsEmpty(getAttribute(trackedEntityAttributes, "TsfP85GKsU5").getBlockedSearchOperators());
   }
 
@@ -204,6 +198,33 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     assertTrigramIndexableFlag(trackedEntityAttributes, "sTGqP5JNy6E", true);
     assertTrigramIndexableFlag(trackedEntityAttributes, "sYn3tkL3XKa", false);
     assertTrigramIndexableFlag(trackedEntityAttributes, "TsfP85GKsU5", false);
+  }
+
+  @Test
+  void shouldFailWhenTryingToBlockANonBlockableOperator() {
+    TrackedEntityAttribute tea =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    tea.setBlockedSearchOperators(Set.of(EQ));
+
+    ImportReport report =
+        metadataImportService.importMetadata(
+            new MetadataImportParams(),
+            new MetadataObjects(Map.of(TrackedEntityAttribute.class, List.of(tea))));
+
+    assertEquals(Status.ERROR, report.getStatus());
+    assertContains(
+        "The operator(s) `[EQ]` cannot be blocked. The following operators cannot be blocked:",
+        getErrorMessage(report));
+  }
+
+  @Test
+  void shouldSetSkipAnalyticsFlagFromImportOrDefaultToFalseIfNotSpecified() {
+    List<TrackedEntityAttribute> trackedEntityAttributes =
+        trackedEntityAttributeService.getAllTrackedEntityAttributes();
+
+    assertSkipAnalytics(trackedEntityAttributes, "sTGqP5JNy6E", true);
+    assertSkipAnalytics(trackedEntityAttributes, "sYn3tkL3XKa", false);
+    assertSkipAnalytics(trackedEntityAttributes, "TsfP85GKsU5", false);
   }
 
   private void assertMinCharactersToSearch(
@@ -279,5 +300,20 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         expected,
         tea.getTrigramIndexable(),
         "Expected trigram indexable flag for UID " + uid + " to be " + expected);
+  }
+
+  private void assertSkipAnalytics(
+      List<TrackedEntityAttribute> attributeValues, String uid, boolean expected) {
+    TrackedEntityAttribute tea =
+        attributeValues.stream()
+            .filter(t -> t.getUid().equals(uid))
+            .findFirst()
+            .orElseThrow(
+                () -> new AssertionError("TrackedEntityAttribute with UID " + uid + " not found"));
+
+    assertEquals(
+        expected,
+        tea.isSkipAnalytics(),
+        "Expected skip individual analytics flag for UID " + uid + " to be " + expected);
   }
 }

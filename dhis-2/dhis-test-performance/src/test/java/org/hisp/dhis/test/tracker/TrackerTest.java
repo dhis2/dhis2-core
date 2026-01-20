@@ -152,18 +152,18 @@ public class TrackerTest extends Simulation {
   }
 
   private record Request(
-      String url, EnumMap<Profile, Integer> p90Thresholds, String name, String... groups) {
+      String url, EnumMap<Profile, Integer> p95Thresholds, String name, String... groups) {
     HttpRequestActionBuilder action() {
       return http(name).get(url);
     }
 
     Optional<Assertion> assertion(Profile profile) {
-      return Optional.ofNullable(p90Thresholds.get(profile))
+      return Optional.ofNullable(p95Thresholds.get(profile))
           .map(
               threshold -> {
                 String[] parts = Arrays.copyOf(groups, groups.length + 1);
                 parts[groups.length] = name;
-                return details(parts).responseTime().percentile(90).lte(threshold);
+                return details(parts).responseTime().percentile(95).lte(threshold);
               });
     }
   }
@@ -190,7 +190,7 @@ public class TrackerTest extends Simulation {
     ProfileDefaults defaults =
         switch (this.profile) {
           case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(5, 20, 1, 30, 180, 1);
+          case LOAD -> new ProfileDefaults(6, 100, 1, 30, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4);
         };
     this.usersPerSec = Integer.getInteger("usersPerSec", defaults.usersPerSec());
@@ -358,32 +358,32 @@ public class TrackerTest extends Simulation {
     Request goToFirstPage =
         new Request(
             getEventsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 100)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 63, Profile.LOAD, 72)),
             "Go to first page of program " + this.eventProgram,
             "Get a list of single events");
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 100)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 99, Profile.LOAD, 105)),
             "Go to second page of program " + this.eventProgram,
             "Get a list of single events");
     Request searchSingleEvents =
         new Request(
             getEventsUrl + "&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
-            new EnumMap<>(Map.of(Profile.SMOKE, 100, Profile.LOAD, 100)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 57, Profile.LOAD, 64)),
             "Search single events in date interval in program " + this.eventProgram,
             "Get a list of single events");
     Request getFirstEvent =
         new Request(
             singleEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 55)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 42, Profile.LOAD, 57)),
             "Get first event",
             "Get a list of single events",
             "Get one single event");
     Request getRelationshipsForFirstEvent =
         new Request(
             relationshipUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 10, Profile.LOAD, 10)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 8, Profile.LOAD, 8)),
             "Get relationships for first event",
             "Get a list of single events",
             "Get one single event");
@@ -488,49 +488,49 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 200, Profile.LOAD, 300)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 204, Profile.LOAD, 280)),
             "Not found TE by name with like operator",
             "Get a list of TEs");
     Request notFoundTeByNationalIdWithEqualOperator =
         new Request(
             notFoundByNationalId,
-            new EnumMap<>(Map.of(Profile.SMOKE, 10, Profile.LOAD, 15)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 6, Profile.LOAD, 16)),
             "Not found TE by national id with eq operator",
             "Get a list of TEs");
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 200, Profile.LOAD, 300)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 197, Profile.LOAD, 280)),
             "Search TE by name with like operator",
             "Get a list of TEs");
     Request searchTeByNationalIdWithEqualOperator =
         new Request(
             searchForTEByNationalId,
-            new EnumMap<>(Map.of(Profile.SMOKE, 10, Profile.LOAD, 20)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 11, Profile.LOAD, 22)),
             "Search TE by national id with eq operator",
             "Get a list of TEs");
     Request searchEventsByProgramStage =
         new Request(
             searchEventByProgramStage,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 11, Profile.LOAD, 33)),
             "Search events by program stage",
             "Get a list of TEs");
     Request getTrackedEntitiesForEvents =
         new Request(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 55)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 22, Profile.LOAD, 50)),
             "Get tracked entities from events",
             "Get a list of TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 200, Profile.LOAD, 280)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 60, Profile.LOAD, 100)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 65)),
             "Get first tracked entity",
             "Get a list of TEs",
             "Go to single enrollment");
@@ -544,14 +544,14 @@ public class TrackerTest extends Simulation {
     Request getRelationshipsForTrackedEntity =
         new Request(
             relationshipForTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 10, Profile.LOAD, 10)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 8, Profile.LOAD, 8)),
             "Get relationships for first tracked entity",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 100)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 32, Profile.LOAD, 114)),
             "Get first event from enrollment",
             "Get a list of TEs",
             "Go to single enrollment",
@@ -559,7 +559,7 @@ public class TrackerTest extends Simulation {
     Request getRelationshipsForEvent =
         new Request(
             relationshipForEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 10, Profile.LOAD, 10)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 6, Profile.LOAD, 8)),
             "Get relationships for first event",
             "Get a list of TEs",
             "Go to single enrollment",
@@ -676,7 +676,7 @@ public class TrackerTest extends Simulation {
 
   /**
    * Returns assertions for the given profile, including a global success rate assertion and any
-   * profile-specific P90 response time assertions defined in the requests.
+   * profile-specific P95 response time assertions defined in the requests.
    *
    * @param profile The test profile
    * @param scenarios The scenarios with their requests

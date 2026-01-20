@@ -62,7 +62,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -70,6 +69,7 @@ import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -80,12 +80,8 @@ import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.GroupableItem;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
-import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -123,6 +119,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private final DataQueryService dataQueryService;
 
+  private final QueryItemFilterHandlerRegistry filterHandlerRegistry;
+
   @Override
   public EventQueryParams getFromRequest(EventDataQueryRequest request) {
     return getFromRequest(request, false);
@@ -136,11 +134,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
-    DataQueryParams dataQueryParams =
-        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
-
     List<OrganisationUnit> userOrgUnits =
-        dataQueryService.getUserOrgUnits(dataQueryParams, request.getUserOrgUnit());
+        dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
 
     Program pr = programService.getProgram(request.getProgram());
 
@@ -276,7 +271,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           if (groupableItem != null) {
             params.addFilter((DimensionalObject) groupableItem);
           } else {
-            groupableItem = getQueryItem(dim, pr, request.getOutputType());
+            groupableItem =
+                getQueryItem(dim, pr, request.getOutputType(), request.getRelativePeriodDate());
             params.addItemFilter((QueryItem) groupableItem);
           }
 
@@ -308,7 +304,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           if (groupableItem != null) {
             params.addDimension((DimensionalObject) groupableItem);
           } else {
-            groupableItem = getQueryItem(dim, pr, request.getOutputType());
+            groupableItem =
+                getQueryItem(dim, pr, request.getOutputType(), request.getRelativePeriodDate());
             params.addItem((QueryItem) groupableItem);
           }
 
@@ -352,7 +349,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 dimension.getDimension(),
                 dimension.getFilter(),
                 object.getProgram(),
-                object.getOutputType()));
+                object.getOutputType(),
+                date));
       }
     }
 
@@ -375,7 +373,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
                 filter.getDimension(),
                 filter.getFilter(),
                 object.getProgram(),
-                object.getOutputType()));
+                object.getOutputType(),
+                date));
       }
     }
 
@@ -486,53 +485,46 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   }
 
   private QueryItem getQueryItem(
-      String dimension, String filter, Program program, EventOutputType type) {
+      String dimension,
+      String filter,
+      Program program,
+      EventOutputType type,
+      Date relativePeriodDate) {
     if (filter != null) {
       dimension += DIMENSION_NAME_SEP + filter;
     }
 
-    return getQueryItem(dimension, program, type);
+    return getQueryItem(dimension, program, type, relativePeriodDate);
   }
 
   @Override
   public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
+    return getQueryItem(dimensionString, program, type, null);
+  }
+
+  private QueryItem getQueryItem(
+      String dimensionString, Program program, EventOutputType type, Date relativePeriodDate) {
     String[] split = dimensionString.split(DIMENSION_NAME_SEP);
+    QueryItem queryItem = resolveQueryItem(split[0], dimensionString, program, type);
 
-    if (split.length % 2 != 1) {
-      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
-    }
-
-    QueryItem queryItem;
-    if (Objects.isNull(program)) {
-      // support for querying program attributes by uid without passing the program
-      queryItem =
-          queryItemLocator
-              .getQueryItemForTrackedEntityAttribute(split[0])
-              .orElseThrow(illegalQueryExSupplier(ErrorCode.E7224, dimensionString));
-    } else {
-      queryItem = queryItemLocator.getQueryItemFromDimension(split[0], program, type);
-    }
-
-    if (split.length > 1) // Filters specified
-    {
-      for (int i = 1; i < split.length; i += 2) {
-        QueryOperator operator = QueryOperator.fromString(split[i]);
-        QueryFilter filter = new QueryFilter(operator, split[i + 1]);
-        // FE uses HH.MM time format instead of HH:MM. This is not
-        // compatible with db table/cell values
-        modifyFilterWhenTimeQueryItem(queryItem, filter);
-        queryItem.addFilter(filter);
-      }
+    if (split.length > 1) {
+      filterHandlerRegistry
+          .handlerFor(queryItem)
+          .applyFilters(queryItem, split, dimensionString, relativePeriodDate);
     }
 
     return queryItem;
   }
 
-  private static void modifyFilterWhenTimeQueryItem(QueryItem queryItem, QueryFilter filter) {
-    if (queryItem.getItem() instanceof DataElement
-        && ((DataElement) queryItem.getItem()).getValueType() == ValueType.TIME) {
-      filter.setFilter(filter.getFilter().replace(".", ":"));
+  private QueryItem resolveQueryItem(
+      String itemId, String dimensionString, Program program, EventOutputType type) {
+    if (Objects.isNull(program)) {
+      // support for querying program attributes by uid without passing the program
+      return queryItemLocator
+          .getQueryItemForTrackedEntityAttribute(itemId)
+          .orElseThrow(illegalQueryExSupplier(ErrorCode.E7224, dimensionString));
     }
+    return queryItemLocator.getQueryItemFromDimension(itemId, program, type);
   }
 
   private QueryItem getSortItem(
@@ -544,7 +536,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return new QueryItem(
           new BaseDimensionalItemObject(translateItemIfNecessary(item, endpointItem)));
     }
-    return getQueryItem(item, program, type);
+    return getQueryItem(item, program, type, null);
   }
 
   private DimensionalItemObject getValueDimension(String value) {

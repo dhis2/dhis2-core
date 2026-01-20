@@ -138,12 +138,9 @@ final class GistLogic {
   }
 
   static Transform effectiveTransform(Property property, Transform fallback, Transform target) {
-    if (target == Transform.AUTO) {
-      target = fallback;
-    }
-    if (target == Transform.AUTO) {
-      target = property.getGistPreferences().getTransformation();
-    }
+    if (target == Transform.AUTO) target = property.getGistPreferences().getTransformation();
+    if (!property.isCollection()) return target == Transform.FROM ? Transform.FROM : Transform.NONE;
+    if (target == Transform.AUTO) target = fallback;
     if ((target == Transform.IDS || target == Transform.ID_OBJECTS)
         && property.isEmbeddedObject()
         && isPersistentCollectionField(property)) {

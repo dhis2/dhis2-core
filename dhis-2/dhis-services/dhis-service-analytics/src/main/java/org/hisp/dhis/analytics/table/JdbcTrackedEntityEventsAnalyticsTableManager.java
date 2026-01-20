@@ -71,6 +71,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -191,7 +192,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
+      ConfigurationService configurationService) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -204,7 +206,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        sqlBuilder,
+        configurationService);
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
   }

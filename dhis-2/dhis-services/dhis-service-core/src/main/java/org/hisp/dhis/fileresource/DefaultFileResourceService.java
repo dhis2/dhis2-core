@@ -198,6 +198,7 @@ public class DefaultFileResourceService implements FileResourceService {
     entityManager.flush();
 
     if (hasMultiDimensionImageSupport(fileResource)) {
+      fileResource.setHasMultipleStorageFiles(true);
       fileEventPublisher.publishEvent(
           new ImageFileSavedEvent(
               UID.of(fileResource.getUid()),

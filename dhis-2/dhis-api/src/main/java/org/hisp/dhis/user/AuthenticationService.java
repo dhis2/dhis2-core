@@ -50,6 +50,15 @@ public interface AuthenticationService {
    */
   void obtainAuthentication(@Nonnull String userId) throws NotFoundException;
 
+  /**
+   * Set up authentication context using an already loaded {@link UserDetails} object. This avoids a
+   * database lookup when the user details are already available (e.g., from an HTTP thread's
+   * security context being propagated to an async thread).
+   *
+   * @param userDetails the user details to set up in the security context
+   */
+  void obtainAuthentication(@Nonnull UserDetails userDetails);
+
   /** Internally "login" as a system user {@code ALL} with authority */
   void obtainSystemAuthentication();
 
