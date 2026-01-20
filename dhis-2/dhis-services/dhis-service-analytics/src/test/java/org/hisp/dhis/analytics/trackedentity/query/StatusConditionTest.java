@@ -128,6 +128,25 @@ class StatusConditionTest {
     assertEquals(values, queryContext.getParametersPlaceHolder().get("1"));
   }
 
+  @Test
+  void testProgramStatusDimensionProducesCorrectSql() {
+    List<String> values = List.of("ACTIVE", "COMPLETED", "CANCELLED");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier =
+        getProgramAttributeDimensionIdentifier(
+            "programUid", StringUtils.EMPTY, DimensionParam.StaticDimension.PROGRAM_STATUS, values);
+
+    SqlParameterManager sqlParameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
+
+    StatusCondition statusCondition = StatusCondition.of(dimensionIdentifier, queryContext);
+
+    String rendered = statusCondition.render();
+
+    assertEquals("\"programUid[0]\".enrollmentstatus in (:1)", rendered);
+    assertEquals(values, queryContext.getParametersPlaceHolder().get("1"));
+  }
+
   private DimensionIdentifier<DimensionParam> getProgramAttributeDimensionIdentifier(
       String programUid,
       String programStageUid,
