@@ -140,7 +140,7 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
     HttpResponse post =
         POST(
             "/dataElements",
-            "{'name':'Axsa', 'shortName':'asxA', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
+            "{'name':'A', 'shortName':'A', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
                 + " }");
 
     TestTransaction.end();
