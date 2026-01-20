@@ -43,7 +43,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public final class SqlRenderer {
 
-  private static final Pattern PARAM_PATTERN = Pattern.compile(":([a-zA-Z_][a-zA-Z0-9_]*|\\d+)");
+  private static final Pattern PARAM_PATTERN = Pattern.compile(":(\\w*|\\d+)");
 
   /**
    * Renders a SQL statement with named parameters replaced by their values.
@@ -73,16 +73,14 @@ public final class SqlRenderer {
     if (value instanceof String) {
       return "'" + value + "'";
     }
-    if (value instanceof LocalDate) {
-      return "'" + ((LocalDate) value).format(DateTimeFormatter.ISO_LOCAL_DATE) + "'";
+    if (value instanceof LocalDate localDate) {
+      return "'" + localDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + "'";
     }
-    if (value instanceof LocalDateTime) {
-      return "'"
-          + ((LocalDateTime) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-          + "'";
+    if (value instanceof LocalDateTime localDateTime) {
+      return "'" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'";
     }
-    if (value instanceof java.util.Date) {
-      Instant instant = ((java.util.Date) value).toInstant();
+    if (value instanceof java.util.Date date) {
+      Instant instant = date.toInstant();
       LocalDateTime ldt = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
       return "'" + ldt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'";
     }
