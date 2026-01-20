@@ -382,4 +382,9 @@ class WeeklyPeriodTypeTest {
     assertEquals(w52.next(), w53);
     assertEquals(w53.next(), w01);
   }
+
+  @Test
+  void testWeeklyMonFromString() {
+    assertNull(Period.of("2014W53"));
+  }
 }

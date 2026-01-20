@@ -113,6 +113,10 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
                     new DateTimeUnit(year, 1, 4),
                     calendar)); // in ISO week first week of the year should contain the 4th day of
         // the year
+        // Hack: if the period for the start date has a different year we have a overflow
+        // which means the week was illegal, e.g. 53 that should have been 1
+        Period p = PeriodType.getPeriodType(type).createPeriod(start.toJdkDate(), calendar);
+        if (!p.getIsoDate().substring(0, 4).equals(String.valueOf(year))) return null;
       } catch (DateTimeException ex) {
         return null; // assume the issue is that the week does not exist
       }
