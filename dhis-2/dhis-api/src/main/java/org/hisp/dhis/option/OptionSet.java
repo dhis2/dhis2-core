@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -57,7 +57,6 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
@@ -82,7 +81,6 @@ import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.i18n.locale.LocaleUtils;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
@@ -174,8 +172,8 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
   public boolean equals(Object obj) {
     return this == obj
         || obj instanceof IdentifiableObject
-            && getRealClass(this) == getRealClass(obj)
-            && typedEquals((IdentifiableObject) obj);
+        && getRealClass(this) == getRealClass(obj)
+        && typedEquals((IdentifiableObject) obj);
   }
 
   /**
@@ -412,44 +410,6 @@ public class OptionSet extends BaseMetadataObject implements IdentifiableObject,
     }
   }
 
-  /**
-   * Returns a translated value for this object for the given property. The current locale is read
-   * from the user context.
-   *
-   * @param translationKey the translation key.
-   * @param defaultValue the value to use if there are no translations.
-   * @return a translated value.
-   */
-  protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-
-    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
-
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
-      return defaultValue;
-    }
-
-    return translationCache.computeIfAbsent(
-        Translation.getCacheKey( locale.toLanguageTag(), translationKey),
-        key -> getTranslationValue(locale.toLanguageTag(), translationKey, defaultTranslation));
-  }
-
-  /**
-   * Get Translation value from {@code Set<Translation>} by given locale and translationKey
-   *
-   * @return Translation value if exists, otherwise return default value.
-   */
-  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
-    for (Translation translation : translations) {
-      if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
-          && !StringUtils.isEmpty(translation.getValue())) {
-        return translation.getValue();
-      }
-    }
-
-    return defaultValue;
-  }
   @Override
   public void setAttributeValues(AttributeValues attributeValues) {
     this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
