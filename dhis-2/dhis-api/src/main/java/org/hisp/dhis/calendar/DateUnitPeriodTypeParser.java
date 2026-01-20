@@ -36,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.period.BiWeeklyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 
