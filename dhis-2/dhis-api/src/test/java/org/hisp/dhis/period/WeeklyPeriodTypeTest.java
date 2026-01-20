@@ -32,7 +32,7 @@ package org.hisp.dhis.period;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.GregorianCalendar;
@@ -372,7 +372,7 @@ class WeeklyPeriodTypeTest {
     assertEquals("2025-12-28", w53.getStartDateString());
     assertEquals("2026-01-03", w53.getEndDateString());
 
-    assertNull(Period.of("2025SunW54"));
+    assertThrowsExactly(IllegalArgumentException.class, () -> Period.of("2025SunW54"));
 
     Period w01 = Period.of("2026SunW1");
     assertNotNull(w01);
@@ -385,6 +385,6 @@ class WeeklyPeriodTypeTest {
 
   @Test
   void testWeeklyMonFromString() {
-    assertNull(Period.of("2014W53"));
+    assertThrowsExactly(IllegalArgumentException.class, () -> Period.of("2014W53"));
   }
 }

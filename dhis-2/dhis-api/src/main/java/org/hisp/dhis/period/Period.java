@@ -92,11 +92,15 @@ public class Period implements Serializable {
    * @throws IllegalArgumentException if the given ISO period is (formally or semantically) invalid
    * @implNote This got moved from {@code PeriodType#getPeriodFromIsoString}
    */
-  @CheckForNull
+  @Nonnull
   public static Period of(@Nonnull String isoPeriod) {
     PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
     try {
-      return type.createPeriod(isoPeriod);
+      Period p = type.createPeriod(isoPeriod);
+      if (p == null)
+        throw new IllegalArgumentException(
+            "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod));
+      return p;
     } catch (Exception ex) {
       throw new IllegalArgumentException(
           "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod), ex);
