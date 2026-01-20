@@ -58,7 +58,9 @@ public class CategoryMergeHandler {
   private final CategoryDimensionStore categoryDimensionStore;
 
   /**
-   * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}
+   * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}. This
+   * updates both the owner side (Category.categoryOptions) and inverse side
+   * (CategoryOption.categories) of the bidirectional relationship.
    *
    * @param sources to be removed
    * @param target to add
@@ -68,6 +70,11 @@ public class CategoryMergeHandler {
         categoryOptionStore.getCategoryOptions(UID.toUidValueSet(sources));
     sourceCategoryOptions.forEach(
         co -> {
+          // Update owner side (Category.categoryOptions) - this persists to the database
+          target.getCategoryOptions().add(co);
+          sources.forEach(src -> src.getCategoryOptions().remove(co));
+
+          // Update inverse side (CategoryOption.categories) - for in-memory consistency
           co.getCategories().add(target);
           sources.forEach(co.getCategories()::remove);
         });
