@@ -455,7 +455,7 @@ class EventHookListenerTest {
   private final FieldFilterService fieldFilterService = mock(FieldFilterService.class);
 
   @Test
-  void testOnEventDropsMetadataWhenEventHookUserHasMetadataReadAccess()
+  void testOnEventDropsMetadataWhenEventHookUserDoesNotHaveMetadataReadAccess()
       throws NotFoundException, JsonProcessingException {
     User user = new User();
     user.setUid("11111111-1111-1111-1111-11111111111");
