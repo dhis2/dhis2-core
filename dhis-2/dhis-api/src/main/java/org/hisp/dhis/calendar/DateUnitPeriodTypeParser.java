@@ -30,6 +30,7 @@
 package org.hisp.dhis.calendar;
 
 import java.io.Serializable;
+import java.time.DateTimeException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
@@ -109,20 +110,28 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       WeeklyAbstractPeriodType periodType =
           (WeeklyAbstractPeriodType) PeriodType.getByNameIgnoreCase(dateUnitType.getName());
 
-      if (periodType == null || week < 1 || week > calendar.weeksInYear(year)) {
+      if (periodType == null || week < 1) {
         return null;
       }
 
-      start =
-          getDateTimeFromWeek(
-              year,
-              week,
-              calendar,
-              PeriodType.MAP_WEEK_TYPE.get(periodType.getName()),
-              periodType.adjustToStartOfWeek(
-                  new DateTimeUnit(year, 1, 4),
-                  calendar)); // in ISO week first week of the year should contain the 4th day of
-      // the year
+      try {
+        start =
+            getDateTimeFromWeek(
+                year,
+                week,
+                calendar,
+                PeriodType.MAP_WEEK_TYPE.get(periodType.getName()),
+                periodType.adjustToStartOfWeek(
+                    new DateTimeUnit(year, 1, 4),
+                    calendar)); // in ISO week first week of the year should contain the 4th day of
+        // the year
+        // Hack: if the period for the start date has a different year we have a overflow
+        // which means the week was illegal, e.g. 53 that should have been 1
+        Period p = PeriodType.getPeriodType(type).createPeriod(start.toJdkDate(), calendar);
+        if (!p.getIsoDate().substring(0, 4).equals(String.valueOf(year))) return null;
+      } catch (DateTimeException ex) {
+        return null; // assume the issue is that the week does not exist
+      }
 
       end = calendar.plusWeeks(start, 1);
       end = calendar.minusDays(end, 1);
