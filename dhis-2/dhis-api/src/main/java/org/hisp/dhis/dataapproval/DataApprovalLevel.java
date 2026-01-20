@@ -67,7 +67,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DataApprovalLevel extends BaseMetadataObject implements IdentifiableObject {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "dataapprovallevelid")
   private long id;
 
