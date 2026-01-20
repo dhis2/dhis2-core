@@ -33,9 +33,11 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,7 +53,10 @@ import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicat
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -283,6 +288,60 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     // Verify output aliases use stage UID prefix
     assertThat(generatedSql, containsString(programStage.getUid() + ".ouname"));
     assertThat(generatedSql, containsString(programStage.getUid() + ".oucode"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentWithStageDateDimensionGeneratesValidSql() {
+    // Test that aggregate enrollment queries with stage-specific EVENT_DATE:
+    // 1. Use the latest_events filter CTE for the date value
+    // 2. Do NOT create a redundant program stage CTE
+    // 3. Map the header column correctly (eventdate -> occurreddate)
+    EventQueryParams params = createAggregateEnrollmentWithStageDateParams();
+
+    ListGrid grid = new ListGrid();
+    // Add headers that match what would be returned from the endpoint
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(
+            programStage.getUid() + ".eventdate", "Event date", ValueType.DATE, false, false));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    // The SQL should contain only one CTE for the filter (latest_events)
+    // and NOT a redundant program stage CTE
+    assertThat(generatedSql, containsString("latest_events"));
+
+    // The SQL should NOT contain a separate CTE like 'Zj7UnCAulEk_occurreddate_0'
+    // (avoiding redundant CTE generation)
+    assertThat(
+        generatedSql, not(containsString(programStage.getUid() + "_" + OCCURRED_DATE_COLUMN_NAME)));
+
+    // The SQL should reference the latest_events CTE value column for the date
+    // The filter CTE should be used for the stage date value
+    assertThat(generatedSql, containsString(".value"));
+  }
+
+  private EventQueryParams createAggregateEnrollmentWithStageDateParams() {
+    // Create a stage-specific EVENT_DATE query item (like Zj7UnCAulEk.EVENT_DATE:THIS_YEAR)
+    BaseDimensionalItemObject dateItem = new BaseDimensionalItemObject(OCCURRED_DATE_COLUMN_NAME);
+    QueryItem queryItem =
+        new QueryItem(dateItem, programA, null, ValueType.DATE, null, null)
+            .withCustomHeader(AnalyticsCustomHeader.forEventDate(programStage));
+    queryItem.setProgramStage(programStage);
+    queryItem.setProgram(programA);
+
+    // Add a date filter (like :THIS_YEAR which gets translated to date bounds)
+    queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-12-31"));
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(queryItem);
+    // Set aggregate enrollment mode
+    params.withEndpointAction(AGGREGATE);
+    return params.build();
   }
 
   private EventQueryParams createStageOuRequestParams() {
