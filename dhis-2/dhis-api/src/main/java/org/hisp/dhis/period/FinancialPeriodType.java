@@ -165,9 +165,4 @@ public abstract class FinancialPeriodType extends CalendarPeriodType {
 
     return cal.toIso(dateTimeUnit).toJdkDate();
   }
-
-  @Override
-  public boolean spansMultipleCalendarYears() {
-    return true;
-  }
 }

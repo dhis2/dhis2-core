@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.period;
 
-import static java.lang.Math.abs;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Maps;
 import java.io.Serializable;
@@ -172,10 +170,6 @@ public abstract class PeriodType implements Serializable {
    */
   public static PeriodType getPeriodTypeByName(String name) {
     return PERIOD_TYPE_MAP.get(name);
-  }
-
-  public static PeriodType getPeriodTypeByClass(Class<? extends PeriodType> type) {
-    return PERIOD_TYPE_BY_CLASS_MAP.get(type);
   }
 
   /**
@@ -470,19 +464,6 @@ public abstract class PeriodType implements Serializable {
     return PERIOD_TYPE_ENUM_MAP.get(PeriodTypeEnum.ofIsoPeriod(isoPeriod));
   }
 
-  /**
-   * Return the potential number of periods of the given period type which is spanned by this
-   * period.
-   *
-   * @param type the period type.
-   * @return the potential number of periods of the given period type spanned by this period.
-   */
-  public int getPeriodSpan(PeriodType type) {
-    double no = (double) this.getFrequencyOrder() / type.getFrequencyOrder();
-
-    return (int) Math.floor(no);
-  }
-
   // -------------------------------------------------------------------------
   // ISO format methods
   // -------------------------------------------------------------------------
@@ -553,38 +534,6 @@ public abstract class PeriodType implements Serializable {
   // -------------------------------------------------------------------------
   // CalendarPeriodType
   // -------------------------------------------------------------------------
-
-  /**
-   * Computes future open periods.
-   *
-   * @param periodOffset number of period length shifts into the future starting from the last
-   *     period. This means the current period is at offset 1, the one following it at 2 and so on.
-   * @return The future {@link Period} for the given offset
-   */
-  public final Period getFuturePeriod(int periodOffset) {
-    Period period = createPeriod();
-
-    // Rewind one as 0 open periods implies current period is locked
-
-    period = getPreviousPeriod(period);
-
-    return getNextPeriod(period, periodOffset);
-  }
-
-  /**
-   * Returns a period shifted from the given period. If the offset is positive, the result will be
-   * from following periods. If the offset is negative, the result will be from previous periods. If
-   * the offset is zero, the same period will be returned.
-   *
-   * @param period the Period to base the offset on.
-   * @param periodOffset the offset from the given Period.
-   * @return a Period which is offset from the given Period.
-   */
-  public final Period getShiftedPeriod(Period period, int periodOffset) {
-    return (periodOffset >= 0)
-        ? getNextPeriod(period, periodOffset)
-        : getPreviousPeriod(period, abs(periodOffset));
-  }
 
   /**
    * Returns a Period which is the next of the given Period. Only valid Periods are returned. If the
@@ -727,25 +676,6 @@ public abstract class PeriodType implements Serializable {
     org.hisp.dhis.calendar.Calendar calendar = getCalendar();
     DateTimeUnit dateTimeUnit = createLocalDateUnitInstance(date, calendar);
     return getDateWithOffset(dateTimeUnit, offset, calendar).toJdkDate();
-  }
-
-  /**
-   * Returns true if the period spans more than one calendar year.
-   *
-   * @return true if the period spans more than one calendar year.
-   */
-  public boolean spansMultipleCalendarYears() {
-    return false;
-  }
-
-  /**
-   * Returns true if the supplied name equals the name of this period type.
-   *
-   * @param periodTypeName the period type name.
-   * @return true if the supplied name equals the name of the period type.
-   */
-  public boolean equalsName(String periodTypeName) {
-    return this.getName().equals(periodTypeName);
   }
 
   public String getDisplayName(I18n i18n) {

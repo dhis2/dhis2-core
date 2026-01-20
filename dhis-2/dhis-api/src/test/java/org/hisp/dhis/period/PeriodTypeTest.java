@@ -139,17 +139,6 @@ class PeriodTypeTest {
   }
 
   @Test
-  void testGetShiftedPeriod() {
-    Period aug2022 = Period.of("202208");
-    Period sep2022 = Period.of("202209");
-    PeriodType monthly = aug2022.getPeriodType();
-
-    assertEquals(aug2022, monthly.getShiftedPeriod(aug2022, 0));
-    assertEquals(sep2022, monthly.getShiftedPeriod(aug2022, 1));
-    assertEquals(aug2022, monthly.getShiftedPeriod(sep2022, -1));
-  }
-
-  @Test
   void testGetNextPeriod() {
     Period aug2022 = Period.of("202208");
     Period sep2022 = Period.of("202209");
