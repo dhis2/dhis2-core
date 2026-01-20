@@ -38,7 +38,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
@@ -176,8 +175,20 @@ class SystemSettingsTest {
 
   @Test
   void testAsLocale() {
-    assertEquals(
-        Locale.forLanguageTag("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
+    Map<String, String> actualExpected =
+        Map.ofEntries(
+            Map.entry("fr", "fr"),
+            Map.entry("fr-FR", "fr-FR"),
+            Map.entry("de_DE", "de-DE"),
+            Map.entry("uz_UZ_Latn", "uz-Latn-UZ"),
+            Map.entry("uz-UZ-x-lvariant-Latn", "uz-UZ-x-lvariant-Latn"));
+    for (Map.Entry<String, String> e : actualExpected.entrySet()) {
+      String input = e.getKey();
+      String expected = e.getValue();
+      SystemSettings settings = SystemSettings.of(Map.of("keyUiLocale", input));
+      assertEquals(expected, settings.getUiLocale().toLanguageTag());
+      assertEquals(input, settings.asString("keyUiLocale", ""));
+    }
   }
 
   @Test

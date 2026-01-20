@@ -63,7 +63,6 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -220,7 +219,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Override
   public Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue) {
     if (orDefault(key, defaultValue) instanceof Locale value) return value;
-    return asParseValue(key, defaultValue, LocaleUtils::toLocale);
+    return asParseValue(key, defaultValue, LazySettings::parseLocale);
   }
 
   @Override
@@ -300,7 +299,7 @@ final class LazySettings implements SystemSettings, UserSettings {
       if (defaultValue instanceof Double) return Double.valueOf(value) != null;
       if (defaultValue instanceof Number) return Integer.valueOf(value) != null;
       if (defaultValue instanceof Date) return parseDate(value) != null;
-      if (defaultValue instanceof Locale) return LocaleUtils.toLocale(value) != null;
+      if (defaultValue instanceof Locale) return parseLocale(value) != null;
       if (defaultValue instanceof Enum<?>)
         return parseEnum(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
       return true;
@@ -360,6 +359,16 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (raw.isEmpty()) return new Date(0);
     if (raw.matches("^[0-9]+$")) return new Date(parseLong(raw));
     return Date.from(LocalDateTime.parse(raw).atZone(ZoneId.systemDefault()).toInstant());
+  }
+
+  private static Locale parseLocale(String raw) {
+    if (raw.isEmpty()) return null;
+    if (raw.indexOf('-') > 0) return Locale.forLanguageTag(raw);
+    String[] parts = raw.split("_");
+    Locale.Builder b = new Locale.Builder().setLanguage(parts[0]);
+    if (parts.length > 1) b.setRegion(parts[1]);
+    if (parts.length > 2) b.setScript(parts[2]);
+    return b.build();
   }
 
   private static Map<String, Serializable> extractDefaults(Class<? extends Settings> type) {
