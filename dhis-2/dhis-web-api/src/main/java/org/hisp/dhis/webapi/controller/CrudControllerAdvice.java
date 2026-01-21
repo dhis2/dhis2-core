@@ -90,6 +90,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -427,7 +428,15 @@ public class CrudControllerAdvice {
   @ExceptionHandler(PersistenceException.class)
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
-    return conflict(ex.getMessage());
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  @ResponseBody
+  public WebMessage dataIntegrityExceptionHandler(DataIntegrityViolationException ex) {
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
@@ -683,5 +692,23 @@ public class CrudControllerAdvice {
 
       setValue(enumValue);
     }
+  }
+
+  /**
+   * Gets a more helpful/detailed message from an exception by traversing the cause chain.
+   *
+   * @param ex the exception to extract message from
+   * @return detailed message or original exception message
+   */
+  public static String getHelpfulMessage(Exception ex) {
+    Throwable cause = ex.getCause();
+
+    if (cause != null) {
+      Throwable rootCause = cause.getCause();
+      if (rootCause != null) {
+        return rootCause.getMessage();
+      }
+    }
+    return ex.getMessage();
   }
 }
