@@ -383,6 +383,8 @@ public class DimensionParam implements UidObject {
               (sd, v) -> Strings.CI.equals(sd.name(), v),
               // Then checks if the value matches the normalized name.
               (sd, v) -> Strings.CI.equals(sd.normalizedName(), v),
+              // Then checks if the normalized input matches the normalized name.
+              (sd, v) -> Strings.CI.equals(sd.normalizedName(), normalizeInput(v)),
               // And finally checks if the value matches the column name.
               (sd, v) -> Strings.CI.equals(sd.columnName, v))
           .map(
@@ -393,6 +395,10 @@ public class DimensionParam implements UidObject {
           .filter(Optional::isPresent)
           .map(Optional::get)
           .findFirst();
+    }
+
+    private static String normalizeInput(String value) {
+      return value == null ? null : value.toLowerCase().replace("_", "");
     }
 
     @Override
