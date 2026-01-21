@@ -64,25 +64,24 @@ public record Locale(
    * @throws IllegalArgumentException in case the input is not a valid locale string
    */
   @Nonnull
-  public static Locale of(@Nonnull String locale) {
+  public static Locale of(@Nonnull String locale) throws IllegalArgumentException {
     int len = locale.length();
     // is it just ll or lll
     if (len == 2 || len == 3) return new Locale(locale, null, null);
     // is it ll-LL or ll_LL?
-    if (len == 5) return new Locale(locale.substring(0, 2), locale.substring(3, 5), null);
-    // is it lll-LL or lll_LL?
-    if (len == 6) return new Locale(locale.substring(0, 3), locale.substring(4, 6), null);
-    // must be ll-Llll-LL or ll_LL_Llll (or same with lll language codes or bit different
-    // separators)
-    String[] parts = locale.split("-|_|_#");
-    if (parts.length != 3) throw new IllegalArgumentException("Invalid locale: " + locale);
+    if (len == 5 && isDash(locale.charAt(2)))
+      return new Locale(locale.substring(0, 2), locale.substring(3, 5), null);
+    String[] parts = locale.split("-|_#|_"); // order matters!
+    if (parts.length < 2 || parts.length > 3)
+      throw new IllegalArgumentException("Invalid locale: " + locale);
+    if (parts.length == 2) return new Locale(parts[0], parts[1]);
     if (isScript(parts[1])) return new Locale(parts[0], parts[2], parts[1]);
     return new Locale(parts[0], parts[1], parts[2]);
   }
 
   @JsonCreator
   @CheckForNull
-  public static Locale ofNullable(@CheckForNull String locale) {
+  public static Locale ofNullable(@CheckForNull String locale) throws IllegalArgumentException {
     return locale == null ? null : of(locale);
   }
 
@@ -161,6 +160,10 @@ public record Locale(
 
   private static boolean isDigit(int c) {
     return c >= '0' && c <= '9';
+  }
+
+  private static boolean isDash(int c) {
+    return c == '-' || c == '_';
   }
 
   public String toLanguageTag() {
