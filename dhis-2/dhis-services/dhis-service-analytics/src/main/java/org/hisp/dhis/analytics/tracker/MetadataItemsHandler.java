@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
@@ -516,7 +517,9 @@ public class MetadataItemsHandler {
       QueryItem item, EventQueryParams params, Optional<Map<String, List<Option>>> itemOptions) {
 
     if (item.getValueType().isOrganisationUnit()) {
-      return organisationUnitResolver.resolveOrgUnits(params, item);
+      return isStageOuDimension(item)
+          ? organisationUnitResolver.resolveOrgUnits(params, item)
+          : organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
     }
 
     if (item.hasOptionSet()) {

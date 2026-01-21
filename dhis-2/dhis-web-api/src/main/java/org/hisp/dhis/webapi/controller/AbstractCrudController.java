@@ -98,7 +98,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -141,6 +140,8 @@ public abstract class AbstractCrudController<
   @Qualifier("xmlMapper")
   protected ObjectMapper xmlMapper;
 
+  @Autowired protected ObjectMapper jsonMapper;
+
   @Autowired protected UserService userService;
 
   @Autowired protected SharingService sharingService;
@@ -165,8 +166,6 @@ public abstract class AbstractCrudController<
    * removed.
    */
   @Beta
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(JsonPatch.class)
   @ResponseBody
   @PatchMapping(path = "/{uid}", consumes = "application/json-patch+json")
@@ -182,9 +181,7 @@ public abstract class AbstractCrudController<
           ConflictException {
     final T persistedObject = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser, persistedObject)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, persistedObject);
 
     manager.resetNonOwnerProperties(persistedObject);
 
@@ -225,7 +222,7 @@ public abstract class AbstractCrudController<
     return webMessage;
   }
 
-  private T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
+  protected T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
 
     final T patchedObject = jsonPatchManager.apply(patch, persistedObject);
 
@@ -238,8 +235,6 @@ public abstract class AbstractCrudController<
     return patchedObject;
   }
 
-  @OpenApi.Params(WebOptions.class)
-  @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(BulkJsonPatch.class)
   @ResponseBody
   @PatchMapping(
@@ -417,9 +412,7 @@ public abstract class AbstractCrudController<
           HttpRequestMethodNotSupportedException {
     T persisted = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser, persisted)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, persisted);
 
     T parsed = deserializeJsonEntity(request);
     parsed.setUid(pvUid);
@@ -459,11 +452,9 @@ public abstract class AbstractCrudController<
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    IdentifiableObject persistedObject = getEntity(pvUid);
+    T persistedObject = getEntity(pvUid);
 
-    if (!aclService.canUpdate(currentUser, persistedObject)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, persistedObject);
 
     T inputObject = renderService.fromJson(request.getInputStream(), getEntityClass());
 
@@ -712,9 +703,7 @@ public abstract class AbstractCrudController<
       throw new NotFoundException(getEntityClass(), uid);
     }
 
-    if (!aclService.canUpdate(currentUser, entity)) {
-      throw new ForbiddenException("You don't have the proper permissions to update this object.");
-    }
+    updatePermissionCheck(currentUser, entity);
 
     Sharing sharingObject = renderService.fromJson(request.getInputStream(), Sharing.class);
 
@@ -759,6 +748,13 @@ public abstract class AbstractCrudController<
   protected void preUpdateItems(T entity, IdentifiableObjects items) throws ConflictException {}
 
   protected void postUpdateItems(T entity, IdentifiableObjects items) {}
+
+  protected void updatePermissionCheck(UserDetails currentUser, T persistedObject)
+      throws ForbiddenException {
+    if (!aclService.canUpdate(currentUser, persistedObject)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Helpers

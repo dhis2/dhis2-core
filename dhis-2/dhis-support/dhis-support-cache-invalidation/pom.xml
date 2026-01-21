@@ -41,7 +41,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-tracker</artifactId>
+      <artifactId>dhis-tracker</artifactId>
     </dependency>
 
     <!-- Redis Lettuce -->

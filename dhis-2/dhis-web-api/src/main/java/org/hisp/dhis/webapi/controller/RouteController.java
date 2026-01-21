@@ -45,6 +45,7 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.http.HttpStatus;
@@ -136,6 +137,9 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
   @Override
   protected void preCreateEntity(Route route) throws ConflictException {
     routeService.validateRoute(route);
+    if (route.getPublicAccess() == null) {
+      route.setPublicAccess(AccessStringHelper.DEFAULT);
+    }
   }
 
   @Override

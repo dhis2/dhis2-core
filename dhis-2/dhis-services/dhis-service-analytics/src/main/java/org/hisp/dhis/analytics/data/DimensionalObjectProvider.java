@@ -429,7 +429,7 @@ public class DimensionalObjectProvider {
 
   /**
    * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
-   * user organisation units.
+   * user organisation units. Levels and groups are NOT expanded by default.
    *
    * @param items the list of items that might be included into the resulting organisation unit and
    *     its keywords.
@@ -438,6 +438,22 @@ public class DimensionalObjectProvider {
    */
   public List<String> getOrgUnitDimensionUid(
       List<String> items, List<OrganisationUnit> userOrgUnits) {
+    return getOrgUnitDimensionUid(items, userOrgUnits, false);
+  }
+
+  /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @param expandGroupsAndLevels if true, expands LEVEL-X and OU_GROUP-X to their member org units.
+   *     This is needed for SQL filtering but should be false for metadata generation.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items, List<OrganisationUnit> userOrgUnits, boolean expandGroupsAndLevels) {
     List<Integer> levels = new ArrayList<>();
     List<OrganisationUnitGroup> groups = new ArrayList<>();
 
@@ -446,14 +462,22 @@ public class DimensionalObjectProvider {
 
     List<String> result = new ArrayList<>(ous.stream().map(DimensionalItemObject::getUid).toList());
 
-    // Expand levels to actual org units (needed for SQL uidlevelX filtering)
-    List<OrganisationUnit> ousList = asTypedList(ous);
+    if (expandGroupsAndLevels) {
+      List<OrganisationUnit> ousList = asTypedList(ous);
 
-    if (!levels.isEmpty()) {
-      result.addAll(
-          organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList).stream()
-              .map(OrganisationUnit::getUid)
-              .toList());
+      if (!levels.isEmpty()) {
+        result.addAll(
+            organisationUnitService.getOrganisationUnitsAtLevels(levels, ousList).stream()
+                .map(OrganisationUnit::getUid)
+                .toList());
+      }
+
+      if (!groups.isEmpty()) {
+        result.addAll(
+            organisationUnitService.getOrganisationUnits(groups, ousList).stream()
+                .map(OrganisationUnit::getUid)
+                .toList());
+      }
     }
 
     return result.stream().distinct().toList();

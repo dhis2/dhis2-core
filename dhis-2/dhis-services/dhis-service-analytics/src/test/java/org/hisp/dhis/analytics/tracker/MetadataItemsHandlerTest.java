@@ -58,7 +58,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -127,7 +126,7 @@ class MetadataItemsHandlerTest {
   void setUp() {
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
-    programA = createProgram('A', null, null, Sets.newHashSet(orgUnitA), null);
+    programA = createProgram('A', null, orgUnitA);
 
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
@@ -900,7 +899,7 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
-      when(organisationUnitResolver.resolveOrgUnits(
+      when(organisationUnitResolver.resolveOrgUnitsForMetadata(
               any(EventQueryParams.class), any(QueryItem.class)))
           .thenReturn(List.of(orgUnitA.getUid()));
       when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
@@ -911,7 +910,7 @@ class MetadataItemsHandlerTest {
 
       // Then
       verify(organisationUnitResolver)
-          .resolveOrgUnits(any(EventQueryParams.class), any(QueryItem.class));
+          .resolveOrgUnitsForMetadata(any(EventQueryParams.class), any(QueryItem.class));
     }
   }
 
