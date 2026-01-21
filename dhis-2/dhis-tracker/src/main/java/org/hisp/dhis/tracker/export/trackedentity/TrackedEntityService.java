@@ -127,6 +127,6 @@ public interface TrackedEntityService {
   void updateTrackedEntitiesSyncTimestamp(
       @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized);
 
-  long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+  long getTrackedEntityCount(@Nonnull TrackedEntityOperationParams operationParams)
       throws ForbiddenException, BadRequestException;
 }

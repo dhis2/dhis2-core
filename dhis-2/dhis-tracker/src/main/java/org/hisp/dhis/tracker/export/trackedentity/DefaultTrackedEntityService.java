@@ -296,7 +296,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @IndirectTransactional
-  public long getTrackedEntityCount(TrackedEntityOperationParams operationParams)
+  public long getTrackedEntityCount(@Nonnull TrackedEntityOperationParams operationParams)
       throws ForbiddenException, BadRequestException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
