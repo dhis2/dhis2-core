@@ -32,12 +32,14 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -48,6 +50,10 @@ import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
@@ -55,47 +61,36 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Base class for tracker data synchronization jobs that require paging support and an associated
- * Program UID context. Extends {@link DataSynchronizationWithPaging} to add tracker-specific
- * synchronization behavior.
+ * Base abstract class providing common functionality for data synchronization operations with
+ * pagination support. This class handles the core synchronization logic including HTTP
+ * communication, progress tracking, error handling, and entity partitioning.
+ *
+ * <p>Concrete implementations should extend this class and provide entity-specific behavior for
+ * data fetching, mapping, and timestamp updates.
+ *
+ * <p>This class follows a template method pattern where the abstract methods define the specific
+ * behavior that concrete classes must implement.
+ *
+ * @param <V> The type of entity DTO/View object used for serialization and HTTP communication
+ * @param <D> The type of domain entity being synchronized, must extend {@link SoftDeletableEntity}
+ * @see DataSynchronizationWithPaging
+ * @see TrackerSynchronizationContext
  */
 @Slf4j
-@Component
-public abstract class TrackerDataSynchronizationWithPaging<E, V extends SoftDeletableEntity>
+abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntity>
     implements DataSynchronizationWithPaging {
 
   private final RenderService renderService;
   private final RestTemplate restTemplate;
 
-  protected TrackerDataSynchronizationWithPaging(
+  protected BaseDataSynchronizationWithPaging(
       RenderService renderService, RestTemplate restTemplate) {
     this.renderService = renderService;
     this.restTemplate = restTemplate;
-  }
-
-  /**
-   * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
-   *
-   * @param pageSize number of records per page
-   * @param progress job progress reporter
-   * @return result of synchronization
-   */
-  public abstract SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress);
-
-  /**
-   * This method from {@link DataSynchronizationWithPaging} is not directly used here.
-   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress)} instead when a
-   * program context is available.
-   */
-  @Override
-  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
-    throw new UnsupportedOperationException(
-        "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
   }
 
   public SynchronizationResult endProcess(JobProgress progress, String message) {
@@ -119,8 +114,21 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V extends SoftDele
     return null;
   }
 
+  public void synchronizePage(
+      int page, TrackerSynchronizationContext context, SystemSettings settings)
+      throws ForbiddenException, BadRequestException, NotFoundException, WebMessageException {
+    List<D> trackedEntities = fetchEntitiesForPage(page, context);
+
+    Map<Boolean, List<D>> partitionedTrackedEntities =
+        partitionEntitiesByDeletionStatus(trackedEntities);
+    List<D> deletedTrackedEntities = partitionedTrackedEntities.get(true);
+    List<D> activeTrackedEntities = partitionedTrackedEntities.get(false);
+
+    syncEntitiesByDeletionStatus(activeTrackedEntities, deletedTrackedEntities, context, settings);
+  }
+
   public ImportSummary sendHttpRequest(
-      List<E> entities, SystemInstance instance, SystemSettings settings, String url) {
+      List<V> entities, SystemInstance instance, SystemSettings settings, String url) {
     RequestCallback requestCallback =
         request -> {
           request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -144,8 +152,8 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V extends SoftDele
     return response.map(ImportSummary.class::cast).orElse(null);
   }
 
-  public void syncEntities(
-      List<E> entities,
+  public void syncAndUpdateEntities(
+      List<V> entities,
       SystemInstance instance,
       SystemSettings settings,
       Date syncTime,
@@ -167,7 +175,38 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V extends SoftDele
     updateEntitySyncTimeStamp(entities, syncTime);
   }
 
-  public Map<Boolean, List<V>> partitionEntitiesByDeletionStatus(List<V> entities) {
+  public boolean executeSynchronizationWithPaging(
+      TrackerSynchronizationContext context, JobProgress progress, SystemSettings settings) {
+    String stageDescription =
+        format(
+            "Found %d tracked entities. Remote: %s. Pages: %d (size %d)",
+            context.getObjectsToSynchronize(),
+            context.getInstance().getUrl(),
+            context.getPages(),
+            context.getPageSize());
+
+    progress.startingStage(stageDescription, context.getPages(), SKIP_ITEM);
+
+    progress.runStage(
+        IntStream.range(1, context.getPages() + 1).boxed(),
+        page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
+        page -> synchronizePageSafely(page, context, settings));
+
+    return !progress.isSkipCurrentStage();
+  }
+
+  private void synchronizePageSafely(
+      int page, TrackerSynchronizationContext context, SystemSettings settings) {
+    try {
+      synchronizePage(page, context, settings);
+    } catch (Exception ex) {
+      log.error("Failed to synchronize page {}", page, ex);
+      throw new RuntimeException(
+          format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
+    }
+  }
+
+  public Map<Boolean, List<D>> partitionEntitiesByDeletionStatus(List<D> entities) {
     return entities.stream().collect(Collectors.partitioningBy(this::isDeleted));
   }
 
@@ -175,7 +214,20 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V extends SoftDele
 
   public abstract String getProcessName();
 
-  public abstract void updateEntitySyncTimeStamp(List<E> entities, Date syncTime);
+  public abstract void updateEntitySyncTimeStamp(List<V> entities, Date syncTime);
 
-  public abstract boolean isDeleted(V entity);
+  public abstract boolean isDeleted(D entity);
+
+  public abstract long countEntitiesForSynchronization(Date skipChangedBefore)
+      throws ForbiddenException, BadRequestException;
+
+  public abstract void syncEntitiesByDeletionStatus(
+      List<D> activeEntites,
+      List<D> deletedEntities,
+      TrackerSynchronizationContext context,
+      SystemSettings settings)
+      throws WebMessageException;
+
+  public abstract List<D> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
+      throws BadRequestException, ForbiddenException, NotFoundException;
 }

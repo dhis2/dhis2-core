@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,19 +42,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class SingleEventDataSynchronizationJob implements Job {
+public class TrackerDataSyncrhonizationJob implements Job {
 
-  private final SingleEventDataSynchronizationService eventSync;
+  private final TrackerDataSynchronizationService trackerDataSynchronizationService;
 
   @Override
   public JobType getJobType() {
-    return JobType.SINGLE_EVENT_DATA_SYNC;
+    return JobType.TRACKED_ENTITY_DATA_SYNC;
   }
 
   @Override
   public void execute(JobEntry config, JobProgress progress) {
-    SingleEventDataSynchronizationJobParameters params =
-        (SingleEventDataSynchronizationJobParameters) config.parameters();
-    eventSync.synchronizeData(params.getPageSize(), progress);
+    TrackerDataSynchronizationJobParameters params =
+        (TrackerDataSynchronizationJobParameters) config.parameters();
+    trackerDataSynchronizationService.synchronizeData(params.getPageSize(), progress);
   }
 }

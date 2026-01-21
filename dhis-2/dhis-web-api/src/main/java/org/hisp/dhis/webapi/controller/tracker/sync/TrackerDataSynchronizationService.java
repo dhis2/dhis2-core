@@ -30,14 +30,10 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
@@ -71,7 +67,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 public class TrackerDataSynchronizationService
-    extends TrackerDataSynchronizationWithPaging<
+    extends BaseDataSynchronizationWithPaging<
         org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity, TrackedEntity> {
   private static final String PROCESS_NAME = "Tracker data synchronization";
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
@@ -90,24 +86,8 @@ public class TrackerDataSynchronizationService
     this.systemSettingsService = systemSettingsService;
   }
 
-  @Getter
-  private static final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
-    public TrackerSynchronizationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize);
-    }
-
-    public TrackerSynchronizationContext(
-        Date skipChangedBefore, long objectsToSynchronize, SystemInstance instance, int pageSize) {
-      super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
-    }
-
-    public boolean hasNoObjectsToSynchronize() {
-      return getObjectsToSynchronize() == 0;
-    }
-  }
-
   @Override
-  public SynchronizationResult synchronizeTrackerData(int pageSize, JobProgress progress) {
+  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
     progress.startingProcess(PROCESS_NAME);
 
     SystemSettings settings = systemSettingsService.getCurrentSettings();
@@ -141,100 +121,8 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
-  public boolean isDeleted(TrackedEntity entity) {
-    return entity.isDeleted();
-  }
-
-  @Override
-  public String getJsonRootName() {
-    return "trackedEntities";
-  }
-
-  @Override
-  public String getProcessName() {
-    return PROCESS_NAME;
-  }
-
-  private TrackerSynchronizationContext initializeContext(
-      int pageSize, JobProgress progress, SystemSettings settings) {
-    return progress.runStage(
-        new TrackerSynchronizationContext(null, pageSize),
-        ctx ->
-            format("Tracked entities changed before %s will not sync", ctx.getSkipChangedBefore()),
-        () -> createContext(pageSize, settings));
-  }
-
-  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
-      throws ForbiddenException, BadRequestException {
-    Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
-
-    long trackedEntityCount = countTrackedEntitiesForSynchronization(skipChangedBefore);
-
-    if (trackedEntityCount == 0) {
-      return new TrackerSynchronizationContext(skipChangedBefore, pageSize);
-    }
-
-    SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
-
-    return new TrackerSynchronizationContext(
-        skipChangedBefore, trackedEntityCount, instance, pageSize);
-  }
-
-  private long countTrackedEntitiesForSynchronization(Date skipChangedBefore)
-      throws ForbiddenException, BadRequestException {
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.buildForDataSync(skipChangedBefore).build();
-    return trackedEntityService.getTrackedEntityCount(params);
-  }
-
-  private boolean executeSynchronizationWithPaging(
-      TrackerSynchronizationContext context, JobProgress progress, SystemSettings settings) {
-    String stageDescription =
-        format(
-            "Found %d tracked entities. Remote: %s. Pages: %d (size %d)",
-            context.getObjectsToSynchronize(),
-            context.getInstance().getUrl(),
-            context.getPages(),
-            context.getPageSize());
-
-    progress.startingStage(stageDescription, context.getPages(), SKIP_ITEM);
-
-    progress.runStage(
-        IntStream.range(1, context.getPages() + 1).boxed(),
-        page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
-        page -> synchronizePageSafely(page, context, settings));
-
-    return !progress.isSkipCurrentStage();
-  }
-
-  private void synchronizePageSafely(
-      int page, TrackerSynchronizationContext context, SystemSettings settings) {
-    try {
-      synchronizePage(page, context, settings);
-    } catch (Exception ex) {
-      log.error("Failed to synchronize page {}", page, ex);
-      throw new RuntimeException(
-          format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
-    }
-  }
-
-  private void synchronizePage(
-      int page, TrackerSynchronizationContext context, SystemSettings settings)
-      throws ForbiddenException, BadRequestException, NotFoundException, WebMessageException {
-    List<TrackedEntity> trackedEntities = fetchTrackedEntitiesForPage(page, context);
-
-    Map<Boolean, List<TrackedEntity>> partitionedTrackedEntities =
-        partitionEntitiesByDeletionStatus(trackedEntities);
-    List<TrackedEntity> deletedTrackedEntities = partitionedTrackedEntities.get(true);
-    List<TrackedEntity> activeTrackedEntities = partitionedTrackedEntities.get(false);
-
-    syncTrackedEntitiesByDeletionStatus(
-        activeTrackedEntities, deletedTrackedEntities, context, settings);
-  }
-
-  private List<TrackedEntity> fetchTrackedEntitiesForPage(
-      int page, TrackerSynchronizationContext context)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+  public List<TrackedEntity> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
+      throws BadRequestException, ForbiddenException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.buildForDataSync(context.getSkipChangedBefore()).build();
     return trackedEntityService
@@ -242,7 +130,8 @@ public class TrackerDataSynchronizationService
         .getItems();
   }
 
-  private void syncTrackedEntitiesByDeletionStatus(
+  @Override
+  public void syncEntitiesByDeletionStatus(
       List<TrackedEntity> activeTrackedEntities,
       List<TrackedEntity> deletedTrackedEntities,
       TrackerSynchronizationContext context,
@@ -261,7 +150,7 @@ public class TrackerDataSynchronizationService
               .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
               .toList();
       ensureNoMappingErrors(errors);
-      syncEntities(
+      syncAndUpdateEntities(
           activeTrackedEntityDtos,
           instance,
           settings,
@@ -272,9 +161,57 @@ public class TrackerDataSynchronizationService
     if (!deletedTrackedEntities.isEmpty()) {
       List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
           deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
-      syncEntities(
+      syncAndUpdateEntities(
           deletedTrackedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
+  }
+
+  @Override
+  public long countEntitiesForSynchronization(Date skipChangedBefore)
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.buildForDataSync(skipChangedBefore).build();
+    return trackedEntityService.getTrackedEntityCount(params);
+  }
+
+  @Override
+  public boolean isDeleted(TrackedEntity entity) {
+    return entity.isDeleted();
+  }
+
+  @Override
+  public String getJsonRootName() {
+    return "trackedEntities";
+  }
+
+  @Override
+  public String getProcessName() {
+    return PROCESS_NAME;
+  }
+
+  private TrackerSynchronizationContext initializeContext(
+      int pageSize, JobProgress progress, SystemSettings settings) {
+    return progress.runStage(
+        TrackerSynchronizationContext.emptyContext(null, pageSize),
+        ctx ->
+            format("Tracked entities changed before %s will not sync", ctx.getSkipChangedBefore()),
+        () -> createContext(pageSize, settings));
+  }
+
+  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
+      throws ForbiddenException, BadRequestException {
+    Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
+
+    long trackedEntityCount = countEntitiesForSynchronization(skipChangedBefore);
+
+    if (trackedEntityCount == 0) {
+      return TrackerSynchronizationContext.emptyContext(skipChangedBefore, pageSize);
+    }
+
+    SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
+
+    return TrackerSynchronizationContext.forTrackedEntities(
+        skipChangedBefore, trackedEntityCount, instance, pageSize);
   }
 
   private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(
