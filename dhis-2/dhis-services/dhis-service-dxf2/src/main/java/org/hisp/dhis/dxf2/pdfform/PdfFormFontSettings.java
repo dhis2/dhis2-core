@@ -32,12 +32,11 @@ package org.hisp.dhis.dxf2.pdfform;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.pdf.BaseFont;
-import org.hisp.dhis.common.Locale;
-
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author James Chang

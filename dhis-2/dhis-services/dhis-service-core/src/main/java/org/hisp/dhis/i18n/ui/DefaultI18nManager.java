@@ -32,7 +32,6 @@ package org.hisp.dhis.i18n.ui;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ResourceBundle;
-
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;

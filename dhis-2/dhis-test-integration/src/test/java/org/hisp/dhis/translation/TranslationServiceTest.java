@@ -335,8 +335,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
             0);
     manager.save(predictor);
     manager.updateTranslations(
-        predictor,
-        Set.of(new Translation(locale.language(), "NAME", "translated Predictor Name")));
+        predictor, Set.of(new Translation(locale.language(), "NAME", "translated Predictor Name")));
     predictor = manager.get(Predictor.class, predictor.getUid());
     assertEquals("translated Predictor Name", predictor.getDisplayName());
     assertEquals("translated descriptionA", predictor.getGenerator().getDisplayDescription());

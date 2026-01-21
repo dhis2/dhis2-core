@@ -176,8 +176,7 @@ class SystemSettingsTest {
 
   @Test
   void testAsLocale() {
-    assertEquals(
-        Locale.of("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
+    assertEquals(Locale.of("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
   }
 
   @Test

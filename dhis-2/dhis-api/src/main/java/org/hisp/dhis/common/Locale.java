@@ -30,12 +30,11 @@
 package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * A subset of a BCP47 conform locale that only supports language, region and script.
@@ -48,7 +47,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2.43
  */
 public record Locale(
-    @Nonnull String language, @CheckForNull String region, @CheckForNull String script) implements Serializable {
+    @Nonnull String language, @CheckForNull String region, @CheckForNull String script)
+    implements Serializable {
 
   public static final Locale //
       ENGLISH = of(java.util.Locale.ENGLISH),
@@ -119,6 +119,14 @@ public record Locale(
     if (!isScript(script)) throw new IllegalArgumentException("Invalid script: " + script);
     if (script != null && region == null)
       throw new IllegalArgumentException("Script must be used with region");
+    // map outdated codes
+    language =
+        switch (language) {
+          case "iw" -> "he";
+          case "ji" -> "yi";
+          case "in" -> "id";
+          default -> language;
+        };
   }
 
   private static boolean isLanguageCode(String str) {
@@ -171,7 +179,11 @@ public record Locale(
   public java.util.Locale toJavaLocale() {
     if (region == null && script == null) return new java.util.Locale(language);
     if (script == null) return new java.util.Locale(language, region);
-    return new java.util.Locale.Builder().setLanguage(language).setRegion(region).setScript(script).build();
+    return new java.util.Locale.Builder()
+        .setLanguage(language)
+        .setRegion(region)
+        .setScript(script)
+        .build();
   }
 
   /*
@@ -183,7 +195,8 @@ public record Locale(
   private static final Map<String, String> DISPLAY_REGIONS = new ConcurrentHashMap<>();
 
   public String getDisplayName(Locale in) {
-    return DISPLAY_NAMES.computeIfAbsent(this +" in "+in, k -> toJavaLocale().getDisplayName(in.toJavaLocale()));
+    return DISPLAY_NAMES.computeIfAbsent(
+        this + " in " + in, k -> toJavaLocale().getDisplayName(in.toJavaLocale()));
   }
 
   public String getDisplayName() {

@@ -655,8 +655,9 @@ public class App implements Serializable {
         .filter(
             translation ->
                 language.equals(translation.getLanguageCode())
-                    && Objects.equals(country, translation.getCountryCode())
-                    && Objects.equals(script, translation.getScriptCode()) || script != null && script.isEmpty())
+                        && Objects.equals(country, translation.getCountryCode())
+                        && Objects.equals(script, translation.getScriptCode())
+                    || script != null && script.isEmpty())
         .findFirst()
         .orElse(new AppManifestTranslation());
   }

@@ -42,9 +42,8 @@ import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import org.hisp.dhis.common.Locale;
-
 import java.io.OutputStream;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Lars Helge Overland
