@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.SoftDeletableEntity;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -66,7 +66,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public abstract class TrackerDataSynchronizationWithPaging<E, V>
+public abstract class TrackerDataSynchronizationWithPaging<E, V extends SoftDeletableEntity>
     implements DataSynchronizationWithPaging {
 
   private final RenderService renderService;
@@ -89,8 +89,8 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V>
 
   /**
    * This method from {@link DataSynchronizationWithPaging} is not directly used here.
-   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress, UID)} instead
-   * when a program context is available.
+   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress)} instead when a
+   * program context is available.
    */
   @Override
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
@@ -119,9 +119,19 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V>
     return null;
   }
 
-  public ImportSummary sendTrackerRequest(
+  public ImportSummary sendHttpRequest(
       List<E> entities, SystemInstance instance, SystemSettings settings, String url) {
-    RequestCallback requestCallback = createRequestCallback(entities, instance);
+    RequestCallback requestCallback =
+        request -> {
+          request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+          request
+              .getHeaders()
+              .set(
+                  SyncUtils.HEADER_AUTHORIZATION,
+                  CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
+
+          renderService.toJson(request.getBody(), Map.of(getJsonRootName(), entities));
+        };
 
     Optional<WebMessageResponse> response =
         runSyncRequest(
@@ -134,19 +144,6 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V>
     return response.map(ImportSummary.class::cast).orElse(null);
   }
 
-  private RequestCallback createRequestCallback(List<E> entities, SystemInstance instance) {
-    return request -> {
-      request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-      request
-          .getHeaders()
-          .set(
-              SyncUtils.HEADER_AUTHORIZATION,
-              CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
-
-      renderService.toJson(request.getBody(), Map.of(getJsonRootName(), entities));
-    };
-  }
-
   public void syncEntities(
       List<E> entities,
       SystemInstance instance,
@@ -155,7 +152,7 @@ public abstract class TrackerDataSynchronizationWithPaging<E, V>
       TrackerImportStrategy importStrategy) {
     String url = instance.getUrl() + "?importStrategy=" + importStrategy;
 
-    ImportSummary summary = sendTrackerRequest(entities, instance, settings, url);
+    ImportSummary summary = sendHttpRequest(entities, instance, settings, url);
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
