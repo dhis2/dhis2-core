@@ -63,8 +63,8 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
   public SqlQueryResult find(@Nonnull SqlQuery query) {
     notNull(query, "The 'query' must not be null");
 
-    if (log.isDebugEnabled()) {
-      log.debug("Executing query: {}", SqlRenderer.render(query.getStatement(), query.getParams()));
+    if (log.isInfoEnabled()) {
+      log.info("Executing query: {}", SqlRenderer.render(query.getStatement(), query.getParams()));
     }
 
     SqlRowSet rowSet =
