@@ -29,8 +29,9 @@
  */
 package org.hisp.dhis.i18n.ui.resourcebundle;
 
+import org.hisp.dhis.common.Locale;
+
 import java.util.List;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**

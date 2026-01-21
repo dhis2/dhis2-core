@@ -31,11 +31,12 @@ package org.hisp.dhis.setting;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
 

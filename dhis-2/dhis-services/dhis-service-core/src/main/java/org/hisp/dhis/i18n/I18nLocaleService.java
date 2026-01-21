@@ -30,8 +30,9 @@
 package org.hisp.dhis.i18n;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.user.UserDetails;
 

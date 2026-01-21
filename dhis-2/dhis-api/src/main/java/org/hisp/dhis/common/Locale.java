@@ -29,8 +29,13 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A subset of a BCP47 conform locale that only supports language, region and script.
@@ -43,11 +48,12 @@ import javax.annotation.Nonnull;
  * @since 2.43
  */
 public record Locale(
-    @Nonnull String language, @CheckForNull String region, @CheckForNull String script) {
+    @Nonnull String language, @CheckForNull String region, @CheckForNull String script) implements Serializable {
 
   public static final Locale //
       ENGLISH = of(java.util.Locale.ENGLISH),
-      FRENCH = of(java.util.Locale.FRENCH);
+      FRENCH = of(java.util.Locale.FRENCH),
+      US = of(java.util.Locale.US);
 
   /**
    * Parses and creates a locale from a BCP47 compatible or Java-format string.
@@ -73,6 +79,7 @@ public record Locale(
     return new Locale(parts[0], parts[1], parts[2]);
   }
 
+  @JsonCreator
   @CheckForNull
   public static Locale ofNullable(@CheckForNull String locale) {
     return locale == null ? null : of(locale);
@@ -91,6 +98,10 @@ public record Locale(
   @CheckForNull
   public static Locale ofNullable(@CheckForNull java.util.Locale locale) {
     return locale == null ? null : of(locale);
+  }
+
+  public static Locale getDefault() {
+    return of(java.util.Locale.getDefault());
   }
 
   public Locale(@Nonnull String language, @Nonnull String region) {
@@ -143,10 +154,47 @@ public record Locale(
     return c >= '0' && c <= '9';
   }
 
+  public String toLanguageTag() {
+    if (region == null && script == null) return language;
+    if (script == null) return language + "-" + region;
+    return language + "-" + script + "-" + region;
+  }
+
   @Override
   public String toString() {
     if (region == null && script == null) return language;
     if (script == null) return language + "_" + region;
     return language + "_" + region + "_" + script;
+  }
+
+  @Nonnull
+  public java.util.Locale toJavaLocale() {
+    if (region == null && script == null) return new java.util.Locale(language);
+    if (script == null) return new java.util.Locale(language, region);
+    return new java.util.Locale.Builder().setLanguage(language).setRegion(region).setScript(script).build();
+  }
+
+  /*
+  Display stuff (just cached resolve of the Java util code)
+   */
+
+  private static final Map<String, String> DISPLAY_NAMES = new ConcurrentHashMap<>();
+  private static final Map<String, String> DISPLAY_LANGUAGES = new ConcurrentHashMap<>();
+  private static final Map<String, String> DISPLAY_REGIONS = new ConcurrentHashMap<>();
+
+  public String getDisplayName(Locale in) {
+    return DISPLAY_NAMES.computeIfAbsent(this +" in "+in, k -> toJavaLocale().getDisplayName(in.toJavaLocale()));
+  }
+
+  public String getDisplayName() {
+    return DISPLAY_NAMES.computeIfAbsent(toString(), k -> toJavaLocale().getDisplayName());
+  }
+
+  public String getDisplayLanguage() {
+    return DISPLAY_LANGUAGES.computeIfAbsent(toString(), k -> toJavaLocale().getDisplayLanguage());
+  }
+
+  public String getDisplayRegion() {
+    return DISPLAY_REGIONS.computeIfAbsent(toString(), k -> toJavaLocale().getDisplayCountry());
   }
 }

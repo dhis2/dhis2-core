@@ -38,9 +38,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -49,7 +49,6 @@ import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,16 +138,10 @@ public class LocaleController {
       return conflict("Invalid country or language code.");
     }
 
-    String localeCode = LocaleUtils.getLocaleString(language, country, null);
+    Locale locale = new Locale(language, country);
 
-    Locale locale = LocaleUtils.getLocale(localeCode);
-
-    if (locale != null) {
-      I18nLocale i18nLocale = localeService.getI18nLocale(locale);
-
-      if (i18nLocale != null) {
-        return conflict("Locale code existed.");
-      }
+    if (localeService.getI18nLocale(locale) != null) {
+      return conflict("Locale code existed.");
     }
 
     I18nLocale i18nLocale = localeService.addI18nLocale(language, country);

@@ -51,7 +51,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -64,6 +63,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -220,7 +220,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Override
   public Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue) {
     if (orDefault(key, defaultValue) instanceof Locale value) return value;
-    return asParseValue(key, defaultValue, LocaleUtils::toLocale);
+    return asParseValue(key, defaultValue, Locale::of);
   }
 
   @Override

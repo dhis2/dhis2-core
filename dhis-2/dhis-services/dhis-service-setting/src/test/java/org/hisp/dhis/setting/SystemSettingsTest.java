@@ -38,10 +38,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonDate;
@@ -177,7 +177,7 @@ class SystemSettingsTest {
   @Test
   void testAsLocale() {
     assertEquals(
-        Locale.forLanguageTag("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
+        Locale.of("fr"), SystemSettings.of(Map.of("keyUiLocale", "fr")).getUiLocale());
   }
 
   @Test

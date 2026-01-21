@@ -29,8 +29,9 @@
  */
 package org.hisp.dhis.i18n.locale;
 
+import org.hisp.dhis.common.Locale;
+
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Torgeir Lorange Ostby

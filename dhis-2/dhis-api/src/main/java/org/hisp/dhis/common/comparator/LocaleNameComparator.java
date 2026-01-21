@@ -29,8 +29,9 @@
  */
 package org.hisp.dhis.common.comparator;
 
+import org.hisp.dhis.common.Locale;
+
 import java.util.Comparator;
-import java.util.Locale;
 
 /**
  * @author Lars Helge Overland

@@ -33,15 +33,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.I18nLocale;
-import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,9 +48,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.i18n.118nLocaleService")
 public class DefaultI18nLocaleService implements I18nLocaleService {
-  private Map<String, String> languages = new LinkedHashMap<>();
 
-  private Map<String, String> countries = new LinkedHashMap<>();
+  private final Map<String, String> languages = new LinkedHashMap<>();
+  private final Map<String, String> countries = new LinkedHashMap<>();
 
   private final I18nLocaleStore localeStore;
 
@@ -61,14 +60,14 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     List<IdentifiableObject> langs = new ArrayList<>();
     List<IdentifiableObject> countrs = new ArrayList<>();
 
-    for (String lang : Locale.getISOLanguages()) {
+    for (String lang : java.util.Locale.getISOLanguages()) {
       langs.add(new BaseIdentifiableObject(lang, lang, new Locale(lang).getDisplayLanguage()));
     }
 
-    for (String country : Locale.getISOCountries()) {
+    for (String country : java.util.Locale.getISOCountries()) {
       countrs.add(
           new BaseIdentifiableObject(
-              country, country, new Locale("en", country).getDisplayCountry()));
+              country, country, new Locale("en", country).getDisplayRegion()));
     }
 
     Collections.sort(langs);
@@ -105,18 +104,13 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     String languageName = languages.get(language);
     String countryName = countries.get(country);
 
-    if (language == null || languageName == null) {
+    if (language == null || languageName == null)
       throw new IllegalArgumentException("Invalid Language.");
-    }
 
-    if (country != null && countryName == null) {
+    if (country != null && countryName == null)
       throw new IllegalArgumentException("Invalid country.");
-    }
 
-    String localeStr = LocaleUtils.getLocaleString(language, country, null);
-    Locale locale = LocaleUtils.getLocale(localeStr);
-
-    I18nLocale i18nLocale = new I18nLocale(locale);
+    I18nLocale i18nLocale = new I18nLocale(new Locale(language, country));
 
     saveI18nLocale(i18nLocale);
 
@@ -171,7 +165,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
     List<Locale> locales = new ArrayList<>();
 
     for (I18nLocale locale : localeStore.getAll()) {
-      locales.add(LocaleUtils.getLocale(locale.getLocale()));
+      locales.add(Locale.of(locale.getLocale()));
     }
 
     locales.sort(LocaleNameComparator.INSTANCE);

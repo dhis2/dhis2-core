@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -48,6 +47,7 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.commons.util.PathUtils;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -83,7 +83,7 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
       String baseName = PathUtils.addChild(dir, SPECIFIC_RESOURCE_BUNDLE_NAME);
 
       try {
-        return ResourceBundle.getBundle(baseName, locale);
+        return ResourceBundle.getBundle(baseName, locale.toJavaLocale());
       } catch (MissingResourceException ignored) {
       }
     }
@@ -95,7 +95,7 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
   public ResourceBundle getGlobalResourceBundle(Locale locale)
       throws ResourceBundleManagerException {
     try {
-      return ResourceBundle.getBundle(GLOBAL_RESOURCE_BUNDLE_NAME, locale);
+      return ResourceBundle.getBundle(GLOBAL_RESOURCE_BUNDLE_NAME, locale.toJavaLocale());
     } catch (MissingResourceException e) {
       throw new ResourceBundleManagerException("Failed to get global resource bundle");
     }

@@ -30,10 +30,10 @@
 package org.hisp.dhis.webapi.webdomain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 
 /**
  * Class that represents a Locale for the web
