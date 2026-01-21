@@ -834,10 +834,12 @@ public class ListGrid implements Grid, Serializable {
     for (int rowIndex = 0; rowIndex < sourceColumn.size(); rowIndex++) {
       Object sourceValue = sourceColumn.get(rowIndex);
 
-      Object metaValue = metaDataMap.get(sourceValue);
+      if (sourceValue != null) {
+        Object metaValue = metaDataMap.get(sourceValue);
 
-      if (metaValue != null) {
-        grid.get(rowIndex).set(targetColumnIndex, metaValue);
+        if (metaValue != null) {
+          grid.get(rowIndex).set(targetColumnIndex, metaValue);
+        }
       }
     }
 

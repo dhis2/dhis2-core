@@ -241,6 +241,23 @@ class GridTest {
   }
 
   @Test
+  void testSubstituteMetaDataWhenSourceColumnHasNulls() {
+    Grid grid = new ListGrid();
+    grid.addRow();
+    grid.addValue(null);
+    grid.addValue(null);
+    grid.addValue(21);
+
+    Map<Object, Object> metaData = Map.of();
+
+    Grid result = grid.substituteMetaData(0, 1, metaData);
+
+    assertEquals(null, result.getValue(0, 0));
+    assertEquals(null, result.getValue(0, 1));
+    assertEquals(21, result.getValue(0, 2));
+  }
+
+  @Test
   void testSubstituteMetaDataForIndexA() {
     Map<Object, Object> metaData = new HashMap<>();
     metaData.put(11, "Eleven");
