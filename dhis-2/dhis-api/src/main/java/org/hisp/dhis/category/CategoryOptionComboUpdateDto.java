@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.category;
 
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.user.UserDetails;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 
-/**
- * Immutable context passed to async aggregate fetchers.
- *
- * @param userDetails used to set up security context on async threads
- * @param fields specifies which fields the user wants returned
- * @param queryParams filter parameters for tracked entities
- */
-record Context(
-    UserDetails userDetails, TrackedEntityFields fields, TrackedEntityQueryParams queryParams) {}
+public record CategoryOptionComboUpdateDto(
+    @JsonDeserialize(using = AttributeValuesDeserializer.class) @JsonProperty
+        AttributeValues attributeValues,
+    @JsonProperty String code,
+    @JsonProperty Boolean ignoreApproval) {}

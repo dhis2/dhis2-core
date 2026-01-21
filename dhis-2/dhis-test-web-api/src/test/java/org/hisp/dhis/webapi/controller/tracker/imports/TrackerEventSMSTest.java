@@ -724,7 +724,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     List<Enrollment> enrollments =
         enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
-                .trackedEntity(trackedEntity)
+                .trackedEntities(trackedEntity)
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                 .build());

@@ -31,6 +31,13 @@ package org.hisp.dhis.tracker.program.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,15 +49,30 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Embeddable
 public class ProgramMessageRecipients implements Serializable {
   private static final long serialVersionUID = 1141462154959329242L;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "trackedentityid", referencedColumnName = "trackedentityid")
   private TrackedEntity trackedEntity;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "organisationunitid", referencedColumnName = "organisationunitid")
   private OrganisationUnit organisationUnit;
 
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "programmessage_phonenumbers",
+      joinColumns = @JoinColumn(name = "programmessagephonenumberid"))
+  @Column(name = "phonenumber", columnDefinition = "text")
   private Set<String> phoneNumbers = new HashSet<>();
 
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "programmessage_emailaddresses",
+      joinColumns = @JoinColumn(name = "programmessageemailaddressid"))
+  @Column(name = "email", columnDefinition = "text")
   private Set<String> emailAddresses = new HashSet<>();
 
   // -------------------------------------------------------------------------
