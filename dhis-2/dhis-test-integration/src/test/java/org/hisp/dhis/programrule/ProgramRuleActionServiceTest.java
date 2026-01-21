@@ -459,6 +459,7 @@ class ProgramRuleActionServiceTest extends PostgresIntegrationTestBase {
     ProgramRuleAction reloadedRule = actionService.getProgramRuleAction(idRule);
 
     assertEquals(legendSet.getName(), reloadedRule.getLegendSet().getName());
-    assertEquals(ProgramRuleActionType.DISPLAYKEYVALUEPAIR, reloadedRule.getProgramRuleActionType());
+    assertEquals(
+        ProgramRuleActionType.DISPLAYKEYVALUEPAIR, reloadedRule.getProgramRuleActionType());
   }
 }
