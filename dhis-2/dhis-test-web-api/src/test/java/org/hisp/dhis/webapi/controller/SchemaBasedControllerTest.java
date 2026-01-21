@@ -74,6 +74,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final Set<String> IGNORED_SCHEMAS =
       Set.of(
+          "categoryOptionCombo", // can't POST/create a new COC, should use /metadata. PUT & PATCH
+          // also have custom impl
           "externalFileResource", // can't POST files
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
