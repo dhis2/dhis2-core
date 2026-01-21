@@ -73,7 +73,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class TrackerDataSynchronizationService
     extends TrackerDataSynchronizationWithPaging<
-        org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> {
+        org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity, TrackedEntity> {
   private static final String PROCESS_NAME = "Tracker data synchronization";
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
@@ -139,6 +139,11 @@ public class TrackerDataSynchronizationService
         trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
 
     trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
+  }
+
+  @Override
+  public boolean isDeleted(TrackedEntity entity) {
+    return entity.isDeleted();
   }
 
   @Override
@@ -220,7 +225,7 @@ public class TrackerDataSynchronizationService
     List<TrackedEntity> trackedEntities = fetchTrackedEntitiesForPage(page, context);
 
     Map<Boolean, List<TrackedEntity>> partitionedTrackedEntities =
-        partitionTrackedEntitiesByDeletionStatus(trackedEntities);
+        partitionEntitiesByDeletionStatus(trackedEntities);
     List<TrackedEntity> deletedTrackedEntities = partitionedTrackedEntities.get(true);
     List<TrackedEntity> activeTrackedEntities = partitionedTrackedEntities.get(false);
 

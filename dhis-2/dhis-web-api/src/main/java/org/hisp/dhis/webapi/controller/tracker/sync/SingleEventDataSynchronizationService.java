@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +74,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 public class SingleEventDataSynchronizationService
-    extends TrackerDataSynchronizationWithPaging<Event> {
+    extends TrackerDataSynchronizationWithPaging<Event, SingleEvent> {
   private static final String PROCESS_NAME = "Single event programs data synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
 
@@ -160,6 +159,11 @@ public class SingleEventDataSynchronizationService
     return PROCESS_NAME;
   }
 
+  @Override
+  public boolean isDeleted(SingleEvent entity) {
+    return entity.isDeleted();
+  }
+
   private EventSynchronizationContext initializeContext(
       int pageSize, JobProgress progress, SystemSettings settings) {
     return progress.runStage(
@@ -233,7 +237,7 @@ public class SingleEventDataSynchronizationService
       throws ForbiddenException, BadRequestException, WebMessageException {
     List<SingleEvent> events = fetchEventsForPage(page, context);
 
-    Map<Boolean, List<SingleEvent>> partitionedEvents = partitionEventsByDeletionStatus(events);
+    Map<Boolean, List<SingleEvent>> partitionedEvents = partitionEntitiesByDeletionStatus(events);
     List<SingleEvent> deletedEvents = partitionedEvents.get(true);
     List<SingleEvent> activeEvents = partitionedEvents.get(false);
 
@@ -249,11 +253,6 @@ public class SingleEventDataSynchronizationService
                 .build(),
             PageParams.of(page, context.getPageSize(), false))
         .getItems();
-  }
-
-  private Map<Boolean, List<SingleEvent>> partitionEventsByDeletionStatus(
-      List<SingleEvent> events) {
-    return events.stream().collect(Collectors.partitioningBy(SingleEvent::isDeleted));
   }
 
   private void syncEventsByDeletionStatus(

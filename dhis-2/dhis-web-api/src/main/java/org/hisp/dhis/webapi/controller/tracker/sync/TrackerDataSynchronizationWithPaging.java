@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -65,7 +66,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public abstract class TrackerDataSynchronizationWithPaging<E>
+public abstract class TrackerDataSynchronizationWithPaging<E, V>
     implements DataSynchronizationWithPaging {
 
   private final RenderService renderService;
@@ -169,9 +170,15 @@ public abstract class TrackerDataSynchronizationWithPaging<E>
     updateEntitySyncTimeStamp(entities, syncTime);
   }
 
+  public Map<Boolean, List<V>> partitionEntitiesByDeletionStatus(List<V> entities) {
+    return entities.stream().collect(Collectors.partitioningBy(this::isDeleted));
+  }
+
   public abstract String getJsonRootName();
 
   public abstract String getProcessName();
 
   public abstract void updateEntitySyncTimeStamp(List<E> entities, Date syncTime);
+
+  public abstract boolean isDeleted(V entity);
 }
