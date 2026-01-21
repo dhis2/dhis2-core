@@ -252,8 +252,8 @@ class GridTest {
 
     Grid result = grid.substituteMetaData(0, 1, metaData);
 
-    assertEquals(null, result.getValue(0, 0));
-    assertEquals(null, result.getValue(0, 1));
+    assertNull(result.getValue(0, 0));
+    assertNull(result.getValue(0, 1));
     assertEquals(21, result.getValue(0, 2));
   }
 
