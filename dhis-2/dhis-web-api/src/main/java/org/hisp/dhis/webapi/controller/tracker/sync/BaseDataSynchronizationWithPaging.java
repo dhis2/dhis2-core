@@ -195,21 +195,6 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     return !progress.isSkipCurrentStage();
   }
 
-  private void synchronizePageSafely(
-      int page, TrackerSynchronizationContext context, SystemSettings settings) {
-    try {
-      synchronizePage(page, context, settings);
-    } catch (Exception ex) {
-      log.error("Failed to synchronize page {}", page, ex);
-      throw new RuntimeException(
-          format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
-    }
-  }
-
-  public Map<Boolean, List<D>> partitionEntitiesByDeletionStatus(List<D> entities) {
-    return entities.stream().collect(Collectors.partitioningBy(this::isDeleted));
-  }
-
   public abstract String getJsonRootName();
 
   public abstract String getProcessName();
@@ -230,4 +215,19 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
   public abstract List<D> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
       throws BadRequestException, ForbiddenException, NotFoundException;
+
+  private void synchronizePageSafely(
+      int page, TrackerSynchronizationContext context, SystemSettings settings) {
+    try {
+      synchronizePage(page, context, settings);
+    } catch (Exception ex) {
+      log.error("Failed to synchronize page {}", page, ex);
+      throw new RuntimeException(
+          format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
+    }
+  }
+
+  private Map<Boolean, List<D>> partitionEntitiesByDeletionStatus(List<D> entities) {
+    return entities.stream().collect(Collectors.partitioningBy(this::isDeleted));
+  }
 }
