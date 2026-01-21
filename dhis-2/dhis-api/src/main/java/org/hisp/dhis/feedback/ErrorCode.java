@@ -74,6 +74,9 @@ public enum ErrorCode {
   E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
   E1127("Category {0} cannot have more than {1} options, but had: {2} "),
   E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
+  E1133("CategoryCombo must be provided for Category option combo {0}"),
+  E1134(
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),

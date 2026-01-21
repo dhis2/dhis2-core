@@ -96,6 +96,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -439,6 +440,13 @@ public class CrudControllerAdvice {
     return conflict(helpfulMessage);
   }
 
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  @ResponseBody
+  public WebMessage dataIntegrityExceptionHandler(DataIntegrityViolationException ex) {
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
+  }
+
   @ExceptionHandler(AccessDeniedException.class)
   @ResponseBody
   public WebMessage accessDeniedExceptionHandler(AccessDeniedException ex) {
@@ -743,7 +751,7 @@ public class CrudControllerAdvice {
    * @return detailed message or original exception message
    */
   @Nullable
-  public static String getHelpfulMessage(PersistenceException ex) {
+  public static String getHelpfulMessage(Exception ex) {
     Throwable cause = ex.getCause();
 
     if (cause != null) {
