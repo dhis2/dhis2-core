@@ -112,12 +112,18 @@ class SystemSettingsTest {
 
   @Test
   void testToJson() {
-    SystemSettings settings = SystemSettings.of(Map.of("applicationTitle", "Hello World"));
+    SystemSettings settings =
+        SystemSettings.of(Map.of("applicationTitle", "Hello World", "keyUiLocale", "uz_UZ_Latn"));
     JsonMap<JsonMixed> asJson = settings.toJson(false);
     // it does contain the set value
     JsonPrimitive stringValue = asJson.get("applicationTitle");
     assertTrue(stringValue.isString());
     assertEquals("Hello World", stringValue.as(JsonString.class).string());
+
+    JsonMixed strLocaleVal = asJson.get("keyUiLocale");
+    assertTrue(strLocaleVal.isString());
+    assertEquals("uz_UZ_Latn", strLocaleVal.as(JsonString.class).string());
+
     // but also all defaults (test some)
     JsonPrimitive intValue = asJson.get("keyParallelJobsInAnalyticsTableExport");
     assertTrue(intValue.isNumber());
@@ -180,8 +186,8 @@ class SystemSettingsTest {
             Map.entry("fr", "fr"),
             Map.entry("fr-FR", "fr-FR"),
             Map.entry("de_DE", "de-DE"),
-            Map.entry("uz_UZ_Latn", "uz-Latn-UZ"),
-            Map.entry("uz-UZ-x-lvariant-Latn", "uz-UZ-x-lvariant-Latn"));
+            Map.entry("uz-Latn-UZ", "uz-Latn-UZ"),
+            Map.entry("uz_UZ_Latn", "uz-Latn-UZ"));
     for (Map.Entry<String, String> e : actualExpected.entrySet()) {
       String input = e.getKey();
       String expected = e.getValue();
@@ -265,5 +271,18 @@ class SystemSettingsTest {
     settings =
         SystemSettings.of(Map.of("keyEmailHostName", "localhost", "keyEmailUsername", "user"));
     assertTrue(settings.isEmailConfigured());
+  }
+
+  @Test
+  void testFormat() {
+    SystemSettings settings = SystemSettings.of(Map.of());
+    assertEquals("true", settings.format("keyAccountRecovery", "True"));
+    assertEquals("false", settings.format("keyAccountRecovery", "FALSE"));
+
+    assertEquals("en", settings.format("keyUiLocale", "en"));
+    assertEquals("en_EN", settings.format("keyUiLocale", "en_EN"));
+    assertEquals("en_EN_Latn", settings.format("keyUiLocale", "en_EN_Latn"));
+    assertEquals("en_EN", settings.format("keyUiLocale", "en-EN"));
+    assertEquals("en_EN_Latn", settings.format("keyUiLocale", "en-Latn-EN"));
   }
 }

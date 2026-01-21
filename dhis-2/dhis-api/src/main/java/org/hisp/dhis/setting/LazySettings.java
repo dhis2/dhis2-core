@@ -58,6 +58,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
@@ -191,14 +192,6 @@ final class LazySettings implements SystemSettings, UserSettings {
     return (E) asParseValue(key, defaultValue, raw -> parseEnum(defaultValue.getClass(), raw));
   }
 
-  private static <E extends Enum<E>> E parseEnum(Class<E> type, String value) {
-    try {
-      return Enum.valueOf(type, value);
-    } catch (IllegalArgumentException ex) {
-      return Enum.valueOf(type, value.toUpperCase());
-    }
-  }
-
   @Nonnull
   @Override
   public String asString(@Nonnull String key, @Nonnull String defaultValue) {
@@ -278,7 +271,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
-    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
+    if (defaultValue instanceof Locale l) return Json.of(toUnderscoreFormat(asLocale(key, l)));
     if (defaultValue instanceof Enum<?> e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type
@@ -290,22 +283,33 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Override
   public boolean isValid(String key, String value) {
-    Serializable defaultValue = getDefault(key);
-    if (value == null || value.isEmpty()) return true;
-    if (defaultValue == null || defaultValue instanceof String) return true;
-    if (defaultValue instanceof Boolean) return "true".equals(value) || "false".equals(value);
     try {
-      // Note: The != null is just a dummy test the parse yielded anything
-      if (defaultValue instanceof Double) return Double.valueOf(value) != null;
-      if (defaultValue instanceof Number) return Integer.valueOf(value) != null;
-      if (defaultValue instanceof Date) return parseDate(value) != null;
-      if (defaultValue instanceof Locale) return parseLocale(value) != null;
-      if (defaultValue instanceof Enum<?>)
-        return parseEnum(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
+      format(key, value);
       return true;
-    } catch (Exception ex) {
+    } catch (IllegalArgumentException ex) {
       return false;
     }
+  }
+
+  @Override
+  public String format(@Nonnull String key, String value) {
+    Serializable defaultValue = getDefault(key);
+    if (value == null || value.isEmpty()) return value;
+    if (defaultValue == null || defaultValue instanceof String) return value;
+    if (defaultValue instanceof Boolean) {
+      if ("true".equals(value) || "false".equals(value)) return value;
+      if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))
+        return value.toLowerCase();
+      throw new IllegalArgumentException("Boolean must be either true or false");
+    }
+    // Note: The != null is just a dummy test the parse yielded anything
+    if (defaultValue instanceof Double) if (parse(value, Double::valueOf) != null) return value;
+    if (defaultValue instanceof Number) if (parse(value, Integer::valueOf) != null) return value;
+    if (defaultValue instanceof Date)
+      if (parse(value, LazySettings::parseDate) != null) return value;
+    if (defaultValue instanceof Locale) return toUnderscoreFormat(parseLocale(value));
+    if (defaultValue instanceof Enum<?> e) return parseEnum(e.getDeclaringClass(), value).name();
+    return value;
   }
 
   private int indexOf(String key) {
@@ -355,20 +359,57 @@ final class LazySettings implements SystemSettings, UserSettings {
     return res;
   }
 
+  private static <T> T parse(String value, Function<String, T> parse) {
+    try {
+      return parse.apply(value);
+    } catch (IllegalArgumentException ex) {
+      throw ex;
+    } catch (RuntimeException ex) {
+      throw new IllegalArgumentException("Invalid value for setting: " + value, ex);
+    }
+  }
+
+  private static <E extends Enum<E>> E parseEnum(Class<E> type, String value) {
+    try {
+      return Enum.valueOf(type, value);
+    } catch (IllegalArgumentException ex) {
+      return Enum.valueOf(type, value.toUpperCase());
+    }
+  }
+
   private static Date parseDate(String raw) {
     if (raw.isEmpty()) return new Date(0);
     if (raw.matches("^[0-9]+$")) return new Date(parseLong(raw));
     return Date.from(LocalDateTime.parse(raw).atZone(ZoneId.systemDefault()).toInstant());
   }
 
+  private static final Pattern SCRIPT = Pattern.compile("");
+
   private static Locale parseLocale(String raw) {
-    if (raw.isEmpty()) return null;
-    if (raw.indexOf('-') > 0) return Locale.forLanguageTag(raw);
-    String[] parts = raw.split("_");
-    Locale.Builder b = new Locale.Builder().setLanguage(parts[0]);
-    if (parts.length > 1) b.setRegion(parts[1]);
-    if (parts.length > 2) b.setScript(parts[2]);
-    return b.build();
+    boolean bcp47 = raw.indexOf('-') > 0;
+    String[] parts = raw.split(bcp47 ? "-" : "_");
+    String lang = parts[0];
+    if (!lang.matches("[a-z]{2,3}"))
+      throw new IllegalArgumentException("Language code must be 2-3 lower case letters");
+    if (parts.length == 1) return new Locale(lang);
+    String region = bcp47 && parts.length == 3 ? parts[2] : parts[1];
+    if (!region.matches("[A-Z]{2}|[0-9]{3}"))
+      throw new IllegalArgumentException("Region code must be 2 upper case letters or 3 digits");
+    if (parts.length == 2) return new Locale(lang, region);
+    String script = bcp47 ? parts[1] : parts[2];
+    if (!script.matches("[A-Z][a-z]{3}"))
+      throw new IllegalArgumentException(
+          "Script must be an upper case letter followed by 3 lower case letters");
+    return new Locale.Builder().setLanguage(lang).setRegion(region).setScript(script).build();
+  }
+
+  private static String toUnderscoreFormat(Locale l) {
+    String lang = l.getLanguage();
+    String country = l.getCountry();
+    String script = l.getScript();
+    if (country.isEmpty() && script.isEmpty()) return lang;
+    if (script.isEmpty()) return lang + "_" + country;
+    return lang + "_" + country + "_" + script;
   }
 
   private static Map<String, Serializable> extractDefaults(Class<? extends Settings> type) {
