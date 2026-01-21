@@ -72,7 +72,8 @@ public record Locale(
     if (len == 5) return new Locale(locale.substring(0, 2), locale.substring(3, 5), null);
     // is it lll-LL or lll_LL?
     if (len == 6) return new Locale(locale.substring(0, 3), locale.substring(4, 6), null);
-    // must be something with 3 parts
+    // must be ll-Llll-LL or ll_LL_Llll (or same with lll language codes or bit different
+    // separators)
     String[] parts = locale.split("-|_|_#");
     if (parts.length != 3) throw new IllegalArgumentException("Invalid locale: " + locale);
     if (isScript(parts[1])) return new Locale(parts[0], parts[2], parts[1]);
@@ -104,7 +105,7 @@ public record Locale(
     return of(java.util.Locale.getDefault());
   }
 
-  public Locale(@Nonnull String language, @Nonnull String region) {
+  public Locale(@Nonnull String language, @CheckForNull String region) {
     this(language, region, null);
   }
 
