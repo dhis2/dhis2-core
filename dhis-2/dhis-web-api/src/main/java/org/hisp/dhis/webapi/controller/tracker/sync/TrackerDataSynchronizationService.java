@@ -36,7 +36,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensur
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -241,11 +240,6 @@ public class TrackerDataSynchronizationService
     return trackedEntityService
         .findTrackedEntities(params, PageParams.of(page, context.getPageSize(), false))
         .getItems();
-  }
-
-  private Map<Boolean, List<TrackedEntity>> partitionTrackedEntitiesByDeletionStatus(
-      List<TrackedEntity> trackedEntities) {
-    return trackedEntities.stream().collect(Collectors.partitioningBy(TrackedEntity::isDeleted));
   }
 
   private void syncTrackedEntitiesByDeletionStatus(

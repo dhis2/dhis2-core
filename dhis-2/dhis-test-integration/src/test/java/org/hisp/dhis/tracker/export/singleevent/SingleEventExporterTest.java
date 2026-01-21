@@ -157,7 +157,8 @@ class SingleEventExporterTest extends PostgresIntegrationTestBase {
             "ck7DzdxqLqA",
             "OTmjvJDn0Fu",
             "kWjSezkXHVp",
-            "QRYjLTiJTrA"),
+            "QRYjLTiJTrA",
+            "G9PbzJY8bJG"),
         uids(events.getItems()));
 
     events.getItems().stream()
