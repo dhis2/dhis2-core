@@ -65,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OutlierDetectionController {
 
   private final DefaultOutlierDetectionService outlierService;
+  private final ContextUtils contextUtils;
   private final OutlierDetectionQueryParser queryParser;
   private final ValidationOutlierDetectionRequest validator;
 
@@ -79,8 +80,8 @@ public class OutlierDetectionController {
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);
-    //contextUtils.configureResponse(
-    //    response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
+    contextUtils.configureResponse(
+        response, CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE, "outlierdata.csv", true);
 
     outlierService.getOutlierValuesAsCsv(request, response.getWriter());
   }
