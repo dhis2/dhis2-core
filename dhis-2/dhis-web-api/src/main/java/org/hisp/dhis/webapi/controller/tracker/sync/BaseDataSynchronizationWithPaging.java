@@ -222,7 +222,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
       throws ForbiddenException, BadRequestException;
 
   public abstract void syncEntitiesByDeletionStatus(
-      List<D> activeEntites,
+      List<D> activeEntities,
       List<D> deletedEntities,
       TrackerSynchronizationContext context,
       SystemSettings settings)

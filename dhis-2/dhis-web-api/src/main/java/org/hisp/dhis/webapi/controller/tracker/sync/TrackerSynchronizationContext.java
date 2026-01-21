@@ -35,7 +35,7 @@ import java.util.Set;
 import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging.PagedDataSynchronisationContext;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
 
-final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
+public final class TrackerSynchronizationContext extends PagedDataSynchronisationContext {
 
   private final Map<String, Set<String>> skipSyncDataElementsByProgramStage;
 
@@ -51,7 +51,6 @@ final class TrackerSynchronizationContext extends PagedDataSynchronisationContex
   }
 
   static TrackerSynchronizationContext emptyContext(Date skipChangedBefore, int pageSize) {
-
     return new TrackerSynchronizationContext(skipChangedBefore, 0, null, pageSize, Map.of());
   }
 
