@@ -514,22 +514,6 @@ class CategoryOptionComboControllerTest extends DhisControllerConvenienceTest {
         .as(JsonCategoryOptionCombo.class);
   }
 
-  private String coc() {
-    return """
-          {
-            "name": "Cat Opt Combo 1",
-            "categoryCombo": {
-              "id": "bjDvmb4bfuf"
-            },
-            "categoryOptions": [
-              {
-                "id": "xYerKDKCefk"
-              }
-            ]
-          }
-          """;
-  }
-
   private String cocCcUpdated(String ccId, TestCategoryMetadata categoryMetadata) {
     return """
           {
