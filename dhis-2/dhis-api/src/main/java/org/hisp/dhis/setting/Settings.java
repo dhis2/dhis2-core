@@ -130,4 +130,15 @@ public sealed interface Settings permits UserSettings, SystemSettings {
   boolean asBoolean(@Nonnull String key, boolean defaultValue);
 
   boolean isValid(String key, String value);
+
+  /**
+   * Apply formatting to the value to unify or standardise the value if multiple alternatives exist.
+   *
+   * @param key the setting name
+   * @param value the value to check
+   * @return the given value (maybe changed slightly in format)
+   * @throws IllegalArgumentException in case the value isn't valid and cannot be formatted
+   */
+  @CheckForNull
+  String format(@Nonnull String key, @CheckForNull String value);
 }

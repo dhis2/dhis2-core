@@ -62,7 +62,6 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -192,14 +191,6 @@ final class LazySettings implements SystemSettings, UserSettings {
     return (E) asParseValue(key, defaultValue, raw -> parseEnum(defaultValue.getClass(), raw));
   }
 
-  private static <E extends Enum<E>> E parseEnum(Class<E> type, String value) {
-    try {
-      return Enum.valueOf(type, value);
-    } catch (IllegalArgumentException ex) {
-      return Enum.valueOf(type, value.toUpperCase());
-    }
-  }
-
   @Nonnull
   @Override
   public String asString(@Nonnull String key, @Nonnull String defaultValue) {
@@ -279,7 +270,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
-    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toLanguageTag());
+    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toString());
     if (defaultValue instanceof Enum<?> e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type
@@ -291,22 +282,32 @@ final class LazySettings implements SystemSettings, UserSettings {
 
   @Override
   public boolean isValid(String key, String value) {
-    Serializable defaultValue = getDefault(key);
-    if (value == null || value.isEmpty()) return true;
-    if (defaultValue == null || defaultValue instanceof String) return true;
-    if (defaultValue instanceof Boolean) return "true".equals(value) || "false".equals(value);
     try {
-      // Note: The != null is just a dummy test the parse yielded anything
-      if (defaultValue instanceof Double) return Double.valueOf(value) != null;
-      if (defaultValue instanceof Number) return Integer.valueOf(value) != null;
-      if (defaultValue instanceof Date) return parseDate(value) != null;
-      if (defaultValue instanceof Locale) return LocaleUtils.toLocale(value) != null;
-      if (defaultValue instanceof Enum<?>)
-        return parseEnum(((Enum<?>) defaultValue).getDeclaringClass(), value) != null;
+      format(key, value);
       return true;
-    } catch (Exception ex) {
+    } catch (IllegalArgumentException ex) {
       return false;
     }
+  }
+
+  @Override
+  public String format(@Nonnull String key, String value) {
+    Serializable defaultValue = getDefault(key);
+    if (value == null || value.isEmpty()) return value;
+    if (defaultValue == null || defaultValue instanceof String) return value;
+    if (defaultValue instanceof Boolean) {
+      if ("true".equals(value) || "false".equals(value)) return value;
+      if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))
+        return value.toLowerCase();
+      throw new IllegalArgumentException("Boolean must be either true or false");
+    }
+    // Note: The != null is just a dummy test the parse yielded anything
+    if (defaultValue instanceof Double && parse(value, Double::valueOf) != null) return value;
+    if (defaultValue instanceof Number && parse(value, Integer::valueOf) != null) return value;
+    if (defaultValue instanceof Date && parse(value, LazySettings::parseDate) != null) return value;
+    if (defaultValue instanceof Locale) return Locale.of(value).toString(); // normalize
+    if (defaultValue instanceof Enum<?> e) return parseEnum(e.getDeclaringClass(), value).name();
+    return value;
   }
 
   private int indexOf(String key) {
@@ -354,6 +355,24 @@ final class LazySettings implements SystemSettings, UserSettings {
     }
     typedValues[i] = res;
     return res;
+  }
+
+  private static <T> T parse(String value, Function<String, T> parse) {
+    try {
+      return parse.apply(value);
+    } catch (IllegalArgumentException ex) {
+      throw ex;
+    } catch (RuntimeException ex) {
+      throw new IllegalArgumentException("Invalid value for setting: " + value, ex);
+    }
+  }
+
+  private static <E extends Enum<E>> E parseEnum(Class<E> type, String value) {
+    try {
+      return Enum.valueOf(type, value);
+    } catch (IllegalArgumentException ex) {
+      return Enum.valueOf(type, value.toUpperCase());
+    }
   }
 
   private static Date parseDate(String raw) {
