@@ -120,6 +120,21 @@ class SqlQueryHelper {
                          where "${eventSubqueryAlias}".event = event
                            and ${eventDataValueCondition})"""));
 
+  private static final String EVENT_EXISTS_SUBQUERY_INCLUDE_SCHEDULE =
+      replace(
+          ENROLLMENT_EXISTS_SUBQUERY,
+          Map.of(
+              "enrollmentCondition",
+              """
+                  exists(select 1
+                         from (select *
+                               from (select *, row_number() over ( partition by enrollment order by coalesce(occurreddate, scheduleddate) ${programStageOffsetDirection} ) as rn
+                                     from analytics_te_event_${trackedEntityTypeUid}
+                                     where "${enrollmentSubqueryAlias}".enrollment = enrollment
+                                       and programstage = '${programStageUid}') ev
+                               where ev.rn = 1) as "${eventSubqueryAlias}"
+                         where ${eventCondition})"""));
+
   /**
    * Builds the order by sub-query for the given dimension identifier and field.
    *
@@ -215,6 +230,32 @@ class SqlQueryHelper {
       return condition;
     }
     throw new IllegalArgumentException("Unsupported dimension type: " + dimId);
+  }
+
+  /**
+   * Builds the exists value sub-query for event dimensions that should include SCHEDULE status.
+   * Used for SCHEDULED_DATE and EVENT_STATUS filtering where scheduled events must be included.
+   *
+   * @param dimId the dimension identifier
+   * @param condition the condition to apply
+   * @return the renderable exists value sub-query
+   */
+  public static Renderable buildExistsValueSubqueryIncludeSchedule(
+      DimensionIdentifier<DimensionParam> dimId, Renderable condition) {
+    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+      return () ->
+          replace(
+              EVENT_EXISTS_SUBQUERY_INCLUDE_SCHEDULE,
+              mergeMaps(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "eventSubqueryAlias", dimId.getPrefix(),
+                      "enrollmentSubqueryAlias", "enrollmentSubqueryAlias",
+                      "eventCondition", condition.render())));
+    }
+    throw new IllegalArgumentException(
+        "buildExistsValueSubqueryIncludeSchedule only supports event dimensions: " + dimId);
   }
 
   /**

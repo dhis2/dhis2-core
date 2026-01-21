@@ -409,7 +409,15 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
         StaticDimension.of(stringDimensionIdentifier.getDimension().getUid());
 
     // Then we check if it's a static dimension.
-    if (staticDimension.isPresent()) {
+    // For event-level OU dimensions (has both program and programStage), we need to resolve
+    // the org units to get their level/children, so skip static dimension handling.
+    boolean isEventLevelOuDimension =
+        staticDimension.isPresent()
+            && staticDimension.get() == StaticDimension.OU
+            && stringDimensionIdentifier.hasProgram()
+            && stringDimensionIdentifier.hasProgramStage();
+
+    if (staticDimension.isPresent() && !isEventLevelOuDimension) {
       return parseAsStaticDimension(
           dimensionParamType, stringDimensionIdentifier, outputIdScheme, items);
     }

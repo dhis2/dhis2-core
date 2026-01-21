@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,19 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
+// ABOUTME: Handles stage-level static dimensions (EVENT_DATE, SCHEDULED_DATE, OU, EVENT_STATUS)
+// ABOUTME: for tracked entity analytics queries.
+
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENT_STATUS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EVENT_DATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EVENT_STATUS;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OU;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.SCHEDULED_DATE;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -48,7 +51,9 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDime
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
-import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.trackedentity.query.EventOrgUnitCondition;
+import org.hisp.dhis.analytics.trackedentity.query.PeriodStaticDimensionCondition;
 import org.hisp.dhis.analytics.trackedentity.query.StatusCondition;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
@@ -56,33 +61,26 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilderAd
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
+/** Query builder for stage-level static dimensions. */
 @Service
-public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
-  /** The supported status dimensions. */
-  private static final List<DimensionParam.StaticDimension> SUPPORTED_STATUS_DIMENSIONS =
-      List.of(ENROLLMENT_STATUS, PROGRAM_STATUS, EVENT_STATUS);
+@Getter
+@org.springframework.core.annotation.Order(5)
+public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
 
-  @Getter
+  private static final List<StaticDimension> SUPPORTED_EVENT_ATTRIBUTES =
+      List.of(EVENT_DATE, SCHEDULED_DATE, OU, EVENT_STATUS);
+
+  private final List<Predicate<DimensionIdentifier<DimensionParam>>> headerFilters =
+      List.of(EventAttributeQueryBuilder::isEventAttribute);
+
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
-      List.of(StatusQueryBuilder::isStatusDimension);
+      List.of(EventAttributeQueryBuilder::isEventAttribute);
 
-  @Getter
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
-      List.of(sortingParams -> isStatusDimension(sortingParams.getOrderBy()));
+      List.of(sortingParams -> isEventAttribute(sortingParams.getOrderBy()));
 
-  private static boolean isStatusDimension(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return Optional.of(dimensionIdentifier)
-            .map(DimensionIdentifier::getDimension)
-            .map(DimensionParam::getStaticDimension)
-            .filter(SUPPORTED_STATUS_DIMENSIONS::contains)
-            .isPresent()
-        && !isEventLevelEventStatus(dimensionIdentifier);
-  }
-
-  private static boolean isEventLevelEventStatus(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return isEventLevelStaticDimension(dimensionIdentifier, EVENT_STATUS);
+  private static boolean isEventAttribute(DimensionIdentifier<DimensionParam> dimId) {
+    return isEventLevelStaticDimension(dimId, SUPPORTED_EVENT_ATTRIBUTES);
   }
 
   @Override
@@ -94,61 +92,58 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
-        .filter(DimensionIdentifier::isTeDimension)
-        .map(
-            dimensionIdentifier -> {
-              StaticDimension staticDimension =
-                  dimensionIdentifier.getDimension().getStaticDimension();
-              String prefix = getPrefix(dimensionIdentifier, false);
-
-              return Field.ofUnquoted(
-                  doubleQuote(prefix),
-                  staticDimension::getColumnName,
-                  prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
-            })
-        .forEach(builder::selectField);
-
-    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
-        .filter(Predicate.not(DimensionIdentifier::isTeDimension))
-        .map(
-            dimensionIdentifier -> {
-              StaticDimension staticDimension =
-                  dimensionIdentifier.getDimension().getStaticDimension();
-              String prefix = getPrefix(dimensionIdentifier, false);
-
-              return Field.ofUnquoted(
-                  doubleQuote(prefix),
-                  staticDimension::getColumnName,
-                  prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
-            })
-        // Fields that are not TE specific, are Virtual since they will be extracted from the JSON
+        .map(EventAttributeQueryBuilder::toField)
         .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
-        .map(
-            dimensionIdentifier ->
-                GroupableCondition.of(
-                    dimensionIdentifier.getGroupId(),
-                    SqlQueryHelper.buildExistsValueSubquery(
-                        dimensionIdentifier, StatusCondition.of(dimensionIdentifier, ctx))))
+        .map(dimId -> GroupableCondition.of(dimId.getGroupId(), buildCondition(dimId, ctx)))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
         sortingParam -> {
-          DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
-          String fieldName =
-              dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
+          DimensionIdentifier<DimensionParam> dimId = sortingParam.getOrderBy();
+          String fieldName = dimId.getDimension().getStaticDimension().getColumnName();
 
           builder.orderClause(
               IndexedOrder.of(
                   sortingParam.getIndex(),
-                  Order.of(
+                  org.hisp.dhis.analytics.common.query.Order.of(
                       SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
                       sortingParam.getSortDirection())));
         });
 
     return builder.build();
+  }
+
+  private static Field toField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    StaticDimension staticDimension = dimensionIdentifier.getDimension().getStaticDimension();
+    String prefix = getPrefix(dimensionIdentifier, false);
+
+    return Field.ofUnquoted(
+        doubleQuote(prefix),
+        staticDimension::getColumnName,
+        prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
+  }
+
+  private Renderable buildCondition(DimensionIdentifier<DimensionParam> dimId, QueryContext ctx) {
+    StaticDimension staticDimension = dimId.getDimension().getStaticDimension();
+
+    return switch (staticDimension) {
+      case EVENT_DATE ->
+          SqlQueryHelper.buildExistsValueSubquery(
+              dimId, PeriodStaticDimensionCondition.of(dimId, ctx));
+      case SCHEDULED_DATE ->
+          SqlQueryHelper.buildExistsValueSubqueryIncludeSchedule(
+              dimId, PeriodStaticDimensionCondition.of(dimId, ctx));
+      case OU ->
+          SqlQueryHelper.buildExistsValueSubquery(dimId, EventOrgUnitCondition.of(dimId, ctx));
+      case EVENT_STATUS ->
+          SqlQueryHelper.buildExistsValueSubqueryIncludeSchedule(
+              dimId, StatusCondition.of(dimId, ctx));
+      default ->
+          throw new IllegalArgumentException("Unsupported event attribute: " + staticDimension);
+    };
   }
 }
