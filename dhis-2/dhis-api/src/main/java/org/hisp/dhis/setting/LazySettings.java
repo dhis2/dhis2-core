@@ -303,10 +303,9 @@ final class LazySettings implements SystemSettings, UserSettings {
       throw new IllegalArgumentException("Boolean must be either true or false");
     }
     // Note: The != null is just a dummy test the parse yielded anything
-    if (defaultValue instanceof Double) if (parse(value, Double::valueOf) != null) return value;
-    if (defaultValue instanceof Number) if (parse(value, Integer::valueOf) != null) return value;
-    if (defaultValue instanceof Date)
-      if (parse(value, LazySettings::parseDate) != null) return value;
+    if (defaultValue instanceof Double && parse(value, Double::valueOf) != null) return value;
+    if (defaultValue instanceof Number && parse(value, Integer::valueOf) != null) return value;
+    if (defaultValue instanceof Date && parse(value, LazySettings::parseDate) != null) return value;
     if (defaultValue instanceof Locale) return toUnderscoreFormat(parseLocale(value));
     if (defaultValue instanceof Enum<?> e) return parseEnum(e.getDeclaringClass(), value).name();
     return value;
