@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
@@ -458,7 +459,7 @@ class EventHookListenerTest {
   void testOnEventDropsMetadataWhenEventHookUserDoesNotHaveMetadataReadAccess()
       throws NotFoundException, JsonProcessingException {
     User user = new User();
-    user.setUid("11111111-1111-1111-1111-11111111111");
+    user.setUid(CodeGenerator.generateUid());
     EventHookListener eventHookListener =
         new EventHookListener(
             null,
@@ -466,16 +467,16 @@ class EventHookListenerTest {
             null,
             null,
             mockAuthenticationService,
-            new MockAclService("22222222-2222-2222-2222-22222222222"));
+            new MockAclService(CodeGenerator.generateUid()));
 
-    eventHookListener.getEventHookContext().setEventHooks(List.of(createMockEventHook(user)));
+    EventHook eventHook = createMockEventHook(user);
+    eventHookListener.getEventHookContext().setEventHooks(List.of(eventHook));
     CountDownLatch countDownLatch = new CountDownLatch(1);
     eventHookListener
         .getEventHookContext()
         .setTargets(
             Map.of(
-                "00000000-0000-0000-0000-000000000000",
-                List.of((eh, event, payload) -> countDownLatch.countDown())));
+                eventHook.getUid(), List.of((eh, event, payload) -> countDownLatch.countDown())));
 
     eventHookListener.onEvent(EventUtils.metadataCreate(mockIdentifiableObject));
 
@@ -486,7 +487,7 @@ class EventHookListenerTest {
   void testOnEventEmitsMetadataWhenEventHookUserHasMetadataReadAccess()
       throws NotFoundException, JsonProcessingException {
     User user = new User();
-    user.setUid("11111111-1111-1111-1111-11111111111");
+    user.setUid(CodeGenerator.generateUid());
     EventHookListener eventHookListener =
         new EventHookListener(
             null,
@@ -496,14 +497,14 @@ class EventHookListenerTest {
             mockAuthenticationService,
             new MockAclService(user.getUid()));
 
-    eventHookListener.getEventHookContext().setEventHooks(List.of(createMockEventHook(user)));
+    EventHook eventHook = createMockEventHook(user);
+    eventHookListener.getEventHookContext().setEventHooks(List.of(eventHook));
     CountDownLatch countDownLatch = new CountDownLatch(1);
     eventHookListener
         .getEventHookContext()
         .setTargets(
             Map.of(
-                "00000000-0000-0000-0000-000000000000",
-                List.of((eh, event, payload) -> countDownLatch.countDown())));
+                eventHook.getUid(), List.of((eh, event, payload) -> countDownLatch.countDown())));
 
     eventHookListener.onEvent(EventUtils.metadataCreate(mockIdentifiableObject));
 
@@ -517,7 +518,7 @@ class EventHookListenerTest {
     EventHook eventHook = new EventHook();
     eventHook.setUser(user);
     eventHook.setTargets(List.of(new ConsoleTarget()));
-    eventHook.setUid("00000000-0000-0000-0000-000000000000");
+    eventHook.setUid(CodeGenerator.generateUid());
     eventHook.setSource(source);
 
     return eventHook;
