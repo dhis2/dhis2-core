@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.system.util.CsvUtils;
 
 /**
@@ -87,7 +87,7 @@ public final class CsvBuilder {
   public CsvBuilder withLocale(Locale locale) {
     this.dateTimeFormatter =
         DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-            .withLocale(locale == null ? Locale.getDefault() : locale);
+            .withLocale(locale == null ? java.util.Locale.getDefault() : locale.toJavaLocale());
     return this;
   }
 
