@@ -34,8 +34,11 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
@@ -110,6 +113,16 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     for (DimensionIdentifier<DimensionParam> dimensionIdentifier : dimensionIdentifiers) {
       if (!dimIdByKey.containsKey(dimensionIdentifier.getKey())) {
         dimIdByKey.put(dimensionIdentifier.getKey(), dimensionIdentifier);
+
+        // For event-level static dimensions, also add short format key alias
+        // to support headers like programStageUid.eventdate
+        if (isEventLevelStaticDimension(dimensionIdentifier, SUPPORTED_EVENT_STATIC_DIMENSIONS)) {
+          String shortFormatKey =
+              dimensionIdentifier.getProgramStage().getElement().getUid()
+                  + DIMENSION_IDENTIFIER_SEP
+                  + dimensionIdentifier.getDimension().getStaticDimension().getHeaderName();
+          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
+        }
       }
     }
     // we need to know which columns are in the sqlrowset, so that when a column is not present, we
@@ -303,7 +316,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     boolean isStageDefined = event != null;
     boolean isSet =
         event != null
-            && Objects.nonNull(event.getEventDataValues())
+            && nonNull(event.getEventDataValues())
             && event.getEventDataValues().containsKey(dimensionIdentifier.getDimension().getUid());
     boolean isScheduled =
         event != null && Strings.CI.equals(event.getEventStatus(), EventStatus.SCHEDULE.toString());

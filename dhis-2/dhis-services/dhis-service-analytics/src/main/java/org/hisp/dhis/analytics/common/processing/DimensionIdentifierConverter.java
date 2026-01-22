@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.params.dimension.StringDimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
@@ -83,6 +84,15 @@ public class DimensionIdentifierConverter {
             emptyElementWithOffset(), emptyElementWithOffset(), dimensionId);
       }
 
+      // For event-level static dimensions (EVENT_DATE, SCHEDULED_DATE, OU, EVENT_STATUS),
+      // the first element could be either a program UID or a program stage UID.
+      // If the first element is a valid program UID, treat it as a program-level dimension.
+      // If not, treat it as a program stage UID (event-level dimension).
+      // Format: programStageUid.EVENT_DATE (event-level) or programUid.OU (program-level)
+      if (isEventLevelStaticDimension(dimensionId.getUid()) && programOptional.isEmpty()) {
+        return resolveEventLevelDimension(allowedPrograms, programWithOffset, dimensionId);
+      }
+
       Program program =
           programOptional.orElseThrow(
               () ->
@@ -129,5 +139,59 @@ public class DimensionIdentifierConverter {
     return program.getProgramStages().stream()
         .filter(programStage -> programStage.getUid().equals(programStageUid.getUid()))
         .findFirst();
+  }
+
+  /**
+   * Checks if the given dimension UID is an event-level static dimension.
+   *
+   * @param dimensionUid the dimension UID to check
+   * @return true if the dimension is an event-level static dimension
+   */
+  private boolean isEventLevelStaticDimension(String dimensionUid) {
+    return StaticDimension.of(dimensionUid)
+        .map(
+            sd ->
+                sd == StaticDimension.EVENT_DATE
+                    || sd == StaticDimension.SCHEDULED_DATE
+                    || sd == StaticDimension.EVENT_STATUS
+                    || sd == StaticDimension.OU)
+        .orElse(false);
+  }
+
+  /**
+   * Resolves an event-level dimension by searching for the program stage across all allowed
+   * programs. The first element (programWithOffset) is actually a program stage UID, not a program
+   * UID.
+   *
+   * @param allowedPrograms the list of allowed programs
+   * @param programStageWithOffset the program stage UID with offset (currently in "program"
+   *     position)
+   * @param dimensionId the dimension identifier
+   * @return the built {@link DimensionIdentifier}
+   */
+  private DimensionIdentifier<StringUid> resolveEventLevelDimension(
+      List<Program> allowedPrograms,
+      ElementWithOffset<StringUid> programStageWithOffset,
+      StringUid dimensionId) {
+    String programStageUid = programStageWithOffset.getElement().getUid();
+
+    Optional<ProgramStage> programStageOptional =
+        allowedPrograms.stream()
+            .flatMap(program -> program.getProgramStages().stream())
+            .filter(stage -> stage.getUid().equals(programStageUid))
+            .findFirst();
+
+    ProgramStage programStage =
+        programStageOptional.orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Specified program stage " + programStageUid + " does not exist"));
+
+    Program program = programStage.getProgram();
+
+    return DimensionIdentifier.of(
+        ElementWithOffset.of(program, programStageWithOffset.getOffset()),
+        ElementWithOffset.of(programStage, programStageWithOffset.getOffset()),
+        dimensionId);
   }
 }

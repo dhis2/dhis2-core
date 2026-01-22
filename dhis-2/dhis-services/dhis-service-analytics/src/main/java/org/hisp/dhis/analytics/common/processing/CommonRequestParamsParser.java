@@ -127,12 +127,20 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
         .getProgramAttributes()
         .addAll(getProgramAttributes(programs).map(IdentifiableObject::getUid).toList());
 
+    List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers =
+        retrieveDimensionParams(request, programs, userOrgUnits);
+    Set<DimensionIdentifier<DimensionParam>> parsedHeaders =
+        parseHeaders(request, programs, userOrgUnits);
+
+    // Validate that stage-specific headers have matching dimensions
+    StageSpecificHeaderValidator.validate(parsedHeaders, dimensionIdentifiers);
+
     return CommonParsedParams.builder()
         .programs(programs)
         .pagingParams(computePagingParams(request))
         .orderParams(getSortingParams(request, programs, userOrgUnits))
-        .dimensionIdentifiers(retrieveDimensionParams(request, programs, userOrgUnits))
-        .parsedHeaders(parseHeaders(request, programs, userOrgUnits))
+        .dimensionIdentifiers(dimensionIdentifiers)
+        .parsedHeaders(parsedHeaders)
         .userOrgUnit(userOrgUnits)
         .build();
   }

@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 
 import java.util.LinkedHashMap;
@@ -52,7 +53,6 @@ import org.hisp.dhis.program.ProgramStage;
 @Slf4j
 public class CteContext {
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
-  public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
   /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
   @Getter private final EndpointItem endpointItem;

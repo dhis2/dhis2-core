@@ -31,10 +31,13 @@ package org.hisp.dhis.analytics.trackedentity.query;
 
 import static java.util.Arrays.stream;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
@@ -49,7 +52,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -192,14 +194,49 @@ public class TrackedEntityFields {
                         commonParsed.getDimensionIdentifiers().stream(),
                         getEligibleParsedHeaders(commonParsed))))
         .filter(Objects::nonNull)
-        .map(
-            dimIdentifier ->
-                Pair.of(dimIdentifier, getHeaderForDimensionParam(dimIdentifier, contextParams)))
-        .map(pair -> withStageOffsetIfNecessary(pair.getLeft(), pair.getRight()))
-        .filter(Objects::nonNull)
-        .forEach(g -> headersMap.put(g.getName(), g));
+        .forEach(dimIdentifier -> addHeaderToMap(dimIdentifier, contextParams, headersMap));
 
     return reorder(headersMap, fields);
+  }
+
+  /**
+   * Adds the header for the given dimension identifier to the headers map.
+   *
+   * @param dimIdentifier the dimension identifier
+   * @param contextParams the context params
+   * @param headersMap the headers map
+   */
+  private static void addHeaderToMap(
+      DimensionIdentifier<DimensionParam> dimIdentifier,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
+      Map<String, GridHeader> headersMap) {
+    GridHeader header = getHeaderForDimensionParam(dimIdentifier, contextParams);
+    GridHeader offsetHeader = withStageOffsetIfNecessary(dimIdentifier, header);
+
+    // For event-level static dimensions, use short format as the primary key
+    // and add full format as alias for reorder() lookup
+    if (isEventLevelStaticDimension(dimIdentifier, SUPPORTED_EVENT_STATIC_DIMENSIONS)) {
+      String shortFormatName =
+          dimIdentifier.getProgramStage().getElement().getUid()
+              + DIMENSION_IDENTIFIER_SEP
+              + dimIdentifier.getDimension().getStaticDimension().getHeaderName();
+
+      // Create header with short format name (for user requests)
+      GridHeader shortFormatHeader =
+          new GridHeader(
+              shortFormatName,
+              offsetHeader.getColumn(),
+              offsetHeader.getValueType(),
+              offsetHeader.isHidden(),
+              offsetHeader.isMeta());
+
+      // Store with short format as primary key, and add full format alias
+      // for reorder() to find via field.getDimensionIdentifier()
+      headersMap.put(shortFormatName, shortFormatHeader);
+      headersMap.put(offsetHeader.getName(), shortFormatHeader);
+    } else {
+      headersMap.put(offsetHeader.getName(), offsetHeader);
+    }
   }
 
   /**
