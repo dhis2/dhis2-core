@@ -44,6 +44,8 @@ public interface I18nLocaleService {
 
   I18nLocale addI18nLocale(String language, String country);
 
+  I18nLocale addI18nLocale(String language, String country, String script);
+
   void saveI18nLocale(I18nLocale locale);
 
   void saveI18nLocale(I18nLocale locale, UserDetails actingUser);
