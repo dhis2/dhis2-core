@@ -226,7 +226,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return webMessage;
   }
 
-  private T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
+  protected T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
     // TODO: To remove when we remove old UserCredentials compatibility
     if (persistedObject instanceof User) {
       for (JsonPatchOperation op : patch.getOperations()) {
@@ -868,6 +868,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   protected void preUpdateItems(T entity, IdentifiableObjects items) throws ConflictException {}
 
   protected void postUpdateItems(T entity, IdentifiableObjects items) {}
+
+  protected void updatePermissionCheck(UserDetails currentUser, T persistedObject)
+      throws ForbiddenException {
+    if (!aclService.canUpdate(currentUser, persistedObject)) {
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Helpers
