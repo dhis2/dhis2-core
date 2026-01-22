@@ -531,7 +531,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         EnrollmentOperationParams.builder()
             .orgUnits(trackedEntityA.getOrganisationUnit())
             .orgUnitMode(SELECTED)
-            .trackedEntity(trackedEntityA)
+            .trackedEntities(trackedEntityA)
             .build();
 
     List<Enrollment> enrollments = enrollmentService.findEnrollments(params);

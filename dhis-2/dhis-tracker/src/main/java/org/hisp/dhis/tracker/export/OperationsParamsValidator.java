@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -129,6 +130,7 @@ public class OperationsParamsValidator {
    * @throws ForbiddenException if the user has no data read access to the program or its tracked
    *     entity type
    */
+  @Transactional(readOnly = true)
   public Program validateTrackerProgram(UID uid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     Program program = validateProgramAccess(uid, user);

@@ -150,6 +150,9 @@
         <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo"
                      column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid"/>
 
+        <many-to-one name="enrollmentCategoryCombo" class="org.hisp.dhis.category.CategoryCombo"
+                     column="enrollmentcategorycomboid" not-null="true" foreign-key="fk_program_enrollmentcategorycomboid"/>
+
         <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
                      column="trackedentitytypeid" foreign-key="fk_program_trackedentitytypeid"/>
 

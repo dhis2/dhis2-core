@@ -190,7 +190,7 @@ public class TrackerTest extends Simulation {
     ProfileDefaults defaults =
         switch (this.profile) {
           case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(5, 20, 1, 30, 180, 1);
+          case LOAD -> new ProfileDefaults(6, 100, 1, 30, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4);
         };
     this.usersPerSec = Integer.getInteger("usersPerSec", defaults.usersPerSec());
@@ -488,7 +488,7 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 204, Profile.LOAD, 328)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 204, Profile.LOAD, 280)),
             "Not found TE by name with like operator",
             "Get a list of TEs");
     Request notFoundTeByNationalIdWithEqualOperator =
@@ -500,7 +500,7 @@ public class TrackerTest extends Simulation {
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 197, Profile.LOAD, 328)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 197, Profile.LOAD, 280)),
             "Search TE by name with like operator",
             "Get a list of TEs");
     Request searchTeByNationalIdWithEqualOperator =
@@ -518,13 +518,13 @@ public class TrackerTest extends Simulation {
     Request getTrackedEntitiesForEvents =
         new Request(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 22, Profile.LOAD, 56)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 22, Profile.LOAD, 50)),
             "Get tracked entities from events",
             "Get a list of TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 147, Profile.LOAD, 317)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 60, Profile.LOAD, 100)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
     Request getFirstTrackedEntity =
