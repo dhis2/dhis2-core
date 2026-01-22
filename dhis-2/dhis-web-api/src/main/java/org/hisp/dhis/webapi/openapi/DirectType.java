@@ -182,7 +182,11 @@ class DirectType {
   /** Note that this is an approximation of a strictly correct locale string :/ */
   @Language("RegExp")
   private static final String REGEX_LOCALE =
-      "^(?i)(?<lang>[a-z]{2,8})(?:_(?<script>[a-z]{4}))?(?:_(?<country>[a-z]{2}|[0-9]{3}))?(?:_(?<variant>[0-9a-z]{3,8}))?$";
+      "^(?i)(?<lang>[a-z]{2,8})(?:_(?<script>[a-z]{4}))?(?:_(?<country>[A-Z]{2}|[0-9]{3}))?(?:_(?<variant>[0-9a-z]{3,8}))?$";
+
+  @Language("RegExp")
+  private static final String REGEX_LOCALE_SUB =
+      "^(?i)(?<lang>[a-z]{2,3})(?<country>_[A-Z]{2}|[0-9]{3}(?<script>_#?[A-Z][a-z]{3})?)?$";
 
   static {
     oneOf(byte.class, schema -> schema.type("integer").format("int8").nullable(false));
@@ -224,6 +228,9 @@ class DirectType {
     oneOf(
         Locale.class,
         schema -> schema.type("string").nullable(true).format("locale").pattern(REGEX_LOCALE));
+    oneOf(
+        org.hisp.dhis.common.Locale.class,
+        schema -> schema.type("string").nullable(true).format("locale").pattern(REGEX_LOCALE_SUB));
     oneOf(Instant.class, schema -> schema.type("string").format("date-time"));
     oneOf(Instant.class, schema -> schema.type("integer").format("int64"));
     share(Instant.class);

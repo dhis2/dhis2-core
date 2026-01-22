@@ -160,6 +160,7 @@ public final class CSV {
     addDeserializer(boolean.class, Boolean::parseBoolean);
     addDeserializer(UID.class, UID::of);
     addDeserializer(Locale.class, Locale::new);
+    addDeserializer(org.hisp.dhis.common.Locale.class, org.hisp.dhis.common.Locale::of);
   }
 
   private static Function<String, ?> getDeserializer(RecordComponent c) {
