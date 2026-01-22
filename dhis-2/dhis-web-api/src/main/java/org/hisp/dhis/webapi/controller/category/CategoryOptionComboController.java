@@ -142,7 +142,7 @@ public class CategoryOptionComboController
    */
   @OpenApi.Description(
       """
-      CategoryOptionCombo needs a very specific update implementation. Only 3 fields are updatable
+      Updating a CategoryOptionCombos is restricted, only 3 fields are updatable
       through the PUT endpoint:
       - attributeValues
       - code
@@ -175,7 +175,7 @@ public class CategoryOptionComboController
    */
   @OpenApi.Description(
       """
-      CategoryOptionCombo needs a very specific update implementation. Only 3 fields are updatable
+      Updating a CategoryOptionCombos is restricted, only 3 fields are updatable
       through the PATCH endpoint:
       - attributeValues
       - code
