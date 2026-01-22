@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.junit.jupiter.api.Test;
 

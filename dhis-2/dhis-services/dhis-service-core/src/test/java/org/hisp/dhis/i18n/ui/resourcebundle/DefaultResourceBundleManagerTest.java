@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.i18n.ui.resourcebundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-import java.util.Locale;
+import java.util.ResourceBundle;
+import org.hisp.dhis.common.Locale;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Lars Helge Overland
- */
-class LocaleUtilsTest {
+class DefaultResourceBundleManagerTest {
+
+  private final DefaultResourceBundleManager manager = new DefaultResourceBundleManager();
 
   @Test
-  void testGetLocaleFallbacks() {
-    Locale l1 = new Locale("en", "UK", "en");
-    Locale l2 = new Locale("en", "UK");
-    Locale l3 = new Locale("en");
-    List<String> locales = LocaleUtils.getLocaleFallbacks(l1);
-    assertEquals(3, locales.size());
-    assertTrue(locales.contains("en_UK_en"));
-    assertTrue(locales.contains("en_UK"));
-    assertTrue(locales.contains("en_UK"));
-    assertEquals(2, LocaleUtils.getLocaleFallbacks(l2).size());
-    assertEquals(1, LocaleUtils.getLocaleFallbacks(l3).size());
+  void testGlobalBundleWithCyrillicScriptLocale() throws ResourceBundleManagerException {
+    ResourceBundle bundle = manager.getGlobalResourceBundle(Locale.of("uz_UZ_Cyrl"));
+    assertEquals("\u042f\u043d\u0432\u0430\u0440\u044c", bundle.getString("month.january"));
+  }
+
+  @Test
+  void testGlobalBundleWithLatinScriptLocale() throws ResourceBundleManagerException {
+    ResourceBundle bundle = manager.getGlobalResourceBundle(Locale.of("uz_UZ_Latn"));
+    assertEquals("Yanvar", bundle.getString("month.january"));
   }
 }
