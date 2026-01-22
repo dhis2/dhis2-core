@@ -41,15 +41,11 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -60,8 +56,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -77,18 +71,7 @@ public class TrackedEntityAggregate {
   @Nonnull
   private final EnrollmentAggregate enrollmentAggregate;
 
-  private final UserService userService;
-
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Nonnull private final CacheProvider cacheProvider;
-
-  private Cache<Context> securityCache;
-
-  @PostConstruct
-  protected void init() {
-    securityCache = cacheProvider.createSecurityCache();
-  }
 
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
@@ -100,96 +83,50 @@ public class TrackedEntityAggregate {
     if (identifiers.isEmpty()) {
       return Collections.emptyList();
     }
+    Context ctx = new Context(CurrentUserUtil.getCurrentUserDetails(), fields, queryParams);
+
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    final Optional<User> user = Optional.ofNullable(currentUser);
-
-    /*
-     * Create a context with information which will be used to fetch the
-     * entities. Use a superUser context if the user is null.
-     */
-    Context ctx =
-        user.map(
-                u ->
-                    securityCache.get(u.getUid(), userUID -> Context.builder().build()).toBuilder()
-                        .userId(u.getId())
-                        .userUid(u.getUid())
-                        .superUser(u.isSuper()))
-            .orElse(Context.builder().superUser(true))
-            .fields(fields)
-            .queryParams(queryParams)
-            .build();
-
-    /*
-     * Async fetch Enrollments for the given TrackedEntity id (only if
-     * isIncludeEnrollments = true)
-     */
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
-            ctx.getFields().isIncludesEnrollments(),
+            fields.isIncludesEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
             getPool());
-
-    /*
-     * Async fetch all ProgramOwner for the given TrackedEntity id
-     */
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
-            ctx.getFields().isIncludesProgramOwners(),
+            fields.isIncludesProgramOwners(),
             () -> trackedEntityStore.getProgramOwners(ids),
             getPool());
-
-    /*
-     * Async Fetch TrackedEntities by id
-     */
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
         supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
-
-    /*
-     * Async fetch TrackedEntity Attributes by TrackedEntity id
-     */
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
-            ctx.getFields().isIncludesAttributes(),
-            () -> trackedEntityStore.getAttributes(ids),
-            getPool());
+            fields.isIncludesAttributes(), () -> trackedEntityStore.getAttributes(ids), getPool());
 
-    /*
-     * Execute all queries and merge the results
-     */
-    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync)
-        .thenApplyAsync(
-            fn -> {
-              Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
+    // Fetch allowed attributes on the HTTP thread while async tasks are fetching other data
+    Set<String> allowedAttributeUids = getAllowedAttributeUids(queryParams);
+    // Wait for all async fetches to complete
+    allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
 
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-              Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
-              Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              return trackedEntities.keySet().parallelStream()
-                  .map(
-                      uid -> {
-                        TrackedEntity te = trackedEntities.get(uid);
-                        te.setTrackedEntityAttributeValues(
-                            filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
-                        te.setEnrollments(new HashSet<>(enrollments.get(uid)));
-                        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                        return te;
-                      })
-                  .toList();
-            },
-            getPool())
-        .join();
+    // Merge results on the HTTP thread (futures are complete)
+    Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
+    Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
+    Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
+    Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
+
+    return trackedEntities.keySet().stream()
+        .map(
+            uid -> {
+              TrackedEntity te = trackedEntities.get(uid);
+              te.setTrackedEntityAttributeValues(
+                  filterAttributes(allowedAttributeUids, attributes.get(uid)));
+              te.setEnrollments(new HashSet<>(enrollments.get(uid)));
+              te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+              return te;
+            })
+        .toList();
   }
 
-  /** Filter attributes based on queryParams, ownership and superuser status */
-  private Set<TrackedEntityAttributeValue> filterAttributes(
-      TrackedEntityQueryParams params, Collection<TrackedEntityAttributeValue> attributes) {
-    if (attributes.isEmpty()) {
-      return Set.of();
-    }
-
-    // Add all tet attributes
+  private Set<String> getAllowedAttributeUids(TrackedEntityQueryParams params) {
     Set<String> allowedAttributeUids =
         trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes().stream()
             .map(IdentifiableObject::getUid)
@@ -200,6 +137,15 @@ public class TrackedEntityAggregate {
           trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
               params.getEnrolledInTrackerProgram());
       allowedAttributeUids.addAll(teasInProgram);
+    }
+
+    return allowedAttributeUids;
+  }
+
+  private Set<TrackedEntityAttributeValue> filterAttributes(
+      Set<String> allowedAttributeUids, Collection<TrackedEntityAttributeValue> attributes) {
+    if (attributes.isEmpty()) {
+      return Set.of();
     }
 
     return attributes.stream()

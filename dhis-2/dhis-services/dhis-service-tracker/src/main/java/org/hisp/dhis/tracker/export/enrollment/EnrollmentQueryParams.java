@@ -43,7 +43,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -90,7 +89,8 @@ class EnrollmentQueryParams {
   /** Tracked entity of the instances in the response. */
   private TrackedEntityType trackedEntityType;
 
-  private TrackedEntity trackedEntity;
+  /** Set of tracked entity uids to explicitly select. */
+  private Set<UID> trackedEntities = new HashSet<>();
 
   /** Indicates whether to include soft-deleted enrollments */
   private boolean includeDeleted;
@@ -164,9 +164,9 @@ class EnrollmentQueryParams {
     return trackedEntityType != null;
   }
 
-  /** Indicates whether this params specifies a tracked entity. */
-  public boolean hasTrackedEntity() {
-    return this.trackedEntity != null;
+  /** Indicates whether this params specifies tracked entities. */
+  public boolean hasTrackedEntities() {
+    return isNotEmpty(this.trackedEntities);
   }
 
   public boolean hasEnrollmentUids() {
