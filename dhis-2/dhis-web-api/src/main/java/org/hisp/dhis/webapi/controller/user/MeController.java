@@ -83,6 +83,8 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentialsDto;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -177,7 +179,19 @@ public class MeController {
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toList());
 
-    MeDto meDto = new MeDto(user, userSettings, programs, dataSets);
+    // Filter userGroups and userRoles based on ACL read access
+    Set<UserGroup> filteredUserGroups =
+        user.getGroups().stream()
+            .filter(group -> aclService.canRead(user, group))
+            .collect(Collectors.toSet());
+
+    Set<UserRole> filteredUserRoles =
+        user.getUserRoles().stream()
+            .filter(role -> aclService.canRead(user, role))
+            .collect(Collectors.toSet());
+
+    MeDto meDto =
+        new MeDto(user, userSettings, programs, dataSets, filteredUserGroups, filteredUserRoles);
     determineUserImpersonation(meDto);
 
     // TODO: To remove when we remove old UserCredentials compatibility
