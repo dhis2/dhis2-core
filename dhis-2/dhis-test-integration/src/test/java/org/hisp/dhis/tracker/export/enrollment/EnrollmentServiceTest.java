@@ -521,7 +521,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(trackedEntityA.getOrganisationUnit().getUid()))
             .orgUnitMode(SELECTED)
-            .trackedEntityUid(trackedEntityA.getUid())
+            .trackedEntityUids(Set.of(trackedEntityA.getUid()))
             .build();
 
     List<Enrollment> enrollments = enrollmentService.getEnrollments(params);

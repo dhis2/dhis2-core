@@ -41,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -78,7 +80,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(readOnly = true)
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
 class DefaultTrackedEntityService implements TrackedEntityService {
@@ -110,6 +111,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final UserService userService;
 
   @Override
+  @Transactional(readOnly = true)
   public FileResourceStream getFileResource(
       UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
@@ -117,6 +119,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, @CheckForNull UID program, ImageFileDimension dimension)
       throws NotFoundException {
@@ -210,6 +213,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException, BadRequestException {
@@ -464,6 +468,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @IndirectTransactional
   public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams);
@@ -487,6 +492,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @IndirectTransactional
   public Page<TrackedEntity> getTrackedEntities(
       TrackedEntityOperationParams operationParams, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException {
@@ -647,6 +653,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
+  @NonTransactional
   public Set<String> getOrderableFields() {
     return trackedEntityStore.getOrderableFields();
   }

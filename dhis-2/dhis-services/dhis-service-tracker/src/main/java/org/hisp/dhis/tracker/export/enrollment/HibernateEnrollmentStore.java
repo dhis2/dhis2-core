@@ -33,6 +33,7 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -172,8 +173,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
               + "'";
     }
 
-    if (params.hasTrackedEntity()) {
-      hql += hlp.whereAnd() + "en.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
+    if (params.hasTrackedEntities()) {
+      hql +=
+          hlp.whereAnd()
+              + "en.trackedEntity.uid in ("
+              + getQuotedCommaDelimitedString(new ArrayList<>(params.getTrackedEntityUids()))
+              + ")";
     }
 
     if (params.hasTrackedEntityType()) {

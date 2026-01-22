@@ -219,59 +219,62 @@ public class TrackedEntityAggregate implements Aggregate {
             () -> trackedEntityStore.getOwnedTeis(ids, ctx, orgUnitMode == ALL),
             getPool());
     /*
-     * Execute all queries and merge the results
+     * Fetch allowed attributes while async tasks are fetching other data.
      */
-    return allOf(
+    Set<TrackedEntityAttribute> allAttributes =
+        teAttributesCache.get(
+            "ALL_ATTRIBUTES",
+            s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes());
+    Map<Program, Set<TrackedEntityAttribute>> attributesByProgram =
+        programTeiAttributesCache.get(
+            "ATTRIBUTES_BY_PROGRAM",
+            s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram());
+
+    /*
+     * Wait for all async fetches to complete
+     */
+    allOf(
             trackedEntitiesAsync,
             attributesAsync,
             relationshipsAsync,
             enrollmentsAsync,
-            ownedTeiAsync)
-        .thenApplyAsync(
-            fn -> {
-              Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
-
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-              Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
-              Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
-              Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              Multimap<String, String> ownedTeis = ownedTeiAsync.join();
-
-              Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
-
-              if (user.isPresent() && queryParams.hasEnrolledInTrackerProgram()) {
-                teUidStream = teUidStream.filter(ownedTeis::containsKey);
-              }
-
-              return teUidStream
-                  .map(
-                      uid -> {
-                        TrackedEntity te = trackedEntities.get(uid);
-                        te.setTrackedEntityAttributeValues(
-                            filterAttributes(
-                                attributes.get(uid),
-                                ownedTeis.get(uid),
-                                teAttributesCache.get(
-                                    "ALL_ATTRIBUTES",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByTrackedEntityTypes()),
-                                programTeiAttributesCache.get(
-                                    "ATTRIBUTES_BY_PROGRAM",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByProgram()),
-                                ctx));
-                        te.setRelationshipItems(new HashSet<>(relationships.get(uid)));
-                        te.setEnrollments(
-                            filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
-                        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-                        return te;
-                      })
-                  .collect(Collectors.toList());
-            },
-            getPool())
+            ownedTeiAsync,
+            programOwnersAsync)
         .join();
+
+    /*
+     * Merge results on the HTTP thread
+     */
+    Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
+    Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
+    Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
+    Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
+    Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
+    Multimap<String, String> ownedTeis = ownedTeiAsync.join();
+
+    Stream<String> teUidStream = trackedEntities.keySet().stream();
+
+    if (user.isPresent() && queryParams.hasEnrolledInTrackerProgram()) {
+      teUidStream = teUidStream.filter(ownedTeis::containsKey);
+    }
+
+    return teUidStream
+        .map(
+            uid -> {
+              TrackedEntity te = trackedEntities.get(uid);
+              te.setTrackedEntityAttributeValues(
+                  filterAttributes(
+                      attributes.get(uid),
+                      ownedTeis.get(uid),
+                      allAttributes,
+                      attributesByProgram,
+                      ctx));
+              te.setRelationshipItems(new HashSet<>(relationships.get(uid)));
+              te.setEnrollments(filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
+              te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+              return te;
+            })
+        .collect(Collectors.toList());
   }
 
   /** Filter enrollments based on ownership and super user status. */

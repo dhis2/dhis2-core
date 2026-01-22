@@ -85,8 +85,8 @@ public class EnrollmentOperationParams {
   /** Tracked entity type of the tracked entity in the response. */
   private final String trackedEntityTypeUid;
 
-  /** Tracked entity. */
-  private final String trackedEntityUid;
+  /** Set of tracked entity uids to explicitly select. */
+  @Builder.Default private final Set<String> trackedEntityUids = new HashSet<>();
 
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;
