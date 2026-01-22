@@ -120,33 +120,18 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   }
 
   private Locale validateLocale(String language, String country, String script) {
-    if (country != null && country.isBlank()) {
-      throw new IllegalArgumentException("Country code cannot be blank");
-    }
-
+    if (country != null && country.isBlank()) country = null;
     if (script != null && script.isBlank()) {
       script = null;
     }
+    Locale locale = new Locale(language, country, script);
 
-    if (script != null && (country == null || country.isBlank())) {
-      throw new IllegalArgumentException("Script must be used with region");
-    }
-
-    boolean hasLanguage = language != null && !language.isBlank();
-    boolean validLanguage = hasLanguage && languages.containsKey(language);
-
-    boolean hasCountry = country != null && !country.isBlank();
-    boolean validCountry = !hasCountry || countries.containsKey(country);
-
-    if (!validLanguage || !validCountry) {
+    if (!languages.containsKey(locale.language())
+        || (locale.region() != null && !countries.containsKey(locale.region()))) {
       throw new IllegalArgumentException("Invalid country or language code.");
     }
 
-    if (script != null && !script.matches("^[A-Z][a-z]{3}$")) {
-      throw new IllegalArgumentException("Invalid script: " + script);
-    }
-
-    return new Locale(language, country, script);
+    return locale;
   }
 
   @Override

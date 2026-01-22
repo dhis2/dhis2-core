@@ -74,8 +74,8 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Country code cannot be blank",
-        POST("/locales/dbLocales?language=en&country=").content(HttpStatus.CONFLICT));
+        "Invalid country or language code.",
+        POST("/locales/dbLocales?language=en&country=ZZ").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -84,7 +84,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Invalid country or language code.",
+        "Invalid language code: ",
         POST("/locales/dbLocales?language=&country=GB").content(HttpStatus.CONFLICT));
   }
 
