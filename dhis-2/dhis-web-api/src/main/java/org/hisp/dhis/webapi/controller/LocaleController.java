@@ -39,7 +39,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -51,7 +50,6 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -71,9 +69,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/locales")
 public class LocaleController {
-  @Autowired private LocaleManager localeManager;
 
-  @Autowired private I18nLocaleService localeService;
+  private final LocaleManager localeManager;
+  private final I18nLocaleService localeService;
+
+  public LocaleController(LocaleManager localeManager, I18nLocaleService localeService) {
+    this.localeManager = localeManager;
+    this.localeService = localeService;
+  }
 
   // -------------------------------------------------------------------------
   // Resources
@@ -133,18 +136,17 @@ public class LocaleController {
   @RequiresAuthority(anyOf = F_LOCALE_ADD)
   @PostMapping(value = "/dbLocales")
   @ResponseBody
-  public WebMessage addLocale(@RequestParam String country, @RequestParam String language) {
-    if (StringUtils.isEmpty(country) || StringUtils.isEmpty(language)) {
-      return conflict("Invalid country or language code.");
+  public WebMessage addLocale(
+      @RequestParam(required = false) String country,
+      @RequestParam String language,
+      @RequestParam(required = false) String script) {
+
+    I18nLocale i18nLocale;
+    try {
+      i18nLocale = localeService.addI18nLocale(language, country, script);
+    } catch (IllegalArgumentException ex) {
+      return conflict(ex.getMessage());
     }
-
-    Locale locale = new Locale(language, country);
-
-    if (localeService.getI18nLocale(locale) != null) {
-      return conflict("Locale code existed.");
-    }
-
-    I18nLocale i18nLocale = localeService.addI18nLocale(language, country);
 
     return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
   }

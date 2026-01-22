@@ -74,7 +74,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Invalid country or language code.",
+        "Country code cannot be blank",
         POST("/locales/dbLocales?language=en&country=").content(HttpStatus.CONFLICT));
   }
 
@@ -89,6 +89,32 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testAddLocaleWithScript() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Locale created successfully",
+        POST("/locales/dbLocales?language=uz&country=UZ&script=Cyrl").content(HttpStatus.CREATED));
+    JsonArray response = GET("/locales/db").content();
+    assertEquals(1, response.size());
+    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
+    assertEquals("uz_UZ_Cyrl", firstElement.getLocale());
+    assertEquals("ўзбекча (Кирил, Ўзбекистон)", firstElement.getName());
+    assertEquals("Uzbek (Cyrillic, Uzbekistan)", firstElement.getDisplayName());
+  }
+
+  @Test
+  void testAddLocaleWithScriptNoCountry() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Script must be used with region",
+        POST("/locales/dbLocales?language=uz&script=Cyrl").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
   void testAddLocale_AlreadyExists() {
     assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=GB"));
     assertWebMessage(
@@ -97,6 +123,16 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
         "ERROR",
         "Locale code existed.",
         POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testAddLocaleWithInvalidScript() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Invalid script: XXXX",
+        POST("/locales/dbLocales?language=uz&country=UZ&script=XXXX").content(HttpStatus.CONFLICT));
   }
 
   @Test

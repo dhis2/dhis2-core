@@ -42,6 +42,7 @@ import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +54,7 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   private final Map<String, String> countries = new LinkedHashMap<>();
 
   private final I18nLocaleStore localeStore;
+  private final ObjectProvider<I18nLocaleService> self;
 
   /** Load all ISO languages and countries into mappings. */
   @PostConstruct
@@ -101,20 +103,50 @@ public class DefaultI18nLocaleService implements I18nLocaleService {
   @Override
   @Transactional
   public I18nLocale addI18nLocale(String language, String country) {
-    String languageName = languages.get(language);
-    String countryName = countries.get(country);
+    return addI18nLocale(language, country, null);
+  }
 
-    if (language == null || languageName == null)
-      throw new IllegalArgumentException("Invalid Language.");
+  @Override
+  @Transactional
+  public I18nLocale addI18nLocale(String language, String country, String script) {
+    Locale locale = validateLocale(language, country, script);
+    if (localeStore.getI18nLocaleByLocale(locale) != null) {
+      throw new IllegalArgumentException("Locale code existed.");
+    }
 
-    if (country != null && countryName == null)
-      throw new IllegalArgumentException("Invalid country.");
-
-    I18nLocale i18nLocale = new I18nLocale(new Locale(language, country));
-
-    saveI18nLocale(i18nLocale);
-
+    I18nLocale i18nLocale = new I18nLocale(locale);
+    self.getObject().saveI18nLocale(i18nLocale);
     return i18nLocale;
+  }
+
+  private Locale validateLocale(String language, String country, String script) {
+    if (country != null && country.isBlank()) {
+      throw new IllegalArgumentException("Country code cannot be blank");
+    }
+
+    if (script != null && script.isBlank()) {
+      script = null;
+    }
+
+    if (script != null && (country == null || country.isBlank())) {
+      throw new IllegalArgumentException("Script must be used with region");
+    }
+
+    boolean hasLanguage = language != null && !language.isBlank();
+    boolean validLanguage = hasLanguage && languages.containsKey(language);
+
+    boolean hasCountry = country != null && !country.isBlank();
+    boolean validCountry = !hasCountry || countries.containsKey(country);
+
+    if (!validLanguage || !validCountry) {
+      throw new IllegalArgumentException("Invalid country or language code.");
+    }
+
+    if (script != null && !script.matches("^[A-Z][a-z]{3}$")) {
+      throw new IllegalArgumentException("Invalid script: " + script);
+    }
+
+    return new Locale(language, country, script);
   }
 
   @Override
