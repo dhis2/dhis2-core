@@ -45,6 +45,8 @@ import org.hisp.dhis.common.Locale;
 public class WebLocale {
   @JsonProperty private final String locale;
 
+  @JsonProperty private final String languageTag;
+
   @JsonProperty private final String name;
 
   @JsonProperty private final String displayName;
@@ -57,6 +59,9 @@ public class WebLocale {
    */
   public static WebLocale fromLocale(Locale locale, Locale userLocale) {
     return new WebLocale(
-        locale.toString(), locale.getDisplayName(locale), locale.getDisplayName(userLocale));
+        locale.toString(),
+        locale.toLanguageTag(),
+        locale.getDisplayName(locale),
+        locale.getDisplayName(userLocale));
   }
 }

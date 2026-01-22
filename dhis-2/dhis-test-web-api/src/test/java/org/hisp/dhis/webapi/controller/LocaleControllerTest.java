@@ -212,6 +212,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("en_IE", firstElement.getLocale());
     assertEquals("English (Ireland)", firstElement.getName());
     assertEquals("English (Ireland)", firstElement.getDisplayName());
+    assertEquals("en-IE", firstElement.getLanguageTag());
   }
 
   @Test
