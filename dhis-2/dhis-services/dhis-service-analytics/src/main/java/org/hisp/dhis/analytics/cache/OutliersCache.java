@@ -120,7 +120,9 @@ public class OutliersCache {
    * @param ttlInSeconds the time to live (expiration time) in seconds.
    */
   public void put(String key, List<Outlier> outliers, long ttlInSeconds) {
-    queryCache.put(key, outliers, ttlInSeconds);
+    if (ttlInSeconds > 0) {
+      queryCache.put(key, outliers, ttlInSeconds);
+    }
   }
 
   /** Clears the current cache by removing all existing entries. */
