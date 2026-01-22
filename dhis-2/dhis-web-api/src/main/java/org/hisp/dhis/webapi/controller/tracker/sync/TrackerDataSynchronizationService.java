@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 
 import java.util.Date;
 import java.util.List;
@@ -40,7 +39,6 @@ import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -49,11 +47,9 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
@@ -131,42 +127,6 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
-  public void syncEntitiesByDeletionStatus(
-      List<TrackedEntity> activeTrackedEntities,
-      List<TrackedEntity> deletedTrackedEntities,
-      TrackerSynchronizationContext context,
-      SystemSettings settings)
-      throws WebMessageException {
-    Date syncTime = context.getStartTime();
-    SystemInstance instance = context.getInstance();
-
-    TrackerIdSchemeParams idSchemeParams =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
-    MappingErrors errors = new MappingErrors(idSchemeParams);
-
-    if (!activeTrackedEntities.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> activeTrackedEntityDtos =
-          activeTrackedEntities.stream()
-              .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
-              .toList();
-      ensureNoMappingErrors(errors);
-      syncAndUpdateEntities(
-          activeTrackedEntityDtos,
-          instance,
-          settings,
-          syncTime,
-          TrackerImportStrategy.CREATE_AND_UPDATE);
-    }
-
-    if (!deletedTrackedEntities.isEmpty()) {
-      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> deletedTrackedEntityDtos =
-          deletedTrackedEntities.stream().map(this::toMinimalTrackedEntity).toList();
-      syncAndUpdateEntities(
-          deletedTrackedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
-    }
-  }
-
-  @Override
   public long countEntitiesForSynchronization(Date skipChangedBefore)
       throws ForbiddenException, BadRequestException {
     TrackedEntityOperationParams params =
@@ -180,6 +140,12 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
+  public org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity getMappedEntities(
+      TrackedEntity ev, TrackerIdSchemeParams idSchemeParam, MappingErrors errors) {
+    return TRACKED_ENTITY_MAPPER.map(idSchemeParam, errors, ev);
+  }
+
+  @Override
   public String getJsonRootName() {
     return "trackedEntities";
   }
@@ -187,6 +153,15 @@ public class TrackerDataSynchronizationService
   @Override
   public String getProcessName() {
     return PROCESS_NAME;
+  }
+
+  @Override
+  public org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalEntity(
+      TrackedEntity trackedEntity) {
+    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity minimalTrackedEntity =
+        new org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity();
+    minimalTrackedEntity.setTrackedEntity(UID.of(trackedEntity.getUid()));
+    return minimalTrackedEntity;
   }
 
   private TrackerSynchronizationContext initializeContext(
@@ -212,13 +187,5 @@ public class TrackerDataSynchronizationService
 
     return TrackerSynchronizationContext.forTrackedEntities(
         skipChangedBefore, trackedEntityCount, instance, pageSize);
-  }
-
-  private org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalTrackedEntity(
-      TrackedEntity trackedEntity) {
-    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity minimalTrackedEntity =
-        new org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity();
-    minimalTrackedEntity.setTrackedEntity(UID.of(trackedEntity.getUid()));
-    return minimalTrackedEntity;
   }
 }

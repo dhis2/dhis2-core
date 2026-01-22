@@ -33,6 +33,7 @@ import static java.lang.String.format;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.runSyncRequest;
 import static org.hisp.dhis.dxf2.sync.SyncUtils.testServerAvailability;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 
 import java.util.Date;
 import java.util.List;
@@ -58,7 +59,10 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RequestCallback;
@@ -195,6 +199,36 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     return !progress.isSkipCurrentStage();
   }
 
+  public void syncEntitiesByDeletionStatus(
+      List<D> activeEvents,
+      List<D> deletedEvents,
+      TrackerSynchronizationContext context,
+      SystemSettings settings)
+      throws WebMessageException {
+    Date syncTime = context.getStartTime();
+    SystemInstance instance = context.getInstance();
+
+    TrackerIdSchemeParams idSchemeParam =
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
+    MappingErrors errors = new MappingErrors(idSchemeParam);
+
+    if (!activeEvents.isEmpty()) {
+      List<V> activeEventDtos =
+          activeEvents.stream().map(ev -> getMappedEntities(ev, idSchemeParam, errors)).toList();
+      ensureNoMappingErrors(errors);
+      syncAndUpdateEntities(
+          activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
+    }
+
+    if (!deletedEvents.isEmpty()) {
+      List<V> deletedEventDtos = deletedEvents.stream().map(this::toMinimalEntity).toList();
+      syncAndUpdateEntities(
+          deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
+    }
+  }
+
+  public abstract V toMinimalEntity(D entity);
+
   public abstract String getJsonRootName();
 
   public abstract String getProcessName();
@@ -203,15 +237,11 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
   public abstract boolean isDeleted(D entity);
 
+  public abstract V getMappedEntities(
+      D ev, TrackerIdSchemeParams idSchemeParam, MappingErrors errors);
+
   public abstract long countEntitiesForSynchronization(Date skipChangedBefore)
       throws ForbiddenException, BadRequestException;
-
-  public abstract void syncEntitiesByDeletionStatus(
-      List<D> activeEntities,
-      List<D> deletedEntities,
-      TrackerSynchronizationContext context,
-      SystemSettings settings)
-      throws WebMessageException;
 
   public abstract List<D> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
       throws BadRequestException, ForbiddenException, NotFoundException;
