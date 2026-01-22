@@ -66,6 +66,8 @@ public enum ErrorCode {
   E1119("{0} already exists: `{1}`"),
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
 
+  E1134(
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
   E1501("Target org unit must be specified"),
