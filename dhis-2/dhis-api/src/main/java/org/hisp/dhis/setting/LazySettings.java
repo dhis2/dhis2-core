@@ -51,19 +51,18 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -212,7 +211,7 @@ final class LazySettings implements SystemSettings, UserSettings {
   @Override
   public Locale asLocale(@Nonnull String key, @Nonnull Locale defaultValue) {
     if (orDefault(key, defaultValue) instanceof Locale value) return value;
-    return asParseValue(key, defaultValue, LazySettings::parseLocale);
+    return asParseValue(key, defaultValue, Locale::of);
   }
 
   @Override
@@ -271,7 +270,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Double d) return Json.of(asDouble(key, d));
     if (defaultValue instanceof Number n) return Json.of(asInt(key, n.intValue()));
     if (defaultValue instanceof Boolean b) return Json.of(asBoolean(key, b));
-    if (defaultValue instanceof Locale l) return Json.of(toUnderscoreFormat(asLocale(key, l)));
+    if (defaultValue instanceof Locale l) return Json.of(asLocale(key, l).toString());
     if (defaultValue instanceof Enum<?> e) return Json.of(asEnum(key, e).toString());
     String value = asString(key, "");
     // auto-conversion based on regex when no default is known to tell the type
@@ -306,7 +305,7 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (defaultValue instanceof Double && parse(value, Double::valueOf) != null) return value;
     if (defaultValue instanceof Number && parse(value, Integer::valueOf) != null) return value;
     if (defaultValue instanceof Date && parse(value, LazySettings::parseDate) != null) return value;
-    if (defaultValue instanceof Locale) return toUnderscoreFormat(parseLocale(value));
+    if (defaultValue instanceof Locale) return Locale.of(value).toString(); // normalize
     if (defaultValue instanceof Enum<?> e) return parseEnum(e.getDeclaringClass(), value).name();
     return value;
   }
@@ -380,35 +379,6 @@ final class LazySettings implements SystemSettings, UserSettings {
     if (raw.isEmpty()) return new Date(0);
     if (raw.matches("^[0-9]+$")) return new Date(parseLong(raw));
     return Date.from(LocalDateTime.parse(raw).atZone(ZoneId.systemDefault()).toInstant());
-  }
-
-  private static final Pattern SCRIPT = Pattern.compile("");
-
-  private static Locale parseLocale(String raw) {
-    boolean bcp47 = raw.indexOf('-') > 0;
-    String[] parts = raw.split(bcp47 ? "-" : "_");
-    String lang = parts[0];
-    if (!lang.matches("[a-z]{2,3}"))
-      throw new IllegalArgumentException("Language code must be 2-3 lower case letters");
-    if (parts.length == 1) return new Locale(lang);
-    String region = bcp47 && parts.length == 3 ? parts[2] : parts[1];
-    if (!region.matches("[A-Z]{2}|[0-9]{3}"))
-      throw new IllegalArgumentException("Region code must be 2 upper case letters or 3 digits");
-    if (parts.length == 2) return new Locale(lang, region);
-    String script = bcp47 ? parts[1] : parts[2];
-    if (!script.matches("[A-Z][a-z]{3}"))
-      throw new IllegalArgumentException(
-          "Script must be an upper case letter followed by 3 lower case letters");
-    return new Locale.Builder().setLanguage(lang).setRegion(region).setScript(script).build();
-  }
-
-  private static String toUnderscoreFormat(Locale l) {
-    String lang = l.getLanguage();
-    String country = l.getCountry();
-    String script = l.getScript();
-    if (country.isEmpty() && script.isEmpty()) return lang;
-    if (script.isEmpty()) return lang + "_" + country;
-    return lang + "_" + country + "_" + script;
   }
 
   private static Map<String, Serializable> extractDefaults(Class<? extends Settings> type) {
