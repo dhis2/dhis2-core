@@ -33,7 +33,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.setting.UserSettings;
@@ -81,7 +81,7 @@ public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
                 Boolean.class,
                 root.get("translations"),
                 builder.literal("{" + path.getProperty().getTranslationKey() + "}"),
-                builder.literal(locale.getLanguage()),
+                builder.literal(locale.language()),
                 builder.literal(TokenUtils.createRegex(value).toString())),
             true),
         defaultSearch);

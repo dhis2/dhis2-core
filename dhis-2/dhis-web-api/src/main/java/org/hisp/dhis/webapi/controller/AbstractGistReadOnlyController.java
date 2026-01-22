@@ -45,12 +45,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.PropertyNames;
@@ -230,7 +230,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       throws BadRequestException {
     Locale translationLocale =
         !params.getLocale().isEmpty()
-            ? Locale.forLanguageTag(params.getLocale())
+            ? Locale.of(params.getLocale())
             : UserSettings.getCurrentSettings().getUserDbLocale();
     return GistQuery.builder()
         .elementType(elementType)

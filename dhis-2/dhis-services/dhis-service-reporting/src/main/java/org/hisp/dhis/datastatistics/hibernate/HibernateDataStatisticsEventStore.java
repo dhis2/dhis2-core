@@ -37,9 +37,9 @@ import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
@@ -165,7 +165,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
             ps.setString(i++, username);
           }
 
-          ps.setString(i++, currentLocale.getLanguage());
+          ps.setString(i++, currentLocale.language());
           ps.setInt(i++, pageSize);
         };
 

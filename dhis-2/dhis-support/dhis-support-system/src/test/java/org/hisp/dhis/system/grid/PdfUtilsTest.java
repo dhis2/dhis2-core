@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.lowagie.text.Font;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.system.util.PDFUtils;
 import org.junit.jupiter.api.Test;
 
