@@ -33,7 +33,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -124,12 +123,9 @@ class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityInteg
 
   public void setUpTest() {
 
-    Program programA = new Program();
-    programA.setAutoFields();
+    Program programA = createProgramWithoutRegistration('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programA);
 
     programStageA = new ProgramStage();

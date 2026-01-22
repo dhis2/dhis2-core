@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
@@ -280,5 +281,78 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     switchContextToUser(userWithPublicAuths);
 
     assertStatus(HttpStatus.FORBIDDEN, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
+
+  @Test
+  void shouldCreateAndRetrieveProgramWithEnrollmentCategoryCombo() {
+    String customCategoryComboUid = UID.generate().getValue();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{'id': '"
+                + customCategoryComboUid
+                + "', 'name': 'Custom Enrollment Category Combo', 'dataDimensionType': 'ATTRIBUTE'}"));
+
+    String programUid = UID.generate().getValue();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programs",
+            "{'id': '"
+                + programUid
+                + "', 'name': 'Test Program with Enrollment CC', 'shortName': 'Test Prog', 'programType': 'WITH_REGISTRATION', 'enrollmentCategoryCombo': {'id': '"
+                + customCategoryComboUid
+                + "'}}"));
+
+    JsonObject program = GET("/programs/" + programUid).content();
+    assertEquals(
+        customCategoryComboUid,
+        program.getObject("enrollmentCategoryCombo").getString("id").string());
+  }
+
+  @Test
+  void shouldUpdateProgramWithEnrollmentCategoryCombo() {
+    String categoryCombo1Uid = UID.generate().getValue();
+    String categoryCombo2Uid = UID.generate().getValue();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{'id': '"
+                + categoryCombo1Uid
+                + "', 'name': 'Category Combo 1', 'dataDimensionType': 'ATTRIBUTE'}"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{'id': '"
+                + categoryCombo2Uid
+                + "', 'name': 'Category Combo 2', 'dataDimensionType': 'ATTRIBUTE'}"));
+
+    String programUid = UID.generate().getValue();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programs",
+            "{'id': '"
+                + programUid
+                + "', 'name': 'Test Program for Update', 'shortName': 'Test Prog Update', 'programType': 'WITH_REGISTRATION', 'enrollmentCategoryCombo': {'id': '"
+                + categoryCombo1Uid
+                + "'}}"));
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/programs/" + programUid,
+            "{'id': '"
+                + programUid
+                + "', 'name': 'Test Program for Update', 'shortName': 'Test Prog Update', 'programType': 'WITH_REGISTRATION', 'enrollmentCategoryCombo': {'id': '"
+                + categoryCombo2Uid
+                + "'}}"));
+
+    JsonObject program = GET("/programs/" + programUid).content();
+    assertEquals(
+        categoryCombo2Uid, program.getObject("enrollmentCategoryCombo").getString("id").string());
   }
 }
