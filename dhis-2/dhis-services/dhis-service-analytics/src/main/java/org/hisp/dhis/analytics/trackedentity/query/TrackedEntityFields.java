@@ -58,6 +58,7 @@ import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
@@ -234,9 +235,38 @@ public class TrackedEntityFields {
       // for reorder() to find via field.getDimensionIdentifier()
       headersMap.put(shortFormatName, shortFormatHeader);
       headersMap.put(offsetHeader.getName(), shortFormatHeader);
+    } else if (isEventLevelOuDimensionalObject(dimIdentifier)) {
+      // Stage-specific OU dimensions that went through DimensionalObject resolution
+      // also need short format name for header matching
+      String shortFormatName =
+          dimIdentifier.getProgramStage().getElement().getUid() + DIMENSION_IDENTIFIER_SEP + "ou";
+
+      GridHeader shortFormatHeader =
+          new GridHeader(
+              shortFormatName,
+              offsetHeader.getColumn(),
+              offsetHeader.getValueType(),
+              offsetHeader.isHidden(),
+              offsetHeader.isMeta());
+
+      headersMap.put(shortFormatName, shortFormatHeader);
+      headersMap.put(offsetHeader.getName(), shortFormatHeader);
     } else {
       headersMap.put(offsetHeader.getName(), offsetHeader);
     }
+  }
+
+  /**
+   * Checks if the dimension identifier is a stage-specific OU dimension that has a
+   * DimensionalObject (i.e., went through org unit resolution rather than being treated as a static
+   * dimension).
+   */
+  private static boolean isEventLevelOuDimensionalObject(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return dimIdentifier.isEventDimension()
+        && dimIdentifier.getDimension().isDimensionalObject()
+        && dimIdentifier.getDimension().getDimensionParamObjectType()
+            == DimensionParamObjectType.ORGANISATION_UNIT;
   }
 
   /**
