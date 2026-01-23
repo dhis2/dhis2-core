@@ -39,15 +39,13 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.commons.util.PathUtils;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -83,7 +81,7 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
       String baseName = PathUtils.addChild(dir, SPECIFIC_RESOURCE_BUNDLE_NAME);
 
       try {
-        return ResourceBundle.getBundle(baseName, locale);
+        return ResourceBundle.getBundle(baseName, toResourceBundleLocale(locale));
       } catch (MissingResourceException ignored) {
       }
     }
@@ -95,7 +93,7 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
   public ResourceBundle getGlobalResourceBundle(Locale locale)
       throws ResourceBundleManagerException {
     try {
-      return ResourceBundle.getBundle(GLOBAL_RESOURCE_BUNDLE_NAME, locale);
+      return ResourceBundle.getBundle(GLOBAL_RESOURCE_BUNDLE_NAME, toResourceBundleLocale(locale));
     } catch (MissingResourceException e) {
       throw new ResourceBundleManagerException("Failed to get global resource bundle");
     }
@@ -187,31 +185,36 @@ public class DefaultResourceBundleManager implements ResourceBundleManager {
    * @return a {@link Locale}.
    */
   private Locale getLocaleFromName(String name) {
-    Pattern pattern =
-        Pattern.compile(
-            "^"
-                + GLOBAL_RESOURCE_BUNDLE_NAME
-                + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?"
-                + EXT_RESOURCE_BUNDLE
-                + "$");
-
-    Matcher matcher = pattern.matcher(name);
-
-    if (matcher.matches()) {
-      if (matcher.group(1) != null) {
-        if (matcher.group(2) != null) {
-          if (matcher.group(3) != null) {
-            return new Locale(matcher.group(1), matcher.group(2), matcher.group(3));
-          }
-
-          return new Locale(matcher.group(1), matcher.group(2));
-        }
-
-        return new Locale(matcher.group(1));
-      }
+    if (name.equals("i18n_global.properties")) {
+      log.debug("Detected default resource bundle '{}', treating as 'en'", name);
+      return Locale.of("en");
     }
 
-    return LocaleManager.DEFAULT_LOCALE;
+    String baseName = name;
+    if (!baseName.endsWith(EXT_RESOURCE_BUNDLE)
+        || !baseName.startsWith(GLOBAL_RESOURCE_BUNDLE_NAME + "_")) {
+      log.warn("Locale pattern did not match resource bundle: {}", name);
+      return LocaleManager.DEFAULT_LOCALE;
+    }
+
+    baseName = baseName.substring(0, baseName.length() - EXT_RESOURCE_BUNDLE.length());
+    String localeTag = baseName.substring((GLOBAL_RESOURCE_BUNDLE_NAME + "_").length());
+
+    try {
+      return Locale.of(localeTag);
+    } catch (IllegalArgumentException ex) {
+      log.warn("Invalid locale tag in resource bundle name: {}", name, ex);
+      return LocaleManager.DEFAULT_LOCALE;
+    }
+  }
+
+  private java.util.Locale toResourceBundleLocale(Locale locale) {
+    String language = locale.language();
+    String region = locale.region() == null ? "" : locale.region();
+    if (locale.script() == null) {
+      return new java.util.Locale(language, region);
+    }
+    return new java.util.Locale(language, region, locale.script());
   }
 
   // -------------------------------------------------------------------------

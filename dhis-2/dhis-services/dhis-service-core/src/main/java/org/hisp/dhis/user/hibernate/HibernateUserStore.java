@@ -48,7 +48,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,6 +62,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -510,7 +510,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     if (value instanceof Locale l) {
       return l;
     }
-    return Locale.forLanguageTag(value.toString());
+    return Locale.of(value.toString());
   }
 
   @Override
