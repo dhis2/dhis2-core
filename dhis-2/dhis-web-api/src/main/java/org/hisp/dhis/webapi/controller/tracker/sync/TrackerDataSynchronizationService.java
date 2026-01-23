@@ -65,7 +65,7 @@ import org.springframework.web.client.RestTemplate;
 public class TrackerDataSynchronizationService
     extends BaseDataSynchronizationWithPaging<
         org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity, TrackedEntity> {
-  private static final String PROCESS_NAME = "Tracker data synchronization";
+  private static final String PROCESS_NAME = "Tracker Data Synchronization";
   private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
       Mappers.getMapper(TrackedEntityMapper.class);
 

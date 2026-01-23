@@ -412,7 +412,7 @@ class JdbcSingleEventStore {
 
     String sql =
         """
-                UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+                UPDATE singleevent SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
                 """;
 
     MapSqlParameterSource parameters =

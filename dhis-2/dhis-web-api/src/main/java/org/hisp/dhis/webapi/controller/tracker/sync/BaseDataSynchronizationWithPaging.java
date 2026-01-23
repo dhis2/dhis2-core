@@ -181,19 +181,22 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
   public boolean executeSynchronizationWithPaging(
       TrackerSynchronizationContext context, JobProgress progress, SystemSettings settings) {
+
+    final int pages = context.getPages();
+    final int pageSize = context.getPageSize();
+    final String entityName = getJsonRootName();
+    final String remoteUrl = context.getInstance().getUrl();
+
     String stageDescription =
         format(
-            "Found %d tracked entities. Remote: %s. Pages: %d (size %d)",
-            context.getObjectsToSynchronize(),
-            context.getInstance().getUrl(),
-            context.getPages(),
-            context.getPageSize());
+            "Found %d %s. Remote: %s. Pages: %d (size %d)",
+            context.getObjectsToSynchronize(), entityName, remoteUrl, pages, pageSize);
 
-    progress.startingStage(stageDescription, context.getPages(), SKIP_ITEM);
+    progress.startingStage(stageDescription, pages, SKIP_ITEM);
 
     progress.runStage(
-        IntStream.range(1, context.getPages() + 1).boxed(),
-        page -> format("Syncing page %d (size %d)", page, context.getPageSize()),
+        IntStream.range(1, pages + 1).boxed(),
+        page -> format("Syncing page %d (size %d)", page, pageSize),
         page -> synchronizePageSafely(page, context, settings));
 
     return !progress.isSkipCurrentStage();

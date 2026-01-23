@@ -67,6 +67,7 @@ import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobPara
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.SqlViewUpdateParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -291,6 +292,9 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type(
             value = SingleEventDataSynchronizationJobParameters.class,
             name = "SINGLE_EVENT_DATA_SYNC"),
+        @JsonSubTypes.Type(
+            value = TrackerDataSynchronizationJobParameters.class,
+            name = "TRACKED_ENTITY_DATA_SYNC"),
         @JsonSubTypes.Type(
             value = DisableInactiveUsersJobParameters.class,
             name = "DISABLE_INACTIVE_USERS"),

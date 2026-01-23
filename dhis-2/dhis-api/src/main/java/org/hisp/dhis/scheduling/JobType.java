@@ -205,7 +205,8 @@ public enum JobType {
     return this == HTML_PUSH_ANALYTICS
         || this == AGGREGATE_DATA_EXCHANGE
         || this == META_DATA_SYNC
-        || this == SINGLE_EVENT_DATA_SYNC;
+        || this == SINGLE_EVENT_DATA_SYNC
+        || this == TRACKED_ENTITY_DATA_SYNC;
   }
 
   /**
@@ -225,6 +226,7 @@ public enum JobType {
         || this == SYSTEM_VERSION_UPDATE_CHECK
         || this == DATA_SYNC
         || this == SINGLE_EVENT_DATA_SYNC
+        || this == TRACKED_ENTITY_DATA_SYNC
         || this == SMS_SEND
         || this == PREDICTOR
         || this == DATAVALUE_IMPORT

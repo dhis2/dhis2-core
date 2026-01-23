@@ -598,6 +598,16 @@ class JdbcTrackedEntityStore {
       }
     }
 
+    if (params.isSynchronizationQuery()) {
+      if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() != 0L) {
+        sql.append(" AND TE.lastupdated > :skipChangedBefore ");
+        sqlParameters.addValue(
+            "skipChangedBefore", timestampParameter(params.getSkipChangedBefore()));
+      } else {
+        sql.append(whereAnd.whereAnd()).append(" TE.lastupdated > TE.lastsynchronized ");
+      }
+    }
+
     if (!params.isIncludeDeleted()) {
       sql.append(whereAnd.whereAnd()).append("te.deleted is false ");
     }

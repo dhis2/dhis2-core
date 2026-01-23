@@ -67,7 +67,7 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class SingleEventDataSynchronizationService
     extends BaseDataSynchronizationWithPaging<Event, SingleEvent> {
-  private static final String PROCESS_NAME = "Single event programs data synchronization";
+  private static final String PROCESS_NAME = "Single Event Data Synchronization";
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
 
   private final SingleEventService singleEventService;
