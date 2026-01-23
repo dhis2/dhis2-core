@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -59,7 +60,7 @@ public class CspFilter extends OncePerRequestFilter {
   ConfigurationService configurationService;
 
   /** Cached CORS whitelist to avoid DB lookups on every request. */
-  private volatile Set<String> cachedCorsWhitelist;
+  private final AtomicReference<Set<String>> cachedCorsWhitelist = new AtomicReference<>();
 
   private final AtomicLong lastCorsRefreshTime = new AtomicLong(0);
 
@@ -115,12 +116,12 @@ public class CspFilter extends OncePerRequestFilter {
     long now = System.currentTimeMillis();
     long lastRefresh = lastCorsRefreshTime.get();
 
-    if (cachedCorsWhitelist == null || (now - lastRefresh) > CORS_CACHE_REFRESH_INTERVAL_MS) {
+    if (cachedCorsWhitelist.get() == null || (now - lastRefresh) > CORS_CACHE_REFRESH_INTERVAL_MS) {
       if (lastCorsRefreshTime.compareAndSet(lastRefresh, now)) {
-        cachedCorsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+        cachedCorsWhitelist.set(configurationService.getConfiguration().getCorsWhitelist());
       }
     }
-    return cachedCorsWhitelist;
+    return cachedCorsWhitelist.get();
   }
 
   private boolean isUploadedContentInsideApi(String requestURI) {
