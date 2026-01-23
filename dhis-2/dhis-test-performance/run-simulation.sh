@@ -36,6 +36,9 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
+  echo "  MONITORING            Enable monitoring stack (default: false)"
+  echo "                        Includes Prometheus, jmx-exporter, postgres-exporter"
+  echo "                        Access Prometheus at http://localhost:9090"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -99,6 +102,8 @@ REPORT_SUFFIX=${REPORT_SUFFIX:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
+MONITORING=${MONITORING:-"false"}
+KEEP=${KEEP:-"false"}
 
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
@@ -158,13 +163,18 @@ cleanup() {
   # Post-processing that has to be done after all runs complete
   post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
 
-  echo ""
-  echo "Cleaning up containers..."
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
+  if [ "$KEEP" = "true" ]; then
+    echo ""
+    echo "Keeping containers running (KEEP=true)"
+    echo "Clean up manually with: docker compose down --volumes"
+  else
+    echo ""
+    echo "Cleaning up containers..."
+    local compose_args
+    compose_args=$(get_compose_args)
+    # shellcheck disable=SC2086
+    docker compose $compose_args down --volumes 2>/dev/null || true
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
 
   # Show output summary for the main (non-warmup) run
   if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
@@ -193,7 +203,18 @@ get_compose_args() {
   if [ -n "$PROF_ARGS" ]; then
     args+=("-f" "docker-compose.profile.yml")
   fi
+  if [ "$MONITORING" = "true" ]; then
+    args+=("--profile" "monitoring")
+  fi
   echo "${args[@]}"
+}
+
+containers_healthy() {
+  # Check if web-healthcheck container is healthy (implies web and db are ready)
+  local status
+  # shellcheck disable=SC2046
+  status=$(docker compose $(get_compose_args) ps --format json web-healthcheck 2>/dev/null | jq -r '.Health // empty' 2>/dev/null || echo "")
+  [ "$status" = "healthy" ]
 }
 
 pull_mutable_image() {
@@ -250,9 +271,14 @@ dump_container_logs() {
 }
 
 start_containers() {
-  # Get compose arguments
   local compose_args
   compose_args=$(get_compose_args)
+
+  # Skip startup if containers are already healthy and KEEP is set
+  if [ "$KEEP" = "true" ] && containers_healthy; then
+    echo "Containers already running and healthy, skipping startup"
+    return 0
+  fi
 
   echo "Testing with image: $DHIS2_IMAGE"
   echo "Waiting for containers to be ready..."
@@ -260,8 +286,11 @@ start_containers() {
   local start_time
   start_time=$(date +%s)
 
-  # shellcheck disable=SC2086
-  docker compose $compose_args down --volumes
+  # Only tear down if not keeping containers - otherwise just start/restart
+  if [ "$KEEP" != "true" ]; then
+    # shellcheck disable=SC2086
+    docker compose $compose_args down --volumes
+  fi
 
   # shellcheck disable=SC2086
   if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
@@ -766,4 +795,3 @@ echo "========================================"
 # run_simulation may fail (e.g., assertion failures). Any code that must always run
 # should be placed in the cleanup trap to ensure execution even on failure.
 run_simulation
-
