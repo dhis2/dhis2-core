@@ -38,7 +38,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -49,12 +51,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public class CspFilter extends OncePerRequestFilter {
   public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
-
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
+  private static final long CORS_CACHE_REFRESH_INTERVAL_MS = Duration.ofMinutes(5).toMillis();
 
   private final boolean enabled;
 
   ConfigurationService configurationService;
+
+  /** Cached CORS whitelist to avoid DB lookups on every request. */
+  private volatile Set<String> cachedCorsWhitelist;
+
+  private final AtomicLong lastCorsRefreshTime = new AtomicLong(0);
 
   public CspFilter(
       DhisConfigurationProvider dhisConfig, ConfigurationService configurationService) {
@@ -84,7 +91,7 @@ public class CspFilter extends OncePerRequestFilter {
   }
 
   private void setFrameAncestorsCspRule(HttpServletResponse res) {
-    Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+    Set<String> corsWhitelist = getCorsWhitelist();
     if (!corsWhitelist.isEmpty()) {
       String corsAllowedOrigins = String.join(" ", corsWhitelist);
       res.addHeader(
@@ -93,6 +100,27 @@ public class CspFilter extends OncePerRequestFilter {
     } else {
       res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_DEFAULT_CSP + ";");
     }
+  }
+
+  /**
+   * Returns the cached CORS whitelist, refreshing from the database if the cache has expired (older
+   * than 5 minutes) or is not yet initialized.
+   *
+   * <p>This method is thread-safe and uses compare-and-swap to ensure only one thread refreshes the
+   * cache at a time.
+   *
+   * @return the CORS whitelist Set
+   */
+  private Set<String> getCorsWhitelist() {
+    long now = System.currentTimeMillis();
+    long lastRefresh = lastCorsRefreshTime.get();
+
+    if (cachedCorsWhitelist == null || (now - lastRefresh) > CORS_CACHE_REFRESH_INTERVAL_MS) {
+      if (lastCorsRefreshTime.compareAndSet(lastRefresh, now)) {
+        cachedCorsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+      }
+    }
+    return cachedCorsWhitelist;
   }
 
   private boolean isUploadedContentInsideApi(String requestURI) {
