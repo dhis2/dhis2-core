@@ -98,28 +98,26 @@ public class EventAggregate implements Aggregate {
     final CompletableFuture<Map<String, List<EventDataValue>>> dataValuesAsync =
         supplyAsync(() -> eventStore.getDataValues(eventIds), getPool());
 
-    return allOf(dataValuesAsync, notesAsync, relationshipAsync)
-        .thenApplyAsync(
-            fn -> {
-              Map<String, List<EventDataValue>> dataValues = dataValuesAsync.join();
-              Multimap<String, Note> notes = notesAsync.join();
-              Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
+    // Wait for all async fetches to complete
+    allOf(dataValuesAsync, notesAsync, relationshipAsync).join();
 
-              for (Event event : events.values()) {
-                if (ctx.getParams().isIncludeRelationships()) {
-                  event.setRelationshipItems(new HashSet<>(relationships.get(event.getUid())));
-                }
+    // Merge results on current thread
+    Map<String, List<EventDataValue>> dataValues = dataValuesAsync.join();
+    Multimap<String, Note> notes = notesAsync.join();
+    Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
 
-                List<EventDataValue> dataValuesForEvent = dataValues.get(event.getUid());
-                if (dataValuesForEvent != null && !dataValuesForEvent.isEmpty()) {
-                  event.setEventDataValues(new HashSet<>(dataValues.get(event.getUid())));
-                }
-                event.setNotes(new ArrayList<>(notes.get(event.getUid())));
-              }
+    for (Event event : events.values()) {
+      if (ctx.getParams().isIncludeRelationships()) {
+        event.setRelationshipItems(new HashSet<>(relationships.get(event.getUid())));
+      }
 
-              return events;
-            },
-            getPool())
-        .join();
+      List<EventDataValue> dataValuesForEvent = dataValues.get(event.getUid());
+      if (dataValuesForEvent != null && !dataValuesForEvent.isEmpty()) {
+        event.setEventDataValues(new HashSet<>(dataValues.get(event.getUid())));
+      }
+      event.setNotes(new ArrayList<>(notes.get(event.getUid())));
+    }
+
+    return events;
   }
 }

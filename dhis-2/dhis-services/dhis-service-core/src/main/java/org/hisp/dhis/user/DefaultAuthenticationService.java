@@ -51,6 +51,12 @@ public class DefaultAuthenticationService implements AuthenticationService {
 
   @Override
   @NonTransactional
+  public void obtainAuthentication(@Nonnull UserDetails userDetails) {
+    setupInContext(userDetails);
+  }
+
+  @Override
+  @NonTransactional
   public void obtainSystemAuthentication() {
     setupInContext(new SystemUser());
   }

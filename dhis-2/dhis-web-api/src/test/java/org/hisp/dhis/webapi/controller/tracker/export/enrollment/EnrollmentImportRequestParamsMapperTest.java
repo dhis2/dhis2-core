@@ -177,7 +177,7 @@ class EnrollmentImportRequestParamsMapperTest {
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntityUid());
+    assertEquals(Set.of(TRACKED_ENTITY_UID), params.getTrackedEntityUids());
   }
 
   @Test

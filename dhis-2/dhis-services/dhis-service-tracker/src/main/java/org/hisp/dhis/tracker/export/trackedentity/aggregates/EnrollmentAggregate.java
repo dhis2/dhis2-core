@@ -100,35 +100,32 @@ public class EnrollmentAggregate implements Aggregate {
             () -> enrollmentStore.getAttributes(enrollmentIds, ctx),
             getPool());
 
-    return allOf(eventAsync, notesAsync, relationshipAsync, attributesAsync)
-        .thenApplyAsync(
-            fn -> {
-              Multimap<String, Event> events = eventAsync.join();
-              Multimap<String, Note> notes = notesAsync.join();
-              Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
-              Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
+    // Wait for all async fetches to complete
+    allOf(eventAsync, notesAsync, relationshipAsync, attributesAsync).join();
 
-              for (Enrollment enrollment : enrollments.values()) {
-                if (ctx.getParams().getTeEnrollmentParams().isIncludeEvents()) {
-                  enrollment.setEvents(new HashSet<>(events.get(enrollment.getUid())));
-                }
-                if (ctx.getParams().getTeEnrollmentParams().isIncludeRelationships()) {
-                  enrollment.setRelationshipItems(
-                      new HashSet<>(relationships.get(enrollment.getUid())));
-                }
-                if (ctx.getParams().getTeEnrollmentParams().isIncludeAttributes()) {
-                  enrollment
-                      .getTrackedEntity()
-                      .setTrackedEntityAttributeValues(
-                          new LinkedHashSet<>(attributes.get(enrollment.getUid())));
-                }
+    // Merge results on current thread
+    Multimap<String, Event> events = eventAsync.join();
+    Multimap<String, Note> notes = notesAsync.join();
+    Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
+    Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
 
-                enrollment.setNotes(new ArrayList<>(notes.get(enrollment.getUid())));
-              }
+    for (Enrollment enrollment : enrollments.values()) {
+      if (ctx.getParams().getTeEnrollmentParams().isIncludeEvents()) {
+        enrollment.setEvents(new HashSet<>(events.get(enrollment.getUid())));
+      }
+      if (ctx.getParams().getTeEnrollmentParams().isIncludeRelationships()) {
+        enrollment.setRelationshipItems(new HashSet<>(relationships.get(enrollment.getUid())));
+      }
+      if (ctx.getParams().getTeEnrollmentParams().isIncludeAttributes()) {
+        enrollment
+            .getTrackedEntity()
+            .setTrackedEntityAttributeValues(
+                new LinkedHashSet<>(attributes.get(enrollment.getUid())));
+      }
 
-              return enrollments;
-            },
-            getPool())
-        .join();
+      enrollment.setNotes(new ArrayList<>(notes.get(enrollment.getUid())));
+    }
+
+    return enrollments;
   }
 }
