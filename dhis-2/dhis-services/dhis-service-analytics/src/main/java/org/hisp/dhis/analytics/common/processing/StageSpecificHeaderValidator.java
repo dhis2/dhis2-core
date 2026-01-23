@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.Collection;
@@ -102,13 +103,7 @@ public class StageSpecificHeaderValidator {
     boolean hasMatchingDimension =
         dimensions.stream()
             .filter(DimensionIdentifier::isEventDimension)
-            .filter(dim -> dim.getDimension().isStaticDimension())
-            .anyMatch(
-                dim -> {
-                  String dimStageUid = dim.getProgramStage().getElement().getUid();
-                  StaticDimension dimStaticDim = dim.getDimension().getStaticDimension();
-                  return headerStageUid.equals(dimStageUid) && headerStaticDim == dimStaticDim;
-                });
+            .anyMatch(dim -> matchesDimension(dim, headerStageUid, headerStaticDim));
 
     if (!hasMatchingDimension) {
       throwIllegalQueryEx(
@@ -117,5 +112,35 @@ public class StageSpecificHeaderValidator {
           headerStageUid,
           headerStaticDim.name());
     }
+  }
+
+  /**
+   * Checks if a dimension matches the header's stage UID and static dimension type. For OU
+   * dimensions, this also matches DimensionalObject-based OU dimensions (which occur when OU items
+   * are resolved through dataQueryService).
+   */
+  private static boolean matchesDimension(
+      DimensionIdentifier<DimensionParam> dim,
+      String headerStageUid,
+      StaticDimension headerStaticDim) {
+    String dimStageUid = dim.getProgramStage().getElement().getUid();
+    if (!headerStageUid.equals(dimStageUid)) {
+      return false;
+    }
+
+    DimensionParam dimParam = dim.getDimension();
+
+    // For static dimensions, compare directly
+    if (dimParam.isStaticDimension()) {
+      return headerStaticDim == dimParam.getStaticDimension();
+    }
+
+    // For OU header, also match DimensionalObject-based OU dimensions
+    // (these occur when OU items like USER_ORGUNIT or specific UIDs are resolved)
+    if (headerStaticDim == StaticDimension.OU) {
+      return dimParam.getDimensionParamObjectType() == ORGANISATION_UNIT;
+    }
+
+    return false;
   }
 }

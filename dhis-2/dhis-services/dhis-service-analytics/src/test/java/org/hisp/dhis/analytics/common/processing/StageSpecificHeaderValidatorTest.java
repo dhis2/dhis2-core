@@ -32,6 +32,8 @@ package org.hisp.dhis.analytics.common.processing;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
@@ -40,6 +42,8 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.program.Program;
@@ -193,6 +197,34 @@ class StageSpecificHeaderValidatorTest {
         List.of(eventDateDimension, ouDimension);
 
     // When/Then - validation should pass
+    assertDoesNotThrow(
+        () -> StageSpecificHeaderValidator.validate(parsedHeaders, dimensionIdentifiers));
+  }
+
+  @Test
+  void shouldPassWhenOuHeaderMatchesDimensionalObjectOuDimension() {
+    // Given - header requests OU for a specific stage (static dimension)
+    DimensionIdentifier<DimensionParam> ouHeader =
+        createEventLevelDimensionIdentifier(StaticDimension.OU, DimensionParamType.HEADERS);
+
+    // And - dimension is a DimensionalObject-based OU (which occurs when OU items like
+    // USER_ORGUNIT or specific UIDs are resolved through dataQueryService)
+    DimensionalObject ouDimensionalObject = mock(DimensionalObject.class);
+    when(ouDimensionalObject.getDimensionType()).thenReturn(DimensionType.ORGANISATION_UNIT);
+
+    DimensionParam ouDimParam =
+        DimensionParam.ofObject(
+            ouDimensionalObject, DimensionParamType.DIMENSIONS, IdScheme.UID, List.of());
+    DimensionIdentifier<DimensionParam> ouDimension =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program, null),
+            ElementWithOffset.of(programStage, null),
+            ouDimParam);
+
+    Set<DimensionIdentifier<DimensionParam>> parsedHeaders = Set.of(ouHeader);
+    List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers = List.of(ouDimension);
+
+    // When/Then - validation should pass (OU header matches DimensionalObject-based OU dimension)
     assertDoesNotThrow(
         () -> StageSpecificHeaderValidator.validate(parsedHeaders, dimensionIdentifiers));
   }

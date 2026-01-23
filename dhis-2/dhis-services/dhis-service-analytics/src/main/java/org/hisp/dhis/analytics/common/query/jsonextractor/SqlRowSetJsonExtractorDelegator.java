@@ -122,12 +122,33 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
                   + DIMENSION_IDENTIFIER_SEP
                   + dimensionIdentifier.getDimension().getStaticDimension().getHeaderName();
           dimIdByKey.put(shortFormatKey, dimensionIdentifier);
+        } else if (isEventLevelOuDimensionalObject(dimensionIdentifier)) {
+          // For stage-specific OU dimensions that went through DimensionalObject resolution,
+          // also add short format key alias to support headers like programStageUid.ou
+          String shortFormatKey =
+              dimensionIdentifier.getProgramStage().getElement().getUid()
+                  + DIMENSION_IDENTIFIER_SEP
+                  + "ou";
+          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
         }
       }
     }
     // we need to know which columns are in the sqlrowset, so that when a column is not present, we
     // can check if it is present in the json string
     this.existingColumnsInRowSet = Arrays.asList(sqlRowSet.getMetaData().getColumnNames());
+  }
+
+  /**
+   * Checks if the dimension identifier is a stage-specific OU dimension that has a
+   * DimensionalObject (i.e., went through org unit resolution rather than being treated as a static
+   * dimension).
+   */
+  private static boolean isEventLevelOuDimensionalObject(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return dimIdentifier.isEventDimension()
+        && dimIdentifier.getDimension().isDimensionalObject()
+        && dimIdentifier.getDimension().getDimensionParamObjectType()
+            == DimensionParamObjectType.ORGANISATION_UNIT;
   }
 
   @Override
