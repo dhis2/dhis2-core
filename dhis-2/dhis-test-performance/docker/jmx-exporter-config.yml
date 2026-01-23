@@ -1,0 +1,125 @@
+# JMX Exporter configuration for Tomcat metrics
+#
+# References:
+#   JMX Exporter: https://github.com/prometheus/jmx_exporter
+#   Tomcat HTTP Connector (maxThreads, acceptCount, etc.): https://tomcat.apache.org/tomcat-10.1-doc/config/http.html
+#   Tomcat MBeans: https://tomcat.apache.org/tomcat-10.1-doc/monitoring.html
+#
+# Pattern syntax explained:
+#   JMX MBean:  Tomcat:type=ThreadPool,name="http-nio-8080"
+#   Note: Embedded Tomcat uses "Tomcat" domain, standalone uses "Catalina"
+#   Attribute:  currentThreadsBusy
+#
+#   Pattern: 'Tomcat<type=ThreadPool, name="(\w+-\w+)-(\d+)"><>(\w+):'
+#            ├───────────────────────────────────────────────────┤├───┤
+#            │                MBean object name                  ││att│
+#            │                                                   ││   │
+#            │   Tomcat<type=ThreadPool, name="http-nio-8080">   ││   │
+#            │                             ├──────┤ ├──┤         ││   │
+#            │                               $1     $2           ││$3 │
+#            └───────────────────────────────────────────────────┘└───┘
+#
+#   $1 = connector type (http-nio)
+#   $2 = port (8080)
+#   $3 = attribute name (currentThreadsBusy, maxThreads, etc.)
+#
+#   Result: tomcat_threadpool_currentthreadsbusy{connector="http-nio", port="8080"}
+
+hostPort: localhost:9011
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Tomcat Thread Pool - the key metrics for monitoring request handling
+  # Embedded Tomcat uses "Tomcat" domain, standalone uses "Catalina"
+  - pattern: 'Tomcat<type=ThreadPool, name="(\w+-\w+)-(\d+)"><>(\w+):'
+    name: tomcat_threadpool_$3
+    labels:
+      connector: "$1"
+      port: "$2"
+    help: "Tomcat thread pool $3"
+    type: GAUGE
+
+  # Tomcat Global Request Processor - request counts and timing
+  - pattern: 'Tomcat<type=GlobalRequestProcessor, name="(\w+-\w+)-(\d+)"><>(\w+):'
+    name: tomcat_requestprocessor_$3
+    labels:
+      connector: "$1"
+      port: "$2"
+    help: "Tomcat request processor $3"
+    type: GAUGE
+
+  # JVM Memory
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>(\w+):'
+    name: jvm_memory_heap_$1_bytes
+    help: "JVM heap memory $1"
+    type: GAUGE
+
+  - pattern: 'java.lang<type=Memory><NonHeapMemoryUsage>(\w+):'
+    name: jvm_memory_nonheap_$1_bytes
+    help: "JVM non-heap memory $1"
+    type: GAUGE
+
+  # JVM Threads
+  - pattern: 'java.lang<type=Threading><>(\w+):'
+    name: jvm_threading_$1
+    help: "JVM threading $1"
+    type: GAUGE
+
+  # HikariCP Connection Pool
+  #
+  # Pattern syntax explained:
+  #   JMX MBean:  com.zaxxer.hikari:type=Pool (actual)
+  #   Attribute:  ActiveConnections
+  #
+  #   Pattern: 'com.zaxxer.hikari<type=Pool \((\w+)\)><>(\w+):'
+  #            ├──────────────────────────────────────────┤├───┤
+  #            │            MBean object name             ││att│
+  #            │                                          ││   │
+  #            │   com.zaxxer.hikari<type=Pool (actual)>  ││   │
+  #            │                          ├────┤          ││   │
+  #            │                            $1            ││$2 │
+  #            └──────────────────────────────────────────┘└───┘
+  #
+  #   $1 = pool name (actual, readonly, analytics, etc.)
+  #   $2 = attribute name (ActiveConnections, IdleConnections, etc.)
+  #
+  #   Result: hikaricp_pool_activeconnections{pool="actual"}
+  #
+  # Key metrics:
+  #   ActiveConnections - connections currently in use
+  #   IdleConnections - connections available in pool
+  #   TotalConnections - active + idle
+  #   ThreadsAwaitingConnection - threads blocked waiting for a connection
+  - pattern: 'com.zaxxer.hikari<type=Pool \((\w+)\)><>(\w+):'
+    name: hikaricp_pool_$2
+    labels:
+      pool: "$1"
+    help: "HikariCP pool $2"
+    type: GAUGE
+
+  # HikariCP Pool Config (optional, for debugging)
+  - pattern: 'com.zaxxer.hikari<type=PoolConfig \((\w+)\)><>(\w+):'
+    name: hikaricp_poolconfig_$2
+    labels:
+      pool: "$1"
+    help: "HikariCP pool config $2"
+    type: GAUGE
+
+  # DHIS2 Tracker Thread Pool
+  #
+  # MBean: org.hisp.dhis:type=ThreadPool,name=TrackerTeFetch
+  #
+  # Key metrics:
+  #   ActiveCount - threads actively executing tasks
+  #   PoolSize - current number of threads in the pool
+  #   LargestPoolSize - largest number of threads that have ever been in the pool
+  #   CompletedTaskCount - approximate total number of tasks that have completed
+  #   TaskCount - approximate total number of tasks that have been scheduled
+  #   QueueSize - number of tasks waiting in the queue (always 0 for SynchronousQueue)
+  - pattern: 'org.hisp.dhis<type=ThreadPool, name=(\w+)><>(\w+):'
+    name: dhis2_threadpool_$2
+    labels:
+      pool: "$1"
+    help: "DHIS2 thread pool $2"
+    type: GAUGE
