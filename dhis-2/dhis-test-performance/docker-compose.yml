@@ -75,7 +75,33 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
-  # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
+  # JMX Exporter - exposes Tomcat JMX metrics as Prometheus metrics
+  # Bypasses DHIS2 HTTP layer, works even when connection pool is exhausted
+  # Uses web's network namespace so it can connect to JMX on localhost:9011
+  jmx-exporter:
+    profiles: [monitoring]
+    image: bitnami/jmx-exporter:latest
+    network_mode: service:web
+    volumes:
+      - ./docker/jmx-exporter-config.yml:/opt/bitnami/jmx-exporter/config.yml:ro
+    command: ["9404", "/opt/bitnami/jmx-exporter/config.yml"]
+    depends_on:
+      - web
+
+  # PostgreSQL Exporter - exposes pg_stat_activity and other PostgreSQL metrics
+  # https://github.com/prometheus-community/postgres_exporter
+  postgres-exporter:
+    profiles: [monitoring]
+    image: prometheuscommunity/postgres-exporter:v0.18.1
+    environment:
+      DATA_SOURCE_NAME: "postgresql://dhis:dhis@db:5432/dhis?sslmode=disable"
+    ports:
+      - "127.0.0.1:9187:9187"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Prometheus for scraping metrics
   prometheus:
     profiles: [monitoring]
     image: prom/prometheus:v3.5.0
@@ -87,6 +113,8 @@ services:
       - prometheus:/prometheus
     depends_on:
       - web
+      - jmx-exporter
+      - postgres-exporter
 
 volumes:
   prometheus:
