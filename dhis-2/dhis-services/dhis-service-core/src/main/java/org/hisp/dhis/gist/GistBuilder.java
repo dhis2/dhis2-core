@@ -42,7 +42,6 @@ import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
-import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isJsonCollectionFilter;
@@ -56,7 +55,6 @@ import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +81,7 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -202,7 +201,7 @@ final class GistBuilder {
     if (f.isAttribute() && !existsSameParentField(query, f, ATTRIBUTES_PROPERTY)) {
       return f.getTransformation() == Transform.PLUCK
           ? query
-          : query.withField(pathOnSameParent(f.getPropertyPath(), ATTRIBUTES_PROPERTY));
+          : query.addField(pathOnSameParent(f.getPropertyPath(), ATTRIBUTES_PROPERTY));
     }
 
     Property p = context.resolveMandatory(f.getPropertyPath());
@@ -210,26 +209,26 @@ final class GistBuilder {
     // ID column not present but ID column required?
     if ((isPersistentCollectionField(p) || isHrefProperty(p))
         && !existsSameParentField(query, f, ID_PROPERTY)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), ID_PROPERTY));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), ID_PROPERTY));
     }
 
     // translatable fields? => make sure we have translations
     if ((query.isTranslate() || f.isTranslate())
         && p.isTranslatable()
         && !existsSameParentField(query, f, TRANSLATIONS_PROPERTY)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), TRANSLATIONS_PROPERTY));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), TRANSLATIONS_PROPERTY));
     }
 
     // Access based on Sharing
     if (isAccessProperty(p) && !existsSameParentField(query, f, SHARING_PROPERTY)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), SHARING_PROPERTY));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), SHARING_PROPERTY));
     }
 
     // flags on Attribute map to/from objectTypes set
     if (query.getElementType() == Attribute.class
         && isAttributeFlagProperty(p)
         && !existsSameParentField(query, f, OBJECT_TYPES)) {
-      return query.withField(pathOnSameParent(f.getPropertyPath(), OBJECT_TYPES));
+      return query.addField(pathOnSameParent(f.getPropertyPath(), OBJECT_TYPES));
     }
 
     return addFromTransformationSupportFields(query, f);
@@ -239,7 +238,7 @@ final class GistBuilder {
     if (f.getTransformation() == Transform.FROM) {
       for (String propertyName : f.getTransformationArgument().split(",")) {
         if (!existsSameParentField(query, f, propertyName)) {
-          query = query.withField(pathOnSameParent(f.getPropertyPath(), propertyName));
+          query = query.addField(pathOnSameParent(f.getPropertyPath(), propertyName));
         }
       }
     }
@@ -264,32 +263,28 @@ final class GistBuilder {
    */
 
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
-  public static final class IdObject {
+  public static final class IdObject implements JsonBuilder.JsonEncodable {
     @JsonProperty final String id;
+
+    @Override
+    public void addTo(JsonBuilder.JsonArrayBuilder arr) {
+      arr.addObject(obj -> obj.addString("id", id));
+    }
+
+    @Override
+    public void addTo(String name, JsonBuilder.JsonObjectBuilder obj) {
+      obj.addObject(name, idObj -> idObj.addString("id", id));
+    }
   }
 
-  public List<?> transform(List<?> rows) {
-    if (fieldResultTransformers.isEmpty() || rows.isEmpty()) {
-      return rows;
-    }
-    @SuppressWarnings("unchecked")
-    List<Object> rowsObjects = (List<Object>) rows;
-    for (int i = 0; i < rowsObjects.size(); i++) {
-      Object rowValue = rowsObjects.get(i);
-      if (rowValue != null && rowValue.getClass() == Object[].class) {
-        Object[] row = (Object[]) rowValue;
-        for (Consumer<Object[]> transformer : fieldResultTransformers) {
-          transformer.accept(row);
-        }
-      } else if (rowValue != null) {
-        Object[] row = new Object[] {rowValue};
-        for (Consumer<Object[]> transformer : fieldResultTransformers) {
-          transformer.accept(row);
-        }
-        rowsObjects.set(i, row[0]);
-      }
-    }
-    return rowsObjects;
+  public Stream<Object[]> transform(Stream<Object[]> rows) {
+    if (fieldResultTransformers.isEmpty()) return rows;
+    return rows.map(
+        e -> {
+          if (e == null) return null;
+          for (Consumer<Object[]> transformer : fieldResultTransformers) transformer.accept(e);
+          return e;
+        });
   }
 
   private void addTransformer(Consumer<Object[]> transformer) {
@@ -302,10 +297,6 @@ final class GistBuilder {
     return attribute != null ? support.getTypedAttributeValue(attribute, value) : value;
   }
 
-  private Map<String, String> attributeValues(Object attributeValues) {
-    return attributeValues instanceof AttributeValues attrs ? attrs.toMap() : Map.of();
-  }
-
   @SuppressWarnings("unchecked")
   private boolean isObjectTypeAttribute(String name, Object objectTypes) {
     Set<String> set = (Set<String>) objectTypes;
@@ -313,7 +304,6 @@ final class GistBuilder {
   }
 
   private Object translate(Object value, String property, Object translations) {
-    @SuppressWarnings("unchecked")
     Set<Translation> list = TranslationProperty.fromObject(translations);
 
     if (list == null || list.isEmpty()) {
@@ -325,7 +315,7 @@ final class GistBuilder {
           && t.getProperty().equalsIgnoreCase(property)
           && !t.getValue().isEmpty()) return t.getValue();
     }
-    String lang = query.getTranslationLocale().getLanguage();
+    String lang = query.getTranslationLocale().language();
     for (Translation t : list) {
       if (t.getLocale().startsWith(lang)
           && t.getProperty().equalsIgnoreCase(property)
@@ -445,9 +435,6 @@ final class GistBuilder {
       return HQL_NULL;
     }
     Property property = context.resolveMandatory(path);
-    if (isAttributeValuesProperty(property)) {
-      addTransformer(row -> row[index] = attributeValues(row[index]));
-    }
     if (query.getElementType() == Attribute.class && isAttributeFlagProperty(property)) {
       int objectTypesFieldIndex = getSameParentFieldIndex(path, OBJECT_TYPES);
       String name =
@@ -673,7 +660,7 @@ final class GistBuilder {
       return createMultiPluckTransformerHQL(index, field, property);
     }
     String propertyName = determineReferenceProperty(field, itemContext, true);
-    if (propertyName == null || table == Period.class) {
+    if (propertyName == null) {
       // give up
       return createSizeTransformerHQL(index, field, property);
     }
@@ -733,6 +720,7 @@ final class GistBuilder {
     if (field.getTransformationArgument() != null) {
       return getPluckPropertyName(field, fieldType, forceTextual);
     }
+    if (fieldType == Period.class) return "isoDate";
     if (fieldType == PeriodType.class) {
       // this is how HQL refers to discriminator property, here "name"
       return "class";
@@ -815,8 +803,10 @@ final class GistBuilder {
     return id == null ? null : new IdObject((String) id);
   }
 
-  private static Object[] toIdObjects(Object ids) {
-    return isNullOrEmpty(ids) ? null : Arrays.stream(((String[]) ids)).map(IdObject::new).toArray();
+  private static IdObject[] toIdObjects(Object ids) {
+    return isNullOrEmpty(ids)
+        ? null
+        : Stream.of(((String[]) ids)).map(IdObject::new).toArray(IdObject[]::new);
   }
 
   private static boolean isNullOrEmpty(Object obj) {

@@ -48,7 +48,9 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.PeriodCondition;
+import org.hisp.dhis.analytics.trackedentity.query.PeriodStaticDimensionCondition;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilderAdaptor;
@@ -98,7 +100,7 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
                 GroupableCondition.of(
                     getGroupId(dimensionIdentifier),
                     SqlQueryHelper.buildExistsValueSubquery(
-                        dimensionIdentifier, PeriodCondition.of(dimensionIdentifier, ctx))))
+                        dimensionIdentifier, createPeriodCondition(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
@@ -162,5 +164,13 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
             () ->
                 staticDimensionNameExtractor.apply(
                     dimensionIdentifier.getDimension().getStaticDimension()));
+  }
+
+  private static Renderable createPeriodCondition(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext ctx) {
+    if (dimensionIdentifier.getDimension().isStaticDimension()) {
+      return PeriodStaticDimensionCondition.of(dimensionIdentifier, ctx);
+    }
+    return PeriodCondition.of(dimensionIdentifier, ctx);
   }
 }

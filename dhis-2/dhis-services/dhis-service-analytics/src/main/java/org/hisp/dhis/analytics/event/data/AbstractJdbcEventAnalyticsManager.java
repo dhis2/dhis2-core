@@ -51,7 +51,6 @@ import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
@@ -91,7 +90,6 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.hisp.dhis.system.util.MathUtils.getRoundedObject;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -156,7 +154,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.InQueryFilter;
@@ -853,94 +850,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     log.debug("Event analytics aggregate SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
-
     while (rowSet.next()) {
-      List<Object> row = new ArrayList<>();
-
-      if (params.isAggregateData()) {
-        if (params.hasValueDimension()) {
-          row.add(getItemId(params));
-        } else if (params.hasProgramIndicatorDimension()) {
-          row.add(params.getProgramIndicator().getUid());
-        }
-      } else {
-        for (QueryItem queryItem : params.getItems()) {
-          ColumnAndAlias columnAndAlias;
-          if (queryItem.getValueType().isOrganisationUnit()) {
-            columnAndAlias = getOrgUnitQueryItemColumnAndAlias(params, queryItem);
-          } else {
-            columnAndAlias = getColumnAndAlias(queryItem, params, false, true);
-          }
-          String alias = columnAndAlias.getAlias();
-
-          if (isEmpty(alias)) {
-            alias =
-                queryItem.getItemName()
-                    + (columnAndAlias.hasPostfix() ? columnAndAlias.getPostfix() : "");
-          }
-
-          String itemName = rowSet.getString(alias);
-          String itemValue =
-              params.isCollapseDataDimensions()
-                  ? QueryItemHelper.getCollapsedDataItemValue(queryItem, itemName)
-                  : itemName;
-
-          if (params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME) {
-            row.add(itemValue);
-          } else {
-            String value = null;
-
-            String itemOptionValue = QueryItemHelper.getItemOptionValue(itemValue, params);
-
-            if (itemOptionValue != null && !itemOptionValue.trim().isEmpty()) {
-              value = itemOptionValue;
-            } else {
-              String legendItemValue = QueryItemHelper.getItemLegendValue(itemValue, params);
-
-              if (legendItemValue != null && !legendItemValue.trim().isEmpty()) {
-                value = legendItemValue;
-              }
-            }
-
-            row.add(value == null ? itemValue : value);
-          }
-        }
-      }
-
-      for (DimensionalObject dimension : params.getDimensions()) {
-        String dimensionValue = rowSet.getString(dimension.getDimensionName());
-        row.add(dimensionValue);
-      }
-
-      if (params.hasValueDimension()) {
-        if (params.hasTextValueDimension()) {
-          String value = rowSet.getString(COL_VALUE);
-          row.add(value);
-        } else // Numeric
-        {
-          double value = rowSet.getDouble(COL_VALUE);
-          row.add(params.isSkipRounding() ? value : getRounded(value));
-        }
-      } else if (params.hasProgramIndicatorDimension()) {
-        double value = rowSet.getDouble(COL_VALUE);
-        ProgramIndicator indicator = params.getProgramIndicator();
-        row.add(getRoundedValue(params, indicator.getDecimals(), value));
-      } else {
-        int value = rowSet.getInt(COL_VALUE);
-        row.add(value);
-      }
-
-      if (params.isIncludeNumDen()) {
-        for (int i = 0; i < NUMERATOR_DENOMINATOR_PROPERTIES_COUNT; i++) {
-          row.add(null);
-        }
-      }
+      List<Object> row =
+          AggregatedRowBuilder.create(
+                  params, rowSet, sqlBuilder, this::resolveColumnAlias, this::getItemId)
+              .build();
 
       if (PiDisagDataHandler.addCocAndAoc(params, grid, row, rowSet)) {
         grid.addRow();
         grid.addValuesAsList(row);
       }
     }
+  }
+
+  private ColumnAndAlias resolveColumnAlias(QueryItem queryItem, EventQueryParams params) {
+    if (queryItem.getValueType().isOrganisationUnit()) {
+      return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
+    }
+    return getColumnAndAlias(queryItem, params, false, true);
   }
 
   /**
@@ -2792,6 +2719,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String colName = quote(item.getItemName());
 
     if (params.isAggregatedEnrollments()) {
+      // Skip creating program stage CTE for filtered items because the filter CTE
+      // "latest_events" already handles them (see generateFilterCTEs).
+      if (item.hasFilter()) {
+        return;
+      }
       handleAggregatedEnrollments(cteContext, item, eventTableName, colName, params);
       return;
     }
@@ -3101,11 +3033,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
     final String filterSql =
         """
-        select enrollment, ${colName} as value${outerAdditionalCols}
+        select enrollment, value${outerAdditionalCols}
         from
             (select
                 enrollment,
-                ${colName},${innerAdditionalCols}
+                ${colName} as value,${innerAdditionalCols}
                 row_number() over (
                     partition by enrollment
                     order by

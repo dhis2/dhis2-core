@@ -752,6 +752,43 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), containsString(expectedFirstOrLastSubquery));
   }
 
+  @Test
+  void verifyGetAggregatedEventDataRendersTimestampForDateQueryItem() {
+    // Given: a QueryItem with DATE value type
+    DataElement dateElement = createDataElement('D');
+    dateElement.setUid("dateElement1");
+    dateElement.setValueType(ValueType.DATE);
+
+    QueryItem dateQueryItem =
+        new QueryItem(dateElement, programA, null, ValueType.DATE, AggregationType.NONE, null);
+    dateQueryItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(createPeriodDimensions("2000Q1"), "quarterly")
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withTableName(getTable(programA.getUid()))
+            .addItem(dateQueryItem)
+            .build();
+
+    // Mock row set with a date value
+    when(rowSet.next()).thenReturn(true).thenReturn(false);
+    when(rowSet.getString("dateElement1")).thenReturn("2024-01-15");
+    when(rowSet.getString("quarterly")).thenReturn("2024Q1");
+    when(rowSet.getString("ou")).thenReturn("OrgUnit");
+    when(rowSet.getInt("value")).thenReturn(1);
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    // When
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    // Then: verify renderTimestamp was called for the date value
+    verify(sqlBuilder).renderTimestamp("2024-01-15");
+  }
+
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {
     EventQueryParams.Builder params =
         new EventQueryParams.Builder(createRequestParams(queryItemValueType));

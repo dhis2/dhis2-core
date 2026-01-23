@@ -553,7 +553,6 @@ public class EventsAggregate7AutoTest extends AnalyticsApiTest {
     String expectedMetaData =
         "{\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"uvMKOn1oWvd.zgnTlAH4ZOk\":{\"name\":\"Follow-up vector control action details\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"uvMKOn1oWvd.fADIatyOu2g\":{\"name\":\"LLIN coverage (%)\"},\"2019\":{\"name\":\"2019\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2018\":{\"name\":\"2018\"},\"2017\":{\"name\":\"2017\"},\"2016\":{\"name\":\"2016\"},\"pe\":{\"name\":\"Period\"},\"uvMKOn1oWvd\":{\"name\":\"Foci response\"},\"M3xtLkYBlKI\":{\"name\":\"Malaria focus investigation\"}},\"dimensions\":{\"uvMKOn1oWvd.fADIatyOu2g\":[],\"pe\":[\"2019\",\"2020\",\"2021\",\"2016\",\"2017\",\"2018\"],\"ou\":[\"ImspTQPwCqd\"],\"zgnTlAH4ZOk\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    System.out.println(actualMetaData);
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.

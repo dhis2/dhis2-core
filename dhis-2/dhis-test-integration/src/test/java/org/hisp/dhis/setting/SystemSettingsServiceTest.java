@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,10 +95,10 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveSystemSetting_Locale() {
-    settingsService.put("keyUiLocale", Locale.forLanguageTag("en-GB"));
+    settingsService.put("keyUiLocale", Locale.of("en-GB"));
 
     SystemSettings settings = settingsService.getCurrentSettings();
-    assertEquals(Locale.forLanguageTag("en-GB"), settings.asLocale("keyUiLocale", Locale.FRENCH));
+    assertEquals(Locale.of("en-GB"), settings.asLocale("keyUiLocale", Locale.FRENCH));
   }
 
   @Test

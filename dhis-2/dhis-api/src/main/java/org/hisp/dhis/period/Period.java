@@ -96,7 +96,11 @@ public class Period implements Serializable {
   public static Period of(@Nonnull String isoPeriod) {
     PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriod);
     try {
-      return type.createPeriod(isoPeriod);
+      Period p = type.createPeriod(isoPeriod);
+      if (p == null)
+        throw new IllegalArgumentException(
+            "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod));
+      return p;
     } catch (Exception ex) {
       throw new IllegalArgumentException(
           "Invalid Period `%s`, failed to create date interval".formatted(isoPeriod), ex);
@@ -177,6 +181,10 @@ public class Period implements Serializable {
   @Nonnull
   public String getIsoDate() {
     return isoPeriod != null ? isoPeriod : getPeriodTypeIsoDate();
+  }
+
+  public void setIsoDate(String iso) {
+    // NOOP, just here for hibernate
   }
 
   /**

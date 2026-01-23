@@ -60,7 +60,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -90,6 +89,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -1161,6 +1161,17 @@ public class EventQueryParams extends DataQueryParams {
     return hasValueDimension()
         && value instanceof ValueTypedDimensionalItemObject
         && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
+  }
+
+  /**
+   * Checks if a value dimension with a date value type exists.
+   *
+   * @return true if a value dimension with a date value type exists, false if not.
+   */
+  public boolean hasDateValueDimension() {
+    return hasValueDimension()
+        && value instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
   }
 
   @Override
