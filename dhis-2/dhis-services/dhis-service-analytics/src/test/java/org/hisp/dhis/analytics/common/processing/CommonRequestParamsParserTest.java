@@ -29,11 +29,20 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -41,9 +50,17 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -253,5 +270,80 @@ class CommonRequestParamsParserTest {
     String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.programStageUid.EVENT_STATUS:COMPLETED", parsedDimension);
+  }
+
+  @Test
+  void testStageSpecificOuDimensionShouldNotCallDataQueryService() {
+    // Given - a stage-specific OU dimension (e.g., ZkbAXlQUYJG.ou:USER_ORGUNIT)
+    Program program = new Program("Test Program");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("Test Stage", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    // Setup the converter to return a stage-specific dimension identifier
+    // Note: DimensionIdentifier<StringUid> uses actual Program/ProgramStage objects
+    DimensionIdentifier<StringUid> stageSpecificOuDimension =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program, null),
+            ElementWithOffset.of(programStage, null),
+            StringUid.of("ou"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("ZkbAXlQUYJG.ou")))
+        .thenReturn(stageSpecificOuDimension);
+
+    // When
+    DimensionIdentifier<DimensionParam> result =
+        commonRequestParamsParser.toDimIdentifiers(
+            "ZkbAXlQUYJG.ou:USER_ORGUNIT",
+            DIMENSIONS,
+            null,
+            DisplayProperty.NAME,
+            IdScheme.UID,
+            List.of(program),
+            List.of());
+
+    // Then - should NOT call dataQueryService.getDimension() for stage-specific OU
+    verify(dataQueryService, never())
+        .getDimension(eq("ou"), anyList(), any(), anyList(), anyBoolean(), any(), any());
+
+    // And should return a valid dimension identifier with program stage
+    assertNotNull(result);
+    assertTrue(result.hasProgramStage());
+    assertEquals("ZkbAXlQUYJG", result.getProgramStage().getElement().getUid());
+  }
+
+  @Test
+  void testRegularOuDimensionShouldCallDataQueryService() {
+    // Given - a regular (non-stage-specific) OU dimension (e.g., ou:USER_ORGUNIT)
+    Program program = new Program("Test Program");
+    program.setUid("IpHINAT79UW");
+
+    // Setup the converter to return a non-stage-specific dimension identifier
+    DimensionIdentifier<StringUid> regularOuDimension =
+        DimensionIdentifier.of(
+            emptyElementWithOffset(), emptyElementWithOffset(), StringUid.of("ou"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("ou")))
+        .thenReturn(regularOuDimension);
+
+    // When - this will call dataQueryService.getDimension() which returns null in this test
+    // and then fail trying to create a query item, but we just want to verify the call
+    try {
+      commonRequestParamsParser.toDimIdentifiers(
+          "ou:USER_ORGUNIT",
+          DIMENSIONS,
+          null,
+          DisplayProperty.NAME,
+          IdScheme.UID,
+          List.of(program),
+          List.of());
+    } catch (Exception e) {
+      // Expected - dataQueryService returns null in this mock setup
+    }
+
+    // Then - should call dataQueryService.getDimension() for regular OU
+    verify(dataQueryService)
+        .getDimension(eq("ou"), anyList(), any(), anyList(), anyBoolean(), any(), any());
   }
 }
