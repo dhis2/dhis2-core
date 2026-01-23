@@ -151,6 +151,8 @@ public interface CategoryService {
    */
   List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions);
 
+  List<Category> getCategoriesByUid(Set<UID> categoryUids);
+
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------
@@ -325,6 +327,8 @@ public interface CategoryService {
    * @return a list of CategoryCombos.
    */
   List<CategoryCombo> getAttributeCategoryCombos();
+
+  List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids);
 
   // -------------------------------------------------------------------------
   // CategoryOptionCombo

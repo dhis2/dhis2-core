@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
@@ -45,4 +46,6 @@ public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
   List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
 
   List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
+
+  List<Category> getCategoriesByUid(Collection<UID> categoryUids);
 }

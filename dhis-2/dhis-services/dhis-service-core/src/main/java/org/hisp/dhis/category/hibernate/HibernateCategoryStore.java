@@ -37,6 +37,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -103,6 +104,20 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
             """,
             Category.class)
         .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
+  }
+
+  @Override
+  public List<Category> getCategoriesByUid(Collection<UID> categoryUids) {
+    if (categoryUids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct c from Category c
+            left join fetch c.categoryCombos
+            where c.uid in :categoryUids
+            """,
+            Category.class)
+        .setParameter("categoryUids", UID.toValueList(categoryUids))
         .getResultList();
   }
 }

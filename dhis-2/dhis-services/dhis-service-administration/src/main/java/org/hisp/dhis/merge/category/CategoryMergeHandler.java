@@ -88,7 +88,7 @@ public class CategoryMergeHandler {
    */
   public void handleCategoryCombos(List<Category> sources, Category target) {
     List<CategoryCombo> sourceCategoryCombos =
-        categoryComboStore.getCategoryCombos(UID.toUidValueSet(sources));
+        categoryComboStore.getCategoryCombosByCategory(UID.toUidValueSet(sources));
 
     sourceCategoryCombos.forEach(
         cc -> {

@@ -201,8 +201,15 @@ public class DefaultCategoryService implements CategoryService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions) {
     return categoryStore.getCategoriesByCategoryOption(UID.toValueList(categoryOptions));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Category> getCategoriesByUid(Set<UID> categoryUids) {
+    return categoryStore.getCategoriesByUid(categoryUids);
   }
 
   // -------------------------------------------------------------------------
@@ -414,6 +421,12 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public List<CategoryCombo> getAttributeCategoryCombos() {
     return categoryComboStore.getCategoryCombosByDimensionType(DataDimensionType.ATTRIBUTE);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids) {
+    return categoryComboStore.getCategoryCombosByCategory(categoryUids);
   }
 
   // -------------------------------------------------------------------------

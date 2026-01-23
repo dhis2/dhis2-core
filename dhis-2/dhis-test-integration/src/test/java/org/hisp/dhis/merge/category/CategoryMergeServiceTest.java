@@ -32,6 +32,7 @@ package org.hisp.dhis.merge.category;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -54,6 +55,7 @@ import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,42 +83,48 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryMergeService;
   @Autowired private DbmsManager dbmsManager;
 
+  private CategoryOption co1;
+  private CategoryOption co2;
+  private Category catSource1;
+  private Category catSource2;
+  private Category catTarget;
+
+  @BeforeEach
+  void setUpCatModel() {
+    co1 = createCategoryOption('1');
+    co2 = createCategoryOption('2');
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+
+    catSource1 = createCategory('1', co1, co2);
+    catSource2 = createCategory('2', co1, co2);
+    catTarget = createCategory('3', co1, co2);
+    categoryService.addCategory(catSource1);
+    categoryService.addCategory(catSource2);
+    categoryService.addCategory(catTarget);
+  }
+
   // -----------------------------
   // ----- CategoryOption --------
   // -----------------------------
   @Test
   @DisplayName("CategoryOption refs to source Categories are replaced, sources not deleted")
   void categoryOptionRefsReplacedSourcesNotDeletedTest() throws ConflictException {
-    // given - create category options and categories
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
-    // confirm category option state before merge
+    // given shared COs exist for target & source Cs
     List<CategoryOption> sourceCosBefore =
         categoryOptionStore.getCategoryOptions(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<CategoryOption> targetCosBefore =
         categoryOptionStore.getCategoryOptions(Set.of(catTarget.getUid()));
 
     assertEquals(2, sourceCosBefore.size(), "Expect 2 category options with source category refs");
-    assertEquals(1, targetCosBefore.size(), "Expect 1 category option with target category ref");
+    assertEquals(2, targetCosBefore.size(), "Expect 2 category options with target category ref");
 
-    // when
+    // when a merge is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then there a no COs with source C refs
     List<CategoryOption> sourceCos =
         categoryOptionStore.getCategoryOptions(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<CategoryOption> targetCos =
@@ -125,7 +133,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceCos.size(), "Expect 0 category options with source category refs");
-    assertEquals(3, targetCos.size(), "Expect 3 category options with target category ref");
+    assertEquals(2, targetCos.size(), "Expect 2 category options with target category ref");
 
     // 3 custom + 1 default
     assertEquals(4, allCategories.size(), "Expect 4 categories present");
@@ -135,45 +143,30 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("CategoryOption refs to source Categories are replaced, sources are deleted")
   void categoryOptionRefsReplacedSourcesDeletedTest() throws ConflictException {
-    // given - create category options and categories
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
-    // confirm category option state before merge
+    // given shared category options exist for target & source categories
     List<CategoryOption> sourceCosBefore =
         categoryOptionStore.getCategoryOptions(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<CategoryOption> targetCosBefore =
         categoryOptionStore.getCategoryOptions(Set.of(catTarget.getUid()));
 
     assertEquals(2, sourceCosBefore.size(), "Expect 2 category options with source category refs");
-    assertEquals(1, targetCosBefore.size(), "Expect 1 category option with target category ref");
+    assertEquals(2, targetCosBefore.size(), "Expect 1 category option with target category ref");
 
-    // when
+    // when a merge is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then target C has 2 CO refs
     List<CategoryOption> targetCos =
         categoryOptionStore.getCategoryOptions(Set.of(catTarget.getUid()));
     List<Category> allCategories = manager.getAll(Category.class);
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(3, targetCos.size(), "Expect 3 category options with target category ref");
+    assertEquals(2, targetCos.size(), "Expect 2 category options with target category ref");
 
-    // 1 custom + 1 default (sources deleted)
+    // and source Cs are deleted
     assertEquals(2, allCategories.size(), "Expect 2 categories present");
     assertTrue(allCategories.contains(catTarget));
     assertNull(
@@ -182,27 +175,57 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
         categoryService.getCategory(catSource2.getUid()), "source category 2 should be deleted");
   }
 
+  @Test
+  @DisplayName("When Categories don't have the same CategoryOptions, the merge is rejected")
+  void diffCategoryOptionsRejectedTest() {
+    // given different COs exist for target & source Cs
+    CategoryOption coDiff1 = createCategoryOption('4');
+    CategoryOption coDiff2 = createCategoryOption('5');
+    CategoryOption coDiff3 = createCategoryOption('6');
+    categoryService.addCategoryOption(coDiff1);
+    categoryService.addCategoryOption(coDiff2);
+    categoryService.addCategoryOption(coDiff3);
+
+    Category catSource4 = createCategory('4', coDiff1);
+    Category catSource5 = createCategory('5', coDiff2);
+    Category catTarget6 = createCategory('6', coDiff3);
+    categoryService.addCategory(catSource4);
+    categoryService.addCategory(catSource5);
+    categoryService.addCategory(catTarget6);
+
+    List<CategoryOption> sourceCosBefore =
+        categoryOptionStore.getCategoryOptions(Set.of(catSource4.getUid(), catSource5.getUid()));
+    List<CategoryOption> targetCosBefore =
+        categoryOptionStore.getCategoryOptions(Set.of(catTarget6.getUid()));
+
+    assertEquals(2, sourceCosBefore.size(), "Expect 2 category options with source category refs");
+    assertEquals(1, targetCosBefore.size(), "Expect 1 category options with target category ref");
+
+    // when a merge is processed, then it is rejected
+    MergeParams mergeParams = getMergeParams(List.of(catSource4, catSource5), catTarget6);
+    ConflictException conflictException =
+        assertThrows(ConflictException.class, () -> categoryMergeService.processMerge(mergeParams));
+    assertEquals("Merge validation error", conflictException.getMessage());
+
+    dbmsManager.clearSession();
+
+    // and the state is unchanged
+    List<CategoryOption> sourceCosBefore2 =
+        categoryOptionStore.getCategoryOptions(Set.of(catSource4.getUid(), catSource5.getUid()));
+    List<CategoryOption> targetCosBefore2 =
+        categoryOptionStore.getCategoryOptions(Set.of(catTarget6.getUid()));
+
+    assertEquals(2, sourceCosBefore2.size(), "Expect 2 category options with source category refs");
+    assertEquals(1, targetCosBefore2.size(), "Expect 1 category options with target category ref");
+  }
+
   // -----------------------------
   // ----- CategoryCombo ---------
   // -----------------------------
   @Test
   @DisplayName("CategoryCombo refs to source Categories are replaced, sources not deleted")
   void categoryComboRefsReplacedSourcesNotDeletedTest() throws ConflictException {
-    // given - create categories and category combos
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
+    // given source and target Cs exist with different CCs
     CategoryCombo cc1 = createCategoryCombo('1', catSource1);
     CategoryCombo cc2 = createCategoryCombo('2', catSource2);
     CategoryCombo cc3 = createCategoryCombo('3', catTarget);
@@ -212,31 +235,33 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
 
     // confirm category combo state before merge
     List<CategoryCombo> sourceCombosBefore =
-        categoryComboStore.getCategoryCombos(Set.of(catSource1.getUid(), catSource2.getUid()));
+        categoryComboStore.getCategoryCombosByCategory(
+            Set.of(catSource1.getUid(), catSource2.getUid()));
     List<CategoryCombo> targetCombosBefore =
-        categoryComboStore.getCategoryCombos(Set.of(catTarget.getUid()));
+        categoryComboStore.getCategoryCombosByCategory(Set.of(catTarget.getUid()));
 
     assertEquals(
         2, sourceCombosBefore.size(), "Expect 2 category combos with source category refs");
     assertEquals(1, targetCombosBefore.size(), "Expect 1 category combo with target category ref");
 
-    // when
+    // when a merge request is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then there are no category combos with source category refs
     List<CategoryCombo> sourceCombos =
-        categoryComboStore.getCategoryCombos(Set.of(catSource1.getUid(), catSource2.getUid()));
+        categoryComboStore.getCategoryCombosByCategory(
+            Set.of(catSource1.getUid(), catSource2.getUid()));
     List<CategoryCombo> targetCombos =
-        categoryComboStore.getCategoryCombos(Set.of(catTarget.getUid()));
+        categoryComboStore.getCategoryCombosByCategory(Set.of(catTarget.getUid()));
     List<Category> allCategories = manager.getAll(Category.class);
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceCombos.size(), "Expect 0 category combos with source category refs");
     assertEquals(3, targetCombos.size(), "Expect 3 category combos with target category ref");
 
-    // 3 custom + 1 default
+    // and source Cs still exist
     assertEquals(4, allCategories.size(), "Expect 4 categories present");
     assertTrue(allCategories.containsAll(List.of(catSource1, catSource2, catTarget)));
   }
@@ -244,21 +269,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("CategoryCombo refs to source Categories are replaced, sources are deleted")
   void categoryComboRefsReplacedSourcesDeletedTest() throws ConflictException {
-    // given - create categories and category combos
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
+    // given source and target Cs exist with different CCs
     CategoryCombo cc1 = createCategoryCombo('1', catSource1);
     CategoryCombo cc2 = createCategoryCombo('2', catSource2);
     CategoryCombo cc3 = createCategoryCombo('3', catTarget);
@@ -266,23 +277,62 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryCombo(cc2);
     categoryService.addCategoryCombo(cc3);
 
-    // when
+    // when a merge request is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then the target C has 3 CC refs
     List<CategoryCombo> targetCombos =
-        categoryComboStore.getCategoryCombos(Set.of(catTarget.getUid()));
+        categoryComboStore.getCategoryCombosByCategory(Set.of(catTarget.getUid()));
     List<Category> allCategories = manager.getAll(Category.class);
 
     assertFalse(report.hasErrorMessages());
     assertEquals(3, targetCombos.size(), "Expect 3 category combos with target category ref");
 
-    // 1 custom + 1 default (sources deleted)
+    // source Cs are deleted
     assertEquals(2, allCategories.size(), "Expect 2 categories present");
     assertTrue(allCategories.contains(catTarget));
+  }
+
+  @Test
+  @DisplayName(
+      "If a source Category shares the same CategoryCombo as a target CategoryCombo, the merge is rejected")
+  void sameCategoryComboRejectedTest() {
+    // given 1 source has the same CC as the target
+    CategoryCombo ccSame1 = createCategoryCombo('x', catSource1, catTarget);
+    CategoryCombo ccDiff1 = createCategoryCombo('y', catSource2);
+    categoryService.addCategoryCombo(ccSame1);
+    categoryService.addCategoryCombo(ccDiff1);
+
+    List<CategoryCombo> sourceCombosBefore =
+        categoryComboStore.getCategoryCombosByCategory(
+            Set.of(catSource1.getUid(), catSource2.getUid()));
+    List<CategoryCombo> targetCombosBefore =
+        categoryComboStore.getCategoryCombosByCategory(Set.of(catTarget.getUid()));
+
+    assertEquals(
+        2, sourceCombosBefore.size(), "Expect 2 category combos with source category refs");
+    assertEquals(1, targetCombosBefore.size(), "Expect 1 category combos with target category ref");
+
+    // when a merge is processed, then it is rejected
+    MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
+    ConflictException conflictException =
+        assertThrows(ConflictException.class, () -> categoryMergeService.processMerge(mergeParams));
+    assertEquals("Merge validation error", conflictException.getMessage());
+
+    dbmsManager.clearSession();
+
+    // and the state is unchanged
+    List<CategoryCombo> sourceCombosAfter =
+        categoryComboStore.getCategoryCombosByCategory(
+            Set.of(catSource1.getUid(), catSource2.getUid()));
+    List<CategoryCombo> targetCombosAfter =
+        categoryComboStore.getCategoryCombosByCategory(Set.of(catTarget.getUid()));
+
+    assertEquals(2, sourceCombosAfter.size(), "Expect 2 category combos with source category refs");
+    assertEquals(1, targetCombosAfter.size(), "Expect 1 category combo with target category ref");
   }
 
   // -----------------------------
@@ -292,21 +342,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName(
       "User dimension constraint refs to source Categories are replaced, sources not deleted")
   void userDimensionConstraintRefsReplacedSourcesNotDeletedTest() throws ConflictException {
-    // given - create categories and users with dimension constraints
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
+    // given source and target Cs exist with different dimension constraints
     User user1 = makeUser("A");
     user1.getCatDimensionConstraints().add(catSource1);
     User user2 = makeUser("B");
@@ -325,12 +361,12 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1, targetUsersBefore.size(), "Expect 1 user with target category dimension constraint");
 
-    // when
+    // when a merge request is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then there are no users with source category dimension constraints
     List<User> sourceUsers =
         userStore.getUsersByCategories(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<User> targetUsers = userStore.getUsersByCategories(Set.of(catTarget.getUid()));
@@ -338,9 +374,11 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, sourceUsers.size(), "Expect 0 users with source category dimension constraint");
+
+    // and there are 3 users with target category dimension constraints
     assertEquals(3, targetUsers.size(), "Expect 3 users with target category dimension constraint");
 
-    // 3 custom + 1 default
+    // source Cs still exist
     assertEquals(4, allCategories.size(), "Expect 4 categories present");
     assertTrue(allCategories.containsAll(List.of(catSource1, catSource2, catTarget)));
   }
@@ -349,21 +387,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName(
       "User dimension constraint refs to source Categories are replaced, sources are deleted")
   void userDimensionConstraintRefsReplacedSourcesDeletedTest() throws ConflictException {
-    // given - create categories and users with dimension constraints
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
+    // given source and target Cs exist with different dimension constraints
     User user1 = makeUser("D");
     user1.getCatDimensionConstraints().add(catSource1);
     User user2 = makeUser("E");
@@ -372,20 +396,25 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     user3.getCatDimensionConstraints().add(catTarget);
     manager.save(List.of(user1, user2, user3));
 
-    // when
+    // when a merge request is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then there are 3 users with target category dimension constraints
     List<User> targetUsers = userStore.getUsersByCategories(Set.of(catTarget.getUid()));
+    List<User> sourceUsers =
+        userStore.getUsersByCategories(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<Category> allCategories = manager.getAll(Category.class);
 
     assertFalse(report.hasErrorMessages());
     assertEquals(3, targetUsers.size(), "Expect 3 users with target category dimension constraint");
 
-    // 1 custom + 1 default (sources deleted)
+    // then there are 0 users with source category dimension constraints
+    assertEquals(0, sourceUsers.size(), "Expect 0 users with source category dimension constraint");
+
+    // and source Cs are deleted
     assertEquals(2, allCategories.size(), "Expect 2 categories present");
     assertTrue(allCategories.contains(catTarget));
   }
@@ -396,21 +425,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("CategoryDimension refs to source Categories are replaced, sources not deleted")
   void categoryDimensionRefsReplacedSourcesNotDeletedTest() throws ConflictException {
-    // given - create categories and category dimensions
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
+    // given source and target Cs exist with different dimension constraints
     CategoryDimension cd1 = createCategoryDimension(catSource1);
     CategoryDimension cd2 = createCategoryDimension(catSource2);
     CategoryDimension cd3 = createCategoryDimension(catTarget);
@@ -429,12 +444,12 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1, targetDimensionsBefore.size(), "Expect 1 category dimension with target category ref");
 
-    // when
+    // when a merge request is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then there are 0 category dimensions with source C refs
     List<CategoryDimension> sourceDimensions =
         categoryDimensionStore.getByCategory(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<CategoryDimension> targetDimensions =
@@ -444,10 +459,12 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(
         0, sourceDimensions.size(), "Expect 0 category dimensions with source category refs");
+
+    // then there are 3 category dimensions with target C refs
     assertEquals(
         3, targetDimensions.size(), "Expect 3 category dimensions with target category ref");
 
-    // 3 custom + 1 default
+    // and source Cs still exist
     assertEquals(4, allCategories.size(), "Expect 4 categories present");
     assertTrue(allCategories.containsAll(List.of(catSource1, catSource2, catTarget)));
   }
@@ -455,21 +472,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("CategoryDimension refs to source Categories are replaced, sources are deleted")
   void categoryDimensionRefsReplacedSourcesDeletedTest() throws ConflictException {
-    // given - create categories and category dimensions
-    CategoryOption co1 = createCategoryOption('a');
-    CategoryOption co2 = createCategoryOption('b');
-    CategoryOption co3 = createCategoryOption('c');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
-    categoryService.addCategoryOption(co3);
-
-    Category catSource1 = createCategory('x', co1);
-    Category catSource2 = createCategory('y', co2);
-    Category catTarget = createCategory('z', co3);
-    categoryService.addCategory(catSource1);
-    categoryService.addCategory(catSource2);
-    categoryService.addCategory(catTarget);
-
+    // given source and target Cs exist with different dimension constraints
     CategoryDimension cd1 = createCategoryDimension(catSource1);
     CategoryDimension cd2 = createCategoryDimension(catSource2);
     CategoryDimension cd3 = createCategoryDimension(catTarget);
@@ -477,22 +480,28 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     categoryDimensionStore.save(cd2);
     categoryDimensionStore.save(cd3);
 
-    // when
+    // when a merge request is processed
     MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
     mergeParams.setDeleteSources(true);
     MergeReport report = categoryMergeService.processMerge(mergeParams);
     dbmsManager.clearSession();
 
-    // then
+    // then there are 3 category dimensions with target C refs
     List<CategoryDimension> targetDimensions =
         categoryDimensionStore.getByCategory(Set.of(catTarget.getUid()));
+    List<CategoryDimension> sourceDimensions =
+        categoryDimensionStore.getByCategory(Set.of(catSource1.getUid(), catSource2.getUid()));
     List<Category> allCategories = manager.getAll(Category.class);
 
     assertFalse(report.hasErrorMessages());
     assertEquals(
         3, targetDimensions.size(), "Expect 3 category dimensions with target category ref");
 
-    // 1 custom + 1 default (sources deleted)
+    // then there are 0 category dimensions with source C refs
+    assertEquals(
+        0, sourceDimensions.size(), "Expect 0 category dimensions with source category ref");
+
+    // and source Cs are deleted
     assertEquals(2, allCategories.size(), "Expect 2 categories present");
     assertTrue(allCategories.contains(catTarget));
   }

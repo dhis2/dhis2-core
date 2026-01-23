@@ -31,8 +31,8 @@ package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -68,7 +68,7 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
   }
 
   @Override
-  public List<CategoryCombo> getCategoryCombos(Set<String> categoryUids) {
+  public List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids) {
     if (categoryUids == null || categoryUids.isEmpty()) return List.of();
 
     return getQuery(
