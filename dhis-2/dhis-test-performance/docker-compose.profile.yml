@@ -12,6 +12,13 @@ services:
       JAVA_TOOL_OPTIONS:
         "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
         -Xmx10000m -Xms10000m \
+        -Dcom.sun.management.jmxremote \
+        -Dcom.sun.management.jmxremote.port=9011 \
+        -Dcom.sun.management.jmxremote.rmi.port=9011 \
+        -Dcom.sun.management.jmxremote.local.only=false \
+        -Dcom.sun.management.jmxremote.authenticate=false \
+        -Dcom.sun.management.jmxremote.ssl=false \
+        -Djava.rmi.server.hostname=localhost \
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
         -XX:+UnlockDiagnosticVMOptions \
         -XX:+DebugNonSafepoints" # Accurate profiling at all code locations
