@@ -673,8 +673,9 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testJpaUniqueConstraintOnName() {
     // Test that name field has unique constraint
-    DataApprovalLevel level1 = new DataApprovalLevel("Unique Name Test", 2, null);
-    DataApprovalLevel level2 = new DataApprovalLevel("Unique Name Test", 3, null);
+    // Using orgUnitLevel=10 and 11 to avoid conflicts with setUp fixtures (which use 1-5)
+    DataApprovalLevel level1 = new DataApprovalLevel("Unique Name Test", 10, null);
+    DataApprovalLevel level2 = new DataApprovalLevel("Unique Name Test", 11, null);
 
     long id1 = dataApprovalLevelService.addDataApprovalLevel(level1, 1);
     assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id1));
@@ -707,12 +708,13 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
   void testJpaCompositeUniqueConstraint() {
     // Test the composite unique constraint on (orgUnitLevel, categoryOptionGroupSet)
     // Same orgUnitLevel and categoryOptionGroupSet should not be allowed twice
-    DataApprovalLevel level1 = new DataApprovalLevel("Level 1 Composite", 2, setA);
-    DataApprovalLevel level2 = new DataApprovalLevel("Level 2 Composite", 2, setA);
+    // Using orgUnitLevel=6 to avoid conflicts with setUp fixtures (which use 1-5)
+    DataApprovalLevel level1 = new DataApprovalLevel("Level 1 Composite", 6, setA);
+    DataApprovalLevel level2 = new DataApprovalLevel("Level 2 Composite", 6, setA);
 
     long id1 = dataApprovalLevelService.addDataApprovalLevel(level1, 1);
     assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id1));
-    assertEquals(2, dataApprovalLevelService.getDataApprovalLevel(id1).getOrgUnitLevel());
+    assertEquals(6, dataApprovalLevelService.getDataApprovalLevel(id1).getOrgUnitLevel());
     assertEquals(
         "Set A",
         dataApprovalLevelService.getDataApprovalLevel(id1).getCategoryOptionGroupSet().getName());
@@ -727,14 +729,14 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
           allLevels.stream()
               .filter(
                   l ->
-                      l.getOrgUnitLevel() == 2
+                      l.getOrgUnitLevel() == 6
                           && l.getCategoryOptionGroupSet() != null
                           && l.getCategoryOptionGroupSet().equals(setA))
               .count();
       assertEquals(
           1,
           countWithSameCombo,
-          "Should only have one level with orgUnitLevel=2 and categoryOptionGroupSet=Set A");
+          "Should only have one level with orgUnitLevel=6 and categoryOptionGroupSet=Set A");
     } catch (Exception e) {
       // Expected: composite unique constraint violation
       assertTrue(
@@ -746,11 +748,11 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
     }
 
     // Verify that different combinations are allowed
-    DataApprovalLevel level3 = new DataApprovalLevel("Level 3 Different OrgUnit", 3, setA);
+    DataApprovalLevel level3 = new DataApprovalLevel("Level 3 Different OrgUnit", 7, setA);
     long id3 = dataApprovalLevelService.addDataApprovalLevel(level3, 3);
     assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id3));
 
-    DataApprovalLevel level4 = new DataApprovalLevel("Level 4 Different Set", 2, setB);
+    DataApprovalLevel level4 = new DataApprovalLevel("Level 4 Different Set", 6, setB);
     long id4 = dataApprovalLevelService.addDataApprovalLevel(level4, 4);
     assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id4));
   }
@@ -758,8 +760,9 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testJpaManyToOneCategoryOptionGroupSet() {
     // Test that ManyToOne relationship to CategoryOptionGroupSet is properly loaded
-    DataApprovalLevel levelWithSet = new DataApprovalLevel("Level with Set", 2, setB);
-    DataApprovalLevel levelWithoutSet = new DataApprovalLevel("Level without Set", 3, null);
+    // Using orgUnitLevel=8 and 9 to avoid conflicts with setUp fixtures (which use 1-5)
+    DataApprovalLevel levelWithSet = new DataApprovalLevel("Level with Set", 8, setB);
+    DataApprovalLevel levelWithoutSet = new DataApprovalLevel("Level without Set", 9, null);
 
     long id1 = dataApprovalLevelService.addDataApprovalLevel(levelWithSet, 1);
     long id2 = dataApprovalLevelService.addDataApprovalLevel(levelWithoutSet, 2);
