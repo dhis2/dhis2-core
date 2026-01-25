@@ -2719,6 +2719,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String colName = quote(item.getItemName());
 
     if (params.isAggregatedEnrollments()) {
+      // Skip creating program stage CTE for filtered items because the filter CTE
+      // "latest_events" already handles them (see generateFilterCTEs).
+      if (item.hasFilter()) {
+        return;
+      }
       handleAggregatedEnrollments(cteContext, item, eventTableName, colName, params);
       return;
     }
@@ -3028,11 +3033,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {
     final String filterSql =
         """
-        select enrollment, ${colName} as value${outerAdditionalCols}
+        select enrollment, value${outerAdditionalCols}
         from
             (select
                 enrollment,
-                ${colName},${innerAdditionalCols}
+                ${colName} as value,${innerAdditionalCols}
                 row_number() over (
                     partition by enrollment
                     order by

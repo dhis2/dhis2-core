@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.i18n;
 
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Pham Thi Thuy

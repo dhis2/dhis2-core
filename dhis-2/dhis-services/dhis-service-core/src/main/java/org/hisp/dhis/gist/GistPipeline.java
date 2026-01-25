@@ -38,7 +38,6 @@ import static org.hisp.dhis.gist.GistQuery.Comparison.EQ;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +45,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -274,7 +274,7 @@ public class GistPipeline {
 
   private static Locale getTranslationLocale(String locale) {
     return !locale.isEmpty()
-        ? Locale.forLanguageTag(locale)
+        ? Locale.of(locale)
         : UserSettings.getCurrentSettings().getUserDbLocale();
   }
 
