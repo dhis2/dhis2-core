@@ -1637,15 +1637,14 @@ public abstract class TestBase {
       units.add(unit);
     }
 
-    return createProgram(uniqueCharacter, programStages, null, units, null);
+    return createProgram(uniqueCharacter, programStages, null, units);
   }
 
   public static Program createProgram(
       char uniqueCharacter,
       Set<ProgramStage> programStages,
       Set<TrackedEntityAttribute> attributes,
-      Set<OrganisationUnit> organisationUnits,
-      CategoryCombo categoryCombo) {
+      Set<OrganisationUnit> organisationUnits) {
     Program program = new Program();
     program.setAutoFields();
     program.setUid(BASE_PR_UID + uniqueCharacter);
@@ -1678,10 +1677,9 @@ public abstract class TestBase {
       program.getOrganisationUnits().addAll(organisationUnits);
     }
 
-    if (categoryCombo != null) {
-      program.setCategoryCombo(categoryCombo);
-    } else if (categoryService != null) {
+    if (categoryService != null) {
       program.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+      program.setEnrollmentCategoryCombo(categoryService.getDefaultCategoryCombo());
     }
 
     return program;

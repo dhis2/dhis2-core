@@ -153,6 +153,41 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "programWithEnrollmentDate2021",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&headers=ouname,ur1Edk5Oe2n.enrollmentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&asc=ur1Edk5Oe2n.enrollmentdate&dimension=ur1Edk5Oe2n.ENROLLMENT_DATE:2021&dimension=ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithEnrollmentDateAndDateRange",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,uIuxlbV1vRT&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=uIuxlbV1vRT,ur1Edk5Oe2n.ENROLLMENT_DATE:2021-05-30_2021-05-31,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithEnrollmentDateGTLT",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ur1Edk5Oe2n.ENROLLMENT_DATE:GT:2021-05-30&dimension=ur1Edk5Oe2n.ENROLLMENT_DATE:LT:2021-05-31&dimension=ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithIncidentDate",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.incidentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ur1Edk5Oe2n.INCIDENT_DATE:2021,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithProgramStatus",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.incidentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ur1Edk5Oe2n.PROGRAM_STATUS:ACTIVE,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

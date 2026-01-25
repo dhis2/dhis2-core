@@ -33,6 +33,7 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Component;
  * @see org.hisp.dhis.analytics.common.QueryExecutor
  * @author maikel arabori
  */
+@Slf4j
 @Component
 public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult> {
   @Nonnull private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -60,6 +62,10 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
   @Override
   public SqlQueryResult find(@Nonnull SqlQuery query) {
     notNull(query, "The 'query' must not be null");
+
+    if (log.isDebugEnabled()) {
+      log.debug("Executing query: {}", SqlRenderer.render(query.getStatement(), query.getParams()));
+    }
 
     SqlRowSet rowSet =
         namedParameterJdbcTemplate.queryForRowSet(

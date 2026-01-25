@@ -530,7 +530,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .trackedEntity(trackedEntityA1)
+            .trackedEntities(trackedEntityA1)
             .program(programA)
             .orgUnits(organisationUnitB)
             .build();
