@@ -97,14 +97,10 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Required. Will be stored as a hash. */
   private String password;
 
-  /**
-   * 2FA secret.
-   */
+  /** 2FA secret. */
   private String secret;
 
-  /**
-   * Type of 2FA authentication.
-   */
+  /** Type of 2FA authentication. */
   private TwoFactorType twoFactorType;
 
   /** Date when password was changed. */
