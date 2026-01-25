@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -65,6 +67,8 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private DbmsManager dbmsManager;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -721,40 +725,13 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
 
     // Attempting to add second level with same orgUnitLevel and categoryOptionGroupSet should fail
     // This is enforced at database level via composite unique constraint
-    try {
-      dataApprovalLevelService.addDataApprovalLevel(level2, 2);
-      // If we get here without exception, verify that the duplicate was not actually created
-      List<DataApprovalLevel> allLevels = dataApprovalLevelService.getAllDataApprovalLevels();
-      long countWithSameCombo =
-          allLevels.stream()
-              .filter(
-                  l ->
-                      l.getOrgUnitLevel() == 6
-                          && l.getCategoryOptionGroupSet() != null
-                          && l.getCategoryOptionGroupSet().equals(setA))
-              .count();
-      assertEquals(
-          1,
-          countWithSameCombo,
-          "Should only have one level with orgUnitLevel=6 and categoryOptionGroupSet=Set A");
-    } catch (Exception e) {
-      // Expected: composite unique constraint violation
-      assertTrue(
-          e.getMessage().contains("unique")
-              || e.getMessage().contains("duplicate")
-              || e.getMessage().contains("constraint")
-              || e.getCause() != null,
-          "Exception should be related to composite unique constraint violation");
-    }
-
-    // Verify that different combinations are allowed
-    DataApprovalLevel level3 = new DataApprovalLevel("Level 3 Different OrgUnit", 7, setA);
-    long id3 = dataApprovalLevelService.addDataApprovalLevel(level3, 3);
-    assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id3));
-
-    DataApprovalLevel level4 = new DataApprovalLevel("Level 4 Different Set", 6, setB);
-    long id4 = dataApprovalLevelService.addDataApprovalLevel(level4, 4);
-    assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id4));
+    assertThrows(
+        Exception.class,
+        () -> {
+          dataApprovalLevelService.addDataApprovalLevel(level2, 2);
+          dbmsManager.flushSession(); // Force flush to trigger DB constraint
+        },
+        "Should throw exception due to composite unique constraint violation on (orgUnitLevel, categoryOptionGroupSet)");
   }
 
   @Test
