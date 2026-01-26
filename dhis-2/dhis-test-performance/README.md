@@ -124,3 +124,25 @@ Point to any JSON file using an absolute path:
 MVN_ARGS="-Dscenario=/path/to/my-scenarios.json -Dversion=42 -Dbaseline=42"
 ```
 
+## Databases
+
+Performance tests only support databases hosted in S3 (see `run-simulation.sh` for details). See the
+[operations handbook](https://github.com/dhis2/operations-handbook?tab=readme-ov-file#modifying-the-demo-dbs)
+for modifying them.
+
+### Database Image Caching on CI
+
+Database images are cached on the CI server to avoid restoring dumps on every run. The cached
+images (e.g., `localhost/dhis2-postgres:14-3.5-sierra-leone-dev`) are mutable - when the source
+dump in S3 is updated, the cache becomes stale.
+
+To refresh a cached image, a `#team-devops` member must run on the CI server:
+
+```sh
+# Remove the specific cached image (adjust tag as needed)
+docker rmi localhost/dhis2-postgres:14-3.5-sierra-leone-dev
+docker builder prune -a
+```
+
+Use `-a` to remove all cache layers, not just unused ones.
+
