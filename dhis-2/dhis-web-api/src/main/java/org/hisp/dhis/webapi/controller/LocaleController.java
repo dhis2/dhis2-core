@@ -103,7 +103,7 @@ public class LocaleController {
     List<WebLocale> webLocales = convertToWebLocales(localeManager.getAvailableLocales());
     writeLocalesAsZip(webLocales, response);
   }
-  
+
   @GetMapping(value = "/db")
   public @ResponseBody List<WebLocale> getDbLocales() {
     return convertToWebLocales(localeService.getAllLocales());
