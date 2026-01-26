@@ -315,7 +315,7 @@ final class GistBuilder {
           && t.getProperty().equalsIgnoreCase(property)
           && !t.getValue().isEmpty()) return t.getValue();
     }
-    String lang = query.getTranslationLocale().getLanguage();
+    String lang = query.getTranslationLocale().language();
     for (Translation t : list) {
       if (t.getLocale().startsWith(lang)
           && t.getProperty().equalsIgnoreCase(property)

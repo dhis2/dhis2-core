@@ -33,7 +33,6 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

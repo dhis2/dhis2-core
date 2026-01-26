@@ -77,7 +77,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -98,7 +97,6 @@ class JdbcEnrollmentStore {
           "lastUpdated",
           "lastUpdatedAtClient");
 
-  @Qualifier("readOnlyNamedParameterJdbcTemplate")
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams enrollmentParams) {
@@ -298,9 +296,10 @@ class JdbcEnrollmentStore {
       EnrollmentQueryParams params,
       MapSqlParameterSource sqlParams,
       SqlHelper hlp) {
-    if (params.hasTrackedEntity()) {
-      sql.append(hlp.whereAnd()).append("te.uid = :trackedEntityUid");
-      sqlParams.addValue("trackedEntityUid", params.getTrackedEntity().getValue());
+    if (params.hasTrackedEntities()) {
+      sql.append(hlp.whereAnd()).append("te.uid in (:trackedEntityUids)");
+      sqlParams.addValue(
+          "trackedEntityUids", params.getTrackedEntities().stream().map(UID::getValue).toList());
     }
   }
 
