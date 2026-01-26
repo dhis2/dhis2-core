@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -80,9 +81,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "dataapprovallevelid")
   private long id;
-
-  @Column(name = "code", unique = true, length = 50)
-  private String code;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
@@ -203,6 +201,7 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }
@@ -320,8 +319,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.is(IdentifiableProperty.UID)) {
       return uid;
-    } else if (idScheme.is(IdentifiableProperty.CODE)) {
-      return code;
     } else if (idScheme.is(IdentifiableProperty.NAME)) {
       return name;
     } else if (idScheme.is(IdentifiableProperty.ID)) {
@@ -341,8 +338,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
 
   // -------------------------------------------------------------------------
   // IdentifiableObject interface methods - Not supported by this entity
-  // These methods are implemented as no-ops to satisfy the interface contract
-  // DataApprovalLevel does not have attributeValues field in HBM mapping
   // -------------------------------------------------------------------------
 
   /**
