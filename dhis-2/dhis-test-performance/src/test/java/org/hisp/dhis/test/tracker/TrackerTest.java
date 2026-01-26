@@ -369,7 +369,7 @@ public class TrackerTest extends Simulation {
             "Get a list of single events");
     Request searchSingleEvents =
         new Request(
-            getEventsUrl + "&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
+            getEventsUrl + "&occurredAfter=2025-01-01&occurredBefore=2025-12-31",
             new EnumMap<>(Map.of(Profile.SMOKE, 57, Profile.LOAD, 64)),
             "Search single events in date interval in program " + this.eventProgram,
             "Get a list of single events");
