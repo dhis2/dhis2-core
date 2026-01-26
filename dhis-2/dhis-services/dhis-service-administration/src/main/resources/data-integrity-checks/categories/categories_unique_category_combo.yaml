@@ -32,7 +32,7 @@
 #   checks if a and b are the same set by checking that a is included in b and vice-versa
 ---
 name: categories_unique_category_combo
-description: Different category combinations should not have the exact same combination of categories.
+description: Category combinations with identical categories
 section: Categories
 summary_sql: >-
   with combo_sets as (
