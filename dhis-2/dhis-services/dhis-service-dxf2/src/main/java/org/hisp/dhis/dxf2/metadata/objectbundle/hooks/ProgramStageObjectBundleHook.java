@@ -67,7 +67,8 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
                   DataElement.class,
                   programStage.getNextScheduleDate().getUid());
 
-      if (!programStage.getDataElements().contains(programStage.getNextScheduleDate())
+      if (programStage.getDataElements().stream()
+              .noneMatch(de -> de.getUid().equals(programStage.getNextScheduleDate().getUid()))
           || nextScheduleDate == null
           || !nextScheduleDate.getValueType().equals(ValueType.DATE)) {
         addReports.accept(
