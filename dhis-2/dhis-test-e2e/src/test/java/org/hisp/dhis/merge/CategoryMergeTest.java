@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -53,6 +53,7 @@ import org.junit.jupiter.api.Test;
 class CategoryMergeTest extends ApiTest {
 
   private RestApiActions categoryApiActions;
+  private RestApiActions visualizationApiActions;
   private MetadataActions metadataActions;
   private UserActions userActions;
   private LoginActions loginActions;
@@ -61,10 +62,11 @@ class CategoryMergeTest extends ApiTest {
   private final String targetUid = "UIDCatego03";
 
   @BeforeAll
-  public void before() {
+  void before() {
     userActions = new UserActions();
     loginActions = new LoginActions();
     categoryApiActions = new RestApiActions("categories");
+    visualizationApiActions = new RestApiActions("visualizations");
     metadataActions = new MetadataActions();
     loginActions.loginAsSuperUser();
 
@@ -80,7 +82,7 @@ class CategoryMergeTest extends ApiTest {
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     loginActions.loginAsSuperUser();
     setupMetadata();
   }
@@ -90,6 +92,7 @@ class CategoryMergeTest extends ApiTest {
       "Valid Category merge completes successfully with all source Category refs replaced with target Category")
   void validCategoryMergeTest() {
     // given
+    createUsers();
     // confirm state before merge
     ValidatableResponse preMergeState =
         categoryApiActions.get(targetUid).validateStatus(200).validate();
@@ -98,9 +101,17 @@ class CategoryMergeTest extends ApiTest {
         .body("categoryOptions", hasSize(equalTo(2)))
         .body(
             "categoryOptions",
-            hasItems(hasEntry("id", "UIDCatOpt3A"), hasEntry("id", "UIDCatOpt3B")))
+            hasItems(hasEntry("id", "UIDCatOpt1A"), hasEntry("id", "UIDCatOpt1B")))
         .body("categoryCombos", hasSize(equalTo(1)))
         .body("categoryCombos", hasItem(hasEntry("id", "UIDCatCom02")));
+
+    // visualization category dimensions have source category refs
+    verifyVisualisations(sourceUid1, "VizUid00001");
+    verifyVisualisations(sourceUid2, "VizUid00002");
+
+    // user category dimension constraints have source category refs
+    verifyUserCatDimensionConstraint(sourceUid1, "UserUid1111");
+    verifyUserCatDimensionConstraint(sourceUid2, "UserUid2222");
 
     // login as merge user
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -124,24 +135,95 @@ class CategoryMergeTest extends ApiTest {
         categoryApiActions.get(targetUid).validateStatus(200).validate();
 
     postMergeState
-        .body("categoryOptions", hasSize(equalTo(6)))
+        .body("categoryOptions", hasSize(equalTo(2)))
         .body(
             "categoryOptions",
-            hasItems(
-                hasEntry("id", "UIDCatOpt1A"),
-                hasEntry("id", "UIDCatOpt1B"),
-                hasEntry("id", "UIDCatOpt2A"),
-                hasEntry("id", "UIDCatOpt2B"),
-                hasEntry("id", "UIDCatOpt3A"),
-                hasEntry("id", "UIDCatOpt3B")))
+            hasItems(hasEntry("id", "UIDCatOpt1A"), hasEntry("id", "UIDCatOpt1B")))
         .body("categoryCombos", hasSize(equalTo(2)))
         .body(
             "categoryCombos",
             hasItems(hasEntry("id", "UIDCatCom01"), hasEntry("id", "UIDCatCom02")));
+
+    // check visualization category dimensions have target category refs now
+    verifyVisualisations(targetUid, "VizUid00001", "VizUid00002", "VizUid00003");
+
+    // user category dimension constraints have source category refs
+    verifyUserCatDimensionConstraint(targetUid, "UserUid1111");
+    verifyUserCatDimensionConstraint(targetUid, "UserUid2222");
+  }
+
+  private void verifyUserCatDimensionConstraint(String category, String... users) {
+    loginActions.loginAsSuperUser();
+    for (String userUid : users) {
+      userActions
+          .get(userUid)
+          .validateStatus(200)
+          .validate()
+          .body("catDimensionConstraints", hasSize(equalTo(1)))
+          .body("catDimensionConstraints", hasItems(hasEntry("id", category)));
+    }
+  }
+
+  private void verifyVisualisations(String category, String... visualizations) {
+    for (String vizUid : visualizations) {
+      visualizationApiActions
+          .get(vizUid)
+          .validateStatus(200)
+          .validate()
+          .body("categoryDimensions", hasSize(equalTo(1)))
+          .body("categoryDimensions[0].category.id", equalTo(category));
+    }
   }
 
   private void setupMetadata() {
     metadataActions.importMetadata(metadata()).validateStatus(200);
+  }
+
+  private void createUsers() {
+    //
+    userActions
+        .post(
+            """
+            {
+                "id": "UserUid2222",
+                "firstName": "Sam",
+                "surname": "Tobin",
+                "username": "sammyT",
+                "userRoles": [
+                    {
+                        "id": "UserRole111"
+                    }
+                ],
+                "catDimensionConstraints":[
+                        {
+                            "id": "UIDCatego02"
+                        }
+                    ]
+            }
+            """)
+        .validateStatus(201);
+
+    userActions
+        .post(
+            """
+                      {
+                          "id": "UserUid1111",
+                          "firstName": "Sam",
+                          "surname": "Tobin",
+                          "username": "sammyT1",
+                          "userRoles": [
+                              {
+                                  "id": "UserRole111"
+                              }
+                          ],
+                          "catDimensionConstraints":[
+                                  {
+                                      "id": "UIDCatego01"
+                                  }
+                              ]
+                      }
+                      """)
+        .validateStatus(201);
   }
 
   @Test
@@ -160,8 +242,7 @@ class CategoryMergeTest extends ApiTest {
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
         .body(
-            "message",
-            equalTo("Access is denied, requires one Authority from [F_CATEGORY_MERGE]"));
+            "message", equalTo("Access is denied, requires one Authority from [F_CATEGORY_MERGE]"));
   }
 
   private JsonObject getMergeBody() {
@@ -205,7 +286,7 @@ class CategoryMergeTest extends ApiTest {
                     "shortName": "cat option 2A",
                     "organisationUnits": [
                         {
-                            "id": "OrgUnitUid2"
+                            "id": "OrgUnitUid1"
                         }
                     ]
                 },
@@ -215,47 +296,7 @@ class CategoryMergeTest extends ApiTest {
                     "shortName": "cat option 2B",
                     "organisationUnits": [
                         {
-                            "id": "OrgUnitUid2"
-                        }
-                    ]
-                },
-                {
-                    "id": "UIDCatOpt3A",
-                    "name": "cat option 3A",
-                    "shortName": "cat option 3A",
-                    "organisationUnits": [
-                        {
-                            "id": "OrgUnitUid3"
-                        }
-                    ]
-                },
-                {
-                    "id": "UIDCatOpt3B",
-                    "name": "cat option 3B",
-                    "shortName": "cat option 3B",
-                    "organisationUnits": [
-                        {
-                            "id": "OrgUnitUid3"
-                        }
-                    ]
-                },
-                {
-                    "id": "UIDCatOpt4A",
-                    "name": "cat option 4A",
-                    "shortName": "cat option 4A",
-                    "organisationUnits": [
-                        {
-                            "id": "OrgUnitUid4"
-                        }
-                    ]
-                },
-                {
-                    "id": "UIDCatOpt4B",
-                    "name": "cat option 4B",
-                    "shortName": "cat option 4B",
-                    "organisationUnits": [
-                        {
-                            "id": "OrgUnitUid4"
+                            "id": "OrgUnitUid1"
                         }
                     ]
                 }
@@ -282,10 +323,10 @@ class CategoryMergeTest extends ApiTest {
                     "dataDimensionType": "DISAGGREGATION",
                     "categoryOptions": [
                         {
-                            "id": "UIDCatOpt2A"
+                            "id": "UIDCatOpt1A"
                         },
                         {
-                            "id": "UIDCatOpt2B"
+                            "id": "UIDCatOpt1B"
                         }
                     ]
                 },
@@ -296,10 +337,10 @@ class CategoryMergeTest extends ApiTest {
                     "dataDimensionType": "DISAGGREGATION",
                     "categoryOptions": [
                         {
-                            "id": "UIDCatOpt3A"
+                            "id": "UIDCatOpt1A"
                         },
                         {
-                            "id": "UIDCatOpt3B"
+                            "id": "UIDCatOpt1B"
                         }
                     ]
                 },
@@ -310,10 +351,10 @@ class CategoryMergeTest extends ApiTest {
                     "dataDimensionType": "DISAGGREGATION",
                     "categoryOptions": [
                         {
-                            "id": "UIDCatOpt4A"
+                            "id": "UIDCatOpt2A"
                         },
                         {
-                            "id": "UIDCatOpt4B"
+                            "id": "UIDCatOpt2B"
                         }
                     ]
                 }
@@ -370,6 +411,101 @@ class CategoryMergeTest extends ApiTest {
                             "id": "UIDCatego04"
                         }
                     ]
+                }
+            ],
+            "visualizations":[
+                {
+                    "id": "VizUid00001",
+                    "name": "viz 1",
+                    "categoryDimensions": [
+                        {
+                            "category": {
+                                "id": "UIDCatego01"
+                            },
+                            "categoryOptions": [
+                                {
+                                    "id": "UIDCatOpt1A"
+                                },
+                                {
+                                    "id": "UIDCatOpt1B"
+                                }
+                            ]
+                        }
+                    ],
+                    "type": "LINE",
+                    "rowDimensions": [
+                        "UIDCatego01"
+                    ],
+                    "rows": [
+                        {
+                            "id": "UIDCatego01"
+                        }
+                    ]
+                },
+                {
+                    "id": "VizUid00002",
+                    "name": "viz 2",
+                    "categoryDimensions": [
+                        {
+                            "category": {
+                                "id": "UIDCatego02"
+                            },
+                            "categoryOptions": [
+                                {
+                                    "id": "UIDCatOpt1A"
+                                },
+                                {
+                                    "id": "UIDCatOpt1B"
+                                }
+                            ]
+                        }
+                    ],
+                    "type": "LINE",
+                    "rowDimensions": [
+                        "UIDCatego02"
+                    ],
+                    "rows": [
+                        {
+                            "id": "UIDCatego02"
+                        }
+                    ]
+                },
+                {
+                    "id": "VizUid00003",
+                    "name": "viz 3",
+                    "categoryDimensions": [
+                        {
+                            "category": {
+                                "id": "UIDCatego03"
+                            },
+                            "categoryOptions": [
+                                {
+                                    "id": "UIDCatOpt1A"
+                                },
+                                {
+                                    "id": "UIDCatOpt1B"
+                                }
+                            ]
+                        }
+                    ],
+                    "type": "LINE",
+                    "rowDimensions": [
+                        "UIDCatego03"
+                    ],
+                    "rows": [
+                        {
+                            "id": "UIDCatego03"
+                        }
+                    ]
+                }
+            ],
+            "userRoles":[
+                {
+                    "name": "New role",
+                    "userGroupAccesses": [],
+                    "id": "UserRole111",
+                    "dataSets": [],
+                    "authorities": ["F_CATEGORY_MERGE"]
                 }
             ]
         }

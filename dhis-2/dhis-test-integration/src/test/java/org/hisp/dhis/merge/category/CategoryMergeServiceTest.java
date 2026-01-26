@@ -206,6 +206,13 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     ConflictException conflictException =
         assertThrows(ConflictException.class, () -> categoryMergeService.processMerge(mergeParams));
     assertEquals("Merge validation error", conflictException.getMessage());
+    assertTrue(
+        conflictException
+            .getMergeReport()
+            .getMergeErrors()
+            .get(0)
+            .getMessage()
+            .contains("do not match target CategoryOptions"));
 
     dbmsManager.clearSession();
 
@@ -321,6 +328,13 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     ConflictException conflictException =
         assertThrows(ConflictException.class, () -> categoryMergeService.processMerge(mergeParams));
     assertEquals("Merge validation error", conflictException.getMessage());
+    assertTrue(
+        conflictException
+            .getMergeReport()
+            .getMergeErrors()
+            .get(0)
+            .getMessage()
+            .contains("Source and target Categories cannot share a CategoryCombo"));
 
     dbmsManager.clearSession();
 

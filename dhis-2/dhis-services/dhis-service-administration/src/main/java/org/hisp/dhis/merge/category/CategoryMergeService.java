@@ -139,11 +139,12 @@ public class CategoryMergeService implements MergeService {
             .map(BaseMetadataObject::getUid)
             .collect(Collectors.toSet());
 
-    Set<String> common = new HashSet<>(sourceCatCombos);
-    common.retainAll(targetCatCombos);
+    Set<String> commonCombos = new HashSet<>(sourceCatCombos);
+    commonCombos.retainAll(targetCatCombos);
 
-    if (!common.isEmpty()) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1536, String.join(",", common)));
+    if (!commonCombos.isEmpty()) {
+      mergeReport.addErrorMessage(
+          new ErrorMessage(ErrorCode.E1536, String.join(",", commonCombos)));
     }
   }
 

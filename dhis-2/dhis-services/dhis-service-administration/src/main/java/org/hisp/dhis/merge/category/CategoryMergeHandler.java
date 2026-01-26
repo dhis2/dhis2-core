@@ -70,13 +70,15 @@ public class CategoryMergeHandler {
         categoryOptionStore.getCategoryOptions(UID.toUidValueSet(sources));
     sourceCategoryOptions.forEach(
         co -> {
-          // Update owner side (Category.categoryOptions) - this persists to the database
-          target.getCategoryOptions().add(co);
-          sources.forEach(src -> src.getCategoryOptions().remove(co));
+          // Update the owner side (Category.categoryOptions) - this persists in the database
+          //          target.getCategoryOptions().add(co);
+          target.addCategoryOption(co);
+          //          sources.forEach(src -> src.getCategoryOptions().remove(co));
+          sources.forEach(src -> src.removeCategoryOption(co));
 
           // Update inverse side (CategoryOption.categories) - for in-memory consistency
-          co.getCategories().add(target);
-          sources.forEach(co.getCategories()::remove);
+          //          co.getCategories().add(target);
+          //          sources.forEach(co.getCategories()::remove);
         });
   }
 
