@@ -212,16 +212,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   }
 
   @Override
-  public String getCode() {
-    return code;
-  }
-
-  @Override
-  public void setCode(String code) {
-    this.code = code;
-  }
-
-  @Override
   public String getName() {
     return name;
   }
@@ -398,6 +388,18 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   @Override
   @Deprecated
   public void setOwner(String owner) {
+    // Not supported - no-op
+  }
+
+  @Deprecated
+  @Override
+  public String getCode() {
+    return "";
+  }
+
+  @Deprecated
+  @Override
+  public void setCode(String code) {
     // Not supported - no-op
   }
 }
