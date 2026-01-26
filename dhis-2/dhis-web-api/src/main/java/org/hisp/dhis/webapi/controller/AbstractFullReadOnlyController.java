@@ -465,7 +465,6 @@ public abstract class AbstractFullReadOnlyController<
     return ResponseEntity.ok(objectNode);
   }
 
-  @SuppressWarnings("unchecked")
   private ObjectNode getObjectInternal(String uid, GetObjectParams params, UserDetails currentUser)
       throws NotFoundException {
     T entity = getEntity(uid);
