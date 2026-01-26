@@ -125,6 +125,9 @@ class ProgramStageControllerTest extends H2ControllerIntegrationTestBase {
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
     assertEquals("OK", message.getStatus());
+    JsonObject programStage = GET("/programStages/{id}", programStageId).content();
+    assertEquals(
+        dataElement.getUid(), programStage.getObject("nextScheduleDate").getString("id").string());
   }
 
   @Test
