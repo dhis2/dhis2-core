@@ -41,7 +41,6 @@ summary_sql: >-
   FROM categorycombos_optioncombos a
   RIGHT OUTER JOIN categoryoptioncombos_categoryoptions b on a.categoryoptioncomboid = b.categoryoptioncomboid
   ORDER BY a.categorycomboid,b.categoryoptionid
-  
   ) as x
   JOIN categorycombo cc on cc.categorycomboid = x.categorycomboid
   JOIN categoryoptioncombo coc on coc.categoryoptioncomboid = x.categoryoptioncomboid

@@ -32,7 +32,7 @@
   summary_sql: >-
     WITH duplicative_categories  AS (
     SELECT catoptions, COUNT(*) as count
-    FROM ( SELECT categoryid,
+    FROM (SELECT categoryid,
     array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
     FROM categories_categoryoptions group by categoryid) as foo
     GROUP BY catoptions HAVING COUNT(*) > 1
