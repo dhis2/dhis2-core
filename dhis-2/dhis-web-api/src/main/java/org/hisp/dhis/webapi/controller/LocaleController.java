@@ -35,10 +35,15 @@ import static org.hisp.dhis.security.Authorities.F_LOCALE_ADD;
 import static org.hisp.dhis.security.Authorities.F_LOCALE_DELETE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -84,24 +89,24 @@ public class LocaleController {
 
   @GetMapping(value = "/ui")
   public @ResponseBody List<WebLocale> getUiLocales(Model model) {
-    List<Locale> locales = localeManager.getAvailableLocales();
-    Locale userUiLocale = localeManager.getCurrentLocale();
-
-    return locales.stream()
-        .map(locale -> WebLocale.fromLocale(locale, userUiLocale))
-        .sorted(Comparator.comparing(WebLocale::getDisplayName))
-        .toList();
+    return convertToWebLocales(localeManager.getAvailableLocales());
   }
 
+  @GetMapping(value = "/db.zip", produces = "application/zip")
+  public void getDbLocalesZip(HttpServletResponse response) throws IOException {
+    List<WebLocale> webLocales = convertToWebLocales(localeService.getAllLocales());
+    writeLocalesAsZip(webLocales, response);
+  }
+
+  @GetMapping(value = "/ui.zip", produces = "application/zip")
+  public void getUiLocalesZip(HttpServletResponse response) throws IOException {
+    List<WebLocale> webLocales = convertToWebLocales(localeManager.getAvailableLocales());
+    writeLocalesAsZip(webLocales, response);
+  }
+  
   @GetMapping(value = "/db")
   public @ResponseBody List<WebLocale> getDbLocales() {
-    List<Locale> locales = localeService.getAllLocales();
-    Locale userUiLocale = localeManager.getCurrentLocale();
-
-    return locales.stream()
-        .map(locale -> WebLocale.fromLocale(locale, userUiLocale))
-        .sorted(Comparator.comparing(WebLocale::getDisplayName))
-        .toList();
+    return convertToWebLocales(localeService.getAllLocales());
   }
 
   @GetMapping(value = "/languages", produces = APPLICATION_JSON_VALUE)
@@ -162,5 +167,36 @@ public class LocaleController {
     }
 
     localeService.deleteI18nLocale(i18nLocale);
+  }
+
+  // -------------------------------------------------------------------------
+  // Helper methods
+  // -------------------------------------------------------------------------
+
+  private List<WebLocale> convertToWebLocales(List<Locale> locales) {
+    Locale userUiLocale = localeManager.getCurrentLocale();
+    return locales.stream()
+        .map(locale -> WebLocale.fromLocale(locale, userUiLocale))
+        .sorted(Comparator.comparing(WebLocale::getDisplayName))
+        .toList();
+  }
+
+  private void writeLocalesAsZip(List<WebLocale> webLocales, HttpServletResponse response)
+      throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    byte[] jsonBytes = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(webLocales);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ZipOutputStream zipOut = new ZipOutputStream(baos)) {
+      ZipEntry zipEntry = new ZipEntry("locales.json");
+      zipOut.putNextEntry(zipEntry);
+      zipOut.write(jsonBytes);
+      zipOut.closeEntry();
+    }
+
+    response.setContentType("application/zip");
+    response.setHeader("Content-Disposition", "attachment; filename=\"locales.zip\"");
+    response.setContentLength(baos.size());
+    baos.writeTo(response.getOutputStream());
   }
 }

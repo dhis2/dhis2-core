@@ -32,9 +32,16 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -42,6 +49,8 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebLocale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -231,5 +240,133 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("en_IE", dbLocaleElement.getLocale());
     assertEquals("English (Ireland)", dbLocaleElement.getName());
     assertEquals("anglais (Irlande)", dbLocaleElement.getDisplayName());
+  }
+
+  @Test
+  void testGetUiLocalesAsZip() throws Exception {
+    MvcResult result =
+        webRequestWithMvcResult(
+            MockMvcRequestBuilders.get("/api/locales/ui.zip")
+                .accept("application/zip"));
+
+    byte[] zipBytes = result.getResponse().getContentAsByteArray();
+    assertEquals("application/zip", result.getResponse().getContentType());
+    assertNotNull(zipBytes);
+    assertTrue(zipBytes.length > 0);
+
+    JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
+    assertNotNull(localesJson);
+    assertTrue(localesJson.isArray());
+    assertFalse(localesJson.isEmpty());
+
+    JsonNode firstLocale = localesJson.get(0);
+    assertNotNull(firstLocale.get("locale"));
+    assertNotNull(firstLocale.get("name"));
+    assertNotNull(firstLocale.get("displayName"));
+  }
+
+  @Test
+  void testGetDbLocalesAsZip() throws Exception {
+    POST("/locales/dbLocales?language=en&country=GB");
+    POST("/locales/dbLocales?language=fr&country=FR");
+
+    MvcResult result =
+        webRequestWithMvcResult(
+            MockMvcRequestBuilders.get("/api/locales/db.zip")
+                .accept("application/zip"));
+
+    byte[] zipBytes = result.getResponse().getContentAsByteArray();
+    assertEquals("application/zip", result.getResponse().getContentType());
+    assertNotNull(zipBytes);
+    assertTrue(zipBytes.length > 0);
+
+    JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
+    assertNotNull(localesJson);
+    assertTrue(localesJson.isArray());
+    assertEquals(2, localesJson.size());
+
+    JsonNode firstLocale = localesJson.get(0);
+    assertNotNull(firstLocale.get("locale"));
+    assertNotNull(firstLocale.get("name"));
+    assertNotNull(firstLocale.get("displayName"));
+    assertNotNull(firstLocale.get("languageTag"));
+  }
+
+  @Test
+  void testGetUiLocalesAsZipSorted() throws Exception {
+    MvcResult result =
+        webRequestWithMvcResult(
+            MockMvcRequestBuilders.get("/api/locales/ui.zip")
+                .accept("application/zip"));
+
+    byte[] zipBytes = result.getResponse().getContentAsByteArray();
+    JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
+
+    assertTrue(localesJson.isArray());
+    assertTrue(localesJson.size() > 1);
+
+    String previousDisplayName = "";
+    for (JsonNode locale : localesJson) {
+      String displayName = locale.get("displayName").asText();
+      assertTrue(
+          displayName.compareTo(previousDisplayName) >= 0,
+          "Locales should be sorted by display name");
+      previousDisplayName = displayName;
+    }
+  }
+
+  @Test
+  void testGetDbLocalesAsZipEmpty() throws Exception {
+    MvcResult result =
+        webRequestWithMvcResult(
+            MockMvcRequestBuilders.get("/api/locales/db.zip")
+                .accept("application/zip"));
+
+    byte[] zipBytes = result.getResponse().getContentAsByteArray();
+    assertNotNull(zipBytes);
+
+    JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
+    assertNotNull(localesJson);
+    assertTrue(localesJson.isArray());
+    assertEquals(0, localesJson.size());
+  }
+
+  @Test
+  @DisplayName("GET /locales/ui/export reflects user language preference in display names")
+  void testGetUiLocalesAsZipWithUserLanguage() throws Exception {
+    MvcResult result =
+        webRequestWithMvcResult(
+            MockMvcRequestBuilders.get("/api/locales/ui.zip")
+                .accept("application/zip"));
+
+    byte[] zipBytes = result.getResponse().getContentAsByteArray();
+    JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
+
+    assertTrue(localesJson.isArray());
+    assertFalse(localesJson.isEmpty());
+
+    JsonNode englishLocale = null;
+    for (JsonNode locale : localesJson) {
+      if ("en".equals(locale.get("locale").asText())) {
+        englishLocale = locale;
+        break;
+      }
+    }
+
+    assertNotNull(englishLocale);
+    assertEquals("English", englishLocale.get("displayName").asText());
+  }
+
+  private JsonNode extractJsonFromZip(byte[] zipBytes, String entryName) throws Exception {
+    try (ZipInputStream zipIn = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
+      ZipEntry entry;
+      while ((entry = zipIn.getNextEntry()) != null) {
+        if (entry.getName().equals(entryName)) {
+          ObjectMapper mapper = new ObjectMapper();
+          return mapper.readTree(zipIn);
+        }
+      }
+    }
+    throw new AssertionError("Entry '" + entryName + "' not found in zip file");
   }
 }
