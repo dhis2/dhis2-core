@@ -99,7 +99,7 @@ import org.springframework.web.client.HttpClientErrorException;
 @Service
 @RequiredArgsConstructor
 public class AggregateDataExchangeService {
-  private static final long WIPE_MAX_VALUES = 500_000L;
+  private static final long RESET_MAX_VALUES = 500_000L;
 
   private final AnalyticsService analyticsService;
 
@@ -358,14 +358,14 @@ public class AggregateDataExchangeService {
   }
 
   private ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
-    DataValueSet wipeSet = buildWipeDataValueSet(exchange, request);
+    DataValueSet resetSet = buildResetDataValueSet(exchange, request);
 
     if (log.isDebugEnabled()) {
       log.debug(
           "Reset payload built for exchange {}: values={}",
           exchange.getUid(),
-          wipeSet.getDataValues().size());
-      wipeSet.getDataValues().stream()
+          resetSet.getDataValues().size());
+      resetSet.getDataValues().stream()
           .limit(5)
           .forEach(
               value ->
@@ -381,31 +381,31 @@ public class AggregateDataExchangeService {
 
     if (log.isDebugEnabled()) {
       long missingDataElements =
-          wipeSet.getDataValues().stream()
+          resetSet.getDataValues().stream()
               .map(DataValue::getDataElement)
               .filter(java.util.Objects::nonNull)
               .filter(id -> idObjectManager.get(DataElement.class, id) == null)
               .count();
       long missingOrgUnits =
-          wipeSet.getDataValues().stream()
+          resetSet.getDataValues().stream()
               .map(DataValue::getOrgUnit)
               .filter(java.util.Objects::nonNull)
               .filter(id -> idObjectManager.get(OrganisationUnit.class, id) == null)
               .count();
       long missingCategoryOptionCombos =
-          wipeSet.getDataValues().stream()
+          resetSet.getDataValues().stream()
               .map(DataValue::getCategoryOptionCombo)
               .filter(java.util.Objects::nonNull)
               .filter(id -> idObjectManager.get(CategoryOptionCombo.class, id) == null)
               .count();
       long missingAttributeOptionCombos =
-          wipeSet.getDataValues().stream()
+          resetSet.getDataValues().stream()
               .map(DataValue::getAttributeOptionCombo)
               .filter(java.util.Objects::nonNull)
               .filter(id -> idObjectManager.get(CategoryOptionCombo.class, id) == null)
               .count();
       long missingPeriods =
-          wipeSet.getDataValues().stream()
+          resetSet.getDataValues().stream()
               .map(DataValue::getPeriod)
               .filter(java.util.Objects::nonNull)
               .filter(iso -> periodService.getPeriod(iso) == null)
@@ -421,29 +421,30 @@ public class AggregateDataExchangeService {
           missingPeriods);
     }
 
-    if (wipeSet.getDataValues().isEmpty()) {
+    if (resetSet.getDataValues().isEmpty()) {
       return new ImportSummary(
           ImportStatus.ERROR,
           "Reset payload is empty; no data values were generated for the given dx/pe/ou.");
     }
 
-    ImportOptions wipeOptions = toImportOptions(exchange);
-    wipeOptions.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    ImportOptions resetOptions = toImportOptions(exchange);
+    resetOptions.setImportStrategy(ImportStrategy.DELETE);
 
     ImportSummary summary =
         exchange.getTarget().getType() == TargetType.INTERNAL
-            ? pushToInternal(exchange, wipeSet, wipeOptions)
-            : pushToExternal(exchange, wipeSet, wipeOptions);
+            ? pushToInternal(exchange, resetSet, resetOptions)
+            : pushToExternal(exchange, resetSet, resetOptions);
 
     if (summary.getStatus() == ImportStatus.SUCCESS) {
       summary.setDescription(
-          format("Target data reset (payload values: %d).", wipeSet.getDataValues().size()));
+          format("Target data reset (payload values: %d).", resetSet.getDataValues().size()));
     }
 
     return summary;
   }
 
-  private DataValueSet buildWipeDataValueSet(AggregateDataExchange exchange, SourceRequest request) {
+  private DataValueSet buildResetDataValueSet(
+      AggregateDataExchange exchange, SourceRequest request) {
     IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
 
     DimensionalObject dxDimension =
@@ -461,11 +462,11 @@ public class AggregateDataExchangeService {
         ouDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
 
     long rowCount = (long) dxItems.size() * peItems.size() * ouItems.size();
-    if (rowCount > WIPE_MAX_VALUES) {
+    if (rowCount > RESET_MAX_VALUES) {
       throw new IllegalQueryException(
           format(
-              "Wipe payload too large (%d rows), exceeds limit of %d",
-              rowCount, WIPE_MAX_VALUES));
+              "Reset payload too large (%d rows), exceeds limit of %d",
+              rowCount, RESET_MAX_VALUES));
     }
 
     if (log.isDebugEnabled()) {
