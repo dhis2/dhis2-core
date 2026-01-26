@@ -521,4 +521,88 @@ class DimensionIdentifierConverterTest {
         dimensionIdentifier.getProgramStage(),
         "Stage should be empty for program-level OU dimensions");
   }
+
+  @Test
+  void fromStringWithStageUidAndEnrollmentDateDimensionShouldFail() {
+    // Given - program stage UID that is ALSO a program UID, used with enrollment-level dimension
+    // This tests the scenario where a UID exists as both a program and a stage UID
+    // When used with an enrollment-level dimension (ENROLLMENT_DATE), it should fail
+    Program program = new Program("prg-1");
+    program.setUid("ZkbAXlQUYJG"); // Same UID as the stage UID below
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG"); // Same UID as the program UID
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When - user tries to use the ambiguous UID with an enrollment-level dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> converter.fromString(programs, "ZkbAXlQUYJG.ENROLLMENT_DATE"));
+
+    // Then - should fail with appropriate error message indicating the dimension is not
+    // supported for stage-specific scoping
+    assertEquals(
+        "Dimension `ENROLLMENT_DATE` is not supported for program stage `ZkbAXlQUYJG`. "
+            + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+            + "are supported for stage-specific scoping",
+        thrown.getMessage(),
+        "Exception message should indicate dimension is not supported for stage-specific scoping");
+  }
+
+  @Test
+  void fromStringWithStageUidAndEndDateDimensionShouldFail() {
+    // Given - program stage UID that is ALSO a program UID, used with ENDDATE dimension
+    Program program = new Program("prg-1");
+    program.setUid("ZkbAXlQUYJG"); // Same UID as the stage UID below
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG"); // Same UID as the program UID
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When - user tries to use the ambiguous UID with ENDDATE dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> converter.fromString(programs, "ZkbAXlQUYJG.ENDDATE"));
+
+    // Then - should fail with appropriate error message
+    assertEquals(
+        "Dimension `ENDDATE` is not supported for program stage `ZkbAXlQUYJG`. "
+            + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+            + "are supported for stage-specific scoping",
+        thrown.getMessage(),
+        "Exception message should indicate dimension is not supported for stage-specific scoping");
+  }
+
+  @Test
+  void fromStringWithStageOnlyUidAndEnrollmentDateDimensionShouldFail() {
+    // Given - program stage UID that is NOT a program UID, used with enrollment-level dimension
+    // This tests the scenario where a UID exists ONLY as a stage UID (not as a program UID)
+    // When used with an enrollment-level dimension (ENROLLMENT_DATE), it should fail with
+    // a specific error message (not "program does not exist")
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW"); // Different UID than the stage
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG"); // This UID is only a stage UID, not a program UID
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When - user tries to use the stage UID with an enrollment-level dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> converter.fromString(programs, "ZkbAXlQUYJG.ENROLLMENT_DATE"));
+
+    // Then - should fail with appropriate error message (not "program does not exist")
+    assertEquals(
+        "Dimension `ENROLLMENT_DATE` is not supported for program stage `ZkbAXlQUYJG`. "
+            + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+            + "are supported for stage-specific scoping",
+        thrown.getMessage(),
+        "Exception message should indicate dimension is not supported for stage-specific scoping");
+  }
 }
