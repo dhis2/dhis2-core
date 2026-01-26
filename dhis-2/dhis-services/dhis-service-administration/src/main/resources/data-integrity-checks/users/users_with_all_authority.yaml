@@ -26,7 +26,7 @@
 #
 ---
 name: users_with_all_authority
-description: Users who have ALL authority assigned.
+description: Users which have the ALL authority assigned
 section: Users
 section_order: 6
 summary_sql: >-

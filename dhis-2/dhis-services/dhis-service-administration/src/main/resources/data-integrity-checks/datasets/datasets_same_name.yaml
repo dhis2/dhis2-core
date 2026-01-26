@@ -26,7 +26,7 @@
 #
 ---
 name: datasets_same_name
-description: Datasets with the same name or short name
+description: Datasets with duplicate name or short name
 section: Data sets
 section_order: 4
 summary_sql: >-

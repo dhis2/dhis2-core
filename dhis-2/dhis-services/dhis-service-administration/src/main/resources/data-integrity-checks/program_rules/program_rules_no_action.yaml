@@ -26,7 +26,7 @@
 #
 ---
 name: program_rules_no_action
-description: Program rules with no action.
+description: Program rules without actions
 section: Program rules
 section_order: 2
 summary_sql: >-

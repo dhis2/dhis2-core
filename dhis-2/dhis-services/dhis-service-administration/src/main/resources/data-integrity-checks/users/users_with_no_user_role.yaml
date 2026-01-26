@@ -26,7 +26,7 @@
 #
 ---
 name: users_with_no_user_role
-description: Users who have no user role assigned.
+description: Users without user roles
 section: Users
 section_order: 3
 summary_sql: >-

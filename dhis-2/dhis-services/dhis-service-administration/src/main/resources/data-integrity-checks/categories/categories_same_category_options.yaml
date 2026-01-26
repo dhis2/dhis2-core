@@ -26,7 +26,7 @@
 #
 ---
   name: categories_same_category_options
-  description: Categories with the same category options
+  description: Categories with identical category options
   section: Categories
   section_order: 6
   summary_sql: >-

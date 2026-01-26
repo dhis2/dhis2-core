@@ -26,7 +26,7 @@
 #
 ---
   name: program_rules_without_condition
-  description: Program rules without a defined rule condition.
+  description: Program rules without rule conditions.
   section: Program rules
   section_order: 2
   summary_sql: >-
