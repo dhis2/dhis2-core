@@ -91,11 +91,14 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
+    // All stage-specific static dimensions should be virtual fields.
+    // The data is extracted from the enrollments JSON column by SqlRowSetJsonExtractorDelegator.
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .map(EventAttributeQueryBuilder::toField)
         .map(Field::asVirtual)
         .forEach(builder::selectField);
 
+    // Build conditions for dimensions with restrictions
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
         .map(dimId -> GroupableCondition.of(dimId.getGroupId(), buildCondition(dimId, ctx)))

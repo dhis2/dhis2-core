@@ -587,8 +587,8 @@ public enum ErrorCode {
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
-  E7252(
-      "Header `{0}` requires a matching dimension for program stage `{1}` with dimension type `{2}`"),
+  E7253(
+      "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

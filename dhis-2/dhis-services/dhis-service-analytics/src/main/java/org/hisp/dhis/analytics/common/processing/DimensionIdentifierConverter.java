@@ -93,11 +93,32 @@ public class DimensionIdentifierConverter {
         return resolveEventLevelDimension(allowedPrograms, programWithOffset, dimensionId);
       }
 
+      // If programOptional is empty but the first element is a stage UID,
+      // check if the dimension is a static dimension that is NOT supported for stages.
+      // This provides a better error message than "program does not exist"
+      if (programOptional.isEmpty()
+          && isProgramStageUid(allowedPrograms, programWithOffset.getElement().getUid())
+          && StaticDimension.of(dimensionId.getUid()).isPresent()
+          && !isEventLevelStaticDimension(dimensionId.getUid())) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Dimension `%s` is not supported for program stage `%s`. "
+                    + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+                    + "are supported for stage-specific scoping",
+                dimensionId.getUid(), programWithOffset.getElement().getUid()));
+      }
+
       Program program =
           programOptional.orElseThrow(
               () ->
                   new IllegalArgumentException(
                       ("Specified program " + programWithOffset + " does not exist")));
+
+      // Validate that if the program UID is also a stage UID, the dimension is
+      // a supported event-level dimension.
+      // This prevents using enrollment-level dimensions (like ENROLLMENTDATE)
+      // with a stage-specific prefix.
+      validateStageSpecificDimension(allowedPrograms, programWithOffset, dimensionId);
 
       return DimensionIdentifier.of(
           ElementWithOffset.of(program, programWithOffset.getOffset()),
@@ -193,5 +214,55 @@ public class DimensionIdentifierConverter {
         ElementWithOffset.of(program, programStageWithOffset.getOffset()),
         ElementWithOffset.of(programStage, programStageWithOffset.getOffset()),
         dimensionId);
+  }
+
+  /**
+   * Validates that if the given UID is also a program stage UID, the dimension is a supported
+   * event-level dimension.
+   *
+   * <p>This prevents users from using enrollment-level dimensions (like ENROLLMENTDATE) with a
+   * stage-specific prefix.
+   *
+   * @param allowedPrograms the list of allowed programs
+   * @param programWithOffset the program UID with offset
+   * @param dimensionId the dimension identifier
+   * @throws IllegalArgumentException if the dimension is not supported for stage-specific scoping
+   */
+  private void validateStageSpecificDimension(
+      List<Program> allowedPrograms,
+      ElementWithOffset<StringUid> programWithOffset,
+      StringUid dimensionId) {
+    String programUid = programWithOffset.getElement().getUid();
+
+    // Check if this UID is also a program stage UID in any program
+    if (!isProgramStageUid(allowedPrograms, programUid)) {
+      return;
+    }
+
+    // If it's a stage UID, validate that the dimension is a static dimension
+    // AND is one of the supported event-level dimensions
+    Optional<StaticDimension> staticDimension = StaticDimension.of(dimensionId.getUid());
+
+    if (staticDimension.isPresent() && !isEventLevelStaticDimension(dimensionId.getUid())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Dimension `%s` is not supported for program stage `%s`. "
+                  + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+                  + "are supported for stage-specific scoping",
+              dimensionId.getUid(), programUid));
+    }
+  }
+
+  /**
+   * Checks if the given UID is a program stage UID in any of the allowed programs.
+   *
+   * @param allowedPrograms the list of allowed programs
+   * @param uid the UID to check
+   * @return true if the UID is a program stage UID, false otherwise
+   */
+  private boolean isProgramStageUid(List<Program> allowedPrograms, String uid) {
+    return allowedPrograms.stream()
+        .flatMap(program -> program.getProgramStages().stream())
+        .anyMatch(stage -> stage.getUid().equals(uid));
   }
 }
