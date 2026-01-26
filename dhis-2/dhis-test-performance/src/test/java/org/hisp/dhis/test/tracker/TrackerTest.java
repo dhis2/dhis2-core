@@ -177,8 +177,8 @@ public class TrackerTest extends Simulation {
     this.trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
-    this.replicaUser = System.getProperty("replicaUser", "tracker");
-    this.replicaPassword = System.getProperty("replicaPassword", "Tracker123!");
+    this.replicaUser = System.getProperty("replicaUser", "tracker2");
+    this.replicaPassword = System.getProperty("replicaPassword", "Tracker123@");
 
     record ProfileDefaults(
         int usersPerSec,
@@ -397,19 +397,24 @@ public class TrackerTest extends Simulation {
             .on(
                 group("Get a list of single events")
                     .on(
-                        exec(goToFirstPage.action())
-                            .exec(goToSecondPage.action())
+                        exec(goToFirstPage.action().check(jsonPath("$.events[*]").count().is(50)))
+                            .exec(
+                                goToSecondPage
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().is(50)))
                             .exec(
                                 searchSingleEvents
                                     .action()
-                                    .check(jsonPath("$.events").exists())
-                                    .check(jsonPath("$.events[0]").exists())
+                                    .check(jsonPath("$.events[*]").count().is(50))
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
                             .exitHereIfFailed()
                             .group("Get one single event")
                             .on(
-                                exec(getFirstEvent.action())
-                                    .exec(getRelationshipsForFirstEvent.action()))));
+                                exec(getFirstEvent.action().check(jsonPath("$.event").exists()))
+                                    .exec(
+                                        getRelationshipsForFirstEvent
+                                            .action()
+                                            .check(jsonPath("$.relationships").exists())))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -453,7 +458,7 @@ public class TrackerTest extends Simulation {
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     String searchTEByName =
-        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ines"
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ger"
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
             + this.trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
@@ -574,15 +579,25 @@ public class TrackerTest extends Simulation {
             .on(
                 group("Get a list of TEs")
                     .on(
-                        exec(notFoundTeByNameWithLikeOperator.action())
-                            .exec(notFoundTeByNationalIdWithEqualOperator.action())
-                            .exec(searchTeByNameWithLikeOperator.action())
-                            .exec(searchTeByNationalIdWithEqualOperator.action())
+                        exec(notFoundTeByNameWithLikeOperator
+                                .action()
+                                .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                            .exec(
+                                notFoundTeByNationalIdWithEqualOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                            .exec(
+                                searchTeByNameWithLikeOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .exec(
+                                searchTeByNationalIdWithEqualOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
                             .exec(
                                 searchEventsByProgramStage
                                     .action()
-                                    .check(jsonPath("$.events").exists())
-                                    .check(jsonPath("$.events[0]").exists())
+                                    .check(jsonPath("$.events[*]").count().gte(1))
                                     .check(
                                         jsonPath("$.events[*].trackedEntity")
                                             .findAll()
@@ -592,12 +607,14 @@ public class TrackerTest extends Simulation {
                                                         ",", list.stream().distinct().toList()))
                                             .saveAs("trackedEntityUids")))
                             .exitHereIfFailed()
-                            .exec(getTrackedEntitiesForEvents.action())
+                            .exec(
+                                getTrackedEntitiesForEvents
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .exec(
                                 getFirstPageOfTEs
                                     .action()
-                                    .check(jsonPath("$.trackedEntities").exists())
-                                    .check(jsonPath("$.trackedEntities[0]").exists())
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(15))
                                     .check(
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
@@ -606,23 +623,34 @@ public class TrackerTest extends Simulation {
                             .on(
                                 exec(getFirstTrackedEntity
                                         .action()
-                                        .check(jsonPath("$.enrollments").exists())
-                                        .check(jsonPath("$.enrollments[0]").exists())
+                                        .check(jsonPath("$.enrollments[*]").count().gte(1))
                                         .check(
                                             jsonPath("$.enrollments[0].enrollment")
                                                 .saveAs("enrollmentUid"))
-                                        .check(jsonPath("$.enrollments[0].events").exists())
-                                        .check(jsonPath("$.enrollments[0].events[0]").exists())
+                                        .check(
+                                            jsonPath("$.enrollments[0].events[*]").count().gte(1))
                                         .check(
                                             jsonPath("$.enrollments[0].events[0].event")
                                                 .saveAs("eventUid")))
                                     .exitHereIfFailed()
-                                    .exec(getFirstEnrollment.action())
-                                    .exec(getRelationshipsForTrackedEntity.action())
+                                    .exec(
+                                        getFirstEnrollment
+                                            .action()
+                                            .check(jsonPath("$.enrollment").exists()))
+                                    .exec(
+                                        getRelationshipsForTrackedEntity
+                                            .action()
+                                            .check(jsonPath("$.relationships").exists()))
                                     .group("Get one event")
                                     .on(
-                                        exec(getFirstEventFromEnrollment.action())
-                                            .exec(getRelationshipsForEvent.action())))));
+                                        exec(getFirstEventFromEnrollment
+                                                .action()
+                                                .check(jsonPath("$.event").exists()))
+                                            .exec(
+                                                getRelationshipsForEvent
+                                                    .action()
+                                                    .check(
+                                                        jsonPath("$.relationships").exists()))))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
