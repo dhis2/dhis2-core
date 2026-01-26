@@ -246,8 +246,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   void testGetUiLocalesAsZip() throws Exception {
     MvcResult result =
         webRequestWithMvcResult(
-            MockMvcRequestBuilders.get("/api/locales/ui.zip")
-                .accept("application/zip"));
+            MockMvcRequestBuilders.get("/api/locales/ui.zip").accept("application/zip"));
 
     byte[] zipBytes = result.getResponse().getContentAsByteArray();
     assertEquals("application/zip", result.getResponse().getContentType());
@@ -272,8 +271,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
 
     MvcResult result =
         webRequestWithMvcResult(
-            MockMvcRequestBuilders.get("/api/locales/db.zip")
-                .accept("application/zip"));
+            MockMvcRequestBuilders.get("/api/locales/db.zip").accept("application/zip"));
 
     byte[] zipBytes = result.getResponse().getContentAsByteArray();
     assertEquals("application/zip", result.getResponse().getContentType());
@@ -296,8 +294,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   void testGetUiLocalesAsZipSorted() throws Exception {
     MvcResult result =
         webRequestWithMvcResult(
-            MockMvcRequestBuilders.get("/api/locales/ui.zip")
-                .accept("application/zip"));
+            MockMvcRequestBuilders.get("/api/locales/ui.zip").accept("application/zip"));
 
     byte[] zipBytes = result.getResponse().getContentAsByteArray();
     JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
@@ -319,8 +316,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   void testGetDbLocalesAsZipEmpty() throws Exception {
     MvcResult result =
         webRequestWithMvcResult(
-            MockMvcRequestBuilders.get("/api/locales/db.zip")
-                .accept("application/zip"));
+            MockMvcRequestBuilders.get("/api/locales/db.zip").accept("application/zip"));
 
     byte[] zipBytes = result.getResponse().getContentAsByteArray();
     assertNotNull(zipBytes);
@@ -336,8 +332,7 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   void testGetUiLocalesAsZipWithUserLanguage() throws Exception {
     MvcResult result =
         webRequestWithMvcResult(
-            MockMvcRequestBuilders.get("/api/locales/ui.zip")
-                .accept("application/zip"));
+            MockMvcRequestBuilders.get("/api/locales/ui.zip").accept("application/zip"));
 
     byte[] zipBytes = result.getResponse().getContentAsByteArray();
     JsonNode localesJson = extractJsonFromZip(zipBytes, "locales.json");
