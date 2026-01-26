@@ -32,6 +32,8 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -51,10 +53,16 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
@@ -62,14 +70,19 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,6 +99,8 @@ import org.springframework.web.client.HttpClientErrorException;
 @Service
 @RequiredArgsConstructor
 public class AggregateDataExchangeService {
+  private static final long WIPE_MAX_VALUES = 500_000L;
+
   private final AnalyticsService analyticsService;
 
   private final AggregateDataExchangeStore aggregateDataExchangeStore;
@@ -95,6 +110,10 @@ public class AggregateDataExchangeService {
   private final DataEntryPipeline dataEntryPipeline;
 
   private final AclService aclService;
+
+  private final IdentifiableObjectManager idObjectManager;
+
+  private final PeriodService periodService;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
@@ -163,6 +182,44 @@ public class AggregateDataExchangeService {
         (success, failed) -> toStageSummary(success, failed, exchange));
 
     return summaries;
+  }
+
+  /**
+   * Performs a reset of target data as defined by the given exchange without importing data
+   * afterward.
+   *
+   * @param userDetails CurrentUser executing the reset.
+   * @param exchange the {@link AggregateDataExchange}.
+   * @return an {@link ImportSummary} describing the outcome of the reset.
+   */
+  @Transactional
+  public ImportSummary resetData(UserDetails userDetails, AggregateDataExchange exchange) {
+    if (!aclService.canDataWrite(userDetails, exchange)) {
+      return new ImportSummary(
+          ImportStatus.ERROR,
+          String.format(
+              "User has no data write access for AggregateDataExchange: %s",
+              exchange.getDisplayName()));
+    }
+
+    ImportSummary summary =
+        new ImportSummary(ImportStatus.SUCCESS, "Target data reset.", new ImportCount());
+
+    for (SourceRequest sourceRequest : exchange.getSource().getRequests()) {
+      ImportSummary result = resetTargetData(exchange, sourceRequest);
+      if (result.getStatus() == ImportStatus.ERROR) {
+        return result;
+      }
+
+      ImportCount total = summary.getImportCount();
+      ImportCount current = result.getImportCount();
+      total.incrementImported(current.getImported());
+      total.incrementUpdated(current.getUpdated());
+      total.incrementIgnored(current.getIgnored());
+      total.incrementDeleted(current.getDeleted());
+    }
+
+    return summary;
   }
 
   /**
@@ -244,8 +301,13 @@ public class AggregateDataExchangeService {
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
 
+    return pushToInternal(exchange, dataValueSet, toImportOptions(exchange));
+  }
+
+  private ImportSummary pushToInternal(
+      AggregateDataExchange exchange, DataValueSet dataValueSet, ImportOptions options) {
     return dataEntryPipeline.importInputGroups(
-        List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
+        List.of(toDataEntryGroup(dataValueSet)), options, transitory());
   }
 
   private static DataEntryGroup.Input toDataEntryGroup(DataValueSet set) {
@@ -287,7 +349,281 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToExternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-    return getDhis2Client(exchange).saveDataValueSet(dataValueSet, toImportOptions(exchange));
+    return pushToExternal(exchange, dataValueSet, toImportOptions(exchange));
+  }
+
+  private ImportSummary pushToExternal(
+      AggregateDataExchange exchange, DataValueSet dataValueSet, ImportOptions options) {
+    return getDhis2Client(exchange).saveDataValueSet(dataValueSet, options);
+  }
+
+  private ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
+    DataValueSet wipeSet = buildWipeDataValueSet(exchange, request);
+
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Reset payload built for exchange {}: values={}",
+          exchange.getUid(),
+          wipeSet.getDataValues().size());
+      wipeSet.getDataValues().stream()
+          .limit(5)
+          .forEach(
+              value ->
+                  log.debug(
+                      "Reset sample value dx={}, pe={}, ou={}, coc={}, aoc={}, deleted={}",
+                      value.getDataElement(),
+                      value.getPeriod(),
+                      value.getOrgUnit(),
+                      value.getCategoryOptionCombo(),
+                      value.getAttributeOptionCombo(),
+                      value.getDeleted()));
+    }
+
+    if (log.isDebugEnabled()) {
+      long missingDataElements =
+          wipeSet.getDataValues().stream()
+              .map(DataValue::getDataElement)
+              .filter(java.util.Objects::nonNull)
+              .filter(id -> idObjectManager.get(DataElement.class, id) == null)
+              .count();
+      long missingOrgUnits =
+          wipeSet.getDataValues().stream()
+              .map(DataValue::getOrgUnit)
+              .filter(java.util.Objects::nonNull)
+              .filter(id -> idObjectManager.get(OrganisationUnit.class, id) == null)
+              .count();
+      long missingCategoryOptionCombos =
+          wipeSet.getDataValues().stream()
+              .map(DataValue::getCategoryOptionCombo)
+              .filter(java.util.Objects::nonNull)
+              .filter(id -> idObjectManager.get(CategoryOptionCombo.class, id) == null)
+              .count();
+      long missingAttributeOptionCombos =
+          wipeSet.getDataValues().stream()
+              .map(DataValue::getAttributeOptionCombo)
+              .filter(java.util.Objects::nonNull)
+              .filter(id -> idObjectManager.get(CategoryOptionCombo.class, id) == null)
+              .count();
+      long missingPeriods =
+          wipeSet.getDataValues().stream()
+              .map(DataValue::getPeriod)
+              .filter(java.util.Objects::nonNull)
+              .filter(iso -> periodService.getPeriod(iso) == null)
+              .count();
+
+      log.debug(
+          "Reset payload unresolved identifiers for exchange {}: deMissing={}, ouMissing={}, cocMissing={}, aocMissing={}, peMissing={}",
+          exchange.getUid(),
+          missingDataElements,
+          missingOrgUnits,
+          missingCategoryOptionCombos,
+          missingAttributeOptionCombos,
+          missingPeriods);
+    }
+
+    if (wipeSet.getDataValues().isEmpty()) {
+      return new ImportSummary(
+          ImportStatus.ERROR,
+          "Reset payload is empty; no data values were generated for the given dx/pe/ou.");
+    }
+
+    ImportOptions wipeOptions = toImportOptions(exchange);
+    wipeOptions.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+
+    ImportSummary summary =
+        exchange.getTarget().getType() == TargetType.INTERNAL
+            ? pushToInternal(exchange, wipeSet, wipeOptions)
+            : pushToExternal(exchange, wipeSet, wipeOptions);
+
+    if (summary.getStatus() == ImportStatus.SUCCESS) {
+      summary.setDescription(
+          format("Target data reset (payload values: %d).", wipeSet.getDataValues().size()));
+    }
+
+    return summary;
+  }
+
+  private DataValueSet buildWipeDataValueSet(AggregateDataExchange exchange, SourceRequest request) {
+    IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+
+    DimensionalObject dxDimension =
+        toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme);
+    DimensionalObject peDimension =
+        toDimensionalObject(PERIOD_DIM_ID, request.getPe(), inputIdScheme);
+    DimensionalObject ouDimension =
+        toDimensionalObject(ORGUNIT_DIM_ID, request.getOu(), inputIdScheme);
+
+    List<String> dxItems =
+        dxDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
+    List<String> peItems =
+        peDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
+    List<String> ouItems =
+        ouDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
+
+    long rowCount = (long) dxItems.size() * peItems.size() * ouItems.size();
+    if (rowCount > WIPE_MAX_VALUES) {
+      throw new IllegalQueryException(
+          format(
+              "Wipe payload too large (%d rows), exceeds limit of %d",
+              rowCount, WIPE_MAX_VALUES));
+    }
+
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Building purge payload for exchange {} request {}: dx={}, pe={}, ou={}, rows={}",
+          exchange.getUid(),
+          request.getName(),
+          dxItems.size(),
+          peItems.size(),
+          ouItems.size(),
+          rowCount);
+    }
+
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID, DATA_X_DIM_ID, ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID, PERIOD_DIM_ID, ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, ORGUNIT_DIM_ID, ValueType.TEXT, false, true));
+    grid.addHeader(
+        new GridHeader(DataQueryParams.VALUE_ID, DataQueryParams.VALUE_ID, ValueType.TEXT, false, false));
+
+    for (String dx : dxItems) {
+      for (String pe : peItems) {
+        for (String ou : ouItems) {
+          grid.addRow().addValuesVar(dx, pe, ou, null);
+        }
+      }
+    }
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(dxDimension)
+            .addDimension(peDimension)
+            .addDimension(ouDimension)
+            .build();
+
+    AnalyticsUtils.handleGridForDataValueSet(params, grid);
+
+    String queryOutputIdScheme = request.getOutputIdScheme();
+    IdScheme outputDataElementIdScheme =
+        toIdScheme(request.getOutputDataElementIdScheme(), queryOutputIdScheme);
+    IdScheme outputOrgUnitIdScheme =
+        toIdScheme(request.getOutputOrgUnitIdScheme(), queryOutputIdScheme);
+    IdScheme outputDataItemIdScheme =
+        toIdScheme(request.getOutputDataItemIdScheme(), queryOutputIdScheme);
+    IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
+
+    applyDimensionItemIdScheme(
+        grid, DATA_X_DIM_ID, dxDimension, outputDataElementIdScheme, outputDataItemIdScheme, outputIdScheme);
+    applyDimensionItemIdScheme(
+        grid, ORGUNIT_DIM_ID, ouDimension, outputOrgUnitIdScheme, null, outputIdScheme);
+    applyIdSchemeToGrid(grid, DATA_X_DIM_ID, DataElement.class, outputDataElementIdScheme);
+
+    TargetRequest targetRequest =
+        exchange.getTarget() != null ? exchange.getTarget().getRequest() : null;
+    if (targetRequest != null) {
+      IdScheme cocScheme =
+          toIdScheme(
+              targetRequest.getCategoryOptionComboIdScheme(), targetRequest.getIdScheme());
+      applyIdSchemeToGrid(grid, CATEGORYOPTIONCOMBO_DIM_ID, CategoryOptionCombo.class, cocScheme);
+    }
+
+    DataValueSet dataValueSet = AnalyticsUtils.getDataValueSet(params, grid);
+    dataValueSet
+        .getDataValues()
+        .forEach(
+            value -> {
+              value.setValue("10");
+              value.setComment( "Deleted by ADEX" );
+              value.setDeleted( true );
+            });
+    return dataValueSet;
+  }
+
+  private <T extends org.hisp.dhis.common.IdentifiableObject> void applyIdSchemeToGrid(
+      Grid grid, String column, Class<T> type, IdScheme idScheme) {
+    if (idScheme == null || idScheme.isNull()) {
+      return;
+    }
+
+    int index = grid.getIndexOfHeader(column);
+    if (index == -1) {
+      return;
+    }
+
+    java.util.Map<String, String> cache = new java.util.HashMap<>();
+
+    List<List<Object>> rows = grid.getRows();
+    for (List<Object> row : rows) {
+      Object value = row.get(index);
+      if (value == null) {
+        continue;
+      }
+
+      String uid = String.valueOf(value);
+      String mapped = cache.get(uid);
+      if (mapped == null) {
+        T object = idObjectManager.get(type, uid);
+        if (object != null) {
+          mapped = object.getPropertyValue(idScheme);
+        }
+        if (mapped == null) {
+          mapped = uid;
+        }
+        cache.put(uid, mapped);
+      }
+
+      row.set(index, mapped);
+    }
+  }
+
+  private void applyDimensionItemIdScheme(
+      Grid grid,
+      String column,
+      DimensionalObject dimension,
+      IdScheme dataElementScheme,
+      IdScheme dataItemScheme,
+      IdScheme generalScheme) {
+    if ((dataElementScheme == null || dataElementScheme.isNull())
+        && (dataItemScheme == null || dataItemScheme.isNull())
+        && (generalScheme == null || generalScheme.isNull())) {
+      return;
+    }
+
+    int index = grid.getIndexOfHeader(column);
+    if (index == -1) {
+      return;
+    }
+
+    java.util.Map<String, String> map = new java.util.HashMap<>();
+    dimension
+        .getItems()
+        .forEach(
+            item -> {
+              IdScheme schemeToUse = generalScheme;
+              if (item instanceof DataElement && dataElementScheme != null && !dataElementScheme.isNull()) {
+                schemeToUse = dataElementScheme;
+              } else if (dataItemScheme != null && !dataItemScheme.isNull()) {
+                schemeToUse = dataItemScheme;
+              }
+
+              String mapped =
+                  schemeToUse != null && !schemeToUse.isNull()
+                      ? item.getDimensionItem(schemeToUse)
+                      : item.getDimensionItem();
+              map.put(item.getDimensionItem(), mapped);
+            });
+
+    List<List<Object>> rows = grid.getRows();
+    for (List<Object> row : rows) {
+      Object value = row.get(index);
+      if (value == null) {
+        continue;
+      }
+      String mapped = map.get(String.valueOf(value));
+      if (mapped != null) {
+        row.set(index, mapped);
+      }
+    }
   }
 
   /**
