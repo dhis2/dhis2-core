@@ -113,7 +113,6 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
     return getQuery(
             """
             select distinct c from Category c
-            left join fetch c.categoryCombos
             where c.uid in :categoryUids
             """,
             Category.class)

@@ -208,7 +208,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Category> getCategoriesByUid(Set<UID> categoryUids) {
+  public List<Category> getCategoriesByUid(Collection<UID> categoryUids) {
     return categoryStore.getCategoriesByUid(categoryUids);
   }
 

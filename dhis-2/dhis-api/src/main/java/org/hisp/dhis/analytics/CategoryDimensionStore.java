@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
@@ -56,5 +55,5 @@ public interface CategoryDimensionStore extends GenericStore<CategoryDimension> 
    * @param categoryUids the UIDs of the categories
    * @return list of {@link CategoryDimension}s
    */
-  List<CategoryDimension> getByCategory(Set<String> categoryUids);
+  List<CategoryDimension> getByCategory(Collection<String> categoryUids);
 }

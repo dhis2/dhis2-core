@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,8 @@ class CategoryMergeTest extends ApiTest {
       "Valid Category merge completes successfully with all source Category refs replaced with target Category")
   void validCategoryMergeTest() {
     // given
-    createUsers();
+    createUsers("UserUid1111", sourceUid1);
+    createUsers("UserUid2222", sourceUid2);
     // confirm state before merge
     ValidatableResponse preMergeState =
         categoryApiActions.get(targetUid).validateStatus(200).validate();
@@ -119,7 +120,7 @@ class CategoryMergeTest extends ApiTest {
     // when a category merge request is submitted, deleting sources
     ApiResponse response = categoryApiActions.post("merge", getMergeBody()).validateStatus(200);
 
-    // then a success response received, sources are deleted & source references were merged
+    // then a success response received
     response
         .validate()
         .statusCode(200)
@@ -129,11 +130,13 @@ class CategoryMergeTest extends ApiTest {
         .body("response.mergeReport.mergeType", equalTo("Category"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
 
+    // sources are deleted
     categoryApiActions.get(sourceUid1).validateStatus(404);
     categoryApiActions.get(sourceUid2).validateStatus(404);
     ValidatableResponse postMergeState =
         categoryApiActions.get(targetUid).validateStatus(200).validate();
 
+    // target still has 2 category options & now has 2 category combos
     postMergeState
         .body("categoryOptions", hasSize(equalTo(2)))
         .body(
@@ -147,7 +150,7 @@ class CategoryMergeTest extends ApiTest {
     // check visualization category dimensions have target category refs now
     verifyVisualisations(targetUid, "VizUid00001", "VizUid00002", "VizUid00003");
 
-    // user category dimension constraints have source category refs
+    // user category dimension constraints have target category refs now
     verifyUserCatDimensionConstraint(targetUid, "UserUid1111");
     verifyUserCatDimensionConstraint(targetUid, "UserUid2222");
   }
@@ -179,16 +182,15 @@ class CategoryMergeTest extends ApiTest {
     metadataActions.importMetadata(metadata()).validateStatus(200);
   }
 
-  private void createUsers() {
-    //
+  private void createUsers(String userUid, String categoryUid) {
     userActions
         .post(
             """
             {
-                "id": "UserUid2222",
-                "firstName": "Sam",
-                "surname": "Tobin",
-                "username": "sammyT",
+                "id": "%s",
+                "firstName": "User",
+                "surname": "Robot",
+                "username": "uname %s",
                 "userRoles": [
                     {
                         "id": "UserRole111"
@@ -196,33 +198,12 @@ class CategoryMergeTest extends ApiTest {
                 ],
                 "catDimensionConstraints":[
                         {
-                            "id": "UIDCatego02"
+                            "id": "%s"
                         }
                     ]
             }
-            """)
-        .validateStatus(201);
-
-    userActions
-        .post(
             """
-                      {
-                          "id": "UserUid1111",
-                          "firstName": "Sam",
-                          "surname": "Tobin",
-                          "username": "sammyT1",
-                          "userRoles": [
-                              {
-                                  "id": "UserRole111"
-                              }
-                          ],
-                          "catDimensionConstraints":[
-                                  {
-                                      "id": "UIDCatego01"
-                                  }
-                              ]
-                      }
-                      """)
+                .formatted(userUid, userUid, categoryUid))
         .validateStatus(201);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,7 @@ public class CategoryMergeHandler {
 
   /**
    * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}. This
-   * updates both the owner side (Category.categoryOptions) and inverse side
-   * (CategoryOption.categories) of the bidirectional relationship.
+   * updates the owner side (Category.categoryOptions).
    *
    * @param sources to be removed
    * @param target to add
@@ -70,15 +69,8 @@ public class CategoryMergeHandler {
         categoryOptionStore.getCategoryOptions(UID.toUidValueSet(sources));
     sourceCategoryOptions.forEach(
         co -> {
-          // Update the owner side (Category.categoryOptions) - this persists in the database
-          //          target.getCategoryOptions().add(co);
           target.addCategoryOption(co);
-          //          sources.forEach(src -> src.getCategoryOptions().remove(co));
           sources.forEach(src -> src.removeCategoryOption(co));
-
-          // Update inverse side (CategoryOption.categories) - for in-memory consistency
-          //          co.getCategories().add(target);
-          //          sources.forEach(co.getCategories()::remove);
         });
   }
 

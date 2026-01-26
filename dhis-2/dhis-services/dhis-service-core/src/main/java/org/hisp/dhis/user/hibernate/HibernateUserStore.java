@@ -707,7 +707,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public List<User> getUsersByCategories(Set<String> categoryUids) {
+  public List<User> getUsersByCategories(Collection<String> categoryUids) {
     if (categoryUids == null || categoryUids.isEmpty()) return List.of();
 
     return getQuery(

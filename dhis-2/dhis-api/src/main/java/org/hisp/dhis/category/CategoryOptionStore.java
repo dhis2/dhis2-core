@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.CheckForNull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -57,5 +57,5 @@ public interface CategoryOptionStore extends IdentifiableObjectStore<CategoryOpt
    * @param categoryUids the UIDs of the categories
    * @return list of {@link CategoryOption}s
    */
-  List<CategoryOption> getCategoryOptions(Set<String> categoryUids);
+  List<CategoryOption> getCategoryOptions(Collection<String> categoryUids);
 }

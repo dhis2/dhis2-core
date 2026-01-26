@@ -252,5 +252,5 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param categoryUids the UIDs of the categories
    * @return list of {@link User}s
    */
-  List<User> getUsersByCategories(Set<String> categoryUids);
+  List<User> getUsersByCategories(Collection<String> categoryUids);
 }

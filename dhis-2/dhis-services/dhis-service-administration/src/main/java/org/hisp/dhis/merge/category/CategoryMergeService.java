@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ import org.hisp.dhis.merge.MergeValidator;
 import org.springframework.stereotype.Service;
 
 /**
- * Main class for a {@link Category} merge.
+ * Merge Service for {@link Category}s. Validates and handles merging references.
  *
  * @author david mackessy
  */
@@ -63,7 +63,6 @@ import org.springframework.stereotype.Service;
 public class CategoryMergeService implements MergeService {
 
   private final CategoryService categoryService;
-  //  private final CategoryStore categoryStore;
   private final CategoryMergeHandler categoryMergeHandler;
   private final MergeValidator validator;
   private final EntityManager entityManager;
@@ -139,12 +138,12 @@ public class CategoryMergeService implements MergeService {
             .map(BaseMetadataObject::getUid)
             .collect(Collectors.toSet());
 
-    Set<String> commonCombos = new HashSet<>(sourceCatCombos);
-    commonCombos.retainAll(targetCatCombos);
+    Set<String> sharedCombos = new HashSet<>(sourceCatCombos);
+    sharedCombos.retainAll(targetCatCombos);
 
-    if (!commonCombos.isEmpty()) {
+    if (!sharedCombos.isEmpty()) {
       mergeReport.addErrorMessage(
-          new ErrorMessage(ErrorCode.E1536, String.join(",", commonCombos)));
+          new ErrorMessage(ErrorCode.E1536, String.join(",", sharedCombos)));
     }
   }
 

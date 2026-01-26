@@ -73,8 +73,8 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
 
     return getQuery(
             """
-            select distinct cc from CategoryCombo cc \
-            join cc.categories c \
+            select distinct cc from CategoryCombo cc
+            join cc.categories c
             where c.uid in :categoryUids
             """,
             CategoryCombo.class)

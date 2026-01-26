@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,16 +83,14 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MergeService categoryMergeService;
   @Autowired private DbmsManager dbmsManager;
 
-  private CategoryOption co1;
-  private CategoryOption co2;
   private Category catSource1;
   private Category catSource2;
   private Category catTarget;
 
   @BeforeEach
   void setUpCatModel() {
-    co1 = createCategoryOption('1');
-    co2 = createCategoryOption('2');
+    CategoryOption co1 = createCategoryOption('1');
+    CategoryOption co2 = createCategoryOption('2');
     categoryService.addCategoryOption(co1);
     categoryService.addCategoryOption(co2);
 
