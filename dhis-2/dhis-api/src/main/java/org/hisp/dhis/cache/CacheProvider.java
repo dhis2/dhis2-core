@@ -109,4 +109,6 @@ public interface CacheProvider {
   <V> Cache<V> createDataIntegrityDetailsCache();
 
   <V> Cache<V> createQueryAliasCache();
+
+  <V> Cache<V> createCorsWhitelistCache();
 }
