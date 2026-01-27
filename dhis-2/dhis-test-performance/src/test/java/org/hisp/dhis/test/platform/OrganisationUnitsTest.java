@@ -153,7 +153,7 @@ public class OrganisationUnitsTest extends Simulation {
             .on(exec(loginChain()))
             .group(GET_ORG_UNITS_REQUEST)
             .on(
-                repeat(3)
+                repeat(6)
                     .on(
                         exec(http(GET_ORG_UNITS_REQUEST)
                                 .get("/api/organisationUnits")
@@ -169,7 +169,7 @@ public class OrganisationUnitsTest extends Simulation {
             .on(exec(loginChain()))
             .group(GET_ORG_UNITS_ALL_FIELDS_REQUEST)
             .on(
-                repeat(3)
+                repeat(6)
                     .on(
                         exec(http(GET_ORG_UNITS_ALL_FIELDS_REQUEST)
                                 .get("/api/organisationUnits")
@@ -187,7 +187,7 @@ public class OrganisationUnitsTest extends Simulation {
             .on(exec(loginChain()))
             .group(GET_ORG_UNITS_WITH_PARENT_REQUEST)
             .on(
-                repeat(3)
+                repeat(6)
                     .on(
                         exec(http(GET_ORG_UNITS_WITH_PARENT_REQUEST)
                                 .get("/api/organisationUnits")
@@ -234,7 +234,7 @@ public class OrganisationUnitsTest extends Simulation {
             .on(exec(loginChain()))
             .group(GET_ORG_UNITS_DEEP_2_REQUEST)
             .on(
-                repeat(2)
+                repeat(6)
                     .on(
                         exec(http(GET_ORG_UNITS_DEEP_2_REQUEST)
                                 .get("/api/organisationUnits")
@@ -251,7 +251,7 @@ public class OrganisationUnitsTest extends Simulation {
             .on(exec(loginChain()))
             .group(GET_ORG_UNITS_DEEP_3_REQUEST)
             .on(
-                repeat(2)
+                repeat(6)
                     .on(
                         exec(http(GET_ORG_UNITS_DEEP_3_REQUEST)
                                 .get("/api/organisationUnits")
@@ -270,7 +270,7 @@ public class OrganisationUnitsTest extends Simulation {
             .on(exec(loginChain()))
             .group(GET_ORG_UNITS_ANCESTORS_REQUEST)
             .on(
-                repeat(2)
+                repeat(6)
                     .on(
                         exec(http(GET_ORG_UNITS_ANCESTORS_REQUEST)
                                 .get("/api/organisationUnits")
