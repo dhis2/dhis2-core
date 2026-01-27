@@ -313,6 +313,12 @@ public class CategoryOptionComboObjectBundleHook
       CategoryOptionCombo categoryOptionCombo, Consumer<ErrorReport> addReports) {
 
     CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
+    if (categoryCombo == null) {
+      addReports.accept(
+          new ErrorReport(
+              CategoryOptionCombo.class, ErrorCode.E1133, categoryOptionCombo.getName()));
+      return;
+    }
     CategoryCombo defaultCombo = categoryService.getDefaultCategoryCombo();
     if (!categoryCombo.getUid().equals(defaultCombo.getUid())) {
       return;

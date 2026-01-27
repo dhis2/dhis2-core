@@ -177,12 +177,14 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              pra.getPriority());
       case SCHEDULEEVENT ->
           new RuleAction(
               pra.getData(),
               SCHEDULEEVENT.name(),
-              createValues(FIELD, pra.getProgramStage().getUid()));
+              createValues(FIELD, pra.getProgramStage().getUid()),
+              pra.getPriority());
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
@@ -193,7 +195,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              pra.getPriority());
       case WARNINGONCOMPLETE ->
           new RuleAction(
               pra.getData(),
@@ -204,7 +207,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              pra.getPriority());
       case SHOWERROR ->
           new RuleAction(
               pra.getData(),
@@ -215,7 +219,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              pra.getPriority());
       case ERRORONCOMPLETE ->
           new RuleAction(
               pra.getData(),
@@ -226,21 +231,27 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              pra.getPriority());
       case SETMANDATORYFIELD ->
           new RuleAction(
               null,
               SETMANDATORYFIELD.name(),
               createValues(
-                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
+                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()),
+              pra.getPriority());
       case SENDMESSAGE ->
           new RuleAction(
-              null, SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
+              null,
+              SENDMESSAGE.name(),
+              createValues(NOTIFICATION, pra.getTemplateUid()),
+              pra.getPriority());
       case SCHEDULEMESSAGE ->
           new RuleAction(
               pra.getData(),
               SCHEDULEMESSAGE.name(),
-              createValues(NOTIFICATION, pra.getTemplateUid()));
+              createValues(NOTIFICATION, pra.getTemplateUid()),
+              pra.getPriority());
       default -> null;
     };
   }

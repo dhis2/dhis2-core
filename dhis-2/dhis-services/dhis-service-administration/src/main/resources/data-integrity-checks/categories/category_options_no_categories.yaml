@@ -26,7 +26,7 @@
 #
 ---
   name: category_options_no_categories
-  description: Category options with no categories.
+  description: Category options without categories
   section: Categories
   section_order: 3
   summary_sql: >-

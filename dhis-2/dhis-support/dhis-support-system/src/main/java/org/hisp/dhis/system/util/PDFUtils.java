@@ -43,7 +43,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import java.io.OutputStream;
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Lars Helge Overland
@@ -240,18 +240,18 @@ public class PDFUtils {
 
   public static Font getFont(Locale locale, float size) {
 
-    return getFont(ARABIC_FONT_CODE.equals(locale.getLanguage()) ? ARABIC_FONT : UBUNTU_FONT, size);
+    return getFont(ARABIC_FONT_CODE.equals(locale.language()) ? ARABIC_FONT : UBUNTU_FONT, size);
   }
 
   public static Font getBoldFont(Locale locale, float size) {
 
     return getFont(
-        ARABIC_FONT_CODE.equals(locale.getLanguage()) ? ARABIC_FONT : UBUNTU_BOLD_FONT, size);
+        ARABIC_FONT_CODE.equals(locale.language()) ? ARABIC_FONT : UBUNTU_BOLD_FONT, size);
   }
 
   public static Font getItalicFont(Locale locale, float size) {
     return getFont(
-        ARABIC_FONT_CODE.equals(locale.getLanguage()) ? ARABIC_FONT : UBUNTU_ITALIC_FONT, size);
+        ARABIC_FONT_CODE.equals(locale.language()) ? ARABIC_FONT : UBUNTU_ITALIC_FONT, size);
   }
 
   private static Font getFont(String fontPath, float size) {

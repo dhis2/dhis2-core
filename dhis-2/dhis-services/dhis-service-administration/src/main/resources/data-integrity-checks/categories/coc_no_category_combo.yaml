@@ -26,7 +26,7 @@
 #
 ---
   name: catoptioncombos_no_catcombo
-  description: Category options combinations with no category combination.
+  description: Category options combinations without category combinations
   section: Categories
   section_order: 7
   summary_sql: >-
