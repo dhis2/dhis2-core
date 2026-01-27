@@ -135,6 +135,7 @@ public class TrackerTest extends Simulation {
   private final int durationSec;
   private final int rampDurationSec;
   private final int steps;
+  private final boolean trackerOnly;
 
   private enum Profile {
     SMOKE,
@@ -179,6 +180,7 @@ public class TrackerTest extends Simulation {
     this.adminPassword = System.getProperty("adminPassword", "district");
     this.replicaUser = System.getProperty("replicaUser", "tracker2");
     this.replicaPassword = System.getProperty("replicaPassword", "Tracker123@");
+    this.trackerOnly = Boolean.getBoolean("trackerOnly");
 
     record ProfileDefaults(
         int usersPerSec,
@@ -206,24 +208,32 @@ public class TrackerTest extends Simulation {
       throw new RuntimeException("User provisioning failed", e);
     }
 
-    ScenarioWithRequests eventScenario = eventProgramScenario();
+    ScenarioWithRequests eventScenario = trackerOnly ? null : eventProgramScenario();
     ScenarioWithRequests trackerScenario = trackerProgramScenario();
 
     PopulationBuilder populationBuilder;
     if (this.profile == Profile.SMOKE) {
       ClosedInjectionStep closedInjection = constantConcurrentUsers(1).during(1);
-      populationBuilder =
-          eventScenario
-              .scenario()
-              .injectClosed(closedInjection)
-              .andThen(trackerScenario.scenario().injectClosed(closedInjection));
+      if (trackerOnly) {
+        populationBuilder = trackerScenario.scenario().injectClosed(closedInjection);
+      } else {
+        populationBuilder =
+            eventScenario
+                .scenario()
+                .injectClosed(closedInjection)
+                .andThen(trackerScenario.scenario().injectClosed(closedInjection));
+      }
     } else {
       List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
-      populationBuilder =
-          eventScenario
-              .scenario()
-              .injectOpen(injectionProfile)
-              .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+      if (trackerOnly) {
+        populationBuilder = trackerScenario.scenario().injectOpen(injectionProfile);
+      } else {
+        populationBuilder =
+            eventScenario
+                .scenario()
+                .injectOpen(injectionProfile)
+                .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+      }
     }
 
     HttpProtocolBuilder httpProtocolBuilder =
@@ -237,7 +247,10 @@ public class TrackerTest extends Simulation {
             .disableCaching() // to repeat the same request without HTTP cache influence (304)
             .check(status().is(200)); // global check for all requests
 
-    List<Assertion> assertions = getAssertions(this.profile, eventScenario, trackerScenario);
+    List<Assertion> assertions =
+        trackerOnly
+            ? getAssertions(this.profile, trackerScenario)
+            : getAssertions(this.profile, eventScenario, trackerScenario);
     setUp(populationBuilder).protocols(httpProtocolBuilder).assertions(assertions);
   }
 
