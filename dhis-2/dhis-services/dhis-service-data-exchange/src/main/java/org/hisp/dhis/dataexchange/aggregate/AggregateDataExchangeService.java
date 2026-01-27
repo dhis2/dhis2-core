@@ -412,6 +412,8 @@ public class AggregateDataExchangeService {
   DataValueSet buildResetDataValueSet(AggregateDataExchange exchange, SourceRequest request) {
     IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
 
+    // Note: request filters are intentionally ignored for reset. Filters only restrict analytics
+    // output, not the exchange scope; reset should cover the full dx/pe/ou definition.
     DimensionalObject dxDimension =
         toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme);
     DimensionalObject peDimension =
