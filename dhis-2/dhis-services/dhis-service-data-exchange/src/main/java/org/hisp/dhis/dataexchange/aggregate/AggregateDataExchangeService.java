@@ -58,8 +58,8 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -493,11 +493,7 @@ public class AggregateDataExchangeService {
           toIdScheme(targetRequest.getCategoryOptionComboIdScheme(), targetRequest.getIdScheme());
       if (cocScheme != null && !cocScheme.isNull()) {
         applyCocSchemeForNonIndicatorRows(
-            grid,
-            dxDimension,
-            outputDataItemIdScheme,
-            outputIdScheme,
-            cocScheme);
+            grid, dxDimension, outputDataItemIdScheme, outputIdScheme, cocScheme);
       }
     }
 
@@ -629,12 +625,11 @@ public class AggregateDataExchangeService {
     return true;
   }
 
-
   /**
-   * Applies the given category option combo ID scheme to non-indicator rows of the given grid. This is for
-   * situations where indicators use specific category option combos for aggregation, and these should not be
-   * altered as they are defined on the indicator itself. However, for data elements with category option combos,
-   * the given scheme should be applied.
+   * Applies the given category option combo ID scheme to non-indicator rows of the given grid. This
+   * is for situations where indicators use specific category option combos for aggregation, and
+   * these should not be altered as they are defined on the indicator itself. However, for data
+   * elements with category option combos, the given scheme should be applied.
    *
    * @param grid the {@link Grid}.
    * @param dxDimension the data X {@link DimensionalObject}.
@@ -654,7 +649,8 @@ public class AggregateDataExchangeService {
       return;
     }
 
-    Set<String> indicatorIds = getIndicatorDimensionItems(dxDimension, dataItemScheme, generalScheme);
+    Set<String> indicatorIds =
+        getIndicatorDimensionItems(dxDimension, dataItemScheme, generalScheme);
     if (indicatorIds.isEmpty()) {
       applyIdSchemeToGrid(grid, CATEGORYOPTIONCOMBO_DIM_ID, CategoryOptionCombo.class, cocScheme);
       return;
@@ -706,7 +702,8 @@ public class AggregateDataExchangeService {
       if (!(item instanceof Indicator || item instanceof ProgramIndicator)) {
         continue;
       }
-      IdScheme schemeToUse = dataItemScheme != null && !dataItemScheme.isNull() ? dataItemScheme : generalScheme;
+      IdScheme schemeToUse =
+          dataItemScheme != null && !dataItemScheme.isNull() ? dataItemScheme : generalScheme;
       if (schemeToUse != null && !schemeToUse.isNull()) {
         ids.add(item.getDimensionItem(schemeToUse));
       }
