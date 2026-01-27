@@ -35,12 +35,12 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Stream;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;

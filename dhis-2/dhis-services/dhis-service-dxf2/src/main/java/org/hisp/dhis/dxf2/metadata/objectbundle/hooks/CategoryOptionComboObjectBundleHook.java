@@ -317,6 +317,7 @@ public class CategoryOptionComboObjectBundleHook
       addReports.accept(
           new ErrorReport(
               CategoryOptionCombo.class, ErrorCode.E1133, categoryOptionCombo.getName()));
+      return;
     }
     CategoryCombo defaultCombo = categoryService.getDefaultCategoryCombo();
     if (!categoryCombo.getUid().equals(defaultCombo.getUid())) {

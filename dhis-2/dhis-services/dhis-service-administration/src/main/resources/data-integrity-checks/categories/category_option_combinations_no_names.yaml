@@ -26,7 +26,7 @@
 #
 ---
 name: category_option_combos_no_names
-description: Category option combinations with no names.
+description: Category option combinations without names
 section: Categories
 section_order: 8
 summary_sql: >-

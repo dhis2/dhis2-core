@@ -30,8 +30,8 @@
 package org.hisp.dhis.i18n.ui.resourcebundle;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.ResourceBundle;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author Pham Thi Thuy
