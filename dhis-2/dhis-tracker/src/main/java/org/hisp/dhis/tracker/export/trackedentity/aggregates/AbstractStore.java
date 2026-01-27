@@ -56,19 +56,6 @@ abstract class AbstractStore {
     return parameters;
   }
 
-  protected String applySortOrder(String sql, String sortOrderIds) {
-    String trackedentityid = "trackedentityid";
-    return "select * from ("
-        + sql
-        + ") as t JOIN unnest('{"
-        + sortOrderIds
-        + "}'::bigint[]) WITH ORDINALITY s("
-        + trackedentityid
-        + ", sortorder) USING ("
-        + trackedentityid
-        + ")ORDER  BY s.sortorder";
-  }
-
   /**
    * Execute a SELECT statement and maps the results to the specified Mapper
    *
