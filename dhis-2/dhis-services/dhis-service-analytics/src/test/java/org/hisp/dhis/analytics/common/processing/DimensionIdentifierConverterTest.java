@@ -605,4 +605,130 @@ class DimensionIdentifierConverterTest {
         thrown.getMessage(),
         "Exception message should indicate dimension is not supported for stage-specific scoping");
   }
+
+  @Test
+  void fromStringWithProgramScopedAndOffset() {
+    // Given - program-scoped dimension with offset (two-part format with offset)
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "lxAQ7Zs9VYR[2].someAttribute";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - offset should be preserved
+    assertEquals(
+        "someAttribute",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be someAttribute");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be lxAQ7Zs9VYR");
+    assertEquals(2, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 2");
+    assertEquals(
+        emptyElementWithOffset(),
+        dimensionIdentifier.getProgramStage(),
+        "Stage should be empty for program-scoped dimensions");
+  }
+
+  @Test
+  void fromStringStageScopedWithOffset() {
+    // Given - stage-scoped event-level dimension with offset
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG[3].eventdate";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - offset should be propagated to both program and stage
+    assertEquals(
+        "eventdate",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be eventdate");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(3, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 3");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+    assertEquals(3, dimensionIdentifier.getProgramStage().getOffset(), "Stage offset should be 3");
+  }
+
+  @Test
+  void fromStringWithStageUidAndNonStaticDimension() {
+    // Given - stage UID (not a program UID) with a non-static dimension (e.g., data element)
+    // This should fail because the first element is not a valid program
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.someDataElement";
+
+    // When - stage UID with non-static, non-event-level dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> converter.fromString(programs, fullDimensionId));
+
+    // Then - should fail with "program does not exist" since it's not a recognized pattern
+    assertEquals(
+        "Specified program ZkbAXlQUYJG does not exist",
+        thrown.getMessage(),
+        "Should fail as program not found for non-static dimensions");
+  }
+
+  @Test
+  void fromStringWithEmptyProgramsList() {
+    // Given - empty programs list
+    List<Program> programs = List.of();
+    String fullDimensionId = "anyProgram.anyDimension";
+
+    // When
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> converter.fromString(programs, fullDimensionId));
+
+    // Then - should fail with program not found
+    assertEquals(
+        "Specified program anyProgram does not exist",
+        thrown.getMessage(),
+        "Should fail when programs list is empty");
+  }
+
+  @Test
+  void fromStringDimensionOnlyWithEmptyProgramsList() {
+    // Given - dimension only with empty programs list (should succeed)
+    List<Program> programs = List.of();
+    String fullDimensionId = "someDimension";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - should succeed as dimension-only doesn't need programs
+    assertEquals(
+        "someDimension",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be someDimension");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgram(), "Program should be empty");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be empty");
+  }
 }
