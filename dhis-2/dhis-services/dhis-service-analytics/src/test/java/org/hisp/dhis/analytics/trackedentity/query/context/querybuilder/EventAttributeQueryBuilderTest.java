@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
+import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
@@ -46,6 +47,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -245,6 +247,32 @@ class EventAttributeQueryBuilderTest {
 
     assertEquals(1, result.getSelectFields().size());
     assertTrue(result.getSelectFields().get(0).isVirtual());
+  }
+
+  @Test
+  void testSortingScheduledDateIncludesSchedule() {
+    DimensionIdentifier<DimensionParam> scheduledDateDimension =
+        createEventLevelDimension(StaticDimension.SCHEDULED_DATE);
+
+    AnalyticsSortingParams sortingParams =
+        AnalyticsSortingParams.builder()
+            .index(0)
+            .orderBy(scheduledDateDimension)
+            .sortDirection(SortDirection.ASC)
+            .build();
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null, Collections.emptyList(), Collections.emptyList(), List.of(sortingParams));
+
+    assertEquals(1, result.getOrderClauses().size());
+    String renderedOrder = result.getOrderClauses().get(0).getRenderable().render();
+    assertTrue(
+        renderedOrder.contains("coalesce(occurreddate, scheduleddate)"),
+        "Expected schedule-inclusive ordering in: " + renderedOrder);
+    assertFalse(
+        renderedOrder.contains("status != 'SCHEDULE'"),
+        "Did not expect schedule exclusion in: " + renderedOrder);
   }
 
   private DimensionIdentifier<DimensionParam> createEventLevelDimension(

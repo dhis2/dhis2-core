@@ -131,13 +131,19 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
         sortingParam -> {
           DimensionIdentifier<DimensionParam> dimId = sortingParam.getOrderBy();
           String fieldName = dimId.getDimension().getStaticDimension().getColumnName();
+          StaticDimension staticDimension = dimId.getDimension().getStaticDimension();
+
+          Renderable orderSubQuery =
+              (staticDimension == SCHEDULED_DATE || staticDimension == EVENT_STATUS)
+                  ? SqlQueryHelper.buildOrderSubQueryIncludeSchedule(
+                      sortingParam.getOrderBy(), () -> fieldName)
+                  : SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName);
 
           builder.orderClause(
               IndexedOrder.of(
                   sortingParam.getIndex(),
                   org.hisp.dhis.analytics.common.query.Order.of(
-                      SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
-                      sortingParam.getSortDirection())));
+                      orderSubQuery, sortingParam.getSortDirection())));
         });
 
     return builder.build();
