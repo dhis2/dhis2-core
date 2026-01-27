@@ -54,33 +54,35 @@ import org.springframework.stereotype.Repository;
 class TrackedEntityStore {
   private static final int PARTITION_SIZE = 20000;
 
+  // language=SQL
   private static final String GET_ATTRIBUTES =
       """
-      SELECT te.uid as te_uid,
+      select te.uid as te_uid,
              teav.created,
              teav.lastupdated,
              teav.storedby,
              teav.value,
-             t.uid as attr_uid,
-             t.code as attr_code,
-             t.name as attr_name,
-             t.attributevalues as attr_attributevalues,
-             t.valuetype as attr_valuetype,
-             t.skipsynchronization as attr_skipsync
-      FROM trackedentityattributevalue teav
-      JOIN trackedentityattribute t ON teav.trackedentityattributeid = t.trackedentityattributeid
-      JOIN trackedentity te ON teav.trackedentityid = te.trackedentityid
-      WHERE teav.trackedentityid IN (:ids)
+             tea.uid as attr_uid,
+             tea.code as attr_code,
+             tea.name as attr_name,
+             tea.attributevalues as attr_attributevalues,
+             tea.valuetype as attr_valuetype,
+             tea.skipsynchronization as attr_skipsync
+      from trackedentityattributevalue teav
+      join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
+      join trackedentity te on teav.trackedentityid = te.trackedentityid
+      where teav.trackedentityid in (:ids)
       """;
 
+  // language=SQL
   private static final String GET_PROGRAM_OWNERS =
       """
-      SELECT te.uid as te_uid, p.uid as program_uid, o.uid as orgunit_uid
-      FROM trackedentityprogramowner teop
-      JOIN program p ON teop.programid = p.programid
-      JOIN organisationunit o ON teop.organisationunitid = o.organisationunitid
-      JOIN trackedentity te ON teop.trackedentityid = te.trackedentityid
-      WHERE teop.trackedentityid IN (:ids)
+      select te.uid as te_uid, p.uid as program_uid, o.uid as orgunit_uid
+      from trackedentityprogramowner teop
+      join program p on teop.programid = p.programid
+      join organisationunit o on teop.organisationunitid = o.organisationunitid
+      join trackedentity te on teop.trackedentityid = te.trackedentityid
+      where teop.trackedentityid in (:ids)
       """;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -96,17 +98,6 @@ class TrackedEntityStore {
           GET_ATTRIBUTES,
           new MapSqlParameterSource("ids", partition),
           (RowCallbackHandler) rs -> results.put(rs.getString("te_uid"), mapAttribute(rs)));
-    }
-    return results;
-  }
-
-  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
-    Multimap<String, TrackedEntityProgramOwner> results = ArrayListMultimap.create();
-    for (List<Long> partition : Lists.partition(ids, PARTITION_SIZE)) {
-      jdbcTemplate.query(
-          GET_PROGRAM_OWNERS,
-          new MapSqlParameterSource("ids", partition),
-          (RowCallbackHandler) rs -> results.put(rs.getString("te_uid"), mapProgramOwner(rs)));
     }
     return results;
   }
@@ -128,6 +119,17 @@ class TrackedEntityStore {
     av.setAttribute(attr);
 
     return av;
+  }
+
+  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {
+    Multimap<String, TrackedEntityProgramOwner> results = ArrayListMultimap.create();
+    for (List<Long> partition : Lists.partition(ids, PARTITION_SIZE)) {
+      jdbcTemplate.query(
+          GET_PROGRAM_OWNERS,
+          new MapSqlParameterSource("ids", partition),
+          (RowCallbackHandler) rs -> results.put(rs.getString("te_uid"), mapProgramOwner(rs)));
+    }
+    return results;
   }
 
   private static TrackedEntityProgramOwner mapProgramOwner(ResultSet rs) throws SQLException {
