@@ -329,7 +329,8 @@ class AggregateDataExchangeServiceTest {
     Source source = new Source().setRequests(List.of(request));
     TargetRequest targetRequest = new TargetRequest().setResetBeforeExchange(Boolean.TRUE);
     Target target = new Target().setType(TargetType.INTERNAL).setRequest(targetRequest);
-    AggregateDataExchange exchange = new AggregateDataExchange().setSource(source).setTarget(target);
+    AggregateDataExchange exchange =
+        new AggregateDataExchange().setSource(source).setTarget(target);
 
     when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
         .thenReturn(new DataValueSet());
@@ -339,7 +340,8 @@ class AggregateDataExchangeServiceTest {
         .when(spyService)
         .resetTargetData(eq(exchange), eq(request));
 
-    spyService.exchangeData( (UserDetails) new User(), exchange, org.hisp.dhis.scheduling.JobProgress.noop());
+    spyService.exchangeData(
+        (UserDetails) new User(), exchange, org.hisp.dhis.scheduling.JobProgress.noop());
 
     org.mockito.Mockito.verify(spyService).resetTargetData(eq(exchange), eq(request));
   }
