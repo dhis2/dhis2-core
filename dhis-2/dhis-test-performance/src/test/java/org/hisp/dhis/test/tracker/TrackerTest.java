@@ -358,32 +358,32 @@ public class TrackerTest extends Simulation {
     Request goToFirstPage =
         new Request(
             getEventsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 63, Profile.LOAD, 72)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 62, Profile.LOAD, 76)),
             "Go to first page of program " + this.eventProgram,
             "Get a list of single events");
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 99, Profile.LOAD, 105)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 101, Profile.LOAD, 107)),
             "Go to second page of program " + this.eventProgram,
             "Get a list of single events");
     Request searchSingleEvents =
         new Request(
             getEventsUrl + "&occurredAfter=2025-01-01&occurredBefore=2025-12-31",
-            new EnumMap<>(Map.of(Profile.SMOKE, 57, Profile.LOAD, 64)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 143, Profile.LOAD, 63)),
             "Search single events in date interval in program " + this.eventProgram,
             "Get a list of single events");
     Request getFirstEvent =
         new Request(
             singleEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 42, Profile.LOAD, 57)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 26, Profile.LOAD, 53)),
             "Get first event",
             "Get a list of single events",
             "Get one single event");
     Request getRelationshipsForFirstEvent =
         new Request(
             relationshipUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 8, Profile.LOAD, 8)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first event",
             "Get a list of single events",
             "Get one single event");
@@ -493,70 +493,70 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 204, Profile.LOAD, 280)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Not found TE by name with like operator",
             "Get a list of TEs");
     Request notFoundTeByNationalIdWithEqualOperator =
         new Request(
             notFoundByNationalId,
-            new EnumMap<>(Map.of(Profile.SMOKE, 6, Profile.LOAD, 16)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Not found TE by national id with eq operator",
             "Get a list of TEs");
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 197, Profile.LOAD, 280)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 230, Profile.LOAD, 96)),
             "Search TE by name with like operator",
             "Get a list of TEs");
     Request searchTeByNationalIdWithEqualOperator =
         new Request(
             searchForTEByNationalId,
-            new EnumMap<>(Map.of(Profile.SMOKE, 11, Profile.LOAD, 22)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Search TE by national id with eq operator",
             "Get a list of TEs");
     Request searchEventsByProgramStage =
         new Request(
             searchEventByProgramStage,
-            new EnumMap<>(Map.of(Profile.SMOKE, 11, Profile.LOAD, 33)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 29)),
             "Search events by program stage",
             "Get a list of TEs");
     Request getTrackedEntitiesForEvents =
         new Request(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 22, Profile.LOAD, 50)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get tracked entities from events",
             "Get a list of TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 60, Profile.LOAD, 100)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 53)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 65)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 46, Profile.LOAD, 60)),
             "Get first tracked entity",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getFirstEnrollment =
         new Request(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 15, Profile.LOAD, 28)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
             "Get first enrollment",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getRelationshipsForTrackedEntity =
         new Request(
             relationshipForTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 8, Profile.LOAD, 8)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first tracked entity",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 32, Profile.LOAD, 114)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 33, Profile.LOAD, 93)),
             "Get first event from enrollment",
             "Get a list of TEs",
             "Go to single enrollment",
@@ -564,7 +564,7 @@ public class TrackerTest extends Simulation {
     Request getRelationshipsForEvent =
         new Request(
             relationshipForEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 6, Profile.LOAD, 8)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first event",
             "Get a list of TEs",
             "Go to single enrollment",
