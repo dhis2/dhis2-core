@@ -57,6 +57,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
@@ -84,6 +85,9 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
+
+  @Column(name = "code", length = 50, unique = true)
+  private String code;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
@@ -305,6 +309,18 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
     this.orgUnitLevelName = orgUnitLevelName;
   }
 
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
   @Override
   public String getPropertyValue(IdScheme idScheme) {
     if (idScheme.is(IdentifiableProperty.UID)) {
@@ -388,18 +404,6 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   @Override
   @Deprecated
   public void setOwner(String owner) {
-    // Not supported - no-op
-  }
-
-  @Deprecated
-  @Override
-  public String getCode() {
-    return "";
-  }
-
-  @Deprecated
-  @Override
-  public void setCode(String code) {
     // Not supported - no-op
   }
 }
