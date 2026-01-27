@@ -42,6 +42,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -53,17 +54,22 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -79,6 +85,14 @@ class AggregateDataExchangeServiceTest {
   @Mock private DataQueryService dataQueryService;
 
   @Mock private AclService aclService;
+
+  @Mock private DataEntryPipeline dataEntryPipeline;
+
+  @Mock private org.hisp.dhis.common.IdentifiableObjectManager idObjectManager;
+
+  @Mock private PeriodService periodService;
+
+  @Mock private PBEStringCleanablePasswordEncryptor encryptor;
 
   @Mock private DataExportService dataExportService;
 
@@ -220,6 +234,89 @@ class AggregateDataExchangeServiceTest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
+  void testBuildResetDataValueSetCreatesDeletedValues() {
+    DimensionalItemObject dx1 = mockDimensionalItem("dxA");
+    DimensionalItemObject dx2 = mockDimensionalItem("dxB");
+    DimensionalItemObject pe1 = mockDimensionalItem("202401");
+    DimensionalItemObject pe2 = mockDimensionalItem("202402");
+    DimensionalItemObject ou1 = mockDimensionalItem("OuA");
+
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(dx1, dx2)));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of(pe1, pe2)));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of(ou1)));
+
+    SourceRequest request =
+        new SourceRequest()
+            .setDx(List.of("dxA", "dxB"))
+            .setPe(List.of("202401", "202402"))
+            .setOu(List.of("OuA"))
+            .setOutputDataItemIdScheme(IdScheme.UID.name())
+            .setOutputIdScheme(IdScheme.UID.name());
+
+    AggregateDataExchange exchange =
+        new AggregateDataExchange()
+            .setSource(new Source().setRequests(List.of(request)))
+            .setTarget(new Target().setType(TargetType.INTERNAL).setRequest(new TargetRequest()));
+
+    DataValueSet set = service.buildResetDataValueSet(exchange, request);
+
+    assertEquals(4, set.getDataValues().size());
+    // Verify that all expected combinations are present
+    for (DimensionalItemObject dx : List.of(dx1, dx2)) {
+      for (DimensionalItemObject pe : List.of(pe1, pe2)) {
+        for (DimensionalItemObject ou : List.of(ou1)) {
+          String finalDx = dx.getDimensionItem();
+          String finalPe = pe.getDimensionItem();
+          String finalOu = ou.getDimensionItem();
+          assertTrue(
+              set.getDataValues().stream()
+                  .anyMatch(
+                      v ->
+                          v.getDataElement().equals(finalDx)
+                              && v.getPeriod().equals(finalPe)
+                              && v.getOrgUnit().equals(finalOu)));
+        }
+      }
+    }
+    assertTrue(set.getDataValues().stream().allMatch(v -> Boolean.TRUE.equals(v.getDeleted())));
+  }
+
+  private static DimensionalItemObject mockDimensionalItem(String id) {
+    DimensionalItemObject item = mock(DimensionalItemObject.class);
+    when(item.getDimensionItem()).thenReturn(id);
+    return item;
+  }
+
+  @Test
   void testToAggregationType() {
     assertEquals(
         new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
@@ -229,16 +326,14 @@ class AggregateDataExchangeServiceTest {
 
   @Test
   void testToIdScheme() {
-    String undefined = null;
-
     assertEquals(IdScheme.CODE, service.toIdScheme("code"));
     assertEquals(IdScheme.UID, service.toIdScheme("UID"));
     assertEquals(IdScheme.UID, service.toIdScheme("uid"));
     assertEquals(IdScheme.UID, service.toIdScheme("uid"));
-    assertEquals(IdScheme.UID, service.toIdScheme(undefined, "uid"));
-    assertEquals(IdScheme.UID, service.toIdScheme(undefined, undefined, "uid"));
-    assertNull(service.toIdScheme(undefined));
-    assertNull(service.toIdScheme(undefined, undefined));
+    assertEquals(IdScheme.UID, service.toIdScheme(null, "uid"));
+    assertEquals(IdScheme.UID, service.toIdScheme(null, null, "uid"));
+    assertNull(service.toIdScheme(null));
+    assertNull(service.toIdScheme(null, null));
   }
 
   @Test

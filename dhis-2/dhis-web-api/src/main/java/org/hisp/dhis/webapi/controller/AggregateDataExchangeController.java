@@ -88,7 +88,7 @@ public class AggregateDataExchangeController
   public WebMessage resetDataExchangeByUid(
       @PathVariable String uid, @CurrentUser UserDetails userDetails) {
     AggregateDataExchange exchange = service.loadByUid(uid);
-    return WebMessageUtils.importSummary(service.resetData(userDetails, exchange));
+    return WebMessageUtils.importSummaries(service.resetData(userDetails, exchange));
   }
 
   @GetMapping("/{uid}/sourceData")
@@ -106,5 +106,4 @@ public class AggregateDataExchangeController
       throws ForbiddenException {
     return service.getSourceDataValueSets(userDetails, uid, params);
   }
-
 }

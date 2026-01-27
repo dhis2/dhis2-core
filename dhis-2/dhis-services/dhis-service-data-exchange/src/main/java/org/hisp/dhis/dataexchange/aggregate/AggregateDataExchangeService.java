@@ -32,7 +32,6 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -43,7 +42,9 @@ import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -77,7 +79,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
@@ -193,22 +194,27 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the reset.
    */
   @Transactional
-  public ImportSummary resetData(UserDetails userDetails, AggregateDataExchange exchange) {
+  public ImportSummaries resetData(UserDetails userDetails, AggregateDataExchange exchange) {
     if (!aclService.canDataWrite(userDetails, exchange)) {
-      return new ImportSummary(
-          ImportStatus.ERROR,
-          String.format(
-              "User has no data write access for AggregateDataExchange: %s",
-              exchange.getDisplayName()));
+      ImportSummaries summaries = new ImportSummaries();
+      summaries.addImportSummary(
+          new ImportSummary(
+              ImportStatus.ERROR,
+              String.format(
+                  "User has no data write access for AggregateDataExchange: %s",
+                  exchange.getDisplayName())));
+      return summaries;
     }
 
+    ImportSummaries summaries = new ImportSummaries();
     ImportSummary summary =
         new ImportSummary(ImportStatus.SUCCESS, "Target data reset.", new ImportCount());
 
     for (SourceRequest sourceRequest : exchange.getSource().getRequests()) {
       ImportSummary result = resetTargetData(exchange, sourceRequest);
       if (result.getStatus() == ImportStatus.ERROR) {
-        return result;
+        summaries.addImportSummary(result);
+        return summaries;
       }
 
       ImportCount total = summary.getImportCount();
@@ -219,7 +225,8 @@ public class AggregateDataExchangeService {
       total.incrementDeleted(current.getDeleted());
     }
 
-    return summary;
+    summaries.addImportSummary(summary);
+    return summaries;
   }
 
   /**
@@ -300,14 +307,8 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-
-    return pushToInternal(exchange, dataValueSet, toImportOptions(exchange));
-  }
-
-  private ImportSummary pushToInternal(
-      AggregateDataExchange exchange, DataValueSet dataValueSet, ImportOptions options) {
     return dataEntryPipeline.importInputGroups(
-        List.of(toDataEntryGroup(dataValueSet)), options, transitory());
+        List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
   }
 
   private static DataEntryGroup.Input toDataEntryGroup(DataValueSet set) {
@@ -357,69 +358,15 @@ public class AggregateDataExchangeService {
     return getDhis2Client(exchange).saveDataValueSet(dataValueSet, options);
   }
 
+  /**
+   * Performs a reset of target data as defined by the given exchange and request.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param request the {@link SourceRequest}.
+   * @return an {@link ImportSummary} describing the outcome of the exchange.
+   */
   private ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
     DataValueSet resetSet = buildResetDataValueSet(exchange, request);
-
-    if (log.isDebugEnabled()) {
-      log.debug(
-          "Reset payload built for exchange {}: values={}",
-          exchange.getUid(),
-          resetSet.getDataValues().size());
-      resetSet.getDataValues().stream()
-          .limit(5)
-          .forEach(
-              value ->
-                  log.debug(
-                      "Reset sample value dx={}, pe={}, ou={}, coc={}, aoc={}, deleted={}",
-                      value.getDataElement(),
-                      value.getPeriod(),
-                      value.getOrgUnit(),
-                      value.getCategoryOptionCombo(),
-                      value.getAttributeOptionCombo(),
-                      value.getDeleted()));
-    }
-
-    if (log.isDebugEnabled()) {
-      long missingDataElements =
-          resetSet.getDataValues().stream()
-              .map(DataValue::getDataElement)
-              .filter(java.util.Objects::nonNull)
-              .filter(id -> idObjectManager.get(DataElement.class, id) == null)
-              .count();
-      long missingOrgUnits =
-          resetSet.getDataValues().stream()
-              .map(DataValue::getOrgUnit)
-              .filter(java.util.Objects::nonNull)
-              .filter(id -> idObjectManager.get(OrganisationUnit.class, id) == null)
-              .count();
-      long missingCategoryOptionCombos =
-          resetSet.getDataValues().stream()
-              .map(DataValue::getCategoryOptionCombo)
-              .filter(java.util.Objects::nonNull)
-              .filter(id -> idObjectManager.get(CategoryOptionCombo.class, id) == null)
-              .count();
-      long missingAttributeOptionCombos =
-          resetSet.getDataValues().stream()
-              .map(DataValue::getAttributeOptionCombo)
-              .filter(java.util.Objects::nonNull)
-              .filter(id -> idObjectManager.get(CategoryOptionCombo.class, id) == null)
-              .count();
-      long missingPeriods =
-          resetSet.getDataValues().stream()
-              .map(DataValue::getPeriod)
-              .filter(java.util.Objects::nonNull)
-              .filter(iso -> periodService.getPeriod(iso) == null)
-              .count();
-
-      log.debug(
-          "Reset payload unresolved identifiers for exchange {}: deMissing={}, ouMissing={}, cocMissing={}, aocMissing={}, peMissing={}",
-          exchange.getUid(),
-          missingDataElements,
-          missingOrgUnits,
-          missingCategoryOptionCombos,
-          missingAttributeOptionCombos,
-          missingPeriods);
-    }
 
     if (resetSet.getDataValues().isEmpty()) {
       return new ImportSummary(
@@ -428,11 +375,13 @@ public class AggregateDataExchangeService {
     }
 
     ImportOptions resetOptions = toImportOptions(exchange);
-    resetOptions.setImportStrategy(ImportStrategy.DELETE);
+    // Use NEW_AND_UPDATES so delete is driven by per-value deleted=true during upsert.
+    resetOptions.setImportStrategy(ImportStrategy.NEW_AND_UPDATES);
 
     ImportSummary summary =
         exchange.getTarget().getType() == TargetType.INTERNAL
-            ? pushToInternal(exchange, resetSet, resetOptions)
+            ? dataEntryPipeline.importInputGroups(
+                List.of(toDataEntryGroup(resetSet)), resetOptions, transitory())
             : pushToExternal(exchange, resetSet, resetOptions);
 
     if (summary.getStatus() == ImportStatus.SUCCESS) {
@@ -443,8 +392,15 @@ public class AggregateDataExchangeService {
     return summary;
   }
 
-  private DataValueSet buildResetDataValueSet(
-      AggregateDataExchange exchange, SourceRequest request) {
+  /**
+   * Builds a {@link DataValueSet} payload for resetting data based on the given exchange and
+   * request.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param request the {@link SourceRequest}.
+   * @return a {@link DataValueSet} payload for resetting data.
+   */
+  DataValueSet buildResetDataValueSet(AggregateDataExchange exchange, SourceRequest request) {
     IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
 
     DimensionalObject dxDimension =
@@ -469,23 +425,13 @@ public class AggregateDataExchangeService {
               rowCount, RESET_MAX_VALUES));
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug(
-          "Building purge payload for exchange {} request {}: dx={}, pe={}, ou={}, rows={}",
-          exchange.getUid(),
-          request.getName(),
-          dxItems.size(),
-          peItems.size(),
-          ouItems.size(),
-          rowCount);
-    }
-
     Grid grid = new ListGrid();
     grid.addHeader(new GridHeader(DATA_X_DIM_ID, DATA_X_DIM_ID, ValueType.TEXT, false, true));
     grid.addHeader(new GridHeader(PERIOD_DIM_ID, PERIOD_DIM_ID, ValueType.TEXT, false, true));
     grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, ORGUNIT_DIM_ID, ValueType.TEXT, false, true));
     grid.addHeader(
-        new GridHeader(DataQueryParams.VALUE_ID, DataQueryParams.VALUE_ID, ValueType.TEXT, false, false));
+        new GridHeader(
+            DataQueryParams.VALUE_ID, DataQueryParams.VALUE_ID, ValueType.TEXT, false, false));
 
     for (String dx : dxItems) {
       for (String pe : peItems) {
@@ -514,7 +460,12 @@ public class AggregateDataExchangeService {
     IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
 
     applyDimensionItemIdScheme(
-        grid, DATA_X_DIM_ID, dxDimension, outputDataElementIdScheme, outputDataItemIdScheme, outputIdScheme);
+        grid,
+        DATA_X_DIM_ID,
+        dxDimension,
+        outputDataElementIdScheme,
+        outputDataItemIdScheme,
+        outputIdScheme);
     applyDimensionItemIdScheme(
         grid, ORGUNIT_DIM_ID, ouDimension, outputOrgUnitIdScheme, null, outputIdScheme);
     applyIdSchemeToGrid(grid, DATA_X_DIM_ID, DataElement.class, outputDataElementIdScheme);
@@ -523,8 +474,7 @@ public class AggregateDataExchangeService {
         exchange.getTarget() != null ? exchange.getTarget().getRequest() : null;
     if (targetRequest != null) {
       IdScheme cocScheme =
-          toIdScheme(
-              targetRequest.getCategoryOptionComboIdScheme(), targetRequest.getIdScheme());
+          toIdScheme(targetRequest.getCategoryOptionComboIdScheme(), targetRequest.getIdScheme());
       applyIdSchemeToGrid(grid, CATEGORYOPTIONCOMBO_DIM_ID, CategoryOptionCombo.class, cocScheme);
     }
 
@@ -533,14 +483,23 @@ public class AggregateDataExchangeService {
         .getDataValues()
         .forEach(
             value -> {
-              value.setValue("10");
-              value.setComment( "Deleted by ADEX" );
-              value.setDeleted( true );
+              value.setValue(null);
+              value.setStoredBy(null);
+              value.setComment("Deleted by ADEX");
+              value.setDeleted(true);
             });
     return dataValueSet;
   }
 
-  private <T extends org.hisp.dhis.common.IdentifiableObject> void applyIdSchemeToGrid(
+  /**
+   * Applies the given ID scheme to the specified column of the given grid.
+   *
+   * @param grid the {@link Grid}.
+   * @param column the column name.
+   * @param type the type of {@link IdentifiableObject}.
+   * @param idScheme the {@link IdScheme}.
+   */
+  private <T extends IdentifiableObject> void applyIdSchemeToGrid(
       Grid grid, String column, Class<T> type, IdScheme idScheme) {
     if (idScheme == null || idScheme.isNull()) {
       return;
@@ -551,7 +510,7 @@ public class AggregateDataExchangeService {
       return;
     }
 
-    java.util.Map<String, String> cache = new java.util.HashMap<>();
+    Map<String, String> cache = new java.util.HashMap<>();
 
     List<List<Object>> rows = grid.getRows();
     for (List<Object> row : rows) {
@@ -577,6 +536,16 @@ public class AggregateDataExchangeService {
     }
   }
 
+  /**
+   * Applies the given dimension item ID schemes to the specified column of the given grid.
+   *
+   * @param grid the {@link Grid}.
+   * @param column the column name.
+   * @param dimension the {@link DimensionalObject}.
+   * @param dataElementScheme the {@link IdScheme} for data elements.
+   * @param dataItemScheme the {@link IdScheme} for data items.
+   * @param generalScheme the general {@link IdScheme}.
+   */
   private void applyDimensionItemIdScheme(
       Grid grid,
       String column,
@@ -584,9 +553,8 @@ public class AggregateDataExchangeService {
       IdScheme dataElementScheme,
       IdScheme dataItemScheme,
       IdScheme generalScheme) {
-    if ((dataElementScheme == null || dataElementScheme.isNull())
-        && (dataItemScheme == null || dataItemScheme.isNull())
-        && (generalScheme == null || generalScheme.isNull())) {
+
+    if (allSchemesEmpty(dataElementScheme, dataItemScheme, generalScheme)) {
       return;
     }
 
@@ -595,13 +563,15 @@ public class AggregateDataExchangeService {
       return;
     }
 
-    java.util.Map<String, String> map = new java.util.HashMap<>();
+    Map<String, String> map = new HashMap<>();
     dimension
         .getItems()
         .forEach(
             item -> {
               IdScheme schemeToUse = generalScheme;
-              if (item instanceof DataElement && dataElementScheme != null && !dataElementScheme.isNull()) {
+              if (item instanceof DataElement
+                  && dataElementScheme != null
+                  && !dataElementScheme.isNull()) {
                 schemeToUse = dataElementScheme;
               } else if (dataItemScheme != null && !dataItemScheme.isNull()) {
                 schemeToUse = dataItemScheme;
@@ -625,6 +595,15 @@ public class AggregateDataExchangeService {
         row.set(index, mapped);
       }
     }
+  }
+
+  private boolean allSchemesEmpty(IdScheme... schemes) {
+    for (IdScheme scheme : schemes) {
+      if (scheme != null && !scheme.isNull()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
