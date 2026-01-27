@@ -589,7 +589,7 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 searchTeByNameWithLikeOperator
                                     .action()
-                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
                             .exec(
                                 searchTeByNationalIdWithEqualOperator
                                     .action()
