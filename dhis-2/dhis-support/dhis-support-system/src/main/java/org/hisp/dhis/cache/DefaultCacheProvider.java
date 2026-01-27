@@ -37,6 +37,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -626,5 +627,20 @@ public class DefaultCacheProvider implements CacheProvider {
         this.<V>newBuilder()
             .forRegion(Region.dataIntegrityDetailsCache.name())
             .expireAfterWrite(1, HOURS));
+  }
+
+  /**
+   * Cache for CORS whitelist to avoid database lookups on every HTTP request. Expires after 5
+   * minutes to pick up configuration changes.
+   */
+  @Override
+  public <V> Cache<V> createCorsWhitelistCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(org.hisp.dhis.common.cache.Region.corsWhitelistCache.name())
+            .expireAfterWrite(5, MINUTES)
+            .withInitialCapacity((int) getActualSize(SIZE_1))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1))));
   }
 }
