@@ -26,7 +26,7 @@
 #
 ---
 name:  option_sets_wrong_sort_order
-description: Option sets with possibly wrong sort order.
+description: Option sets with possibly wrong sort order
 section: Option sets
 section_order: 3
 summary_sql: >-

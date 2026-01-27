@@ -26,7 +26,7 @@
 #
 ---
 name: datasets_empty
-description: Datasets with no data elements.
+description: Datasets without data elements
 section: Data sets
 section_order: 1
 summary_sql: >-

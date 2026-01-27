@@ -91,7 +91,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.4.1</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.5.0</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -243,7 +243,7 @@
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
-    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>

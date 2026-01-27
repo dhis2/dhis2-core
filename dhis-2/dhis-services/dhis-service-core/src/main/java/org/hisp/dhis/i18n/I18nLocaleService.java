@@ -30,8 +30,8 @@
 package org.hisp.dhis.i18n;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.user.UserDetails;
 
@@ -43,6 +43,8 @@ public interface I18nLocaleService {
   Map<String, String> getAvailableCountries();
 
   I18nLocale addI18nLocale(String language, String country);
+
+  I18nLocale addI18nLocale(String language, String country, String script);
 
   void saveI18nLocale(I18nLocale locale);
 
