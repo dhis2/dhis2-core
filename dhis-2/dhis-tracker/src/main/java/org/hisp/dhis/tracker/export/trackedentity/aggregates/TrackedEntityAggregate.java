@@ -30,9 +30,10 @@
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,6 +41,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -55,9 +57,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
 @Component
 @RequiredArgsConstructor
 public class TrackedEntityAggregate {
@@ -86,20 +85,17 @@ public class TrackedEntityAggregate {
 
     List<Long> ids = trackedEntities.stream().map(TrackedEntity::getId).toList();
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
-        conditionalAsyncFetch(
+        asyncFetch(
             fields.isIncludesEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityIds(trackedEntities, ctx),
-            getPool());
+            () -> enrollmentAggregate.findByTrackedEntityIds(trackedEntities, ctx));
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
-        conditionalAsyncFetch(
-            fields.isIncludesAttributes(), () -> trackedEntityStore.getAttributes(ids), getPool());
+        asyncFetch(fields.isIncludesAttributes(), () -> trackedEntityStore.getAttributes(ids));
     // Program owners are only fetched here when no program filter is specified.
     // When a program filter is specified, JdbcTrackedEntityStore includes the program owner.
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
-        conditionalAsyncFetch(
+        asyncFetch(
             fields.isIncludesProgramOwners() && !queryParams.hasEnrolledInTrackerProgram(),
-            () -> trackedEntityStore.getProgramOwners(ids),
-            getPool());
+            () -> trackedEntityStore.getProgramOwners(ids));
 
     // Fetch allowed attributes on the HTTP thread while async tasks are fetching other data
     Set<String> allowedAttributeUids = getAllowedAttributeUids(queryParams);
@@ -120,6 +116,13 @@ public class TrackedEntityAggregate {
         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
       }
     }
+  }
+
+  private static <T> CompletableFuture<Multimap<String, T>> asyncFetch(
+      boolean condition, Supplier<Multimap<String, T>> supplier) {
+    return condition
+        ? supplyAsync(supplier, getPool())
+        : CompletableFuture.completedFuture(ArrayListMultimap.create());
   }
 
   private Set<String> getAllowedAttributeUids(TrackedEntityQueryParams params) {
