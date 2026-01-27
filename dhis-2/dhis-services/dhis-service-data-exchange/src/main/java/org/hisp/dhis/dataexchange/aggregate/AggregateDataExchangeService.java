@@ -40,6 +40,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -53,8 +55,10 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
@@ -70,6 +74,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -204,6 +210,76 @@ public class AggregateDataExchangeService {
     return mapToList(
         exchange.getSource().getRequests(),
         request -> analyticsService.getAggregatedDataValueSet(toDataQueryParams(request, params)));
+  }
+
+  /**
+   * Returns the concatenated source data value set for the analytics data exchange with the given
+   * identifier.
+   *
+   * @param uid the {@link AggregateDataExchange} identifier.
+   * @param params the {@link SourceDataQueryParams}.
+   * @return the concatenated source data value set.
+   */
+  public DataValueSet getSourceDataValueSet(
+      UserDetails userDetails, String uid, SourceDataQueryParams params) throws ForbiddenException {
+    AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
+
+    if (!aclService.canDataRead(userDetails, exchange)) {
+      throw new ForbiddenException(ErrorCode.E3012, exchange);
+    }
+
+    DataValueSet merged = new DataValueSet();
+
+    exchange
+        .getSource()
+        .getRequests()
+        .forEach(
+            request ->
+                merged
+                    .getDataValues()
+                    .addAll(
+                        analyticsService
+                            .getAggregatedDataValueSet(toDataQueryParams(request, params))
+                            .getDataValues()));
+
+    return merged;
+  }
+
+  /**
+   * Returns the concatenated source data value set grid for the analytics data exchange with the
+   * given identifier.
+   *
+   * @param uid the {@link AggregateDataExchange} identifier.
+   * @param params the {@link SourceDataQueryParams}.
+   * @return the concatenated source data value set grid.
+   */
+  public Grid getSourceDataValueSetGrid(
+      UserDetails userDetails, String uid, SourceDataQueryParams params) throws ForbiddenException {
+    AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
+
+    if (!aclService.canDataRead(userDetails, exchange)) {
+      throw new ForbiddenException(ErrorCode.E3012, exchange);
+    }
+
+    Grid combined = null;
+
+    for (SourceRequest request : exchange.getSource().getRequests()) {
+      Grid grid =
+          analyticsService.getAggregatedDataValueSetAsGrid(toDataQueryParams(request, params));
+      combined = combined == null ? grid : combined.addRows(grid);
+    }
+
+    return combined != null ? combined : newDataValueSetGrid();
+  }
+
+  /**
+   * Writes the given data value set grid as CSV to the provided writer.
+   *
+   * @param grid the {@link Grid}.
+   * @param writer the {@link Writer}.
+   */
+  public void writeDataValueSetCsv(Grid grid, Writer writer) throws IOException {
+    GridUtils.toCsv(grid, writer);
   }
 
   /**
@@ -536,5 +612,23 @@ public class AggregateDataExchangeService {
    */
   boolean isPersisted(AggregateDataExchange exchange) {
     return exchange != null && exchange.getId() > 0;
+  }
+
+  private static Grid newDataValueSetGrid() {
+    Grid grid = new ListGrid();
+
+    grid.addHeader(new GridHeader("data_element", ValueType.TEXT));
+    grid.addHeader(new GridHeader("period", ValueType.TEXT));
+    grid.addHeader(new GridHeader("organisation_unit", ValueType.TEXT));
+    grid.addHeader(new GridHeader("category_option_combo", ValueType.TEXT));
+    grid.addHeader(new GridHeader("attribute_option_combo", ValueType.TEXT));
+    grid.addHeader(new GridHeader("value", ValueType.TEXT));
+    grid.addHeader(new GridHeader("stored_by", ValueType.TEXT));
+    grid.addHeader(new GridHeader("created", ValueType.DATETIME));
+    grid.addHeader(new GridHeader("last_updated", ValueType.DATETIME));
+    grid.addHeader(new GridHeader("comment", ValueType.TEXT));
+    grid.addHeader(new GridHeader("follow_up", ValueType.BOOLEAN));
+
+    return grid;
   }
 }

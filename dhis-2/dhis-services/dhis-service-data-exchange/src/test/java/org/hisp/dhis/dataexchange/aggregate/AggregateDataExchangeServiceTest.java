@@ -54,14 +54,20 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
@@ -247,6 +253,128 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.UID, service.toIdSchemeOrDefault("UID"));
     assertEquals(IdScheme.UID, service.toIdSchemeOrDefault("uid"));
     assertEquals(IdScheme.UID, service.toIdSchemeOrDefault(null));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testGetSourceDataValueSetGridConcatenatesRows() throws ForbiddenException {
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+
+    UserDetails userDetails = UserDetails.empty().uid("user").username("user").build();
+
+    SourceRequest requestA =
+        new SourceRequest().setDx(List.of("dxA")).setPe(List.of("peA")).setOu(List.of("ouA"));
+    SourceRequest requestB =
+        new SourceRequest().setDx(List.of("dxB")).setPe(List.of("peB")).setOu(List.of("ouB"));
+    AggregateDataExchange exchange =
+        new AggregateDataExchange()
+            .setSource(new Source().setRequests(List.of(requestA, requestB)));
+
+    ListGrid gridA = new ListGrid();
+    gridA.addHeader(new GridHeader("header", ValueType.TEXT));
+    gridA.addRow().addValue("a1");
+
+    ListGrid gridB = new ListGrid();
+    gridB.addHeader(new GridHeader("header", ValueType.TEXT));
+    gridB.addRow().addValue("b1");
+    gridB.addRow().addValue("b2");
+
+    when(aggregateDataExchangeStore.loadByUid("uid")).thenReturn(exchange);
+    when(aclService.canDataRead(userDetails, exchange)).thenReturn(true);
+    when(analyticsService.getAggregatedDataValueSetAsGrid(any())).thenReturn(gridA, gridB);
+
+    Grid combined =
+        service.getSourceDataValueSetGrid(userDetails, "uid", new SourceDataQueryParams());
+
+    assertEquals(3, combined.getHeight());
+    assertEquals("a1", combined.getRows().get(0).get(0));
+    assertEquals("b1", combined.getRows().get(1).get(0));
+    assertEquals("b2", combined.getRows().get(2).get(0));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testGetSourceDataValueSetConcatenatesDataValues() throws ForbiddenException {
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+
+    UserDetails userDetails = UserDetails.empty().uid("user").username("user").build();
+
+    SourceRequest requestA =
+        new SourceRequest().setDx(List.of("dxA")).setPe(List.of("peA")).setOu(List.of("ouA"));
+    SourceRequest requestB =
+        new SourceRequest().setDx(List.of("dxB")).setPe(List.of("peB")).setOu(List.of("ouB"));
+    AggregateDataExchange exchange =
+        new AggregateDataExchange()
+            .setSource(new Source().setRequests(List.of(requestA, requestB)));
+
+    DataValueSet setA = new DataValueSet();
+    setA.getDataValues().add(new DataValue().setDataElement("deA").setValue("1"));
+    DataValueSet setB = new DataValueSet();
+    setB.getDataValues().add(new DataValue().setDataElement("deB").setValue("2"));
+    setB.getDataValues().add(new DataValue().setDataElement("deC").setValue("3"));
+
+    when(aggregateDataExchangeStore.loadByUid("uid")).thenReturn(exchange);
+    when(aclService.canDataRead(userDetails, exchange)).thenReturn(true);
+    when(analyticsService.getAggregatedDataValueSet(any())).thenReturn(setA, setB);
+
+    DataValueSet combined =
+        service.getSourceDataValueSet(userDetails, "uid", new SourceDataQueryParams());
+
+    assertEquals(3, combined.getDataValues().size());
   }
 
   @Test

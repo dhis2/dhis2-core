@@ -29,8 +29,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
+
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -40,17 +56,20 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -97,5 +116,107 @@ public class AggregateDataExchangeController
       @PathVariable String uid, SourceDataQueryParams params, @CurrentUser UserDetails userDetails)
       throws ForbiddenException {
     return service.getSourceDataValueSets(userDetails, uid, params);
+  }
+
+  @GetMapping("/{uid}/sourceDataValueSet")
+  public void downloadSourceDataValueSet(
+      @PathVariable String uid,
+      SourceDataQueryParams params,
+      @RequestParam(defaultValue = "json") String format,
+      @RequestParam(required = false) Compression compression,
+      @CurrentUser UserDetails userDetails,
+      HttpServletResponse response)
+      throws ForbiddenException, BadRequestException, IOException {
+    String normalizedFormat = format == null ? "json" : format.toLowerCase(Locale.ROOT);
+    Compression resolvedCompression = compression == null ? Compression.NONE : compression;
+
+    if (!("json".equals(normalizedFormat) || "csv".equals(normalizedFormat))) {
+      throw new BadRequestException("Format must be 'json' or 'csv'.");
+    }
+
+    if (resolvedCompression == Compression.ZIP) {
+      response.setContentType(
+          "csv".equals(normalizedFormat) ? CONTENT_TYPE_CSV_ZIP : CONTENT_TYPE_JSON_ZIP);
+    } else if (resolvedCompression == Compression.GZIP) {
+      response.setContentType(
+          "csv".equals(normalizedFormat) ? CONTENT_TYPE_CSV_GZIP : CONTENT_TYPE_JSON_GZIP);
+    } else {
+      response.setContentType(
+          "csv".equals(normalizedFormat) ? CONTENT_TYPE_CSV : CONTENT_TYPE_JSON);
+    }
+
+    String baseName = "aggregate-data-exchange-" + uid + "." + normalizedFormat;
+    String fileName = baseName + compressionSuffix(resolvedCompression);
+
+    ResponseHeader.addContentDispositionAttachment(response, fileName);
+
+    if (resolvedCompression != Compression.NONE) {
+      ResponseHeader.addContentTransferEncodingBinary(response);
+    }
+
+    if ("csv".equals(normalizedFormat)) {
+      Grid grid = service.getSourceDataValueSetGrid(userDetails, uid, params);
+      writeCsv(response, grid, baseName, resolvedCompression);
+    } else {
+      DataValueSet dataValueSet = service.getSourceDataValueSet(userDetails, uid, params);
+      writeJson(response, dataValueSet, baseName, resolvedCompression);
+    }
+  }
+
+  private void writeCsv(
+      HttpServletResponse response, Grid grid, String entryName, Compression compression)
+      throws IOException {
+    if (compression == Compression.ZIP) {
+      try (ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
+        zipOutputStream.putNextEntry(new ZipEntry(entryName));
+        OutputStreamWriter writer = new OutputStreamWriter(zipOutputStream, StandardCharsets.UTF_8);
+        service.writeDataValueSetCsv(grid, writer);
+        writer.flush();
+      }
+      return;
+    }
+
+    if (compression == Compression.GZIP) {
+      try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(response.getOutputStream());
+          OutputStreamWriter writer =
+              new OutputStreamWriter(gzipOutputStream, StandardCharsets.UTF_8)) {
+        service.writeDataValueSetCsv(grid, writer);
+      }
+      return;
+    }
+
+    service.writeDataValueSetCsv(grid, response.getWriter());
+  }
+
+  private void writeJson(
+      HttpServletResponse response,
+      DataValueSet dataValueSet,
+      String entryName,
+      Compression compression)
+      throws IOException {
+    if (compression == Compression.ZIP) {
+      try (ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
+        zipOutputStream.putNextEntry(new ZipEntry(entryName));
+        jsonMapper.writeValue(zipOutputStream, dataValueSet);
+      }
+      return;
+    }
+
+    if (compression == Compression.GZIP) {
+      try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(response.getOutputStream())) {
+        jsonMapper.writeValue(gzipOutputStream, dataValueSet);
+      }
+      return;
+    }
+
+    jsonMapper.writeValue(response.getOutputStream(), dataValueSet);
+  }
+
+  private static String compressionSuffix(Compression compression) {
+    return switch (compression) {
+      case ZIP -> ".zip";
+      case GZIP -> ".gz";
+      case NONE -> "";
+    };
   }
 }
