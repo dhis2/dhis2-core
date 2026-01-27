@@ -230,6 +230,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageSpecificHeaderWithoutDimensionShouldWork",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=IpHINAT79UW.enrollmentdate&headers=ouname,IpHINAT79UW.enrollmentdate,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

@@ -42,7 +42,9 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.Sta
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -91,11 +93,32 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
       List<AnalyticsSortingParams> acceptedSortingParams) {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-    // All stage-specific static dimensions should be virtual fields.
-    // The data is extracted from the enrollments JSON column by SqlRowSetJsonExtractorDelegator.
-    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+    // Build set of dimension keys for quick lookup
+    Set<String> dimensionKeys =
+        acceptedDimensions.stream().map(DimensionIdentifier::getKey).collect(Collectors.toSet());
+
+    // Dimensions WITH restrictions -> virtual fields (data extracted from JSON by EXISTS
+    // subqueries)
+    acceptedDimensions.stream()
         .map(EventAttributeQueryBuilder::toField)
         .map(Field::asVirtual)
+        .forEach(builder::selectField);
+
+    // Headers WITHOUT matching dimension -> scalar subquery fields (non-virtual)
+    acceptedHeaders.stream()
+        .filter(header -> !dimensionKeys.contains(header.getKey()))
+        .map(this::toSelectField)
+        .forEach(builder::selectField);
+
+    // Sorting params without matching dimension -> also need scalar subquery fields
+    acceptedSortingParams.stream()
+        .map(AnalyticsSortingParams::getOrderBy)
+        .filter(dimId -> !dimensionKeys.contains(dimId.getKey()))
+        .filter(
+            dimId ->
+                acceptedHeaders.stream()
+                    .noneMatch(header -> header.getKey().equals(dimId.getKey())))
+        .map(this::toSelectField)
         .forEach(builder::selectField);
 
     // Build conditions for dimensions with restrictions
@@ -128,6 +151,25 @@ public class EventAttributeQueryBuilder extends SqlQueryBuilderAdaptor {
         doubleQuote(prefix),
         staticDimension::getColumnName,
         prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
+  }
+
+  private Field toSelectField(DimensionIdentifier<DimensionParam> dimId) {
+    StaticDimension staticDimension = dimId.getDimension().getStaticDimension();
+    String prefix = getPrefix(dimId, false);
+    String alias = prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName();
+
+    Renderable subquery =
+        switch (staticDimension) {
+          case EVENT_DATE -> SqlQueryHelper.buildSelectSubquery(dimId, "occurreddate");
+          case SCHEDULED_DATE ->
+              SqlQueryHelper.buildSelectSubqueryIncludeSchedule(dimId, "scheduleddate");
+          case EVENT_STATUS -> SqlQueryHelper.buildSelectSubqueryIncludeSchedule(dimId, "status");
+          case OU -> SqlQueryHelper.buildSelectSubquery(dimId, "ou");
+          default ->
+              throw new IllegalArgumentException("Unsupported event attribute: " + staticDimension);
+        };
+
+    return Field.ofUnquoted(subquery, alias);
   }
 
   private Renderable buildCondition(DimensionIdentifier<DimensionParam> dimId, QueryContext ctx) {
