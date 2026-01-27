@@ -658,30 +658,7 @@ public class AggregateDataExchangeService {
 
     Map<String, String> cache = new HashMap<>();
     for (List<Object> row : grid.getRows()) {
-      Object dxValue = row.get(dxIndex);
-      if (dxValue != null && indicatorIds.contains(String.valueOf(dxValue))) {
-        continue;
-      }
-
-      Object cocValue = row.get(cocIndex);
-      if (cocValue == null) {
-        continue;
-      }
-
-      String uid = String.valueOf(cocValue);
-      String mapped = cache.get(uid);
-      if (mapped == null) {
-        CategoryOptionCombo coc = idObjectManager.get(CategoryOptionCombo.class, uid);
-        if (coc != null) {
-          mapped = coc.getPropertyValue(cocScheme);
-        }
-        if (mapped == null) {
-          mapped = uid;
-        }
-        cache.put(uid, mapped);
-      }
-
-      row.set(cocIndex, mapped);
+      mapCocForNonIndicatorRow(row, dxIndex, cocIndex, indicatorIds, cocScheme, cache);
     }
   }
 
@@ -710,6 +687,37 @@ public class AggregateDataExchangeService {
       ids.add(item.getDimensionItem());
     }
     return ids;
+  }
+
+  private void mapCocForNonIndicatorRow(
+      List<Object> row,
+      int dxIndex,
+      int cocIndex,
+      Set<String> indicatorIds,
+      IdScheme cocScheme,
+      Map<String, String> cache) {
+    Object dxValue = row.get(dxIndex);
+    Object cocValue = row.get(cocIndex);
+    boolean indicatorRow =
+        dxValue != null && indicatorIds.contains(String.valueOf(dxValue));
+    if (indicatorRow || cocValue == null) {
+      return;
+    }
+
+    String uid = String.valueOf(cocValue);
+    String mapped = cache.get(uid);
+    if (mapped == null) {
+      CategoryOptionCombo coc = idObjectManager.get(CategoryOptionCombo.class, uid);
+      if (coc != null) {
+        mapped = coc.getPropertyValue(cocScheme);
+      }
+      if (mapped == null) {
+        mapped = uid;
+      }
+      cache.put(uid, mapped);
+    }
+
+    row.set(cocIndex, mapped);
   }
 
   /**
