@@ -35,8 +35,8 @@ pipeline {
                     gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml --update-snapshots'
+                        sh 'mvn -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
+                        sh 'mvn -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml --update-snapshots'
                     }
                 }
             }
