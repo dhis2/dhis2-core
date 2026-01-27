@@ -180,7 +180,7 @@ public class DataApprovalWorkflow extends BaseIdentifiableObject implements Meta
   }
 
   @JsonProperty("dataApprovalLevels")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataApprovalLevels", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataApprovalLevel> getLevels() {

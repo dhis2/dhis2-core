@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #---
 name: cocs_wrong_cardinality
-description: Category option combinations with incorrect cardinality.
+description: Category option combinations with incorrect cardinality
 section: Categories
 section_order: 5
 summary_sql: >-
