@@ -289,7 +289,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
               attributeOptionCombo,
               completionDate);
     }
-    return new DataEntryGroup(ds, completion, decoded);
+    return new DataEntryGroup(ds, completion, null, decoded);
   }
 
   @CheckForNull
@@ -335,13 +335,29 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E8003, deNoDs);
 
     Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
+    Map<UID, List<DataEntryGroup.Scope.Element>> scopeElementsByDs = new HashMap<>();
     values.forEach(
         v -> {
-          UID ds = UID.of(datasetsByDe.get(v.dataElement().getValue()).iterator().next());
+          Set<String> dataSets = datasetsByDe.get(v.dataElement().getValue());
+          UID ds = UID.of(dataSets.iterator().next());
           valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
+          DataEntryGroup.Scope.Element e = mixed.scopeElement(v.dataElement());
+          if (e != null) scopeElementsByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(e);
         });
-    return valuesByDs.entrySet().stream()
-        .map(e -> new DataEntryGroup(e.getKey(), List.copyOf(e.getValue())))
+    return valuesByDs.keySet().stream()
+        .map(
+            ds -> {
+              DataEntryGroup.Scope scope = mixed.scope();
+              if (scope != null) {
+                List<DataEntryGroup.Scope.Element> elements = scopeElementsByDs.get(ds);
+                scope =
+                    elements == null
+                        ? null
+                        : new DataEntryGroup.Scope(scope.orgUnits(), scope.periods(), elements);
+              }
+              return new DataEntryGroup(
+                  ds, mixed.completion(), scope, List.copyOf(valuesByDs.get(ds)));
+            })
         .toList();
   }
 
@@ -378,7 +394,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
-    DataEntryGroup valid = validate(force, dataSet, List.of(value), errors);
+    DataEntryGroup valid = validate(force, dataSet, null, List.of(value), errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -397,7 +413,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     DataEntryGroup valid =
         progress.runStageAndRethrow(
             ConflictException.class,
-            () -> validate(options.force(), group.dataSet(), values, errors));
+            () -> validate(options.force(), group.dataSet(), group.scope(), values, errors));
     int entered = values.size();
     int attempted = valid.values().size();
     if (options.atomic() && entered > attempted) {
@@ -426,9 +442,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary deleteGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
+    List<DataEntryValue> values = group.values().stream().map(DataEntryValue::toDeleted).toList();
     DataEntryGroup deleted =
-        new DataEntryGroup(
-            group.dataSet(), group.values().stream().map(DataEntryValue::toDeleted).toList());
+        new DataEntryGroup(group.dataSet(), group.completion(), group.scope(), values);
     return upsertGroup(options, deleted, progress);
   }
 
@@ -438,7 +454,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
-    DataEntryGroup valid = validate(force, dataSet, List.of(value), errors);
+    DataEntryGroup valid = validate(force, dataSet, null, List.of(value), errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     return store.deleteByKeys(List.of(key)) > 0;
   }
@@ -480,7 +496,11 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   private DataEntryGroup validate(
-      boolean force, UID ds, List<DataEntryValue> values, List<DataEntryError> errors)
+      boolean force,
+      UID ds,
+      DataEntryGroup.Scope scope,
+      List<DataEntryValue> values,
+      List<DataEntryError> errors)
       throws ConflictException {
     if (ds == null) ds = autoTargetDataSet(values);
 
@@ -489,7 +509,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     boolean skipTimeliness = force && getCurrentUserDetails().isSuper();
     if (!skipTimeliness) validateEntryTimeliness(ds, values);
 
-    return new DataEntryGroup(ds, validateValues(ds, values, errors));
+    return new DataEntryGroup(ds, null, scope, validateValues(ds, values, errors));
   }
 
   /** Is the user allowed to write (capture) the data values? */

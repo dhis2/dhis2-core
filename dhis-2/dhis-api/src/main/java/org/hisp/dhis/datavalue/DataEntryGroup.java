@@ -63,16 +63,69 @@ import org.hisp.dhis.period.Period;
 public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
     @CheckForNull DataSetCompletion completion,
+    @CheckForNull Scope scope,
     @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
 
-  public record Scope(List<UID> dataElements, List<UID> orgUnits, List<Period> periods) {}
+  public record Scope(
+      @Nonnull List<UID> orgUnits, @Nonnull List<Period> periods, @Nonnull List<Element> elements) {
 
-  public DataEntryGroup(@CheckForNull UID dataSet, @Nonnull List<DataEntryValue> values) {
-    this(dataSet, null, values);
+    public Scope {
+      requireNonNull(orgUnits);
+      requireNonNull(periods);
+      requireNonNull(elements);
+    }
+
+    public record Element(
+        @Nonnull UID dataElement,
+        @CheckForNull UID categoryOptionCombo,
+        @CheckForNull UID attributeOptionCombo) {
+
+      public Element {
+        requireNonNull(dataElement);
+      }
+    }
   }
 
   public DataEntryGroup {
     requireNonNull(values);
+  }
+
+  public boolean canMergeWith(DataEntryGroup other) {
+    if (!Objects.equals(dataSet, other.dataSet)) return false;
+    if (!Objects.equals(completion, other.completion)) return false;
+    if (scope == null || other.scope == null) return true;
+    return scope.periods.equals(other.scope.periods) && scope.orgUnits.equals(other.scope.orgUnits);
+  }
+
+  public DataEntryGroup mergedWith(DataEntryGroup other) {
+    if (!canMergeWith(other)) throw new IllegalArgumentException("Groups cannot be merged.");
+    Scope s = scope;
+    if (s == null) {
+      s = other.scope;
+    } else if (other.scope != null) {
+      s = new Scope(scope.orgUnits, scope.periods, merge(scope.elements, other.scope.elements));
+    }
+    return new DataEntryGroup(dataSet, completion, s, merge(values(), other.values()));
+  }
+
+  @Nonnull
+  private static <T> List<T> merge(List<T> a, List<T> b) {
+    if (a.isEmpty()) return b;
+    if (b.isEmpty()) return a;
+    List<T> values = new ArrayList<>(a.size() + b.size());
+    values.addAll(a);
+    values.addAll(b);
+    return values;
+  }
+
+  @CheckForNull
+  public Scope.Element scopeElement(UID dataElement) {
+    return scope == null
+        ? null
+        : scope.elements.stream()
+            .filter(e -> e.dataElement.equals(dataElement))
+            .findFirst()
+            .orElse(null);
   }
 
   public String describe() {
@@ -110,7 +163,27 @@ public record DataEntryGroup(
           Map<String, String> attributeOptions,
       @Nonnull List<DataEntryValue.Input> values) {
 
-    record Scope(List<String> dataElements, List<String> orgUnits, List<String> periods) {}
+    public record Scope(
+        @Nonnull List<String> orgUnits,
+        @Nonnull List<String> periods,
+        @Nonnull List<Element> elements) {
+
+      public Scope {
+        requireNonNull(orgUnits);
+        requireNonNull(periods);
+        requireNonNull(elements);
+      }
+
+      public record Element(
+          @Nonnull String dataElement,
+          @CheckForNull String categoryOptionCombo,
+          @CheckForNull String attributeOptionCombo) {
+
+        public Element {
+          requireNonNull(dataElement);
+        }
+      }
+    }
 
     public Input {
       requireNonNull(values);
@@ -126,6 +199,11 @@ public record DataEntryGroup(
 
     public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
       this(ids, dataSet, null, null, null, null, null, null, values);
+    }
+
+    public Input withScope(Scope scope) {
+      // FIXME
+      return this;
     }
 
     public String describe() {
