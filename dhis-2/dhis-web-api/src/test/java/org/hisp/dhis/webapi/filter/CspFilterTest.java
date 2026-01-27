@@ -33,13 +33,16 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
 import static org.hisp.dhis.webapi.filter.CspFilter.CONTENT_SECURITY_POLICY_HEADER_NAME;
 import static org.hisp.dhis.webapi.filter.CspFilter.FRAME_ANCESTORS_DEFAULT_CSP;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletResponse;
-import java.lang.reflect.Field;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -65,19 +68,27 @@ class CspFilterTest {
 
   @Mock private Configuration configuration;
 
+  @Mock private CacheProvider cacheProvider;
+
+  @Mock private Cache<Set<String>> cache;
+
   private CspFilter filter;
 
+  @SuppressWarnings("unchecked")
   @BeforeEach
   void setUp() {
     when(dhisConfigurationProvider.isEnabled(CSP_ENABLED)).thenReturn(true);
-    filter = new CspFilter(dhisConfigurationProvider, configurationService);
+    when(cacheProvider.<Set<String>>createCorsWhitelistCache()).thenReturn(cache);
+
+    filter = new CspFilter(dhisConfigurationProvider, configurationService, cacheProvider);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void shouldCacheCorsWhitelistAndNotCallServiceOnEveryRequest() throws Exception {
-    // Given: A CORS whitelist configured
-    when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getCorsWhitelist()).thenReturn(Set.of("https://example.com"));
+    // Given: A CORS whitelist configured via cache
+    Set<String> corsWhitelist = Set.of("https://example.com");
+    when(cache.get(anyString(), any(Function.class))).thenReturn(corsWhitelist);
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
     request.setServerName("localhost");
@@ -90,15 +101,15 @@ class CspFilterTest {
     filter.doFilter(request, new MockHttpServletResponse(), filterChain);
     filter.doFilter(request, new MockHttpServletResponse(), filterChain);
 
-    // Then: ConfigurationService should only be called once (cached)
-    verify(configurationService, times(1)).getConfiguration();
+    // Then: Cache.get() should be called for each request (cache handles expiration internally)
+    verify(cache, times(5)).get(anyString(), any(Function.class));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
-  void shouldRefreshCacheAfterIntervalExpires() throws Exception {
-    // Given: A CORS whitelist configured
-    when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getCorsWhitelist())
+  void shouldUseCacheForCorsWhitelistLookup() throws Exception {
+    // Given: Cache returns the CORS whitelist (simulates cache behavior)
+    when(cache.get(anyString(), any(Function.class)))
         .thenReturn(Set.of("https://example.com"))
         .thenReturn(Set.of("https://updated.com"));
 
@@ -106,23 +117,28 @@ class CspFilterTest {
     request.setServerName("localhost");
     FilterChain filterChain = mockFilterChain();
 
-    // First request - should call service
-    filter.doFilter(request, new MockHttpServletResponse(), filterChain);
-    verify(configurationService, times(1)).getConfiguration();
+    // When: Two requests are processed
+    MockHttpServletResponse response1 = new MockHttpServletResponse();
+    filter.doFilter(request, response1, filterChain);
 
-    // Simulate cache expiration by setting lastCorsRefreshTime to past
-    setLastRefreshTimeToExpired();
+    MockHttpServletResponse response2 = new MockHttpServletResponse();
+    filter.doFilter(request, response2, filterChain);
 
-    // Next request after cache expiration - should call service again
-    filter.doFilter(request, new MockHttpServletResponse(), filterChain);
-    verify(configurationService, times(2)).getConfiguration();
+    // Then: Cache.get() is invoked for each request
+    verify(cache, times(2)).get(anyString(), any(Function.class));
+
+    // And responses contain the appropriate CORS origins
+    assertTrue(
+        response1.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME).contains("https://example.com"));
+    assertTrue(
+        response2.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME).contains("https://updated.com"));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void shouldSetFrameAncestorsCspWithCorsWhitelist() throws Exception {
-    // Given: A CORS whitelist configured
-    when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getCorsWhitelist())
+    // Given: A CORS whitelist configured via cache
+    when(cache.get(anyString(), any(Function.class)))
         .thenReturn(Set.of("https://example.com", "https://other.com"));
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
@@ -142,11 +158,11 @@ class CspFilterTest {
     assertTrue(cspHeader.endsWith(";"));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void shouldSetDefaultFrameAncestorsCspWhenCorsWhitelistEmpty() throws Exception {
-    // Given: Empty CORS whitelist
-    when(configurationService.getConfiguration()).thenReturn(configuration);
-    when(configuration.getCorsWhitelist()).thenReturn(Set.of());
+    // Given: Empty CORS whitelist from cache
+    when(cache.get(anyString(), any(Function.class))).thenReturn(Set.of());
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
     request.setServerName("localhost");
@@ -161,11 +177,13 @@ class CspFilterTest {
     assertEquals(FRAME_ANCESTORS_DEFAULT_CSP + ";", cspHeader);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void shouldSetXFrameOptionsWhenCspDisabled() throws Exception {
     // Given: CSP is disabled
     when(dhisConfigurationProvider.isEnabled(CSP_ENABLED)).thenReturn(false);
-    CspFilter disabledFilter = new CspFilter(dhisConfigurationProvider, configurationService);
+    CspFilter disabledFilter =
+        new CspFilter(dhisConfigurationProvider, configurationService, cacheProvider);
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/test");
     request.setServerName("localhost");
@@ -177,25 +195,13 @@ class CspFilterTest {
 
     // Then: X-Frame-Options should be set, not CSP
     assertEquals("SAMEORIGIN", response.getHeader("X-Frame-Options"));
-    // ConfigurationService should not be called when CSP is disabled
-    verify(configurationService, never()).getConfiguration();
+    // Cache should not be accessed when CSP is disabled
+    verify(cache, never()).get(anyString(), any(Function.class));
   }
 
   private FilterChain mockFilterChain() {
     return (filterRequest, filterResponse) -> {
       ((HttpServletResponse) filterResponse).setStatus(HttpServletResponse.SC_OK);
     };
-  }
-
-  /**
-   * Uses reflection to set the lastCorsRefreshTime to a time in the past, simulating cache
-   * expiration.
-   */
-  private void setLastRefreshTimeToExpired() throws Exception {
-    Field lastRefreshField = CspFilter.class.getDeclaredField("lastCorsRefreshTime");
-    lastRefreshField.setAccessible(true);
-    AtomicLong lastRefresh = (AtomicLong) lastRefreshField.get(filter);
-    // Set to 6 minutes ago (cache interval is 5 minutes)
-    lastRefresh.set(System.currentTimeMillis() - (6 * 60 * 1000L));
   }
 }
