@@ -43,8 +43,10 @@ import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +59,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
@@ -79,7 +82,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
@@ -486,7 +491,14 @@ public class AggregateDataExchangeService {
     if (targetRequest != null) {
       IdScheme cocScheme =
           toIdScheme(targetRequest.getCategoryOptionComboIdScheme(), targetRequest.getIdScheme());
-      applyIdSchemeToGrid(grid, CATEGORYOPTIONCOMBO_DIM_ID, CategoryOptionCombo.class, cocScheme);
+      if (cocScheme != null && !cocScheme.isNull()) {
+        applyCocSchemeForNonIndicatorRows(
+            grid,
+            dxDimension,
+            outputDataItemIdScheme,
+            outputIdScheme,
+            cocScheme);
+      }
     }
 
     DataValueSet dataValueSet = AnalyticsUtils.getDataValueSet(params, grid);
@@ -521,7 +533,7 @@ public class AggregateDataExchangeService {
       return;
     }
 
-    Map<String, String> cache = new java.util.HashMap<>();
+    Map<String, String> cache = new HashMap<>();
 
     List<List<Object>> rows = grid.getRows();
     for (List<Object> row : rows) {
@@ -615,6 +627,92 @@ public class AggregateDataExchangeService {
       }
     }
     return true;
+  }
+
+
+  /**
+   * Applies the given category option combo ID scheme to non-indicator rows of the given grid. This is for
+   * situations where indicators use specific category option combos for aggregation, and these should not be
+   * altered as they are defined on the indicator itself. However, for data elements with category option combos,
+   * the given scheme should be applied.
+   *
+   * @param grid the {@link Grid}.
+   * @param dxDimension the data X {@link DimensionalObject}.
+   * @param dataItemScheme the {@link IdScheme} for data items.
+   * @param generalScheme the general {@link IdScheme}.
+   * @param cocScheme the {@link IdScheme} for category option combos.
+   */
+  private void applyCocSchemeForNonIndicatorRows(
+      Grid grid,
+      DimensionalObject dxDimension,
+      IdScheme dataItemScheme,
+      IdScheme generalScheme,
+      IdScheme cocScheme) {
+    int dxIndex = grid.getIndexOfHeader(DATA_X_DIM_ID);
+    int cocIndex = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
+    if (dxIndex == -1 || cocIndex == -1) {
+      return;
+    }
+
+    Set<String> indicatorIds = getIndicatorDimensionItems(dxDimension, dataItemScheme, generalScheme);
+    if (indicatorIds.isEmpty()) {
+      applyIdSchemeToGrid(grid, CATEGORYOPTIONCOMBO_DIM_ID, CategoryOptionCombo.class, cocScheme);
+      return;
+    }
+
+    Map<String, String> cache = new HashMap<>();
+    for (List<Object> row : grid.getRows()) {
+      Object dxValue = row.get(dxIndex);
+      if (dxValue != null && indicatorIds.contains(String.valueOf(dxValue))) {
+        continue;
+      }
+
+      Object cocValue = row.get(cocIndex);
+      if (cocValue == null) {
+        continue;
+      }
+
+      String uid = String.valueOf(cocValue);
+      String mapped = cache.get(uid);
+      if (mapped == null) {
+        CategoryOptionCombo coc = idObjectManager.get(CategoryOptionCombo.class, uid);
+        if (coc != null) {
+          mapped = coc.getPropertyValue(cocScheme);
+        }
+        if (mapped == null) {
+          mapped = uid;
+        }
+        cache.put(uid, mapped);
+      }
+
+      row.set(cocIndex, mapped);
+    }
+  }
+
+  /**
+   * Retrieves the set of dimension item IDs from the given dimension that are indicators or program
+   * indicators, using the specified ID schemes. This is used to identify which dimension items
+   * should not have their category option combos remapped during reset operations.
+   *
+   * @param dimension the {@link DimensionalObject}.
+   * @param dataItemScheme the {@link IdScheme} for data items.
+   * @param generalScheme the general {@link IdScheme}.
+   * @return a set of dimension item IDs that are indicators or program indicators.
+   */
+  private Set<String> getIndicatorDimensionItems(
+      DimensionalObject dimension, IdScheme dataItemScheme, IdScheme generalScheme) {
+    Set<String> ids = new HashSet<>();
+    for (DimensionalItemObject item : dimension.getItems()) {
+      if (!(item instanceof Indicator || item instanceof ProgramIndicator)) {
+        continue;
+      }
+      IdScheme schemeToUse = dataItemScheme != null && !dataItemScheme.isNull() ? dataItemScheme : generalScheme;
+      if (schemeToUse != null && !schemeToUse.isNull()) {
+        ids.add(item.getDimensionItem(schemeToUse));
+      }
+      ids.add(item.getDimensionItem());
+    }
+    return ids;
   }
 
   /**
