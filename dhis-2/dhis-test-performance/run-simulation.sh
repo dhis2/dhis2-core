@@ -29,8 +29,6 @@ show_usage() {
   echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
-  echo "  WARMUP_MVN_ARGS       Maven arguments for warmup runs only (default: MVN_ARGS)"
-  echo "                        Use to run shorter/lighter warmup with the same SIMULATION_CLASS"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
   echo "                        Set to any non-empty value to enable (default: disabled)"
@@ -38,9 +36,6 @@ show_usage() {
   echo "  PROF_ARGS             Async-profiler arguments (enables profiling)"
   echo "                        Options: https://github.com/async-profiler/async-profiler/blob/master/docs/ProfilerOptions.md"
   echo "  MVN_ARGS              Additional Maven arguments passed to mvn gatling:test"
-  echo "  KEEP                  Keep containers running after test (default: false)"
-  echo "                        Useful for running multiple tests without restart"
-  echo "                        Clean up manually with: docker compose down --volumes"
   echo ""
   echo "EXAMPLES:"
   echo "  # Basic test run"
@@ -208,14 +203,6 @@ get_compose_args() {
   echo "${args[@]}"
 }
 
-containers_healthy() {
-  # Check if web-healthcheck container is healthy (implies web and db are ready)
-  local status
-  # shellcheck disable=SC2046
-  status=$(docker compose $(get_compose_args) ps --format json web-healthcheck 2>/dev/null | jq -r '.Health // empty' 2>/dev/null || echo "")
-  [ "$status" = "healthy" ]
-}
-
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
   # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
@@ -274,23 +261,14 @@ start_containers() {
   local compose_args
   compose_args=$(get_compose_args)
 
-  # Skip startup if containers are already healthy and KEEP is set
-  if [ "$KEEP" = "true" ] && containers_healthy; then
-    echo "Containers already running and healthy, skipping startup"
-    return 0
-  fi
-
   echo "Testing with image: $DHIS2_IMAGE"
   echo "Waiting for containers to be ready..."
 
   local start_time
   start_time=$(date +%s)
 
-  # Only tear down if not keeping containers - otherwise just start/restart
-  if [ "$KEEP" != "true" ]; then
-    # shellcheck disable=SC2086
-    docker compose $compose_args down --volumes
-  fi
+  # shellcheck disable=SC2086
+  docker compose $compose_args down --volumes
 
   # shellcheck disable=SC2086
   if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
@@ -622,7 +600,6 @@ generate_metadata() {
     echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
-    echo "WARMUP_MVN_ARGS=\"$WARMUP_MVN_ARGS\""
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "PROF_ARGS=\"$PROF_ARGS\""
@@ -694,7 +671,7 @@ run_simulation() {
   local mvn_args="$MVN_ARGS"
 
   if [ "$warmup_num" -gt 0 ]; then
-    mvn_args="$WARMUP_MVN_ARGS -Dgatling.failOnError=false"
+    mvn_args="$MVN_ARGS -Dgatling.failOnError=false"
   fi
 
   enable_sql_logs "$warmup_num"
