@@ -75,6 +75,18 @@ class SqlQueryHelper {
            where ev.rn = ${programStageOffset})"""
           .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
 
+  private static final String EVENT_ORDER_BY_SUBQUERY_INCLUDE_SCHEDULE =
+      """
+          (select ${selectedEventField}
+           from (select *,
+                 row_number() over ( partition by enrollment
+                                     order by coalesce(occurreddate, scheduleddate) ${programStageOffsetDirection} ) as rn
+                 from analytics_te_event_${trackedEntityTypeUid} events
+                 where programstage = '${programStageUid}'
+                   and enrollment = %s) ev
+           where ev.rn = ${programStageOffset})"""
+          .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
+
   private static final String DATA_VALUES_ORDER_BY_SUBQUERY =
       """
           (select ${dataElementField}
@@ -202,6 +214,33 @@ class SqlQueryHelper {
       return Field.of(TRACKED_ENTITY_ALIAS, field, StringUtils.EMPTY);
     }
     throw new IllegalArgumentException("Unsupported dimension type: " + dimId);
+  }
+
+  /**
+   * Builds the order by sub-query for event dimensions that should include SCHEDULE status. Used
+   * for SCHEDULED_DATE and EVENT_STATUS ordering where scheduled events must be included.
+   *
+   * @param dimId the dimension identifier
+   * @param field the renderable field on which to eventually sort by
+   * @return the renderable order by sub-query
+   */
+  static Renderable buildOrderSubQueryIncludeSchedule(
+      DimensionIdentifier<DimensionParam> dimId, Renderable field) {
+    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+      return () ->
+          replace(
+              EVENT_ORDER_BY_SUBQUERY_INCLUDE_SCHEDULE,
+              mergeMaps(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "selectedEnrollmentField",
+                      "enrollment",
+                      "selectedEventField",
+                      field.render())));
+    }
+    throw new IllegalArgumentException(
+        "buildOrderSubQueryIncludeSchedule only supports event dimensions: " + dimId);
   }
 
   /**
