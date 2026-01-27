@@ -33,15 +33,19 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 // ABOUTME: like EVENT_DATE, SCHEDULED_DATE, OU, and EVENT_STATUS.
 
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -143,11 +147,116 @@ class EventAttributeQueryBuilderTest {
     assertFalse(accepted);
   }
 
+  @Test
+  void testHeaderOnlyEventDateGeneratesNonVirtualField() {
+    DimensionIdentifier<DimensionParam> eventDateHeader =
+        createEventLevelDimension(StaticDimension.EVENT_DATE);
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null, List.of(eventDateHeader), Collections.emptyList(), Collections.emptyList());
+
+    List<Field> nonVirtualFields =
+        result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
+
+    assertEquals(1, nonVirtualFields.size());
+    String rendered = nonVirtualFields.get(0).render();
+    assertTrue(rendered.contains("occurreddate"), "Expected 'occurreddate' in: " + rendered);
+    assertTrue(rendered.contains("eventdate"), "Expected 'eventdate' in: " + rendered);
+  }
+
+  @Test
+  void testHeaderOnlyScheduledDateGeneratesNonVirtualField() {
+    DimensionIdentifier<DimensionParam> scheduledDateHeader =
+        createEventLevelDimension(StaticDimension.SCHEDULED_DATE);
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null, List.of(scheduledDateHeader), Collections.emptyList(), Collections.emptyList());
+
+    List<Field> nonVirtualFields =
+        result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
+
+    assertEquals(1, nonVirtualFields.size());
+    assertTrue(nonVirtualFields.get(0).render().contains("scheduleddate"));
+    assertTrue(nonVirtualFields.get(0).render().contains("coalesce(occurreddate, scheduleddate)"));
+  }
+
+  @Test
+  void testHeaderOnlyOuGeneratesNonVirtualField() {
+    DimensionIdentifier<DimensionParam> ouHeader = createEventLevelDimension(StaticDimension.OU);
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null, List.of(ouHeader), Collections.emptyList(), Collections.emptyList());
+
+    List<Field> nonVirtualFields =
+        result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
+
+    assertEquals(1, nonVirtualFields.size());
+    String rendered = nonVirtualFields.get(0).render();
+    assertTrue(rendered.contains("ev.\"ou\""));
+    assertTrue(rendered.contains("status != 'SCHEDULE'"));
+  }
+
+  @Test
+  void testHeaderOnlyEventStatusGeneratesNonVirtualField() {
+    DimensionIdentifier<DimensionParam> eventStatusHeader =
+        createEventLevelDimension(StaticDimension.EVENT_STATUS);
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null, List.of(eventStatusHeader), Collections.emptyList(), Collections.emptyList());
+
+    List<Field> nonVirtualFields =
+        result.getSelectFields().stream().filter(f -> !f.isVirtual()).toList();
+
+    assertEquals(1, nonVirtualFields.size());
+    String rendered = nonVirtualFields.get(0).render();
+    assertTrue(rendered.contains("ev.\"status\""));
+    assertTrue(rendered.contains("coalesce(occurreddate, scheduleddate)"));
+  }
+
+  @Test
+  void testDimensionWithFilterGeneratesVirtualField() {
+    DimensionIdentifier<DimensionParam> eventDateDimension =
+        createEventLevelDimensionWithRestrictions(StaticDimension.EVENT_DATE, List.of("2022"));
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null, Collections.emptyList(), List.of(eventDateDimension), Collections.emptyList());
+
+    List<Field> virtualFields = result.getSelectFields().stream().filter(Field::isVirtual).toList();
+
+    assertEquals(1, virtualFields.size());
+  }
+
+  @Test
+  void testHeaderMatchingDimensionDoesNotDuplicateField() {
+    DimensionIdentifier<DimensionParam> eventDateDimension =
+        createEventLevelDimensionWithRestrictions(StaticDimension.EVENT_DATE, List.of("2022"));
+
+    RenderableSqlQuery result =
+        builder.buildSqlQuery(
+            null,
+            List.of(eventDateDimension),
+            List.of(eventDateDimension),
+            Collections.emptyList());
+
+    assertEquals(1, result.getSelectFields().size());
+    assertTrue(result.getSelectFields().get(0).isVirtual());
+  }
+
   private DimensionIdentifier<DimensionParam> createEventLevelDimension(
       StaticDimension staticDimension) {
+    return createEventLevelDimensionWithRestrictions(staticDimension, List.of());
+  }
+
+  private DimensionIdentifier<DimensionParam> createEventLevelDimensionWithRestrictions(
+      StaticDimension staticDimension, List<String> restrictions) {
     DimensionParam dimensionParam =
         DimensionParam.ofObject(
-            staticDimension.name(), DimensionParamType.DIMENSIONS, UID, List.of());
+            staticDimension.name(), DimensionParamType.DIMENSIONS, UID, restrictions);
 
     Program program = createProgram();
     ProgramStage programStage = createProgramStage();
