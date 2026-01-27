@@ -29,18 +29,11 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityAttributeRowCallbackHandler;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
-import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,8 +46,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 class TrackedEntityStore extends AbstractStore {
-  private static final String GET_TE_SQL = TrackedEntityQuery.getQuery();
-
   private static final String GET_TE_ATTRIBUTES = TeAttributeQuery.getQuery();
 
   private static final String GET_PROGRAM_OWNERS =
@@ -67,25 +58,6 @@ class TrackedEntityStore extends AbstractStore {
 
   TrackedEntityStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
     super(jdbcTemplate);
-  }
-
-  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids) {
-    List<List<Long>> idPartitions = Lists.partition(ids, PARITITION_SIZE);
-
-    Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
-
-    idPartitions.forEach(
-        partition -> trackedEntityMap.putAll(getTrackedEntitiesPartitioned(partition)));
-    return trackedEntityMap;
-  }
-
-  private Map<String, TrackedEntity> getTrackedEntitiesPartitioned(List<Long> ids) {
-    TrackedEntityRowCallbackHandler handler = new TrackedEntityRowCallbackHandler();
-
-    jdbcTemplate.query(
-        applySortOrder(GET_TE_SQL, StringUtils.join(ids, ",")), createIdsParam(ids), handler);
-
-    return handler.getItems();
   }
 
   Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids) {
