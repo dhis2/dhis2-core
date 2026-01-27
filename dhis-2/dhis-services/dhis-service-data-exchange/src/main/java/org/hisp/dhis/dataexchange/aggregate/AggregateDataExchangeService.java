@@ -280,6 +280,15 @@ public class AggregateDataExchangeService {
    */
   private ImportSummary exchangeData(AggregateDataExchange exchange, SourceRequest request) {
     try {
+      TargetRequest targetRequest =
+          exchange.getTarget() != null ? exchange.getTarget().getRequest() : null;
+      if (targetRequest != null && targetRequest.isResetBeforeExchangeOrDefault()) {
+        ImportSummary resetSummary = resetTargetData(exchange, request);
+        if (resetSummary.getStatus() == ImportStatus.ERROR) {
+          return resetSummary;
+        }
+      }
+
       DataValueSet dataValueSet =
           analyticsService.getAggregatedDataValueSet(
               toDataQueryParams(request, new SourceDataQueryParams()));
@@ -365,7 +374,7 @@ public class AggregateDataExchangeService {
    * @param request the {@link SourceRequest}.
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
-  private ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
+  ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
     DataValueSet resetSet = buildResetDataValueSet(exchange, request);
 
     if (resetSet.getDataValues().isEmpty()) {

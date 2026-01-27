@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -63,6 +64,7 @@ import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.period.PeriodService;
@@ -314,6 +316,32 @@ class AggregateDataExchangeServiceTest {
     DimensionalItemObject item = mock(DimensionalItemObject.class);
     when(item.getDimensionItem()).thenReturn(id);
     return item;
+  }
+
+  @Test
+  void testResetBeforeExchangeFlagTriggersReset() {
+    AggregateDataExchangeService spyService = spy(service);
+    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(true);
+
+    SourceRequest request =
+        new SourceRequest().setDx(List.of("dxA")).setPe(List.of("202401")).setOu(List.of("OuA"));
+    Source source = new Source().setRequests(List.of(request));
+    TargetRequest targetRequest = new TargetRequest().setResetBeforeExchange(Boolean.TRUE);
+    Target target = new Target().setType(TargetType.INTERNAL).setRequest(targetRequest);
+    AggregateDataExchange exchange = new AggregateDataExchange().setSource(source).setTarget(target);
+
+    when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
+        .thenReturn(new DataValueSet());
+    when(dataEntryPipeline.importInputGroups(any(), any(ImportOptions.class), any()))
+        .thenReturn(new ImportSummary());
+    org.mockito.Mockito.doReturn(new ImportSummary())
+        .when(spyService)
+        .resetTargetData(eq(exchange), eq(request));
+
+    spyService.exchangeData( (UserDetails) new User(), exchange, org.hisp.dhis.scheduling.JobProgress.noop());
+
+    org.mockito.Mockito.verify(spyService).resetTargetData(eq(exchange), eq(request));
   }
 
   @Test
