@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
@@ -54,6 +56,8 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
+
+  @PersistenceContext private EntityManager entityManager;
 
   private DataApprovalWorkflow workflowA;
 
