@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
-// ABOUTME: Tests for EventOrgUnitCondition, which generates SQL conditions for
-// ABOUTME: event-level organisation unit filtering in tracked entity analytics queries.
-
 import static org.apache.commons.collections4.CollectionUtils.isEqualCollection;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
@@ -154,9 +151,9 @@ class EventOrgUnitConditionTest {
 
     String render = eventOrgUnitCondition.render();
 
-    // CHILDREN mode includes both the selected org units AND their immediate children
+    // CHILDREN mode includes only the immediate children
     List<String> expected =
-        ous.stream().flatMap(ouId -> Stream.of(ouId, ouId + "_child1", ouId + "_child2")).toList();
+        ous.stream().flatMap(ouId -> Stream.of(ouId + "_child1", ouId + "_child2")).toList();
 
     assertEquals("\"programUid.programStageUid\".\"ou\" in (:1)", render);
     assertTrue(

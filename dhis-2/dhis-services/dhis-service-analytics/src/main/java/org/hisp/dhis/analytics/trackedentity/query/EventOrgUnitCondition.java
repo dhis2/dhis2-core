@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query;
 
-// ABOUTME: Generates SQL conditions for event-level organisation unit filtering.
-// ABOUTME: Handles SELECTED, CHILDREN, and DESCENDANTS modes for stage-specific OU dimensions.
-
 import static org.hisp.dhis.analytics.common.CommonRequestParams.DEFAULT_ORG_UNIT_SELECTION_MODE;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
@@ -95,16 +92,12 @@ public class EventOrgUnitCondition extends BaseRenderable {
           : BinaryConditionRenderer.of(
               Field.of(doubleQuote(prefix), () -> "ou", ""), IN, items, STRING, queryContext);
     } else if (ouMode == CHILDREN) {
-      // CHILDREN mode includes both the selected org units AND their immediate children
+      // CHILDREN mode includes only immediate children (align with OrganisationUnitCondition)
       List<String> items =
           organisationUnits.stream()
-              .flatMap(
-                  ou -> {
-                    List<String> uids = new ArrayList<>();
-                    uids.add(ou.getUid());
-                    ou.getChildren().stream().map(IdentifiableObject::getUid).forEach(uids::add);
-                    return uids.stream();
-                  })
+              .map(OrganisationUnit::getChildren)
+              .flatMap(Collection::stream)
+              .map(IdentifiableObject::getUid)
               .toList();
 
       return isEmpty(items)
