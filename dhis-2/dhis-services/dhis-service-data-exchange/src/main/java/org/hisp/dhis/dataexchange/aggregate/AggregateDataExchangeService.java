@@ -193,26 +193,6 @@ public class AggregateDataExchangeService {
   }
 
   /**
-   * Returns the source data value sets for the analytics data exchange with the given identifier.
-   *
-   * @param uid the {@link AggregateDataExchange} identifier.
-   * @param params the {@link SourceDataQueryParams}.
-   * @return the source data value sets for the analytics data exchange.
-   */
-  public List<DataValueSet> getSourceDataValueSets(
-      UserDetails userDetails, String uid, SourceDataQueryParams params) throws ForbiddenException {
-    AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
-
-    if (!aclService.canDataRead(userDetails, exchange)) {
-      throw new ForbiddenException(ErrorCode.E3012, exchange);
-    }
-
-    return mapToList(
-        exchange.getSource().getRequests(),
-        request -> analyticsService.getAggregatedDataValueSet(toDataQueryParams(request, params)));
-  }
-
-  /**
    * Returns the concatenated source data value set for the analytics data exchange with the given
    * identifier.
    *
@@ -270,6 +250,26 @@ public class AggregateDataExchangeService {
     }
 
     return combined != null ? combined : newDataValueSetGrid();
+  }
+
+  /**
+   * Returns the source data value sets for the analytics data exchange with the given identifier.
+   *
+   * @param uid the {@link AggregateDataExchange} identifier.
+   * @param params the {@link SourceDataQueryParams}.
+   * @return the source data value sets for the analytics data exchange.
+   */
+  public List<DataValueSet> getSourceDataValueSets(
+      UserDetails userDetails, String uid, SourceDataQueryParams params) throws ForbiddenException {
+    AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
+
+    if (!aclService.canDataRead(userDetails, exchange)) {
+      throw new ForbiddenException(ErrorCode.E3012, exchange);
+    }
+
+    return mapToList(
+        exchange.getSource().getRequests(),
+        request -> analyticsService.getAggregatedDataValueSet(toDataQueryParams(request, params)));
   }
 
   /**

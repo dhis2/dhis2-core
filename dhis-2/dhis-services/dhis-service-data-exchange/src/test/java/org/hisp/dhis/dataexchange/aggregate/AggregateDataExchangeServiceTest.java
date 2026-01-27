@@ -362,10 +362,19 @@ class AggregateDataExchangeServiceTest {
             .setSource(new Source().setRequests(List.of(requestA, requestB)));
 
     DataValueSet setA = new DataValueSet();
-    setA.getDataValues().add(new DataValue().setDataElement("deA").setValue("1"));
+    DataValue dataValueA = new DataValue();
+    dataValueA.setDataElement("deA");
+    dataValueA.setValue("1");
+    setA.getDataValues().add(dataValueA);
     DataValueSet setB = new DataValueSet();
-    setB.getDataValues().add(new DataValue().setDataElement("deB").setValue("2"));
-    setB.getDataValues().add(new DataValue().setDataElement("deC").setValue("3"));
+    DataValue dataValueB = new DataValue();
+    dataValueB.setDataElement("deB");
+    dataValueB.setValue("2");
+    setB.getDataValues().add(dataValueB);
+    DataValue dataValueC = new DataValue();
+    dataValueC.setDataElement("deC");
+    dataValueC.setValue("3");
+    setB.getDataValues().add(dataValueC);
 
     when(aggregateDataExchangeStore.loadByUid("uid")).thenReturn(exchange);
     when(aclService.canDataRead(userDetails, exchange)).thenReturn(true);

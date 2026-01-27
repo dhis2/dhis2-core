@@ -110,28 +110,20 @@ public class AggregateDataExchangeController
     return service.getSourceData(userDetails, uid, params);
   }
 
-  @GetMapping("/{uid}/sourceDataValueSets")
-  @ResponseStatus(value = HttpStatus.OK)
-  public List<DataValueSet> getSourceDataValueSets(
-      @PathVariable String uid, SourceDataQueryParams params, @CurrentUser UserDetails userDetails)
-      throws ForbiddenException {
-    return service.getSourceDataValueSets(userDetails, uid, params);
-  }
-
-  @GetMapping("/{uid}/sourceDataValueSet")
-  public void downloadSourceDataValueSet(
+  @GetMapping(value = "/{uid}/sourceData", params = "format=dataValueSet")
+  public void getSourceDataValueSet(
       @PathVariable String uid,
       SourceDataQueryParams params,
-      @RequestParam(defaultValue = "json") String format,
+      @RequestParam(defaultValue = "json") String outputFormat,
       @RequestParam(required = false) Compression compression,
       @CurrentUser UserDetails userDetails,
       HttpServletResponse response)
       throws ForbiddenException, BadRequestException, IOException {
-    String normalizedFormat = format == null ? "json" : format.toLowerCase(Locale.ROOT);
+    String normalizedFormat = outputFormat == null ? "json" : outputFormat.toLowerCase(Locale.ROOT);
     Compression resolvedCompression = compression == null ? Compression.NONE : compression;
 
     if (!("json".equals(normalizedFormat) || "csv".equals(normalizedFormat))) {
-      throw new BadRequestException("Format must be 'json' or 'csv'.");
+      throw new BadRequestException("outputFormat must be 'json' or 'csv'.");
     }
 
     if (resolvedCompression == Compression.ZIP) {
