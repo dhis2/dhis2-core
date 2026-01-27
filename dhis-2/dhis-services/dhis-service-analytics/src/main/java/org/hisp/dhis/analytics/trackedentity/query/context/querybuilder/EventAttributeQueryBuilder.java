@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
-// ABOUTME: Handles stage-level static dimensions (EVENT_DATE, SCHEDULED_DATE, OU, EVENT_STATUS)
-// ABOUTME: for tracked entity analytics queries.
-
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;

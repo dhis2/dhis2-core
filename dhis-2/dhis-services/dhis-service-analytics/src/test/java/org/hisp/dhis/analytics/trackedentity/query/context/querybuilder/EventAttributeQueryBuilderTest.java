@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
-// ABOUTME: Tests for EventAttributeQueryBuilder which handles stage-level dimensions
-// ABOUTME: like EVENT_DATE, SCHEDULED_DATE, OU, and EVENT_STATUS.
-
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
