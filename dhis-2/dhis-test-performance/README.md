@@ -132,9 +132,9 @@ for modifying them.
 
 ### Database Image Caching on CI
 
-Database images are cached on the CI server to avoid restoring dumps on every run. The cached
-images (e.g., `localhost/dhis2-postgres:14-3.5-sierra-leone-dev`) are mutable - when the source
-dump in S3 is updated, the cache becomes stale.
+Database images are cached on the CI server to avoid restoring dumps on every run. The S3 dumps are
+mutable, so cached images (e.g., `localhost/dhis2-postgres:14-3.5-sierra-leone-dev`) can become
+stale when the source dump is updated.
 
 To refresh a cached image, a `#team-devops` member must run on the CI server:
 
