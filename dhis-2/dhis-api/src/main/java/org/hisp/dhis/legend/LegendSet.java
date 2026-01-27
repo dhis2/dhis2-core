@@ -33,24 +33,60 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.legend.comparator.LegendValueComparator;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * @author Jan Henrik Overland
  */
+@Entity
+@Table(name = "maplegendset")
 @JacksonXmlRootElement(localName = "legendSet", namespace = DxfNamespaces.DXF_2_0)
-public class LegendSet extends BaseIdentifiableObject implements MetadataObject {
+public class LegendSet extends BaseMetadataObject implements IdentifiableObject, MetadataObject {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "maplegendsetid")
+  private long id;
+
+  @Column(name = "code", length = 50)
+  private String code;
+
+  @Column(name = "name", length = 255)
+  private String name;
+
+  @Embedded
+  private TranslationProperty translations;
+
+  @Type(type = "jsbAttributeValues")
+  @Column(name = "attributevalues", columnDefinition = "jsonb")
+  private AttributeValues attributeValues = AttributeValues.empty();
+
+  @Type(type = "jsbObjectSharing")
+  @Column(name = "sharing")
+  private Sharing sharing = new Sharing();
+
+  @Column(name = "symbolizer")
   private String symbolizer;
 
+  @OneToMany(mappedBy = "legendSet", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Legend> legends = new HashSet<>();
 
   public LegendSet() {}
@@ -111,5 +147,146 @@ public class LegendSet extends BaseIdentifiableObject implements MetadataObject 
 
   public void setLegends(Set<Legend> legends) {
     this.legends = legends;
+  }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
+  public Set<Translation> getTranslations() {
+    return translations != null ? translations.getTranslations() : Set.of();
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    if (this.translations == null) {
+      this.translations = new TranslationProperty();
+    }
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {
+    this.attributeValues = attributeValues.added(attributeUid, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @Override
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported IdentifiableObject methods
+  // -------------------------------------------------------------------------
+
+  /** @deprecated This method is replaced by {@link #getCreatedBy()} */
+  @Override
+  @Deprecated
+  public User getUser() {
+    return getCreatedBy();
+  }
+
+  /** @deprecated This method is replaced by {@link #setCreatedBy(User)} */
+  @Override
+  @Deprecated
+  public void setUser(User user) {
+    setCreatedBy(user);
+  }
+
+  @Override
+  @Deprecated
+  public void setOwner(String owner) {
+    // Not supported
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getUid();
+    }
+    if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    }
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getName();
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getDisplayName();
+    }
+    if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    }
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    }
+    return null;
   }
 }
