@@ -332,16 +332,12 @@ class AggregateDataExchangeServiceTest {
     AggregateDataExchange exchange =
         new AggregateDataExchange().setSource(source).setTarget(target);
 
-    when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
-        .thenReturn(new DataValueSet());
-    when(dataEntryPipeline.importInputGroups(any(), any(ImportOptions.class), any()))
-        .thenReturn(new ImportSummary());
     org.mockito.Mockito.doReturn(new ImportSummary())
         .when(spyService)
         .resetTargetData(exchange, request);
 
-    spyService.exchangeData(
-        (UserDetails) new User(), exchange, org.hisp.dhis.scheduling.JobProgress.noop());
+    UserDetails userDetails = mock(UserDetails.class);
+    spyService.exchangeData(userDetails, exchange, org.hisp.dhis.scheduling.JobProgress.noop());
 
     org.mockito.Mockito.verify(spyService).resetTargetData(exchange, request);
   }
