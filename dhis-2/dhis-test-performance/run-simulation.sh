@@ -156,16 +156,7 @@ cleanup() {
   set +e
 
   # Post-processing that has to be done after all runs complete
-  echo ""
-  echo "========================================"
-  echo "PHASE: Post-processing"
-  echo "========================================"
   post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
-
-  # Show output summary for the main (non-warmup) run
-  if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
-    print_output_summary "$LAST_RUN_DIR"
-  fi
 
   echo ""
   echo "Cleaning up containers..."
@@ -175,10 +166,12 @@ cleanup() {
   fi
   docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
 
+  # Show output summary for the main (non-warmup) run
+  if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
+    print_output_summary "$LAST_RUN_DIR"
+  fi
+
   echo ""
-  echo "========================================"
-  echo "PHASE: Complete"
-  echo "========================================"
   if [ $exit_code -eq 0 ]; then
     echo -e "\033[0;32m✓\033[0m Test for $DHIS2_IMAGE ran successfully"
   else
@@ -436,7 +429,7 @@ post_process_gatling_logs() {
   fi
 
   printf "Converting Gatling logs (glog)... "
-  if glog --config ./src/test/resources/gatling.conf --scan-subdirs "$gatling_dir" 2>/dev/null; then
+  if glog --config ./src/test/resources/gatling.conf --scan-subdirs "$gatling_dir" >/dev/null 2>&1; then
     echo "done"
   else
     echo "failed"
