@@ -338,12 +338,12 @@ class AggregateDataExchangeServiceTest {
         .thenReturn(new ImportSummary());
     org.mockito.Mockito.doReturn(new ImportSummary())
         .when(spyService)
-        .resetTargetData(eq(exchange), eq(request));
+        .resetTargetData(exchange, request);
 
     spyService.exchangeData(
         (UserDetails) new User(), exchange, org.hisp.dhis.scheduling.JobProgress.noop());
 
-    org.mockito.Mockito.verify(spyService).resetTargetData(eq(exchange), eq(request));
+    org.mockito.Mockito.verify(spyService).resetTargetData(exchange, request);
   }
 
   @Test
