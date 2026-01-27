@@ -698,8 +698,7 @@ public class AggregateDataExchangeService {
       Map<String, String> cache) {
     Object dxValue = row.get(dxIndex);
     Object cocValue = row.get(cocIndex);
-    boolean indicatorRow =
-        dxValue != null && indicatorIds.contains(String.valueOf(dxValue));
+    boolean indicatorRow = dxValue != null && indicatorIds.contains(String.valueOf(dxValue));
     if (indicatorRow || cocValue == null) {
       return;
     }
