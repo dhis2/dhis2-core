@@ -97,7 +97,7 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA = createLegendSet('A');
     legendSetA.getLegends().add(legendA);
     long idA = legendSetService.addLegendSet(legendSetA);
-    
+
     // Retrieve and verify all Legend fields
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     assertNotNull(retrieved);
@@ -244,7 +244,7 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA = createLegendSet('A');
     legendSetA.getLegends().add(legendA);
     long idA = legendSetService.addLegendSet(legendSetA);
-    
+
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     Legend retrievedLegend = retrieved.getLegends().iterator().next();
 
@@ -302,10 +302,8 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     assertEquals(2, retrieved.getLegends().size());
 
     // Verify legends are properly loaded
-    assertTrue(
-        retrieved.getLegends().stream().anyMatch(l -> l.getName().equals("LegendA")));
-    assertTrue(
-        retrieved.getLegends().stream().anyMatch(l -> l.getName().equals("LegendB")));
+    assertTrue(retrieved.getLegends().stream().anyMatch(l -> l.getName().equals("LegendA")));
+    assertTrue(retrieved.getLegends().stream().anyMatch(l -> l.getName().equals("LegendB")));
   }
 
   @Test

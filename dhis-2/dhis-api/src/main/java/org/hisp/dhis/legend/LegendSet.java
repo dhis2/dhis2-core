@@ -72,8 +72,7 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "name", length = 255)
   private String name;
 
-  @Embedded
-  private TranslationProperty translations = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @Type(type = "jsbAttributeValues")
   @Column(name = "attributevalues", columnDefinition = "jsonb")
@@ -288,14 +287,18 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   // Unsupported IdentifiableObject methods
   // -------------------------------------------------------------------------
 
-  /** @deprecated This method is replaced by {@link #getCreatedBy()} */
+  /**
+   * @deprecated This method is replaced by {@link #getCreatedBy()}
+   */
   @Override
   @Deprecated
   public User getUser() {
     return getCreatedBy();
   }
 
-  /** @deprecated This method is replaced by {@link #setCreatedBy(User)} */
+  /**
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)}
+   */
   @Override
   @Deprecated
   public void setUser(User user) {

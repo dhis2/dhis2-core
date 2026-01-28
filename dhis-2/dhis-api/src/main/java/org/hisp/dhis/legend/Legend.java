@@ -96,11 +96,9 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 
-  @jakarta.persistence.Transient
-  protected String href;
+  @jakarta.persistence.Transient protected String href;
 
-  @jakarta.persistence.Transient
-  protected org.hisp.dhis.security.acl.Access access;
+  @jakarta.persistence.Transient protected org.hisp.dhis.security.acl.Access access;
 
   // Legend-specific fields
   @Column(name = "code", unique = true, length = 50)
@@ -166,13 +164,13 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   public String getImage() {
     return image;
   }
-  
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
     return legendSet;
   }
-  
+
   // -------------------------------------------------------------------------
   // IdentifiableObject implementation
   // -------------------------------------------------------------------------
@@ -346,7 +344,7 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   public void setSharing(Sharing sharing) {
     // Not supported
   }
-  
+
   /** This entity does not support attribute values. */
   @Override
   @Deprecated
@@ -375,14 +373,18 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
     // Not supported
   }
 
-  /** @deprecated This method is replaced by {@link #getCreatedBy()} */
+  /**
+   * @deprecated This method is replaced by {@link #getCreatedBy()}
+   */
   @Override
   @Deprecated
   public User getUser() {
     return getCreatedBy();
   }
 
-  /** @deprecated This method is replaced by {@link #setCreatedBy(User)} */
+  /**
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)}
+   */
   @Override
   @Deprecated
   public void setUser(User user) {
