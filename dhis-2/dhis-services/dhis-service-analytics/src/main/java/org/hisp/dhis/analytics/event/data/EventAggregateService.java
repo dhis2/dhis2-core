@@ -298,13 +298,19 @@ public class EventAggregateService {
       grid.addHeader(new GridHeader(DATA_COLLAPSED_DIM_ID, DISPLAY_NAME_DATA_X, TEXT, false, true));
     } else {
       for (QueryItem item : params.getItems()) {
-        String name = item.getItem().getUid();
-        // attach program stage uid to the header name if it is a program stage item
-        if (item.hasProgramStage()) {
-          name = item.getProgramStage().getUid() + "." + name;
-        }
+        String name;
+        String displayProperty;
 
-        String displayProperty = item.getItem().getDisplayProperty(params.getDisplayProperty());
+        if (item.hasCustomHeader()) {
+          name = item.getCustomHeader().headerKey(item.getCustomHeader().key());
+          displayProperty = item.getCustomHeader().label();
+        } else {
+          name = item.getItem().getUid();
+          if (item.hasProgramStage()) {
+            name = item.getProgramStage().getUid() + "." + name;
+          }
+          displayProperty = item.getItem().getDisplayProperty(params.getDisplayProperty());
+        }
 
         grid.addHeader(
             new GridHeader(

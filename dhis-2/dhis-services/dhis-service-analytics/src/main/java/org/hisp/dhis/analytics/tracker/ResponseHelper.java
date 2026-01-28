@@ -135,6 +135,10 @@ public class ResponseHelper {
    * @return the correct UID based on the item type.
    */
   public static String getItemUid(QueryItem item) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().headerKey(item.getCustomHeader().key());
+    }
+
     String uid = item.getItem().getUid();
 
     if (item.hasProgramStage()) {
@@ -152,6 +156,10 @@ public class ResponseHelper {
    * @return the correct UID based on the item type.
    */
   public static String getItemUid(QueryItem item, boolean includeProgramStage) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().headerKey(item.getCustomHeader().key());
+    }
+
     String uid = item.getItem().getUid();
 
     if (includeProgramStage && item.hasProgramStage()) {
