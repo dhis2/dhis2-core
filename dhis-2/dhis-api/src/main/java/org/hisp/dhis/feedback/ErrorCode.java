@@ -667,6 +667,8 @@ public enum ErrorCode {
       "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{1}}`"),
+  E8035("Data set deletion scope ID is not a valid UID: `${id:{1}}`"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),

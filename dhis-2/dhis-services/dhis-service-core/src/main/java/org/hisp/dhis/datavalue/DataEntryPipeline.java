@@ -187,10 +187,8 @@ public class DataEntryPipeline {
     DataEntryGroup g1 = groups.get(0);
     for (int i = 1; i < groups.size(); i++) {
       DataEntryGroup g2 = groups.get(i);
-      if (g1.dataSet() != null && g1.dataSet().equals(g2.dataSet())) {
-        if (!(g1.values() instanceof ArrayList<DataEntryValue>))
-          g1 = new DataEntryGroup(g1.dataSet(), new ArrayList<>(g1.values()));
-        g1.values().addAll(g2.values());
+      if (g1.canMergeWith(g2)) {
+        g1 = g1.mergedWith(g2);
       } else {
         merged.add(g1);
         g1 = g2;
@@ -206,7 +204,7 @@ public class DataEntryPipeline {
       DataEntryGroup.Options options,
       JobProgress progress,
       boolean delete) {
-    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
+    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
     List<DataSetCompletion> markComplete = new ArrayList<>(groups.size());
     for (DataEntryGroup g : groups) {

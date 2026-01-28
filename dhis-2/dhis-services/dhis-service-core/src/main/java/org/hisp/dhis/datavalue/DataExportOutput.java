@@ -29,23 +29,21 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static java.lang.System.out;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import com.csvreader.CsvWriter;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.dxf2.adx.AdxPeriod;
+import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -62,82 +60,93 @@ final class DataExportOutput {
 
   static void toJson(DataExportGroup.Output group, OutputStream json) {
     try {
-      JsonFactory factory = new ObjectMapper().getFactory();
-      // Disables flushing every time that an object property is written
-      // to the stream
-      factory.disable(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM);
-      // Do not attempt to balance unclosed tags
-      factory.disable(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
-      JsonGenerator out = factory.createGenerator(json);
+      JsonBuilder.streamObject(
+          JsonBuilder.MINIMIZED_FULL,
+          json,
+          dvs -> {
+            // group level IDs...
+            dvs.addString("dataSet", group.dataSet());
+            dvs.addString("period", group.period());
+            dvs.addString("orgUnit", group.orgUnit());
+            if (group.attributeOptionCombo() != null) {
+              dvs.addString("attributeOptionCombo", group.attributeOptionCombo());
+            } else if (group.attributeOptions() != null) {
+              dvs.addObject(
+                  "attributeOptionCombo", map -> group.attributeOptions().forEach(map::addString));
+            }
 
-      out.writeStartObject();
-      // group level IDs...
-      if (group.dataSet() != null) out.writeStringField("dataSet", group.dataSet());
-      if (group.period() != null) out.writeStringField("period", group.period());
-      if (group.orgUnit() != null) out.writeStringField("orgUnit", group.orgUnit());
-      if (group.attributeOptionCombo() != null) {
-        out.writeStringField("attributeOptionCombo", group.attributeOptionCombo());
-      } else if (group.attributeOptions() != null) {
-        out.writeFieldName("attributeOptionCombo");
-        out.writeStartObject();
-        for (Map.Entry<String, String> e : group.attributeOptions().entrySet())
-          out.writeStringField(e.getKey(), e.getValue());
-        out.writeEndObject();
-      }
+            // ID schemes
+            DataExportGroup.Ids ids = group.ids();
+            if (ids.dataSets().isNotUID())
+              dvs.addString("dataSetIdScheme", ids.dataSets().toString());
+            if (ids.dataElements().isNotUID())
+              dvs.addString("dataElementIdScheme", ids.dataElements().toString());
+            if (ids.orgUnits().isNotUID())
+              dvs.addString("orgUnitIdScheme", ids.orgUnits().toString());
+            if (ids.categoryOptionCombos().isNotUID())
+              dvs.addString("categoryOptionComboIdScheme", ids.categoryOptionCombos().toString());
+            if (ids.attributeOptionCombos().isNotUID())
+              dvs.addString("attributeOptionComboIdScheme", ids.attributeOptionCombos().toString());
+            if (ids.categories().isNotUID())
+              dvs.addString("categoryIdScheme", ids.categories().toString());
+            if (ids.categoryOptions().isNotUID())
+              dvs.addString("categoryOptionIdScheme", ids.categoryOptions().toString());
 
-      // ID schemes
-      DataExportGroup.Ids ids = group.ids();
-      if (ids.dataSets().isNotUID())
-        out.writeStringField("dataSetIdScheme", ids.dataSets().toString());
-      if (ids.dataElements().isNotUID())
-        out.writeStringField("dataElementIdScheme", ids.dataElements().toString());
-      if (ids.orgUnits().isNotUID())
-        out.writeStringField("orgUnitIdScheme", ids.orgUnits().toString());
-      if (ids.categoryOptionCombos().isNotUID())
-        out.writeStringField("categoryOptionComboIdScheme", ids.categoryOptionCombos().toString());
-      if (ids.attributeOptionCombos().isNotUID())
-        out.writeStringField(
-            "attributeOptionComboIdScheme", ids.attributeOptionCombos().toString());
-      if (ids.categories().isNotUID())
-        out.writeStringField("categoryIdScheme", ids.categories().toString());
-      if (ids.categoryOptions().isNotUID())
-        out.writeStringField("categoryOptionIdScheme", ids.categoryOptions().toString());
+            // deletion scope
+            DataExportGroup.Scope deletion = group.deletion();
+            if (deletion != null) {
+              dvs.addObject(
+                  "deletion",
+                  del -> {
+                    del.addArray("orgUnits", arr -> deletion.orgUnits().forEach(arr::addString));
+                    del.addArray("periods", arr -> deletion.periods().forEach(arr::addString));
+                    del.addArray(
+                        "elements",
+                        arr -> {
+                          for (DataExportGroup.Scope.Element elem : deletion.elements())
+                            arr.addObject(
+                                e -> {
+                                  e.addString("dataElement", elem.dataElement());
+                                  e.addString("categoryOptionCombo", elem.categoryOptionCombo());
+                                  e.addString("attributeOptionCombo", elem.attributeOptionCombo());
+                                });
+                        });
+                  });
+            }
 
-      // values...
-      out.writeArrayFieldStart("dataValues");
-      Iterator<DataExportValue.Output> iter = group.values().iterator();
-      while (iter.hasNext()) {
-        DataExportValue.Output dv = iter.next();
-        out.writeStartObject();
-        out.writeStringField("dataElement", dv.dataElement());
-        if (dv.period() != null) out.writeStringField("period", dv.period());
-        if (dv.orgUnit() != null) out.writeStringField("orgUnit", dv.orgUnit());
-        if (dv.categoryOptionCombo() != null) {
-          out.writeStringField("categoryOptionCombo", dv.categoryOptionCombo());
-        } else if (dv.categoryOptions() != null) {
-          out.writeFieldName("categoryOptionCombo");
-          out.writeStartObject();
-          for (Map.Entry<String, String> e : dv.categoryOptions().entrySet())
-            out.writeStringField(e.getKey(), e.getValue());
-          out.writeEndObject();
-        }
-        if (dv.attributeOptionCombo() != null)
-          out.writeStringField("attributeOptionCombo", dv.attributeOptionCombo());
-        if (dv.value() != null) out.writeStringField("value", dv.value());
-        if (dv.storedBy() != null) out.writeStringField("storedBy", dv.storedBy());
-        if (dv.created() != null) out.writeStringField("created", toLongGmtDate(dv.created()));
-        if (dv.lastUpdated() != null)
-          out.writeStringField("lastUpdated", toLongGmtDate(dv.lastUpdated()));
-        if (dv.comment() != null) out.writeStringField("comment", dv.comment());
-        if (dv.followUp() != null) out.writeBooleanField("followup", dv.followUp());
-        if (dv.deleted()) out.writeBooleanField("deleted", true);
-        out.writeEndObject();
-      }
-      out.writeEndArray();
-      out.writeEndObject();
+            // values...
+            dvs.addArray(
+                "dataValues",
+                values -> {
+                  Iterator<DataExportValue.Output> iter = group.values().iterator();
+                  while (iter.hasNext()) {
+                    DataExportValue.Output dv = iter.next();
+                    values.addObject(
+                        val -> {
+                          val.addString("dataElement", dv.dataElement());
+                          val.addString("period", dv.period());
+                          val.addString("orgUnit", dv.orgUnit());
+                          if (dv.categoryOptionCombo() != null) {
+                            val.addString("categoryOptionCombo", dv.categoryOptionCombo());
+                          } else if (dv.categoryOptions() != null) {
+                            val.addObject(
+                                "categoryOptionCombo",
+                                map -> dv.categoryOptions().forEach(map::addString));
+                          }
+                          val.addString("attributeOptionCombo", dv.attributeOptionCombo());
+                          val.addString("value", dv.value());
+                          val.addString("storedBy", dv.storedBy());
+                          val.addString("created", toLongGmtDate(dv.created()));
+                          val.addString("lastUpdated", toLongGmtDate(dv.lastUpdated()));
+                          val.addString("comment", dv.comment());
+                          val.addBoolean("followup", dv.followUp());
+                          if (dv.deleted()) val.addBoolean("deleted", true);
+                        });
+                  }
+                });
+          });
+    } finally {
       out.close();
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
     }
   }
 
@@ -180,6 +189,7 @@ final class DataExportOutput {
               String.valueOf(dv.deleted())
             });
       }
+      writer.close();
     } catch (IOException ex) {
       throw new UncheckedIOException("Failed to write CSV data", ex);
     }
