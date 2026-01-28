@@ -111,9 +111,11 @@ public class TrackedEntityAggregate {
       String uid = te.getUid();
       te.setTrackedEntityAttributeValues(
           filterAttributes(allowedAttributeUids, attributes.get(uid)));
-      te.setEnrollments(new HashSet<>(enrollments.get(uid)));
+      Collection<Enrollment> teEnrollments = enrollments.get(uid);
+      te.setEnrollments(teEnrollments.isEmpty() ? Set.of() : new HashSet<>(teEnrollments));
       if (!programOwners.isEmpty()) {
-        te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
+        Collection<TrackedEntityProgramOwner> teOwners = programOwners.get(uid);
+        te.setProgramOwners(teOwners.isEmpty() ? Set.of() : new HashSet<>(teOwners));
       }
     }
   }
