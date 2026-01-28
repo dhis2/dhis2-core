@@ -43,7 +43,7 @@
     FROM duplicative_categories;
   details_sql: >-
     SELECT x.uid,'(' || b.rank || ') ' || x.name as name 
-	FROM category x
+    FROM category x
     INNER JOIN (
     SELECT categoryid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
     from categories_categoryoptions GROUP BY categoryid
