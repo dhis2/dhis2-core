@@ -63,7 +63,7 @@ import org.hisp.dhis.period.Period;
 public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
     @CheckForNull DataSetCompletion completion,
-    @CheckForNull Scope scope,
+    @CheckForNull Scope deletion,
     @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
 
   public record Scope(
@@ -93,19 +93,24 @@ public record DataEntryGroup(
   public boolean canMergeWith(DataEntryGroup other) {
     if (!Objects.equals(dataSet, other.dataSet)) return false;
     if (!Objects.equals(completion, other.completion)) return false;
-    if (scope == null || other.scope == null) return true;
-    return scope.periods.equals(other.scope.periods) && scope.orgUnits.equals(other.scope.orgUnits);
+    if (deletion == null || other.deletion == null) return true;
+    return deletion.periods.equals(other.deletion.periods)
+        && deletion.orgUnits.equals(other.deletion.orgUnits);
   }
 
   public DataEntryGroup mergedWith(DataEntryGroup other) {
     if (!canMergeWith(other)) throw new IllegalArgumentException("Groups cannot be merged.");
-    Scope s = scope;
-    if (s == null) {
-      s = other.scope;
-    } else if (other.scope != null) {
-      s = new Scope(scope.orgUnits, scope.periods, merge(scope.elements, other.scope.elements));
+    Scope del = deletion;
+    if (del == null) {
+      del = other.deletion;
+    } else if (other.deletion != null) {
+      del =
+          new Scope(
+              deletion.orgUnits,
+              deletion.periods,
+              merge(deletion.elements, other.deletion.elements));
     }
-    return new DataEntryGroup(dataSet, completion, s, merge(values(), other.values()));
+    return new DataEntryGroup(dataSet, completion, del, merge(values(), other.values()));
   }
 
   @Nonnull
@@ -119,10 +124,10 @@ public record DataEntryGroup(
   }
 
   @CheckForNull
-  public Scope.Element scopeElement(UID dataElement) {
-    return scope == null
+  public Scope.Element deletionScopeElement(UID dataElement) {
+    return deletion == null
         ? null
-        : scope.elements.stream()
+        : deletion.elements.stream()
             .filter(e -> e.dataElement.equals(dataElement))
             .findFirst()
             .orElse(null);
@@ -161,6 +166,7 @@ public record DataEntryGroup(
             Will only be considered if `attributeOptionCombo` is not present.
             """)
           Map<String, String> attributeOptions,
+      @CheckForNull Scope deletion,
       @Nonnull List<DataEntryValue.Input> values) {
 
     public record Scope(
@@ -198,12 +204,7 @@ public record DataEntryGroup(
     }
 
     public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
-      this(ids, dataSet, null, null, null, null, null, null, values);
-    }
-
-    public Input withScope(Scope scope) {
-      // FIXME
-      return this;
+      this(ids, dataSet, null, null, null, null, null, null, null, values);
     }
 
     public String describe() {
@@ -219,15 +220,18 @@ public record DataEntryGroup(
           "ds=${ds:?} [de=${de:} ou=${ou:} pe=${pe:} aoc=${aoc:}](${count:0} values)", vars);
     }
 
-    public boolean isSameDsAoc(Input other) {
+    /** Groups of same DS and AOC (and completion and deletion scope if set) can be merged */
+    public boolean canMergeWith(Input other) {
       return dataSet != null
           && dataSet.equals(other.dataSet)
           && Objects.equals(attributeOptionCombo, other.attributeOptionCombo)
           && Objects.equals(attributeOptions, other.attributeOptions)
-          && Objects.equals(completionDate, other.completionDate);
+          && Objects.equals(completionDate, other.completionDate)
+          && Objects.equals(deletion, other.deletion);
     }
 
-    public Input mergedSameDsAoc(Input other) {
+    public Input mergedWith(Input other) {
+      if (!canMergeWith(other)) throw new IllegalArgumentException("Groups cannot be merged.");
       List<DataEntryValue.Input> merged = new ArrayList<>(values.size() + other.values.size());
       merged.addAll(values);
       merged.addAll(other.values);
@@ -239,7 +243,16 @@ public record DataEntryGroup(
       if (!Objects.equals(ou, other.orgUnit)) ou = null;
       if (!Objects.equals(pe, other.period)) pe = null;
       return new Input(
-          ids, dataSet, completionDate, de, ou, pe, attributeOptionCombo, attributeOptions, merged);
+          ids,
+          dataSet,
+          completionDate,
+          de,
+          ou,
+          pe,
+          attributeOptionCombo,
+          attributeOptions,
+          deletion,
+          merged);
     }
   }
 

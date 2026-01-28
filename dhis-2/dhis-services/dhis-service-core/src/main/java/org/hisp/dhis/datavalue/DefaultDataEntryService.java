@@ -131,6 +131,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     UnaryOperator<String> aocOf = UnaryOperator.identity();
 
     DataEntryGroup.Ids ids = group.ids();
+    DataEntryGroup.Input.Scope deletion = group.deletion();
     String peGroup = decodeIso(group.period());
     if (peGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : peGroup;
     List<DataEntryValue.Input> values = group.values();
@@ -144,20 +145,39 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
         if (deGroup != null) deIds = Stream.concat(deIds, Stream.of(deGroup));
+        if (deletion != null)
+          deIds =
+              Stream.concat(
+                  deIds,
+                  deletion.elements().stream()
+                      .map(DataEntryGroup.Input.Scope.Element::dataElement));
         deOf = idCoder.mapDecodedIds(DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
         if (ouGroup != null) ouIds = Stream.concat(ouIds, Stream.of(ouGroup));
+        if (deletion != null) ouIds = Stream.concat(ouIds, deletion.orgUnits().stream());
         ouOf = idCoder.mapDecodedIds(OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
+        if (deletion != null)
+          cocIds =
+              Stream.concat(
+                  cocIds,
+                  deletion.elements().stream()
+                      .map(DataEntryGroup.Input.Scope.Element::categoryOptionCombo));
         cocOf = idCoder.mapDecodedIds(COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
         if (aocGroup != null) aocIds = Stream.concat(aocIds, Stream.of(aocGroup));
+        if (deletion != null)
+          aocIds =
+              Stream.concat(
+                  aocIds,
+                  deletion.elements().stream()
+                      .map(DataEntryGroup.Input.Scope.Element::attributeOptionCombo));
         aocOf = idCoder.mapDecodedIds(COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
@@ -289,7 +309,32 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
               attributeOptionCombo,
               completionDate);
     }
-    return new DataEntryGroup(ds, completion, null, decoded);
+    // decode deletion scope
+    DataEntryGroup.Scope del = null;
+    if (deletion != null) {
+      List<UID> ouScope = new ArrayList<>();
+      for (String id : deletion.orgUnits()) ouScope.add(decodeID(id, ouOf));
+      List<Period> peScope = deletion.periods().stream().map(Period::of).toList();
+      List<DataEntryGroup.Scope.Element> elements = new ArrayList<>();
+      for (DataEntryGroup.Input.Scope.Element e : deletion.elements())
+        elements.add(
+            new DataEntryGroup.Scope.Element(
+                decodeID(e.dataElement(), deOf),
+                decodeID(e.categoryOptionCombo(), cocOf),
+                decodeID(e.attributeOptionCombo(), aocOf)));
+      del = new DataEntryGroup.Scope(ouScope, peScope, elements);
+    }
+    return new DataEntryGroup(ds, completion, del, decoded);
+  }
+
+  private static UID decodeID(@CheckForNull String id, UnaryOperator<String> decoder)
+      throws BadRequestException {
+    if (id == null) return null;
+    String uid = decoder.apply(id);
+    if (uid == null) throw new BadRequestException(ErrorCode.E8034, id);
+    UID res = decodeUID(uid);
+    if (res == null) throw new BadRequestException(ErrorCode.E8035, id);
+    return res;
   }
 
   @CheckForNull
@@ -335,28 +380,28 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E8003, deNoDs);
 
     Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
-    Map<UID, List<DataEntryGroup.Scope.Element>> scopeElementsByDs = new HashMap<>();
+    Map<UID, List<DataEntryGroup.Scope.Element>> delScopeElemsByDs = new HashMap<>();
     values.forEach(
         v -> {
           Set<String> dataSets = datasetsByDe.get(v.dataElement().getValue());
           UID ds = UID.of(dataSets.iterator().next());
           valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
-          DataEntryGroup.Scope.Element e = mixed.scopeElement(v.dataElement());
-          if (e != null) scopeElementsByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(e);
+          DataEntryGroup.Scope.Element e = mixed.deletionScopeElement(v.dataElement());
+          if (e != null) delScopeElemsByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(e);
         });
     return valuesByDs.keySet().stream()
         .map(
             ds -> {
-              DataEntryGroup.Scope scope = mixed.scope();
-              if (scope != null) {
-                List<DataEntryGroup.Scope.Element> elements = scopeElementsByDs.get(ds);
-                scope =
+              DataEntryGroup.Scope del = mixed.deletion();
+              if (del != null) {
+                List<DataEntryGroup.Scope.Element> elements = delScopeElemsByDs.get(ds);
+                del =
                     elements == null
                         ? null
-                        : new DataEntryGroup.Scope(scope.orgUnits(), scope.periods(), elements);
+                        : new DataEntryGroup.Scope(del.orgUnits(), del.periods(), elements);
               }
               return new DataEntryGroup(
-                  ds, mixed.completion(), scope, List.copyOf(valuesByDs.get(ds)));
+                  ds, mixed.completion(), del, List.copyOf(valuesByDs.get(ds)));
             })
         .toList();
   }
@@ -413,7 +458,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     DataEntryGroup valid =
         progress.runStageAndRethrow(
             ConflictException.class,
-            () -> validate(options.force(), group.dataSet(), group.scope(), values, errors));
+            () -> validate(options.force(), group.dataSet(), group.deletion(), values, errors));
     int entered = values.size();
     int attempted = valid.values().size();
     if (options.atomic() && entered > attempted) {
@@ -444,7 +489,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException {
     List<DataEntryValue> values = group.values().stream().map(DataEntryValue::toDeleted).toList();
     DataEntryGroup deleted =
-        new DataEntryGroup(group.dataSet(), group.completion(), group.scope(), values);
+        new DataEntryGroup(group.dataSet(), group.completion(), group.deletion(), values);
     return upsertGroup(options, deleted, progress);
   }
 
