@@ -191,6 +191,32 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnFewerTrackedEntitiesThanRequestedWhenOrderingByEnrollmentDate()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    // QS6w44flWAf has 2 enrollments with different dates, dUE514NMOlo has 1 enrollment.
+    // When ordering by enrollment date, a TE with multiple enrollments produces duplicate rows.
+    // DISTINCT doesn't help because the enrollment date column differs per row.
+    // This causes LIMIT 2 to return 2 rows for the same TE, resulting in only 1 unique TE after
+    // deduplication.
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityType(trackedEntityType)
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .build();
+
+    Page<String> firstPage =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 2, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertEquals(
+        new Page<>(List.of("QS6w44flWAf", "dUE514NMOlo"), 1, 2, 2L, null, null), firstPage);
+  }
+
+  @Test
   void shouldReturnPaginatedTrackedEntitiesWithMaxTeCountToReturnOnProgram()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
