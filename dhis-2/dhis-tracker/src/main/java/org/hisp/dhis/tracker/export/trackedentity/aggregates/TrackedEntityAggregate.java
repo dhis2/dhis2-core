@@ -31,25 +31,22 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -59,9 +56,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
 @Component
 @RequiredArgsConstructor
 public class TrackedEntityAggregate {
@@ -74,56 +68,64 @@ public class TrackedEntityAggregate {
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   /**
-   * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
+   * Enriches tracked entities with attributes, enrollments, and program owners. The tracked
+   * entities are mutated in place. Program owners are only fetched here when no program filter is
+   * specified; when a program is specified, the single program owner is included in the initial
+   * query by {@link org.hisp.dhis.tracker.export.trackedentity.JdbcTrackedEntityStore}.
    */
-  public List<TrackedEntity> find(
-      List<TrackedEntityIdentifiers> identifiers,
+  public void find(
+      List<TrackedEntity> trackedEntities,
       TrackedEntityFields fields,
       TrackedEntityQueryParams queryParams) {
-    if (identifiers.isEmpty()) {
-      return Collections.emptyList();
+    if (trackedEntities.isEmpty()) {
+      return;
     }
     Context ctx = new Context(CurrentUserUtil.getCurrentUserDetails(), fields, queryParams);
 
-    List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
+    List<Long> ids = trackedEntities.stream().map(TrackedEntity::getId).toList();
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
-        conditionalAsyncFetch(
+        asyncFetch(
             fields.isIncludesEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
-            getPool());
-    final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
-        conditionalAsyncFetch(
-            fields.isIncludesProgramOwners(),
-            () -> trackedEntityStore.getProgramOwners(ids),
-            getPool());
-    final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
+            () -> enrollmentAggregate.findByTrackedEntityIds(trackedEntities, ctx));
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
-        conditionalAsyncFetch(
-            fields.isIncludesAttributes(), () -> trackedEntityStore.getAttributes(ids), getPool());
+        asyncFetch(fields.isIncludesAttributes(), () -> trackedEntityStore.getAttributes(ids));
+    // Program owners are only fetched here when no program filter is specified.
+    // When a program filter is specified, JdbcTrackedEntityStore includes the program owner.
+    final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
+        asyncFetch(
+            fields.isIncludesProgramOwners() && !queryParams.hasEnrolledInTrackerProgram(),
+            () -> trackedEntityStore.getProgramOwners(ids));
 
     // Fetch allowed attributes on the HTTP thread while async tasks are fetching other data
     Set<String> allowedAttributeUids = getAllowedAttributeUids(queryParams);
     // Wait for all async fetches to complete
-    allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
+    allOf(attributesAsync, enrollmentsAsync, programOwnersAsync).join();
 
     // Merge results on the HTTP thread (futures are complete)
-    Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
     Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
     Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
     Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
 
-    return trackedEntities.keySet().stream()
-        .map(
-            uid -> {
-              TrackedEntity te = trackedEntities.get(uid);
-              te.setTrackedEntityAttributeValues(
-                  filterAttributes(allowedAttributeUids, attributes.get(uid)));
-              te.setEnrollments(new HashSet<>(enrollments.get(uid)));
-              te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
-              return te;
-            })
-        .toList();
+    for (TrackedEntity te : trackedEntities) {
+      String uid = te.getUid();
+      te.setTrackedEntityAttributeValues(
+          filterAttributes(allowedAttributeUids, attributes.get(uid)));
+      Collection<Enrollment> teEnrollments = enrollments.get(uid);
+      te.setEnrollments(teEnrollments.isEmpty() ? Set.of() : Set.copyOf(teEnrollments));
+      // Only set program owners if fetched here; otherwise preserve those set by
+      // JdbcTrackedEntityStore
+      if (!programOwners.isEmpty()) {
+        Collection<TrackedEntityProgramOwner> teOwners = programOwners.get(uid);
+        te.setProgramOwners(teOwners.isEmpty() ? Set.of() : Set.copyOf(teOwners));
+      }
+    }
+  }
+
+  private static <T> CompletableFuture<Multimap<String, T>> asyncFetch(
+      boolean condition, Supplier<Multimap<String, T>> supplier) {
+    return condition
+        ? supplyAsync(supplier, getPool())
+        : CompletableFuture.completedFuture(ArrayListMultimap.create());
   }
 
   private Set<String> getAllowedAttributeUids(TrackedEntityQueryParams params) {

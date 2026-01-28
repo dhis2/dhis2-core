@@ -27,37 +27,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.tracker.export;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import java.io.IOException;
+import javax.annotation.CheckForNull;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
-
-/**
- * @author Luciano Fiandesio
- */
-class AsyncUtils {
-  AsyncUtils() {
+@Slf4j
+public class UserInfoSnapshots {
+  private UserInfoSnapshots() {
     throw new IllegalStateException("Utility class");
   }
 
   /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+   * Parses JSON into a UserInfoSnapshot.
    *
-   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
-   *     Multimap
-   * @param supplier The Supplier to execute
-   * @param executor an Executor instance
-   * @return A CompletableFuture with the result of the Supplier
+   * @param json JSON string representing a UserInfoSnapshot
+   * @return parsed UserInfoSnapshot, or null if input is empty
    */
-  static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
+  @CheckForNull
+  public static UserInfoSnapshot fromJson(String json) {
+    if (StringUtils.isEmpty(json)) {
+      return null;
+    }
+    try {
+      return JsonBinaryType.MAPPER.readValue(json, UserInfoSnapshot.class);
+    } catch (IOException e) {
+      log.error("Parsing UserInfoSnapshot json string failed. String value: {}", json);
+      throw new IllegalArgumentException(e);
+    }
+  }
+
+  /**
+   * Creates a UserInfoSnapshot from a JsonObject (lazy JSON tree).
+   *
+   * @param json JsonObject representing a UserInfoSnapshot
+   * @return UserInfoSnapshot, or null if input is null or undefined
+   */
+  @CheckForNull
+  public static UserInfoSnapshot from(@CheckForNull JsonObject json) {
+    if (json == null || json.isUndefined()) {
+      return null;
+    }
+    return UserInfoSnapshot.of(
+        json.getNumber("id").number(0L).longValue(),
+        json.getString("code").string(null),
+        json.getString("uid").string(null),
+        json.getString("username").string(null),
+        json.getString("firstName").string(null),
+        json.getString("surname").string(null));
   }
 }
