@@ -40,8 +40,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.JmsHandler;
 import org.hisp.dhis.eventhook.handlers.KafkaHandler;
@@ -52,7 +50,6 @@ import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationContext;
@@ -67,7 +64,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class EventHookListener {
   private final ApplicationContext applicationContext;
 
@@ -80,8 +76,6 @@ public class EventHookListener {
   private final EventHookService eventHookService;
 
   private final AuthenticationService authenticationService;
-
-  private final AclService aclService;
 
   @Async("eventHookTaskExecutor")
   @TransactionalEventListener(
@@ -100,9 +94,17 @@ public class EventHookListener {
           continue;
         }
         if (event.getObject() instanceof Collection) {
-          filteredEvent = filterCollectionPayload(event, eventHook);
+          List<ObjectNode> objects = new ArrayList<>();
+
+          for (Object object : ((Collection<?>) event.getObject())) {
+            objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+          }
+
+          filteredEvent = event.withObject(objects);
         } else {
-          filteredEvent = filterPayload(event, eventHook);
+          ObjectNode objectNode =
+              fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
+          filteredEvent = event.withObject(objectNode);
         }
 
         emit(filteredEvent, eventHook);
@@ -118,45 +120,6 @@ public class EventHookListener {
       for (Handler handler : handlers) {
         handler.run(eventHook, event, payload);
       }
-    }
-  }
-
-  protected Event filterPayload(Event event, EventHook eventHook) {
-    if (event.getObject() instanceof IdentifiableObject identifiableObjectEvent) {
-      if (aclService.canRead(eventHook.getUser(), identifiableObjectEvent)) {
-        ObjectNode objectNode =
-            fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
-        return event.withObject(objectNode);
-      } else {
-        logDroppedEvent(identifiableObjectEvent, eventHook);
-        return null;
-      }
-    } else {
-      ObjectNode objectNode =
-          fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
-      return event.withObject(objectNode);
-    }
-  }
-
-  protected Event filterCollectionPayload(Event event, EventHook eventHook) {
-    List<ObjectNode> objects = new ArrayList<>();
-
-    for (Object object : ((Collection<?>) event.getObject())) {
-      if (event.getObject() instanceof IdentifiableObject identifiableObjectEvent) {
-        if (aclService.canRead(eventHook.getUser(), identifiableObjectEvent)) {
-          objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
-        } else {
-          logDroppedEvent(identifiableObjectEvent, eventHook);
-        }
-      } else {
-        objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
-      }
-    }
-
-    if (!objects.isEmpty()) {
-      return event.withObject(objects);
-    } else {
-      return null;
     }
   }
 
@@ -191,13 +154,5 @@ public class EventHookListener {
     }
 
     eventHookContext = EventHookContext.builder().eventHooks(eventHooks).targets(targets).build();
-  }
-
-  protected void logDroppedEvent(IdentifiableObject identifiableObject, EventHook eventHook) {
-    log.warn(
-        "Event '{}' for event hook '{}' dropped because not readable by event hook creator '{}'. Hint: review resource sharing settings",
-        identifiableObject.getUid(),
-        eventHook.getUid(),
-        eventHook.getCreatedBy().getUid());
   }
 }
