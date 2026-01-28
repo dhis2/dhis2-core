@@ -123,6 +123,11 @@ public enum ErrorCode {
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* Category merge */
+  E1535("Source CategoryOptions: {0} do not match target CategoryOptions: {1}"),
+  E1536(
+      "Source and target Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+
   /* CategoryOptionCombo merge */
   E1540(
       "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),

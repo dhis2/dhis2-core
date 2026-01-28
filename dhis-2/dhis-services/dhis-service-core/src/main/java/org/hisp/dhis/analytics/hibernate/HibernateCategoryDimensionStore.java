@@ -29,10 +29,14 @@
  */
 package org.hisp.dhis.analytics.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -64,5 +68,35 @@ public class HibernateCategoryDimensionStore extends HibernateGenericStore<Categ
             CategoryDimension.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
+  }
+
+  @Override
+  public List<CategoryDimension> getByCategory(@Nonnull Collection<String> categoryUids) {
+    if (categoryUids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct cd from CategoryDimension cd
+            where cd.dimension.uid in :categoryUids
+            """,
+            CategoryDimension.class)
+        .setParameter("categoryUids", categoryUids)
+        .getResultList();
+  }
+
+  @Override
+  public int updateCatDimensions(Set<Long> sourceIds, long targetId) {
+    if (sourceIds == null || sourceIds.isEmpty()) return 0;
+    String sql =
+        """
+              update categorydimension cd
+              set categoryid = :targetId
+              where cd.categoryid in :sourceIds
+              """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetId", targetId)
+        .setParameter("sourceIds", sourceIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(10000))
+        .executeUpdate();
   }
 }

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -38,4 +39,12 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface CategoryComboStore extends IdentifiableObjectStore<CategoryCombo> {
   List<CategoryCombo> getCategoryCombosByDimensionType(DataDimensionType dataDimensionType);
+
+  /**
+   * Get all {@link CategoryCombo}s that are associated with the {@link Category}s provided
+   *
+   * @param categoryUids the UIDs of the categories
+   * @return list of {@link CategoryCombo}s
+   */
+  List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids);
 }

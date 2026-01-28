@@ -580,7 +580,7 @@ class CategoryOptionMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName("CategoryDimension refs to source CategoryOptions are replaced, sources deleted")
   void catDimensionSourcesDeletedTest() throws ConflictException {
     // given
-    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco13");
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("mco14");
     CategoryOption coSource1 = categoryMetadata.co1();
     CategoryOption coSource2 = categoryMetadata.co2();
     CategoryOption coTarget = categoryMetadata.co3();
