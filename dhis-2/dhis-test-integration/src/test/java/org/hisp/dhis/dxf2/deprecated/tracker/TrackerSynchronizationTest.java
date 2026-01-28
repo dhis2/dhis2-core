@@ -27,17 +27,37 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventService;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstances;
+import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -47,7 +67,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,23 +81,44 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
   // We need to pick a future date as lastUpdated is automatically set to now and cannot be changed
   private static final Date TOMORROW = DateUtils.getDateForTomorrow(0);
 
+  private static final String EVENT_DATE =
+      DateUtils.toIso8601NoTz(DateUtils.nowMinusDuration("1d"));
+
   private static final String TEI_NOT_IN_SYNC_UID = "ABCDEFGHI01";
 
   private static final String SYNCHRONIZED_TEI_UID = "ABCDEFGHI02";
 
+  private static final String SKIP_ATT_VALUE = "ATT: Skip Sync";
+
+  private static final String ATT_VALUE = "ATT: Value";
+
+  private static final String SKIP_DATA_VALUE = "DV: Skip Sync";
+
+  private static final String DATA_VALUE = "DV: Value";
+
   @Autowired private UserService _userService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityInstanceService subject;
 
   private TrackedEntityQueryParams queryParams;
+  @Autowired private EventService eventService;
+
+  @Autowired private TrackerSynchronization trackerSync;
 
   private TrackedEntityInstanceParams params;
 
-  private void prepareDataForTest() {
+  private DataElement deA;
+  private DataElement deB;
+  private Enrollment enrA;
+  private ProgramStage programStage;
+
+  private void prepareDataForTest(User user) {
     TrackedEntityAttribute teaA = createTrackedEntityAttribute('a');
     TrackedEntityAttribute teaB = createTrackedEntityAttribute('b');
     teaB.setSkipSynchronization(true);
@@ -87,23 +130,71 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
     tet.getTrackedEntityTypeAttributes().add(tetaA);
     tet.getTrackedEntityTypeAttributes().add(tetaB);
     manager.save(tet);
+
     OrganisationUnit ou = createOrganisationUnit('a');
     manager.save(ou);
+
+    Program program = createProgram('a');
+    program.setTrackedEntityType(tet);
+    program.setSharing(Sharing.builder().publicAccess(FULL).build());
+    program.getOrganisationUnits().add(ou);
+    manager.save(program);
+
+    programStage = createProgramStage('a', program);
+    programStage.setSharing(Sharing.builder().publicAccess(FULL).build());
+    manager.save(programStage);
+
+    program.getProgramStages().add(programStage);
+    manager.update(program);
+
+    deA = createDataElement('a');
+    deA.setValueType(ValueType.TEXT);
+    deA.setDomainType(DataElementDomain.TRACKER);
+    manager.save(deA);
+
+    deB = createDataElement('b');
+    deB.setValueType(ValueType.TEXT);
+    deB.setDomainType(DataElementDomain.TRACKER);
+    manager.save(deB);
+
+    ProgramStageDataElement psdeA = createProgramStageDataElement(programStage, deA, 1);
+    psdeA.setSkipSynchronization(true);
+    ProgramStageDataElement psdeB = createProgramStageDataElement(programStage, deB, 2);
+    manager.save(psdeA);
+    manager.save(psdeB);
+
     TrackedEntity teiToSync = createTrackedEntity('a', ou, teaA);
     teiToSync.setTrackedEntityType(tet);
     teiToSync.setUid(TEI_NOT_IN_SYNC_UID);
-    TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue('b', teiToSync, teaB);
     TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('a', teiToSync, teaA);
+    teavA.setValue(ATT_VALUE);
+    TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue('b', teiToSync, teaB);
+    teavB.setValue(SKIP_ATT_VALUE);
     manager.save(teiToSync);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teavA);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teavB);
     teiToSync.getTrackedEntityAttributeValues().addAll(List.of(teavA, teavB));
     manager.update(teiToSync);
+
     TrackedEntity alreadySynchronizedTei = createTrackedEntity('b', ou);
     alreadySynchronizedTei.setTrackedEntityType(tet);
     alreadySynchronizedTei.setLastSynchronized(TOMORROW);
     alreadySynchronizedTei.setUid(SYNCHRONIZED_TEI_UID);
     manager.save(alreadySynchronizedTei);
+
+    enrA = createEnrollment(program, teiToSync, ou);
+    enrA.enrollTrackedEntity(teiToSync, program);
+    enrA.setUser(user);
+    manager.save(enrA);
+
+    User superUser = createAndAddAdminUser(AUTHORITY_ALL);
+    injectSecurityContext(UserDetails.fromUser(superUser));
+
+    DataValue dataValueA = createDataValue(deA.getUid(), SKIP_DATA_VALUE, true);
+    DataValue dataValueB = createDataValue(deB.getUid(), DATA_VALUE, false);
+    Set<DataValue> dataValues = Set.of(dataValueA, dataValueB);
+    Event event = createEvent(program, programStage, ou, enrA, teiToSync.getUid(), dataValues);
+    eventService.addEvent(event, null, false);
   }
 
   @Override
@@ -112,7 +203,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
     User user = createUserWithAuth("userUID0001");
     manager.save(user);
     prepareSyncParams();
-    prepareDataForTest();
+    prepareDataForTest(user);
   }
 
   private void prepareSyncParams() {
@@ -162,10 +253,87 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
     assertIsEmpty(fetchedTeis);
   }
 
+  @Test
+  void shouldNotSynchronizeDataWithSkipSynchronizationFlag() throws Exception {
+    queryParams.setSynchronizationQuery(true);
+    queryParams.setSkipChangedBefore(null);
+
+    List<TrackedEntityInstance> fetchedTeis =
+        subject.getTrackedEntityInstances(
+            queryParams, TrackedEntityInstanceParams.DATA_SYNCHRONIZATION, true, true);
+
+    final Map<String, Set<String>> psdeSkipMap =
+        programStageDataElementService
+            .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+
+    TrackedEntityInstances teis = new TrackedEntityInstances();
+    teis.setTrackedEntityInstances(fetchedTeis);
+
+    Method method =
+        TrackerSynchronization.class.getDeclaredMethod(
+            "filterDataWithSkipSynchronizationFlag", TrackedEntityInstances.class, Map.class);
+    method.setAccessible(true);
+    method.invoke(trackerSync, teis, psdeSkipMap);
+
+    List<String> dataValues = new ArrayList<>();
+    List<String> teiAttValues = new ArrayList<>();
+    teis.getTrackedEntityInstances()
+        .forEach(
+            tei -> {
+              tei.getAttributes()
+                  .forEach(
+                      att -> {
+                        teiAttValues.add(att.getValue());
+                      });
+              tei.getEnrollments()
+                  .forEach(
+                      enr -> {
+                        enr.getEvents()
+                            .forEach(
+                                ev -> {
+                                  ev.getDataValues()
+                                      .forEach(
+                                          dv -> {
+                                            dataValues.add(dv.getValue());
+                                          });
+                                });
+                      });
+            });
+
+    assertContainsOnly(List.of(DATA_VALUE), dataValues);
+    assertContainsOnly(List.of(ATT_VALUE), teiAttValues);
+  }
+
   private TrackedEntityInstance getTeiByUid(List<TrackedEntityInstance> teis, String teiUid) {
     return teis.stream()
         .filter(t -> Objects.equals(t.getTrackedEntityInstance(), teiUid))
         .findAny()
         .get();
+  }
+
+  private DataValue createDataValue(String dataElementUid, String value, Boolean skipSync) {
+    DataValue dataValue = new DataValue(dataElementUid, value);
+    dataValue.setSkipSynchronization(skipSync);
+    return dataValue;
+  }
+
+  private Event createEvent(
+      Program program,
+      ProgramStage programStage,
+      OrganisationUnit orgUnit,
+      Enrollment enrollment,
+      String teiUid,
+      Set<DataValue> dataValues) {
+    Event event = new Event();
+    event.setStatus(EventStatus.ACTIVE);
+    event.setProgram(program.getUid());
+    event.setProgramStage(programStage.getUid());
+    event.setTrackedEntityInstance(teiUid);
+    event.setOrgUnit(orgUnit.getUid());
+    event.setEnrollment(enrollment.getUid());
+    event.setEventDate(EVENT_DATE);
+    event.setDeleted(false);
+    event.setDataValues(dataValues);
+    return event;
   }
 }
