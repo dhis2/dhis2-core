@@ -30,7 +30,9 @@
 package org.hisp.dhis.merge.category;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -38,6 +40,7 @@ import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
@@ -48,6 +51,7 @@ import org.springframework.stereotype.Component;
  *
  * @author david mackessy
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CategoryMergeHandler {
@@ -72,6 +76,7 @@ public class CategoryMergeHandler {
           target.addCategoryOption(co);
           sources.forEach(src -> src.removeCategoryOption(co));
         });
+    log.info("{} category options with source category refs updated", sourceCategoryOptions.size());
   }
 
   /**
@@ -83,12 +88,12 @@ public class CategoryMergeHandler {
   public void handleCategoryCombos(List<Category> sources, Category target) {
     List<CategoryCombo> sourceCategoryCombos =
         categoryComboStore.getCategoryCombosByCategory(UID.toUidValueSet(sources));
-
     sourceCategoryCombos.forEach(
         cc -> {
           cc.addCategory(target);
           sources.forEach(cc::removeCategory);
         });
+    log.info("{} category combos with source category refs updated", sourceCategoryCombos.size());
   }
 
   /**
@@ -99,13 +104,11 @@ public class CategoryMergeHandler {
    * @param target to add
    */
   public void handleUsers(List<Category> sources, Category target) {
-    List<User> sourceUsers = userStore.getUsersByCategories(UID.toUidValueSet(sources));
-
-    sourceUsers.forEach(
-        user -> {
-          user.getCatDimensionConstraints().add(target);
-          sources.forEach(user.getCatDimensionConstraints()::remove);
-        });
+    int updated =
+        userStore.updateCatDimensionConstraints(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    log.info("{} user category dimension constraints with source category refs updated", updated);
   }
 
   /**
@@ -115,9 +118,10 @@ public class CategoryMergeHandler {
    * @param target to add
    */
   public void handleCategoryDimensions(List<Category> sources, Category target) {
-    List<CategoryDimension> sourceCategoryDimensions =
-        categoryDimensionStore.getByCategory(UID.toUidValueSet(sources));
-
-    sourceCategoryDimensions.forEach(cd -> cd.setDimension(target));
+    int updated =
+        categoryDimensionStore.updateCatDimensions(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    log.info("{} category dimensions with source category refs updated", updated);
   }
 }

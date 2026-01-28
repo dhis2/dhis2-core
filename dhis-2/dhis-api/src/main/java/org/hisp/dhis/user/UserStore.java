@@ -253,4 +253,6 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return list of {@link User}s
    */
   List<User> getUsersByCategories(Collection<String> categoryUids);
+
+  int updateCatDimensionConstraints(Set<Long> collect, long id);
 }

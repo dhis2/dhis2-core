@@ -34,6 +34,7 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -57,6 +58,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.LockOptions;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -719,5 +721,22 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             User.class)
         .setParameter("categoryUids", categoryUids)
         .getResultList();
+  }
+
+  @Override
+  public int updateCatDimensionConstraints(Set<Long> sourceIds, long targetId) {
+    if (sourceIds == null || sourceIds.isEmpty()) return 0;
+    String sql =
+        """
+        update users_catdimensionconstraints ucdc
+        set dataelementcategoryid = :targetId
+        where ucdc.dataelementcategoryid in :sourceIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetId", targetId)
+        .setParameter("sourceIds", sourceIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(10000))
+        .executeUpdate();
   }
 }
