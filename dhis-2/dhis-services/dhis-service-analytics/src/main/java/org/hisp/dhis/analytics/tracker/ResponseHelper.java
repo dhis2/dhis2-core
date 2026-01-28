@@ -41,6 +41,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
@@ -167,5 +168,19 @@ public class ResponseHelper {
     }
 
     return uid;
+  }
+
+  /**
+   * Based on the given item this method returns the display property label.
+   *
+   * @param item the current QueryItem.
+   * @param displayProperty the display property setting.
+   * @return the display property label.
+   */
+  public static String getItemDisplayProperty(QueryItem item, DisplayProperty displayProperty) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().label();
+    }
+    return item.getItem().getDisplayProperty(displayProperty);
   }
 }

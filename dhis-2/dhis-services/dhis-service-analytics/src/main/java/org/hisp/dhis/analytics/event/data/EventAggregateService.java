@@ -51,6 +51,8 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDat
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemDisplayProperty;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -297,48 +299,53 @@ public class EventAggregateService {
     if (params.isCollapseDataDimensions() || params.isAggregateData()) {
       grid.addHeader(new GridHeader(DATA_COLLAPSED_DIM_ID, DISPLAY_NAME_DATA_X, TEXT, false, true));
     } else {
-      for (QueryItem item : params.getItems()) {
-        String name;
-        String displayProperty;
-
-        if (item.hasCustomHeader()) {
-          name = item.getCustomHeader().headerKey(item.getCustomHeader().key());
-          displayProperty = item.getCustomHeader().label();
-        } else {
-          name = item.getItem().getUid();
-          if (item.hasProgramStage()) {
-            name = item.getProgramStage().getUid() + "." + name;
-          }
-          displayProperty = item.getItem().getDisplayProperty(params.getDisplayProperty());
-        }
-
-        grid.addHeader(
-            new GridHeader(
-                name,
-                displayProperty,
-                item.getValueType(),
-                false,
-                true,
-                item.getOptionSet(),
-                item.getLegendSet()));
-      }
+      addItemHeaders(params, grid);
     }
 
-    for (DimensionalObject dimension : params.getDimensions()) {
-      String displayProperty = dimension.getDisplayProperty(params.getDisplayProperty());
-
-      grid.addHeader(new GridHeader(dimension.getDimension(), displayProperty, TEXT, false, true));
-    }
-
-    grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
+    addDimensionHeaders(params, grid);
+    addValueHeader(grid);
 
     if (params.isIncludeNumDen()) {
-      grid.addHeader(new GridHeader(NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false));
+      addNumDenHeaders(grid);
     }
+  }
+
+  private void addItemHeaders(EventQueryParams params, Grid grid) {
+    for (QueryItem item : params.getItems()) {
+      grid.addHeader(
+          new GridHeader(
+              getItemUid(item),
+              getItemDisplayProperty(item, params.getDisplayProperty()),
+              item.getValueType(),
+              false,
+              true,
+              item.getOptionSet(),
+              item.getLegendSet()));
+    }
+  }
+
+  private void addDimensionHeaders(EventQueryParams params, Grid grid) {
+    for (DimensionalObject dimension : params.getDimensions()) {
+      grid.addHeader(
+          new GridHeader(
+              dimension.getDimension(),
+              dimension.getDisplayProperty(params.getDisplayProperty()),
+              TEXT,
+              false,
+              true));
+    }
+  }
+
+  private void addValueHeader(Grid grid) {
+    grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
+  }
+
+  private void addNumDenHeaders(Grid grid) {
+    grid.addHeader(new GridHeader(NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false));
   }
 
   /**
