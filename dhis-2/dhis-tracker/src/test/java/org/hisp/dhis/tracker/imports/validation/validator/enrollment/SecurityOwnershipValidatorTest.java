@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
@@ -42,6 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -107,6 +110,10 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private TrackedEntity trackedEntity;
 
+  private CategoryOptionCombo categoryOptionCombo;
+
+  private CategoryOption categoryOption;
+
   private Map<UID, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
 
   @BeforeEach
@@ -140,6 +147,10 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     TrackedEntityProgramOwnerOrgUnit owner =
         new TrackedEntityProgramOwnerOrgUnit(TE_ID.getValue(), PROGRAM_ID, organisationUnit);
     ownerOrgUnit = Map.of(TE_ID, Map.of(PROGRAM_ID, owner));
+
+    categoryOption = createCategoryOption('A');
+    categoryOptionCombo = createCategoryOptionCombo('A');
+    categoryOptionCombo.setCategoryOptions(Set.of(categoryOption));
 
     validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
   }
@@ -389,6 +400,34 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1104);
+  }
+
+  @Test
+  void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForCreateStrategy() {
+    MetadataIdentifier attributeOptionComboUid =
+        MetadataIdentifier.ofUid(categoryOptionCombo.getUid());
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TE_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(attributeOptionComboUid)
+            .build();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
+    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
+        .thenReturn(categoryOptionCombo);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataWrite(user, categoryOption)).thenReturn(false);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, E1099);
   }
 
   private TrackedEntity teWithNoEnrollments() {

@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -133,6 +134,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   private DefaultFakeMessageSender messageSender;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
+
+  @Autowired private CategoryService categoryService;
 
   private OrganisationUnit orgUnit;
 
@@ -241,6 +244,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setEnrollmentDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     submission.setIncidentDate(DateUtils.getDate(2024, 9, 3, 16, 23));
     submission.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
+    submission.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo().getUid());
     submission.setValues(
         List.of(
             new SmsAttributeValue(teaA.getUid(), "TrackedEntityTypeAttributeValue"),
@@ -342,6 +346,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setEnrollmentDate(enrollment.getEnrollmentDate());
     submission.setIncidentDate(enrollment.getOccurredDate());
     submission.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
+    submission.setAttributeOptionCombo(enrollment.getAttributeOptionCombo().getUid());
     submission.setValues(
         List.of(
             new SmsAttributeValue(teaA.getUid(), "AttributeAUpdated"),

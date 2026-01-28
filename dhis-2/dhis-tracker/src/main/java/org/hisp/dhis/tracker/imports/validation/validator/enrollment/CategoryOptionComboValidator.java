@@ -165,7 +165,6 @@ class CategoryOptionComboValidator implements Validator<Enrollment> {
 
   private void addAOCAndCOCombinationError(
       Enrollment enrollment, Reporter reporter, Program program) {
-    // we used the program CC in finding the AOC id, if the AOC id was not provided in the payload
     if (hasNoAttributeOptionComboSet(enrollment)) {
       reporter.addError(enrollment, ValidationCode.E1129, program.getEnrollmentCategoryCombo());
     } else {

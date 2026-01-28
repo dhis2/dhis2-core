@@ -250,6 +250,29 @@ class CategoryOptionComboValidatorTest extends TrackerTestBase {
                     && r.getMessage().contains(program.getEnrollmentCategoryCombo().getUid())));
   }
 
+  @Test
+  void shouldFailWhenEnrollmentAOCIsSetButNotPartOfProgramCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(defaultCategoryCombo());
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setEnrollmentCategoryCombo(defaultCC);
+    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid((String) null))).thenReturn(null);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(null);
+
+    Enrollment enrollment = enrollmentBuilder(program, null);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertEquals(1, reporter.getErrors().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == ValidationCode.E1129
+                    && r.getMessage().contains(program.getEnrollmentCategoryCombo().getUid())));
+  }
+
   private void setUpDefaultCategoryCombo(Program program) {
     CategoryCombo defaultCC = defaultCategoryCombo();
     program.setCategoryCombo(defaultCC);

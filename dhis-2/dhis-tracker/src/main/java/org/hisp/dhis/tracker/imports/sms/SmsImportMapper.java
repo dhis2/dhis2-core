@@ -237,6 +237,7 @@ class SmsImportMapper {
         .attributes(
             mapProgramAttributeValues(
                 submission.getValues(), programAttributes, existingAttributeValues))
+        .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
         .build();
   }
 
@@ -405,7 +406,7 @@ class SmsImportMapper {
       @Nonnull Map<String, String> dataValues,
       @Nonnull String orgUnit,
       @Nonnull String username,
-      @Nonnull CategoryService dataElementCategoryService,
+      @Nonnull CategoryService categoryService,
       @Nonnull String trackedEntity,
       @CheckForNull UID enrollmentUid) {
     List<Enrollment> enrollments = List.of();
@@ -421,12 +422,13 @@ class SmsImportMapper {
               .occurredAt(now)
               .enrolledAt(now)
               .status(EnrollmentStatus.ACTIVE)
+              .attributeOptionCombo(metadataUid(categoryService.getDefaultCategoryOptionCombo()))
               .build();
       enrollments = List.of(enrollment);
     }
 
     TrackerEvent event =
-        mapCommandEvent(sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService);
+        mapCommandEvent(sms, smsCommand, dataValues, orgUnit, username, categoryService);
     event.setEnrollment(enrollmentUid);
 
     return TrackerObjects.builder().enrollments(enrollments).events(List.of(event)).build();
@@ -453,7 +455,8 @@ class SmsImportMapper {
       @Nonnull IncomingSms sms,
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> attributeValues,
-      @Nonnull OrganisationUnit orgUnit) {
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryService categoryService) {
     UID trackedEntity = UID.generate();
     Date now = new Date();
     Date occurredDate = Objects.requireNonNullElse(SmsUtils.lookForDate(sms.getText()), now);
@@ -494,6 +497,8 @@ class SmsImportMapper {
                     .enrolledAt(now.toInstant())
                     .occurredAt(toInstant(occurredDate))
                     .status(EnrollmentStatus.ACTIVE)
+                    .attributeOptionCombo(
+                        MetadataIdentifier.ofUid(categoryService.getDefaultCategoryOptionCombo()))
                     .build()))
         .build();
   }
