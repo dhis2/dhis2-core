@@ -30,25 +30,33 @@
 package org.hisp.dhis.tracker.export;
 
 import java.io.IOException;
+import javax.annotation.CheckForNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 @Slf4j
-public class EventUtils {
-  private EventUtils() {
-    throw new UnsupportedOperationException("Utility class");
+public class UserInfoSnapshots {
+  private UserInfoSnapshots() {
+    throw new IllegalStateException("Utility class");
   }
 
-  public static UserInfoSnapshot jsonToUserInfo(String jsonUserInfo) {
-    if (StringUtils.isEmpty(jsonUserInfo)) {
+  /**
+   * Parses JSON into a UserInfoSnapshot.
+   *
+   * @param json JSON string representing a UserInfoSnapshot
+   * @return parsed UserInfoSnapshot, or null if input is empty
+   */
+  @CheckForNull
+  public static UserInfoSnapshot fromJson(String json) {
+    if (StringUtils.isEmpty(json)) {
       return null;
     }
     try {
-      return JsonBinaryType.MAPPER.readValue(jsonUserInfo, UserInfoSnapshot.class);
+      return JsonBinaryType.MAPPER.readValue(json, UserInfoSnapshot.class);
     } catch (IOException e) {
-      log.error("Parsing UserInfoSnapshot json string failed. String value: {}", jsonUserInfo);
+      log.error("Parsing UserInfoSnapshot json string failed. String value: {}", json);
       throw new IllegalArgumentException(e);
     }
   }

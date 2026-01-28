@@ -30,8 +30,6 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.tracker.export.EventUtils.jsonToUserInfo;
-import static org.hisp.dhis.tracker.export.MapperGeoUtils.resolveGeometry;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
@@ -67,7 +65,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -379,9 +379,11 @@ class JdbcEnrollmentStore {
       enrollment.setUid(rs.getString("uid"));
       enrollment.setCreated(formatDate(rs.getTimestamp("created")));
       enrollment.setCreatedAtClient(formatDate(rs.getTimestamp("createdatclient")));
-      enrollment.setCreatedByUserInfo(jsonToUserInfo(rs.getString("createdbyuserinfo")));
+      enrollment.setCreatedByUserInfo(
+          UserInfoSnapshots.fromJson(rs.getString("createdbyuserinfo")));
       enrollment.setLastUpdated(formatDate(rs.getTimestamp("lastupdated")));
-      enrollment.setLastUpdatedByUserInfo(jsonToUserInfo(rs.getString("lastupdatedbyuserinfo")));
+      enrollment.setLastUpdatedByUserInfo(
+          UserInfoSnapshots.fromJson(rs.getString("lastupdatedbyuserinfo")));
       enrollment.setLastUpdatedAtClient(formatDate(rs.getTimestamp("lastupdatedatclient")));
       enrollment.setOccurredDate(formatDate(rs.getTimestamp("occurreddate")));
       enrollment.setEnrollmentDate(formatDate(rs.getTimestamp("enrollmentdate")));
@@ -391,7 +393,7 @@ class JdbcEnrollmentStore {
       enrollment.setStoredBy(rs.getString("storedby"));
       enrollment.setDeleted(rs.getBoolean("deleted"));
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
-      enrollment.setGeometry(resolveGeometry(rs.getBytes("geometry")));
+      enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
 
       TrackedEntityType trackedEntityType = new TrackedEntityType();
       trackedEntityType.setUid(rs.getString("tet_uid"));

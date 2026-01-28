@@ -32,9 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
-import static org.hisp.dhis.tracker.export.MapperGeoUtils.resolveGeometry;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
@@ -63,7 +61,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.util.DateUtils;
@@ -177,9 +177,9 @@ class JdbcTrackedEntityStore {
     te.setInactive(rs.getBoolean("inactive"));
     te.setPotentialDuplicate(rs.getBoolean("potentialduplicate"));
     te.setDeleted(rs.getBoolean("deleted"));
-    te.setCreatedByUserInfo(jsonToUserInfo(rs.getString("createdbyuserinfo")));
-    te.setLastUpdatedByUserInfo(jsonToUserInfo(rs.getString("lastupdatedbyuserinfo")));
-    te.setGeometry(resolveGeometry((byte[]) rs.getObject("geometry")));
+    te.setCreatedByUserInfo(UserInfoSnapshots.fromJson(rs.getString("createdbyuserinfo")));
+    te.setLastUpdatedByUserInfo(UserInfoSnapshots.fromJson(rs.getString("lastupdatedbyuserinfo")));
+    te.setGeometry(Geometries.fromWkb((byte[]) rs.getObject("geometry")));
 
     // Tracked entity type
     TrackedEntityType tet = new TrackedEntityType();

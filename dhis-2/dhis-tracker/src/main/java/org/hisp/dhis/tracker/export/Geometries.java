@@ -36,22 +36,26 @@ import org.geotools.geometry.jts.WKBReader;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 
-/**
- * @author Luciano Fiandesio
- */
 @Slf4j
-public class MapperGeoUtils {
-  private MapperGeoUtils() {
+public class Geometries {
+  private Geometries() {
     throw new IllegalStateException("Utility class");
   }
 
+  /**
+   * Parses WKB (Well-Known Binary) bytes into a JTS Geometry. Use with {@code ST_AsBinary(column)}
+   * in SQL queries.
+   *
+   * @param wkb WKB-formatted bytes from PostGIS ST_AsBinary
+   * @return parsed Geometry, or null if input is empty or parsing fails
+   */
   @CheckForNull
-  public static Geometry resolveGeometry(byte[] geometry) {
-    if (ObjectUtils.isEmpty(geometry)) {
+  public static Geometry fromWkb(byte[] wkb) {
+    if (ObjectUtils.isEmpty(wkb)) {
       return null;
     }
     try {
-      return new WKBReader().read(geometry);
+      return new WKBReader().read(wkb);
     } catch (ParseException e) {
       log.error("An error occurred parsing a geometry field", e);
       return null;
