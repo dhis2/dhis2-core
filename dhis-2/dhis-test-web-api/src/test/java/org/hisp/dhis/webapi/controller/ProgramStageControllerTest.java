@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
@@ -37,11 +40,16 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
+@Transactional
 class ProgramStageControllerTest extends DhisControllerConvenienceTest {
+
+  @Autowired private DataElementService dataElementService;
 
   @Test
   void testCreateProgramStageWithoutProgram() {
@@ -77,5 +85,86 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest {
     assertEquals("duedatelabel", programStage.getString("dueDateLabel").string());
     assertEquals("programstagelabel", programStage.getString("programStageLabel").string());
     assertEquals("eventlabel", programStage.getString("eventLabel").string());
+  }
+
+  @Test
+  void shouldSuccessfullyPatchNextScheduledDateField() {
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.DATE);
+    dataElementService.addDataElement(dataElement);
+    POST(
+            "/programs/",
+            """
+                    {'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION'}""")
+        .content(HttpStatus.CREATED);
+    String programStageId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStages/",
+                """
+                    {'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'},
+                     'programStageDataElements': [
+                            {
+                                'dataElement': {
+                                    'id': '%s'
+                                }
+                            }]}"""
+                    .formatted(dataElement.getUid())));
+    JsonWebMessage message =
+        PATCH(
+                "/programStages/" + programStageId,
+                """
+                      [{"op": "replace",
+                    "path": "/nextScheduleDate",
+                    "value": {"id": "%s"}}]
+                    """
+                    .formatted(dataElement.getUid()))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals("OK", message.getStatus());
+    JsonObject programStage = GET("/programStages/{id}", programStageId).content();
+    assertEquals(
+        dataElement.getUid(), programStage.getObject("nextScheduleDate").getString("id").string());
+  }
+
+  @Test
+  void shouldFailToPatchNextScheduledDateWhenItIsReferencingADataElementWithWrongValueType() {
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.TEXT);
+    dataElementService.addDataElement(dataElement);
+    POST(
+            "/programs/",
+            """
+                    {'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION'}""")
+        .content(HttpStatus.CREATED);
+    String programStageId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStages/",
+                """
+                    {'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'},
+                     'programStageDataElements': [
+                            {
+                                'dataElement': {
+                                    'id': '%s'
+                                }
+                            }]}"""
+                    .formatted(dataElement.getUid())));
+    JsonWebMessage message =
+        PATCH(
+                "/programStages/" + programStageId,
+                """
+                      [{"op": "replace",
+                    "path": "/nextScheduleDate",
+                    "value": {"id": "%s"}}]
+                    """
+                    .formatted(dataElement.getUid()))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    JsonTypeReport response = message.get("response", JsonTypeReport.class);
+    assertEquals(1, response.getErrorReports().size());
+    assertEquals(ErrorCode.E6001, response.getErrorReports().get(0).getErrorCode());
   }
 }
