@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +62,17 @@ import org.hisp.dhis.feedback.ErrorCode;
 @NoArgsConstructor(access = PRIVATE)
 public class DimensionIdentifierHelper {
   public static final Character DIMENSION_SEPARATOR = '.';
+
+  /**
+   * Event-level static dimensions that should support short format headers (e.g.,
+   * programStageUid.eventdate instead of programUid.programStageUid.eventdate).
+   */
+  public static final List<StaticDimension> SUPPORTED_EVENT_STATIC_DIMENSIONS =
+      List.of(
+          StaticDimension.EVENT_DATE,
+          StaticDimension.SCHEDULED_DATE,
+          StaticDimension.EVENT_STATUS,
+          StaticDimension.OU);
 
   /**
    * A map of static dimensions and an extractor function that will return the display name of the
@@ -292,5 +304,33 @@ public class DimensionIdentifierHelper {
    */
   public static boolean isDataElement(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return isOfType(dimensionIdentifier, DATA_ELEMENT) && dimensionIdentifier.isEventDimension();
+  }
+
+  /**
+   * Checks if the dimension is an event-level static dimension matching the given type.
+   *
+   * @param dimId the dimension identifier to check
+   * @param dimension the static dimension type to match
+   * @return true if it's an event-level dimension of the specified type
+   */
+  public static boolean isEventLevelStaticDimension(
+      DimensionIdentifier<DimensionParam> dimId, StaticDimension dimension) {
+    return dimId.isEventDimension()
+        && dimId.getDimension().isStaticDimension()
+        && dimId.getDimension().getStaticDimension() == dimension;
+  }
+
+  /**
+   * Checks if the dimension is an event-level static dimension matching any of the given types.
+   *
+   * @param dimId the dimension identifier to check
+   * @param dimensions the collection of static dimension types to match
+   * @return true if it's an event-level dimension of any specified type
+   */
+  public static boolean isEventLevelStaticDimension(
+      DimensionIdentifier<DimensionParam> dimId, Collection<StaticDimension> dimensions) {
+    return dimId.isEventDimension()
+        && dimId.getDimension().isStaticDimension()
+        && dimensions.contains(dimId.getDimension().getStaticDimension());
   }
 }

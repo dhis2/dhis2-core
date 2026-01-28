@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7129;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import static org.hisp.dhis.feedback.ErrorCode.E7251;
+import static org.hisp.dhis.feedback.ErrorCode.E7253;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
@@ -58,6 +59,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -127,12 +130,17 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
         .getProgramAttributes()
         .addAll(getProgramAttributes(programs).map(IdentifiableObject::getUid).toList());
 
+    List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers =
+        retrieveDimensionParams(request, programs, userOrgUnits);
+    Set<DimensionIdentifier<DimensionParam>> parsedHeaders =
+        parseHeaders(request, programs, userOrgUnits);
+
     return CommonParsedParams.builder()
         .programs(programs)
         .pagingParams(computePagingParams(request))
         .orderParams(getSortingParams(request, programs, userOrgUnits))
-        .dimensionIdentifiers(retrieveDimensionParams(request, programs, userOrgUnits))
-        .parsedHeaders(parseHeaders(request, programs, userOrgUnits))
+        .dimensionIdentifiers(dimensionIdentifiers)
+        .parsedHeaders(parsedHeaders)
         .userOrgUnit(userOrgUnits)
         .build();
   }
@@ -401,15 +409,37 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
 
     // We first parse the dimensionId into <Program, ProgramStage, String>
     // to be able to operate on the string version (uid) of the dimension.
-    DimensionIdentifier<StringUid> stringDimensionIdentifier =
-        dimensionIdentifierConverter.fromString(programs, dimensionId);
+    DimensionIdentifier<StringUid> stringDimensionIdentifier;
+    try {
+      stringDimensionIdentifier = dimensionIdentifierConverter.fromString(programs, dimensionId);
+    } catch (IllegalArgumentException e) {
+      // Check if this is the unsupported stage-specific dimension error
+      Pattern pattern =
+          Pattern.compile("Dimension `([^`]+)` is not supported for program stage `([^`]+)`");
+      Matcher matcher = pattern.matcher(e.getMessage());
+      if (matcher.find()) {
+        String unsupportedDimension = matcher.group(1);
+        String stageUid = matcher.group(2);
+        throw new IllegalQueryException(E7253, unsupportedDimension, stageUid);
+      }
+      throw e;
+    }
     List<String> items = getDimensionItemsFromParam(dimensionOrFilter);
 
     Optional<StaticDimension> staticDimension =
         StaticDimension.of(stringDimensionIdentifier.getDimension().getUid());
 
     // Then we check if it's a static dimension.
-    if (staticDimension.isPresent()) {
+    // OU dimensions with items (USER_ORGUNIT, LEVEL-X, OU_GROUP-X, or specific UIDs) need
+    // to go through DimensionalObject resolution to resolve those items to actual org units.
+    // OU dimensions WITHOUT items (e.g., just "ou" in headers) should use static dimension
+    // handling to avoid failing org unit resolution.
+    boolean isOuDimensionWithItems =
+        staticDimension.isPresent()
+            && staticDimension.get() == StaticDimension.OU
+            && !items.isEmpty();
+
+    if (staticDimension.isPresent() && !isOuDimensionWithItems) {
       return parseAsStaticDimension(
           dimensionParamType, stringDimensionIdentifier, outputIdScheme, items);
     }
