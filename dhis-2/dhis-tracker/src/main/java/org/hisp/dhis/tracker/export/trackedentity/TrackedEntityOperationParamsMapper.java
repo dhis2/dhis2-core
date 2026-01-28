@@ -140,6 +140,8 @@ class TrackedEntityOperationParamsMapper {
         .setProgramEnrollmentEndDate(operationParams.getProgramEnrollmentEndDate())
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
+        .setSkipChangedBefore(operationParams.getSkipChangedBefore())
+        .setSynchronizationQuery(operationParams.isSynchronizationQuery())
         .setTrackedEntityType(requestedTrackedEntityType)
         .setTrackedEntityTypes(trackedEntityTypes)
         .addOrgUnits(orgUnits)
