@@ -36,7 +36,6 @@ import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolMa
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -112,10 +111,12 @@ public class TrackedEntityAggregate {
       te.setTrackedEntityAttributeValues(
           filterAttributes(allowedAttributeUids, attributes.get(uid)));
       Collection<Enrollment> teEnrollments = enrollments.get(uid);
-      te.setEnrollments(teEnrollments.isEmpty() ? Set.of() : new HashSet<>(teEnrollments));
+      te.setEnrollments(teEnrollments.isEmpty() ? Set.of() : Set.copyOf(teEnrollments));
+      // Only set program owners if fetched here; otherwise preserve those set by
+      // JdbcTrackedEntityStore
       if (!programOwners.isEmpty()) {
         Collection<TrackedEntityProgramOwner> teOwners = programOwners.get(uid);
-        te.setProgramOwners(teOwners.isEmpty() ? Set.of() : new HashSet<>(teOwners));
+        te.setProgramOwners(teOwners.isEmpty() ? Set.of() : Set.copyOf(teOwners));
       }
     }
   }
