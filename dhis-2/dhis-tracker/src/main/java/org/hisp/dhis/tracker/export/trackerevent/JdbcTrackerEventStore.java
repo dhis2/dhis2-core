@@ -438,17 +438,13 @@ class JdbcTrackerEventStore {
     eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
-    if (dataValueJson.has("createdByUserInfo")) {
-      eventDataValue.setCreatedByUserInfo(
-          UserInfoSnapshots.fromJson(dataValueJson.getObject("createdByUserInfo").toJson()));
-    }
+    eventDataValue.setCreatedByUserInfo(
+        UserInfoSnapshots.from(dataValueJson.getObject("createdByUserInfo")));
 
     eventDataValue.setLastUpdated(
         DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
-    if (dataValueJson.has("lastUpdatedByUserInfo")) {
-      eventDataValue.setLastUpdatedByUserInfo(
-          UserInfoSnapshots.fromJson(dataValueJson.getObject("lastUpdatedByUserInfo").toJson()));
-    }
+    eventDataValue.setLastUpdatedByUserInfo(
+        UserInfoSnapshots.from(dataValueJson.getObject("lastUpdatedByUserInfo")));
 
     return eventDataValue;
   }
