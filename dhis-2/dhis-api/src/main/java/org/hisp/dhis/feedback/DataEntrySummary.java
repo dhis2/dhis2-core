@@ -51,10 +51,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
  * @param entered number of rows (values) that were decoded from the user input
  * @param attempted number of rows (values) that were attempted to import (entered - errors.size())
  * @param succeeded number of rows (values) affected by the import (ideally same as upserted)
+ * @param deleted number of rows (values) that got deleted via scope before insert
  * @param errors value level errors that causes individual values to be ignored
  */
 public record DataEntrySummary(
-    int entered, int attempted, int succeeded, @Nonnull List<DataEntryError> errors) {
+    int entered, int attempted, int succeeded, int deleted, @Nonnull List<DataEntryError> errors) {
 
   public static DataEntryError error(
       @Nonnull DataEntryValue value, @Nonnull ErrorCode code, Object... args) {

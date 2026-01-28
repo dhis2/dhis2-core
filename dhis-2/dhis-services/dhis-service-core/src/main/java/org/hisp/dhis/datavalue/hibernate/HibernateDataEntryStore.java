@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.Math.min;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
@@ -51,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -62,6 +64,7 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
@@ -683,6 +686,65 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     String[] coc =
         optionCombos.filter(Objects::nonNull).map(UID::getValue).distinct().toArray(String[]::new);
     return listAsStrings(sql.formatted(accessSql), q -> q.setParameterList("coc", coc));
+  }
+
+  @Override
+  public int deleteScope(DataEntryGroup.Scope scope) {
+    if (scope.elements().isEmpty()) return 0;
+    if (scope.orgUnits().isEmpty()) return 0;
+    if (scope.periods().isEmpty()) return 0;
+    @Language("sql")
+    String sql1 = // for 1 element
+        """
+      WITH ou_scope AS (
+        SELECT ou.organisationunitid FROM organisationunit ou WHERE ou.uid = ANY(:ou)
+      ),
+      pe_scope AS (
+        SELECT pe.periodid FROM period pe WHERE pe.iso = ANY(:pe)
+      ),
+      dx_scope AS (
+        SELECT
+          de.dataelementid as de_id,
+          coc.categoryoptioncomboid as coc_id,
+          aoc.categoryoptioncomboid as aoc_id
+        FROM (VALUES
+          (:de1, :coc1, :aoc1)
+        ) AS dx(de_uid, coc_uid, aoc_uid)
+        JOIN dataelement de ON de.uid = dx.de_uid
+        JOIN categoryoptioncombo coc ON coc.uid = dx.coc_uid
+        JOIN categoryoptioncombo aoc ON aoc.uid = dx.aoc_uid
+      )
+      UPDATE datavalue dv
+      SET deleted = true, value = null
+      FROM dx_scope dx
+      WHERE dv.dataelementid = dx.de_id
+        AND dv.categoryoptioncomboid = dx.coc_id
+        AND dv.attributeoptioncomboid = dx.aoc_id
+        AND dv.sourceid IN (SELECT organisationunitid FROM ou_scope)
+        AND dv.periodid IN (SELECT periodid FROM pe_scope);
+      """;
+    String sql = sql1;
+    if (scope.elements().size() > 1) {
+      String triplets =
+          IntStream.range(1, scope.elements().size() + 1)
+              .mapToObj(n -> "(:de%d, :coc%d, :aoc%d)".formatted(n, n, n))
+              .collect(joining(","));
+      sql = sql1.replace("(:de1, :coc1, :aoc1)", triplets);
+    }
+    UID defaultCoc = getDefaultCategoryOptionComboUid();
+    String[] ou = scope.orgUnits().stream().map(UID::getValue).toArray(String[]::new);
+    String[] pe = scope.periods().stream().map(Period::getIsoDate).toArray(String[]::new);
+    NativeQuery<?> query = createNativeRawQuery(sql).setParameter("ou", ou).setParameter("pe", pe);
+    int i = 1;
+    for (DataEntryGroup.Scope.Element e : scope.elements()) {
+      query.setParameter("de" + i, e.dataElement().getValue());
+      UID coc = e.categoryOptionCombo();
+      query.setParameter("coc" + i, coc == null ? defaultCoc.getValue() : coc.getValue());
+      UID aoc = e.attributeOptionCombo();
+      query.setParameter("aoc" + i, aoc == null ? defaultCoc.getValue() : aoc.getValue());
+      i++;
+    }
+    return query.executeUpdate();
   }
 
   @Override
