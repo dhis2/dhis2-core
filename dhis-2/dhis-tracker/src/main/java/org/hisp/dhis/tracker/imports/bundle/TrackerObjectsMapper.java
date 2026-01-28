@@ -173,6 +173,14 @@ public class TrackerObjectsMapper {
                   .map(note -> map(preheat, note, user))
                   .collect(Collectors.toSet()));
     }
+
+    if (enrollment.getAttributeOptionCombo().isNotBlank()) {
+      dbEnrollment.setAttributeOptionCombo(
+          preheat.getCategoryOptionCombo(enrollment.getAttributeOptionCombo()));
+    } else {
+      dbEnrollment.setAttributeOptionCombo(preheat.getDefault(CategoryOptionCombo.class));
+    }
+
     return dbEnrollment;
   }
 

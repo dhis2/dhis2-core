@@ -79,6 +79,7 @@ class SmsImportMapperTest extends TrackerTestBase {
     input.setTrackedEntityType(CodeGenerator.generateUid());
     input.setEnrollment(CodeGenerator.generateUid());
     input.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
+    input.setAttributeOptionCombo(CodeGenerator.generateUid());
 
     TrackerObjects actual = map(input, program(), null, "francis");
 
@@ -92,6 +93,8 @@ class SmsImportMapperTest extends TrackerTestBase {
                         .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
                         .enrollment(UID.of(input.getEnrollment().getUid()))
                         .status(EnrollmentStatus.COMPLETED)
+                        .attributeOptionCombo(
+                            MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
                         .build()))
             .trackedEntities(
                 List.of(
@@ -116,6 +119,7 @@ class SmsImportMapperTest extends TrackerTestBase {
     input.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
     // non-program attribute values are mapped onto the tracked entity
     input.setValues(List.of(new SmsAttributeValue("fN8skWVI8JS", "soap")));
+    input.setAttributeOptionCombo(CodeGenerator.generateUid());
 
     TrackerObjects actual = map(input, program("YjToz9y10ZZ"), null, "francis");
 
@@ -129,6 +133,8 @@ class SmsImportMapperTest extends TrackerTestBase {
                         .trackedEntity(UID.of(input.getTrackedEntityInstance().getUid()))
                         .enrollment(UID.of(input.getEnrollment().getUid()))
                         .status(EnrollmentStatus.COMPLETED)
+                        .attributeOptionCombo(
+                            MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
                         .build()))
             .trackedEntities(
                 List.of(
@@ -157,6 +163,7 @@ class SmsImportMapperTest extends TrackerTestBase {
     input.setTrackedEntityType(CodeGenerator.generateUid());
     input.setEnrollment(CodeGenerator.generateUid());
     input.setEnrollmentStatus(SmsEnrollmentStatus.CANCELLED);
+    input.setAttributeOptionCombo(CodeGenerator.generateUid());
 
     Date enrollmentDate = DateUtils.getDate(2024, 9, 2, 10, 15);
     input.setEnrollmentDate(enrollmentDate);
@@ -177,6 +184,8 @@ class SmsImportMapperTest extends TrackerTestBase {
                 .occurredAt(occurredDate.toInstant())
                 .status(EnrollmentStatus.CANCELLED)
                 .geometry(new GeometryFactory().createPoint(new Coordinate(2.3514f, 48.8575f)))
+                .attributeOptionCombo(
+                    MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
                 .build());
     assertEquals(expected, actual.getEnrollments());
   }
@@ -190,6 +199,7 @@ class SmsImportMapperTest extends TrackerTestBase {
     input.setTrackedEntityType(CodeGenerator.generateUid());
     input.setEnrollment(CodeGenerator.generateUid());
     input.setEnrollmentStatus(SmsEnrollmentStatus.CANCELLED);
+    input.setAttributeOptionCombo(CodeGenerator.generateUid());
 
     SmsEvent smsEvent = new SmsEvent();
     smsEvent.setOrgUnit(input.getOrgUnit().getUid());
@@ -248,6 +258,7 @@ class SmsImportMapperTest extends TrackerTestBase {
     input.setTrackedEntityType(CodeGenerator.generateUid());
     input.setEnrollment(CodeGenerator.generateUid());
     input.setEnrollmentStatus(SmsEnrollmentStatus.CANCELLED);
+    input.setAttributeOptionCombo(CodeGenerator.generateUid());
     // attribute values are only mapped onto the tracked entity
     input.setValues(
         List.of(

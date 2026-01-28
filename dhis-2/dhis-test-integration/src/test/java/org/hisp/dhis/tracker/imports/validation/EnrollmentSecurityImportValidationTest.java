@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -90,6 +91,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Autowired private CategoryService categoryService;
 
   private TrackedEntity maleA;
 
@@ -356,6 +359,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .enrollment(UID.generate())
+            .attributeOptionCombo(
+                MetadataIdentifier.ofUid(categoryService.getDefaultCategoryOptionCombo().getUid()))
             .build());
   }
 }
