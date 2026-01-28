@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -58,7 +58,7 @@ import java.util.stream.Stream;
  *   <li>-Dusername=admin (default: admin)
  *   <li>-Dpassword=district (default: district)
  *   <li>-DbaseUrl=http://localhost:8080 (default: http://localhost:8080)
- *   <li>-DorgunitFiles=6 (default: 6, number of orgunit files to import, 0000-0005)
+ *   <li>-DorgunitFiles=7 (default: 7, number of orgunit files to import, 0000-0006)
  *   <li>-DskipImport=true (default: false, skip the metadata import phase)
  * </ul>
  *
@@ -71,7 +71,7 @@ public class OrganisationUnitsTest extends Simulation {
   private static final String USERNAME = System.getProperty("username", "admin");
   private static final String PASSWORD = System.getProperty("password", "district");
   private static final int ORGUNIT_FILES =
-      Integer.parseInt(System.getProperty("orgunitFiles", "6"));
+      Integer.parseInt(System.getProperty("orgunitFiles", "7"));
   private static final boolean SKIP_IMPORT =
       Boolean.parseBoolean(System.getProperty("skipImport", "false"));
 
