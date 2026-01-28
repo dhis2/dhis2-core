@@ -32,9 +32,7 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
-import static org.hisp.dhis.tracker.export.MapperGeoUtils.resolveGeometry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -79,7 +77,9 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -309,17 +309,17 @@ class JdbcSingleEventStore {
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
               event.setCreatedByUserInfo(
-                  jsonToUserInfo(resultSet.getString(COLUMN_EVENT_CREATED_BY)));
+                  UserInfoSnapshots.fromJson(resultSet.getString(COLUMN_EVENT_CREATED_BY)));
               event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
               event.setLastUpdatedAtClient(
                   resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
               event.setLastUpdatedByUserInfo(
-                  jsonToUserInfo(resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY)));
+                  UserInfoSnapshots.fromJson(resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY)));
 
               event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
               event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
 
-              event.setGeometry(resolveGeometry(resultSet.getBytes("ev_geometry")));
+              event.setGeometry(Geometries.fromWkb(resultSet.getBytes("ev_geometry")));
 
               if (resultSet.getObject("user_assigned") != null) {
                 User eventUser = new User();
@@ -428,14 +428,14 @@ class JdbcSingleEventStore {
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {
       eventDataValue.setCreatedByUserInfo(
-          jsonToUserInfo(dataValueJson.getObject("createdByUserInfo").toJson()));
+          UserInfoSnapshots.fromJson(dataValueJson.getObject("createdByUserInfo").toJson()));
     }
 
     eventDataValue.setLastUpdated(
         DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
     if (dataValueJson.has("lastUpdatedByUserInfo")) {
       eventDataValue.setLastUpdatedByUserInfo(
-          jsonToUserInfo(dataValueJson.getObject("lastUpdatedByUserInfo").toJson()));
+          UserInfoSnapshots.fromJson(dataValueJson.getObject("lastUpdatedByUserInfo").toJson()));
     }
 
     return eventDataValue;
