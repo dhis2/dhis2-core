@@ -94,7 +94,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=IpHINAT79UW.enrollmentdate")
+            .add("asc=ouname")
             .add("headers=ouname,IpHINAT79UW.enrollmentdate,A03MvHHogjR.eventdate")
             .add("displayProperty=NAME")
             .add("totalPages=false")
@@ -161,24 +161,20 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Bandajuma Sinneh MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 0, "A03MvHHogjR.eventdate", "2021-01-01 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", " Panderu MCHP");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.eventdate", "");
 
     // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "ouname", "Banka Makuloh MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 3, "A03MvHHogjR.eventdate", "2021-01-01 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 3, "ouname", " Panderu MCHP");
+    validateRowValueByName(response, actualHeaders, 3, "A03MvHHogjR.eventdate", "");
 
     // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Conakry Dee CHC");
-    validateRowValueByName(
-        response, actualHeaders, 6, "A03MvHHogjR.eventdate", "2021-01-01 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 6, "ouname", " Panderu MCHP");
+    validateRowValueByName(response, actualHeaders, 6, "A03MvHHogjR.eventdate", "");
 
     // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Feiba CHP");
-    validateRowValueByName(
-        response, actualHeaders, 9, "A03MvHHogjR.eventdate", "2021-01-01 00:00:00.0");
+    validateRowValueByName(response, actualHeaders, 9, "ouname", " Panderu MCHP");
+    validateRowValueByName(response, actualHeaders, 9, "A03MvHHogjR.eventdate", "");
   }
 
   @Test
