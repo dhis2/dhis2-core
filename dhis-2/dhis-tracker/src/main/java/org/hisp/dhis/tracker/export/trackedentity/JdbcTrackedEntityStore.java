@@ -39,7 +39,6 @@ import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipCla
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -92,10 +91,8 @@ class JdbcTrackedEntityStore {
   private static final String INVALID_ORDER_FIELD_MESSAGE =
       "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.";
 
-  private static final String BASE_SELECT =
-      """
-      select te.trackedentityid, te.uid, te.created, te.lastupdated, te.createdatclient, \
-      te.lastupdatedatclient, te.inactive, te.potentialduplicate, te.deleted, te.trackedentitytypeid""";
+  private static final String PROGRAM_OWNER_OU_UID = "po_ou_uid";
+  private static final String PROGRAM_OWNER_PRG_UID = "po_prg_uid";
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -220,7 +217,7 @@ class JdbcTrackedEntityStore {
         OrganisationUnit ownerOrgUnit = new OrganisationUnit();
         ownerOrgUnit.setUid(ownerOrgUnitUid);
         programOwner.setOrganisationUnit(ownerOrgUnit);
-        te.setProgramOwners(new HashSet<>(Set.of(programOwner)));
+        te.setProgramOwners(Set.of(programOwner));
       }
     }
 
@@ -270,52 +267,39 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Generates SQL based on "params". The purpose of the SQL is to retrieve a list of tracked
-   * entities.
+   * Generates the main SQL query to retrieve tracked entities.
    *
-   * <p>The general structure of the query is as follows:
+   * <p>The query uses a deferred join pattern for performance - LIMIT/OFFSET is applied before
+   * joining the tet/te_ou tables:
    *
-   * <p>select (main_projection) from (constraint_subquery) left join (additional_information) group
-   * by (main_groupby) order by (order)
+   * <pre>
+   * SELECT (columns)
+   * FROM (
+   *   SELECT DISTINCT te.*, (order_columns)
+   *   FROM trackedentity te
+   *   JOIN program p ON ...
+   *   JOIN trackedentityprogramowner po ON ...
+   *   JOIN organisationunit ou ON ...
+   *   [JOIN enrollment en ON ...]  -- only when ordering by enrollment date
+   *   [LEFT JOIN trackedentityattributevalue ON ...]  -- for attribute filters/ordering
+   *   WHERE (filters)
+   *   [AND EXISTS (enrollment_subquery)]  -- when program is specified
+   *   ORDER BY (order) LIMIT/OFFSET
+   * ) te
+   * JOIN trackedentitytype tet ON ...
+   * JOIN organisationunit te_ou ON ...
+   * [JOIN program owner tables ON ...]  -- when program is specified
+   * ORDER BY (order)
+   * </pre>
    *
-   * <p>The constraint_subquery looks as follows:
+   * <p>Key design decisions:
    *
-   * <p>select (subquery_projection) from (tracked entities) inner join (attribute_constraints)
-   * [inner join (program_owner)] inner join (organisation units) left join (attribute_orderby)
-   * where exist(program_constraint) order by (order) limit (limit_offset)
-   *
-   * <p>main_projection: Will have an aggregate string of attributevalues (uid:value) as well as
-   * basic te-info. constraint_subquery: Includes all SQL related to narrowing down the number of
-   * te's we are looking for. We use inner join primarily for this, as well as exists for program
-   * instances. Do make sure we get the right selection, we also use left join on attributes, when
-   * we are sorting by attributes, before we sort and finally limit the selection.
-   * subquery_projection: Has all the required information for knowing what tracked entities to
-   * return and how to order them attribute_constraints: We inner join the attributes, and add 3
-   * conditions: te id, tea id and value. This uses a (te, tea, lower(value)) index. For each
-   * attribute constraints, we add subsequent inner joins. program_owner: Only included when a
-   * program is specified. If included, it will join on 3 columns: te, program and ou. We have an
-   * index for this (program, ou, te) which allows a scan only lookup attribute_orderby: When a user
-   * specified an attribute in the order param, we need to join that attribute (We do left join, in
-   * case the value is not there. This join is not for removing resulting records). After joining it
-   * and projecting it, we can order by it. program_constraint: If a program is specified, it
-   * indicates the te must be enrolled in that program. Since the relation between te and
-   * enrollments are not 1:1, but 1:many, we use exists to avoid duplicate rows of te, allowing us
-   * to avoid grouping the result before we order and limit. This saves a lot of time. NOTE: Within
-   * the program_constraint, we also have a sub-query to deal with any event-related constraints.
-   * These can either be constraints on any static properties, or user assignment. For user
-   * assignment, we also join with the userinfo table. For events, we have an index (status,
-   * occurreddate) which speeds up the lookup significantly order: Order is used both in the
-   * sub-query and the main query. The sort depends on the params (see more info on the related
-   * method). We order the sub-query to make sure we get correct results before we limit. We order
-   * the main query since the aggregation mixes up the order, so to return a consistent order, we
-   * order again. limit_offset: The limit and offset is set based on a combination of params:
-   * program and tet can have a maxte limit, which only applies during a search outside the users
-   * capture scope. If applied, it will throw an error if the number of results exceeds the limit.
-   * Otherwise, we use paging. If no paging is set, there is no limit. additional_information: Here
-   * we do a left join with any relevant information needed for the result: tet name, any attributes
-   * to project, etc. We left join, since we don't want to reduce the results, just add information.
-   * main_groupby: The purpose of this group by, is to aggregate any attributes added in
-   * additional_information
+   * <ul>
+   *   <li>Inner query uses DISTINCT on te.* plus order columns to deduplicate while preserving sort
+   *   <li>LIMIT/OFFSET applied in inner query before expensive joins to tet/te_ou tables
+   *   <li>Program enrollment check uses EXISTS to avoid row multiplication
+   *   <li>Attribute ordering uses LEFT JOIN so TEs without the attribute are still included
+   * </ul>
    */
   private String getQuery(
       TrackedEntityQueryParams params, PageParams pageParams, MapSqlParameterSource sqlParameters) {
@@ -361,53 +345,26 @@ class JdbcTrackedEntityStore {
     return sql.toString();
   }
 
-  private static final String PROGRAM_OWNER_OU_UID = "po_ou_uid";
-  private static final String PROGRAM_OWNER_PRG_UID = "po_prg_uid";
+  // language=SQL
+  private static final String SELECT =
+      """
+      select te.trackedentityid, te.uid, te.created, te.lastupdated, te.createdatclient,
+      te.lastupdatedatclient, te.inactive, te.potentialduplicate, te.deleted,
+      te.createdbyuserinfo, te.lastupdatedbyuserinfo, te.geometry,
+      te.tet_id, te.tet_uid, te.tet_code, te.tet_name, te.tet_attributevalues,
+      te.tet_allowauditlog, te.tet_enablechangelog,
+      te.te_ou_uid, te.te_ou_code, te.te_ou_name, te.te_ou_path, te.te_ou_attributevalues,
+      po_ou_uid, po_prg_uid""";
+
+  // language=SQL
+  private static final String SELECT_WITH_ENROLLMENT_DATE = SELECT + ", " + ENROLLMENT_DATE_ALIAS;
 
   private void addSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    LinkedHashSet<String> columns =
-        new LinkedHashSet<>(
-            List.of(
-                // TE core fields
-                "te.trackedentityid",
-                "te.uid",
-                "te.created",
-                "te.lastupdated",
-                "te.createdatclient",
-                "te.lastupdatedatclient",
-                "te.inactive",
-                "te.potentialduplicate",
-                "te.deleted",
-                "te.createdbyuserinfo",
-                "te.lastupdatedbyuserinfo",
-                "te.geometry",
-                // Tracked entity type fields
-                "te.tet_id",
-                "te.tet_uid",
-                "te.tet_code",
-                "te.tet_name",
-                "te.tet_attributevalues",
-                "te.tet_allowauditlog",
-                "te.tet_enablechangelog",
-                // TE's registering org unit fields
-                "te.te_ou_uid",
-                "te.te_ou_code",
-                "te.te_ou_name",
-                "te.te_ou_path",
-                "te.te_ou_attributevalues",
-                // Program owner fields
-                PROGRAM_OWNER_OU_UID,
-                PROGRAM_OWNER_PRG_UID));
-
-    // all orderable fields are already in the select. Only when ordering by enrollment date do we
-    // need to add a column, so we can order by it
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof String field && ENROLLMENT_DATE_KEY.equals(field)) {
-        columns.add(ENROLLMENT_DATE_ALIAS);
-      }
-    }
-
-    sql.append("select ").append(String.join(", ", columns));
+    boolean orderByEnrollmentDate =
+        params.getOrder().stream()
+            .anyMatch(
+                o -> o.getField() instanceof String field && ENROLLMENT_DATE_KEY.equals(field));
+    sql.append(orderByEnrollmentDate ? SELECT_WITH_ENROLLMENT_DATE : SELECT);
   }
 
   /**
@@ -1099,10 +1056,8 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds the ORDER BY clause. This clause is used both in the sub-query and main query. When using
-   * it in the sub-query, we want to make sure we get the right tracked entities. When we order in
-   * the main query, it's to make sure we return the results in the correct order, since order might
-   * be mixed after GROUP BY.
+   * Adds the ORDER BY clause. Applied at multiple query levels: in the inner subquery to ensure
+   * correct LIMIT results, and in outer queries to preserve order after joins.
    */
   private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
     List<String> orderFields = new ArrayList<>();
