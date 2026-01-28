@@ -310,6 +310,7 @@ public class DefaultDataExportService implements DataExportService {
         orgUnit,
         attributeOptionCombo,
         aocGMap,
+        null,
         values.map(
             dv ->
                 new DataExportValue.Output(
