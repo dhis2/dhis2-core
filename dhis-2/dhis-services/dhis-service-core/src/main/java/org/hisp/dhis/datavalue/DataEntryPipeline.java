@@ -204,7 +204,7 @@ public class DataEntryPipeline {
       DataEntryGroup.Options options,
       JobProgress progress,
       boolean delete) {
-    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
+    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
     List<DataSetCompletion> markComplete = new ArrayList<>(groups.size());
     for (DataEntryGroup g : groups) {

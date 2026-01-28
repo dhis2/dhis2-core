@@ -164,7 +164,7 @@ public interface DataEntryStore {
   Import support
    */
 
-  int deleteScope(DataEntryGroup.Scope scope);
+  int deleteScope(@Nonnull DataEntryGroup.Scope scope);
 
   int deleteByKeys(List<DataEntryKey> keys);
 

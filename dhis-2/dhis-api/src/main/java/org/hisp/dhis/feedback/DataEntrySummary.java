@@ -95,7 +95,11 @@ public record DataEntrySummary(
     List<DataEntryError> errors = new ArrayList<>(this.errors);
     errors.addAll(other.errors);
     return new DataEntrySummary(
-        entered + other.entered, attempted + other.attempted, succeeded + other.succeeded, errors);
+        entered + other.entered,
+        attempted + other.attempted,
+        succeeded + other.succeeded,
+        deleted + other.deleted,
+        errors);
   }
 
   /** Adapter to the extensive legacy summary */

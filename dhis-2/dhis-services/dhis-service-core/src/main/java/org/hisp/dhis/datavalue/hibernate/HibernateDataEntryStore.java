@@ -689,10 +689,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public int deleteScope(DataEntryGroup.Scope scope) {
-    if (scope.elements().isEmpty()) return 0;
-    if (scope.orgUnits().isEmpty()) return 0;
-    if (scope.periods().isEmpty()) return 0;
+  public int deleteScope(@Nonnull DataEntryGroup.Scope deletion) {
+    if (deletion.elements().isEmpty()) return 0;
+    if (deletion.orgUnits().isEmpty()) return 0;
+    if (deletion.periods().isEmpty()) return 0;
     @Language("sql")
     String sql1 = // for 1 element
         """
@@ -715,7 +715,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         JOIN categoryoptioncombo aoc ON aoc.uid = dx.aoc_uid
       )
       UPDATE datavalue dv
-      SET deleted = true, value = null
+      SET
+        deleted = true,
+        value = null,
+        lastupdated = now(),
+        storedby = :user
       FROM dx_scope dx
       WHERE dv.dataelementid = dx.de_id
         AND dv.categoryoptioncomboid = dx.coc_id
@@ -724,19 +728,23 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         AND dv.periodid IN (SELECT periodid FROM pe_scope);
       """;
     String sql = sql1;
-    if (scope.elements().size() > 1) {
+    if (deletion.elements().size() > 1) {
       String triplets =
-          IntStream.range(1, scope.elements().size() + 1)
+          IntStream.range(1, deletion.elements().size() + 1)
               .mapToObj(n -> "(:de%d, :coc%d, :aoc%d)".formatted(n, n, n))
               .collect(joining(","));
       sql = sql1.replace("(:de1, :coc1, :aoc1)", triplets);
     }
     UID defaultCoc = getDefaultCategoryOptionComboUid();
-    String[] ou = scope.orgUnits().stream().map(UID::getValue).toArray(String[]::new);
-    String[] pe = scope.periods().stream().map(Period::getIsoDate).toArray(String[]::new);
-    NativeQuery<?> query = createNativeRawQuery(sql).setParameter("ou", ou).setParameter("pe", pe);
+    String[] ou = deletion.orgUnits().stream().map(UID::getValue).toArray(String[]::new);
+    String[] pe = deletion.periods().stream().map(Period::getIsoDate).toArray(String[]::new);
+    NativeQuery<?> query =
+        createNativeRawQuery(sql)
+            .setParameter("ou", ou)
+            .setParameter("pe", pe)
+            .setParameter("user", getCurrentUsername());
     int i = 1;
-    for (DataEntryGroup.Scope.Element e : scope.elements()) {
+    for (DataEntryGroup.Scope.Element e : deletion.elements()) {
       query.setParameter("de" + i, e.dataElement().getValue());
       UID coc = e.categoryOptionCombo();
       query.setParameter("coc" + i, coc == null ? defaultCoc.getValue() : coc.getValue());
