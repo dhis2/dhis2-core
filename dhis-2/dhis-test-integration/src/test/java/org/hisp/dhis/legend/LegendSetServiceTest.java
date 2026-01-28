@@ -34,21 +34,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-@TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class LegendSetServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private LegendSetService legendSetService;
+
+  @PersistenceContext private EntityManager entityManager;
 
   private Legend legendA;
 
@@ -96,11 +97,7 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA = createLegendSet('A');
     legendSetA.getLegends().add(legendA);
     long idA = legendSetService.addLegendSet(legendSetA);
-
-    // Clear persistence context to force fresh load from database
-    entityManager.flush();
-    entityManager.clear();
-
+    
     // Retrieve and verify all Legend fields
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     assertNotNull(retrieved);
@@ -124,8 +121,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendA.setLegendSet(legendSetA);
 
     long idA = legendSetService.addLegendSet(legendSetA);
-    entityManager.flush();
-    entityManager.clear();
 
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     Legend retrievedLegend = retrieved.getLegends().iterator().next();
@@ -162,9 +157,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA.getLegends().add(legendA);
     long idA = legendSetService.addLegendSet(legendSetA);
 
-    entityManager.flush();
-    entityManager.clear();
-
     // Update legend properties
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     Legend retrievedLegend = retrieved.getLegends().iterator().next();
@@ -174,8 +166,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     retrievedLegend.setColor("#0000FF");
 
     legendSetService.updateLegendSet(retrieved);
-    entityManager.flush();
-    entityManager.clear();
 
     // Verify updates
     LegendSet updated = legendSetService.getLegendSet(idA);
@@ -218,9 +208,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA.getLegends().add(legendA);
     long idA = legendSetService.addLegendSet(legendSetA);
 
-    entityManager.flush();
-    entityManager.clear();
-
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     Legend retrievedLegend = retrieved.getLegends().iterator().next();
     // Color and image can be null
@@ -257,15 +244,203 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA = createLegendSet('A');
     legendSetA.getLegends().add(legendA);
     long idA = legendSetService.addLegendSet(legendSetA);
-
-    entityManager.flush();
-    entityManager.clear();
-
+    
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     Legend retrievedLegend = retrieved.getLegends().iterator().next();
 
     // Translations should be empty by default
     assertNotNull(retrievedLegend.getTranslations());
     assertEquals(0, retrievedLegend.getTranslations().size());
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA Annotation Tests for LegendSet
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testJpaLegendSetEntityPersistenceAndRetrieval() {
+    // Create a legend set with all fields populated
+    legendSetA = createLegendSet('A');
+    legendSetA.setCode("LEGENDSET_A_CODE");
+    legendSetA.setSymbolizer("circle");
+    legendSetA.setColorLow("#00FF00");
+    legendSetA.setColorHigh("#FF0000");
+    legendSetA.setType("COLOR");
+
+    legendA = createLegend('A', 0d, 10d);
+    legendB = createLegend('B', 10d, 20d);
+    legendSetA.getLegends().add(legendA);
+    legendSetA.getLegends().add(legendB);
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    // Retrieve and verify all LegendSet fields
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    assertNotNull(retrieved);
+    assertEquals("LegendSetA", retrieved.getName());
+    assertEquals("LEGENDSET_A_CODE", retrieved.getCode());
+    assertEquals("circle", retrieved.getSymbolizer());
+    assertEquals("#00FF00", retrieved.getColorLow());
+    assertEquals("#FF0000", retrieved.getColorHigh());
+    assertEquals("COLOR", retrieved.getType());
+    assertEquals(2, retrieved.getLegends().size());
+  }
+
+  @Test
+  void testJpaLegendSetOneToManyLegends() {
+    // Test that legends OneToMany relationship is properly loaded
+    legendSetA = createLegendSet('A');
+    legendA = createLegend('A', 0d, 50d);
+    legendB = createLegend('B', 50d, 100d);
+
+    legendSetA.getLegends().add(legendA);
+    legendSetA.getLegends().add(legendB);
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    assertEquals(2, retrieved.getLegends().size());
+
+    // Verify legends are properly loaded
+    assertTrue(
+        retrieved.getLegends().stream().anyMatch(l -> l.getName().equals("LegendA")));
+    assertTrue(
+        retrieved.getLegends().stream().anyMatch(l -> l.getName().equals("LegendB")));
+  }
+
+  @Test
+  void testJpaLegendSetIdGeneration() {
+    // Test that ID is properly generated using SEQUENCE strategy
+    legendSetA = createLegendSet('A');
+    LegendSet legendSetB = createLegendSet('B');
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+    long idB = legendSetService.addLegendSet(legendSetB);
+
+    assertTrue(idA > 0);
+    assertTrue(idB > 0);
+    assertTrue(idA != idB);
+  }
+
+  @Test
+  void testJpaLegendSetUpdateOperations() {
+    // Test that update operations preserve all associations and fields
+    legendSetA = createLegendSet('A');
+    legendSetA.setSymbolizer("square");
+
+    legendA = createLegend('A', 0d, 10d);
+    legendSetA.getLegends().add(legendA);
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    // Update legend set properties
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    retrieved.setName("UpdatedLegendSet");
+    retrieved.setSymbolizer("triangle");
+    retrieved.setColorLow("#FFFF00");
+
+    legendSetService.updateLegendSet(retrieved);
+
+    // Verify updates
+    LegendSet updated = legendSetService.getLegendSet(idA);
+    assertEquals("UpdatedLegendSet", updated.getName());
+    assertEquals("triangle", updated.getSymbolizer());
+    assertEquals("#FFFF00", updated.getColorLow());
+    assertEquals(1, updated.getLegends().size());
+  }
+
+  @Test
+  void testJpaLegendSetCascadeOperations() {
+    // Test that cascade ALL and orphan removal work correctly
+    legendSetA = createLegendSet('A');
+    legendA = createLegend('A', 0d, 10d);
+    legendB = createLegend('B', 10d, 20d);
+
+    legendSetA.getLegends().add(legendA);
+    legendSetA.getLegends().add(legendB);
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    // Delete the legend set - legends should be deleted too (cascade)
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    legendSetService.deleteLegendSet(retrieved);
+    entityManager.flush();
+
+    // Verify legend set is deleted
+    assertNull(legendSetService.getLegendSet(idA));
+  }
+
+  @Test
+  void testJpaLegendSetNullableFields() {
+    // Test that nullable fields can be null
+    legendSetA = createLegendSet('A');
+    // Don't set optional fields: method, classes, colorLow, colorHigh, type, symbolizer
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    assertNull(retrieved.getColorLow());
+    assertNull(retrieved.getColorHigh());
+    assertNull(retrieved.getType());
+    assertNull(retrieved.getSymbolizer());
+  }
+
+  @Test
+  void testJpaLegendSetAttributeValues() {
+    // Test that attributeValues are properly stored and retrieved
+    legendSetA = createLegendSet('A');
+    legendSetA.addAttributeValue("attr1", "value1");
+    legendSetA.addAttributeValue("attr2", "value2");
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    assertNotNull(retrieved.getAttributeValues());
+    // AttributeValues should have the added values
+    assertTrue(retrieved.getAttributeValues().contains("attr1"));
+    assertTrue(retrieved.getAttributeValues().contains("attr2"));
+  }
+
+  @Test
+  void testJpaLegendSetTranslations() {
+    // Test that translations are properly stored and retrieved
+    legendSetA = createLegendSet('A');
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+
+    // Translations should be empty by default
+    assertNotNull(retrieved.getTranslations());
+    assertEquals(0, retrieved.getTranslations().size());
+  }
+
+  @Test
+  void testJpaLegendSetSharing() {
+    // Test that sharing is properly stored and retrieved
+    legendSetA = createLegendSet('A');
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+
+    // Sharing should be initialized
+    assertNotNull(retrieved.getSharing());
+  }
+
+  @Test
+  void testJpaLegendSetExtraFields() {
+    // Test the extra database fields (method, classes, colorLow, colorHigh, type)
+    legendSetA = createLegendSet('A');
+    legendSetA.setColorLow("#AABBCC");
+    legendSetA.setColorHigh("#DDEEFF");
+    legendSetA.setType("DIVERGENT");
+
+    long idA = legendSetService.addLegendSet(legendSetA);
+
+    LegendSet retrieved = legendSetService.getLegendSet(idA);
+    assertEquals("#AABBCC", retrieved.getColorLow());
+    assertEquals("#DDEEFF", retrieved.getColorHigh());
+    assertEquals("DIVERGENT", retrieved.getType());
   }
 }

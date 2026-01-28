@@ -29,14 +29,26 @@
  */
 package org.hisp.dhis.legend;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.util.Date;
 import java.util.Set;
-import org.hibernate.annotations.Type;
+import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
@@ -52,39 +64,63 @@ import org.hisp.dhis.user.sharing.Sharing;
  * @author Jan Henrik Overland
  */
 @Entity
-@Table(name = "maplegend")
+@Table(
+    name = "maplegend",
+    indexes = {
+      @Index(name = "maplegend_startvalue", columnList = "startvalue"),
+      @Index(name = "maplegend_endvalue", columnList = "endvalue")
+    })
 @JacksonXmlRootElement(localName = "legend", namespace = DxfNamespaces.DXF_2_0)
-public class Legend extends BaseMetadataObject implements IdentifiableObject, EmbeddedObject {
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Setter
+public class Legend implements IdentifiableObject, EmbeddedObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "maplegendid")
   private long id;
 
-  @Column(name = "code", length = 50)
+  // Fields from BaseMetadataObject (except createdBy)
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  protected String uid;
+
+  @Column(name = "created", nullable = false, updatable = false)
+  @jakarta.persistence.Temporal(jakarta.persistence.TemporalType.TIMESTAMP)
+  protected Date created;
+
+  @Column(name = "lastupdated", nullable = false)
+  @jakarta.persistence.Temporal(jakarta.persistence.TemporalType.TIMESTAMP)
+  protected Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby")
+  protected User lastUpdatedBy;
+
+  @jakarta.persistence.Transient
+  protected String href;
+
+  @jakarta.persistence.Transient
+  protected org.hisp.dhis.security.acl.Access access;
+
+  // Legend-specific fields
+  @Column(name = "code", unique = true, length = 50)
   private String code;
 
   @Column(name = "name", length = 255)
   private String name;
 
-  @Embedded
-  private TranslationProperty translations;
-
-  @Transient
-  private Sharing sharing = new Sharing();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   @Column(name = "startvalue")
-  @org.hibernate.annotations.Index(name = "maplegend_startvalue")
   private Double startValue;
 
   @Column(name = "endvalue")
-  @org.hibernate.annotations.Index(name = "maplegend_endvalue")
   private Double endValue;
 
-  @Column(name = "color", length = 255)
+  @Column(name = "color")
   private String color;
 
-  @Column(name = "image", length = 255)
+  @Column(name = "image")
   private String image;
 
   @ManyToOne
@@ -112,19 +148,11 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
     return startValue;
   }
 
-  public void setStartValue(Double startValue) {
-    this.startValue = startValue;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = Integer.MIN_VALUE)
   public Double getEndValue() {
     return endValue;
-  }
-
-  public void setEndValue(Double endValue) {
-    this.endValue = endValue;
   }
 
   @JsonProperty
@@ -133,33 +161,24 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
     return color;
   }
 
-  public void setColor(String color) {
-    this.color = color;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getImage() {
     return image;
   }
-
-  public void setImage(String image) {
-    this.image = image;
-  }
-
+  
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
     return legendSet;
   }
-
-  public void setLegendSet(LegendSet legendSet) {
-    this.legendSet = legendSet;
-  }
-
+  
   // -------------------------------------------------------------------------
   // IdentifiableObject implementation
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }
@@ -169,9 +188,68 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
     this.id = id;
   }
 
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
   @Override
+  public String getUid() {
+    return uid;
+  }
+
+  @Override
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
+  @Override
+  public Date getCreated() {
+    return created;
+  }
+
+  @Override
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Override
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @Override
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  @JsonProperty
+  @Override
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
+  }
+
+  @Override
+  public void setLastUpdatedBy(User lastUpdatedBy) {
+    this.lastUpdatedBy = lastUpdatedBy;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getHref() {
+    return href;
+  }
+
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public org.hisp.dhis.security.acl.Access getAccess() {
+    return access;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getCode() {
     return code;
   }
@@ -181,11 +259,16 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
     this.code = code;
   }
 
-  @Override
   @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getName() {
     return name;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayName() {
+    return translations.getTranslation("name", name);
   }
 
   @Override
@@ -194,8 +277,18 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
   }
 
   @Override
-  public String getDisplayName() {
-    return getName();
+  public void setAutoFields() {
+    IdentifiableObject.super.setAutoFields();
+  }
+
+  @Override
+  public User getCreatedBy() {
+    return null; // Not supported - maplegend table doesn't have userid column
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {
+    // Not supported - maplegend table doesn't have userid column
   }
 
   @Override
@@ -212,22 +305,48 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
   }
 
   @Override
-  public Sharing getSharing() {
-    if (sharing == null) {
-      sharing = new Sharing();
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getUid();
     }
-    return sharing;
+    if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    }
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getName();
+    }
+    return null;
   }
 
   @Override
-  public void setSharing(Sharing sharing) {
-    this.sharing = sharing;
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getDisplayName();
+    }
+    if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    }
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    }
+    return null;
   }
 
   // -------------------------------------------------------------------------
   // Unsupported IdentifiableObject methods
   // -------------------------------------------------------------------------
+  @Deprecated
+  @Override
+  public Sharing getSharing() {
+    return null;
+  }
 
+  @Deprecated
+  @Override
+  public void setSharing(Sharing sharing) {
+    // Not supported
+  }
+  
   /** This entity does not support attribute values. */
   @Override
   @Deprecated
@@ -277,30 +396,7 @@ public class Legend extends BaseMetadataObject implements IdentifiableObject, Em
   }
 
   @Override
-  public String getPropertyValue(IdScheme idScheme) {
-    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return getUid();
-    }
-    if (idScheme.is(IdentifiableProperty.CODE)) {
-      return getCode();
-    }
-    if (idScheme.is(IdentifiableProperty.NAME)) {
-      return getName();
-    }
-    return null;
-  }
-
-  @Override
-  public String getDisplayPropertyValue(IdScheme idScheme) {
-    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return getDisplayName();
-    }
-    if (idScheme.is(IdentifiableProperty.CODE)) {
-      return getCode();
-    }
-    if (idScheme.is(IdentifiableProperty.NAME)) {
-      return getDisplayName();
-    }
-    return null;
+  public boolean hasSharing() {
+    return false;
   }
 }

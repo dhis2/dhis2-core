@@ -73,17 +73,26 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   private String name;
 
   @Embedded
-  private TranslationProperty translations;
+  private TranslationProperty translations = new TranslationProperty();
 
   @Type(type = "jsbAttributeValues")
   @Column(name = "attributevalues", columnDefinition = "jsonb")
   private AttributeValues attributeValues = AttributeValues.empty();
 
   @Type(type = "jsbObjectSharing")
-  @Column(name = "sharing")
+  @Column(name = "sharing", columnDefinition = "jsonb")
   private Sharing sharing = new Sharing();
 
-  @Column(name = "symbolizer")
+  @Column(name = "colorlow", length = 255)
+  private String colorLow;
+
+  @Column(name = "colorhigh", length = 255)
+  private String colorHigh;
+
+  @Column(name = "type", length = 255)
+  private String type;
+
+  @Column(name = "symbolizer", length = 255)
   private String symbolizer;
 
   @OneToMany(mappedBy = "legendSet", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -147,6 +156,36 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
 
   public void setLegends(Set<Legend> legends) {
     this.legends = legends;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getColorLow() {
+    return colorLow;
+  }
+
+  public void setColorLow(String colorLow) {
+    this.colorLow = colorLow;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getColorHigh() {
+    return colorHigh;
+  }
+
+  public void setColorHigh(String colorHigh) {
+    this.colorHigh = colorHigh;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   // -------------------------------------------------------------------------
@@ -236,6 +275,13 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   @Override
   public void setSharing(Sharing sharing) {
     this.sharing = sharing;
+  }
+
+  public void setPublicAccess(String access) {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    sharing.setPublicAccess(access);
   }
 
   // -------------------------------------------------------------------------
