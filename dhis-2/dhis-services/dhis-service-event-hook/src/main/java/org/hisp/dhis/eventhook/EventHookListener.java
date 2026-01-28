@@ -40,8 +40,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.JmsHandler;
 import org.hisp.dhis.eventhook.handlers.KafkaHandler;
@@ -66,7 +64,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class EventHookListener {
   private final ApplicationContext applicationContext;
 
@@ -157,13 +154,5 @@ public class EventHookListener {
     }
 
     eventHookContext = EventHookContext.builder().eventHooks(eventHooks).targets(targets).build();
-  }
-
-  protected void logDroppedEvent(IdentifiableObject identifiableObject, EventHook eventHook) {
-    log.warn(
-        "Event '{}' for event hook '{}' dropped because not readable by event hook creator '{}'. Hint: review resource sharing settings",
-        identifiableObject.getUid(),
-        eventHook.getUid(),
-        eventHook.getCreatedBy().getUid());
   }
 }
