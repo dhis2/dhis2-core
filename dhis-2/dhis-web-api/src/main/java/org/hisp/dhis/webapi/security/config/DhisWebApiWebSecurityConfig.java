@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -139,6 +140,8 @@ public class DhisWebApiWebSecurityConfig {
   private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
   @Autowired private ConfigurationService configurationService;
+
+  @Autowired private CacheProvider cacheProvider;
 
   @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
@@ -258,7 +261,7 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService);
+    configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
@@ -485,8 +488,10 @@ public class DhisWebApiWebSecurityConfig {
   private void configureCspFilter(
       HttpSecurity http,
       DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService) {
-    http.addFilterBefore(new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class);
+      ConfigurationService configurationService,
+      CacheProvider cacheProvider) {
+    http.addFilterBefore(
+        new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {
