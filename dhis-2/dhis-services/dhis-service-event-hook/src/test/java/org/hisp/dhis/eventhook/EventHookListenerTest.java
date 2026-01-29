@@ -30,30 +30,28 @@
 package org.hisp.dhis.eventhook;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
-import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.cache.TestCache;
 import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.Invocation;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 class EventHookListenerTest {
 
@@ -72,176 +70,65 @@ class EventHookListenerTest {
         @Override
         public void clearAuthentication() {}
       };
-  private final IdentifiableObject mockIdentifiableObject =
-      new IdentifiableObject() {
 
-        @Override
-        public String getCode() {
-          return "";
-        }
-
-        @Override
-        public String getName() {
-          return "";
-        }
-
-        @Override
-        public String getDisplayName() {
-          return "";
-        }
-
-        @Override
-        public Date getCreated() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Date getLastUpdated() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public User getLastUpdatedBy() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public AttributeValues getAttributeValues() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setAttributeValues(AttributeValues attributeValues) {}
-
-        @Override
-        public void addAttributeValue(String attributeUid, String value) {}
-
-        @Override
-        public void removeAttributeValue(String attributeId) {}
-
-        @Override
-        public Set<Translation> getTranslations() {
-          return Set.of();
-        }
-
-        @Override
-        public void setAccess(Access access) {}
-
-        @Override
-        public User getCreatedBy() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public User getUser() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setCreatedBy(User createdBy) {}
-
-        @Override
-        public void setUser(User user) {}
-
-        @Override
-        public Access getAccess() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Sharing getSharing() {
-          throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setSharing(Sharing sharing) {}
-
-        @Override
-        public String getPropertyValue(IdScheme idScheme) {
-          return "";
-        }
-
-        @Override
-        public String getDisplayPropertyValue(IdScheme idScheme) {
-          return "";
-        }
-
-        @Override
-        public void setId(long id) {}
-
-        @Override
-        public void setUid(String uid) {}
-
-        @Override
-        public void setName(String name) {}
-
-        @Override
-        public void setCode(String code) {}
-
-        @Override
-        public void setOwner(String owner) {}
-
-        @Override
-        public void setTranslations(Set<Translation> translations) {}
-
-        @Override
-        public void setLastUpdated(Date lastUpdated) {}
-
-        @Override
-        public void setLastUpdatedBy(User user) {}
-
-        @Override
-        public void setCreated(Date created) {}
-
-        @Override
-        public String getHref() {
-          return "";
-        }
-
-        @Override
-        public void setHref(String link) {}
-
-        @Override
-        public long getId() {
-          return 1;
-        }
-
-        @Override
-        public String getUid() {
-          return "";
-        }
-      };
   private final FieldFilterService fieldFilterService = mock(FieldFilterService.class);
 
   @Test
-  void testOnEventEmitsMetadata() throws NotFoundException, JsonProcessingException {
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
+  void testOnPreCommitPersistsEvent() throws Exception {
+    CacheProvider mockCacheProvider = mock(CacheProvider.class);
+    EventHook eventHook = createMockEventHook();
+    EventHookStore eventHookStore = mock(EventHookStore.class);
+    when(eventHookStore.getAll()).thenReturn(List.of(eventHook));
+
+    when(mockCacheProvider.<EventHookTargets>createEventHookTargetsCache())
+        .thenReturn(new TestCache<>());
+
+    EventHookService eventHookService =
+        new EventHookService(
+            null,
+            null,
+            eventHookStore,
+            objectMapper,
+            new EventHookSecretManager(null),
+            mockCacheProvider,
+            null);
+    eventHookService.postConstruct();
+
+    JdbcTemplate mockJdbcTemplate = mock(JdbcTemplate.class);
+    when(mockJdbcTemplate.update(anyString(), anyString())).thenReturn(1);
     EventHookListener eventHookListener =
         new EventHookListener(
-            null, objectMapper, fieldFilterService, null, mockAuthenticationService);
+            objectMapper,
+            fieldFilterService,
+            mockAuthenticationService,
+            mockJdbcTemplate,
+            eventHookService);
 
-    EventHook eventHook = createMockEventHook(user);
-    eventHookListener.getEventHookContext().setEventHooks(List.of(eventHook));
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    eventHookListener
-        .getEventHookContext()
-        .setTargets(
-            Map.of(
-                eventHook.getUid(), List.of((eh, event, payload) -> countDownLatch.countDown())));
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    eventHookListener.onPreCommit(EventUtils.metadataCreate(organisationUnit));
 
-    eventHookListener.onEvent(EventUtils.metadataCreate(mockIdentifiableObject));
+    Collection<Invocation> invocations = mockingDetails(mockJdbcTemplate).getInvocations();
+    String eventAsString = invocations.iterator().next().getArgument(1);
+    Map<String, Object> event = objectMapper.readValue(eventAsString, Map.class);
 
-    assertEquals(0, countDownLatch.getCount());
+    assertEquals("metadata.organisationUnit." + organisationUnit.getUid(), event.get("path"));
+    assertEquals("create", (((Map<String, Object>) event.get("meta")).get("op")));
+    assertEquals(organisationUnit.getUid(), ((Map<String, Object>) event.get("object")).get("id"));
   }
 
-  private EventHook createMockEventHook(User user) {
+  private EventHook createMockEventHook() {
     Source source = new Source();
-    source.setPath("metadata..");
+    source.setPath("metadata.");
+
+    User user = new User();
+    user.setUid(CodeGenerator.generateUid());
+
+    WebhookTarget webhookTarget = new WebhookTarget();
+    webhookTarget.setUrl("http://stub");
 
     EventHook eventHook = new EventHook();
     eventHook.setUser(user);
-    eventHook.setTargets(List.of(new ConsoleTarget()));
+    eventHook.setTargets(List.of(webhookTarget));
     eventHook.setUid(CodeGenerator.generateUid());
     eventHook.setSource(source);
 

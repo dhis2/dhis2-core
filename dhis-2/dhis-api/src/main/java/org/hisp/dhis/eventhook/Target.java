@@ -39,9 +39,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 
 /**
@@ -58,9 +55,6 @@ import org.hisp.dhis.eventhook.targets.WebhookTarget;
     property = "type")
 @JsonSubTypes({
   @JsonSubTypes.Type(value = WebhookTarget.class, name = WebhookTarget.TYPE),
-  @JsonSubTypes.Type(value = ConsoleTarget.class, name = ConsoleTarget.TYPE),
-  @JsonSubTypes.Type(value = JmsTarget.class, name = JmsTarget.TYPE),
-  @JsonSubTypes.Type(value = KafkaTarget.class, name = KafkaTarget.TYPE)
 })
 public abstract class Target implements Serializable {
   @JsonCreator

@@ -126,7 +126,8 @@ public enum JobType {
   REMOVE_USED_OR_EXPIRED_RESERVED_VALUES(
       daily2am("uwWCT2BMmlq", "Remove expired or used reserved values")),
   SYSTEM_VERSION_UPDATE_CHECK(
-      dailyRandomBetween3and5("vt21671bgno", "System version update check notification"));
+      dailyRandomBetween3and5("vt21671bgno", "System version update check notification")),
+  OUTBOX_ROTATION(every(1800, "zHKNyGk7zHl", "Outbox rotation"));
 
   /**
    * Any {@link JobType} which has a default will ensure that the {@link JobConfiguration} for that

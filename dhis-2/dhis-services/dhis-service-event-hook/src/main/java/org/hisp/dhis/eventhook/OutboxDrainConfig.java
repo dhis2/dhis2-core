@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,46 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.eventhook.Target;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class JmsTarget extends Target {
-  public static final String TYPE = "jms";
+@Configuration
+public class OutboxDrainConfig {
+  @Bean(name = "outboxDrainTaskScheduler")
+  public TaskScheduler outboxDrainTaskScheduler() {
+    ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+    threadPoolTaskScheduler.setPoolSize(1);
+    threadPoolTaskScheduler.setThreadNamePrefix("OutboxDrain-");
+    threadPoolTaskScheduler.initialize();
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
-
-  @JsonProperty(required = true)
-  private String groupId = "dhis2";
-
-  @JsonProperty(required = true)
-  private String address = "dhis2.hooks";
-
-  @JsonProperty(required = true)
-  private String brokerUrl = "tcp://localhost:61616";
-
-  @JsonProperty private String username;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private String password;
-
-  @JsonProperty private boolean useQueue;
-
-  public JmsTarget() {
-    super(TYPE);
+    return threadPoolTaskScheduler;
   }
 }

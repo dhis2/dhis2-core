@@ -29,28 +29,19 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.concurrent.Executor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-/**
- * @author Morten Olav Hansen
- */
-@Configuration
-public class EventHookConfig {
-  @Bean(name = "eventHookTaskExecutor")
-  public Executor eventHookPoolTaskExecutor() {
-    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+@Data
+@Builder
+public class EventHookTargets {
+  @Builder.Default private List<ReactiveHandler> targets = new ArrayList<>();
 
-    // setting static defaults for now, we might to make this configurable in dhis.conf in the
-    // future
-    executor.setCorePoolSize(50);
-    executor.setMaxPoolSize(500);
-    executor.setQueueCapacity(5000);
-    executor.setThreadNamePrefix("EventHook-");
-    executor.initialize();
+  @Builder.Default private EventHook eventHook = null;
 
-    return executor;
+  public void closeTargets() {
+    targets.forEach(ReactiveHandler::close);
   }
 }

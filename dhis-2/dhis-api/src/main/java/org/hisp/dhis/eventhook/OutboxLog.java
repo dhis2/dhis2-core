@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.handlers;
+package org.hisp.dhis.eventhook;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.eventhook.Event;
-import org.hisp.dhis.eventhook.EventHook;
-import org.hisp.dhis.eventhook.Handler;
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * @author Morten Olav Hansen
- */
-@Slf4j
-public class ConsoleHandler implements Handler {
-  public ConsoleHandler(ConsoleTarget target) {}
+@Entity
+@Table(name = "outboxlog")
+@NoArgsConstructor
+@Getter
+@Setter
+public class OutboxLog {
 
-  @Override
-  public void run(EventHook eventHook, Event event, String payload) {
-    log.info(payload);
-  }
+  @Id
+  @Column(name = "outboxtablename")
+  private String outboxTableName;
+
+  @Column(name = "lastprocessedid")
+  private long lastProcessedId;
+
+  @OneToOne
+  @JoinColumn(name = "eventhookid")
+  private EventHook eventHook;
 }

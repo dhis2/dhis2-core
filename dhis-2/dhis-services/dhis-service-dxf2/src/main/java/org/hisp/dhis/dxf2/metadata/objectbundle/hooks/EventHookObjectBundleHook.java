@@ -34,7 +34,8 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.EventHookSecretManager;
-import org.hisp.dhis.eventhook.ReloadEventHookListeners;
+import org.hisp.dhis.eventhook.EventHookService;
+import org.hisp.dhis.eventhook.OnEventHookChange;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +46,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class EventHookObjectBundleHook extends AbstractObjectBundleHook<EventHook> {
   private final ApplicationEventPublisher publisher;
+
+  private final EventHookService eventHookService;
 
   private final EventHookSecretManager secretManager;
 
@@ -61,6 +64,16 @@ public class EventHookObjectBundleHook extends AbstractObjectBundleHook<EventHoo
   @Override
   public <E extends EventHook> void postTypeImport(
       Class<E> klass, List<E> objects, ObjectBundle bundle) {
-    publisher.publishEvent(new ReloadEventHookListeners());
+    publisher.publishEvent(new OnEventHookChange());
+  }
+
+  @Override
+  public void postCreate(EventHook eventHook, ObjectBundle bundle) {
+    eventHookService.createOutbox(eventHook);
+  }
+
+  @Override
+  public void preDelete(EventHook eventHook, ObjectBundle bundle) {
+    eventHookService.deleteOutbox(eventHook.getUID());
   }
 }

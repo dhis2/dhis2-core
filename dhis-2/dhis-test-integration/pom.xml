@@ -155,6 +155,11 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-event-hook</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-sql</artifactId>
       <scope>test</scope>
     </dependency>
@@ -357,7 +362,21 @@
       <artifactId>hypersistence-utils-hibernate-55</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-client-java</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

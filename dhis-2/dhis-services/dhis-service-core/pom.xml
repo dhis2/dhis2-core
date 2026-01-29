@@ -121,7 +121,6 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.7.6</version>
     </dependency>
     <dependency>
       <groupId>io.projectreactor.netty</groupId>

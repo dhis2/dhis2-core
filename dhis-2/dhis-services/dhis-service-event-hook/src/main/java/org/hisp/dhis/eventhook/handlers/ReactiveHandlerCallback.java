@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.eventhook.handlers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Data;
 
-/**
- * @author Morten Olav Hansen
- */
-@Data
-@Builder
-public class EventHookContext {
-  @Builder.Default Map<String, List<Handler>> targets = new HashMap<>();
+public interface ReactiveHandlerCallback {
 
-  @Builder.Default List<EventHook> eventHooks = new ArrayList<>();
+  void onError(Map<String, Object> outboxMessageCause);
 
-  public boolean hasTarget(String uid) {
-    return targets.containsKey(uid) || targets.get(uid).isEmpty();
-  }
+  void onSuccess(Map<String, Object> lastSuccessfulOutboxMessage);
 
-  public List<Handler> getTarget(String uid) {
-    return targets.get(uid);
-  }
-
-  public void closeTargets() {
-    targets.values().forEach(handlers -> handlers.forEach(Handler::close));
-  }
+  void onComplete();
 }

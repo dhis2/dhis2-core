@@ -29,12 +29,13 @@
  */
 package org.hisp.dhis.eventhook;
 
-/**
- * @author Morten Olav Hansen
- */
+import java.util.Map;
+import org.hisp.dhis.eventhook.handlers.ReactiveHandlerCallback;
+import reactor.core.publisher.Flux;
+
 @FunctionalInterface
-public interface Handler extends AutoCloseable {
-  void run(EventHook eventHook, Event event, String payload);
+public interface ReactiveHandler extends AutoCloseable {
+  void accept(Flux<Map<String, Object>> outboxMessages, ReactiveHandlerCallback handlerCallback);
 
   @Override
   default void close() {}

@@ -34,27 +34,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import javax.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
-import org.hisp.dhis.eventhook.handlers.JmsHandler;
-import org.hisp.dhis.eventhook.handlers.KafkaHandler;
-import org.hisp.dhis.eventhook.handlers.WebhookHandler;
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.KafkaTarget;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -65,94 +51,60 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class EventHookListener {
-  private final ApplicationContext applicationContext;
-
   private final ObjectMapper objectMapper;
 
   private final FieldFilterService fieldFilterService;
 
-  @Getter private EventHookContext eventHookContext = EventHookContext.builder().build();
+  private final AuthenticationService authenticationService;
+
+  private final JdbcTemplate jdbcTemplate;
 
   private final EventHookService eventHookService;
 
-  private final AuthenticationService authenticationService;
-
-  @Async("eventHookTaskExecutor")
   @TransactionalEventListener(
       classes = Event.class,
-      phase = TransactionPhase.AFTER_COMMIT,
+      phase = TransactionPhase.BEFORE_COMMIT,
       fallbackExecution = true)
-  public void onEvent(final Event event) throws JsonProcessingException, NotFoundException {
+  public void onPreCommit(Event event) throws JsonProcessingException, NotFoundException {
+    for (EventHookTargets eventHookContext : eventHookService.getEventHookTargets()) {
+      if (doSendOutbox(event, eventHookContext)) {
+        EventHook eventHook = eventHookContext.getEventHook();
+        User eventHookUser = eventHook.getUser();
+        try {
+          authenticationService.obtainAuthentication(eventHookUser.getUID().getValue());
+          final Event filteredEvent;
+          if (event.getObject() instanceof Collection) {
+            List<ObjectNode> objects = new ArrayList<>();
 
-    for (EventHook eventHook : eventHookContext.getEventHooks()) {
-      final Event filteredEvent;
-      User eventHookUser = eventHook.getUser();
-      authenticationService.obtainAuthentication(eventHookUser.getUid());
+            for (Object object : ((Collection<?>) event.getObject())) {
+              objects.add(
+                  fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+            }
 
-      if (event.getPath().startsWith(eventHook.getSource().getPath())) {
-        if (!eventHookContext.hasTarget(eventHook.getUid())) {
-          continue;
-        }
-        if (event.getObject() instanceof Collection) {
-          List<ObjectNode> objects = new ArrayList<>();
-
-          for (Object object : ((Collection<?>) event.getObject())) {
-            objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+            filteredEvent = event.withObject(objects);
+          } else {
+            ObjectNode objectNode =
+                fieldFilterService.toObjectNode(
+                    event.getObject(), eventHook.getSource().getFields());
+            filteredEvent = event.withObject(objectNode);
           }
 
-          filteredEvent = event.withObject(objects);
-        } else {
-          ObjectNode objectNode =
-              fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
-          filteredEvent = event.withObject(objectNode);
+          if (filteredEvent != null) {
+            String tableName = EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID();
+            jdbcTemplate.update(
+                String.format("INSERT INTO \"%s\" (payload) VALUES (?::JSONB)", tableName),
+                objectMapper.writeValueAsString(event));
+          }
+        } finally {
+          authenticationService.clearAuthentication();
         }
-
-        emit(filteredEvent, eventHook);
       }
     }
   }
 
-  protected void emit(Event event, EventHook eventHook) throws JsonProcessingException {
-    if (event != null) {
-      String payload = objectMapper.writeValueAsString(event);
-      List<Handler> handlers = eventHookContext.getTarget(eventHook.getUid());
-
-      for (Handler handler : handlers) {
-        handler.run(eventHook, event, payload);
-      }
-    }
-  }
-
-  @PostConstruct
-  @EventListener(ReloadEventHookListeners.class)
-  public void reload() {
-    eventHookContext.closeTargets();
-
-    List<EventHook> eventHooks = eventHookService.getAll();
-    Map<String, List<Handler>> targets = new HashMap<>();
-
-    for (EventHook eh : eventHooks) {
-      if (eh.isDisabled()) {
-        continue;
-      }
-
-      targets.put(eh.getUid(), new ArrayList<>());
-
-      for (Target target : eh.getTargets()) {
-        if (WebhookTarget.TYPE.equals(target.getType())) {
-          targets
-              .get(eh.getUid())
-              .add(new WebhookHandler(applicationContext, (WebhookTarget) target));
-        } else if (ConsoleTarget.TYPE.equals(target.getType())) {
-          targets.get(eh.getUid()).add(new ConsoleHandler((ConsoleTarget) target));
-        } else if (JmsTarget.TYPE.equals(target.getType())) {
-          targets.get(eh.getUid()).add(new JmsHandler((JmsTarget) target));
-        } else if (KafkaTarget.TYPE.equals(target.getType())) {
-          targets.get(eh.getUid()).add(new KafkaHandler((KafkaTarget) target));
-        }
-      }
-    }
-
-    eventHookContext = EventHookContext.builder().eventHooks(eventHooks).targets(targets).build();
+  protected boolean doSendOutbox(Event event, EventHookTargets eventHookTargets) {
+    return event.getPath().startsWith(eventHookTargets.getEventHook().getSource().getPath())
+        && !(event.getObject() instanceof EventHook)
+        && !eventHookTargets.getTargets().isEmpty();
   }
 }
