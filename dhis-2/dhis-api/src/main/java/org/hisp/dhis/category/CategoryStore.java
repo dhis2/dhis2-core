@@ -47,5 +47,11 @@ public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
 
   List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
 
+  /**
+   * Removes all references to the given category ids from the category options.
+   *
+   * @param sourceCategoryIds source category ids
+   * @return number of rows affected
+   */
   int removeCatOptionCategoryRefs(Set<Long> sourceCategoryIds);
 }

@@ -80,16 +80,10 @@ public class CategoryMergeHandler {
    * @param target to add
    */
   public void handleCategoryCombos(List<Category> sources, Category target) {
-    //    List<CategoryCombo> sourceCategoryCombos =
-    //        categoryComboStore.getCategoryCombosByCategory(UID.toUidValueSet(sources));
     int updated =
         categoryComboStore.updateCatComboCategoryRefs(
             sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
             target.getId());
-    //    sourceCategoryCombos.forEach(
-    //        cc -> {
-    //          sources.forEach(cc::removeCategory);
-    //        });
     log.info("{} category combos with source category refs updated", updated);
   }
 

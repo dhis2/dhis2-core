@@ -163,7 +163,7 @@ class CategoryMergeServiceTest {
 
   @Test
   @DisplayName(
-      "When a Source Category's combo doesn't matche the target's Category combo, no error is reported")
+      "When a Source Category's combo doesn't match the target's Category combo, no error is reported")
   void combosDontMatchTest() {
     // given 2 source categories exist each with 2 different combos
     Category c1 = new Category();

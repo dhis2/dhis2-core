@@ -245,5 +245,13 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
 
+  /**
+   * Update category dimension constraints to the targetCategoryId for all references to the
+   * sourceCategoryIds
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of updated rows
+   */
   int updateCatDimensionConstraintsCategoryRefs(Set<Long> sourceCategoryIds, long targetCategoryId);
 }

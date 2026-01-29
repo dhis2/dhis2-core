@@ -44,9 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import org.hibernate.Session;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -337,17 +336,8 @@ class UserStoreTest extends PostgresIntegrationTestBase {
     // given 4 Users exist, each with different CategoryDimensionConstraints
     TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("1");
     TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("2");
+    Category targetCategory = categoryMetadata2.c1();
     setupCategoryMetadata("3");
-
-    //    User user1 = createAndAddUser("user1 merge test");
-    //    User user2 = createAndAddUser("user2 merge test");
-    //    User user3 = createAndAddUser("user3 merge test");
-    //    User user4 = createAndAddUser("user4 merge test");
-    //    userService.addUser(user1);
-    //    userService.addUser(user2);
-    //    userService.addUser(user3);
-    //    userService.addUser(user4);
-
     User user1 = makeUser("1");
     User user2 = makeUser("2");
     User user3 = makeUser("3");
@@ -356,46 +346,41 @@ class UserStoreTest extends PostgresIntegrationTestBase {
     userStore.save(user2);
     userStore.save(user3);
     userStore.save(user4);
-
     user1.getCatDimensionConstraints().add(categoryMetadata1.c1());
     user2.getCatDimensionConstraints().add(categoryMetadata1.c2());
-    user3.getCatDimensionConstraints().add(categoryMetadata2.c1());
+    user3.getCatDimensionConstraints().add(targetCategory);
     user4.getCatDimensionConstraints().add(categoryMetadata2.c2());
-
     userStore.update(user1);
     userStore.update(user2);
     userStore.update(user3);
     userStore.update(user4);
 
-    // when updating 2 CategoryDimensionConstraints
+    // when updating category dimension constraints category refs
     int updatedCatDimensionConstraints =
         userStore.updateCatDimensionConstraintsCategoryRefs(
             Set.of(categoryMetadata1.c1().getId(), categoryMetadata1.c2().getId()),
-            categoryMetadata2.c1().getId());
+            targetCategory.getId());
 
-    //    dbmsManager.flushSession();
-
-    // then the expected number of CategoryDimensions should be updated
+    dbmsManager.clearSession();
     assertEquals(
         2, updatedCatDimensionConstraints, "2 CategoryDimensionConstraints have been updated");
 
-    // and the expected CategoryDimensionConstraints should be present
-    checkConstraints(userStore.getByUid(user1.getUid()), categoryMetadata2.c1());
-    checkConstraints(userStore.getByUid(user2.getUid()), categoryMetadata2.c1());
-    checkConstraints(userStore.getByUid(user3.getUid()), categoryMetadata2.c1());
-    checkConstraints(userStore.getByUid(user4.getUid()), categoryMetadata2.c2());
+    // then users should have the correct refs to category dimension constraints
+    checkConstraints(user1, targetCategory.getId());
+    checkConstraints(user2, targetCategory.getId());
+    checkConstraints(user3, targetCategory.getId());
+    checkConstraints(user4, categoryMetadata2.c2().getId());
   }
 
-  private void checkConstraints(User user, Category category) {
-    assertTrue(
-        user.getCatDimensionConstraints().stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet())
-            .contains(category.getUid()),
-        "Category Dimension Constraint Category UID should match");
+  private void checkConstraints(User user, long categoryId) {
+    Session session = entityManager.unwrap(Session.class);
+    User freshUser1 = session.get(User.class, user.getId());
     assertEquals(
         1,
         user.getCatDimensionConstraints().size(),
         "There should be 1 CategoryDimensionConstraint");
+
+    assertEquals(
+        categoryId, freshUser1.getCatDimensionConstraints().stream().findFirst().get().getId());
   }
 }
