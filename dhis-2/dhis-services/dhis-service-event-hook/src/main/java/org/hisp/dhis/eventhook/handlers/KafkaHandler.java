@@ -43,6 +43,7 @@ import org.hisp.dhis.eventhook.targets.KafkaTarget;
  * @author Morten Olav Hansen
  */
 @Slf4j
+@Deprecated
 public class KafkaHandler implements Handler {
   private final KafkaTarget target;
 

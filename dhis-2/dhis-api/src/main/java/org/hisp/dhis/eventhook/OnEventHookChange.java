@@ -35,4 +35,4 @@ package org.hisp.dhis.eventhook;
  *
  * @author Morten Olav Hansen
  */
-public class ReloadEventHookListeners {}
+public class OnEventHookChange {}

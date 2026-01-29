@@ -58,6 +58,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  * @author Morten Olav Hansen
  */
 @Slf4j
+@Deprecated
 public class WebhookHandler implements Handler {
   private final ApplicationContext applicationContext;
 

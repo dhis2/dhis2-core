@@ -27,42 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.eventhook.Target;
+import java.util.Map;
+import org.hisp.dhis.eventhook.handlers.HandlerCallback;
+import reactor.core.publisher.Flux;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@Deprecated
-public class KafkaTarget extends Target {
-  public static final String TYPE = "kafka";
+@FunctionalInterface
+public interface ReactiveHandler extends AutoCloseable {
+  void accept(Flux<Map<String, Object>> outboxMessages, HandlerCallback handlerCallback);
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
-
-  @JsonProperty(required = true)
-  private String bootstrapServers = "localhost:9092";
-
-  @JsonProperty(required = true)
-  private String topic = "dhis2.hooks";
-
-  @JsonProperty private String username;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private String password;
-
-  public KafkaTarget() {
-    super(TYPE);
-  }
+  @Override
+  default void close() {}
 }

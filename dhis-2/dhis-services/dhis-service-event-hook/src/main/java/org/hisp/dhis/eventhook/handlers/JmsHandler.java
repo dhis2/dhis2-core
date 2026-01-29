@@ -46,6 +46,7 @@ import org.springframework.jms.core.JmsTemplate;
  * @author Morten Olav Hansen
  */
 @Slf4j
+@Deprecated
 public class JmsHandler implements Handler {
   private final JmsTarget target;
 

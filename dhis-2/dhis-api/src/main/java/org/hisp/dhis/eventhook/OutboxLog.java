@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.eventhook.Target;
 
-/**
- * @author Morten Olav Hansen
- */
+@Entity
+@Table(name = "outboxlog")
+@NoArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@Deprecated
-public class KafkaTarget extends Target {
-  public static final String TYPE = "kafka";
+public class OutboxLog {
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
+  @Id
+  @Column(name = "outboxtablename")
+  private String outboxTableName;
 
-  @JsonProperty(required = true)
-  private String bootstrapServers = "localhost:9092";
-
-  @JsonProperty(required = true)
-  private String topic = "dhis2.hooks";
-
-  @JsonProperty private String username;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private String password;
-
-  public KafkaTarget() {
-    super(TYPE);
-  }
+  @Column(name = "lastprocessedid")
+  private long lastProcessedId;
 }
