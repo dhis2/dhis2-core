@@ -495,7 +495,7 @@ public class DhisWebApiWebSecurityConfig {
 
       configureMatchers(http);
       configureOAuthAuthorizationServer(http);
-      configureCspFilter(http, dhisConfig, configurationService);
+      configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
       configureCorsFilter(http);
       configureMobileAuthFilter(http);
       configureApiTokenAuthorizationFilter(http);
@@ -565,9 +565,10 @@ public class DhisWebApiWebSecurityConfig {
     private void configureCspFilter(
         HttpSecurity http,
         DhisConfigurationProvider dhisConfig,
-        ConfigurationService configurationService) {
+        ConfigurationService configurationService,
+        CacheProvider cacheProvider) {
       http.addFilterBefore(
-          new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class);
+          new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class);
     }
 
     private void configureCorsFilter(HttpSecurity http) {
