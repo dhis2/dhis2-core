@@ -41,6 +41,7 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +64,7 @@ import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
@@ -82,6 +84,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private final QueryCacheManager queryCacheManager;
   private final EntityManager entityManager;
   private final UserSettingsService userSettingsService;
+  private final SystemSettingsProvider settingsProvider;
   private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new HashMap<>();
 
   @Override
@@ -112,7 +115,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     typedQuery.setFirstResult(query.getFirstResult());
     typedQuery.setMaxResults(query.getMaxResults());
 
-    if (query.isCacheable()) {
+    if (query.isCacheable() && shouldBeCached(objectType)) {
       typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
       typedQuery.setHint(
           QueryHints.HINT_CACHE_REGION,
@@ -120,6 +123,23 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     }
 
     return typedQuery.getResultList();
+  }
+
+  /**
+   * Determines if query results for the given object type should be query cached.
+   *
+   * @param objectType the class type being queried
+   * @return true if the query results should be cached, false if caching should be skipped
+   */
+  private <T extends IdentifiableObject> boolean shouldBeCached(Class<T> objectType) {
+    String skipClasses = settingsProvider.getCurrentSettings().getQueryCacheSkipClasses();
+    if (skipClasses == null || skipClasses.isBlank()) {
+      return true;
+    }
+    String simpleClassName = objectType.getSimpleName();
+    return Arrays.stream(skipClasses.split(","))
+        .map(String::trim)
+        .noneMatch(simpleClassName::equals);
   }
 
   private <T extends IdentifiableObject> Predicate buildFilters(

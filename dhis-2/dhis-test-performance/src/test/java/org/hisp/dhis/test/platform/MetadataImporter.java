@@ -82,4 +82,61 @@ public class MetadataImporter {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Import metadata from a file on the classpath using idempotent mode. This method uses
+   * atomicMode=NONE and importStrategy=CREATE_AND_UPDATE to tolerate existing data. Suitable for
+   * repeated test runs without needing to clean the database.
+   *
+   * @param fileName the classpath resource file name
+   * @param baseUrl the DHIS2 base URL (e.g., "http://localhost:8080")
+   * @param username the username for authentication
+   * @param password the password for authentication
+   */
+  public static void importJsonFileIdempotent(
+      String fileName, String baseUrl, String username, String password) {
+    try {
+      String auth =
+          Base64.getEncoder()
+              .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+
+      try (InputStream is = MetadataImporter.class.getClassLoader().getResourceAsStream(fileName)) {
+        if (is == null) {
+          throw new RuntimeException("Resource not found: " + fileName);
+        }
+        String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+        // Use atomicMode=NONE to allow partial success
+        // Use importStrategy=CREATE_AND_UPDATE to create new or update existing
+        String url = baseUrl + "/api/metadata?atomicMode=NONE&importStrategy=CREATE_AND_UPDATE";
+
+        HttpRequest request =
+            HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Basic " + auth)
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> metadataImportResponse =
+            client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        int statusCode = metadataImportResponse.statusCode();
+        if (statusCode == 200 || statusCode == 409) {
+          // 200 = success, 409 = conflict (some already exist) - both are acceptable
+          logger.info("Metadata import completed for {}: HTTP {}", fileName, statusCode);
+        } else {
+          logger.warn(
+              "Metadata import returned unexpected status {} for {}: {}",
+              statusCode,
+              fileName,
+              metadataImportResponse.body());
+        }
+      }
+    } catch (Exception e) {
+      logger.error("Error importing metadata from {}: {}", fileName, e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
 }

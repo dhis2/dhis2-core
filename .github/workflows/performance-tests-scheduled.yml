@@ -31,6 +31,12 @@ jobs:
               SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
               MVN_ARGS=-Dprofile=load
             slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
+          - name: orgunit-query-cache
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.platform.OrganisationUnitsTest
+              MVN_ARGS=-DskipImport=false -DorgunitFiles=6
+            slack_webhook_secret: SLACK_WEBHOOK_PLATFORM
     uses: ./.github/workflows/performance-tests.yml
     with:
       perf_tests_git_ref: master
