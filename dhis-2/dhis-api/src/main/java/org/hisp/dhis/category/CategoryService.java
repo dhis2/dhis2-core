@@ -96,6 +96,8 @@ public interface CategoryService {
    */
   Category getCategory(String uid);
 
+  Category getCategory(UID uid);
+
   /**
    * Retrieves the Category with the given name.
    *
@@ -326,7 +328,7 @@ public interface CategoryService {
    */
   List<CategoryCombo> getAttributeCategoryCombos();
 
-  List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids);
+  List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids);
 
   // -------------------------------------------------------------------------
   // CategoryOptionCombo

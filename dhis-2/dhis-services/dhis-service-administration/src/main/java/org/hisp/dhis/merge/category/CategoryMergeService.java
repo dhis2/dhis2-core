@@ -30,6 +30,7 @@
 package org.hisp.dhis.merge.category;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -90,16 +92,19 @@ public class CategoryMergeService implements MergeService {
     }
 
     // validate category combos
-    Set<String> sourceCatCombos =
-        getCatComboUids(sourceCategories.stream().map(BaseIdentifiableObject::getUid).toList());
-    Set<String> targetCatCombos = getCatComboUids(List.of(request.getTarget().getValue()));
+    Set<UID> sourceCatCombos =
+        getCatComboUids(
+            sourceCategories.stream()
+                .map(BaseIdentifiableObject::getUidType)
+                .collect(Collectors.toSet()));
+    Set<UID> targetCatCombos = getCatComboUids(Set.of(UID.of(request.getTarget().getValue())));
     validateCategoryCombosAreDifferent(sourceCatCombos, targetCatCombos, mergeReport);
     return request;
   }
 
-  private Set<String> getCatComboUids(List<String> categoryUids) {
+  private Set<UID> getCatComboUids(Collection<UID> categoryUids) {
     return categoryService.getCategoryCombosByCategory(categoryUids).stream()
-        .map(BaseMetadataObject::getUid)
+        .map(IdentifiableObject::getUidType)
         .collect(Collectors.toSet());
   }
 
@@ -142,13 +147,13 @@ public class CategoryMergeService implements MergeService {
    * @param mergeReport merge report to update with errors if validation fails
    */
   protected static void validateCategoryCombosAreDifferent(
-      Set<String> sourceCatCombos, Set<String> targetCatCombos, MergeReport mergeReport) {
-    Set<String> sharedCombos = new HashSet<>(sourceCatCombos);
+      Set<UID> sourceCatCombos, Set<UID> targetCatCombos, MergeReport mergeReport) {
+    Set<UID> sharedCombos = new HashSet<>(sourceCatCombos);
     sharedCombos.retainAll(targetCatCombos);
 
     if (!sharedCombos.isEmpty()) {
       mergeReport.addErrorMessage(
-          new ErrorMessage(ErrorCode.E1536, String.join(",", sharedCombos)));
+          new ErrorMessage(ErrorCode.E1536, String.join(",", UID.toValueSet(sharedCombos))));
     }
   }
 

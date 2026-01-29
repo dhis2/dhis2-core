@@ -39,8 +39,9 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -141,11 +142,11 @@ class CategoryMergeServiceTest {
     MergeReport mergeReport = new MergeReport();
 
     // when the categories are checked to see if each source has different combos than the target
-    Set<String> source1Ccs = getCcUids(c1);
-    Set<String> source2Ccs = getCcUids(c2);
-    Set<String> targetCcs = getCcUids(c3);
+    Set<UID> source1Ccs = getCcUids(c1);
+    Set<UID> source2Ccs = getCcUids(c2);
+    Set<UID> targetCcs = getCcUids(c3);
 
-    Set<String> allSourceCcUids = new HashSet<>(source1Ccs);
+    Set<UID> allSourceCcUids = new HashSet<>(source1Ccs);
     allSourceCcUids.addAll(source2Ccs);
     CategoryMergeService.validateCategoryCombosAreDifferent(
         allSourceCcUids, targetCcs, mergeReport);
@@ -188,11 +189,11 @@ class CategoryMergeServiceTest {
     MergeReport mergeReport = new MergeReport();
 
     // when the categories are checked to see if each source has different combos than the target
-    Set<String> source1Ccs = getCcUids(c1);
-    Set<String> source2Ccs = getCcUids(c2);
-    Set<String> targetCcs = getCcUids(c3);
+    Set<UID> source1Ccs = getCcUids(c1);
+    Set<UID> source2Ccs = getCcUids(c2);
+    Set<UID> targetCcs = getCcUids(c3);
 
-    Set<String> allSourceCcUids = new HashSet<>(source1Ccs);
+    Set<UID> allSourceCcUids = new HashSet<>(source1Ccs);
     allSourceCcUids.addAll(source2Ccs);
     CategoryMergeService.validateCategoryCombosAreDifferent(
         allSourceCcUids, targetCcs, mergeReport);
@@ -201,9 +202,9 @@ class CategoryMergeServiceTest {
     assertEquals(0, mergeReport.getMergeErrors().size());
   }
 
-  private Set<String> getCcUids(Category c) {
+  private Set<UID> getCcUids(Category c) {
     return c.getCategoryCombos().stream()
-        .map(BaseMetadataObject::getUid)
+        .map(IdentifiableObject::getUidType)
         .collect(Collectors.toSet());
   }
 }

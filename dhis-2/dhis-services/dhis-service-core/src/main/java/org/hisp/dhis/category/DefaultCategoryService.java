@@ -147,6 +147,12 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
+  public Category getCategory(UID uid) {
+    return categoryStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Category getCategoryByName(String name) {
     List<Category> dataElementCategories = new ArrayList<>(categoryStore.getAllEqName(name));
 
@@ -419,7 +425,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids) {
+  public List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids) {
     return categoryComboStore.getCategoryCombosByCategory(categoryUids);
   }
 

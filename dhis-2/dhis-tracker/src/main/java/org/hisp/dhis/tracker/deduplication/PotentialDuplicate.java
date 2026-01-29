@@ -289,4 +289,9 @@ public class PotentialDuplicate implements IdentifiableObject {
   public void setHref(String link) {
     // not supported
   }
+
+  @Override
+  public UID getUidType() {
+    return null;
+  }
 }

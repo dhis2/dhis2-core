@@ -75,6 +75,10 @@ public class BaseTrackerObject {
     return uid;
   }
 
+  public UID getUidType() {
+    return UID.of(getUid());
+  }
+
   @Description("The date this object was created.")
   @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getCreated() {

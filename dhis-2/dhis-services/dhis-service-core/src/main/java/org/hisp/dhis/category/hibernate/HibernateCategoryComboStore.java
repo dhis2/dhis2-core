@@ -41,6 +41,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -73,7 +74,7 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
   }
 
   @Override
-  public List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids) {
+  public List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids) {
     if (categoryUids == null || categoryUids.isEmpty()) return List.of();
 
     return getQuery(
@@ -83,7 +84,7 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
             where c.uid in :categoryUids
             """,
             CategoryCombo.class)
-        .setParameter("categoryUids", categoryUids)
+        .setParameter("categoryUids", UID.toValueSet(categoryUids))
         .getResultList();
   }
 

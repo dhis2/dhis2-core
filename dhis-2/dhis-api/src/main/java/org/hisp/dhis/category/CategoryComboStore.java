@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
@@ -47,7 +48,7 @@ public interface CategoryComboStore extends IdentifiableObjectStore<CategoryComb
    * @param categoryUids the UIDs of the categories
    * @return list of {@link CategoryCombo}s
    */
-  List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids);
+  List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids);
 
   /**
    * Update all sourceCategoryIds ids to the targetId.

@@ -56,7 +56,7 @@ class CategoryComboStoreTest extends PostgresIntegrationTestBase {
     // When getting category combos by categories
     List<CategoryCombo> categoryCombos =
         categoryComboStore.getCategoryCombosByCategory(
-            List.of(categoryMetadata1.c2().getUid(), categoryMetadata2.c1().getUid()));
+            List.of(categoryMetadata1.c2().getUidType(), categoryMetadata2.c1().getUidType()));
 
     // Then the expected 2 CategoryCombos are retrieved
     assertEquals(2, categoryCombos.size(), "2 CategoryCombos should be present");
