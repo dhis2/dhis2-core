@@ -38,11 +38,12 @@
     GROUP BY catoptions HAVING COUNT(*) > 1
     )
     SELECT COUNT(*) as value,
-     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
+    100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
     FROM category),0 ) percent
     FROM duplicative_categories;
   details_sql: >-
-    SELECT x.uid,'(' || b.rank || ') ' || x.name as name  from category x
+    SELECT x.uid,'(' || b.rank || ') ' || x.name as name 
+    FROM category x
     INNER JOIN (
     SELECT categoryid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
     from categories_categoryoptions GROUP BY categoryid
