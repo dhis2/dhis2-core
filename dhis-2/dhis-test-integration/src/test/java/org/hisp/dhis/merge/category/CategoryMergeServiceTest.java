@@ -35,10 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -47,7 +45,6 @@ import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -532,13 +529,6 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
     // and source Cs are deleted
     assertEquals(2, allCategories.size(), "Expect 2 categories present");
     assertTrue(allCategories.contains(catTarget));
-  }
-
-  private Set<String> getOptionsFromCategories(Category... categories) {
-    return Arrays.stream(categories)
-        .flatMap(c -> c.getCategoryOptions().stream())
-        .map(BaseMetadataObject::getUid)
-        .collect(Collectors.toSet());
   }
 
   private MergeParams getMergeParams(List<Category> sources, Category target) {
