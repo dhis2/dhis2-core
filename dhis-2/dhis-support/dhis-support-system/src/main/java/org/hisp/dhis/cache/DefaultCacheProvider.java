@@ -130,7 +130,8 @@ public class DefaultCacheProvider implements CacheProvider {
     jobCancelRequested,
     dataIntegritySummaryCache,
     dataIntegrityDetailsCache,
-    queryAliasCache
+    queryAliasCache,
+    corsWhitelistCache
   }
 
   private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
