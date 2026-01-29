@@ -266,7 +266,8 @@ public class DhisWebCommonsWebSecurityConfig {
           .csrf()
           .disable()
           .addFilterBefore(
-              new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class)
+              new CspFilter(dhisConfig, configurationService, cacheProvider),
+              HeaderWriterFilter.class)
           .addFilterBefore(CorsFilter.get(), BasicAuthenticationFilter.class)
           .addFilterBefore(
               CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class)
