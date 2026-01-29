@@ -29,22 +29,18 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Common interface for objects that have a unique ID used in RESTful APIs but that might not have
- * use for a name and other fundamentals that come with {@link IdentifiableObject}s.
- *
- * @author Jan Bernitt
- */
-public interface UidObject {
-  /**
-   * @return external unique ID of the object as used in the RESTful API
-   */
-  @JsonProperty(value = "id")
-  String getUid();
+import org.hisp.dhis.category.Category;
+import org.junit.jupiter.api.Test;
 
-  default UID getUidType() {
-    return UID.of(getUid());
+class UidObjectTest {
+
+  @Test
+  void getUidTypeTest() {
+    Category category = new Category();
+    category.setAutoFields();
+    UID uidType = category.getUidType();
+    assertEquals(category.getUid(), uidType.getValue());
   }
 }
