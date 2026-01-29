@@ -190,7 +190,7 @@ class CategoryMergeTest extends ApiTest {
                 "id": "%s",
                 "firstName": "User",
                 "surname": "Robot",
-                "username": "uname %s",
+                "username": "uname_%s",
                 "userRoles": [
                     {
                         "id": "UserRole111"
