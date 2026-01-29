@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -128,6 +129,8 @@ public class DhisWebCommonsWebSecurityConfig {
     @Autowired private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
     @Autowired private ConfigurationService configurationService;
+
+    @Autowired private CacheProvider cacheProvider;
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -270,7 +273,8 @@ public class DhisWebCommonsWebSecurityConfig {
           .csrf()
           .disable()
           .addFilterBefore(
-              new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class)
+              new CspFilter(dhisConfig, configurationService, cacheProvider),
+              HeaderWriterFilter.class)
           .addFilterBefore(CorsFilter.get(), BasicAuthenticationFilter.class)
           .addFilterBefore(
               CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class)

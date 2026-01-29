@@ -35,13 +35,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Set;
 import java.util.function.Function;
+import javax.servlet.FilterChain;
+import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,8 +62,6 @@ class CspFilterTest {
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Mock private ConfigurationService configurationService;
-
-  @Mock private Configuration configuration;
 
   @Mock private CacheProvider cacheProvider;
 

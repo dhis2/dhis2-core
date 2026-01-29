@@ -472,7 +472,7 @@ public class DhisWebApiWebSecurityConfig {
 
       configureMatchers(http);
       configureOAuthAuthorizationServer(http);
-      configureCspFilter(http, dhisConfig, configurationService);
+      configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
       configureCorsFilter(http);
       configureMobileAuthFilter(http);
       configureApiTokenAuthorizationFilter(http);

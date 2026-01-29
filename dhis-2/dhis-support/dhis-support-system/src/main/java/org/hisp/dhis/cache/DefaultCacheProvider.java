@@ -37,7 +37,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import org.hisp.dhis.common.cache.Region;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -130,7 +129,8 @@ public class DefaultCacheProvider implements CacheProvider {
     completedJobsInfo,
     jobCancelRequested,
     dataIntegritySummaryCache,
-    dataIntegrityDetailsCache
+    dataIntegrityDetailsCache,
+    corsWhitelistCache
   }
 
   private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -637,7 +637,7 @@ public class DefaultCacheProvider implements CacheProvider {
   public <V> Cache<V> createCorsWhitelistCache() {
     return registerCache(
         this.<V>newBuilder()
-            .forRegion(org.hisp.dhis.common.cache.Region.corsWhitelistCache.name())
+            .forRegion(Region.corsWhitelistCache.name())
             .expireAfterWrite(5, MINUTES)
             .withInitialCapacity((int) getActualSize(SIZE_1))
             .forceInMemory()
