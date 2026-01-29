@@ -285,6 +285,20 @@ class TrackedEntityRequestParamsMapperTest {
   }
 
   @Test
+  void shouldFailIfOrderByEnrolledAtIsSetWithoutProgram() {
+    trackedEntityRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
+    trackedEntityRequestParams.setOrder(OrderCriteria.fromOrderString("enrolledAt:asc"));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                TrackedEntityRequestParamsMapper.map(trackedEntityRequestParams, Fields.ALL, user));
+
+    assertStartsWith("`program` must be defined when `order=enrolledAt`", exception.getMessage());
+  }
+
+  @Test
   void shouldFailIfGivenStatusAndNotOccurredEventDates() {
     trackedEntityRequestParams.setEventStatus(EventStatus.ACTIVE);
 
