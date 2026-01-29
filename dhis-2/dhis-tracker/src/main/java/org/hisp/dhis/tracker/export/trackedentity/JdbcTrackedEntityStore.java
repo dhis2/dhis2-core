@@ -79,6 +79,8 @@ class JdbcTrackedEntityStore {
 
   private static final String ENROLLMENT_DATE_KEY = "enrollment.enrollmentDate";
 
+  private static final String EVENT_ALIAS = "ev";
+
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
    * TrackedEntity}. Maps fields to DB columns.
@@ -331,12 +333,31 @@ class JdbcTrackedEntityStore {
 
     if (!isCountQuery) {
       sql.append(" ");
-      addOrderBy(sql, params);
+      // DISTINCT ON requires ORDER BY to start with the DISTINCT columns
+      if (isOrderingByEnrolledAt(params)) {
+        addDistinctOnOrderBy(sql, params);
+      } else {
+        addOrderBy(sql, params);
+      }
       sql.append(" ");
       addLimitAndOffset(sql, pageParams);
     }
 
     sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
+  }
+
+  /**
+   * Adds ORDER BY for DISTINCT ON queries. DISTINCT ON requires ORDER BY to start with the DISTINCT
+   * columns (trackedentityid), followed by the enrollment date in the requested direction.
+   */
+  private void addDistinctOnOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
+    Order enrolledAtOrder = getEnrolledAtOrder(params);
+    String direction = enrolledAtOrder != null ? enrolledAtOrder.getDirection().name() : "desc";
+
+    sql.append("order by te.trackedentityid, ")
+        .append(ENROLLMENT_ALIAS)
+        .append(".enrollmentdate ")
+        .append(direction);
   }
 
   /**
@@ -385,7 +406,13 @@ class JdbcTrackedEntityStore {
       }
     }
 
-    sql.append("select distinct ");
+    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
+    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
+    if (isOrderingByEnrolledAt(params)) {
+      sql.append("select distinct on (te.trackedentityid) ");
+    } else {
+      sql.append("select distinct ");
+    }
     sql.append(String.join(", ", columns));
   }
 
@@ -478,14 +505,14 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds an INNER JOIN on enrollments when order by contains {@code enrolledAt}. We restrict the
-   * join condition to a specific program if specified in the request.
+   * Adds an INNER JOIN on enrollments when order by contains {@code enrolledAt}. When ordering by
+   * enrolledAt, all enrollment and event filters are applied to the JOIN condition. This ensures
+   * the ordering uses the correct enrollment (one that matches all filters) and replaces the
+   * separate EXISTS subquery.
    */
   private void addJoinOnEnrollment(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    if (params.getOrder().stream()
-        .filter(o -> o.getField() instanceof String)
-        .noneMatch(p -> ENROLLMENT_DATE_KEY.equals(p.getField()))) {
+    if (!isOrderingByEnrolledAt(params)) {
       return;
     }
 
@@ -495,13 +522,152 @@ class JdbcTrackedEntityStore {
         .append(ENROLLMENT_ALIAS)
         .append(".trackedentityid = te.trackedentityid");
 
-    if (!params.hasEnrolledInTrackerProgram()) {
-      return;
-    }
-
+    // program is mandatory when ordering by enrolledAt (validated upstream)
     sql.append(" and ").append(ENROLLMENT_ALIAS).append(".programid = :enrolledInTrackerProgram");
     sqlParameters.addValue(
         "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
+
+    // Add enrollment filters to JOIN condition (replaces EXISTS subquery)
+    if (params.hasEnrollmentStatus()) {
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".status = :enrollmentStatus");
+      sqlParameters.addValue("enrollmentStatus", params.getEnrollmentStatus().name());
+    }
+
+    if (params.hasFollowUp()) {
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".followup = :followUp");
+      sqlParameters.addValue("followUp", params.getFollowUp());
+    }
+
+    if (params.hasProgramEnrollmentStartDate()) {
+      sql.append(" and ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".enrollmentdate >= :enrollmentStartDate");
+      sqlParameters.addValue(
+          "enrollmentStartDate", timestampParameter(params.getProgramEnrollmentStartDate()));
+    }
+
+    if (params.hasProgramEnrollmentEndDate()) {
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".enrollmentdate <= :enrollmentEndDate");
+      sqlParameters.addValue(
+          "enrollmentEndDate", timestampParameter(params.getProgramEnrollmentEndDate()));
+    }
+
+    if (params.hasProgramIncidentStartDate()) {
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".occurreddate >= :occurredStartDate");
+      sqlParameters.addValue(
+          "occurredStartDate", timestampParameter(params.getProgramIncidentStartDate()));
+    }
+
+    if (params.hasProgramIncidentEndDate()) {
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".occurreddate <= :occurredEndDate");
+      sqlParameters.addValue(
+          "occurredEndDate", timestampParameter(params.getProgramIncidentEndDate()));
+    }
+
+    if (!params.isIncludeDeleted()) {
+      sql.append(" and ").append(ENROLLMENT_ALIAS).append(".deleted is false");
+    }
+
+    // Add event filter to JOIN condition via EXISTS
+    if (params.hasFilterForEvents()) {
+      sql.append(" and exists (");
+      addEventExistsForEnrollmentJoin(sql, sqlParameters, params);
+      sql.append(")");
+    }
+  }
+
+  /**
+   * Adds an EXISTS subquery for event filters to be used in the enrollment JOIN condition. This
+   * ensures we only consider enrollments that have matching events when ordering by enrolledAt.
+   */
+  private void addEventExistsForEnrollmentJoin(
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+    sql.append("select 1 from trackerevent ").append(EVENT_ALIAS).append(" ");
+
+    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
+      sql.append("inner join (")
+          .append("select userinfoid as userid from userinfo where uid in (:assignedUserUids)")
+          .append(") au on au.userid = ")
+          .append(EVENT_ALIAS)
+          .append(".assigneduserid ");
+      sqlParameters.addValue(
+          "assignedUserUids",
+          UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
+    }
+
+    sql.append("where ")
+        .append(EVENT_ALIAS)
+        .append(".enrollmentid = ")
+        .append(ENROLLMENT_ALIAS)
+        .append(".enrollmentid");
+
+    if (params.hasEventStatus()) {
+      sql.append(" and ");
+      addEventDateRangeForJoin(sql, sqlParameters, params);
+      sql.append(" and ");
+      addEventStatusForJoin(sql, sqlParameters, params);
+    }
+
+    if (params.hasProgramStage()) {
+      sql.append(" and ").append(EVENT_ALIAS).append(".programstageid = :programStageId");
+      sqlParameters.addValue("programStageId", params.getProgramStage().getId());
+    }
+
+    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
+      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is null");
+    }
+
+    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
+      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is not null");
+    }
+
+    if (!params.isIncludeDeleted()) {
+      sql.append(" and ").append(EVENT_ALIAS).append(".deleted is false");
+    }
+  }
+
+  private void addEventDateRangeForJoin(
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+    String dateColumn =
+        switch (params.getEventStatus()) {
+          case COMPLETED, VISITED, ACTIVE -> EVENT_ALIAS + ".occurreddate";
+          case SCHEDULE, OVERDUE, SKIPPED -> EVENT_ALIAS + ".scheduleddate";
+        };
+    sql.append(dateColumn)
+        .append(" >= :eventStartDate and ")
+        .append(dateColumn)
+        .append(" <= :eventEndDate");
+    sqlParameters.addValue("eventStartDate", timestampParameter(params.getEventStartDate()));
+    sqlParameters.addValue("eventEndDate", timestampParameter(params.getEventEndDate()));
+  }
+
+  private void addEventStatusForJoin(
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+    if (params.isEventStatus(EventStatus.COMPLETED)) {
+      sql.append(EVENT_ALIAS).append(".status = :eventStatus");
+      sqlParameters.addValue("eventStatus", EventStatus.COMPLETED.name());
+    } else if (params.isEventStatus(EventStatus.VISITED)
+        || params.isEventStatus(EventStatus.ACTIVE)) {
+      sql.append(EVENT_ALIAS).append(".status = :eventStatus");
+      sqlParameters.addValue("eventStatus", EventStatus.ACTIVE.name());
+    } else if (params.isEventStatus(EventStatus.SKIPPED)) {
+      sql.append(EVENT_ALIAS).append(".status = :eventStatus");
+      sqlParameters.addValue("eventStatus", EventStatus.SKIPPED.name());
+    } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
+      sql.append(EVENT_ALIAS)
+          .append(".status is not null and ")
+          .append(EVENT_ALIAS)
+          .append(".occurreddate is null and date(now()) <= date(")
+          .append(EVENT_ALIAS)
+          .append(".scheduleddate)");
+    } else if (params.isEventStatus(EventStatus.OVERDUE)) {
+      sql.append(EVENT_ALIAS)
+          .append(".status is not null and ")
+          .append(EVENT_ALIAS)
+          .append(".occurreddate is null and date(now()) > date(")
+          .append(EVENT_ALIAS)
+          .append(".scheduleddate)");
+    }
   }
 
   /**
@@ -594,6 +760,9 @@ class JdbcTrackedEntityStore {
    * Adds an EXISTS condition for enrollment (and event if specified). The EXIST will allow us to
    * filter by enrollments with a low overhead. This condition only applies when a program is
    * specified.
+   *
+   * <p>When ordering by enrolledAt, the enrollment JOIN already includes all filters, so this
+   * EXISTS is skipped to avoid redundant checks.
    */
   private void addEnrollmentAndEventExistsCondition(
       StringBuilder sql,
@@ -601,6 +770,11 @@ class JdbcTrackedEntityStore {
       TrackedEntityQueryParams params,
       SqlHelper whereAnd) {
     if (!params.hasEnrolledInTrackerProgram()) {
+      return;
+    }
+
+    // When ordering by enrolledAt, the enrollment JOIN already includes all filters
+    if (isOrderingByEnrolledAt(params)) {
       return;
     }
 
@@ -813,5 +987,21 @@ class JdbcTrackedEntityStore {
   @Nonnull
   private static SqlParameterValue timestampParameter(Date date) {
     return new SqlParameterValue(Types.TIMESTAMP, date);
+  }
+
+  /** Returns true if ordering by enrolledAt (enrollment.enrollmentDate). */
+  private static boolean isOrderingByEnrolledAt(TrackedEntityQueryParams params) {
+    return params.getOrder().stream()
+        .filter(o -> o.getField() instanceof String)
+        .anyMatch(o -> ENROLLMENT_DATE_KEY.equals(o.getField()));
+  }
+
+  /** Returns the order direction for enrolledAt, or null if not ordering by it. */
+  private static Order getEnrolledAtOrder(TrackedEntityQueryParams params) {
+    return params.getOrder().stream()
+        .filter(o -> o.getField() instanceof String)
+        .filter(o -> ENROLLMENT_DATE_KEY.equals(o.getField()))
+        .findFirst()
+        .orElse(null);
   }
 }
