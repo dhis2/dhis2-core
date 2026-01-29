@@ -35,10 +35,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Set;
 import java.util.function.Function;
+import javax.servlet.FilterChain;
+import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.Configuration;
