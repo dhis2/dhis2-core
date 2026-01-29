@@ -206,12 +206,6 @@ public class DefaultCategoryService implements CategoryService {
     return categoryStore.getCategoriesByCategoryOption(UID.toValueList(categoryOptions));
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Category> getCategoriesByUid(Collection<UID> categoryUids) {
-    return categoryStore.getCategoriesByUid(categoryUids);
-  }
-
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------

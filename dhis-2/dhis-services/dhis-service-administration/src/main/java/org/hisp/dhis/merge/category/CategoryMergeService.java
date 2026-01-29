@@ -42,6 +42,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -66,6 +68,7 @@ public class CategoryMergeService implements MergeService {
   private final CategoryMergeHandler categoryMergeHandler;
   private final MergeValidator validator;
   private final EntityManager entityManager;
+  private final IdentifiableObjectManager identifiableObjectManager;
   private List<MetadataMergeHandler> metadataMergeHandlers;
 
   @Override
@@ -77,15 +80,30 @@ public class CategoryMergeService implements MergeService {
       return request;
     }
 
-    // perform Category-specific validation
-    List<Category> sourceCategories = categoryService.getCategoriesByUid(request.getSources());
+    // validate category options
+    List<Category> sourceCategories =
+        identifiableObjectManager.getByUid(Category.class, UID.toValueSet(request.getSources()));
     Category targetCategory = categoryService.getCategory(request.getTarget().getValue());
-    validateCategoryOptions(sourceCategories, targetCategory, mergeReport);
+    validateCategoryOptionsMatch(sourceCategories, targetCategory, mergeReport);
     if (mergeReport.hasErrorMessages()) {
       return request;
     }
 
-    validateCategoryCombos(sourceCategories, targetCategory, mergeReport);
+    // validate category combos
+    List<String> sourceUids =
+        sourceCategories.stream().map(BaseIdentifiableObject::getUid).toList();
+    Set<String> sourceCatCombos =
+        categoryService.getCategoryCombosByCategory(sourceUids).stream()
+            .map(BaseMetadataObject::getUid)
+            .collect(Collectors.toSet());
+
+    Set<String> targetCatCombos =
+        categoryService
+            .getCategoryCombosByCategory(List.of(request.getTarget().getValue()))
+            .stream()
+            .map(BaseMetadataObject::getUid)
+            .collect(Collectors.toSet());
+    validateCategoryCombosAreDifferent(sourceCatCombos, targetCatCombos, mergeReport);
     return request;
   }
 
@@ -96,48 +114,41 @@ public class CategoryMergeService implements MergeService {
    * @param target target Category
    * @param mergeReport merge report to update with error if validation fails
    */
-  private void validateCategoryOptions(
+  protected static void validateCategoryOptionsMatch(
       List<Category> sources, Category target, MergeReport mergeReport) {
-    Set<String> sourceCoUids =
-        sources.stream()
-            .map(Category::getCategoryOptions)
-            .flatMap(co -> co.stream().map(BaseMetadataObject::getUid))
-            .collect(Collectors.toSet());
 
     Set<String> targetCoUids =
         target.getCategoryOptions().stream()
             .map(BaseMetadataObject::getUid)
             .collect(Collectors.toSet());
 
-    // if source and target categories have different category options, add an error to report
-    if (!sourceCoUids.equals(targetCoUids)) {
-      mergeReport.addErrorMessage(
-          new ErrorMessage(
-              ErrorCode.E1535, String.join(", ", sourceCoUids), String.join(", ", targetCoUids)));
-    }
+    sources.forEach(
+        srcCategory -> {
+          Set<String> sourceCoUids =
+              srcCategory.getCategoryOptions().stream()
+                  .map(BaseMetadataObject::getUid)
+                  .collect(Collectors.toSet());
+
+          // if source and target categories have different category options, add an error to report
+          if (!sourceCoUids.equals(targetCoUids)) {
+            mergeReport.addErrorMessage(
+                new ErrorMessage(
+                    ErrorCode.E1535,
+                    String.join(", ", sourceCoUids),
+                    String.join(", ", targetCoUids)));
+          }
+        });
   }
 
   /**
-   * Validates that source and target Categories do not share any CategoryCombos (UID check).
+   * Validates that source and target CategoryCombos are not shared (UID check).
    *
-   * @param sources list of source Categories
-   * @param target target Category
+   * @param sourceCatCombos list of source CategoryCombo UIDs
+   * @param targetCatCombos target CategoryCombo UIDs
    * @param mergeReport merge report to update with errors if validation fails
    */
-  private void validateCategoryCombos(
-      List<Category> sources, Category target, MergeReport mergeReport) {
-    List<String> sourceUids = sources.stream().map(BaseIdentifiableObject::getUid).toList();
-    String targetUid = target.getUid();
-
-    Set<String> sourceCatCombos =
-        categoryService.getCategoryCombosByCategory(sourceUids).stream()
-            .map(BaseMetadataObject::getUid)
-            .collect(Collectors.toSet());
-    Set<String> targetCatCombos =
-        categoryService.getCategoryCombosByCategory(List.of(targetUid)).stream()
-            .map(BaseMetadataObject::getUid)
-            .collect(Collectors.toSet());
-
+  protected static void validateCategoryCombosAreDifferent(
+      Set<String> sourceCatCombos, Set<String> targetCatCombos, MergeReport mergeReport) {
     Set<String> sharedCombos = new HashSet<>(sourceCatCombos);
     sharedCombos.retainAll(targetCatCombos);
 
@@ -175,8 +186,8 @@ public class CategoryMergeService implements MergeService {
   private void handleDeleteSources(List<Category> sources, MergeReport mergeReport) {
     log.info("Deleting source Categories");
     for (Category source : sources) {
-      mergeReport.addDeletedSource(source.getUid());
       categoryService.deleteCategory(source);
+      mergeReport.addDeletedSource(source.getUid());
     }
   }
 

@@ -709,34 +709,20 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public List<User> getUsersByCategories(Collection<String> categoryUids) {
-    if (categoryUids == null || categoryUids.isEmpty()) return List.of();
-
-    return getQuery(
-            """
-            select distinct u from User u \
-            join u.catDimensionConstraints c \
-            where c.uid in :categoryUids
-            """,
-            User.class)
-        .setParameter("categoryUids", categoryUids)
-        .getResultList();
-  }
-
-  @Override
-  public int updateCatDimensionConstraints(Set<Long> sourceIds, long targetId) {
-    if (sourceIds == null || sourceIds.isEmpty()) return 0;
+  public int updateCatDimensionConstraintsCategoryRefs(
+      Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
     String sql =
         """
         update users_catdimensionconstraints ucdc
-        set dataelementcategoryid = :targetId
-        where ucdc.dataelementcategoryid in :sourceIds
+        set dataelementcategoryid = :targetCategoryId
+        where ucdc.dataelementcategoryid in :sourceCategoryIds
         """;
     return getSession()
         .createNativeQuery(sql)
-        .setParameter("targetId", targetId)
-        .setParameter("sourceIds", sourceIds)
-        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(10000))
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
   }
 }

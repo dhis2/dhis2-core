@@ -39,9 +39,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionStore;
+import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.stereotype.Component;
@@ -56,27 +55,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CategoryMergeHandler {
 
-  private final CategoryOptionStore categoryOptionStore;
   private final CategoryComboStore categoryComboStore;
+  private final CategoryStore categoryStore;
   private final UserStore userStore;
   private final CategoryDimensionStore categoryDimensionStore;
 
   /**
-   * Remove sources from {@link CategoryOption} and add target to {@link CategoryOption}. This
-   * updates the owner side (Category.categoryOptions).
+   * Removes all {@link CategoryOption}s from all source {@link Category}s.
    *
-   * @param sources to be removed
-   * @param target to add
+   * @param sources to be updated
    */
   public void handleCategoryOptions(List<Category> sources, Category target) {
-    List<CategoryOption> sourceCategoryOptions =
-        categoryOptionStore.getCategoryOptions(UID.toUidValueSet(sources));
-    sourceCategoryOptions.forEach(
-        co -> {
-          target.addCategoryOption(co);
-          sources.forEach(src -> src.removeCategoryOption(co));
-        });
-    log.info("{} category options with source category refs updated", sourceCategoryOptions.size());
+    int removed =
+        categoryStore.removeCatOptionCategoryRefs(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()));
+
+    log.info("{} category options with source category refs removed", removed);
   }
 
   /**
@@ -86,14 +80,17 @@ public class CategoryMergeHandler {
    * @param target to add
    */
   public void handleCategoryCombos(List<Category> sources, Category target) {
-    List<CategoryCombo> sourceCategoryCombos =
-        categoryComboStore.getCategoryCombosByCategory(UID.toUidValueSet(sources));
-    sourceCategoryCombos.forEach(
-        cc -> {
-          cc.addCategory(target);
-          sources.forEach(cc::removeCategory);
-        });
-    log.info("{} category combos with source category refs updated", sourceCategoryCombos.size());
+    //    List<CategoryCombo> sourceCategoryCombos =
+    //        categoryComboStore.getCategoryCombosByCategory(UID.toUidValueSet(sources));
+    int updated =
+        categoryComboStore.updateCatComboCategoryRefs(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    //    sourceCategoryCombos.forEach(
+    //        cc -> {
+    //          sources.forEach(cc::removeCategory);
+    //        });
+    log.info("{} category combos with source category refs updated", updated);
   }
 
   /**
@@ -105,7 +102,7 @@ public class CategoryMergeHandler {
    */
   public void handleUsers(List<Category> sources, Category target) {
     int updated =
-        userStore.updateCatDimensionConstraints(
+        userStore.updateCatDimensionConstraintsCategoryRefs(
             sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
             target.getId());
     log.info("{} user category dimension constraints with source category refs updated", updated);
@@ -119,7 +116,7 @@ public class CategoryMergeHandler {
    */
   public void handleCategoryDimensions(List<Category> sources, Category target) {
     int updated =
-        categoryDimensionStore.updateCatDimensions(
+        categoryDimensionStore.updateCatDimensionCategoryRefs(
             sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
             target.getId());
     log.info("{} category dimensions with source category refs updated", updated);

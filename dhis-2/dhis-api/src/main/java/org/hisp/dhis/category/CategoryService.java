@@ -151,8 +151,6 @@ public interface CategoryService {
    */
   List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions);
 
-  List<Category> getCategoriesByUid(Collection<UID> categoryUids);
-
   // -------------------------------------------------------------------------
   // CategoryOption
   // -------------------------------------------------------------------------

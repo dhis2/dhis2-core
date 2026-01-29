@@ -27,26 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.category;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.GenericStore;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * @author david mackessy
- */
-public interface CategoryDimensionStore extends GenericStore<CategoryDimension> {
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-  /**
-   * Gets all {@link CategoryDimension}s that reference any of the supplied {@link CategoryOption}s
-   *
-   * @param categoryOptions to search for
-   * @return matching {@link CategoryDimension}s
-   */
-  List<CategoryDimension> getByCategoryOption(Collection<String> categoryOptions);
+@Transactional
+class CategoryComboDeletionHandlerTest extends PostgresIntegrationTestBase {
+  @Autowired private CategoryService categoryService;
 
-  int updateCatDimensionCategoryRefs(Collection<Long> categoryDimensionIds, long id);
+  @Test
+  @DisplayName("Deleting a Category with a ref to a CategoryCombo is prevented")
+  void deleteCategoryWithComboRefTest() {
+    // Given a category exists with a reference to a category combo
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("1");
+    Category category = categoryMetadata.c1();
+
+    // When trying to delete a category that is referenced by a category combo
+    DeleteNotAllowedException deleteNotAllowedException =
+        assertThrows(
+            DeleteNotAllowedException.class, () -> categoryService.deleteCategory(category));
+
+    // Then the deletion is prevented
+    assertEquals(
+        "Object could not be deleted because it is associated with another object: CategoryCombo",
+        deleteNotAllowedException.getMessage());
+  }
 }

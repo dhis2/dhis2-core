@@ -29,10 +29,15 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import org.hibernate.LockOptions;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -80,5 +85,24 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
             CategoryCombo.class)
         .setParameter("categoryUids", categoryUids)
         .getResultList();
+  }
+
+  @Override
+  public int updateCatComboCategoryRefs(Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+    String sql =
+        """
+        update categorycombos_categories cc_c
+        set categoryid = :targetCategoryId
+        where cc_c.categoryid in :sourceCategoryIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .addSynchronizedEntityClass(CategoryCombo.class)
+        .addSynchronizedEntityClass(Category.class)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

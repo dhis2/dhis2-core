@@ -31,7 +31,6 @@ package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -95,20 +94,5 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
                 getDataSharingPredicates(builder, userDetails, AclService.LIKE_WRITE_DATA))
             .addPredicate(
                 root -> builder.equal(root.join("categories").get("id"), category.getId())));
-  }
-
-  @Override
-  public List<CategoryOption> getCategoryOptions(Collection<String> categoryUids) {
-    if (categoryUids == null || categoryUids.isEmpty()) return List.of();
-
-    return getQuery(
-            """
-            select distinct co from CategoryOption co
-            join co.categories c
-            where c.uid in :categoryUids
-            """,
-            CategoryOption.class)
-        .setParameter("categoryUids", categoryUids)
-        .getResultList();
   }
 }

@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
@@ -40,6 +41,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -105,5 +107,62 @@ class CategoryDimensionStoreTest extends PostgresIntegrationTestBase {
     assertTrue(
         cos.containsAll(List.of(co1.getUid(), co2.getUid(), co3.getUid())),
         "Retrieved CategoryOption UIDs should have expected UIDs");
+  }
+
+  @Test
+  @DisplayName("Updating CategoryDimensions by Categories returns the expected count")
+  void updateCatDimensionCategoryRefsByCategoriesTest() {
+    // given 3 CategoryDimensions exist, each with a different Category
+    TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("1");
+    TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("2");
+    setupCategoryMetadata("3");
+
+    CategoryDimension cd1 = createCategoryDimension(categoryMetadata1.c1());
+    cd1.getItems().add(categoryMetadata1.co1());
+
+    CategoryDimension cd2 = createCategoryDimension(categoryMetadata1.c2());
+    cd2.getItems().add(categoryMetadata1.co3());
+
+    CategoryDimension cd3 = createCategoryDimension(categoryMetadata2.c1());
+    cd3.getItems().add(categoryMetadata2.co1());
+
+    CategoryDimension cd4 = createCategoryDimension(categoryMetadata2.c2());
+    cd4.getItems().add(categoryMetadata2.co1());
+
+    categoryDimensionStore.save(cd1);
+    categoryDimensionStore.save(cd2);
+    categoryDimensionStore.save(cd3);
+    categoryDimensionStore.save(cd4);
+
+    // when updating 2 CategoryDimensions
+    int updatedCatDimensions =
+        categoryDimensionStore.updateCatDimensionCategoryRefs(
+            Set.of(categoryMetadata1.c1().getId(), categoryMetadata1.c2().getId()),
+            categoryMetadata2.c1().getId());
+
+    // then the expected number of CategoryDimensions should be updated
+    assertEquals(2, updatedCatDimensions, "2 CategoryDimensions have been updated");
+
+    // and these CategoryDimensions should not be affected
+    assertEquals(
+        categoryMetadata2.c1().getUid(),
+        cd3.getDimension().getUid(),
+        "This Dimension Category UID should not be affected");
+
+    assertEquals(
+        categoryMetadata2.c2().getUid(),
+        cd4.getDimension().getUid(),
+        "This Dimension Category UID should not be affected");
+
+    // and these CategoryDimensions should have new refs
+    assertEquals(
+        categoryMetadata1.c1().getUid(),
+        cd1.getDimension().getUid(),
+        "Dimension Category UID should be updated");
+
+    assertEquals(
+        categoryMetadata1.c2().getUid(),
+        cd2.getDimension().getUid(),
+        "Dimension Category UID should be updated");
   }
 }

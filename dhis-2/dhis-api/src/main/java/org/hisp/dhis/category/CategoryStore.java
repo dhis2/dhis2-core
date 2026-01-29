@@ -31,9 +31,9 @@ package org.hisp.dhis.category;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
@@ -47,5 +47,5 @@ public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
 
   List<Category> getCategoriesByCategoryOption(Collection<String> categoryOptions);
 
-  List<Category> getCategoriesByUid(Collection<UID> categoryUids);
+  int removeCatOptionCategoryRefs(Set<Long> sourceCategoryIds);
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.category;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -47,4 +48,6 @@ public interface CategoryComboStore extends IdentifiableObjectStore<CategoryComb
    * @return list of {@link CategoryCombo}s
    */
   List<CategoryCombo> getCategoryCombosByCategory(Collection<String> categoryUids);
+
+  int updateCatComboCategoryRefs(Set<Long> uidValueSet, long targetComboId);
 }
