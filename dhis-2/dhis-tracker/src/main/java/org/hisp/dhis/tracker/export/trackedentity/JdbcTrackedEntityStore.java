@@ -599,10 +599,10 @@ class JdbcTrackedEntityStore {
     }
 
     if (params.isSynchronizationQuery()) {
-      sql.append(whereAnd.whereAnd()).append(" TE.lastupdated >= TE.lastsynchronized ");
+      sql.append(whereAnd.whereAnd()).append(" te.lastupdated >= te.lastsynchronized ");
 
       if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() != 0L) {
-        sql.append(" AND TE.lastupdated >= :skipChangedBefore ");
+        sql.append(" AND te.lastupdated >= :skipChangedBefore ");
         sqlParameters.addValue(
             "skipChangedBefore", timestampParameter(params.getSkipChangedBefore()));
       }
