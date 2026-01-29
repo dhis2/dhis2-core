@@ -129,7 +129,8 @@ public class DefaultCacheProvider implements CacheProvider {
     completedJobsInfo,
     jobCancelRequested,
     dataIntegritySummaryCache,
-    dataIntegrityDetailsCache
+    dataIntegrityDetailsCache,
+    corsWhitelistCache
   }
 
   private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -626,5 +627,20 @@ public class DefaultCacheProvider implements CacheProvider {
         this.<V>newBuilder()
             .forRegion(Region.dataIntegrityDetailsCache.name())
             .expireAfterWrite(1, HOURS));
+  }
+
+  /**
+   * Cache for CORS whitelist to avoid database lookups on every HTTP request. Expires after 5
+   * minutes to pick up configuration changes.
+   */
+  @Override
+  public <V> Cache<V> createCorsWhitelistCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.corsWhitelistCache.name())
+            .expireAfterWrite(5, MINUTES)
+            .withInitialCapacity((int) getActualSize(SIZE_1))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1))));
   }
 }
