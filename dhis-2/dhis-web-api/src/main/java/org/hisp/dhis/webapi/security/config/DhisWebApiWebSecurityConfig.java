@@ -566,7 +566,7 @@ public class DhisWebApiWebSecurityConfig {
         HttpSecurity http,
         DhisConfigurationProvider dhisConfig,
         ConfigurationService configurationService,
-   CacheProvider cacheProvider) {
+        CacheProvider cacheProvider) {
       http.addFilterBefore(
           new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class);
     }
