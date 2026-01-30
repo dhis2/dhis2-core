@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -34,11 +34,14 @@ import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.intellij.lang.annotations.Language;
@@ -199,6 +202,50 @@ class MetadataImportExportControllerIntegrationTest extends PostgresControllerIn
     // Then it shows as success & created
     assertEquals("OK", importSummary.getStatus());
     assertEquals(1, importSummary.getStats().getCreated());
+  }
+
+  @Test
+  void deleteStatsAreCorrectWhenDeleteNotAllowedTest() {
+    // given import of 2 categories and 2 category combos
+    POST(
+            "/metadata?importReportMode=FULL&importStrategy=CREATE_AND_UPDATE&async=false",
+            Path.of("metadata/categories_with_category_combos.json"))
+        .content(HttpStatus.OK);
+
+    dbmsManager.clearSession();
+
+    // when trying to delete 2 categories
+    JsonImportSummary importSummary =
+        POST(
+                "/metadata?importReportMode=FULL&importStrategy=DELETE&async=false",
+                Path.of("metadata/delete_categories.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // then report shows items as ignored as delete is not allowed
+    assertEquals("WARNING", importSummary.getStatus());
+    JsonTypeReport typeReport = importSummary.getTypeReports().get(0).as(JsonTypeReport.class);
+
+    assertTrue(
+        typeReport.getObjectReports().stream()
+            .flatMap(or -> or.getErrorReports().stream())
+            .allMatch(
+                er ->
+                    er.getMessage()
+                        .contains(
+                            "Object could not be deleted because it is associated with another object")));
+    assertEquals(2, importSummary.getStats().getTotal());
+    assertEquals(2, importSummary.getStats().getIgnored());
+    assertEquals(0, importSummary.getStats().getDeleted());
+    assertEquals(0, importSummary.getStats().getCreated());
+    assertEquals(0, importSummary.getStats().getUpdated());
+
+    assertEquals(2, typeReport.getStats().getTotal());
+    assertEquals(2, typeReport.getStats().getIgnored());
+    assertEquals(0, typeReport.getStats().getDeleted());
+    assertEquals(0, typeReport.getStats().getCreated());
+    assertEquals(0, typeReport.getStats().getUpdated());
   }
 
   private String updateUserOrgUnit(String orgUnit) {
