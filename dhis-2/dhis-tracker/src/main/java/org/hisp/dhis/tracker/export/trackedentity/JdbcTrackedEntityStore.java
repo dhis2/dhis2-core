@@ -299,10 +299,8 @@ class JdbcTrackedEntityStore {
 
     // all orderable fields are already in the select. Only when ordering by enrollment date do we
     // need to add a column, so we can order by it
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof String field && ENROLLMENT_DATE_KEY.equals(field)) {
-        columns.add(ENROLLMENT_DATE_ALIAS);
-      }
+    if (isOrderingByEnrolledAt(params)) {
+      columns.add(ENROLLMENT_DATE_ALIAS);
     }
 
     sql.append("select ")
@@ -360,8 +358,7 @@ class JdbcTrackedEntityStore {
    * columns (trackedentityid), followed by the enrollment date in the requested direction.
    */
   private void addDistinctOnOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    Order enrolledAtOrder = getEnrolledAtOrder(params);
-    String direction = enrolledAtOrder != null ? enrolledAtOrder.getDirection().name() : "desc";
+    String direction = getEnrolledAtOrder(params).getDirection().name();
 
     sql.append("order by te.trackedentityid, ")
         .append(ENROLLMENT_ALIAS)
@@ -940,12 +937,10 @@ class JdbcTrackedEntityStore {
 
   /** Returns true if ordering by enrolledAt (enrollment.enrollmentDate). */
   private static boolean isOrderingByEnrolledAt(TrackedEntityQueryParams params) {
-    return params.getOrder().stream()
-        .filter(o -> o.getField() instanceof String)
-        .anyMatch(o -> ENROLLMENT_DATE_KEY.equals(o.getField()));
+    return getEnrolledAtOrder(params) != null;
   }
 
-  /** Returns the order direction for enrolledAt, or null if not ordering by it. */
+  /** Returns the Order for enrolledAt, or null if not ordering by it. */
   private static Order getEnrolledAtOrder(TrackedEntityQueryParams params) {
     return params.getOrder().stream()
         .filter(o -> o.getField() instanceof String)
