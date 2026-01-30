@@ -92,9 +92,7 @@ public class CategoryMergeService implements MergeService {
     // validate category combos
     Set<UID> sourceCatCombos =
         getCatComboUids(
-            sourceCategories.stream()
-                .map(c -> UID.of(c.getUid()))
-                .collect(Collectors.toSet()));
+            sourceCategories.stream().map(c -> UID.of(c.getUid())).collect(Collectors.toSet()));
     Set<UID> targetCatCombos = getCatComboUids(Set.of(UID.of(request.getTarget().getValue())));
     validateCategoryCombosAreDifferent(sourceCatCombos, targetCatCombos, mergeReport);
     return request;
