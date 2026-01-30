@@ -79,6 +79,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
@@ -128,6 +129,15 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected AttributeService attributeService;
 
   @Autowired protected CsvMapper csvMapper;
+
+  @Autowired protected SchemaService schemaService;
+
+  private Schema schema;
+
+  protected final Schema getSchema() {
+    if (schema == null) schema = schemaService.getDynamicSchema(getEntityClass());
+    return schema;
+  }
 
   // --------------------------------------------------------------------------
   // Hooks
@@ -300,24 +310,21 @@ public abstract class AbstractFullReadOnlyController<
       String arraySeparator,
       boolean skipHeader)
       throws IOException {
-    CsvSchema schema;
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
 
     setupSchemaAndProperties(schemaBuilder, fields, obj2valueByProperty);
 
-    schema =
+    CsvSchema csv =
         schemaBuilder
             .build()
             .withColumnSeparator(separator)
             .withArrayElementSeparator(arraySeparator);
 
-    if (!skipHeader) {
-      schema = schema.withHeader();
-    }
+    if (!skipHeader) csv = csv.withHeader();
 
     try (StringWriter strW = new StringWriter();
-        SequenceWriter seqW = csvMapper.writer(schema).writeValues(strW)) {
+        SequenceWriter seqW = csvMapper.writer(csv).writeValues(strW)) {
 
       Object[] row = new Object[obj2valueByProperty.size()];
 
@@ -458,7 +465,6 @@ public abstract class AbstractFullReadOnlyController<
     return ResponseEntity.ok(objectNode);
   }
 
-  @SuppressWarnings("unchecked")
   private ObjectNode getObjectInternal(String uid, GetObjectParams params, UserDetails currentUser)
       throws NotFoundException {
     T entity = getEntity(uid);

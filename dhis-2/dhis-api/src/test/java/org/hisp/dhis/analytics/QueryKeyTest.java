@@ -32,7 +32,7 @@ package org.hisp.dhis.analytics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import java.util.Locale;
+import org.hisp.dhis.common.Locale;
 import org.junit.jupiter.api.Test;
 
 /**

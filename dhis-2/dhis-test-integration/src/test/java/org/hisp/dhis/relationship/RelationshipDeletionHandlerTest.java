@@ -38,8 +38,9 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -69,7 +70,7 @@ class RelationshipDeletionHandlerTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityFrom);
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntityTo);
-    org.hisp.dhis.relationship.Relationship relationship =
+    Relationship relationship =
         createTeToTeRelationship(trackedEntityFrom, trackedEntityTo, relationshipType);
     manager.save(relationship);
   }

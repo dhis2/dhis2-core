@@ -177,8 +177,8 @@ public class TrackerTest extends Simulation {
     this.trackerProgram = System.getProperty("trackerProgram", "ur1Edk5Oe2n");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
-    this.replicaUser = System.getProperty("replicaUser", "tracker");
-    this.replicaPassword = System.getProperty("replicaPassword", "Tracker123!");
+    this.replicaUser = System.getProperty("replicaUser", "tracker2");
+    this.replicaPassword = System.getProperty("replicaPassword", "Tracker123@");
 
     record ProfileDefaults(
         int usersPerSec,
@@ -190,7 +190,7 @@ public class TrackerTest extends Simulation {
     ProfileDefaults defaults =
         switch (this.profile) {
           case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(5, 20, 1, 30, 180, 1);
+          case LOAD -> new ProfileDefaults(6, 100, 1, 30, 180, 1);
           case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4);
         };
     this.usersPerSec = Integer.getInteger("usersPerSec", defaults.usersPerSec());
@@ -358,32 +358,32 @@ public class TrackerTest extends Simulation {
     Request goToFirstPage =
         new Request(
             getEventsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 63, Profile.LOAD, 72)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 62, Profile.LOAD, 76)),
             "Go to first page of program " + this.eventProgram,
             "Get a list of single events");
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 99, Profile.LOAD, 105)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 101, Profile.LOAD, 107)),
             "Go to second page of program " + this.eventProgram,
             "Get a list of single events");
     Request searchSingleEvents =
         new Request(
-            getEventsUrl + "&occurredAfter=2024-01-01&occurredBefore=2024-12-31",
-            new EnumMap<>(Map.of(Profile.SMOKE, 57, Profile.LOAD, 64)),
+            getEventsUrl + "&occurredAfter=2025-01-01&occurredBefore=2025-12-31",
+            new EnumMap<>(Map.of(Profile.SMOKE, 143, Profile.LOAD, 63)),
             "Search single events in date interval in program " + this.eventProgram,
             "Get a list of single events");
     Request getFirstEvent =
         new Request(
             singleEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 42, Profile.LOAD, 57)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 26, Profile.LOAD, 53)),
             "Get first event",
             "Get a list of single events",
             "Get one single event");
     Request getRelationshipsForFirstEvent =
         new Request(
             relationshipUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 8, Profile.LOAD, 8)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first event",
             "Get a list of single events",
             "Get one single event");
@@ -397,19 +397,24 @@ public class TrackerTest extends Simulation {
             .on(
                 group("Get a list of single events")
                     .on(
-                        exec(goToFirstPage.action())
-                            .exec(goToSecondPage.action())
+                        exec(goToFirstPage.action().check(jsonPath("$.events[*]").count().is(50)))
+                            .exec(
+                                goToSecondPage
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().is(50)))
                             .exec(
                                 searchSingleEvents
                                     .action()
-                                    .check(jsonPath("$.events").exists())
-                                    .check(jsonPath("$.events[0]").exists())
+                                    .check(jsonPath("$.events[*]").count().is(50))
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
                             .exitHereIfFailed()
                             .group("Get one single event")
                             .on(
-                                exec(getFirstEvent.action())
-                                    .exec(getRelationshipsForFirstEvent.action()))));
+                                exec(getFirstEvent.action().check(jsonPath("$.event").exists()))
+                                    .exec(
+                                        getRelationshipsForFirstEvent
+                                            .action()
+                                            .check(jsonPath("$.relationships").exists())))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -453,7 +458,7 @@ public class TrackerTest extends Simulation {
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
 
     String searchTEByName =
-        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ines"
+        "/api/tracker/trackedEntities?filter=w75KJ2mc4zz:like:Ger"
             + "&fields=attributes,enrollments,trackedEntity,orgUnit&program="
             + this.trackerProgram
             + "&page=1&pageSize=5&orgUnitMode=ACCESSIBLE";
@@ -488,70 +493,70 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 204, Profile.LOAD, 328)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Not found TE by name with like operator",
             "Get a list of TEs");
     Request notFoundTeByNationalIdWithEqualOperator =
         new Request(
             notFoundByNationalId,
-            new EnumMap<>(Map.of(Profile.SMOKE, 6, Profile.LOAD, 16)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Not found TE by national id with eq operator",
             "Get a list of TEs");
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 197, Profile.LOAD, 328)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 230, Profile.LOAD, 96)),
             "Search TE by name with like operator",
             "Get a list of TEs");
     Request searchTeByNationalIdWithEqualOperator =
         new Request(
             searchForTEByNationalId,
-            new EnumMap<>(Map.of(Profile.SMOKE, 11, Profile.LOAD, 22)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Search TE by national id with eq operator",
             "Get a list of TEs");
     Request searchEventsByProgramStage =
         new Request(
             searchEventByProgramStage,
-            new EnumMap<>(Map.of(Profile.SMOKE, 11, Profile.LOAD, 33)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 29)),
             "Search events by program stage",
             "Get a list of TEs");
     Request getTrackedEntitiesForEvents =
         new Request(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 22, Profile.LOAD, 56)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get tracked entities from events",
             "Get a list of TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 147, Profile.LOAD, 317)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 53)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 65)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 46, Profile.LOAD, 60)),
             "Get first tracked entity",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getFirstEnrollment =
         new Request(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 15, Profile.LOAD, 28)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
             "Get first enrollment",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getRelationshipsForTrackedEntity =
         new Request(
             relationshipForTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 8, Profile.LOAD, 8)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first tracked entity",
             "Get a list of TEs",
             "Go to single enrollment");
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 32, Profile.LOAD, 114)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 33, Profile.LOAD, 93)),
             "Get first event from enrollment",
             "Get a list of TEs",
             "Go to single enrollment",
@@ -559,7 +564,7 @@ public class TrackerTest extends Simulation {
     Request getRelationshipsForEvent =
         new Request(
             relationshipForEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 6, Profile.LOAD, 8)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
             "Get relationships for first event",
             "Get a list of TEs",
             "Go to single enrollment",
@@ -574,15 +579,25 @@ public class TrackerTest extends Simulation {
             .on(
                 group("Get a list of TEs")
                     .on(
-                        exec(notFoundTeByNameWithLikeOperator.action())
-                            .exec(notFoundTeByNationalIdWithEqualOperator.action())
-                            .exec(searchTeByNameWithLikeOperator.action())
-                            .exec(searchTeByNationalIdWithEqualOperator.action())
+                        exec(notFoundTeByNameWithLikeOperator
+                                .action()
+                                .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                            .exec(
+                                notFoundTeByNationalIdWithEqualOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                            .exec(
+                                searchTeByNameWithLikeOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
+                            .exec(
+                                searchTeByNationalIdWithEqualOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
                             .exec(
                                 searchEventsByProgramStage
                                     .action()
-                                    .check(jsonPath("$.events").exists())
-                                    .check(jsonPath("$.events[0]").exists())
+                                    .check(jsonPath("$.events[*]").count().gte(1))
                                     .check(
                                         jsonPath("$.events[*].trackedEntity")
                                             .findAll()
@@ -592,12 +607,14 @@ public class TrackerTest extends Simulation {
                                                         ",", list.stream().distinct().toList()))
                                             .saveAs("trackedEntityUids")))
                             .exitHereIfFailed()
-                            .exec(getTrackedEntitiesForEvents.action())
+                            .exec(
+                                getTrackedEntitiesForEvents
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .exec(
                                 getFirstPageOfTEs
                                     .action()
-                                    .check(jsonPath("$.trackedEntities").exists())
-                                    .check(jsonPath("$.trackedEntities[0]").exists())
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(15))
                                     .check(
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
@@ -606,23 +623,34 @@ public class TrackerTest extends Simulation {
                             .on(
                                 exec(getFirstTrackedEntity
                                         .action()
-                                        .check(jsonPath("$.enrollments").exists())
-                                        .check(jsonPath("$.enrollments[0]").exists())
+                                        .check(jsonPath("$.enrollments[*]").count().gte(1))
                                         .check(
                                             jsonPath("$.enrollments[0].enrollment")
                                                 .saveAs("enrollmentUid"))
-                                        .check(jsonPath("$.enrollments[0].events").exists())
-                                        .check(jsonPath("$.enrollments[0].events[0]").exists())
+                                        .check(
+                                            jsonPath("$.enrollments[0].events[*]").count().gte(1))
                                         .check(
                                             jsonPath("$.enrollments[0].events[0].event")
                                                 .saveAs("eventUid")))
                                     .exitHereIfFailed()
-                                    .exec(getFirstEnrollment.action())
-                                    .exec(getRelationshipsForTrackedEntity.action())
+                                    .exec(
+                                        getFirstEnrollment
+                                            .action()
+                                            .check(jsonPath("$.enrollment").exists()))
+                                    .exec(
+                                        getRelationshipsForTrackedEntity
+                                            .action()
+                                            .check(jsonPath("$.relationships").exists()))
                                     .group("Get one event")
                                     .on(
-                                        exec(getFirstEventFromEnrollment.action())
-                                            .exec(getRelationshipsForEvent.action())))));
+                                        exec(getFirstEventFromEnrollment
+                                                .action()
+                                                .check(jsonPath("$.event").exists()))
+                                            .exec(
+                                                getRelationshipsForEvent
+                                                    .action()
+                                                    .check(
+                                                        jsonPath("$.relationships").exists()))))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,

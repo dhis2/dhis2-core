@@ -53,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -62,7 +61,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -81,9 +79,9 @@ import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.GroupableItem;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
-import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -136,11 +134,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
-    DataQueryParams dataQueryParams =
-        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
-
     List<OrganisationUnit> userOrgUnits =
-        dataQueryService.getUserOrgUnits(dataQueryParams, request.getUserOrgUnit());
+        dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
 
     Program pr = programService.getProgram(request.getProgram());
 

@@ -47,9 +47,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
-import org.hisp.dhis.program.SingleEventStore;
-import org.hisp.dhis.program.TrackerEvent;
-import org.hisp.dhis.program.TrackerEventStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -60,6 +57,9 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
+import org.hisp.dhis.tracker.model.SingleEventStore;
+import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.model.TrackerEventStore;
 import org.springframework.stereotype.Component;
 
 /**

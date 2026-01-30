@@ -100,6 +100,9 @@ CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
 
+# Track last non-warmup run directory for output summary
+LAST_RUN_DIR=""
+
 # Validate DB_TYPE (only allow sierra-leone or hmis)
 case "$DB_TYPE" in
   sierra-leone|hmis)
@@ -153,10 +156,6 @@ cleanup() {
   set +e
 
   # Post-processing that has to be done after all runs complete
-  echo ""
-  echo "========================================"
-  echo "PHASE: Post-processing"
-  echo "========================================"
   post_process_gatling_logs || echo "Warning: Failed to post-process Gatling logs"
 
   echo ""
@@ -167,10 +166,12 @@ cleanup() {
   fi
   docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
 
+  # Show output summary for the main (non-warmup) run
+  if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
+    print_output_summary "$LAST_RUN_DIR"
+  fi
+
   echo ""
-  echo "========================================"
-  echo "PHASE: Complete"
-  echo "========================================"
   if [ $exit_code -eq 0 ]; then
     echo -e "\033[0;32m✓\033[0m Test for $DHIS2_IMAGE ran successfully"
   else
@@ -186,6 +187,15 @@ trap cleanup EXIT
 # FUNCTIONS
 ################################################################################
 
+get_compose_args() {
+  # Build compose command arguments based on configuration
+  local args=("-f" "docker-compose.yml")
+  if [ -n "$PROF_ARGS" ]; then
+    args+=("-f" "docker-compose.profile.yml")
+  fi
+  echo "${args[@]}"
+}
+
 pull_mutable_image() {
   # Pull images with mutable tags to ensure we get the latest version. See
   # https://github.com/dhis2/dhis2-core/blob/master/docker/DOCKERHUB.md for tag types. Mutable tags
@@ -195,7 +205,9 @@ pull_mutable_image() {
   # This is especially important on our self-hosted runner as devs will expect their latest change
   # to be tested.
 
-  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]]; then
+  # Pull mutable tags from Docker Hub (see docker/DOCKERHUB.md for tag types).
+  # Skip images with 'local' in tag - these are locally built images for development.
+  if [[ "$DHIS2_IMAGE" =~ ^dhis2/core-(dev|pr): ]] && [[ ! "$DHIS2_IMAGE" =~ local ]]; then
     echo "========================================"
     echo "PHASE: Image Pull"
     echo "========================================"
@@ -213,45 +225,46 @@ dump_container_logs() {
   echo "Collecting diagnostic information to help debug startup failure..."
   echo ""
 
-  # Determine which compose files to use
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
-  fi
+  local compose_args
+  compose_args=$(get_compose_args)
 
   echo "================================================================"
   echo "Container Status:"
   echo "================================================================"
-  docker compose "${compose_files[@]}" ps || true
+  # shellcheck disable=SC2086
+  docker compose $compose_args ps || true
 
   echo ""
   echo "================================================================"
   echo "DHIS2 Web Container Logs (last 500 lines):"
   echo "================================================================"
-  docker compose "${compose_files[@]}" logs --tail=500 web 2>&1 || echo "Failed to retrieve web logs"
+  # shellcheck disable=SC2086
+  docker compose $compose_args logs --tail=500 web 2>&1 || echo "Failed to retrieve web logs"
 
   echo ""
   echo "================================================================"
   echo "Database Container Logs (last 50 lines):"
   echo "================================================================"
-  docker compose "${compose_files[@]}" logs --tail=50 db 2>&1 || echo "Failed to retrieve db logs"
+  # shellcheck disable=SC2086
+  docker compose $compose_args logs --tail=50 db 2>&1 || echo "Failed to retrieve db logs"
 }
 
 start_containers() {
+  # Get compose arguments
+  local compose_args
+  compose_args=$(get_compose_args)
+
   echo "Testing with image: $DHIS2_IMAGE"
   echo "Waiting for containers to be ready..."
 
   local start_time
   start_time=$(date +%s)
 
-  # Determine which compose files to use
-  local compose_files=("-f" "docker-compose.yml")
-  if [ -n "$PROF_ARGS" ]; then
-    compose_files+=("-f" "docker-compose.profile.yml")
-  fi
+  # shellcheck disable=SC2086
+  docker compose $compose_args down --volumes
 
-  docker compose "${compose_files[@]}" down --volumes
-  if ! docker compose "${compose_files[@]}" up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
+  # shellcheck disable=SC2086
+  if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
     echo "Error: Failed to start containers"
     dump_container_logs
     exit 1
@@ -272,13 +285,14 @@ save_profiler_data() {
     return 1
   fi
 
-  echo ""
-  echo "Saving profiler data..."
-  if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+  printf "Saving profiler data... "
+  if docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+    echo "done"
+  else
+    echo "failed"
     echo "Warning: Failed to copy profiler data from container"
     return 1
   fi
-  echo "Profiler data saved to $gatling_dir"
 }
 
 save_sql_logs() {
@@ -294,13 +308,14 @@ save_sql_logs() {
     return 1
   fi
 
-  echo ""
-  echo "Saving SQL logs..."
-  if ! docker compose cp db:/var/lib/postgresql/data/log/postgresql.log "$gatling_dir/postgresql.log" 2>/dev/null; then
+  printf "Saving SQL logs... "
+  if docker compose cp db:/var/lib/postgresql/data/log/postgresql.log "$gatling_dir/postgresql.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "failed"
     echo "Warning: Failed to copy SQL logs from container"
     return 1
   fi
-  echo "SQL logs saved to $gatling_dir"
 }
 
 post_process_profiler_data() {
@@ -320,8 +335,7 @@ post_process_profiler_data() {
     return 1
   fi
 
-  echo ""
-  echo "Post-processing profiler data..."
+  printf "Processing profiler data... "
 
   local jfrconv_flags="--${EVENT_FLAG}"
   if [[ -n "$THREAD_FLAG" ]]; then
@@ -333,20 +347,23 @@ post_process_profiler_data() {
 
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
+  # clear JAVA_TOOL_OPTIONS to prevent jfrconv from inheriting debug agent settings from DHIS2
   # shellcheck disable=SC2086
-  if ! docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html 2>/dev/null; then
+  if ! docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web /opt/async-profiler/bin/jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html >/dev/null 2>&1; then
+    echo "failed"
     echo "Warning: Failed to generate flamegraph"
     return 1
   fi
   # shellcheck disable=SC2086
-  docker compose exec --workdir /profiler-output web jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed 2>/dev/null || true
+  docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web /opt/async-profiler/bin/jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed >/dev/null 2>&1 || true
 
   if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
+    echo "failed"
     echo "Warning: Failed to copy post-processed profiler data"
     return 1
   fi
 
-  echo "Post-processing profiler data complete. Files saved to $gatling_dir"
+  echo "done"
 }
 
 post_process_sql_logs() {
@@ -375,17 +392,18 @@ post_process_sql_logs() {
     return 0
   fi
 
-  echo ""
-  echo "Post-processing SQL logs..."
-  if ! pgbadger \
+  printf "Generating SQL report (pgbadger)... "
+  if pgbadger \
     --title "$SIMULATION_CLASS on $DHIS2_IMAGE" \
     --prefix '%t [%p]: user=%u,db=%d,app=%a ' \
     --dbname dhis \
     --outfile "$gatling_dir/pgbadger.html" "$gatling_dir/postgresql.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "failed"
     echo "Warning: Failed to generate pgbadger report"
     return 1
   fi
-  echo "Post-processing SQL logs complete. File saved to $gatling_dir/pgbadger.html"
 }
 
 post_process_gatling_logs() {
@@ -410,13 +428,14 @@ post_process_gatling_logs() {
     return 0
   fi
 
-  echo ""
-  echo "Post-processing Gatling logs..."
-  if ! glog --config ./src/test/resources/gatling.conf --scan-subdirs "$gatling_dir" 2>/dev/null; then
+  printf "Converting Gatling logs (glog)... "
+  if glog --config ./src/test/resources/gatling.conf --scan-subdirs "$gatling_dir" >/dev/null 2>&1; then
+    echo "done"
+  else
+    echo "failed"
     echo "Warning: Failed to convert simulation.log to simulation.csv"
     return 1
   fi
-  echo "Post-processing Gatling logs complete. CSV files saved in subdirectories."
 }
 
 prepare_database() {
@@ -514,14 +533,14 @@ prepare_database() {
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     # shellcheck disable=SC2086
-    docker compose exec --workdir /profiler-output web asprof start $PROF_ARGS -f profile.jfr 1 > /dev/null
+    docker compose exec --workdir /profiler-output web /opt/async-profiler/bin/asprof start $PROF_ARGS -f profile.jfr 1 > /dev/null
   fi
 }
 
 stop_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     echo "Stopping profiler..."
-    docker compose exec web asprof stop 1 > /dev/null
+    docker compose exec web /opt/async-profiler/bin/asprof stop 1 > /dev/null
   fi
 }
 
@@ -529,8 +548,7 @@ generate_metadata() {
   local gatling_run_dir="$1"
   local simulation_run_file="$gatling_run_dir/run-simulation.env"
 
-  echo ""
-  echo "Generating run metadata..."
+  printf "Generating run metadata... "
 
   # Get DHIS2 image digest for reproducibility
   # DHIS2 images are only pushed to Docker Hub, so RepoDigests[0] is the Docker Hub digest
@@ -590,7 +608,38 @@ generate_metadata() {
     fi
   } > "$simulation_run_file"
 
-  echo "Gatling run metadata is in: $gatling_run_dir/run-simulation.env"
+  echo "done"
+}
+
+print_output_summary() {
+  local dir="$1"
+
+  # Get absolute path
+  local abs_dir
+  abs_dir=$(cd "$dir" && pwd)
+
+  echo ""
+  echo "========================================"
+  echo "Output"
+  echo "========================================"
+  echo ""
+  echo "$abs_dir"
+  echo ""
+
+  # Collect existing files (only files that open in apps)
+  local files=()
+  [ -f "$dir/index.html" ]     && files+=("index.html|Gatling report")
+  [ -f "$dir/simulation.csv" ] && files+=("simulation.csv|Gatling data")
+  [ -f "$dir/profile.html" ]   && files+=("profile.html|Profiler flamegraph")
+  [ -f "$dir/pgbadger.html" ]  && files+=("pgbadger.html|SQL analysis")
+
+  if [ ${#files[@]} -gt 0 ]; then
+    for entry in "${files[@]}"; do
+      local file="${entry%%|*}"
+      local desc="${entry#*|}"
+      printf "%-20s  file://%s/%s\n" "$desc" "$abs_dir" "$file"
+    done
+  fi
 }
 
 enable_sql_logs() {
@@ -612,10 +661,10 @@ enable_sql_logs() {
 
 run_simulation() {
   local warmup_num="${1:-0}"
-  local extra_mvn_args=""
+  local mvn_args="$MVN_ARGS"
 
   if [ "$warmup_num" -gt 0 ]; then
-    extra_mvn_args="-Dgatling.failOnError=false"
+    mvn_args="$MVN_ARGS -Dgatling.failOnError=false"
   fi
 
   enable_sql_logs "$warmup_num"
@@ -629,7 +678,7 @@ run_simulation() {
     -Dgatling.simulationClass="$SIMULATION_CLASS" \
     -Dusername="$DHIS2_USERNAME" \
     -Dpassword="$DHIS2_PASSWORD" \
-    $MVN_ARGS $extra_mvn_args
+    $mvn_args
   local mvn_exit_code=$?
   set -e
 
@@ -667,7 +716,6 @@ run_simulation() {
     fi
 
     echo ""
-    echo "Gatling test results are in: $gatling_run_dir"
 
     # Post-process results for this run
     save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
@@ -675,6 +723,11 @@ run_simulation() {
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
     generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
+
+    # Track non-warmup run directory for output summary (shown after post-processing)
+    if [ "$warmup_num" -eq 0 ]; then
+      LAST_RUN_DIR="$gatling_run_dir"
+    fi
   else
     echo "Warning: Could not find Gatling report directory"
   fi

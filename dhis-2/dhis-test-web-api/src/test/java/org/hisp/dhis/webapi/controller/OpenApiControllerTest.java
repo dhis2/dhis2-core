@@ -129,7 +129,10 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
-    assertLessOrEqual(120, doc.getObject("components.schemas").size());
+    assertLessOrEqual(
+        130,
+        doc.getObject("components.schemas")
+            .size()); // Increased from 120 to 130 due to DataApprovalLevel JPA migration
   }
 
   @Test
@@ -145,10 +148,13 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     // defaults in parameter objects (from Property analysis)
     JsonObject users = GET("/openapi/openapi.json?scope=path:/api/users").content();
     JsonObject sharedParams = users.getObject("components.parameters");
-    assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").integer());
     assertEquals(
-        "AND", sharedParams.getString("{GistParams.rootJunction}.schema.default").string());
-    assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
+        50, sharedParams.getNumber("{GetObjectListParams.pageSize}.schema.default").integer());
+    assertEquals(
+        "AND",
+        sharedParams.getString("{GetObjectListParams.rootJunction}.schema.default").string());
+    assertTrue(
+        sharedParams.getBoolean("{GistObjectParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
     JsonObject fileResources = GET("/openapi/openapi.json?scope=path:/api/fileResources").content();

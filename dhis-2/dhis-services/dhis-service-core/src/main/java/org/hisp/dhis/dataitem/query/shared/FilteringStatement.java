@@ -30,7 +30,7 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static lombok.AccessLevel.PRIVATE;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasNonBlankStringPresence;
@@ -330,8 +330,7 @@ public class FilteringStatement {
       MapSqlParameterSource paramsMap) {
     if (hasNonBlankStringPresence(paramsMap, IDENTIFIABLE_TOKEN_COMPARISON)) {
       String[] filteringWords =
-          defaultIfNull((String) paramsMap.getValue(IDENTIFIABLE_TOKEN_COMPARISON), EMPTY)
-              .split(",");
+          getIfNull((String) paramsMap.getValue(IDENTIFIABLE_TOKEN_COMPARISON), EMPTY).split(",");
 
       OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder(paramsMap);
 

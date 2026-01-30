@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -51,9 +50,11 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -695,5 +696,502 @@ class EventQueryParamsTest extends TestBase {
     assertEquals(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, qiOccurred.getItemId());
     assertEquals(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, qiScheduled.getItemId());
     assertNotEquals(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, qiOther.getItemId());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithStandardOrgUnit() {
+    // Test that hasOrganisationUnits returns true when standard org unit dimension is present
+    EventQueryParams params =
+        new EventQueryParams.Builder().withOrganisationUnits(List.of(ouA, ouB)).build();
+
+    assertTrue(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithStageSpecificOrgUnit() {
+    // Test that hasOrganisationUnits returns true when stage-specific org unit QueryItem is present
+    BaseDimensionalItemObject ouItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+    QueryItem stageOuItem =
+        new QueryItem(ouItem, prA, null, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+    stageOuItem.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(stageOuItem).build();
+
+    assertTrue(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithStageSpecificOrgUnitAsFilter() {
+    // Test that hasOrganisationUnits returns true when stage-specific org unit is in itemFilters
+    BaseDimensionalItemObject ouItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+    QueryItem stageOuItem =
+        new QueryItem(ouItem, prA, null, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+    stageOuItem.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItemFilter(stageOuItem).build();
+
+    assertTrue(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasOrganisationUnitsWithNoOrgUnit() {
+    // Test that hasOrganisationUnits returns false when no org unit is present
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    assertFalse(params.hasOrganisationUnits());
+  }
+
+  @Test
+  void testHasStageSpecificItemWithEventDateItem() {
+    // Given: a QueryItem for event date with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return true for stage-specific item
+    assertTrue(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageSpecificItemWithScheduledDateItem() {
+    // Given: a QueryItem for scheduled date with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return true for stage-specific item
+    assertTrue(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageSpecificItemWithOuItem() {
+    // Given: a QueryItem for organisation unit with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME);
+    QueryItem qi =
+        new QueryItem(item, prA, null, ValueType.ORGANISATION_UNIT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return true for stage-specific item
+    assertTrue(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageSpecificItemWithEventStatusItem() {
+    // Given: a QueryItem for event status with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return true for stage-specific item
+    assertTrue(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageSpecificItemReturnsFalseWhenNoStageSpecificItems() {
+    // Given: a QueryItem without a program stage
+    QueryItem qi = new QueryItem(deA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return false
+    assertFalse(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageSpecificItemWithItemFilter() {
+    // Given: a QueryItem filter with program stage and stage-specific dimension
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItemFilter(qi).build();
+
+    // Then: should return true as itemFilters are also checked
+    assertTrue(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageSpecificItemWithRegularDataElementWithStage() {
+    // Given: a regular data element with program stage (not a stage-specific dimension)
+    QueryItem qi = new QueryItem(deA);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return false as data element is not a stage-specific dimension
+    assertFalse(params.hasStageSpecificItem());
+  }
+
+  @Test
+  void testHasStageDateItemWithOccurredDateItem() {
+    // Given: a QueryItem for occurred date with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return true
+    assertTrue(params.hasStageDateItem());
+  }
+
+  @Test
+  void testHasStageDateItemWithScheduledDateItem() {
+    // Given: a QueryItem for scheduled date with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return true
+    assertTrue(params.hasStageDateItem());
+  }
+
+  @Test
+  void testHasStageDateItemReturnsFalseWhenNoStageDateItems() {
+    // Given: a QueryItem for event status (not a date item) with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return false as event status is not a date item
+    assertFalse(params.hasStageDateItem());
+  }
+
+  @Test
+  void testHasStageDateItemWithDateItemWithoutProgramStage() {
+    // Given: a QueryItem for occurred date without program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi).build();
+
+    // Then: should return false as no program stage is set
+    assertFalse(params.hasStageDateItem());
+  }
+
+  @Test
+  void testHasStageDateItemWithItemFilter() {
+    // Given: a QueryItem filter for occurred date with program stage
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItemFilter(qi).build();
+
+    // Then: should return true as itemFilters are also checked
+    assertTrue(params.hasStageDateItem());
+  }
+
+  @Test
+  void testHasStageDateItemWithBothDateTypes() {
+    // Given: QueryItems for both occurred date and scheduled date
+    BaseDimensionalItemObject occurredItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qiOccurred =
+        new QueryItem(occurredItem, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qiOccurred.setProgramStage(psA);
+
+    BaseDimensionalItemObject scheduledItem =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qiScheduled =
+        new QueryItem(scheduledItem, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qiScheduled.setProgramStage(psB);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(qiOccurred).addItem(qiScheduled).build();
+
+    // Then: should return true
+    assertTrue(params.hasStageDateItem());
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithDuplicates() {
+    // Given: two QueryItems with the same stage and item identifier
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi1).addItem(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return the duplicate identifier
+    assertEquals(1, duplicates.size());
+    assertTrue(
+        duplicates.contains(
+            psA.getUid() + "." + EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithNoDuplicates() {
+    // Given: QueryItems with different stage/item combinations
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi1).addItem(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return empty set
+    assertTrue(duplicates.isEmpty());
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithItemsAndFilters() {
+    // Given: items and filters with same stage/item combination
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(qi1).addItemFilter(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return duplicate as both items and filters are checked
+    assertEquals(1, duplicates.size());
+    assertTrue(
+        duplicates.contains(
+            psA.getUid() + "." + EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersIgnoresItemsWithoutProgramStage() {
+    // Given: QueryItems without program stage
+    QueryItem qi1 = new QueryItem(deA);
+    QueryItem qi2 = new QueryItem(deA);
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi1).addItem(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return empty set as items without program stage are ignored
+    assertTrue(duplicates.isEmpty());
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithMultipleDuplicates() {
+    // Given: multiple duplicate combinations
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+
+    BaseDimensionalItemObject item3 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi3 = new QueryItem(item3, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi3.setProgramStage(psA);
+
+    BaseDimensionalItemObject item4 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    QueryItem qi4 = new QueryItem(item4, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi4.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(qi1).addItem(qi2).addItem(qi3).addItem(qi4).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return both duplicate identifiers
+    assertEquals(2, duplicates.size());
+    assertTrue(
+        duplicates.contains(
+            psA.getUid() + "." + EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    assertTrue(
+        duplicates.contains(
+            psA.getUid() + "." + EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME));
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithDifferentOffsets() {
+    // Given: two QueryItems with same stage/item but different offsets (0 and -1)
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+    qi1.setRepeatableStageParams(RepeatableStageParams.of(0)); // offset [0]
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+    qi2.setRepeatableStageParams(RepeatableStageParams.of(-1)); // offset [-1]
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi1).addItem(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return empty set as offsets are different
+    assertTrue(duplicates.isEmpty());
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithSameOffsets() {
+    // Given: two QueryItems with same stage/item and same offset
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+    qi1.setRepeatableStageParams(RepeatableStageParams.of(0)); // offset [0]
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+    qi2.setRepeatableStageParams(RepeatableStageParams.of(0)); // offset [0]
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi1).addItem(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return duplicate as stage/item/offset combination is the same
+    assertEquals(1, duplicates.size());
+    assertTrue(
+        duplicates.contains(
+            psA.getUid() + "." + EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME + ".0"));
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithOffsetAndNoOffset() {
+    // Given: one QueryItem with offset [0] and one without offset (default)
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+    qi1.setRepeatableStageParams(RepeatableStageParams.of(0)); // offset [0]
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+    // No repeatableStageParams set - default
+
+    EventQueryParams params = new EventQueryParams.Builder().addItem(qi1).addItem(qi2).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return empty set as one has explicit offset [0] and one is default
+    assertTrue(duplicates.isEmpty());
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithMultipleDifferentOffsets() {
+    // Given: multiple QueryItems with different offsets
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+    qi1.setRepeatableStageParams(RepeatableStageParams.of(0));
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+    qi2.setRepeatableStageParams(RepeatableStageParams.of(-1));
+
+    BaseDimensionalItemObject item3 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi3 = new QueryItem(item3, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi3.setProgramStage(psA);
+    qi3.setRepeatableStageParams(RepeatableStageParams.of(1));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(qi1).addItem(qi2).addItem(qi3).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return empty set as all offsets are different
+    assertTrue(duplicates.isEmpty());
+  }
+
+  @Test
+  void testGetDuplicateStageDimensionIdentifiersWithMixedOffsets() {
+    // Given: multiple QueryItems with mixed offsets
+    BaseDimensionalItemObject item1 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi1 = new QueryItem(item1, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi1.setProgramStage(psA);
+    qi1.setRepeatableStageParams(RepeatableStageParams.of(0));
+
+    BaseDimensionalItemObject item2 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi2 = new QueryItem(item2, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi2.setProgramStage(psA);
+    qi2.setRepeatableStageParams(RepeatableStageParams.of(-1));
+
+    BaseDimensionalItemObject item3 =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi3 = new QueryItem(item3, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi3.setProgramStage(psA);
+    qi3.setRepeatableStageParams(RepeatableStageParams.of(0)); // same offset as qi1
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().addItem(qi1).addItem(qi2).addItem(qi3).build();
+
+    // When: getting duplicate stage dimension identifiers
+    Set<String> duplicates = params.getDuplicateStageDimensionIdentifiers();
+
+    // Then: should return duplicate for offset [0] only
+    assertEquals(1, duplicates.size());
+    assertTrue(
+        duplicates.contains(
+            psA.getUid() + "." + EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME + ".0"));
   }
 }

@@ -29,16 +29,38 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.util.HashSet;
+import java.util.Set;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * Records the approval of DataSet values for a given OrganisationUnit and Period.
@@ -46,14 +68,42 @@ import org.hisp.dhis.schema.annotation.Property;
  * @author Jim Grace
  */
 @JacksonXmlRootElement(localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0)
-public class DataApprovalLevel extends BaseIdentifiableObject implements MetadataObject {
+@Entity
+@Table(
+    name = "dataapprovallevel",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "dataapprovallevel_orgunitlevel_categoryoptiongroupset_unique_key",
+            columnNames = {"orgunitlevel", "categoryoptiongroupsetid"}))
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+public class DataApprovalLevel extends BaseMetadataObject implements IdentifiableObject {
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "dataapprovallevelid")
+  private long id;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
+  @Type(type = "jsbObjectSharing")
+  @Column(name = "sharing")
+  private Sharing sharing = new Sharing();
+
   /** The data approval level, 1=highest level, max=lowest level. */
+  @Column(name = "level", nullable = false)
   private int level;
 
   /** The organisation unit level for this data approval level. */
+  @Column(name = "orgunitlevel", nullable = false)
   private int orgUnitLevel;
 
   /** The category option group set (optional) for this data approval level. */
+  @ManyToOne
+  @JoinColumn(
+      name = "categoryoptiongroupsetid",
+      foreignKey = @ForeignKey(name = "fK_dataapprovallevel_categoryoptiongroupsetid"))
   private CategoryOptionGroupSet categoryOptionGroupSet;
 
   /** The name of the organisation unit level (derived through the service.) */
@@ -150,6 +200,61 @@ public class DataApprovalLevel extends BaseIdentifiableObject implements Metadat
   // Getters and Setters
   // -------------------------------------------------------------------------
 
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public Set<org.hisp.dhis.translation.Translation> getTranslations() {
+    if (translations == null) {
+      return new HashSet<>();
+    }
+    return translations.getTranslations();
+  }
+
+  @Override
+  public void setTranslations(Set<org.hisp.dhis.translation.Translation> translations) {
+    if (this.translations == null) {
+      this.translations = new TranslationProperty();
+    }
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getLevel() {
@@ -176,7 +281,6 @@ public class DataApprovalLevel extends BaseIdentifiableObject implements Metadat
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(
       value = PropertyType.REFERENCE,
@@ -199,5 +303,103 @@ public class DataApprovalLevel extends BaseIdentifiableObject implements Metadat
 
   public void setOrgUnitLevelName(String orgUnitLevelName) {
     this.orgUnitLevelName = orgUnitLevelName;
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject interface methods - Not supported by this entity
+  // -------------------------------------------------------------------------
+
+  /**
+   * This entity does not support attribute values.
+   *
+   * @return Empty AttributeValues
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /**
+   * This entity does not support setting attribute values.
+   *
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Not supported - no-op
+  }
+
+  /**
+   * This entity does not support adding attribute values.
+   *
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public void addAttributeValue(String attributeUid, String value) {
+    // Not supported - no-op
+  }
+
+  /**
+   * This entity does not support removing attribute values.
+   *
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public void removeAttributeValue(String attributeId) {
+    // Not supported - no-op
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(user);
+  }
+
+  /**
+   * This entity does not support setting owner directly.
+   *
+   * @deprecated This method is not supported by DataApprovalLevel
+   */
+  @Override
+  @Deprecated
+  public void setOwner(String owner) {
+    // Not supported - no-op
+  }
+
+  @Deprecated
+  @Override
+  public String getCode() {
+    return "";
+  }
+
+  @Deprecated
+  @Override
+  public void setCode(String code) {
+    // Not supported - no-op
   }
 }
