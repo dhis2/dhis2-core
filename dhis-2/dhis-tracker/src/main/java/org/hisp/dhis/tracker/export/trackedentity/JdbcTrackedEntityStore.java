@@ -516,13 +516,17 @@ class JdbcTrackedEntityStore {
       return;
     }
 
+    if (!params.hasEnrolledInTrackerProgram()) {
+      throw new IllegalArgumentException(
+          "Program is required when ordering by enrollment.enrollmentDate");
+    }
+
     sql.append("inner join enrollment ")
         .append(ENROLLMENT_ALIAS)
         .append(" on ")
         .append(ENROLLMENT_ALIAS)
         .append(".trackedentityid = te.trackedentityid");
 
-    // program is mandatory when ordering by enrolledAt (validated upstream)
     sql.append(" and ").append(ENROLLMENT_ALIAS).append(".programid = :enrolledInTrackerProgram");
     sqlParameters.addValue(
         "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
