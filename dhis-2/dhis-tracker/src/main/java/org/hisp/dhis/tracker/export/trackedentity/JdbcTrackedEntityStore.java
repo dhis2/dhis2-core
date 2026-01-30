@@ -81,6 +81,9 @@ class JdbcTrackedEntityStore {
 
   private static final String EVENT_ALIAS = "ev";
 
+  private static final String INVALID_ORDER_FIELD_MESSAGE =
+      "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.";
+
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
    * TrackedEntity}. Maps fields to DB columns.
@@ -393,8 +396,9 @@ class JdbcTrackedEntityStore {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
-                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+                  INVALID_ORDER_FIELD_MESSAGE,
+                  field,
+                  String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
         // all orderable fields are already in the select
@@ -406,7 +410,7 @@ class JdbcTrackedEntityStore {
       } else {
         throw new IllegalArgumentException(
             String.format(
-                "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
+                INVALID_ORDER_FIELD_MESSAGE,
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
@@ -868,8 +872,9 @@ class JdbcTrackedEntityStore {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
-                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+                  INVALID_ORDER_FIELD_MESSAGE,
+                  field,
+                  String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
         orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
@@ -878,7 +883,7 @@ class JdbcTrackedEntityStore {
       } else {
         throw new IllegalArgumentException(
             String.format(
-                "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
+                INVALID_ORDER_FIELD_MESSAGE,
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
