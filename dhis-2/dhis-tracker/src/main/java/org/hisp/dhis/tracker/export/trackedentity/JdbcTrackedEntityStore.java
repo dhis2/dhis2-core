@@ -242,6 +242,11 @@ class JdbcTrackedEntityStore {
     sql.append(" from ");
     addTrackedEntityFromItem(sql, sqlParameters, params, pageParams, false);
     addOrderBy(sql, params);
+    // LIMIT must be in outer query for DISTINCT ON (applied after final ORDER BY)
+    if (isOrderingByEnrolledAt(params)) {
+      sql.append(" ");
+      addLimitAndOffset(sql, pageParams);
+    }
     return sql.toString();
   }
 
@@ -336,11 +341,12 @@ class JdbcTrackedEntityStore {
       // DISTINCT ON requires ORDER BY to start with the DISTINCT columns
       if (isOrderingByEnrolledAt(params)) {
         addDistinctOnOrderBy(sql, params);
+        // LIMIT must be in outer query for DISTINCT ON (after final ORDER BY)
       } else {
         addOrderBy(sql, params);
+        sql.append(" ");
+        addLimitAndOffset(sql, pageParams);
       }
-      sql.append(" ");
-      addLimitAndOffset(sql, pageParams);
     }
 
     sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
