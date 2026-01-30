@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import org.hibernate.LockOptions;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -99,8 +98,6 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         """;
     return getSession()
         .createNativeQuery(sql)
-        .addSynchronizedEntityClass(CategoryCombo.class)
-        .addSynchronizedEntityClass(Category.class)
         .setParameter("targetCategoryId", targetCategoryId)
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
