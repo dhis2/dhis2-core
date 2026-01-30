@@ -612,9 +612,9 @@ class JdbcTrackedEntityStore {
 
     if (params.hasEventStatus()) {
       sql.append(" and ");
-      addEventDateRangeCondition(sql, sqlParameters, params);
+      addEventDateRangeCondition(sql, sqlParameters, params, EVENT_ALIAS);
       sql.append(" and ");
-      addEventStatusCondition(sql, sqlParameters, params);
+      addEventStatusCondition(sql, sqlParameters, params, EVENT_ALIAS);
     }
 
     if (params.hasProgramStage()) {
@@ -637,9 +637,12 @@ class JdbcTrackedEntityStore {
 
   /** Appends event date range condition to SQL. Reusable across EXISTS subquery and JOIN paths. */
   private void addEventDateRangeCondition(
-      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      TrackedEntityQueryParams params,
+      String alias) {
     String dateColumn =
-        EVENT_ALIAS
+        alias
             + "."
             + switch (params.getEventStatus()) {
               case COMPLETED, VISITED, ACTIVE -> "occurreddate";
@@ -655,30 +658,33 @@ class JdbcTrackedEntityStore {
 
   /** Appends event status condition to SQL. Reusable across EXISTS subquery and JOIN paths. */
   private void addEventStatusCondition(
-      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      TrackedEntityQueryParams params,
+      String alias) {
     if (params.isEventStatus(EventStatus.COMPLETED)) {
-      sql.append(EVENT_ALIAS).append(".status = :eventStatus");
+      sql.append(alias).append(".status = :eventStatus");
       sqlParameters.addValue("eventStatus", EventStatus.COMPLETED.name());
     } else if (params.isEventStatus(EventStatus.VISITED)
         || params.isEventStatus(EventStatus.ACTIVE)) {
-      sql.append(EVENT_ALIAS).append(".status = :eventStatus");
+      sql.append(alias).append(".status = :eventStatus");
       sqlParameters.addValue("eventStatus", EventStatus.ACTIVE.name());
     } else if (params.isEventStatus(EventStatus.SKIPPED)) {
-      sql.append(EVENT_ALIAS).append(".status = :eventStatus");
+      sql.append(alias).append(".status = :eventStatus");
       sqlParameters.addValue("eventStatus", EventStatus.SKIPPED.name());
     } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
-      sql.append(EVENT_ALIAS)
+      sql.append(alias)
           .append(".status is not null and ")
-          .append(EVENT_ALIAS)
+          .append(alias)
           .append(".occurreddate is null and date(now()) <= date(")
-          .append(EVENT_ALIAS)
+          .append(alias)
           .append(".scheduleddate)");
     } else if (params.isEventStatus(EventStatus.OVERDUE)) {
-      sql.append(EVENT_ALIAS)
+      sql.append(alias)
           .append(".status is not null and ")
-          .append(EVENT_ALIAS)
+          .append(alias)
           .append(".occurreddate is null and date(now()) > date(")
-          .append(EVENT_ALIAS)
+          .append(alias)
           .append(".scheduleddate)");
     }
   }
@@ -830,9 +836,9 @@ class JdbcTrackedEntityStore {
     SqlHelper whereHlp = new SqlHelper(true);
     if (params.hasEventStatus()) {
       sql.append(whereHlp.whereAnd());
-      addEventDateRangeCondition(sql, sqlParameters, params);
+      addEventDateRangeCondition(sql, sqlParameters, params, "ev");
       sql.append(whereHlp.whereAnd());
-      addEventStatusCondition(sql, sqlParameters, params);
+      addEventStatusCondition(sql, sqlParameters, params, "ev");
     }
 
     if (params.hasProgramStage()) {
