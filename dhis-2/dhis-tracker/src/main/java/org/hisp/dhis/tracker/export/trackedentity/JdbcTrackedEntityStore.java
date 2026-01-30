@@ -344,12 +344,10 @@ class JdbcTrackedEntityStore {
    * columns (trackedentityid), followed by the enrollment date in the requested direction.
    */
   private void addDistinctOnOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    String direction = getEnrolledAtOrder(params).getDirection().name();
-
     sql.append("order by te.trackedentityid, ")
         .append(ENROLLMENT_ALIAS)
         .append(".enrollmentdate ")
-        .append(direction);
+        .append(getEnrolledAtOrder(params).getDirection().name());
   }
 
   /**
