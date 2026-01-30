@@ -43,7 +43,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -500,17 +499,33 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds an INNER JOIN on enrollments when order by contains {@code enrolledAt}. When ordering by
-   * enrolledAt, all enrollment and event filters are applied to the JOIN condition. This ensures
-   * the ordering uses the correct enrollment (one that matches all filters) and replaces the
-   * separate EXISTS subquery.
+   * Adds an INNER JOIN on enrollments when ordering by {@code enrolledAt}.
+   *
+   * <p>Query strategy depends on enrollment usage:
+   *
+   * <ul>
+   *   <li>No enrollment filters, no order by enrolledAt: no enrollment table needed
+   *   <li>Enrollment filters, no order by enrolledAt: EXISTS subquery via {@link
+   *       #addEnrollmentAndEventExistsCondition} (short-circuits, avoids duplicates)
+   *   <li>Order by enrolledAt: JOIN with DISTINCT ON (this method)
+   * </ul>
+   *
+   * <p>When ordering by enrolledAt, filters must be in the JOIN (not EXISTS) to ensure ordering
+   * uses a matching enrollment. A TE can have multiple enrollments, so DISTINCT ON
+   * (te.trackedentityid) picks one row per TE. DISTINCT ON requires ORDER BY to start with the
+   * DISTINCT columns, so inner query must order by (trackedentityid, enrollmentdate) - not the
+   * user's requested order. Outer query applies the user's order (enrollmentdate), so LIMIT must be
+   * in outer query (after final ORDER BY).
+   *
+   * <p>Potential optimization: using DISTINCT ON (te.uid) instead would allow LIMIT in inner query
+   * when user orders by (uid, enrolledAt), since inner ORDER BY would match. But users rarely order
+   * by uid,enrolledAt together, so not worth the added complexity.
    */
   private void addJoinOnEnrollment(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     if (!isOrderingByEnrolledAt(params)) {
       return;
     }
-
     if (!params.hasEnrolledInTrackerProgram()) {
       throw new IllegalArgumentException(
           "Program is required when ordering by enrollment.enrollmentDate");
@@ -527,8 +542,6 @@ class JdbcTrackedEntityStore {
         "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
 
     addEnrollmentFilterConditions(sql, sqlParameters, params);
-
-    // Add event filter to JOIN condition via EXISTS
     if (params.hasFilterForEvents()) {
       sql.append(" and exists (");
       addEventExistsForEnrollmentJoin(sql, sqlParameters, params);
@@ -774,7 +787,6 @@ class JdbcTrackedEntityStore {
     if (!params.hasEnrolledInTrackerProgram()) {
       return;
     }
-
     // When ordering by enrolledAt, the enrollment JOIN already includes all filters
     if (isOrderingByEnrolledAt(params)) {
       return;
