@@ -41,6 +41,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +57,7 @@ class CategoryDimensionStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryDimensionStore categoryDimensionStore;
   @Autowired private IdentifiableObjectManager manager;
+  @Autowired private DbmsManager dbmsManager;
 
   @Test
   @DisplayName("Retrieving CategoryDimensions by CategoryOptions returns the expected objects")
@@ -139,6 +141,7 @@ class CategoryDimensionStoreTest extends PostgresIntegrationTestBase {
         categoryDimensionStore.updateCatDimensionCategoryRefs(
             Set.of(categoryMetadata1.c1().getId(), categoryMetadata1.c2().getId()),
             categoryMetadata2.c1().getId());
+    dbmsManager.clearSession();
 
     // then the expected number of CategoryDimensions should be updated
     assertEquals(2, updatedCatDimensions, "2 CategoryDimensions have been updated");
