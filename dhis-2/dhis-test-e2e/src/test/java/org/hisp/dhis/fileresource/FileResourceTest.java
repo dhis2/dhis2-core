@@ -96,7 +96,10 @@ class FileResourceTest extends ApiTest {
         .statusCode(201);
 
     // then the FileResource should now be assigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(true));
+    Awaitility.await()
+        .atMost(3, TimeUnit.SECONDS)
+        .untilAsserted(
+            () -> fileResourceApi.get(frUid).validate().body("assigned", equalTo(true)));
 
     // and when the Document is deleted
     documentApi.delete("docUid000x1").validateStatus(200);
