@@ -84,6 +84,11 @@ class JdbcTrackedEntityStore {
   private static final String INVALID_ORDER_FIELD_MESSAGE =
       "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.";
 
+  private static final String BASE_SELECT =
+      """
+      select te.trackedentityid, te.uid, te.created, te.lastupdated, te.createdatclient, \
+      te.lastupdatedatclient, te.inactive, te.potentialduplicate, te.deleted, te.trackedentitytypeid""";
+
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
    * TrackedEntity}. Maps fields to DB columns.
@@ -283,28 +288,10 @@ class JdbcTrackedEntityStore {
   }
 
   private void addSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    LinkedHashSet<String> columns =
-        new LinkedHashSet<>(
-            List.of(
-                "te.trackedentityid",
-                "te.uid",
-                "te.created",
-                "te.lastupdated",
-                "te.createdatclient",
-                "te.lastupdatedatclient",
-                "te.inactive",
-                "te.potentialduplicate",
-                "te.deleted",
-                "te.trackedentitytypeid"));
-
-    // all orderable fields are already in the select. Only when ordering by enrollment date do we
-    // need to add a column, so we can order by it
+    sql.append(BASE_SELECT);
     if (isOrderingByEnrolledAt(params)) {
-      columns.add(ENROLLMENT_DATE_ALIAS);
+      sql.append(", ").append(ENROLLMENT_DATE_ALIAS);
     }
-
-    sql.append("select ")
-        .append(columns.stream().filter(c -> !c.isEmpty()).collect(Collectors.joining(", ")));
   }
 
   /**
