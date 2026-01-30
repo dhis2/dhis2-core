@@ -41,9 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -95,7 +93,7 @@ public class CategoryMergeService implements MergeService {
     Set<UID> sourceCatCombos =
         getCatComboUids(
             sourceCategories.stream()
-                .map(BaseIdentifiableObject::getUidType)
+                .map(c -> UID.of(c.getUid()))
                 .collect(Collectors.toSet()));
     Set<UID> targetCatCombos = getCatComboUids(Set.of(UID.of(request.getTarget().getValue())));
     validateCategoryCombosAreDifferent(sourceCatCombos, targetCatCombos, mergeReport);
@@ -104,7 +102,7 @@ public class CategoryMergeService implements MergeService {
 
   private Set<UID> getCatComboUids(Collection<UID> categoryUids) {
     return categoryService.getCategoryCombosByCategory(categoryUids).stream()
-        .map(IdentifiableObject::getUidType)
+        .map(cc -> UID.of(cc.getUid()))
         .collect(Collectors.toSet());
   }
 

@@ -43,11 +43,4 @@ public interface UidObject {
    */
   @JsonProperty(value = "id")
   String getUid();
-
-  /**
-   * @return external unique UID of the object as used in the RESTful API. For internal use only.
-   */
-  default UID getUidType() {
-    return UID.of(getUid());
-  }
 }
