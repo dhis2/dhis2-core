@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +57,7 @@ class CategoryComboStoreTest extends PostgresIntegrationTestBase {
     // When getting category combos by categories
     List<CategoryCombo> categoryCombos =
         categoryComboStore.getCategoryCombosByCategory(
-            List.of(categoryMetadata1.c2().getUidType(), categoryMetadata2.c1().getUidType()));
+            UID.of(categoryMetadata1.c2(), categoryMetadata2.c1()));
 
     // Then the expected 2 CategoryCombos are retrieved
     assertEquals(2, categoryCombos.size(), "2 CategoryCombos should be present");

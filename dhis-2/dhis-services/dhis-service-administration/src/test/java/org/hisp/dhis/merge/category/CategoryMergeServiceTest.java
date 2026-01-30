@@ -40,7 +40,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
 import org.junit.jupiter.api.DisplayName;
@@ -203,8 +202,6 @@ class CategoryMergeServiceTest {
   }
 
   private Set<UID> getCcUids(Category c) {
-    return c.getCategoryCombos().stream()
-        .map(IdentifiableObject::getUidType)
-        .collect(Collectors.toSet());
+    return c.getCategoryCombos().stream().map(UID::of).collect(Collectors.toSet());
   }
 }
