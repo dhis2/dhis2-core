@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
@@ -217,8 +218,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
     long id = dataApprovalService.addWorkflow(workflowA);
 
     // Clear the persistence context to force a fresh load from database
-    entityManager.flush();
-    entityManager.clear();
 
     // Retrieve and verify all fields
     DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
@@ -235,8 +234,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   void testJpaManyToOnePeriodType() {
     // Test that periodType ManyToOne relationship is properly loaded
     long id = dataApprovalService.addWorkflow(workflowA);
-    entityManager.flush();
-    entityManager.clear();
 
     DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
     assertEquals(periodType.getName(), retrieved.getPeriodType().getName());
@@ -246,8 +243,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   void testJpaManyToOneCategoryCombo() {
     // Test that categoryCombo ManyToOne relationship is properly loaded
     long id = dataApprovalService.addWorkflow(workflowA);
-    entityManager.flush();
-    entityManager.clear();
 
     DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
     assertEquals(categoryCombo.getUid(), retrieved.getCategoryCombo().getUid());
@@ -257,8 +252,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   void testJpaManyToManyLevels() {
     // Test that levels ManyToMany relationship is properly loaded
     long id = dataApprovalService.addWorkflow(workflowA);
-    entityManager.flush();
-    entityManager.clear();
 
     DataApprovalWorkflow retrieved = dataApprovalService.getWorkflow(id);
     assertEquals(2, retrieved.getLevels().size());
@@ -290,8 +283,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
     retrieved.setLevels(newHashSet(level3));
 
     dataApprovalService.updateWorkflow(retrieved);
-    entityManager.flush();
-    entityManager.clear();
 
     DataApprovalWorkflow updated = dataApprovalService.getWorkflow(id);
     assertEquals("UpdatedName", updated.getName());
@@ -318,7 +309,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   void testJpaUniqueConstraintOnName() {
     // Add first workflow
     dataApprovalService.addWorkflow(workflowA);
-    entityManager.flush();
 
     // Try to add another workflow with the same name
     DataApprovalWorkflow duplicate = new DataApprovalWorkflow();
@@ -328,15 +318,9 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
 
     // This should either throw an exception or fail silently depending on configuration
     // We'll just verify that after adding, we only have one with that name
-    try {
+    assertThrows(PersistenceException.class, () -> {
       dataApprovalService.addWorkflow(duplicate);
       entityManager.flush();
-    } catch (Exception e) {
-      // Expected - unique constraint violation
-      assertTrue(
-          e.getMessage().contains("unique")
-              || e.getMessage().contains("duplicate")
-              || e.getMessage().contains("constraint"));
-    }
+    });
   }
 }
