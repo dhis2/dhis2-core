@@ -32,6 +32,7 @@ package org.hisp.dhis.period;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.analytics.AnalyticsWeekStartKey.WEEKLY;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -49,6 +50,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeekStartKey;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -335,7 +337,7 @@ public class RelativePeriods implements Serializable {
 
   /** Gets a list of Periods relative to current date. */
   public List<PeriodDimension> getRelativePeriods() {
-    return getRelativePeriods((Date) null, null, false, FINANCIAL_YEAR_OCTOBER);
+    return getRelativePeriods((Date) null, null, false, FINANCIAL_YEAR_OCTOBER, WEEKLY);
   }
 
   /**
@@ -346,7 +348,7 @@ public class RelativePeriods implements Serializable {
    * @return a list of relative Periods.
    */
   public List<PeriodDimension> getRelativePeriods(I18nFormat format, boolean dynamicNames) {
-    return getRelativePeriods((Date) null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER);
+    return getRelativePeriods((Date) null, format, dynamicNames, FINANCIAL_YEAR_OCTOBER, WEEKLY);
   }
 
   /**
@@ -365,7 +367,29 @@ public class RelativePeriods implements Serializable {
       boolean dynamicNames,
       AnalyticsFinancialYearStartKey financialYearStart) {
     return getRelativePeriods(
-        DateField.withDefaults().withDate(date), format, dynamicNames, financialYearStart);
+        DateField.withDefaults().withDate(date), format, dynamicNames, financialYearStart, WEEKLY);
+  }
+
+  /**
+   * Gets a list of Periods based on the given input and the state of this RelativePeriods.
+   *
+   * @param date the date representing now. If null the current date will be used.
+   * @param format the i18n format.
+   * @param dynamicNames indication of whether dynamic names should be used.
+   * @param financialYearStart the start of a financial year. Configurable through system settings
+   *     and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
+   * @param weekStart the start day of the week. Configurable through system settings and should be
+   *     one of the values in the enum {@link AnalyticsWeekStartKey}
+   * @return a list of relative Periods.
+   */
+  public List<PeriodDimension> getRelativePeriods(
+      Date date,
+      I18nFormat format,
+      boolean dynamicNames,
+      AnalyticsFinancialYearStartKey financialYearStart,
+      AnalyticsWeekStartKey weekStart) {
+    return getRelativePeriods(
+        DateField.withDefaults().withDate(date), format, dynamicNames, financialYearStart, weekStart);
   }
 
   /**
@@ -383,8 +407,31 @@ public class RelativePeriods implements Serializable {
       I18nFormat format,
       boolean dynamicNames,
       AnalyticsFinancialYearStartKey financialYearStart) {
+    return getRelativePeriods(dateField, format, dynamicNames, financialYearStart, WEEKLY);
+  }
+
+  /**
+   * Gets a list of Periods based on the given input and the state of this RelativePeriods.
+   *
+   * @param dateField the dateAndField representing now. If null the current dateAndField will be
+   *     used.
+   * @param format the i18n format.
+   * @param financialYearStart the start of a financial year. Configurable through system settings
+   *     and should be one of the values in the enum {@link AnalyticsFinancialYearStartKey}
+   * @param weekStart the start day of the week. Configurable through system settings and should be
+   *     one of the values in the enum {@link AnalyticsWeekStartKey}
+   * @return a list of relative Periods.
+   */
+  public List<PeriodDimension> getRelativePeriods(
+      DateField dateField,
+      I18nFormat format,
+      boolean dynamicNames,
+      AnalyticsFinancialYearStartKey financialYearStart,
+      AnalyticsWeekStartKey weekStart) {
 
     dateField = DateField.withDefaultsIfNecessary(dateField);
+    WeeklyAbstractPeriodType weeklyPeriodType =
+        weekStart != null ? weekStart.getWeeklyPeriodType() : new WeeklyPeriodType();
 
     List<PeriodDimension> periods = new ArrayList<>();
 
@@ -489,13 +536,13 @@ public class RelativePeriods implements Serializable {
 
     if (isThisWeek()) {
       periods.add(
-          getRelativePeriod(new WeeklyPeriodType(), LAST_WEEK, dateField, dynamicNames, format));
+          getRelativePeriod(weeklyPeriodType, LAST_WEEK, dateField, dynamicNames, format));
     }
 
     if (isLastWeek()) {
       periods.add(
           getRelativePeriod(
-              new WeeklyPeriodType(),
+              weeklyPeriodType,
               LAST_WEEK,
               dateField.withDate(new DateTime(dateField.date()).minusWeeks(1).toDate()),
               dynamicNames,
@@ -584,7 +631,7 @@ public class RelativePeriods implements Serializable {
     if (isWeeksThisYear()) {
       periods.addAll(
           getRelativePeriodList(
-              new WeeklyPeriodType(), WEEKS_THIS_YEAR, dateField.date(), dynamicNames, format));
+              weeklyPeriodType, WEEKS_THIS_YEAR, dateField.date(), dynamicNames, format));
     }
 
     if (isMonthsThisYear()) {
@@ -683,7 +730,7 @@ public class RelativePeriods implements Serializable {
     if (isLast4Weeks()) {
       periods.addAll(
           getRollingRelativePeriodList(
-                  new WeeklyPeriodType(),
+                  weeklyPeriodType,
                   WEEKS_LAST_52,
                   new DateTime(dateField.date()).minusWeeks(1).toDate(),
                   dynamicNames,
@@ -705,7 +752,7 @@ public class RelativePeriods implements Serializable {
     if (isLast12Weeks()) {
       periods.addAll(
           getRollingRelativePeriodList(
-                  new WeeklyPeriodType(),
+                  weeklyPeriodType,
                   WEEKS_LAST_52,
                   new DateTime(dateField.date()).minusWeeks(1).toDate(),
                   dynamicNames,
@@ -716,7 +763,7 @@ public class RelativePeriods implements Serializable {
     if (isLast52Weeks()) {
       periods.addAll(
           getRollingRelativePeriodList(
-              new WeeklyPeriodType(),
+              weeklyPeriodType,
               WEEKS_LAST_52,
               new DateTime(dateField.date()).minusWeeks(1).toDate(),
               dynamicNames,
@@ -964,7 +1011,8 @@ public class RelativePeriods implements Serializable {
         DateField.withDefaults().withDate(date),
         null,
         false,
-        AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+        AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER,
+        AnalyticsWeekStartKey.WEEKLY);
   }
 
   /**
@@ -984,6 +1032,29 @@ public class RelativePeriods implements Serializable {
       I18nFormat format,
       boolean dynamicNames,
       AnalyticsFinancialYearStartKey financialYearStart) {
+    return getRelativePeriodsFromEnum(
+        relativePeriod, date, format, dynamicNames, financialYearStart, WEEKLY);
+  }
+
+  /**
+   * Returns a RelativePeriods instance based on the given RelativePeriodsEnum.
+   *
+   * @param relativePeriod a list of RelativePeriodsEnum.
+   * @param date the relative date to use for generating the relative periods.
+   * @param format the {@link I18nFormat}, can be null.
+   * @param dynamicNames indicates whether to set dynamic names on the periods.
+   * @param financialYearStart the start of a financial year per {@link
+   *     AnalyticsFinancialYearStartKey}.
+   * @param weekStart the start day of the week per {@link AnalyticsWeekStartKey}.
+   * @return a list of {@link Period}.
+   */
+  public static List<PeriodDimension> getRelativePeriodsFromEnum(
+      RelativePeriodEnum relativePeriod,
+      DateField date,
+      I18nFormat format,
+      boolean dynamicNames,
+      AnalyticsFinancialYearStartKey financialYearStart,
+      AnalyticsWeekStartKey weekStart) {
     Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
 
     map.put(RelativePeriodEnum.TODAY, new RelativePeriods().setThisDay(true));
@@ -1039,7 +1110,8 @@ public class RelativePeriods implements Serializable {
     map.put(RelativePeriodEnum.LAST_52_WEEKS, new RelativePeriods().setLast52Weeks(true));
 
     return map.containsKey(relativePeriod)
-        ? map.get(relativePeriod).getRelativePeriods(date, format, dynamicNames, financialYearStart)
+        ? map.get(relativePeriod)
+            .getRelativePeriods(date, format, dynamicNames, financialYearStart, weekStart)
         : new ArrayList<>();
   }
 

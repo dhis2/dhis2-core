@@ -34,6 +34,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeekStartKey;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.PeriodDimension;
@@ -59,19 +60,23 @@ public class RelativePeriodsController {
   public List<String> getRelativePeriods(
       @PathVariable RelativePeriodEnum relativePeriod,
       @RequestParam(required = false) Date startDate,
-      @RequestParam(required = false) AnalyticsFinancialYearStartKey financialYearStart) {
+      @RequestParam(required = false) AnalyticsFinancialYearStartKey financialYearStart,
+      @RequestParam(required = false) AnalyticsWeekStartKey weekStart) {
     Date resolvedDate = startDate != null ? startDate : new Date();
     AnalyticsFinancialYearStartKey financialYearStartKey =
         financialYearStart != null
             ? financialYearStart
             : AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+    AnalyticsWeekStartKey weekStartKey =
+        weekStart != null ? weekStart : AnalyticsWeekStartKey.WEEKLY;
 
     return RelativePeriods.getRelativePeriodsFromEnum(
             relativePeriod,
             DateField.withDefaults().withDate(resolvedDate),
             null,
             false,
-            financialYearStartKey)
+            financialYearStartKey,
+            weekStartKey)
         .stream()
         .map(PeriodDimension::getIsoDate)
         .toList();
