@@ -318,9 +318,11 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
 
     // This should either throw an exception or fail silently depending on configuration
     // We'll just verify that after adding, we only have one with that name
-    assertThrows(PersistenceException.class, () -> {
-      dataApprovalService.addWorkflow(duplicate);
-      entityManager.flush();
-    });
+    assertThrows(
+        PersistenceException.class,
+        () -> {
+          dataApprovalService.addWorkflow(duplicate);
+          entityManager.flush();
+        });
   }
 }
