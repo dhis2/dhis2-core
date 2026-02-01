@@ -40,6 +40,7 @@ import java.util.function.BinaryOperator;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeekStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Locale;
@@ -237,6 +238,10 @@ public non-sealed interface SystemSettings extends Settings {
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
     return asEnum(
         "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+  }
+
+  default AnalyticsWeekStartKey getAnalyticsWeekStart() {
+    return asEnum("analyticsWeekStart", AnalyticsWeekStartKey.WEEKLY);
   }
 
   default String getPhoneNumberAreaCode() {
