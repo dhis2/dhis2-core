@@ -29,12 +29,9 @@
  */
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
-import org.hisp.dhis.period.WeeklySaturdayPeriodType;
-import org.hisp.dhis.period.WeeklySundayPeriodType;
-import org.hisp.dhis.period.WeeklyThursdayPeriodType;
-import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 
 /**
  * Enum representing the start day of the week for analytics relative weekly periods.
@@ -42,26 +39,23 @@ import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
  * @author Jan Bernitt
  */
 public enum AnalyticsWeekStartKey {
-  WEEKLY("WEEKLY", new WeeklyPeriodType()),
-  WEEKLY_WEDNESDAY("WEEKLY_WEDNESDAY", new WeeklyWednesdayPeriodType()),
-  WEEKLY_THURSDAY("WEEKLY_THURSDAY", new WeeklyThursdayPeriodType()),
-  WEEKLY_SATURDAY("WEEKLY_SATURDAY", new WeeklySaturdayPeriodType()),
-  WEEKLY_SUNDAY("WEEKLY_SUNDAY", new WeeklySundayPeriodType());
+  WEEKLY(PeriodTypeEnum.WEEKLY),
+  WEEKLY_WEDNESDAY(PeriodTypeEnum.WEEKLY_WEDNESDAY),
+  WEEKLY_THURSDAY(PeriodTypeEnum.WEEKLY_THURSDAY),
+  WEEKLY_SATURDAY(PeriodTypeEnum.WEEKLY_SATURDAY),
+  WEEKLY_SUNDAY(PeriodTypeEnum.WEEKLY_SUNDAY);
 
-  private final String name;
+  private final PeriodTypeEnum periodTypeEnum;
 
-  private final WeeklyAbstractPeriodType weeklyPeriodType;
-
-  AnalyticsWeekStartKey(String name, WeeklyAbstractPeriodType weeklyPeriodType) {
-    this.name = name;
-    this.weeklyPeriodType = weeklyPeriodType;
+  AnalyticsWeekStartKey(PeriodTypeEnum periodTypeEnum) {
+    this.periodTypeEnum = periodTypeEnum;
   }
 
   public String getName() {
-    return name;
+    return periodTypeEnum.getName();
   }
 
   public WeeklyAbstractPeriodType getWeeklyPeriodType() {
-    return weeklyPeriodType;
+    return (WeeklyAbstractPeriodType) PeriodType.getPeriodType(periodTypeEnum);
   }
 }
