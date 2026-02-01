@@ -288,7 +288,7 @@ public class DataApprovalWorkflow extends BaseMetadataObject
 
   @Override
   public Set<Translation> getTranslations() {
-    return translations != null ? translations.getTranslations() : Set.of();
+    return translations != null ? translations.getTranslations() : new HashSet<>();
   }
 
   @Override
