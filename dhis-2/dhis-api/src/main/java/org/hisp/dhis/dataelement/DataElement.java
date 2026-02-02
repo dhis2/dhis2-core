@@ -353,7 +353,7 @@ public class DataElement extends BaseDimensionalItemObject
   // Helper getters
   // -------------------------------------------------------------------------
 
-  @JsonProperty
+  //  @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isOptionSetValue() {
     return optionSet != null;
