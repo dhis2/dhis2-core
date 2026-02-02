@@ -30,7 +30,6 @@
 package org.hisp.dhis.test.tracker;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
-import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
@@ -38,6 +37,7 @@ import static io.gatling.javaapi.core.CoreDsl.forAll;
 import static io.gatling.javaapi.core.CoreDsl.group;
 import static io.gatling.javaapi.core.CoreDsl.incrementUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
+import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
@@ -211,7 +211,10 @@ public class TrackerTest extends Simulation {
 
     PopulationBuilder populationBuilder;
     if (this.profile == Profile.SMOKE) {
-      ClosedInjectionStep closedInjection = constantConcurrentUsers(1).during(1);
+      ClosedInjectionStep closedInjection =
+          rampConcurrentUsers(0)
+              .to(this.usersPerSec)
+              .during(Duration.ofSeconds(this.rampDurationSec));
       populationBuilder =
           eventScenario
               .scenario()
