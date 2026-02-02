@@ -2762,4 +2762,192 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     // where:
     // (ax."eventstatus" in ('ACTIVE') and ax."ps" = 'ZkbAXlQUYJG')
   }
+
+  @Test
+  public void stageAndCategory() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("asc=eventdate")
+            .add("headers=kO3z4Dhc038.LFsZ8v5v7rq,oucode")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=10")
+            .add("page=1")
+            .add("dimension=pe:2021,kO3z4Dhc038.LFsZ8v5v7rq:CW81uF03hvV;B3nxOazOO2G")
+            .add("desc=eventdate,lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("bMcwwoVnbSR", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        10,
+        5,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":658,\"pageSize\":10,\"pageCount\":66},\"items\":{\"RkbOhHwiOgW\":{\"name\":\"CARE International\"},\"kO3z4Dhc038.LFsZ8v5v7rq\":{},\"ou\":{},\"uilaJSyXt7d\":{\"name\":\"World Vision\"},\"2021\":{\"name\":\"2021\"},\"VLFVaH1MwnF\":{\"name\":\"Pathfinder International\"},\"CW81uF03hvV\":{\"name\":\"AIDSRelief Consortium\"},\"hERJraxV8D9\":{\"name\":\"Hope Worldwide\"},\"LFsZ8v5v7rq\":{},\"g3bcPGD5Q5i\":{\"name\":\"International Rescue Committee\"},\"yrwgRxRhBoU\":{\"name\":\"Path\"},\"TY5rBQzlBRa\":{\"name\":\"Family Health International\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"yfWXlxYNbhy\":{\"name\":\"IntraHealth International\"},\"e5YBV5F5iUd\":{\"name\":\"Plan International\"},\"LEWNFo4Qrrs\":{\"name\":\"World Concern\"},\"XK6u6cJCR0t\":{\"name\":\"Population Services International\"},\"C6nZpLKjEJr\":{\"name\":\"African Medical and Research Foundation\"},\"bMcwwoVnbSR\":{\"name\":\"Malaria testing and surveillance\"},\"B3nxOazOO2G\":{\"name\":\"APHIAplus\"},\"kO3z4Dhc038\":{\"name\":\"Malaria testing and surveillance\"},\"xwZ2u3WyQR0\":{\"name\":\"Unicef\"},\"xEunk8LPzkb\":{\"name\":\"World Relief\"}},\"dimensions\":{\"kO3z4Dhc038.LFsZ8v5v7rq\":[\"CW81uF03hvV\",\"B3nxOazOO2G\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"LFsZ8v5v7rq\":[\"C6nZpLKjEJr\",\"CW81uF03hvV\",\"B3nxOazOO2G\",\"RkbOhHwiOgW\",\"TY5rBQzlBRa\",\"hERJraxV8D9\",\"g3bcPGD5Q5i\",\"yfWXlxYNbhy\",\"yrwgRxRhBoU\",\"VLFVaH1MwnF\",\"e5YBV5F5iUd\",\"XK6u6cJCR0t\",\"xwZ2u3WyQR0\",\"LEWNFo4Qrrs\",\"xEunk8LPzkb\",\"uilaJSyXt7d\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "kO3z4Dhc038.LFsZ8v5v7rq",
+        "",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag
+    if (expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", true);
+      validateHeaderExistence(actualHeaders, "longitude", true);
+      validateHeaderExistence(actualHeaders, "latitude", true);
+    } else {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "kO3z4Dhc038.LFsZ8v5v7rq", "B3nxOazOO2G");
+    validateRowValueByName(response, actualHeaders, 0, "oucode", "OU_226216");
+
+    // Validate selected values for row index 3
+    validateRowValueByName(response, actualHeaders, 3, "kO3z4Dhc038.LFsZ8v5v7rq", "B3nxOazOO2G");
+    validateRowValueByName(response, actualHeaders, 3, "oucode", "OU_222657");
+
+    // Validate selected values for row index 6
+    validateRowValueByName(response, actualHeaders, 6, "kO3z4Dhc038.LFsZ8v5v7rq", "CW81uF03hvV");
+    validateRowValueByName(response, actualHeaders, 6, "oucode", "OU_254980");
+
+    // Validate selected values for row index 9
+    validateRowValueByName(response, actualHeaders, 9, "kO3z4Dhc038.LFsZ8v5v7rq", "B3nxOazOO2G");
+    validateRowValueByName(response, actualHeaders, 9, "oucode", "OU_255018");
+  }
+
+  @Test
+  public void stageAndCategoryOptionGroupSet() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("asc=eventdate")
+            .add("headers=kO3z4Dhc038.C31vHZqu0qU,oucode")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=10")
+            .add("page=1")
+            .add("dimension=pe:2021,kO3z4Dhc038.C31vHZqu0qU:j3C417uW6J7;ddAo6zmIHOk")
+            .add("desc=eventdate,lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("bMcwwoVnbSR", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        10,
+        5,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":1582,\"pageSize\":10,\"pageCount\":159},\"items\":{\"uilaJSyXt7d\":{\"name\":\"World Vision\"},\"VLFVaH1MwnF\":{\"name\":\"Pathfinder International\"},\"CW81uF03hvV\":{\"name\":\"AIDSRelief Consortium\"},\"hERJraxV8D9\":{\"name\":\"Hope Worldwide\"},\"TY5rBQzlBRa\":{\"name\":\"Family Health International\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"XK6u6cJCR0t\":{\"name\":\"Population Services International\"},\"B3nxOazOO2G\":{\"name\":\"APHIAplus\"},\"ddAo6zmIHOk\":{\"name\":\"DFID\"},\"j3C417uW6J7\":{\"name\":\"DANIDA\"},\"RkbOhHwiOgW\":{\"name\":\"CARE International\"},\"ou\":{},\"2021\":{\"name\":\"2021\"},\"LFsZ8v5v7rq\":{},\"g3bcPGD5Q5i\":{\"name\":\"International Rescue Committee\"},\"yrwgRxRhBoU\":{\"name\":\"Path\"},\"kO3z4Dhc038.C31vHZqu0qU\":{},\"yfWXlxYNbhy\":{\"name\":\"IntraHealth International\"},\"e5YBV5F5iUd\":{\"name\":\"Plan International\"},\"LEWNFo4Qrrs\":{\"name\":\"World Concern\"},\"C6nZpLKjEJr\":{\"name\":\"African Medical and Research Foundation\"},\"bMcwwoVnbSR\":{\"name\":\"Malaria testing and surveillance\"},\"kO3z4Dhc038\":{\"name\":\"Malaria testing and surveillance\"},\"xwZ2u3WyQR0\":{\"name\":\"Unicef\"},\"xEunk8LPzkb\":{\"name\":\"World Relief\"}},\"dimensions\":{\"kO3z4Dhc038.C31vHZqu0qU\":[\"j3C417uW6J7\",\"ddAo6zmIHOk\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"LFsZ8v5v7rq\":[\"C6nZpLKjEJr\",\"CW81uF03hvV\",\"B3nxOazOO2G\",\"RkbOhHwiOgW\",\"TY5rBQzlBRa\",\"hERJraxV8D9\",\"g3bcPGD5Q5i\",\"yfWXlxYNbhy\",\"yrwgRxRhBoU\",\"VLFVaH1MwnF\",\"e5YBV5F5iUd\",\"XK6u6cJCR0t\",\"xwZ2u3WyQR0\",\"LEWNFo4Qrrs\",\"xEunk8LPzkb\",\"uilaJSyXt7d\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "kO3z4Dhc038.C31vHZqu0qU",
+        "",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag
+    if (expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", true);
+      validateHeaderExistence(actualHeaders, "longitude", true);
+      validateHeaderExistence(actualHeaders, "latitude", true);
+    } else {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "kO3z4Dhc038.C31vHZqu0qU", "ddAo6zmIHOk");
+    validateRowValueByName(response, actualHeaders, 0, "oucode", "OU_226242");
+
+    // Validate selected values for row index 3
+    validateRowValueByName(response, actualHeaders, 3, "kO3z4Dhc038.C31vHZqu0qU", "ddAo6zmIHOk");
+    validateRowValueByName(response, actualHeaders, 3, "oucode", "OU_197405");
+
+    // Validate selected values for row index 6
+    validateRowValueByName(response, actualHeaders, 6, "kO3z4Dhc038.C31vHZqu0qU", "ddAo6zmIHOk");
+    validateRowValueByName(response, actualHeaders, 6, "oucode", "OU_204931");
+
+    // Validate selected values for row index 9
+    validateRowValueByName(response, actualHeaders, 9, "kO3z4Dhc038.C31vHZqu0qU", "ddAo6zmIHOk");
+    validateRowValueByName(response, actualHeaders, 9, "oucode", "OU_260419");
+  }
 }
