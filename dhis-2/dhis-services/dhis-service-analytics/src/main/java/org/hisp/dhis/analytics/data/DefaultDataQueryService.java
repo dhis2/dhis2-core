@@ -411,7 +411,7 @@ public class DefaultDataQueryService implements DataQueryService {
       // Check for stage-specific category or COGS (format: stageUid.categoryUid or
       // stageUid.cogsUid)
       Optional<DimensionalObject> stageSpecificDim =
-          getStageSpecificDynamicDimension(dimension, items, displayProperty, inputIdScheme);
+          getStageSpecificDynamicDimension(dimension, items, inputIdScheme);
       if (stageSpecificDim.isPresent()) {
         return stageSpecificDim.get();
       }
@@ -438,15 +438,11 @@ public class DefaultDataQueryService implements DataQueryService {
    *
    * @param dimension the dimension string, potentially with stage prefix
    * @param items the list of items (category options or category option groups)
-   * @param displayProperty the display property
    * @param inputIdScheme the input id scheme
    * @return an Optional containing the DimensionalObject if it's a stage-specific dynamic dimension
    */
   private Optional<DimensionalObject> getStageSpecificDynamicDimension(
-      String dimension,
-      List<String> items,
-      DisplayProperty displayProperty,
-      IdScheme inputIdScheme) {
+      String dimension, List<String> items, IdScheme inputIdScheme) {
     // Check if dimension has stage prefix (format: stageUid.dimensionUid)
     if (!dimension.contains(DIMENSION_IDENTIFIER_SEP)) {
       return Optional.empty();
