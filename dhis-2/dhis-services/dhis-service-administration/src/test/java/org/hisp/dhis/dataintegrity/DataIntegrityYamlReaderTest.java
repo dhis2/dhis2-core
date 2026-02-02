@@ -252,7 +252,7 @@ class DataIntegrityYamlReaderTest {
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
     // Check for names
     for (DataIntegrityCheck check : checks) {
-      String translationKey = "data_integrity." + check.getDisplayName() + ".name";
+      String translationKey = "data_integrity." + check.getName() + ".name";
       String translation = resourceBundle.getString(translationKey);
       assertEquals(
           check.getDescription(),
