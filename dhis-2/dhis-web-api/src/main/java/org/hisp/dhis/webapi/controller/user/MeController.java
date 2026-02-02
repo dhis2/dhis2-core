@@ -296,7 +296,6 @@ public class MeController {
    *
    * @param currentUser the currently authenticated user
    */
-  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @DeleteMapping(value = "/avatar")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeAvatar(@CurrentUser(required = true) User currentUser) {

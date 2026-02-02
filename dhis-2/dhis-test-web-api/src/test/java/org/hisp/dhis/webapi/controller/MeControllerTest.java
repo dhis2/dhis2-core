@@ -273,7 +273,6 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     assertTrue(id.exists());
   }
 
-
   @Test
   void testRemoveAvatar() throws IOException {
     // First, upload an avatar image
