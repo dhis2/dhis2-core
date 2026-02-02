@@ -562,7 +562,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (ds == null) ds = autoTargetDataSet(values, scope);
 
     validateUserAccess(ds, scope);
-    if (!values.isEmpty()) return new DataEntryGroup(ds, null, scope, values);
+    if (values.isEmpty()) return new DataEntryGroup(ds, null, scope, values);
 
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
