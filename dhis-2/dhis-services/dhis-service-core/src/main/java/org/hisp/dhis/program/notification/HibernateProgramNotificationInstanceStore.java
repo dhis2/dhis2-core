@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
@@ -115,7 +118,18 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     if (params.hasScheduledAt()) {
-      predicates.add(root -> builder.equal(root.get("scheduledAt"), params.getScheduledAt()));
+      Date scheduledAt = params.getScheduledAt();
+
+      LocalDate date = scheduledAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+      Date startOfDay = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+      Date startOfNextDay =
+          Date.from(date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+      predicates.add(root -> builder.greaterThanOrEqualTo(root.get("scheduledAt"), startOfDay));
+
+      predicates.add(root -> builder.lessThan(root.get("scheduledAt"), startOfNextDay));
     }
 
     return predicates;
