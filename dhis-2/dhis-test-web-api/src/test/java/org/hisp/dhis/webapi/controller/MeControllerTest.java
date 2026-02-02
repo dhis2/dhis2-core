@@ -33,15 +33,22 @@ import static org.hisp.dhis.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
@@ -50,6 +57,8 @@ import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
@@ -58,6 +67,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class MeControllerTest extends DhisControllerConvenienceTest {
   private User userA;
+
+  @Autowired private FileResourceService fileResourceService;
 
   @Autowired private ApiTokenStore apiTokenStore;
 
@@ -270,5 +281,84 @@ class MeControllerTest extends DhisControllerConvenienceTest {
     JsonValue id = patTokens.getObject(0).get("id");
 
     assertTrue(id.exists());
+  }
+
+  @Test
+  void testRemoveAvatar() throws IOException {
+    // First, upload an avatar image
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse uploadResponse = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        uploadResponse.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    String fileResourceId = savedObject.getString("id").string();
+
+    // Set the avatar on the current user
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+    user.setAvatar(fileResource);
+    userService.updateUser(user);
+
+    // Verify avatar is set
+    User userWithAvatar = userService.getUserByUsername(currentUsername);
+    assertNotNull(userWithAvatar.getAvatar());
+    assertEquals(fileResourceId, userWithAvatar.getAvatar().getUid());
+
+    // Now remove the avatar
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify avatar is removed
+    User userAfterRemoval = userService.getUserByUsername(currentUsername);
+    assertNull(userAfterRemoval.getAvatar());
+  }
+
+  @Test
+  void testRemoveAvatar_NoExistingAvatar() {
+    // Verify user has no avatar
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    assertNull(user.getAvatar());
+
+    // Removing avatar when there is none should succeed (idempotent operation)
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify still no avatar
+    User userAfter = userService.getUserByUsername(currentUsername);
+    assertNull(userAfter.getAvatar());
+  }
+
+  @Test
+  void testRemoveAvatar_WithoutSpecialAuthorities() throws IOException {
+    // Switch to a user without special authorities (simulating a guest user)
+    switchToNewUser("guestUser");
+
+    // First, upload an avatar image
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse uploadResponse = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        uploadResponse.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    String fileResourceId = savedObject.getString("id").string();
+
+    // Set the avatar on the current user
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+    user.setAvatar(fileResource);
+    userService.updateUser(user);
+
+    // Verify avatar is set
+    User userWithAvatar = userService.getUserByUsername(currentUsername);
+    assertNotNull(userWithAvatar.getAvatar());
+
+    // Remove the avatar - this should work even without special authorities
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify avatar is removed
+    User userAfterRemoval = userService.getUserByUsername(currentUsername);
+    assertNull(userAfterRemoval.getAvatar());
   }
 }
