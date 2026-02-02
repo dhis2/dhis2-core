@@ -100,6 +100,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-01-30")
             .add("dimension=ou:USER_ORGUNIT");
 
     // When
@@ -393,6 +394,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-01-30")
             .add("dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE;COMPLETED,ou:USER_ORGUNIT");
 
     // When
@@ -485,6 +487,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-01-30")
             .add("dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT");
 
     // When
@@ -577,6 +580,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-01-30")
             .add("dimension=ZkbAXlQUYJG.ou:O6uvpzGd5pu;DiszpKrYNg8");
 
     // When
@@ -669,6 +673,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
             .add("totalPages=false")
             .add("pageSize=10")
             .add("page=1")
+            .add("relativePeriodDate=2026-01-30")
             .add("dimension=ZkbAXlQUYJG.ou:LEVEL-tTUf91fCytl");
 
     // When
