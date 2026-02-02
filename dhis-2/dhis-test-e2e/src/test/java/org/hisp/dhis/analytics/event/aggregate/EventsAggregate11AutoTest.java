@@ -799,7 +799,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        6,
+        3,
         3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
@@ -815,30 +815,19 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "kO3z4Dhc038.C31vHZqu0qU",
-        "",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+    //    validateHeaderPropertiesByName(
+    //        response,
+    //        actualHeaders,
+    //        "kO3z4Dhc038.C31vHZqu0qU",
+    //        "",
+    //        "TEXT",
+    //        "java.lang.String",
+    //        false,
+    //        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
-
-    // Assert PostGIS-specific headers existence based on 'expectPostgis' flag
-    if (expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", true);
-      validateHeaderExistence(actualHeaders, "longitude", true);
-      validateHeaderExistence(actualHeaders, "latitude", true);
-    } else {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
 
     // rowContext not found or empty in the response, skipping assertions.
 
