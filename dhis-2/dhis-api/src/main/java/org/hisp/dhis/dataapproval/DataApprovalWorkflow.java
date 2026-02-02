@@ -259,6 +259,7 @@ public class DataApprovalWorkflow extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }
