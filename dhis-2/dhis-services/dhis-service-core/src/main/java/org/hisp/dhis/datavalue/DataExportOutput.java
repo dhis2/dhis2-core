@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static java.lang.System.out;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import com.csvreader.CsvWriter;
@@ -146,7 +145,7 @@ final class DataExportOutput {
                 });
           });
     } finally {
-      out.close();
+      json.close();
     }
   }
 
