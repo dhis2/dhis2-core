@@ -99,7 +99,9 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   @DisplayName("Should fetch scheduled notifications within timeout")
   void shouldReturnProgramNotificationInstancesForGivenDate() {
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(new Date()).build();
+        ProgramNotificationInstanceParam.builder()
+            .scheduledAt(DateUtils.parseDate("2025-01-01 11:22:56+0100"))
+            .build();
 
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
