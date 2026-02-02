@@ -26,7 +26,7 @@
 #
 ---
 name: validation_rules_without_groups
-description: All validation rules should belong to a validation rule group.
+description: Validation rules without a validation rule group
 section: Validation rules
 section_order: 1
 summary_sql: >-
