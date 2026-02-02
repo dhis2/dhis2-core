@@ -36,7 +36,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.util.SharingUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +60,8 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
   @Autowired private LegendSetService legendSetService;
 
   @PersistenceContext private EntityManager entityManager;
+  
+  @Autowired private IdentifiableObjectManager objectManager;
 
   private Legend legendA;
 
@@ -263,9 +275,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     legendSetA = createLegendSet('A');
     legendSetA.setCode("LEGENDSET_A_CODE");
     legendSetA.setSymbolizer("circle");
-    legendSetA.setColorLow("#00FF00");
-    legendSetA.setColorHigh("#FF0000");
-    legendSetA.setType("COLOR");
 
     legendA = createLegend('A', 0d, 10d);
     legendB = createLegend('B', 10d, 20d);
@@ -280,9 +289,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     assertEquals("LegendSetA", retrieved.getName());
     assertEquals("LEGENDSET_A_CODE", retrieved.getCode());
     assertEquals("circle", retrieved.getSymbolizer());
-    assertEquals("#00FF00", retrieved.getColorLow());
-    assertEquals("#FF0000", retrieved.getColorHigh());
-    assertEquals("COLOR", retrieved.getType());
     assertEquals(2, retrieved.getLegends().size());
   }
 
@@ -335,7 +341,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     LegendSet retrieved = legendSetService.getLegendSet(idA);
     retrieved.setName("UpdatedLegendSet");
     retrieved.setSymbolizer("triangle");
-    retrieved.setColorLow("#FFFF00");
 
     legendSetService.updateLegendSet(retrieved);
 
@@ -343,7 +348,6 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
     LegendSet updated = legendSetService.getLegendSet(idA);
     assertEquals("UpdatedLegendSet", updated.getName());
     assertEquals("triangle", updated.getSymbolizer());
-    assertEquals("#FFFF00", updated.getColorLow());
     assertEquals(1, updated.getLegends().size());
   }
 
@@ -370,16 +374,11 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testJpaLegendSetNullableFields() {
-    // Test that nullable fields can be null
     legendSetA = createLegendSet('A');
-    // Don't set optional fields: method, classes, colorLow, colorHigh, type, symbolizer
 
     long idA = legendSetService.addLegendSet(legendSetA);
 
     LegendSet retrieved = legendSetService.getLegendSet(idA);
-    assertNull(retrieved.getColorLow());
-    assertNull(retrieved.getColorHigh());
-    assertNull(retrieved.getType());
     assertNull(retrieved.getSymbolizer());
   }
 
@@ -401,44 +400,39 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testJpaLegendSetTranslations() {
-    // Test that translations are properly stored and retrieved
     legendSetA = createLegendSet('A');
-
     long idA = legendSetService.addLegendSet(legendSetA);
+
+    Locale locale = Locale.FRENCH;
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale.toString()));
+
+    String translatedName = "translatedName";
+    Set<Translation> translations = new HashSet<>(legendSetA.getTranslations());
+    translations.add(new Translation(locale.language(), "NAME", translatedName));
+    objectManager.updateTranslations(legendSetA, translations);
 
     LegendSet retrieved = legendSetService.getLegendSet(idA);
 
-    // Translations should be empty by default
     assertNotNull(retrieved.getTranslations());
-    assertEquals(0, retrieved.getTranslations().size());
+    assertEquals("translatedName", retrieved.getDisplayName());
   }
 
   @Test
   void testJpaLegendSetSharing() {
-    // Test that sharing is properly stored and retrieved
     legendSetA = createLegendSet('A');
-
     long idA = legendSetService.addLegendSet(legendSetA);
-
     LegendSet retrieved = legendSetService.getLegendSet(idA);
 
     // Sharing should be initialized
     assertNotNull(retrieved.getSharing());
-  }
-
-  @Test
-  void testJpaLegendSetExtraFields() {
-    // Test the extra database fields (method, classes, colorLow, colorHigh, type)
-    legendSetA = createLegendSet('A');
-    legendSetA.setColorLow("#AABBCC");
-    legendSetA.setColorHigh("#DDEEFF");
-    legendSetA.setType("DIVERGENT");
-
-    long idA = legendSetService.addLegendSet(legendSetA);
-
-    LegendSet retrieved = legendSetService.getLegendSet(idA);
-    assertEquals("#AABBCC", retrieved.getColorLow());
-    assertEquals("#DDEEFF", retrieved.getColorHigh());
-    assertEquals("DIVERGENT", retrieved.getType());
+    
+    retrieved.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    retrieved.getSharing().setUsers(Map.of("user1", new UserAccess("user1","rw------")));
+    legendSetService.updateLegendSet(retrieved);
+    
+    LegendSet updated = legendSetService.getLegendSet(idA);
+    assertNotNull(updated.getSharing());
+    assertEquals(AccessStringHelper.DEFAULT, updated.getSharing().getPublicAccess());
+    assertTrue(updated.getSharing().getUsers().containsKey("user1"));
   }
 }

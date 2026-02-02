@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.legend;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -81,15 +82,6 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   @Type(type = "jsbObjectSharing")
   @Column(name = "sharing", columnDefinition = "jsonb")
   private Sharing sharing = new Sharing();
-
-  @Column(name = "colorlow", length = 255)
-  private String colorLow;
-
-  @Column(name = "colorhigh", length = 255)
-  private String colorHigh;
-
-  @Column(name = "type", length = 255)
-  private String type;
 
   @Column(name = "symbolizer", length = 255)
   private String symbolizer;
@@ -156,42 +148,13 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   public void setLegends(Set<Legend> legends) {
     this.legends = legends;
   }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getColorLow() {
-    return colorLow;
-  }
-
-  public void setColorLow(String colorLow) {
-    this.colorLow = colorLow;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getColorHigh() {
-    return colorHigh;
-  }
-
-  public void setColorHigh(String colorHigh) {
-    this.colorHigh = colorHigh;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
-
+  
   // -------------------------------------------------------------------------
   // IdentifiableObject implementation
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonIgnore
   public long getId() {
     return id;
   }
@@ -227,7 +190,7 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
 
   @Override
   public String getDisplayName() {
-    return getName();
+    return translations.getTranslation("NAME", getName());
   }
 
   @Override
