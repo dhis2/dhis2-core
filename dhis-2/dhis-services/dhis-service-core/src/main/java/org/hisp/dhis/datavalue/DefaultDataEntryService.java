@@ -516,7 +516,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public LockStatus getEntryStatus(UID dataSet, @Nonnull DataEntryKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
-    UID ds = dataSet != null ? dataSet : autoTargetDataSet(List.of(e));
+    UID ds = dataSet != null ? dataSet : autoTargetDataSet(List.of(e), null);
     try {
       validateEntryTimeliness(ds, List.of(e));
       return LockStatus.OPEN;
@@ -538,11 +538,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
    * without risk of misinterpretation of the request.
    */
   @Nonnull
-  private UID autoTargetDataSet(List<DataEntryValue> values) throws ConflictException {
-    List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
-    if (dsForDe.isEmpty())
-      throw new ConflictException(
-          ErrorCode.E8003, values.stream().map(DataEntryValue::dataElement).distinct().toList());
+  private UID autoTargetDataSet(List<DataEntryValue> values, DataEntryGroup.Scope scope)
+      throws ConflictException {
+    Stream<UID> de = values.stream().map(DataEntryValue::dataElement);
+    if (scope != null)
+      de =
+          Stream.concat(
+              de, scope.elements().stream().map(DataEntryGroup.Scope.Element::dataElement));
+    List<UID> deUnique = de.distinct().toList();
+    List<String> dsForDe = store.getDataSets(deUnique.stream());
+    if (dsForDe.isEmpty()) throw new ConflictException(ErrorCode.E8003, deUnique);
     if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E8002, dsForDe);
     return UID.of(dsForDe.get(0));
   }
@@ -554,7 +559,10 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       List<DataEntryValue> values,
       List<DataEntryError> errors)
       throws ConflictException {
-    if (ds == null) ds = autoTargetDataSet(values);
+    if (ds == null) ds = autoTargetDataSet(values, scope);
+
+    validateUserAccess(ds, scope);
+    if (!values.isEmpty()) return new DataEntryGroup(ds, null, scope, values);
 
     validateUserAccess(ds, values);
     validateKeyConsistency(ds, values);
@@ -574,10 +582,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!dsNoAccess) throw new ConflictException(ErrorCode.E8010, ds);
 
     // - require: OUs are in user hierarchy
-    String userId = user.getUid();
+    UID userId = UID.of(user.getUid());
     List<String> noAccessOrgUnits =
-        store.getOrgUnitsNotInUserHierarchy(
-            UID.of(userId), values.stream().map(DataEntryValue::orgUnit));
+        store.getOrgUnitsNotInUserHierarchy(userId, values.stream().map(DataEntryValue::orgUnit));
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E8011, noAccessOrgUnits);
 
     // - require: AOCs + COCs => COs : ACL canDataWrite
@@ -586,6 +593,30 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
             Stream.concat(
                 values.stream().map(DataEntryValue::attributeOptionCombo),
                 values.stream().map(DataEntryValue::categoryOptionCombo)));
+    if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E8012, coNoAccess);
+  }
+
+  private void validateUserAccess(UID ds, DataEntryGroup.Scope scope) throws ConflictException {
+    if (scope == null) return;
+    UserDetails user = getCurrentUserDetails();
+    if (user.isSuper()) return; // super can always write
+
+    // - require: DS ACL check canDataWrite
+    boolean dsNoAccess = store.getDataSetCanDataWrite(ds);
+    if (!dsNoAccess) throw new ConflictException(ErrorCode.E8010, ds);
+
+    // - require: OUs are in user hierarchy
+    UID userId = UID.of(user.getUid());
+    List<String> noAccessOrgUnits =
+        store.getOrgUnitsNotInUserHierarchy(userId, scope.orgUnits().stream());
+    if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E8011, noAccessOrgUnits);
+
+    // - require: AOCs + COCs => COs : ACL canDataWrite
+    List<String> coNoAccess =
+        store.getCategoryOptionsCanNotDataWrite(
+            Stream.concat(
+                scope.elements().stream().map(DataEntryGroup.Scope.Element::attributeOptionCombo),
+                scope.elements().stream().map(DataEntryGroup.Scope.Element::categoryOptionCombo)));
     if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E8012, coNoAccess);
   }
 
