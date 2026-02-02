@@ -46,7 +46,6 @@ import org.hisp.dhis.setting.ThreadUserSettings;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.util.SharingUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +59,7 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
   @Autowired private LegendSetService legendSetService;
 
   @PersistenceContext private EntityManager entityManager;
-  
+
   @Autowired private IdentifiableObjectManager objectManager;
 
   private Legend legendA;
@@ -425,11 +424,11 @@ class LegendSetServiceTest extends PostgresIntegrationTestBase {
 
     // Sharing should be initialized
     assertNotNull(retrieved.getSharing());
-    
+
     retrieved.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    retrieved.getSharing().setUsers(Map.of("user1", new UserAccess("user1","rw------")));
+    retrieved.getSharing().setUsers(Map.of("user1", new UserAccess("user1", "rw------")));
     legendSetService.updateLegendSet(retrieved);
-    
+
     LegendSet updated = legendSetService.getLegendSet(idA);
     assertNotNull(updated.getSharing());
     assertEquals(AccessStringHelper.DEFAULT, updated.getSharing().getPublicAccess());
