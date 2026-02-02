@@ -339,12 +339,12 @@ public class TrackerTest extends Simulation {
   }
 
   private ScenarioWithRequests eventProgramScenario() {
-    String singleEventUrl = "/api/tracker/events/#{eventUid}";
+    String singleEventUrl = "/api/tracker/singleEvents/#{eventUid}";
     String relationshipUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
 
     String getEventsUrl =
-        "/api/tracker/events?program="
+        "/api/tracker/singleEvents?program="
             + this.eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,"
             + "&orgUnit=DiszpKrYNg8"
