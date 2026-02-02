@@ -64,7 +64,7 @@ class DataIntegrityUsersWithAppHubAuthorityControllerTest
                 "/userRoles",
                 "{ 'name': 'App Hub', 'authorities': ['M_DHIS_WEB_APP_MANAGEMENT'] }"));
 
-    String userRoleUidAppHub =
+    String userUidWithAppHubAuthority =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -96,9 +96,11 @@ class DataIntegrityUsersWithAppHubAuthorityControllerTest
                 + userRoleUidB
                 + "'}]}"));
 
-    // Note the expected percentage is 1/3 = 66%
+    // Note the expected percentage is 1/3 ≈ 33%
+    // There should be a total of three users now in the system: 1 admin created by default,
+    // 1 with App Hub authority, and 1 without App Hub authority.
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUidAppHub, "bobbytables", null, true);
+        DETAILS_ID_TYPE, CHECK_NAME, 33, userUidWithAppHubAuthority, "bobbytables", null, true);
   }
 
   @Test
