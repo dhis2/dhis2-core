@@ -314,13 +314,6 @@ class NotificationSenderTest {
     return enrollment;
   }
 
-  private Enrollment enrollment(Program program) {
-    Enrollment enrollment = new Enrollment();
-    enrollment.setUid(ENROLLMENT_UID);
-    enrollment.setProgram(program);
-    return enrollment;
-  }
-
   private TrackerEvent event() {
     Program program = new Program();
     program.setProgramType(ProgramType.WITH_REGISTRATION);
