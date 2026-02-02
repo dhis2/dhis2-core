@@ -58,7 +58,7 @@ import org.hisp.staxwax.writer.XMLWriter;
 final class DataExportOutput {
 
   static void toJson(DataExportGroup.Output group, OutputStream json) {
-    try {
+    try (json) {
       JsonBuilder.streamObject(
           JsonBuilder.MINIMIZED_FULL,
           json,
@@ -144,8 +144,8 @@ final class DataExportOutput {
                   }
                 });
           });
-    } finally {
-      json.close();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
   }
 
