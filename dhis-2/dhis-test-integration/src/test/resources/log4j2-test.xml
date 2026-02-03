@@ -2,6 +2,9 @@
 <Configuration status="warn">
     <Properties>
         <Property name="layout">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <!-- CI sets TEST_LOG_SUPPRESSED_LEVEL=error when ci-verbose label is present to show all errors.
+        Defaults to fatal which effectively suppresses all messages since SLF4J has no fatal level. -->
+        <Property name="suppressed.level">${env:TEST_LOG_SUPPRESSED_LEVEL:-fatal}</Property>
     </Properties>
 
     <Appenders>
@@ -17,16 +20,16 @@
         <!-- Suppress expected errors from tests exercising error paths and from resources
         not available in test classpaths (e.g. build.properties, apps-bundle.json).
         These are not real failures - the tests pass, but the application logs at ERROR. -->
-        <Logger name="org.hisp.dhis.scheduling" level="fatal"/>
-        <Logger name="org.hisp.dhis.system" level="fatal"/>
-        <Logger name="org.hisp.dhis.appmanager" level="fatal"/>
-        <Logger name="org.hisp.dhis.fileresource" level="fatal"/>
-        <Logger name="org.hisp.dhis.sms" level="fatal"/>
-        <Logger name="org.hisp.dhis.route" level="fatal"/>
-        <Logger name="org.hisp.dhis.dxf2.gml" level="fatal"/>
-        <Logger name="org.hisp.dhis.rules.engine" level="fatal"/>
-        <Logger name="org.hisp.dhis.tracker.imports.sms" level="fatal"/>
-        <Logger name="org.hisp.dhis.webapi.controller" level="fatal"/>
+        <Logger name="org.hisp.dhis.scheduling" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.system" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.appmanager" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.fileresource" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.sms" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.route" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.dxf2.gml" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.rules.engine" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.tracker.imports.sms" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.webapi.controller" level="${suppressed.level}"/>
 
         <Root level="warn">
             <!-- Set to error so CI test runs are quiet, we see failed tests easily but still see errors from libraries
