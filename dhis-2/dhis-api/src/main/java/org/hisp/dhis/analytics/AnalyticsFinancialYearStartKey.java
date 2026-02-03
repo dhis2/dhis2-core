@@ -40,6 +40,7 @@ import org.hisp.dhis.period.FinancialPeriodType;
 public enum AnalyticsFinancialYearStartKey {
   FINANCIAL_YEAR_APRIL("FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType()),
   FINANCIAL_YEAR_JULY("FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType()),
+  FINANCIAL_YEAR_SEPTEMBER("FINANCIAL_YEAR_SEPTEMBER", new FinancialOctoberPeriodType()),
   FINANCIAL_YEAR_OCTOBER("FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType());
 
   private final String name;

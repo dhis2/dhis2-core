@@ -182,4 +182,15 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("yyyy-MM-dd", settings.getString("keyDateFormat").string());
     assertEquals(10, settings.getNumber("jobsRescheduleAfterMinutes").intValue());
   }
+
+  @Test
+  void testSetSystemSettingAnalyticsFinancialYearStart() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsFinancialYearStart' set to value 'FINANCIAL_YEAR_SEPTEMBER'.",
+        POST("/systemSettings/analyticsFinancialYearStart?value=FINANCIAL_YEAR_SEPTEMBER")
+            .content(HttpStatus.OK));
+  }
 }
