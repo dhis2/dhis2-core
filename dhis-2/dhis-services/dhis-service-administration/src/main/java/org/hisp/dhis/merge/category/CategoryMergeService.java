@@ -90,13 +90,40 @@ public class CategoryMergeService implements MergeService {
     }
 
     // validate category combos
-    Set<UID> sourceCatCombos =
-        getCatComboUids(
-            sourceCategories.stream().map(c -> UID.of(c.getUid())).collect(Collectors.toSet()));
+    // 1. Sources do not share a cat combo
+    SharedComboCheck sharedComboCheck = categoriesShareCombo(sourceCategories);
+    if (sharedComboCheck.sharedComboFound()) {
+      mergeReport.addErrorMessage(
+          new ErrorMessage(ErrorCode.E1537, sharedComboCheck.sharedCatComboUids()));
+    }
+
+    // 2. Target does not share a cat combo with any source
     Set<UID> targetCatCombos = getCatComboUids(Set.of(UID.of(request.getTarget().getValue())));
-    validateCategoryCombosAreDifferent(sourceCatCombos, targetCatCombos, mergeReport);
+    validateCategoryCombosAreDifferent(
+        sharedComboCheck.allSourceCatComboUids, targetCatCombos, mergeReport);
     return request;
   }
+
+  private SharedComboCheck categoriesShareCombo(List<Category> categories) {
+    Set<UID> seenCatComboUids = new HashSet<>();
+    Set<UID> sharedCatComboUids = new HashSet<>();
+    Set<UID> allSourceCatComboUids = new HashSet<>();
+
+    for (Category category : categories) {
+      Set<UID> sourceCatCombos = getCatComboUids(List.of(UID.of(category.getUid())));
+      allSourceCatComboUids.addAll(sourceCatCombos);
+      for (UID combo : sourceCatCombos) {
+        if (!seenCatComboUids.add(combo)) {
+          sharedCatComboUids.add(combo);
+        }
+      }
+    }
+    boolean sharedComboFound = !sharedCatComboUids.isEmpty();
+    return new SharedComboCheck(sharedComboFound, sharedCatComboUids, allSourceCatComboUids);
+  }
+
+  record SharedComboCheck(
+      boolean sharedComboFound, Set<UID> sharedCatComboUids, Set<UID> allSourceCatComboUids) {}
 
   private Set<UID> getCatComboUids(Collection<UID> categoryUids) {
     return categoryService.getCategoryCombosByCategory(categoryUids).stream()

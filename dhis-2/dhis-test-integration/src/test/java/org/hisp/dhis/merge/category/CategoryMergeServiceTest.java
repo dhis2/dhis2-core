@@ -59,6 +59,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -80,6 +81,7 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private MergeService categoryMergeService;
   @Autowired private DbmsManager dbmsManager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private Category catSource1;
   private Category catSource2;
@@ -341,6 +343,45 @@ class CategoryMergeServiceTest extends PostgresIntegrationTestBase {
 
     assertEquals(2, sourceCombosAfter.size(), "Expect 2 category combos with source category refs");
     assertEquals(1, targetCombosAfter.size(), "Expect 1 category combo with target category ref");
+  }
+
+  @Test
+  @DisplayName("When two source Categories share the same CategoryCombo, merge should be rejected")
+  void sourceCategoriesShareSameComboRejectTest() {
+    // given Source1 and Source2 are both in the SAME CategoryCombo (ccShared)
+    // and Target is in a different CategoryCombo (ccTarget)
+    CategoryCombo ccShared = createCategoryCombo('a', catSource1, catSource2);
+    CategoryCombo ccTarget = createCategoryCombo('b', catTarget);
+    categoryService.addCategoryCombo(ccShared);
+    categoryService.addCategoryCombo(ccTarget);
+
+    // confirm initial state: ccShared has 2 categories (src1, src2), ccTarget has 1 (target)
+    List<CategoryCombo> sourceCombosBefore =
+        categoryComboStore.getCategoryCombosByCategory(
+            UID.of(catSource1.getUid(), catSource2.getUid()));
+    List<CategoryCombo> targetCombosBefore =
+        categoryComboStore.getCategoryCombosByCategory(Set.of(UID.of(catTarget.getUid())));
+
+    assertEquals(1, sourceCombosBefore.size(), "Expect 1 shared combo for both sources");
+    assertEquals(1, targetCombosBefore.size(), "Expect 1 combo for target");
+
+    // when a merge is processed
+    MergeParams mergeParams = getMergeParams(List.of(catSource1, catSource2), catTarget);
+
+    // then an exception is thrown and the merge report has the appropriate error message
+    MergeReport mergeReport =
+        assertThrows(ConflictException.class, () -> categoryMergeService.processMerge(mergeParams))
+            .getMergeReport();
+    dbmsManager.clearSession();
+
+    assertTrue(mergeReport.hasErrorMessages());
+    assertTrue(
+        mergeReport
+            .getMergeErrors()
+            .get(0)
+            .getMessage()
+            .contains(
+                "Source Categories cannot share a CategoryCombo. Shared CategoryCombos found"));
   }
 
   // -----------------------------

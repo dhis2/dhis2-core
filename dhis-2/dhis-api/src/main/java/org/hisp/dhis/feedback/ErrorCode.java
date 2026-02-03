@@ -127,6 +127,7 @@ public enum ErrorCode {
   E1535("Source CategoryOptions: {0} do not match target CategoryOptions: {1}"),
   E1536(
       "Source and target Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+  E1537("Source Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
 
   /* CategoryOptionCombo merge */
   E1540(
