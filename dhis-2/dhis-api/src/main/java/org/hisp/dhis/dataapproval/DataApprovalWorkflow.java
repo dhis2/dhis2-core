@@ -99,7 +99,7 @@ public class DataApprovalWorkflow extends BaseMetadataObject
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  @Embedded private TranslationProperty translations;
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   /** The period type for approving data with this workflow. */
   @ManyToOne
