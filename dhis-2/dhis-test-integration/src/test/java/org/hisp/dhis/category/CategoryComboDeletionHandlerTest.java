@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,37 +29,36 @@
  */
 package org.hisp.dhis.category;
 
-import java.util.Map;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * @author Lars Helge Overland
- */
-@Component
-@RequiredArgsConstructor
-public class CategoryComboDeletionHandler extends IdObjectDeletionHandler<CategoryCombo> {
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-  @Override
-  protected void registerHandler() {
-    whenVetoing(Category.class, this::allowDeleteCategory);
-    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
-  }
+@Transactional
+class CategoryComboDeletionHandlerTest extends PostgresIntegrationTestBase {
+  @Autowired private CategoryService categoryService;
 
-  private DeletionVeto allowDeleteCategory(Category category) {
-    String sql = "select 1 from categorycombos_categories where categoryid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", category.getId()));
-  }
+  @Test
+  @DisplayName("Deleting a Category with a ref to a CategoryCombo is prevented")
+  void deleteCategoryWithComboRefTest() {
+    // Given a category exists with a reference to a category combo
+    TestCategoryMetadata categoryMetadata = setupCategoryMetadata("1");
+    Category category = categoryMetadata.c1();
 
-  private void deleteCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
-    CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
-    Set<CategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
-    if (optionCombos.contains(categoryOptionCombo)) {
-      optionCombos.remove(categoryOptionCombo);
-      idObjectManager.updateNoAcl(categoryCombo);
-    }
+    // When trying to delete a category that is referenced by a category combo
+    DeleteNotAllowedException deleteNotAllowedException =
+        assertThrows(
+            DeleteNotAllowedException.class, () -> categoryService.deleteCategory(category));
+
+    // Then the deletion is prevented
+    assertEquals(
+        "Object could not be deleted because it is associated with another object: CategoryCombo",
+        deleteNotAllowedException.getMessage());
   }
 }

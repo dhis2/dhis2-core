@@ -34,6 +34,7 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -57,6 +58,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.LockOptions;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -704,5 +706,67 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               return o.isAscending() ? order + " asc" : order + " desc";
             })
         .collect(joining(","));
+  }
+
+  @Override
+  public int updateCatDimensionConstraintsCategoryRefs(
+      Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        UPDATE users_catdimensionconstraints
+        SET dataelementcategoryid = :targetCategoryId
+        WHERE (userid, dataelementcategoryid) IN (
+            SELECT DISTINCT ON (userid) userid, dataelementcategoryid
+            FROM users_catdimensionconstraints
+            WHERE dataelementcategoryid IN (:sourceCategoryIds)
+            ORDER BY userid, dataelementcategoryid
+        )
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int deleteRemainingCatDimensionConstraints(Set<Long> sourceCategoryIds) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        DELETE FROM users_catdimensionconstraints
+        WHERE dataelementcategoryid IN (:sourceCategoryIds)
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int deleteCatDimensionConstraintsWhenUserHasTarget(
+      Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        DELETE FROM users_catdimensionconstraints
+        WHERE dataelementcategoryid IN (:sourceCategoryIds)
+        AND userid IN (
+            SELECT userid FROM users_catdimensionconstraints
+            WHERE dataelementcategoryid = :targetCategoryId
+        )
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

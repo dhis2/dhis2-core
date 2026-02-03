@@ -244,4 +244,33 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
+
+  /**
+   * Update one source category dimension constraint to the targetCategoryId, where the User does
+   * not have a constraint for the targetCategoryId.
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of updated rows
+   */
+  int updateCatDimensionConstraintsCategoryRefs(Set<Long> sourceCategoryIds, long targetCategoryId);
+
+  /**
+   * Delete category dimension constraints for all sourceCategoryIds
+   *
+   * @param sourceCategoryIds source category ids
+   * @return number of updated rows
+   */
+  int deleteRemainingCatDimensionConstraints(Set<Long> sourceCategoryIds);
+
+  /**
+   * Delete category dimension constraints for all sourceCategoryIds where the User already has the
+   * targetCategoryId
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of deleted rows
+   */
+  int deleteCatDimensionConstraintsWhenUserHasTarget(
+      Set<Long> sourceCategoryIds, long targetCategoryId);
 }

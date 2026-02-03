@@ -29,13 +29,33 @@
  */
 package org.hisp.dhis.category;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
  */
 public interface CategoryComboStore extends IdentifiableObjectStore<CategoryCombo> {
   List<CategoryCombo> getCategoryCombosByDimensionType(DataDimensionType dataDimensionType);
+
+  /**
+   * Get all {@link CategoryCombo}s that are associated with the {@link Category}s provided
+   *
+   * @param categoryUids the UIDs of the categories
+   * @return list of {@link CategoryCombo}s
+   */
+  List<CategoryCombo> getCategoryCombosByCategory(Collection<UID> categoryUids);
+
+  /**
+   * Update all sourceCategoryIds ids to the targetId.
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetId target category id
+   * @return number of updated rows
+   */
+  int updateCatComboCategoryRefs(Set<Long> sourceCategoryIds, long targetId);
 }
