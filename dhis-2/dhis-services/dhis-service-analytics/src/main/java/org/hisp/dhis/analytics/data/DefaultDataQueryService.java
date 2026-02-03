@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.OutputFormat.ANALYTICS;
 import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.LATITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -70,10 +71,13 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -84,6 +88,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -403,6 +408,14 @@ public class DefaultDataQueryService implements DataQueryService {
       return new BaseDimensionalObject(
           dimension, STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>());
     } else {
+      // Check for stage-specific category or COGS (format: stageUid.categoryUid or
+      // stageUid.cogsUid)
+      Optional<DimensionalObject> stageSpecificDim =
+          getStageSpecificDynamicDimension(dimension, items, inputIdScheme);
+      if (stageSpecificDim.isPresent()) {
+        return stageSpecificDim.get();
+      }
+
       Optional<DimensionalObject> baseDimensionalObject =
           dimensionalObjectProducer.getDynamicDimension(
               dimension, items, displayProperty, inputIdScheme);
@@ -417,6 +430,85 @@ public class DefaultDataQueryService implements DataQueryService {
     }
 
     throw new IllegalQueryException(new ErrorMessage(E7125, dimension));
+  }
+
+  /**
+   * Handles stage-specific dynamic dimensions (Category and CategoryOptionGroupSet). Format:
+   * stageUid.categoryUid or stageUid.cogsUid
+   *
+   * @param dimension the dimension string, potentially with stage prefix
+   * @param items the list of items (category options or category option groups)
+   * @param inputIdScheme the input id scheme
+   * @return an Optional containing the DimensionalObject if it's a stage-specific dynamic dimension
+   */
+  private Optional<DimensionalObject> getStageSpecificDynamicDimension(
+      String dimension, List<String> items, IdScheme inputIdScheme) {
+    // Check if dimension has stage prefix (format: stageUid.dimensionUid)
+    if (!dimension.contains(DIMENSION_IDENTIFIER_SEP)) {
+      return Optional.empty();
+    }
+
+    String[] parts = dimension.split("\\" + DIMENSION_IDENTIFIER_SEP);
+    if (parts.length != 2) {
+      return Optional.empty();
+    }
+
+    String stageUid = parts[0];
+    String dimUid = parts[1];
+
+    // Try to load as ProgramStage
+    ProgramStage programStage =
+        idObjectManager.getObject(ProgramStage.class, inputIdScheme, stageUid);
+    if (programStage == null) {
+      return Optional.empty();
+    }
+
+    // Try to load as Category or CategoryOptionGroupSet
+    DimensionalObject dimObject = null;
+    DimensionType dimensionType = null;
+    Class<? extends DimensionalItemObject> itemClass = null;
+
+    Category category = idObjectManager.getObject(Category.class, inputIdScheme, dimUid);
+    if (category != null && category.isDataDimension()) {
+      dimObject = category;
+      dimensionType = DimensionType.CATEGORY;
+      itemClass = org.hisp.dhis.category.CategoryOption.class;
+    } else {
+      CategoryOptionGroupSet cogs =
+          idObjectManager.getObject(CategoryOptionGroupSet.class, inputIdScheme, dimUid);
+      if (cogs != null && cogs.isDataDimension()) {
+        dimObject = cogs;
+        dimensionType = DimensionType.CATEGORY_OPTION_GROUP_SET;
+        itemClass = org.hisp.dhis.category.CategoryOptionGroup.class;
+      }
+    }
+
+    if (dimObject == null) {
+      return Optional.empty();
+    }
+
+    // Load dimension items
+    boolean allItems = items.isEmpty() || items.contains("ALL_ITEMS");
+    List<DimensionalItemObject> dimItems;
+    if (!allItems) {
+      dimItems = new ArrayList<>(idObjectManager.getOrdered(itemClass, inputIdScheme, items));
+    } else {
+      dimItems = new ArrayList<>(dimObject.getItems());
+    }
+
+    // Create the BaseDimensionalObject with program stage
+    // Use default constructor to avoid with(dimension) method which incorrectly
+    // parses stageUid.categoryUid as programUid.categoryUid
+    BaseDimensionalObject result = new BaseDimensionalObject();
+    result.setUid(dimension); // Full qualified name for metadata keys
+    result.setDimensionType(dimensionType);
+    result.setDimensionName(dimUid); // Actual column name for SQL
+    // Note: dimensionDisplayName is not set as it has no setter, but it's optional
+    result.setItems(dimItems);
+    result.setAllItems(allItems);
+    result.setProgramStage(programStage);
+
+    return Optional.of(result);
   }
 
   /**

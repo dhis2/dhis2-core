@@ -5,6 +5,7 @@ env:
   # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
   MAVEN_LOG: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
 
+
 on:
   pull_request:
     types: [opened, labeled, synchronize]
