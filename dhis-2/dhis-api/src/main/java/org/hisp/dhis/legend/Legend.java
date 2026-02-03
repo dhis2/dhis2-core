@@ -33,6 +33,8 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
@@ -45,6 +47,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -57,8 +60,16 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.TranslationProperty;
+import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -83,7 +94,6 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @Column(name = "maplegendid")
   private long id;
 
-  // Fields from BaseMetadataObject (except createdBy)
   @Column(name = "uid", unique = true, nullable = false, length = 11)
   protected String uid;
 
@@ -99,11 +109,12 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 
-  @jakarta.persistence.Transient protected String href;
+  @Transient
+  protected String href;
 
-  @jakarta.persistence.Transient protected org.hisp.dhis.security.acl.Access access;
+  @Transient 
+  protected Access access;
 
-  // Legend-specific fields
   @Column(name = "code", unique = true, length = 50)
   private String code;
 
@@ -191,7 +202,8 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
 
   @JsonProperty(value = "id")
   @JacksonXmlProperty(localName = "id", isAttribute = true)
-  @Override
+  @PropertyRange(min = 11, max = 11)
+  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
   public String getUid() {
     return uid;
   }
@@ -203,7 +215,8 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
 
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
-  @Override
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getCreated() {
     return created;
   }
@@ -215,7 +228,8 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
 
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
-  @Override
+  @Description("The date this object was last updated.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getLastUpdated() {
     return lastUpdated;
   }
@@ -225,8 +239,12 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
     this.lastUpdated = lastUpdated;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
-  @Override
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getLastUpdatedBy() {
     return lastUpdatedBy;
   }
@@ -275,21 +293,6 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @Override
   public void setName(String name) {
     this.name = name;
-  }
-
-  @Override
-  public void setAutoFields() {
-    IdentifiableObject.super.setAutoFields();
-  }
-
-  @Override
-  public User getCreatedBy() {
-    return null; // Not supported - maplegend table doesn't have userid column
-  }
-
-  @Override
-  public void setCreatedBy(User createdBy) {
-    // Not supported - maplegend table doesn't have userid column
   }
 
   @Override
@@ -441,5 +444,16 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @Override
   public boolean hasSharing() {
     return false;
+  }
+
+
+  @Override
+  public User getCreatedBy() {
+    return null; // Not supported - maplegend table doesn't have userid column
+  }
+
+  @Override
+  public void setCreatedBy(User createdBy) {
+    // Not supported - maplegend table doesn't have userid column
   }
 }
