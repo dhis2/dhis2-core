@@ -104,7 +104,7 @@ class CategoryMergeTest extends ApiTest {
             "categoryOptions",
             hasItems(hasEntry("id", "UIDCatOpt1A"), hasEntry("id", "UIDCatOpt1B")))
         .body("categoryCombos", hasSize(equalTo(1)))
-        .body("categoryCombos", hasItem(hasEntry("id", "UIDCatCom02")));
+        .body("categoryCombos", hasItem(hasEntry("id", "UIDCatCom03")));
 
     // visualization category dimensions have source category refs
     verifyVisualisations(sourceUid1, "VizUid00001");
@@ -142,10 +142,13 @@ class CategoryMergeTest extends ApiTest {
         .body(
             "categoryOptions",
             hasItems(hasEntry("id", "UIDCatOpt1A"), hasEntry("id", "UIDCatOpt1B")))
-        .body("categoryCombos", hasSize(equalTo(2)))
+        .body("categoryCombos", hasSize(equalTo(3)))
         .body(
             "categoryCombos",
-            hasItems(hasEntry("id", "UIDCatCom01"), hasEntry("id", "UIDCatCom02")));
+            hasItems(
+                hasEntry("id", "UIDCatCom01"),
+                hasEntry("id", "UIDCatCom02"),
+                hasEntry("id", "UIDCatCom03")));
 
     // check visualization category dimensions have target category refs now
     verifyVisualisations(targetUid, "VizUid00001", "VizUid00002", "VizUid00003");
@@ -376,13 +379,26 @@ class CategoryMergeTest extends ApiTest {
                             "id": "UIDCatego01"
                         },
                         {
-                            "id": "UIDCatego02"
+                            "id": "UIDCatego04"
                         }
                     ]
                 },
                 {
                     "id": "UIDCatCom02",
                     "name": "category combo 2",
+                    "dataDimensionType": "DISAGGREGATION",
+                    "categories": [
+                        {
+                            "id": "UIDCatego02"
+                        },
+                        {
+                            "id": "UIDCatego04"
+                        }
+                    ]
+                },
+                {
+                    "id": "UIDCatCom03",
+                    "name": "category combo 3",
                     "dataDimensionType": "DISAGGREGATION",
                     "categories": [
                         {
