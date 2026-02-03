@@ -75,6 +75,18 @@ class SqlQueryHelper {
            where ev.rn = ${programStageOffset})"""
           .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
 
+  private static final String EVENT_ORDER_BY_SUBQUERY_INCLUDE_SCHEDULE =
+      """
+          (select ${selectedEventField}
+           from (select *,
+                 row_number() over ( partition by enrollment
+                                     order by coalesce(occurreddate, scheduleddate) ${programStageOffsetDirection} ) as rn
+                 from analytics_te_event_${trackedEntityTypeUid} events
+                 where programstage = '${programStageUid}'
+                   and enrollment = %s) ev
+           where ev.rn = ${programStageOffset})"""
+          .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
+
   private static final String DATA_VALUES_ORDER_BY_SUBQUERY =
       """
           (select ${dataElementField}
@@ -119,6 +131,42 @@ class SqlQueryHelper {
                          from analytics_te_event_${trackedEntityTypeUid}
                          where "${eventSubqueryAlias}".event = event
                            and ${eventDataValueCondition})"""));
+
+  private static final String EVENT_EXISTS_SUBQUERY_INCLUDE_SCHEDULE =
+      replace(
+          ENROLLMENT_EXISTS_SUBQUERY,
+          Map.of(
+              "enrollmentCondition",
+              """
+                  exists(select 1
+                         from (select *
+                               from (select *, row_number() over ( partition by enrollment order by coalesce(occurreddate, scheduleddate) ${programStageOffsetDirection} ) as rn
+                                     from analytics_te_event_${trackedEntityTypeUid}
+                                     where "${enrollmentSubqueryAlias}".enrollment = enrollment
+                                       and programstage = '${programStageUid}') ev
+                               where ev.rn = 1) as "${eventSubqueryAlias}"
+                         where ${eventCondition})"""));
+
+  private static final String EVENT_SELECT_SUBQUERY =
+      """
+          (select ev."${selectedEventField}"
+           from (select *, row_number() over (partition by enrollment order by occurreddate ${programStageOffsetDirection}) as rn
+                 from analytics_te_event_${trackedEntityTypeUid}
+                 where programstage = '${programStageUid}'
+                   and status != 'SCHEDULE') ev
+           where ev.rn = ${programStageOffset}
+             and ev.enrollment = %s)"""
+          .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
+
+  private static final String EVENT_SELECT_SUBQUERY_INCLUDE_SCHEDULE =
+      """
+          (select ev."${selectedEventField}"
+           from (select *, row_number() over (partition by enrollment order by coalesce(occurreddate, scheduleddate) ${programStageOffsetDirection}) as rn
+                 from analytics_te_event_${trackedEntityTypeUid}
+                 where programstage = '${programStageUid}') ev
+           where ev.rn = ${programStageOffset}
+             and ev.enrollment = %s)"""
+          .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
 
   /**
    * Builds the order by sub-query for the given dimension identifier and field.
@@ -169,6 +217,33 @@ class SqlQueryHelper {
   }
 
   /**
+   * Builds the order by sub-query for event dimensions that should include SCHEDULE status. Used
+   * for SCHEDULED_DATE and EVENT_STATUS ordering where scheduled events must be included.
+   *
+   * @param dimId the dimension identifier
+   * @param field the renderable field on which to eventually sort by
+   * @return the renderable order by sub-query
+   */
+  static Renderable buildOrderSubQueryIncludeSchedule(
+      DimensionIdentifier<DimensionParam> dimId, Renderable field) {
+    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+      return () ->
+          replace(
+              EVENT_ORDER_BY_SUBQUERY_INCLUDE_SCHEDULE,
+              mergeMaps(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "selectedEnrollmentField",
+                      "enrollment",
+                      "selectedEventField",
+                      field.render())));
+    }
+    throw new IllegalArgumentException(
+        "buildOrderSubQueryIncludeSchedule only supports event dimensions: " + dimId);
+  }
+
+  /**
    * Builds the exists value sub-query for the given dimension identifier and condition.
    *
    * @param dimId the dimension identifier
@@ -215,6 +290,81 @@ class SqlQueryHelper {
       return condition;
     }
     throw new IllegalArgumentException("Unsupported dimension type: " + dimId);
+  }
+
+  /**
+   * Builds the exists value sub-query for event dimensions that should include SCHEDULE status.
+   * Used for SCHEDULED_DATE and EVENT_STATUS filtering where scheduled events must be included.
+   *
+   * @param dimId the dimension identifier
+   * @param condition the condition to apply
+   * @return the renderable exists value sub-query
+   */
+  public static Renderable buildExistsValueSubqueryIncludeSchedule(
+      DimensionIdentifier<DimensionParam> dimId, Renderable condition) {
+    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+      return () ->
+          replace(
+              EVENT_EXISTS_SUBQUERY_INCLUDE_SCHEDULE,
+              mergeMaps(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "eventSubqueryAlias", dimId.getPrefix(),
+                      "enrollmentSubqueryAlias", "enrollmentSubqueryAlias",
+                      "eventCondition", condition.render())));
+    }
+    throw new IllegalArgumentException(
+        "buildExistsValueSubqueryIncludeSchedule only supports event dimensions: " + dimId);
+  }
+
+  /**
+   * Builds a scalar subquery to select a field from the event table. Used for header-only
+   * dimensions where we need to fetch the value but have no filter condition. This subquery
+   * excludes SCHEDULE status events.
+   *
+   * @param dimId the dimension identifier for an event-level dimension
+   * @param selectedField the database column name to select (e.g., "occurreddate", "ou")
+   * @return the renderable scalar subquery
+   */
+  public static Renderable buildSelectSubquery(
+      DimensionIdentifier<DimensionParam> dimId, String selectedField) {
+    if (!dimId.isEventDimension()) {
+      throw new IllegalArgumentException(
+          "buildSelectSubquery only supports event dimensions: " + dimId);
+    }
+    return () ->
+        replace(
+            EVENT_SELECT_SUBQUERY,
+            mergeMaps(
+                getEnrollmentPlaceholders(dimId),
+                getEventPlaceholders(dimId),
+                Map.of(
+                    "selectedEnrollmentField", "enrollment", "selectedEventField", selectedField)));
+  }
+
+  /**
+   * Builds a scalar subquery to select a field from the event table, including SCHEDULE status
+   * events. Used for header-only dimensions like SCHEDULED_DATE and EVENT_STATUS.
+   *
+   * @param dimId the dimension identifier for an event-level dimension
+   * @param selectedField the database column name to select (e.g., "scheduleddate", "status")
+   * @return the renderable scalar subquery
+   */
+  public static Renderable buildSelectSubqueryIncludeSchedule(
+      DimensionIdentifier<DimensionParam> dimId, String selectedField) {
+    if (!dimId.isEventDimension()) {
+      throw new IllegalArgumentException(
+          "buildSelectSubqueryIncludeSchedule only supports event dimensions: " + dimId);
+    }
+    return () ->
+        replace(
+            EVENT_SELECT_SUBQUERY_INCLUDE_SCHEDULE,
+            mergeMaps(
+                getEnrollmentPlaceholders(dimId),
+                getEventPlaceholders(dimId),
+                Map.of(
+                    "selectedEnrollmentField", "enrollment", "selectedEventField", selectedField)));
   }
 
   /**

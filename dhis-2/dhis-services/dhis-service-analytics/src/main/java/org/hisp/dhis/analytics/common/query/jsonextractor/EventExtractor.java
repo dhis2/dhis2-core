@@ -49,7 +49,13 @@ enum EventExtractor {
   OUNAMEHIERARCHY(
       DimensionParam.StaticDimension.OUNAMEHIERARCHY,
       JsonEnrollment.JsonEvent::getOrgUnitNameHierarchy),
-  EVENT_STATUS(StaticDimension.EVENT_STATUS, JsonEnrollment.JsonEvent::getEventStatus);
+  EVENT_STATUS(StaticDimension.EVENT_STATUS, JsonEnrollment.JsonEvent::getEventStatus),
+  EVENT_DATE(
+      StaticDimension.EVENT_DATE, a -> JsonExtractorUtils.getFormattedDate(a.getOccurredDate())),
+  SCHEDULED_DATE(
+      StaticDimension.SCHEDULED_DATE,
+      a -> JsonExtractorUtils.getFormattedDate(a.getScheduledDate())),
+  OU(DimensionParam.StaticDimension.OU, JsonEnrollment.JsonEvent::getOrgUnitUid);
 
   private final DimensionParam.StaticDimension dimension;
 
