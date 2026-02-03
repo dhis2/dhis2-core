@@ -246,6 +246,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
       log.error(
           "build.properties is not available in the classpath. "
               + "Make sure you build the project with Maven before you start the embedded Jetty server.");
+      log.fatal("TEST: verifying FATAL level is still visible in CI (remove me)");
     }
     return SystemInfo.builder().build();
   }
