@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -215,10 +215,7 @@ public class TrackerTest extends Simulation {
           rampConcurrentUsers(0)
               .to(this.usersPerSec)
               .during(Duration.ofSeconds(this.rampDurationSec));
-      populationBuilder =
-          eventScenario
-              .scenario()
-              .injectClosed(closedInjection);
+      populationBuilder = eventScenario.scenario().injectClosed(closedInjection);
     } else {
       List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
       populationBuilder = eventScenario.scenario().injectOpen(injectionProfile);
