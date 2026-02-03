@@ -111,6 +111,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndCategory",
+      "query": "/api/analytics/events/aggregate/bMcwwoVnbSR.json?displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&dimension=pe:2021,kO3z4Dhc038.C31vHZqu0qU:j3C417uW6J7;ddAo6zmIHOk",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
