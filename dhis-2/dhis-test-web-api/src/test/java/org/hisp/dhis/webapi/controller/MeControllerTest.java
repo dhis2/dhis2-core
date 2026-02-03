@@ -361,6 +361,10 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     // Verify avatar is removed
     User userAfterRemoval = userService.getUserByUsername(currentUsername);
     assertNull(userAfterRemoval.getAvatar());
+
+    // Verify file resource is marked as unassigned
+    FileResource fileResourceAfterRemoval = fileResourceService.getFileResource(fileResourceId);
+    assertFalse(fileResourceAfterRemoval.isAssigned());
   }
 
   @Test

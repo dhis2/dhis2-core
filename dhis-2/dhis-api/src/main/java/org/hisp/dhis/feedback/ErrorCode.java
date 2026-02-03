@@ -583,10 +583,13 @@ public enum ErrorCode {
       "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
   E7243("Duplicate stage dimension identifier: `{0}`"),
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
+  E7245("Program stage `{0}` does not belong to program `{1}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7253(
+      "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),

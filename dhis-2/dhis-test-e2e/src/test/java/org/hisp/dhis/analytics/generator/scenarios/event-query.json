@@ -160,6 +160,20 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndCategory",
+      "query": "/api/analytics/events/query/bMcwwoVnbSR.json?displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&asc=eventdate&headers=kO3z4Dhc038.LFsZ8v5v7rq,oucode&dimension=pe:2021&dimension=kO3z4Dhc038.LFsZ8v5v7rq:CW81uF03hvV;B3nxOazOO2G&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndCategoryOptionGroupSet",
+      "query": "/api/analytics/events/query/bMcwwoVnbSR.json?displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&asc=eventdate&headers=kO3z4Dhc038.C31vHZqu0qU,oucode&dimension=pe:2021&dimension=kO3z4Dhc038.C31vHZqu0qU:j3C417uW6J7;ddAo6zmIHOk&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
