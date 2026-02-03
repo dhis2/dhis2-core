@@ -712,11 +712,55 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public int updateCatDimensionConstraintsCategoryRefs(
       Set<Long> sourceCategoryIds, long targetCategoryId) {
     if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
     String sql =
         """
-        update users_catdimensionconstraints ucdc
-        set dataelementcategoryid = :targetCategoryId
-        where ucdc.dataelementcategoryid in :sourceCategoryIds
+        UPDATE users_catdimensionconstraints
+        SET dataelementcategoryid = :targetCategoryId
+        WHERE (userid, dataelementcategoryid) IN (
+            SELECT DISTINCT ON (userid) userid, dataelementcategoryid
+            FROM users_catdimensionconstraints
+            WHERE dataelementcategoryid IN (:sourceCategoryIds)
+            ORDER BY userid, dataelementcategoryid
+        )
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int deleteRemainingCatDimensionConstraints(Set<Long> sourceCategoryIds) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        DELETE FROM users_catdimensionconstraints
+        WHERE dataelementcategoryid IN (:sourceCategoryIds)
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int deleteCatDimensionConstraintsWhenUserHasTarget(
+      Set<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        DELETE FROM users_catdimensionconstraints
+        WHERE dataelementcategoryid IN (:sourceCategoryIds)
+        AND userid IN (
+            SELECT userid FROM users_catdimensionconstraints
+            WHERE dataelementcategoryid = :targetCategoryId
+        )
         """;
     return getSession()
         .createNativeQuery(sql)

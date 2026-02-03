@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.merge;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -60,6 +61,7 @@ class CategoryMergeTest extends ApiTest {
   private final String sourceUid1 = "UIDCatego01";
   private final String sourceUid2 = "UIDCatego02";
   private final String targetUid = "UIDCatego03";
+  private final String randomCategoryUid = "UIDCatego04";
 
   @BeforeAll
   void before() {
@@ -91,9 +93,12 @@ class CategoryMergeTest extends ApiTest {
   @DisplayName(
       "Valid Category merge completes successfully with all source Category refs replaced with target Category")
   void validCategoryMergeTest() {
-    // given
-    createUsers("UserUid1111", sourceUid1);
-    createUsers("UserUid2222", sourceUid2);
+    // given 3 users exist, with different category dimension constraints
+    // mix of source + target, source + source, source + random
+    createUsers("UserUid1111", sourceUid1, targetUid);
+    createUsers("UserUid2222", sourceUid2, sourceUid1);
+    createUsers("UserUid3333", sourceUid2, randomCategoryUid);
+
     // confirm state before merge
     ValidatableResponse preMergeState =
         categoryApiActions.get(targetUid).validateStatus(200).validate();
@@ -111,8 +116,9 @@ class CategoryMergeTest extends ApiTest {
     verifyVisualisations(sourceUid2, "VizUid00002");
 
     // user category dimension constraints have source category refs
-    verifyUserCatDimensionConstraint(sourceUid1, "UserUid1111");
-    verifyUserCatDimensionConstraint(sourceUid2, "UserUid2222");
+    verifyUserCatDimensionConstraint("UserUid1111", sourceUid1, targetUid);
+    verifyUserCatDimensionConstraint("UserUid2222", sourceUid2, sourceUid1);
+    verifyUserCatDimensionConstraint("UserUid3333", sourceUid2, randomCategoryUid);
 
     // login as merge user
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -154,20 +160,19 @@ class CategoryMergeTest extends ApiTest {
     verifyVisualisations(targetUid, "VizUid00001", "VizUid00002", "VizUid00003");
 
     // user category dimension constraints have target category refs now
-    verifyUserCatDimensionConstraint(targetUid, "UserUid1111");
-    verifyUserCatDimensionConstraint(targetUid, "UserUid2222");
+    verifyUserCatDimensionConstraint("UserUid1111", targetUid);
+    verifyUserCatDimensionConstraint("UserUid2222", targetUid);
+    verifyUserCatDimensionConstraint("UserUid3333", targetUid, randomCategoryUid);
   }
 
-  private void verifyUserCatDimensionConstraint(String category, String... users) {
+  private void verifyUserCatDimensionConstraint(String userUid, String... categories) {
     loginActions.loginAsSuperUser();
-    for (String userUid : users) {
-      userActions
-          .get(userUid)
-          .validateStatus(200)
-          .validate()
-          .body("catDimensionConstraints", hasSize(equalTo(1)))
-          .body("catDimensionConstraints", hasItems(hasEntry("id", category)));
-    }
+    userActions
+        .get(userUid)
+        .validateStatus(200)
+        .validate()
+        .body("catDimensionConstraints", hasSize(equalTo(categories.length)))
+        .body("catDimensionConstraints.id", containsInAnyOrder(categories));
   }
 
   private void verifyVisualisations(String category, String... visualizations) {
@@ -185,7 +190,7 @@ class CategoryMergeTest extends ApiTest {
     metadataActions.importMetadata(metadata()).validateStatus(200);
   }
 
-  private void createUsers(String userUid, String categoryUid) {
+  private void createUsers(String userUid, String categoryUid1, String categoryUid2) {
     userActions
         .post(
             """
@@ -202,11 +207,14 @@ class CategoryMergeTest extends ApiTest {
                 "catDimensionConstraints":[
                         {
                             "id": "%s"
+                        },
+                        {
+                            "id": "%s"
                         }
                     ]
             }
             """
-                .formatted(userUid, userUid, categoryUid))
+                .formatted(userUid, userUid, categoryUid1, categoryUid2))
         .validateStatus(201);
   }
 

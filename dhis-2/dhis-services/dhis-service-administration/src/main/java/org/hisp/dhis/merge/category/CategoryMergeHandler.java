@@ -30,6 +30,7 @@
 package org.hisp.dhis.merge.category;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,18 +89,41 @@ public class CategoryMergeHandler {
   }
 
   /**
-   * Remove sources from {@link User} dimension constraints and add target to {@link User} dimension
-   * constraints
+   * Handle source ref updates for a {@link User}'s cat dimension constraints. There is a composite
+   * primary key on the table 'users_catdimensionconstraints' (userId + categoryId). This results in
+   * multiple scenarios needing to be handled. <br>
+   * <br>
+   * Scenario handling rules, when a User has:
+   *
+   * <pre>{@code
+   * one or more sources and target   -> delete all source constraints
+   * one or more sources, no target   -> update one source to target, delete other source constraints
+   * }</pre>
+   *
+   * These rules are handled in 3 separate queries. Purposely kept separate for clarity.<br>
+   *
+   * <ol>
+   *   <li>Delete sources constraints for users who already have the target constraint
+   *   <li>Update one source constraints to the target constraint for users without the target
+   *       constraint
+   *   <li>Delete remaining source constraints
+   * </ol>
    *
    * @param sources to be removed
    * @param target to add
    */
   public void handleUsers(List<Category> sources, Category target) {
-    int updated =
-        userStore.updateCatDimensionConstraintsCategoryRefs(
-            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
-            target.getId());
-    log.info("{} user category dimension constraints with source category refs updated", updated);
+    Set<Long> sourceUids =
+        sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet());
+    int rowsDeleted1 =
+        userStore.deleteCatDimensionConstraintsWhenUserHasTarget(sourceUids, target.getId());
+    int rowsUpdated =
+        userStore.updateCatDimensionConstraintsCategoryRefs(sourceUids, target.getId());
+    int rowsDeleted2 = userStore.deleteRemainingCatDimensionConstraints(sourceUids);
+
+    log.info(
+        "{} user category dimension constraints with source category refs actioned",
+        (rowsDeleted1 + rowsUpdated + rowsDeleted2));
   }
 
   /**
