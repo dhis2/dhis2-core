@@ -109,11 +109,9 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 
-  @Transient
-  protected String href;
+  @Transient protected String href;
 
-  @Transient 
-  protected Access access;
+  @Transient protected Access access;
 
   @Column(name = "code", unique = true, length = 50)
   private String code;
@@ -445,7 +443,6 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   public boolean hasSharing() {
     return false;
   }
-
 
   @Override
   public User getCreatedBy() {
