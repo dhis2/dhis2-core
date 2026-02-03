@@ -360,11 +360,7 @@ class JdbcTrackedEntityStore {
   private static final String SELECT_WITH_ENROLLMENT_DATE = SELECT + ", " + ENROLLMENT_DATE_ALIAS;
 
   private void addSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    boolean orderByEnrollmentDate =
-        params.getOrder().stream()
-            .anyMatch(
-                o -> o.getField() instanceof String field && ENROLLMENT_DATE_KEY.equals(field));
-    sql.append(orderByEnrollmentDate ? SELECT_WITH_ENROLLMENT_DATE : SELECT);
+    sql.append(isOrderingByEnrolledAt(params) ? SELECT_WITH_ENROLLMENT_DATE : SELECT);
   }
 
   /**
@@ -507,7 +503,7 @@ class JdbcTrackedEntityStore {
       } else {
         throw new IllegalArgumentException(
             String.format(
-                "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
+                INVALID_ORDER_FIELD_MESSAGE,
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
@@ -582,8 +578,9 @@ class JdbcTrackedEntityStore {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
-                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+                  INVALID_ORDER_FIELD_MESSAGE,
+                  field,
+                  String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
         orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
