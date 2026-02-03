@@ -45,6 +45,9 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.jsontree.JsonDiff.Mode;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -95,14 +98,83 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   @Autowired private SchemaService schemaService;
   @Autowired private SchemaFieldsPresets schemaFieldsPresets;
 
-  private List<Event> events;
+  private List<OrganisationUnit> organisationUnits;
+  private Schema organisationUnitSchema;
 
+  private List<Event> events;
   private Schema eventSchema;
 
   @BeforeAll
   void setUp() {
+    organisationUnits = createOrganisationUnits(2);
+    organisationUnitSchema = schemaService.getDynamicSchema(organisationUnits.get(0).getClass());
+
     events = createEvents(2);
     eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "*",
+        ":all",
+        "!*",
+        "!:all",
+        ":simple",
+        ":identifiable",
+        ":nameable",
+        ":owner",
+        ":persisted",
+
+        // Basic reference expansion tests
+        "dataSets",
+        "users",
+        "groups",
+        "dataSets,users",
+        "dataSets,users,groups",
+
+        // Explicit specification tests (should NOT expand)
+        "dataSets[*]",
+        "dataSets[id]",
+        "dataSets[id,name]",
+        "users[*]",
+        "dataSets[id],users",
+
+        // Exclusion + Expansion interactions
+        "*,!dataSets",
+        "*,!users",
+        "dataSets[!id]",
+        "users[!id],dataSets",
+        "*,dataSets[!id]",
+
+        // Execution order tests (preset + expansion)
+        ":identifiable,dataSets",
+        ":owner,users",
+        ":simple,dataSets[id]",
+        ":all,!dataSets",
+        "dataSets,:identifiable",
+
+        // Double-expansion prevention
+        "dataSets[*],dataSets[id]",
+        "dataSets,dataSets[id]",
+        "dataSets[id],dataSets[id]",
+
+        // Order dependency verification
+        "*,!dataSets,dataSets[id]",
+
+        // Nested child expansion tests
+        "dataSets[organisationUnits]",
+        "users[organisationUnits]",
+        "groups[organisationUnits]",
+        "dataSets[organisationUnits],users[organisationUnits]"
+      })
+  void trackerFilterShouldMatchCurrentFilterOnMetadata(String fields)
+      throws JsonProcessingException {
+    String actualCurrent = serializeUsingCurrentFilter(organisationUnits, fields);
+    String actualTracker =
+        serializeUsingTrackerFilter(organisationUnits, fields, organisationUnitSchema);
+
+    assertEquals(actualCurrent, actualTracker);
   }
 
   @ParameterizedTest
@@ -159,6 +231,13 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
         "relationships[!unknownfield]",
         "relationships[f rom[trackedEntity[ org Unit ]",
         "relationships[from[trackedEntity[ :simple ]",
+
+        // Nested child expansion tests - ensure child paths get expanded recursively
+        "relationships[from]",
+        "relationships[to]",
+        "relationships[from[trackedEntity]]",
+        "relationships[to[event]]",
+        "relationships[from[trackedEntity],to[enrollment]]",
         // transformations
         "dataValues~isEmpty",
         "dataValues|isEmpty",
@@ -188,7 +267,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   void trackerFilterShouldMatchCurrentFilterOnSimplePojo(String fields)
       throws JsonProcessingException {
     String actualCurrent = serializeUsingCurrentFilter(events, fields);
-    String actualTracker = serializeUsingTrackerFilter(events, fields);
+    String actualTracker = serializeUsingTrackerFilter(events, fields, eventSchema);
 
     assertEquals(actualCurrent, actualTracker);
   }
@@ -202,27 +281,99 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   void trackerFilterShouldMatchCurrentFilterIgnoringFieldOrder(String fields)
       throws JsonProcessingException {
     String actualCurrent = serializeUsingCurrentFilter(events, fields);
-    String actualTracker = serializeUsingTrackerFilter(events, fields);
+    String actualTracker = serializeUsingTrackerFilter(events, fields, eventSchema);
 
     // Use JsonDiff with LENIENT mode to ignore field order differences
     assertNoDiff(actualCurrent, actualTracker, Mode.LENIENT);
   }
 
-  private String serializeUsingCurrentFilter(List<Event> events, String fields)
+  private <T> String serializeUsingCurrentFilter(List<T> objects, String fields)
       throws JsonProcessingException {
     List<FieldPath> filter = FieldFilterParser.parse(fields);
-    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(events, filter);
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(objects, filter);
     return objectMapper.writeValueAsString(objectNodes);
   }
 
-  private String serializeUsingTrackerFilter(List<Event> events, String fieldsInput)
+  private <T> String serializeUsingTrackerFilter(List<T> objects, String fieldsInput, Schema schema)
       throws JsonProcessingException {
     Fields fields =
-        FieldsParser.parse(fieldsInput, eventSchema, schemaFieldsPresets::getSchema, PRESETS);
+        FieldsParser.parse(fieldsInput, schema, schemaFieldsPresets::getSchema, PRESETS);
     return filterMapper
         .writer()
         .withAttribute(FieldsPropertyFilter.FIELDS_ATTRIBUTE, fields)
-        .writeValueAsString(events);
+        .writeValueAsString(objects);
+  }
+
+  static List<OrganisationUnit> createOrganisationUnits(int n) {
+    List<OrganisationUnit> orgUnits = new ArrayList<>(n);
+    for (int i = 0; i < n; i++) {
+      orgUnits.add(createOrganisationUnit((char) ('A' + i)));
+    }
+    return orgUnits;
+  }
+
+  public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
+    OrganisationUnit unit = new OrganisationUnit();
+    unit.setAutoFields();
+    unit.setUid(UID.generate().getValue());
+    unit.setName("OrganisationUnit" + uniqueCharacter);
+    unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
+    unit.setCode("OrganisationUnitCode" + uniqueCharacter);
+    unit.setOpeningDate(java.util.Date.from(DATE));
+    unit.setComment("Comment" + uniqueCharacter);
+    unit.setGeometry(GEOMETRY_FACTORY.createPoint(new Coordinate(4, 12)));
+    unit.setDescription("Description for OrganisationUnit " + uniqueCharacter);
+    unit.setEmail("orgunit" + uniqueCharacter + "@example.com");
+    unit.setPhoneNumber("+123456789" + uniqueCharacter);
+    unit.setAddress("Address " + uniqueCharacter);
+    unit.setContactPerson("Contact Person " + uniqueCharacter);
+    unit.setUrl("https://example.com/orgunit" + uniqueCharacter);
+
+    // Add reference/complex objects for nested expansion testing
+    DataSet dataSet1 = new DataSet();
+    dataSet1.setAutoFields();
+    dataSet1.setUid(UID.generate().getValue());
+    dataSet1.setName("DataSet" + uniqueCharacter + "1");
+    dataSet1.setCode("DS" + uniqueCharacter + "1");
+
+    DataSet dataSet2 = new DataSet();
+    dataSet2.setAutoFields();
+    dataSet2.setUid(UID.generate().getValue());
+    dataSet2.setName("DataSet" + uniqueCharacter + "2");
+    dataSet2.setCode("DS" + uniqueCharacter + "2");
+
+    unit.setDataSets(Set.of(dataSet1, dataSet2));
+
+    org.hisp.dhis.user.User user1 = new org.hisp.dhis.user.User();
+    user1.setAutoFields();
+    user1.setUid(UID.generate().getValue());
+    user1.setUsername("user" + uniqueCharacter + "1");
+    user1.setFirstName("User" + uniqueCharacter + "1");
+
+    org.hisp.dhis.user.User user2 = new org.hisp.dhis.user.User();
+    user2.setAutoFields();
+    user2.setUid(UID.generate().getValue());
+    user2.setUsername("user" + uniqueCharacter + "2");
+    user2.setFirstName("User" + uniqueCharacter + "2");
+
+    unit.setUsers(Set.of(user1, user2));
+
+    OrganisationUnitGroup group1 = new OrganisationUnitGroup();
+    group1.setAutoFields();
+    group1.setUid(UID.generate().getValue());
+    group1.setName("Group" + uniqueCharacter + "1");
+    group1.setCode("GRP" + uniqueCharacter + "1");
+
+    OrganisationUnitGroup group2 = new OrganisationUnitGroup();
+    group2.setAutoFields();
+    group2.setUid(UID.generate().getValue());
+    group2.setName("Group" + uniqueCharacter + "2");
+    group2.setCode("GRP" + uniqueCharacter + "2");
+
+    unit.setGroups(Set.of(group1, group2));
+
+    unit.updatePath();
+    return unit;
   }
 
   static List<Event> createEvents(int n) {
