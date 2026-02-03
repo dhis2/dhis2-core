@@ -377,7 +377,7 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @Deprecated
   @Override
   public Sharing getSharing() {
-    return null;
+    return Sharing.empty();
   }
 
   @Deprecated
