@@ -43,6 +43,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
@@ -99,7 +100,8 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "symbolizer", length = 255)
   private String symbolizer;
 
-  @OneToMany(mappedBy = "legendSet", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "maplegendsetid")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<Legend> legends = new HashSet<>();
 
