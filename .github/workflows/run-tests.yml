@@ -3,7 +3,7 @@ env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
   # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
-  MAVEN_LOG: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
+  MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
 on:
   push:
     branches:
@@ -35,10 +35,10 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run unit tests
-        run: mvn $MAVEN_LOG clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
         timeout-minutes: 30
       - name: Run dependency analysis
-        run: mvn $MAVEN_LOG dependency:analyze --file ./dhis-2/pom.xml
+        run: mvn dependency:analyze --file ./dhis-2/pom.xml
         timeout-minutes: 2
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
@@ -57,7 +57,7 @@ jobs:
           path: coverage.tar
           retention-days: 5
       - name: Generate surefire aggregate report
-        run: mvn $MAVEN_LOG surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
@@ -81,7 +81,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn $MAVEN_LOG clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v6
         name: Upload test logs on failure
@@ -108,7 +108,7 @@ jobs:
           path: coverage.tar
           retention-days: 5
       - name: Generate surefire aggregate report
-        run: mvn $MAVEN_LOG surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
@@ -132,7 +132,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn $MAVEN_LOG clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v6
         name: Upload test logs on failure
@@ -159,7 +159,7 @@ jobs:
           path: coverage.tar
           retention-days: 5
       - name: Generate surefire aggregate report
-        run: mvn $MAVEN_LOG surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
+        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
         run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar

@@ -3,7 +3,7 @@ env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
   # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
-  MAVEN_LOG: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
+  MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}
 on:
@@ -61,11 +61,11 @@ jobs:
           PR: ${{ github.event.number }}
         if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event_name == 'pull_request'
         run: |
-          mvn $MAVEN_LOG -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
-          mvn $MAVEN_LOG -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core
+          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core
 
       - name: Analyse long-living branch
         if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event_name != 'pull_request'
         run: |
-          mvn $MAVEN_LOG -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
-          mvn $MAVEN_LOG -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core
+          mvn -f dhis-2/pom.xml clean install --threads 2C --batch-mode --update-snapshots --no-transfer-progress -DskipTests
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.internal.analysis.dbd=false --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core

@@ -3,7 +3,7 @@ env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Xmx1024m -Xms1024m -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
   # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
-  MAVEN_LOG: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
+  MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
 
 on:
   push:
@@ -53,13 +53,13 @@ jobs:
           if [ "$DOCKERHUB_PUSH" = "true" ]; then
             # build and publish multi-arch images using Jib. Image is used for api tests in
             # this workflow and can be pulled from Dockerhub by devs to run locally, ...
-            mvn $MAVEN_LOG clean verify --threads 2C --batch-mode --no-transfer-progress \
+            mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
               -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
               --projects dhis-web-server --also-make --activate-profiles embedded,jibBuild \
               -Djib.to.image=$CORE_IMAGE_NAME -Djib.container.labels=DHIS2_BUILD_REVISION=${{github.event.pull_request.head.sha}},DHIS2_BUILD_BRANCH=${{github.head_ref}}
           else
             # only build image for running api tests in this workflow i.e. master, 2.39, ...
-            mvn $MAVEN_LOG clean verify --threads 2C --batch-mode --no-transfer-progress \
+            mvn clean verify --threads 2C --batch-mode --no-transfer-progress \
               -DskipTests -Dpackaging.type=jar -Dmdep.analyze.skip --update-snapshots --file dhis-2/pom.xml \
               --projects dhis-web-server --also-make --activate-profiles embedded,jibDockerBuild \
               -Djib.to.image=$CORE_IMAGE_NAME

@@ -3,7 +3,7 @@ env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
   # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
-  MAVEN_LOG: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
+  MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
 
 on:
   pull_request:
@@ -55,7 +55,7 @@ jobs:
       - name: Build container image
         run: |
           # only build image for running api tests in this workflow
-          mvn $MAVEN_LOG clean package --threads 2C --batch-mode --no-transfer-progress \
+          mvn clean package --threads 2C --batch-mode --no-transfer-progress \
             -DskipTests -Dmaven.test.skip=true --update-snapshots --file dhis-2/pom.xml \
             --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
             -Djib.to.image=$CORE_IMAGE_NAME
