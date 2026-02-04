@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.system.capability;
 
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * @author Lars Helge Overland
- */
-@Component
-@RequiredArgsConstructor
-public class CategoryComboDeletionHandler extends IdObjectDeletionHandler<CategoryCombo> {
-
-  @Override
-  protected void registerHandler() {
-    whenVetoing(Category.class, this::allowDeleteCategory);
-    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
-  }
-
-  private DeletionVeto allowDeleteCategory(Category category) {
-    String sql = "select 1 from categorycombos_categories where categoryid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", category.getId()));
-  }
-
-  private void deleteCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
-    CategoryCombo categoryCombo = categoryOptionCombo.getCategoryCombo();
-    Set<CategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
-    if (optionCombos.contains(categoryOptionCombo)) {
-      optionCombos.remove(categoryOptionCombo);
-      idObjectManager.updateNoAcl(categoryCombo);
-    }
-  }
+/** Encapsulation of system capabilities. */
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+public class SystemCapability {
+  /** Capability for returning counts of total number of rows in analytics. */
+  @JsonProperty private final boolean analyticsTotalCounts;
 }

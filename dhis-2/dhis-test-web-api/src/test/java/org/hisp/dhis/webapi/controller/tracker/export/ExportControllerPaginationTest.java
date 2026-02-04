@@ -232,8 +232,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPager pager = page.getPager();
     assertEquals(2, pager.getPage());
     assertEquals(1, pager.getPageSize());
-    assertEquals(3, pager.getTotal());
-    assertEquals(3, pager.getPageCount());
+    assertEquals(4, pager.getTotal());
+    assertEquals(4, pager.getPageCount());
     assertPagerLink(
         pager.getPrevPage(),
         1,

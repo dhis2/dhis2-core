@@ -33,7 +33,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -128,7 +131,18 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     if (params.hasScheduledAt()) {
-      predicates.add(root -> builder.equal(root.get("scheduledAt"), params.getScheduledAt()));
+      Date scheduledAt = params.getScheduledAt();
+
+      LocalDate date = scheduledAt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+      Date startOfDay = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+      Date startOfNextDay =
+          Date.from(date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+      predicates.add(root -> builder.greaterThanOrEqualTo(root.get("scheduledAt"), startOfDay));
+
+      predicates.add(root -> builder.lessThan(root.get("scheduledAt"), startOfNextDay));
     }
 
     return predicates;

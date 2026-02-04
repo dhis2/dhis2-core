@@ -51,13 +51,12 @@ class CategoryOptionComboMergeServiceTest {
   private CategoryCombo cc2;
   private CategoryOption co1;
   private CategoryOption co2;
-  private CategoryOption co3;
   private CategoryOptionCombo coc1;
   private CategoryOptionCombo coc2;
   private CategoryOptionCombo coc3;
 
   @BeforeAll
-  public void setup() {
+  void setup() {
     cc1 = new CategoryCombo();
     cc1.setName("cc1");
     cc1.setUid("UIDcatcom01");
@@ -82,7 +81,7 @@ class CategoryOptionComboMergeServiceTest {
     co2.setShortName("co2");
     co2.setDescription("co2");
 
-    co3 = new CategoryOption();
+    CategoryOption co3 = new CategoryOption();
     co3.setName("co3");
     co3.setUid("UIDcatopt03");
     co3.setCode("co3");
