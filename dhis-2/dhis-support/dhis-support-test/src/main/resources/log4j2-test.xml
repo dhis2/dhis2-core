@@ -6,8 +6,8 @@
     <Properties>
         <Property name="layout">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
         <!-- CI sets TEST_LOG_SUPPRESSED_LEVEL=error when ci-verbose label is present to show all errors.
-        Defaults to fatal which effectively suppresses all messages since SLF4J has no fatal level. -->
-        <Property name="suppressed.level">${env:TEST_LOG_SUPPRESSED_LEVEL:-fatal}</Property>
+        Defaults to off which disables these loggers entirely. -->
+        <Property name="suppressed.level">${env:TEST_LOG_SUPPRESSED_LEVEL:-off}</Property>
     </Properties>
 
     <Appenders>
