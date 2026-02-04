@@ -44,6 +44,7 @@ import org.hisp.dhis.eventhook.Target;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
+@Deprecated
 public class ConsoleTarget extends Target {
   public static final String TYPE = "console";
 

@@ -31,10 +31,14 @@ package org.hisp.dhis.eventhook;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,11 +48,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class EventHookService {
+  public static final String OUTBOX_PREFIX_TABLE_NAME = "outbox_";
+
+  protected final JdbcTemplate jdbcTemplate;
+
+  protected final EntityManager entityManager;
+
   private final EventHookStore eventHookStore;
 
   private final ObjectMapper objectMapper;
 
   private final EventHookSecretManager secretManager;
+
+  @Setter @Getter private int partitionRange = 100000;
 
   @Nonnull
   @Transactional(readOnly = true)
@@ -67,5 +79,30 @@ public class EventHookService {
     }
 
     return eventHooks;
+  }
+
+  public void createOutbox(EventHook eventHook) {
+    String outboxTableName = OUTBOX_PREFIX_TABLE_NAME + eventHook.getUid();
+    jdbcTemplate.execute(
+        String.format(
+            "CREATE TABLE \"%s\" (id BIGINT GENERATED ALWAYS AS IDENTITY (CYCLE) PRIMARY KEY, payload JSONB) PARTITION BY RANGE (id);",
+            outboxTableName));
+    addOutboxPartition(eventHook, 0, 1, partitionRange);
+
+    OutboxLog outboxLog = new OutboxLog();
+    outboxLog.setOutboxTableName(outboxTableName);
+    outboxLog.setLastProcessedId(0);
+    entityManager.persist(outboxLog);
+  }
+
+  public void addOutboxPartition(
+      EventHook eventHook, long index, long lowerBound, long upperBound) {
+    jdbcTemplate.execute(
+        String.format(
+            "CREATE TABLE \"%s\" PARTITION OF \"%s\" FOR VALUES FROM (%s) TO (%s);",
+            OUTBOX_PREFIX_TABLE_NAME + eventHook.getUid() + "_" + index,
+            OUTBOX_PREFIX_TABLE_NAME + eventHook.getUid(),
+            lowerBound,
+            upperBound));
   }
 }

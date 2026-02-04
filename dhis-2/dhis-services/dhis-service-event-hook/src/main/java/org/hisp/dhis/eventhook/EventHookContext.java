@@ -42,7 +42,7 @@ import lombok.Data;
 @Data
 @Builder
 public class EventHookContext {
-  @Builder.Default Map<String, List<Handler>> targets = new HashMap<>();
+  @Builder.Default Map<String, List<ReactiveHandler>> targets = new HashMap<>();
 
   @Builder.Default List<EventHook> eventHooks = new ArrayList<>();
 
@@ -50,11 +50,11 @@ public class EventHookContext {
     return targets.containsKey(uid) || targets.get(uid).isEmpty();
   }
 
-  public List<Handler> getTarget(String uid) {
+  public List<ReactiveHandler> getTarget(String uid) {
     return targets.get(uid);
   }
 
   public void closeTargets() {
-    targets.values().forEach(handlers -> handlers.forEach(Handler::close));
+    targets.values().forEach(handlers -> handlers.forEach(ReactiveHandler::close));
   }
 }

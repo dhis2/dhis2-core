@@ -44,6 +44,7 @@ import org.hisp.dhis.eventhook.Target;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
+@Deprecated
 public class JmsTarget extends Target {
   public static final String TYPE = "jms";
 

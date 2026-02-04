@@ -33,6 +33,7 @@ package org.hisp.dhis.eventhook;
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
+@Deprecated
 public interface Handler extends AutoCloseable {
   void run(EventHook eventHook, Event event, String payload);
 

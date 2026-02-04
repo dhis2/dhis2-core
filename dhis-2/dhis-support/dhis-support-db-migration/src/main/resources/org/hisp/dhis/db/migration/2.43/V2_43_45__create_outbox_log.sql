@@ -1,0 +1,1 @@
+create table outboxlog (outboxTableName character varying(255) primary key, lastprocessedid bigint not null);

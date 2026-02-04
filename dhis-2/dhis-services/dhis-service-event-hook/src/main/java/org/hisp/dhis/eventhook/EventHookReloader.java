@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.eventhook.Target;
+import org.hisp.dhis.eventhook.handlers.WebhookReactiveHandler;
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@Deprecated
-public class KafkaTarget extends Target {
-  public static final String TYPE = "kafka";
+public abstract class EventHookReloader {
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
+  @Autowired private EventHookService eventHookService;
 
-  @JsonProperty(required = true)
-  private String bootstrapServers = "localhost:9092";
+  @Autowired protected ApplicationContext applicationContext;
 
-  @JsonProperty(required = true)
-  private String topic = "dhis2.hooks";
+  @Getter
+  protected transient EventHookContext eventHookContext = EventHookContext.builder().build();
 
-  @JsonProperty private String username;
+  @PostConstruct
+  @EventListener(OnEventHookChange.class)
+  public void reload() {
+    eventHookContext.closeTargets();
 
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private String password;
+    List<EventHook> eventHooks = eventHookService.getAll();
+    Map<String, List<ReactiveHandler>> targets = new HashMap<>();
 
-  public KafkaTarget() {
-    super(TYPE);
+    for (EventHook eh : eventHooks) {
+      if (eh.isDisabled()) {
+        continue;
+      }
+
+      targets.put(eh.getUid(), new ArrayList<>());
+
+      for (Target target : eh.getTargets()) {
+        if (WebhookTarget.TYPE.equals(target.getType())) {
+          targets
+              .get(eh.getUid())
+              .add(new WebhookReactiveHandler(applicationContext, (WebhookTarget) target));
+        }
+      }
+    }
+
+    eventHookContext = EventHookContext.builder().eventHooks(eventHooks).targets(targets).build();
   }
 }

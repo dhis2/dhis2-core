@@ -39,6 +39,7 @@ import org.hisp.dhis.eventhook.targets.ConsoleTarget;
  * @author Morten Olav Hansen
  */
 @Slf4j
+@Deprecated
 public class ConsoleHandler implements Handler {
   public ConsoleHandler(ConsoleTarget target) {}
 

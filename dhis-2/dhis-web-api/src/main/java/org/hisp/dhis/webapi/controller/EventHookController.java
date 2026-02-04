@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.eventhook.EventHookService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,4 +44,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/eventHooks")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class EventHookController extends AbstractCrudController<EventHook, GetObjectListParams> {}
+public class EventHookController extends AbstractCrudController<EventHook, GetObjectListParams> {
+
+  protected final EventHookService eventHookService;
+
+  @Override
+  public void postCreateEntity(EventHook eventHook) {
+    eventHookService.createOutbox(eventHook);
+  }
+}
