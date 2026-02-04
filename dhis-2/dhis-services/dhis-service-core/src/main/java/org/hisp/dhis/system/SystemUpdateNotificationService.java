@@ -173,9 +173,7 @@ public class SystemUpdateNotificationService {
       int hotfixVersion = extractInt(patchElement, "hotfixVersion");
 
       if (patchVersion == latestPatchVersion && hotfixVersion == latestHotfixVersion) {
-        log.debug(
-            "Found a newer hotfix version, adding it the result list; version={}", hotfixVersion);
-
+        log.debug("Found newer hotfix version, adding to result list, version: {}", hotfixVersion);
         newerPatchVersions.add(patchElement);
       }
     }
