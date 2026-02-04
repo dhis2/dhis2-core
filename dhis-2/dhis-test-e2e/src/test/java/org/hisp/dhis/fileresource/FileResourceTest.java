@@ -76,7 +76,7 @@ class FileResourceTest extends ApiTest {
     assertTrue(frUid != null && !frUid.isEmpty());
 
     // and it is unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
 
     // when creating a Document with a ref to the FileResource
     documentApi
@@ -94,14 +94,13 @@ class FileResourceTest extends ApiTest {
         .validate()
         .statusCode(201);
 
-    // then the FileResource should now be assigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid, true);
 
     // and when the Document is deleted
     documentApi.delete("docUid000x1").validateStatus(200);
 
     // then the FileResource should now be unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
   }
 
   @Test
@@ -113,7 +112,7 @@ class FileResourceTest extends ApiTest {
     assertTrue(frUid != null && !frUid.isEmpty());
 
     // and it is unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
 
     // when creating an Icon with a ref to the FileResource
     iconApi
@@ -131,13 +130,13 @@ class FileResourceTest extends ApiTest {
         .statusCode(201);
 
     // then the FileResource should now be assigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid, true);
 
     // and when the Icon is deleted
     iconApi.delete("dhis2-icon").validateStatus(200);
 
     // then the FileResource should now be unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
   }
 
   @Test
@@ -154,8 +153,8 @@ class FileResourceTest extends ApiTest {
     assertTrue(frUid2 != null && !frUid2.isEmpty());
 
     // and they are unassigned
-    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(false));
-    fileResourceApi.get(frUid2).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid1, false);
+    awaitAssigned(frUid2, false);
 
     // when adding the 1st avatar to a user
     meApi
@@ -172,7 +171,7 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the FileResource should now be assigned
-    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid1, true);
 
     // and when the avatar is updated
     meApi
@@ -189,10 +188,10 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the old FileResource should now be unassigned
-    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid1, false);
 
     // and the new FileResource should now be assigned
-    fileResourceApi.get(frUid2).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid2, true);
   }
 
   @Test
@@ -204,7 +203,7 @@ class FileResourceTest extends ApiTest {
     assertTrue(frUid != null && !frUid.isEmpty());
 
     // and it is unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
 
     // when adding the avatar to a user
     meApi
@@ -221,7 +220,7 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the FileResource should now be assigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid, true);
 
     // and when the avatar is deleted
     // get full user 1st
@@ -251,7 +250,7 @@ class FileResourceTest extends ApiTest {
     usersApi.put("M5zQapPyTZI", payload).validate().statusCode(200);
 
     // then the FileResource should now be unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
   }
 
   @Test
@@ -268,8 +267,8 @@ class FileResourceTest extends ApiTest {
     assertTrue(frUid2 != null && !frUid2.isEmpty());
 
     // and they are unassigned
-    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(false));
-    fileResourceApi.get(frUid2).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid1, false);
+    awaitAssigned(frUid2, false);
 
     // and an org unit exists
     orgUnitApi
@@ -304,7 +303,7 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the FileResource should now be assigned
-    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid1, true);
 
     // and when the image is updated
     orgUnitApi
@@ -326,10 +325,10 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the old FileResource should now be unassigned
-    fileResourceApi.get(frUid1).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid1, false);
 
     // and the new FileResource should now be assigned
-    fileResourceApi.get(frUid2).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid2, true);
   }
 
   @Test
@@ -342,7 +341,7 @@ class FileResourceTest extends ApiTest {
     assertTrue(frUid != null && !frUid.isEmpty());
 
     // and they are unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
 
     // and an org unit exists
     orgUnitApi
@@ -377,7 +376,7 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the FileResource should now be assigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(true));
+    awaitAssigned(frUid, true);
 
     // and when the image is deleted
     orgUnitApi
@@ -395,7 +394,7 @@ class FileResourceTest extends ApiTest {
         .statusCode(200);
 
     // then the FileResource should now be unassigned
-    fileResourceApi.get(frUid).validate().body("assigned", equalTo(false));
+    awaitAssigned(frUid, false);
   }
 
   @Test
@@ -468,5 +467,12 @@ class FileResourceTest extends ApiTest {
 
     String header = response.getHeader("Content-Length");
     return header != null ? Long.parseLong(header) : -1;
+  }
+
+  private void awaitAssigned(String frUid, boolean assigned) {
+    Awaitility.await()
+        .atMost(3, TimeUnit.SECONDS)
+        .untilAsserted(
+            () -> fileResourceApi.get(frUid).validate().body("assigned", equalTo(assigned)));
   }
 }
