@@ -176,6 +176,62 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnPaginatedTrackedEntitiesOrderedByEnrolledAtAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    // 2 TEs in BFcipDERJnf: QS6w44flWAf (Jan 15), dUE514NMOlo (Mar 28)
+    // QS6w44flWAf has 2 enrollments (Jan 15, Feb 28) - DISTINCT ON picks Jan 15 with ASC
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .programUid("BFcipDERJnf")
+            .user(importUser)
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
+            .build();
+
+    Page<TrackedEntity> firstPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(1, 1, false));
+    assertEquals(List.of("QS6w44flWAf"), uids(firstPage.getItems()), "first page");
+
+    Page<TrackedEntity> secondPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(2, 1, false));
+    assertEquals(List.of("dUE514NMOlo"), uids(secondPage.getItems()), "second (last) page");
+
+    Page<TrackedEntity> thirdPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(3, 1, false));
+    assertIsEmpty(thirdPage.getItems());
+  }
+
+  @Test
+  void shouldReturnPaginatedTrackedEntitiesOrderedByEnrolledAtDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    // 2 TEs in BFcipDERJnf: dUE514NMOlo (Mar 28), QS6w44flWAf (Feb 28)
+    // QS6w44flWAf has 2 enrollments (Jan 15, Feb 28) - DISTINCT ON picks Feb 28 with DESC
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .programUid("BFcipDERJnf")
+            .user(importUser)
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .build();
+
+    Page<TrackedEntity> firstPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(1, 1, false));
+    assertEquals(List.of("dUE514NMOlo"), uids(firstPage.getItems()), "first page");
+
+    Page<TrackedEntity> secondPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(2, 1, false));
+    assertEquals(List.of("QS6w44flWAf"), uids(secondPage.getItems()), "second (last) page");
+
+    Page<TrackedEntity> thirdPage =
+        trackedEntityService.getTrackedEntities(params, new PageParams(3, 1, false));
+    assertIsEmpty(thirdPage.getItems());
+  }
+
+  @Test
   void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSizeAndTotalPages()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
@@ -374,6 +430,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .programUid("BFcipDERJnf")
             .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
@@ -384,28 +441,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderTrackedEntitiesByEnrolledAtDescWithNoProgramInParams()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnit.getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
-            .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .build();
-
-    List<String> trackedEntities = getTrackedEntities(params);
-
-    assertEquals(
-        List.of("QS6w44flWAf", "dUE514NMOlo"),
-        trackedEntities); // QS6w44flWAf has 2 enrollments, one of which has an enrollment with
-    // enrolled date greater than the enrollment in dUE514NMOlo
-  }
-
-  @Test
-  void shouldOrderTrackedEntitiesByEnrolledAtDescWithProgramInParams()
+  void shouldOrderTrackedEntitiesByEnrolledAtDesc()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -432,6 +468,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .programUid("BFcipDERJnf")
             .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
@@ -638,6 +675,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
+    // 3 enrollments: nxP7UnKhomK (Jan 15), nxP7UnKhomJ (Feb 28), TvctPPhpD8z (Mar 28)
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -651,25 +689,34 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     assertAll(
         "first page",
         () -> assertPage(1, 1, firstPage),
-        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
+        () -> assertEquals(List.of("nxP7UnKhomK"), uids(firstPage.getItems())));
 
     Page<Enrollment> secondPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, false));
 
     assertAll(
-        "second page is last page",
+        "second page",
         () -> assertPage(2, 1, secondPage),
-        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
+        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(secondPage.getItems())));
 
     Page<Enrollment> thirdPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(3, 1, false));
 
-    assertIsEmpty(thirdPage.getItems());
+    assertAll(
+        "third (last) page",
+        () -> assertPage(3, 1, thirdPage),
+        () -> assertEquals(List.of("TvctPPhpD8z"), uids(thirdPage.getItems())));
+
+    Page<Enrollment> fourthPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(4, 1, false));
+
+    assertIsEmpty(fourthPage.getItems());
   }
 
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSizeAndTotalPages()
       throws ForbiddenException, BadRequestException {
+    // 3 enrollments: nxP7UnKhomK (Jan 15), nxP7UnKhomJ (Feb 28), TvctPPhpD8z (Mar 28)
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -682,30 +729,39 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     assertAll(
         "first page",
-        () -> assertPage(1, 1, 2, firstPage),
-        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(firstPage.getItems())));
+        () -> assertPage(1, 1, 3, firstPage),
+        () -> assertEquals(List.of("nxP7UnKhomK"), uids(firstPage.getItems())));
 
     Page<Enrollment> secondPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(2, 1, true));
 
     assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, 2, secondPage),
-        () -> assertEquals(List.of("TvctPPhpD8z"), uids(secondPage.getItems())));
+        "second page",
+        () -> assertPage(2, 1, 3, secondPage),
+        () -> assertEquals(List.of("nxP7UnKhomJ"), uids(secondPage.getItems())));
 
     Page<Enrollment> thirdPage =
         enrollmentService.getEnrollments(operationParams, new PageParams(3, 1, true));
 
-    assertIsEmpty(thirdPage.getItems());
+    assertAll(
+        "third (last) page",
+        () -> assertPage(3, 1, 3, thirdPage),
+        () -> assertEquals(List.of("TvctPPhpD8z"), uids(thirdPage.getItems())));
+
+    Page<Enrollment> fourthPage =
+        enrollmentService.getEnrollments(operationParams, new PageParams(4, 1, true));
+
+    assertIsEmpty(fourthPage.getItems());
   }
 
   @Test
   void shouldOrderEnrollmentsByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException {
+    Enrollment nxP7UnKhomK = get(Enrollment.class, "nxP7UnKhomK");
     Enrollment nxP7UnKhomJ = get(Enrollment.class, "nxP7UnKhomJ");
     Enrollment TvctPPhpD8z = get(Enrollment.class, "TvctPPhpD8z");
     List<String> expected =
-        Stream.of(nxP7UnKhomJ, TvctPPhpD8z)
+        Stream.of(nxP7UnKhomK, nxP7UnKhomJ, TvctPPhpD8z)
             .sorted(Comparator.comparing(Enrollment::getId).reversed()) // reversed = desc
             .map(Enrollment::getUid)
             .toList();
@@ -723,6 +779,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEnrollmentsByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
+    // 3 enrollments: nxP7UnKhomK (Jan 15), nxP7UnKhomJ (Feb 28), TvctPPhpD8z (Mar 28)
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -732,11 +789,12 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> enrollments = getEnrollments(params);
 
-    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
+    assertEquals(List.of("nxP7UnKhomK", "nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
   }
 
   @Test
   void shouldOrderEnrollmentsByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
+    // 3 enrollments: TvctPPhpD8z (Mar 28), nxP7UnKhomJ (Feb 28), nxP7UnKhomK (Jan 15)
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -746,7 +804,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> enrollments = getEnrollments(params);
 
-    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
+    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ", "nxP7UnKhomK"), enrollments);
   }
 
   @Test

@@ -91,6 +91,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String EV_OCCURREDDATE = "EV.occurreddate";
 
+  private static final String INVALID_ORDER_FIELD_MESSAGE =
+      "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.";
+
   private static final String EV_SCHEDULEDDATE = "EV.scheduleddate";
 
   private static final String IS_NULL = "IS NULL";
@@ -310,11 +313,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private String getQuery(TrackedEntityQueryParams params, PageParams pageParams) {
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
-    return stringBuilder
+    stringBuilder
         .append("FROM ")
         .append(getFromSubQuery(params, false, pageParams))
-        .append(getQueryOrderBy(params, false))
-        .toString();
+        .append(getQueryOrderBy(params, false));
+    // LIMIT must be in outer query for DISTINCT ON (applied after final ORDER BY)
+    if (isOrderingByEnrolledAt(params)) {
+      stringBuilder.append(" ");
+      addLimitAndOffset(stringBuilder, pageParams);
+    }
+    return stringBuilder.toString();
   }
 
   /**
@@ -368,12 +376,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                 "TE.deleted",
                 "TE.trackedentitytypeid"));
 
-    // all orderable fields are already in the select. Only when ordering by enrollment date do we
-    // need to add a column, so we can order by it
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof String field && ENROLLMENT_DATE_KEY.equals(field)) {
-        select.add(ENROLLMENT_DATE_ALIAS);
-      }
+    if (isOrderingByEnrolledAt(params)) {
+      select.add(ENROLLMENT_DATE_ALIAS);
     }
 
     return "select "
@@ -411,13 +415,32 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
     if (!isCountQuery) {
-      fromSubQuery.append(" ");
-      fromSubQuery.append(getQueryOrderBy(params, true));
-      fromSubQuery.append(" ");
-      addLimitAndOffset(fromSubQuery, pageParams);
+      // DISTINCT ON requires ORDER BY to start with the DISTINCT columns
+      if (isOrderingByEnrolledAt(params)) {
+        fromSubQuery.append(getDistinctOnOrderBy(params));
+        // LIMIT must be in outer query for DISTINCT ON (after final ORDER BY)
+      } else {
+        fromSubQuery.append(" ");
+        fromSubQuery.append(getQueryOrderBy(params, true));
+        fromSubQuery.append(" ");
+        addLimitAndOffset(fromSubQuery, pageParams);
+      }
     }
 
     return fromSubQuery.append(") ").append(MAIN_QUERY_ALIAS).append(" ").toString();
+  }
+
+  /**
+   * Adds ORDER BY for DISTINCT ON queries. DISTINCT ON requires ORDER BY to start with the DISTINCT
+   * columns (trackedentityid), followed by the enrollment date in the requested direction.
+   */
+  private String getDistinctOnOrderBy(TrackedEntityQueryParams params) {
+    Order enrolledAtOrder = getEnrolledAtOrder(params);
+    return "ORDER BY TE.trackedentityid, "
+        + ENROLLMENT_ALIAS
+        + ".enrollmentdate "
+        + enrolledAtOrder.getDirection().name()
+        + SPACE;
   }
 
   /**
@@ -446,8 +469,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         if (!ORDERABLE_FIELDS.containsKey(field)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
-                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+                  INVALID_ORDER_FIELD_MESSAGE,
+                  field,
+                  String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
         // all orderable fields are already in the select
@@ -459,12 +483,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       } else {
         throw new IllegalArgumentException(
             String.format(
-                "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
+                INVALID_ORDER_FIELD_MESSAGE,
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
     }
 
+    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
+    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
+    if (isOrderingByEnrolledAt(params)) {
+      return "SELECT DISTINCT ON (TE.trackedentityid) " + String.join(", ", columns);
+    }
     return "SELECT DISTINCT " + String.join(", ", columns);
   }
 
@@ -742,36 +771,193 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates an INNER JOIN for enrollments. If the param we need to order by is enrolledAt, we
-   * need to join the enrollment table to be able to select and order by this value. We restrict the
-   * join condition to a specific program if specified in the request.
+   * Adds an INNER JOIN on enrollments when ordering by {@code enrolledAt}.
+   *
+   * <p>Query strategy depends on enrollment usage:
+   *
+   * <ul>
+   *   <li>No enrollment filters, no order by enrolledAt: no enrollment table needed
+   *   <li>Enrollment filters, no order by enrolledAt: EXISTS subquery via {@link
+   *       #getFromSubQueryEnrollmentConditions} (short-circuits, avoids duplicates)
+   *   <li>Order by enrolledAt: JOIN with DISTINCT ON (this method)
+   * </ul>
+   *
+   * <p>When ordering by enrolledAt, filters must be in the JOIN (not EXISTS) to ensure ordering
+   * uses a matching enrollment. A TE can have multiple enrollments, so DISTINCT ON
+   * (TE.trackedentityid) picks one row per TE. DISTINCT ON requires ORDER BY to start with the
+   * DISTINCT columns, so inner query must order by (trackedentityid, enrollmentdate) - not the
+   * user's requested order. Outer query applies the user's order (enrollmentdate), so LIMIT must be
+   * in outer query (after final ORDER BY).
    *
    * @return a SQL INNER JOIN for enrollments
    */
   private String getFromSubQueryJoinEnrollmentConditions(TrackedEntityQueryParams params) {
-    if (params.getOrder().stream()
-        .filter(o -> o.getField() instanceof String)
-        .anyMatch(p -> ENROLLMENT_DATE_KEY.equals(p.getField()))) {
-
-      String join =
-          """
-            INNER JOIN enrollment %1$s
-            ON %1$s.trackedentityid = TE.trackedentityid
-            """;
-
-      return !params.hasEnrolledInTrackerProgram()
-          ? join.formatted(ENROLLMENT_ALIAS)
-          : join.concat(" AND %1$s.programid = %2$s")
-              .formatted(ENROLLMENT_ALIAS, params.getEnrolledInTrackerProgram().getId());
+    if (!isOrderingByEnrolledAt(params)) {
+      return "";
+    }
+    if (!params.hasEnrolledInTrackerProgram()) {
+      throw new IllegalArgumentException(
+          "Program is required when ordering by enrollment.enrollmentDate");
     }
 
-    return "";
+    StringBuilder sql = new StringBuilder();
+    sql.append(" INNER JOIN enrollment ")
+        .append(ENROLLMENT_ALIAS)
+        .append(" ON ")
+        .append(ENROLLMENT_ALIAS)
+        .append(".trackedentityid = TE.trackedentityid");
+
+    sql.append(" AND ")
+        .append(ENROLLMENT_ALIAS)
+        .append(".programid = ")
+        .append(params.getEnrolledInTrackerProgram().getId());
+
+    appendEnrollmentFilterConditions(sql, params);
+
+    if (params.hasFilterForEvents()) {
+      sql.append(" AND EXISTS (");
+      appendEventExistsForEnrollmentJoin(sql, params);
+      sql.append(")");
+    }
+
+    return sql.toString();
+  }
+
+  /** Appends enrollment filter conditions to SQL. Used by both JOIN and EXISTS paths. */
+  private void appendEnrollmentFilterConditions(
+      StringBuilder sql, TrackedEntityQueryParams params) {
+    if (params.hasProgramStatus()) {
+      sql.append(" AND ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".status = '")
+          .append(params.getProgramStatus())
+          .append("'");
+    }
+    if (params.hasFollowUp()) {
+      sql.append(" AND ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".followup IS ")
+          .append(params.getFollowUp());
+    }
+    if (params.hasProgramEnrollmentStartDate()) {
+      sql.append(" AND ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".enrollmentdate >= '")
+          .append(toLongDateWithMillis(params.getProgramEnrollmentStartDate()))
+          .append("'");
+    }
+    if (params.hasProgramEnrollmentEndDate()) {
+      sql.append(" AND ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".enrollmentdate <= '")
+          .append(toLongDateWithMillis(params.getProgramEnrollmentEndDate()))
+          .append("'");
+    }
+    if (params.hasProgramIncidentStartDate()) {
+      sql.append(" AND ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".occurreddate >= '")
+          .append(toLongDateWithMillis(params.getProgramIncidentStartDate()))
+          .append("'");
+    }
+    if (params.hasProgramIncidentEndDate()) {
+      sql.append(" AND ")
+          .append(ENROLLMENT_ALIAS)
+          .append(".occurreddate <= '")
+          .append(toLongDateWithMillis(params.getProgramIncidentEndDate()))
+          .append("'");
+    }
+    if (!params.isIncludeDeleted()) {
+      sql.append(" AND ").append(ENROLLMENT_ALIAS).append(".deleted IS FALSE");
+    }
+  }
+
+  /**
+   * Adds an EXISTS subquery for event filters to be used in the enrollment JOIN condition. This
+   * ensures we only consider enrollments that have matching events when ordering by enrolledAt.
+   */
+  private void appendEventExistsForEnrollmentJoin(
+      StringBuilder sql, TrackedEntityQueryParams params) {
+    sql.append("SELECT 1 FROM event EV ");
+
+    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
+      sql.append("INNER JOIN (")
+          .append("SELECT userinfoid AS userid FROM userinfo WHERE uid IN (")
+          .append(encodeAndQuote(params.getAssignedUserQueryParam().getAssignedUsers()))
+          .append(")) AU ON AU.userid = EV.assigneduserid ");
+    }
+
+    sql.append("WHERE EV.enrollmentid = ").append(ENROLLMENT_ALIAS).append(".enrollmentid");
+
+    if (params.hasEventStatus()) {
+      String start = toLongDateWithMillis(params.getEventStartDate());
+      String end = toLongDateWithMillis(params.getEventEndDate());
+
+      if (params.isEventStatus(EventStatus.COMPLETED)) {
+        sql.append(" AND EV.occurreddate >= '")
+            .append(start)
+            .append("' AND EV.occurreddate <= '")
+            .append(end)
+            .append("'");
+        sql.append(" AND EV.status = '").append(EventStatus.COMPLETED.name()).append("'");
+      } else if (params.isEventStatus(EventStatus.VISITED)
+          || params.isEventStatus(EventStatus.ACTIVE)) {
+        sql.append(" AND EV.occurreddate >= '")
+            .append(start)
+            .append("' AND EV.occurreddate <= '")
+            .append(end)
+            .append("'");
+        sql.append(" AND EV.status = '").append(EventStatus.ACTIVE.name()).append("'");
+      } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
+        sql.append(" AND EV.scheduleddate >= '")
+            .append(start)
+            .append("' AND EV.scheduleddate <= '")
+            .append(end)
+            .append("'");
+        sql.append(
+            " AND EV.status IS NOT NULL AND EV.occurreddate IS NULL AND date(now()) <= date(EV.scheduleddate)");
+      } else if (params.isEventStatus(EventStatus.OVERDUE)) {
+        sql.append(" AND EV.scheduleddate >= '")
+            .append(start)
+            .append("' AND EV.scheduleddate <= '")
+            .append(end)
+            .append("'");
+        sql.append(
+            " AND EV.status IS NOT NULL AND EV.occurreddate IS NULL AND date(now()) > date(EV.scheduleddate)");
+      } else if (params.isEventStatus(EventStatus.SKIPPED)) {
+        sql.append(" AND EV.scheduleddate >= '")
+            .append(start)
+            .append("' AND EV.scheduleddate <= '")
+            .append(end)
+            .append("'");
+        sql.append(" AND EV.status = '").append(EventStatus.SKIPPED.name()).append("'");
+      }
+    }
+
+    if (params.hasProgramStage()) {
+      sql.append(" AND EV.programstageid = ").append(params.getProgramStage().getId());
+    }
+
+    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
+      sql.append(" AND EV.assigneduserid IS NULL");
+    }
+
+    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
+      sql.append(" AND EV.assigneduserid IS NOT NULL");
+    }
+
+    if (!params.isIncludeDeleted()) {
+      sql.append(" AND EV.deleted IS FALSE");
+    }
   }
 
   /**
    * Generates an EXISTS condition for enrollment (and event if specified). The EXIST will allow us
    * to filter by enrollments with a low overhead. This condition only applies when a program is
    * specified.
+   *
+   * <p>When ordering by enrolledAt, the enrollment JOIN already includes all filters, so this
+   * EXISTS is skipped to avoid redundant checks.
    *
    * @param whereAnd indicator tracking whether WHERE has been invoked or not
    * @return an SQL EXISTS clause for enrollment, or empty string if not program is specified.
@@ -781,6 +967,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     StringBuilder program = new StringBuilder();
 
     if (!params.hasEnrolledInTrackerProgram()) {
+      return "";
+    }
+    // When ordering by enrolledAt, the enrollment JOIN already includes all filters
+    if (isOrderingByEnrolledAt(params)) {
       return "";
     }
 
@@ -1001,8 +1191,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         if (!ORDERABLE_FIELDS.containsKey(field)) {
           throw new IllegalArgumentException(
               String.format(
-                  "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
-                  field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
+                  INVALID_ORDER_FIELD_MESSAGE,
+                  field,
+                  String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
         orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
@@ -1016,7 +1207,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       } else {
         throw new IllegalArgumentException(
             String.format(
-                "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.",
+                INVALID_ORDER_FIELD_MESSAGE,
                 order.getField(),
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
@@ -1062,5 +1253,19 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   @Override
   protected TrackedEntity postProcessObject(TrackedEntity trackedEntity) {
     return (trackedEntity == null || trackedEntity.isDeleted()) ? null : trackedEntity;
+  }
+
+  /** Returns true if ordering by enrolledAt (enrollment.enrollmentDate). */
+  private static boolean isOrderingByEnrolledAt(TrackedEntityQueryParams params) {
+    return getEnrolledAtOrder(params) != null;
+  }
+
+  /** Returns the Order for enrolledAt, or null if not ordering by it. */
+  private static Order getEnrolledAtOrder(TrackedEntityQueryParams params) {
+    return params.getOrder().stream()
+        .filter(o -> o.getField() instanceof String)
+        .filter(o -> ENROLLMENT_DATE_KEY.equals(o.getField()))
+        .findFirst()
+        .orElse(null);
   }
 }
