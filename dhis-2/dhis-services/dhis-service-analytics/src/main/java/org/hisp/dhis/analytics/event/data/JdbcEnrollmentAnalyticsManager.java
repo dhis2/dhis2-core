@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
@@ -449,23 +449,41 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
-    // Categories (enrollments don't have attribute categories)
+    // Categories and category option group sets (enrollments don't have attribute categories)
     // ---------------------------------------------------------------------
 
     List<DimensionalObject> dynamicDimensions =
-        params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.CATEGORY));
+        params.getDimensionsAndFilters(
+            Sets.newHashSet(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      if (!isAttributeCategory(dim)) {
-        String dimName = dim.getDimensionName();
-        String col =
-            params.isPiDisagDimension(dimName)
-                ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
-                : quoteAlias(dimName);
-
-        sql +=
-            "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+      // Skip attribute categories for enrollments
+      if (dim.getDimensionType() == DimensionType.CATEGORY && isAttributeCategory(dim)) {
+        continue;
       }
+
+      String dimName = dim.getDimensionName();
+      String col =
+          params.isPiDisagDimension(dimName)
+              ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
+              : quoteAlias(dimName);
+
+      String condition =
+          "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+
+      // For stage-specific categories/COGS, add program stage filter
+      if (dim.getProgramStage() != null) {
+        condition =
+            "and ("
+                + col
+                + " in ("
+                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+                + ") and ps = '"
+                + dim.getProgramStage().getUid()
+                + "') ";
+      }
+
+      sql += condition;
     }
 
     // ---------------------------------------------------------------------

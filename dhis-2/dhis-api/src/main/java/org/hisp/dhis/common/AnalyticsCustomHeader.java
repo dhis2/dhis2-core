@@ -38,10 +38,11 @@ import org.hisp.dhis.program.ProgramStage;
  * Data class that encapsulate analytics metadata and header information that can be used by the
  * Metadata engine when calculating Metadata
  *
- * @param key the header key
- * @param value the header value
+ * @param key the header key (e.g., "stageUid.EVENT_DATE")
+ * @param value the header value including stage name (e.g., "Event date, Birth")
+ * @param label the header label without stage name (e.g., "Event date")
  */
-public record AnalyticsCustomHeader(String key, String value) {
+public record AnalyticsCustomHeader(String key, String value, String label) {
 
   private static final String EVENT_DATE_HEADER = "EVENT_DATE";
   private static final String SCHEDULED_DATE_HEADER = "SCHEDULED_DATE";
@@ -106,6 +107,7 @@ public record AnalyticsCustomHeader(String key, String value) {
         firstNonNull(programStage.getProgramStageLabel(), programStage.getName());
     return new AnalyticsCustomHeader(
         "%s.%s".formatted(programStage.getUid(), keySuffix),
-        "%s, %s".formatted(label, programStageName));
+        "%s, %s".formatted(label, programStageName),
+        label);
   }
 }
