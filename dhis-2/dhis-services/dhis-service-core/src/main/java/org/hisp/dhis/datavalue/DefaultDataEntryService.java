@@ -450,8 +450,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
-    List<DataEntryValue> values = group.values();
-    if (values.isEmpty()) return new DataEntrySummary(0, 0, 0, 0, List.of());
 
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup.Scope deletion = group.deletion();
@@ -463,22 +461,27 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           () -> validate(options.force(), group.dataSet(), source, errors));
     }
 
-    ValidationSource source = new ValuesValidationSource(values);
-    progress.startingStage("Validating group " + group.describe());
-    DataEntryGroup valid =
-        progress.runStageAndRethrow(
-            ConflictException.class,
-            () -> validate(options.force(), group.dataSet(), source, errors));
+    DataEntryGroup valid = null;
+    List<DataEntryValue> values = group.values();
     int entered = values.size();
-    int attempted = valid.values().size();
-    if (options.atomic() && entered > attempted) {
-      // keep original single error if possible
-      if (entered == 1 && errors.size() == 1) {
-        DataEntryError error = errors.get(0);
-        throw new ConflictException(error.code(), error.args());
+    int attempted = entered;
+    if (!values.isEmpty()) {
+      ValidationSource source = new ValuesValidationSource(values);
+      progress.startingStage("Validating group " + group.describe());
+      valid =
+          progress.runStageAndRethrow(
+              ConflictException.class,
+              () -> validate(options.force(), group.dataSet(), source, errors));
+      attempted = valid.values().size();
+      if (options.atomic() && entered > attempted) {
+        // keep original single error if possible
+        if (entered == 1 && errors.size() == 1) {
+          DataEntryError error = errors.get(0);
+          throw new ConflictException(error.code(), error.args());
+        }
+        String error = errors.isEmpty() ? "" : errors.get(0).message();
+        throw new ConflictException(ErrorCode.E8000, attempted, entered, error);
       }
-      String error = errors.isEmpty() ? "" : errors.get(0).message();
-      throw new ConflictException(ErrorCode.E8000, attempted, entered, error);
     }
 
     int deleted = 0;
@@ -487,12 +490,17 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       deleted = progress.runStage(0, () -> options.dryRun() ? 0 : store.deleteScope(deletion));
     }
 
-    String verb = "Upserting";
-    if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
-    progress.startingStage("%s group %s".formatted(verb, valid.describe()));
-    int succeeded =
-        progress.runStage(
-            0, () -> options.dryRun() ? attempted : store.upsertValues(valid.values()));
+    int succeeded = 0;
+    if (valid != null) {
+      String verb = "Upserting";
+      if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
+      int drySucceeded = attempted;
+      List<DataEntryValue> validValues = valid.values();
+      progress.startingStage("%s group %s".formatted(verb, valid.describe()));
+      succeeded =
+          progress.runStage(
+              0, () -> options.dryRun() ? drySucceeded : store.upsertValues(validValues));
+    }
 
     return new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
   }

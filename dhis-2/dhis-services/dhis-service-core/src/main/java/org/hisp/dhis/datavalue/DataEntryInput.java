@@ -248,7 +248,7 @@ public final class DataEntryInput {
     if (!dvs.get("dataSetIdScheme").isUndefined())
       schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
     if (!dvs.get("dataElementIdScheme").isUndefined())
-      schemes.setDataSetIdScheme(dvs.getString("dataElementIdScheme").string());
+      schemes.setDataElementIdScheme(dvs.getString("dataElementIdScheme").string());
     if (!dvs.get("orgUnitIdScheme").isUndefined())
       schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
     if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
