@@ -279,4 +279,456 @@ class DimensionIdentifierConverterTest {
         thrown.getMessage(),
         "Exception message does not match.");
   }
+
+  @Test
+  void fromStringWithEventDateDimensionUsingProgramStageUid() {
+    // Given - for event-level dimensions like EVENT_DATE, the first element is a program stage UID
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.eventdate";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - should resolve program from program stage
+    assertEquals(
+        "eventdate",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be eventdate");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
+  void fromStringWithScheduledDateDimensionUsingProgramStageUid() {
+    // Given
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.scheduleddate";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then
+    assertEquals(
+        "scheduleddate",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be scheduleddate");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
+  void fromStringWithEventStatusDimensionUsingProgramStageUid() {
+    // Given
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.eventstatus";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then
+    assertEquals(
+        "eventstatus",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be eventstatus");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
+  void fromStringWithOuDimensionUsingProgramStageUid() {
+    // Given - OU dimension at event level
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.ou";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then
+    assertEquals("ou", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be ou");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
+  void fromStringWithEventDateDimensionWhenProgramStageDoesNotExist() {
+    // Given - program stage UID that doesn't exist in any program
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "non-existing-stage.eventdate";
+
+    // When
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> converter.fromString(programs, fullDimensionId));
+
+    // Then
+    assertEquals(
+        "Specified program stage non-existing-stage does not exist",
+        thrown.getMessage(),
+        "Exception message does not match.");
+  }
+
+  @Test
+  void fromStringWithEventDateDimensionResolvesFromMultiplePrograms() {
+    // Given - program stage exists in one of multiple programs
+    Program program1 = new Program("prg-1");
+    program1.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage1 = new ProgramStage("ps-1", program1);
+    programStage1.setUid("stage1");
+    program1.setProgramStages(Set.of(programStage1));
+
+    Program program2 = new Program("prg-2");
+    program2.setUid("ur1Edk5Oe2n");
+    ProgramStage programStage2 = new ProgramStage("ps-2", program2);
+    programStage2.setUid("ZkbAXlQUYJG");
+    program2.setProgramStages(Set.of(programStage2));
+
+    List<Program> programs = List.of(program1, program2);
+    String fullDimensionId = "ZkbAXlQUYJG.eventdate";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - should resolve to program2 which contains the program stage
+    assertEquals(
+        "eventdate",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be eventdate");
+    assertEquals(
+        "ur1Edk5Oe2n",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be ur1Edk5Oe2n (program containing the stage)");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
+  void fromStringWithEnrollmentDateDimensionStillUsesProgramUid() {
+    // Given - enrollment-level dimensions should still use program UID (not program stage UID)
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "lxAQ7Zs9VYR.enrollmentdate";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - enrollment-level dimensions still use program UID as first element
+    assertEquals(
+        "enrollmentdate",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be enrollmentdate");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be lxAQ7Zs9VYR");
+    assertEquals(
+        emptyElementWithOffset(),
+        dimensionIdentifier.getProgramStage(),
+        "Stage should be empty for enrollment-level dimensions");
+  }
+
+  @Test
+  void fromStringWithProgramLevelOuDimensionShouldNotBeTreatedAsEventLevel() {
+    // Given - OU dimension with program UID (not program stage UID)
+    // This is a program-level (enrollment) OU dimension, not an event-level OU dimension
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "IpHINAT79UW.ou";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - should be treated as a program-level OU dimension, not an event-level one
+    assertEquals("ou", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be ou");
+    assertEquals(
+        "IpHINAT79UW",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be IpHINAT79UW");
+    assertEquals(
+        emptyElementWithOffset(),
+        dimensionIdentifier.getProgramStage(),
+        "Stage should be empty for program-level OU dimensions");
+  }
+
+  @Test
+  void fromStringWithStageUidAndEnrollmentDateDimensionShouldFail() {
+    // Given - program stage UID that is ALSO a program UID, used with enrollment-level dimension
+    // This tests the scenario where a UID exists as both a program and a stage UID
+    // When used with an enrollment-level dimension (ENROLLMENT_DATE), it should fail
+    Program program = new Program("prg-1");
+    program.setUid("ZkbAXlQUYJG"); // Same UID as the stage UID below
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG"); // Same UID as the program UID
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When - user tries to use the ambiguous UID with an enrollment-level dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> converter.fromString(programs, "ZkbAXlQUYJG.ENROLLMENT_DATE"));
+
+    // Then - should fail with appropriate error message indicating the dimension is not
+    // supported for stage-specific scoping
+    assertEquals(
+        "Dimension `ENROLLMENT_DATE` is not supported for program stage `ZkbAXlQUYJG`. "
+            + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+            + "are supported for stage-specific scoping",
+        thrown.getMessage(),
+        "Exception message should indicate dimension is not supported for stage-specific scoping");
+  }
+
+  @Test
+  void fromStringWithStageUidAndEndDateDimensionShouldFail() {
+    // Given - program stage UID that is ALSO a program UID, used with ENDDATE dimension
+    Program program = new Program("prg-1");
+    program.setUid("ZkbAXlQUYJG"); // Same UID as the stage UID below
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG"); // Same UID as the program UID
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When - user tries to use the ambiguous UID with ENDDATE dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> converter.fromString(programs, "ZkbAXlQUYJG.ENDDATE"));
+
+    // Then - should fail with appropriate error message
+    assertEquals(
+        "Dimension `ENDDATE` is not supported for program stage `ZkbAXlQUYJG`. "
+            + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+            + "are supported for stage-specific scoping",
+        thrown.getMessage(),
+        "Exception message should indicate dimension is not supported for stage-specific scoping");
+  }
+
+  @Test
+  void fromStringWithStageOnlyUidAndEnrollmentDateDimensionShouldFail() {
+    // Given - program stage UID that is NOT a program UID, used with enrollment-level dimension
+    // This tests the scenario where a UID exists ONLY as a stage UID (not as a program UID)
+    // When used with an enrollment-level dimension (ENROLLMENT_DATE), it should fail with
+    // a specific error message (not "program does not exist")
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW"); // Different UID than the stage
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG"); // This UID is only a stage UID, not a program UID
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+
+    // When - user tries to use the stage UID with an enrollment-level dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> converter.fromString(programs, "ZkbAXlQUYJG.ENROLLMENT_DATE"));
+
+    // Then - should fail with appropriate error message (not "program does not exist")
+    assertEquals(
+        "Dimension `ENROLLMENT_DATE` is not supported for program stage `ZkbAXlQUYJG`. "
+            + "Only event-level dimensions (EVENT_DATE, SCHEDULED_DATE, EVENT_STATUS, OU) "
+            + "are supported for stage-specific scoping",
+        thrown.getMessage(),
+        "Exception message should indicate dimension is not supported for stage-specific scoping");
+  }
+
+  @Test
+  void fromStringWithProgramScopedAndOffset() {
+    // Given - program-scoped dimension with offset (two-part format with offset)
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "lxAQ7Zs9VYR[2].someAttribute";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - offset should be preserved
+    assertEquals(
+        "someAttribute",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be someAttribute");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be lxAQ7Zs9VYR");
+    assertEquals(2, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 2");
+    assertEquals(
+        emptyElementWithOffset(),
+        dimensionIdentifier.getProgramStage(),
+        "Stage should be empty for program-scoped dimensions");
+  }
+
+  @Test
+  void fromStringStageScopedWithOffset() {
+    // Given - stage-scoped event-level dimension with offset
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG[3].eventdate";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - offset should be propagated to both program and stage
+    assertEquals(
+        "eventdate",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be eventdate");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(3, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 3");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+    assertEquals(3, dimensionIdentifier.getProgramStage().getOffset(), "Stage offset should be 3");
+  }
+
+  @Test
+  void fromStringWithStageUidAndNonStaticDimension() {
+    // Given - stage UID (not a program UID) with a non-static dimension (e.g., data element)
+    // This should fail because the first element is not a valid program
+    Program program = new Program("prg-1");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.someDataElement";
+
+    // When - stage UID with non-static, non-event-level dimension
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> converter.fromString(programs, fullDimensionId));
+
+    // Then - should fail with "program does not exist" since it's not a recognized pattern
+    assertEquals(
+        "Specified program ZkbAXlQUYJG does not exist",
+        thrown.getMessage(),
+        "Should fail as program not found for non-static dimensions");
+  }
+
+  @Test
+  void fromStringWithEmptyProgramsList() {
+    // Given - empty programs list
+    List<Program> programs = List.of();
+    String fullDimensionId = "anyProgram.anyDimension";
+
+    // When
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> converter.fromString(programs, fullDimensionId));
+
+    // Then - should fail with program not found
+    assertEquals(
+        "Specified program anyProgram does not exist",
+        thrown.getMessage(),
+        "Should fail when programs list is empty");
+  }
+
+  @Test
+  void fromStringDimensionOnlyWithEmptyProgramsList() {
+    // Given - dimension only with empty programs list (should succeed)
+    List<Program> programs = List.of();
+    String fullDimensionId = "someDimension";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then - should succeed as dimension-only doesn't need programs
+    assertEquals(
+        "someDimension",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be someDimension");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgram(), "Program should be empty");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be empty");
+  }
 }
