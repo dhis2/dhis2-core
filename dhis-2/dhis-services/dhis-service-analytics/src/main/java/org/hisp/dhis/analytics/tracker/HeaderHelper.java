@@ -32,7 +32,6 @@ package org.hisp.dhis.analytics.tracker;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static lombok.AccessLevel.PRIVATE;
-import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -127,33 +126,6 @@ public class HeaderHelper {
                 true,
                 item.getOptionSet(),
                 item.getLegendSet()));
-
-        // For stage.ou dimensions, also add ouname and oucode headers
-        if (isStageOuDimension(item)) {
-          String stageUid = item.getProgramStage().getUid();
-
-          grid.addHeader(
-              new GridHeader(
-                  stageUid + ".ouname",
-                  "Organisation unit name",
-                  "Organisation unit name",
-                  TEXT,
-                  false,
-                  true,
-                  null,
-                  null));
-
-          grid.addHeader(
-              new GridHeader(
-                  stageUid + ".oucode",
-                  "Organisation unit code",
-                  "Organisation unit code",
-                  TEXT,
-                  false,
-                  true,
-                  null,
-                  null));
-        }
       }
     }
   }
