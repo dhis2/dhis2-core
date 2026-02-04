@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -59,6 +60,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -180,6 +182,12 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7242);
     }
 
+    // Validate stage-specific categories and COGS
+    ErrorMessage stageSpecificDimError = validateStageSpecificDimensions(params);
+    if (stageSpecificDimError != null) {
+      return stageSpecificDimError;
+    }
+
     for (QueryItem item : params.getItemsAndItemFilters()) {
       if (item.hasLegendSet() && item.hasOptionSet()) {
         return new ErrorMessage(ErrorCode.E7215, item.getItemId());
@@ -250,6 +258,39 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
 
     return true;
+  }
+
+  /**
+   * Validates stage-specific dimensions (categories and COGS). Checks that the program stage
+   * belongs to the query's program.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return an {@link ErrorMessage} if validation fails, null otherwise.
+   */
+  private ErrorMessage validateStageSpecificDimensions(EventQueryParams params) {
+    if (!params.hasProgram()) {
+      return null;
+    }
+
+    Program program = params.getProgram();
+
+    // Check dimensions and filters for stage-specific categories/COGS
+    List<DimensionalObject> dynamicDimensions =
+        params.getDimensionsAndFilters(
+            Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
+
+    for (DimensionalObject dim : dynamicDimensions) {
+      if (dim.getProgramStage() != null) {
+        ProgramStage dimProgramStage = dim.getProgramStage();
+
+        // Validate that the stage belongs to the program
+        if (!dimProgramStage.getProgram().equals(program)) {
+          return new ErrorMessage(ErrorCode.E7245, dimProgramStage.getUid(), program.getUid());
+        }
+      }
+    }
+
+    return null;
   }
 
   /**

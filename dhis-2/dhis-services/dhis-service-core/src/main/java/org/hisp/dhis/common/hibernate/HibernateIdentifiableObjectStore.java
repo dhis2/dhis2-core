@@ -296,6 +296,11 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   }
 
   @Override
+  public @CheckForNull T getByUid(@Nonnull UID uid) {
+    return getByUid(uid.getValue());
+  }
+
+  @Override
   public final T getByUidNoAcl(@Nonnull String uid) {
     if (isTransientIdentifiableProperties()) {
       return null;

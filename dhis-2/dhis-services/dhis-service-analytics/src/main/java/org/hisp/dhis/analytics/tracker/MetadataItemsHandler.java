@@ -377,11 +377,15 @@ public class MetadataItemsHandler {
     params.getItemsAndItemFilters().stream()
         .filter(Objects::nonNull)
         .forEach(
-            item ->
-                metadataItemMap.put(
-                    getItemIdWithProgramStageIdPrefix(item),
-                    new MetadataItem(
-                        item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
+            item -> {
+              String key = getItemIdWithProgramStageIdPrefix(item);
+              String name =
+                  item.hasCustomHeader()
+                      ? item.getCustomHeader().label()
+                      : item.getItem().getDisplayName();
+              metadataItemMap.put(
+                  key, new MetadataItem(name, includeDetails ? item.getItem() : null));
+            });
   }
 
   /**
@@ -419,7 +423,8 @@ public class MetadataItemsHandler {
       DisplayProperty displayProperty) {
     if (item.hasCustomHeader()) {
       metadataItemMap.put(
-          item.getCustomHeader().key(), new MetadataItem(item.getCustomHeader().value()));
+          item.getCustomHeader().headerKey(item.getCustomHeader().key()),
+          new MetadataItem(item.getCustomHeader().label()));
     } else {
 
       MetadataItem metadataItem =
@@ -590,6 +595,10 @@ public class MetadataItemsHandler {
    * @param item {@link QueryItem}.
    */
   private String getItemIdWithProgramStageIdPrefix(QueryItem item) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().headerKey(item.getCustomHeader().key());
+    }
+
     if (item.hasProgramStage()) {
       return item.getProgramStage().getUid() + "." + item.getItemId();
     }
