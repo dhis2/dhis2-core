@@ -113,8 +113,18 @@ public class HeaderHelper {
             item.hasCustomHeader()
                 ? item.getCustomHeader().headerKey(item.getCustomHeader().key())
                 : getItemUid(item);
-        String column = item.getItem().getDisplayProperty(displayProperty);
-        String displayColumn = item.getColumnName(displayProperty, repeatedNames.get(column) > 1);
+        String column =
+            item.hasCustomHeader()
+                ? item.getCustomHeader().label()
+                : item.getItem().getDisplayProperty(displayProperty);
+        // For custom headers, check if the custom label is repeated; otherwise check the underlying
+        // item name
+        String repeatedNamesKey =
+            item.hasCustomHeader()
+                ? item.getCustomHeader().label()
+                : item.getItem().getDisplayProperty(displayProperty);
+        long repeatedCount = repeatedNames.getOrDefault(repeatedNamesKey, 0L);
+        String displayColumn = item.getColumnName(displayProperty, repeatedCount > 1);
 
         grid.addHeader(
             new GridHeader(

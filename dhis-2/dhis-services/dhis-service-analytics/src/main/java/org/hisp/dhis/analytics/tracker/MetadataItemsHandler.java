@@ -379,12 +379,15 @@ public class MetadataItemsHandler {
         .forEach(
             item -> {
               String key = getItemIdWithProgramStageIdPrefix(item);
-              String name =
-                  item.hasCustomHeader()
-                      ? item.getCustomHeader().label()
-                      : item.getItem().getDisplayName();
-              metadataItemMap.put(
-                  key, new MetadataItem(name, includeDetails ? item.getItem() : null));
+              if (item.hasCustomHeader()) {
+                // For custom headers, only include the label (name), not the underlying item
+                // details
+                metadataItemMap.put(key, new MetadataItem(item.getCustomHeader().label()));
+              } else {
+                String name = item.getItem().getDisplayName();
+                metadataItemMap.put(
+                    key, new MetadataItem(name, includeDetails ? item.getItem() : null));
+              }
             });
   }
 
