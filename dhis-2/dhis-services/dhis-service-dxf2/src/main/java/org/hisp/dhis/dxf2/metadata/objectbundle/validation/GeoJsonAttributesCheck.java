@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.geojson.Feature;
@@ -151,8 +152,14 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
     try {
       validateGeoJsonObject(
           objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
-    } catch (JsonProcessingException e) {
-      log.error(DebugUtils.getStackTrace(e));
+    } catch ( InvalidTypeIdException e ) {
+      addError.accept(
+          new ErrorReport(Attribute.class, ErrorCode.E6005, attributeValue)
+              .setMainId(attributeValue)
+              .setErrorProperty("value"));
+    }
+    catch (JsonProcessingException e) {
+      log.debug(DebugUtils.getStackTrace(e));
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
               .setMainId(attributeValue)
