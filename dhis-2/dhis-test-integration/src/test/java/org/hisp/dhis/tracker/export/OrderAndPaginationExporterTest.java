@@ -176,6 +176,76 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnPaginatedTrackedEntitiesOrderedByEnrolledAtAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    // 2 TEs in BFcipDERJnf: QS6w44flWAf (Jan 15), dUE514NMOlo (Mar 28)
+    // QS6w44flWAf has 2 enrollments (Jan 15, Feb 28) - DISTINCT ON picks Jan 15 with ASC
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntityType(trackedEntityType)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
+            .build();
+
+    Page<String> firstPage =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 1, false))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of("QS6w44flWAf"), 1, 1, null, null, 2), firstPage, "first page");
+
+    Page<String> secondPage =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(2, 1, false))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertEquals(
+        new Page<>(List.of("dUE514NMOlo"), 2, 1, null, 1, null), secondPage, "second (last) page");
+
+    Page<TrackedEntity> thirdPage =
+        trackedEntityService.findTrackedEntities(params, PageParams.of(3, 1, false));
+
+    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
+  void shouldReturnPaginatedTrackedEntitiesOrderedByEnrolledAtDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    // 2 TEs in BFcipDERJnf: dUE514NMOlo (Mar 28), QS6w44flWAf (Feb 28)
+    // QS6w44flWAf has 2 enrollments (Jan 15, Feb 28) - DISTINCT ON picks Feb 28 with DESC
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnit)
+            .orgUnitMode(SELECTED)
+            .trackedEntityType(trackedEntityType)
+            .program(UID.of("BFcipDERJnf"))
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .build();
+
+    Page<String> firstPage =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 1, false))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of("dUE514NMOlo"), 1, 1, null, null, 2), firstPage, "first page");
+
+    Page<String> secondPage =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(2, 1, false))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertEquals(
+        new Page<>(List.of("QS6w44flWAf"), 2, 1, null, 1, null), secondPage, "second (last) page");
+
+    Page<TrackedEntity> thirdPage =
+        trackedEntityService.findTrackedEntities(params, PageParams.of(3, 1, false));
+
+    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
   void shouldReturnPaginatedTrackedEntitiesWithMaxTeCountToReturnOnProgram()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
@@ -388,6 +458,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
+            .program(UID.of("BFcipDERJnf"))
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -397,27 +468,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldOrderTrackedEntitiesByEnrolledAtDescWithNoProgramInParams()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnit)
-            .orgUnitMode(SELECTED)
-            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
-            .trackedEntityType(trackedEntityType)
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .build();
-
-    List<String> trackedEntities = getTrackedEntities(params);
-
-    assertEquals(
-        List.of("QS6w44flWAf", "dUE514NMOlo"),
-        trackedEntities); // QS6w44flWAf has 2 enrollments, one of which has an enrollment with
-    // enrolled date greater than the enrollment in dUE514NMOlo
-  }
-
-  @Test
-  void shouldOrderTrackedEntitiesByEnrolledAtDescWithProgramInParams()
+  void shouldOrderTrackedEntitiesByEnrolledAtDesc()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -443,6 +494,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
+            .program(UID.of("BFcipDERJnf"))
             .orderBy(UID.of("toDelete000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
@@ -651,20 +703,27 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .findEnrollments(operationParams, PageParams.single())
             .withMappedItems(IdentifiableObject::getUid);
 
-    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, null, null, 2), firstPage, "first page");
+    assertEquals(new Page<>(List.of("nxP7UnKhomK"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
             .findEnrollments(operationParams, PageParams.of(2, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
+    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 2, 1, null, 1, 3), secondPage, "second page");
+
+    Page<String> thirdPage =
+        enrollmentService
+            .findEnrollments(operationParams, PageParams.of(3, 1, false))
+            .withMappedItems(IdentifiableObject::getUid);
+
     assertEquals(
-        new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, null), secondPage, "second (last) page");
+        new Page<>(List.of("TvctPPhpD8z"), 3, 1, null, 2, null), thirdPage, "third (last) page");
 
-    Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, false));
+    Page<Enrollment> fourthPage =
+        enrollmentService.findEnrollments(operationParams, PageParams.of(4, 1, false));
 
-    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+    assertEquals(new Page<>(List.of(), 4, 1, null, 3, null), fourthPage, "past the last page");
   }
 
   @Test
@@ -682,29 +741,37 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .findEnrollments(operationParams, PageParams.of(1, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
-    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 2L, null, 2), firstPage, "first page");
+    assertEquals(new Page<>(List.of("nxP7UnKhomK"), 1, 1, 3L, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
             .findEnrollments(operationParams, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
+    assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 2, 1, 3L, 1, 3), secondPage, "second page");
+
+    Page<String> thirdPage =
+        enrollmentService
+            .findEnrollments(operationParams, PageParams.of(3, 1, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
     assertEquals(
-        new Page<>(List.of("TvctPPhpD8z"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
+        new Page<>(List.of("TvctPPhpD8z"), 3, 1, 3L, 2, null), thirdPage, "third (last) page");
 
-    Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, true));
+    Page<Enrollment> fourthPage =
+        enrollmentService.findEnrollments(operationParams, PageParams.of(4, 1, true));
 
-    assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
+    assertEquals(new Page<>(List.of(), 4, 1, 3L, 3, null), fourthPage, "past the last page");
   }
 
   @Test
   void shouldOrderEnrollmentsByPrimaryKeyDescByDefault()
       throws ForbiddenException, BadRequestException {
+    Enrollment nxP7UnKhomK = get(Enrollment.class, "nxP7UnKhomK");
     Enrollment nxP7UnKhomJ = get(Enrollment.class, "nxP7UnKhomJ");
     Enrollment TvctPPhpD8z = get(Enrollment.class, "TvctPPhpD8z");
     List<String> expected =
-        Stream.of(nxP7UnKhomJ, TvctPPhpD8z)
+        Stream.of(nxP7UnKhomK, nxP7UnKhomJ, TvctPPhpD8z)
             .sorted(Comparator.comparing(Enrollment::getId).reversed()) // reversed = desc
             .map(Enrollment::getUid)
             .toList();
@@ -728,7 +795,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     List<String> enrollments = getEnrollments(params);
 
-    assertEquals(List.of("nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
+    assertEquals(List.of("nxP7UnKhomK", "nxP7UnKhomJ", "TvctPPhpD8z"), enrollments);
   }
 
   @Test
@@ -742,7 +809,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     List<String> enrollments = getEnrollments(params);
 
-    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ"), enrollments);
+    assertEquals(List.of("TvctPPhpD8z", "nxP7UnKhomJ", "nxP7UnKhomK"), enrollments);
   }
 
   @Test
