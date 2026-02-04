@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.database;
+package org.hisp.dhis.system.capability;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,23 +37,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- * @author Lars Helge Overland
- */
+/** Encapsulation of system capabilities. */
 @Getter
 @Setter
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
-public final class DatabaseInfo {
-  @JsonProperty private final String name;
-  @JsonProperty private final String user;
-  @JsonProperty private final String url;
-  @JsonProperty private final String databaseVersion;
-  @JsonProperty private final boolean spatialSupport;
-  @JsonProperty private final Date time;
-
-  public DatabaseInfo withoutSensitiveInfo() {
-    return toBuilder().name(null).user(null).url(null).databaseVersion(null).build();
-  }
+public class SystemCapability {
+  /** Capability for returning counts of total number of rows in analytics. */
+  @JsonProperty private final boolean analyticsTotalCounts;
 }

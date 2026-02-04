@@ -60,6 +60,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return Database.POSTGRESQL;
   }
 
+  @Override
+  public boolean isHighPerformance() {
+    return false;
+  }
+
   // Data types
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.database;
+package org.hisp.dhis.system.capability;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@Builder(toBuilder = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-public final class DatabaseInfo {
-  @JsonProperty private final String name;
-  @JsonProperty private final String user;
-  @JsonProperty private final String url;
-  @JsonProperty private final String databaseVersion;
-  @JsonProperty private final boolean spatialSupport;
-  @JsonProperty private final Date time;
+/** Provider of system capabilities. */
+@Component
+@RequiredArgsConstructor
+public class SystemCapabilityProvider {
+  private final SqlBuilder sqlBuilder;
 
-  public DatabaseInfo withoutSensitiveInfo() {
-    return toBuilder().name(null).user(null).url(null).databaseVersion(null).build();
+  /**
+   * Returns the system capabilities.
+   *
+   * @return a {@link SystemCapability}.
+   */
+  public SystemCapability getSystemCapability() {
+    return SystemCapability.builder().analyticsTotalCounts(sqlBuilder.isHighPerformance()).build();
   }
 }
