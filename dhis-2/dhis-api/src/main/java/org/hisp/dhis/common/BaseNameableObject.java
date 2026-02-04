@@ -50,6 +50,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   /** Description of this object. */
   protected String description;
 
+  /** Name to be displayed in data entry forms. */
   protected String formName;
 
   // -------------------------------------------------------------------------
