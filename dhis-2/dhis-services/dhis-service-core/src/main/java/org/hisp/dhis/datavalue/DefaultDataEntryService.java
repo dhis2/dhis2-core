@@ -487,7 +487,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     int deleted = 0;
     if (deletion != null) {
       progress.startingStage("Deleting scope " + deletion);
-      deleted = progress.runStage(0, () -> options.dryRun() ? 0 : store.deleteScope(deletion));
+      deleted =
+          progress.runStage(
+              0, () -> options.dryRun() ? store.countScope(deletion) : store.deleteScope(deletion));
     }
 
     int succeeded = 0;
