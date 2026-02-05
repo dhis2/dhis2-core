@@ -186,10 +186,10 @@ class DataStatisticsServiceTest extends PostgresIntegrationTestBase {
         () -> assertEquals(5L, summary.getSingleEventCount().get(1)),
         () -> assertEquals(6L, summary.getSingleEventCount().get(7)),
         () -> assertEquals(7L, summary.getSingleEventCount().get(30)),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(0)),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(1)),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(7)),
-        () -> assertEquals(12L, summary.getEnrollmentCount().get(30)));
+        () -> assertEquals(13L, summary.getEnrollmentCount().get(0)),
+        () -> assertEquals(13L, summary.getEnrollmentCount().get(1)),
+        () -> assertEquals(13L, summary.getEnrollmentCount().get(7)),
+        () -> assertEquals(13L, summary.getEnrollmentCount().get(30)));
   }
 
   // --- Helpers ---
