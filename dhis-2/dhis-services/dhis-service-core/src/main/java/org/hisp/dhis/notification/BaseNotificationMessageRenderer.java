@@ -313,18 +313,15 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   }
 
   protected static String getOptionName(OptionSet optionSet, String value) {
-    String finalValue = value;
-    if (optionSet != null && optionSet.getOptions() != null) {
-      value =
-          optionSet.getOptions().stream()
-              .filter(option -> Objects.equals(option.getCode(), finalValue))
-              .findFirst()
-              .map(Option::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
-    } else {
-      value = MISSING_VALUE_REPLACEMENT;
+    if (optionSet == null || optionSet.getOptions() == null) {
+      return MISSING_VALUE_REPLACEMENT;
     }
-    return value;
+
+    return optionSet.getOptions().stream()
+        .filter(option -> Objects.equals(option.getCode(), value))
+        .findFirst()
+        .map(Option::getName)
+        .orElse(MISSING_VALUE_REPLACEMENT);
   }
 
   protected static String daysUntil(Date date) {
