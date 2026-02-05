@@ -29,17 +29,62 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import static org.hisp.dhis.security.Authorities.F_CATEGORY_MERGE;
+import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import jakarta.persistence.PersistenceException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping("/api/categories")
+@RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class CategoryController extends AbstractCrudController<Category, GetObjectListParams> {}
+public class CategoryController extends AbstractCrudController<Category, GetObjectListParams> {
+  private final MergeService categoryMergeService;
+
+  @Beta
+  @ResponseStatus(HttpStatus.OK)
+  @RequiresAuthority(anyOf = F_CATEGORY_MERGE)
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeCategories(@RequestBody MergeParams params)
+      throws ConflictException {
+    log.info("Category merge received");
+
+    MergeReport report;
+    try {
+      report = categoryMergeService.processMerge(params);
+    } catch (PersistenceException ex) {
+      String helpfulMessage = getHelpfulMessage(ex);
+      log.error("Error while processing Category merge: {}", helpfulMessage);
+      throw ex;
+    }
+
+    log.info("Category merge processed with report: {}", report);
+    return WebMessageUtils.mergeReport(report);
+  }
+}

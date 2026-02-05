@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENT_STATUS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EVENT_STATUS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.PROGRAM_STATUS;
@@ -72,10 +73,16 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
   private static boolean isStatusDimension(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return Optional.of(dimensionIdentifier)
-        .map(DimensionIdentifier::getDimension)
-        .map(DimensionParam::getStaticDimension)
-        .filter(SUPPORTED_STATUS_DIMENSIONS::contains)
-        .isPresent();
+            .map(DimensionIdentifier::getDimension)
+            .map(DimensionParam::getStaticDimension)
+            .filter(SUPPORTED_STATUS_DIMENSIONS::contains)
+            .isPresent()
+        && !isEventLevelEventStatus(dimensionIdentifier);
+  }
+
+  private static boolean isEventLevelEventStatus(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return isEventLevelStaticDimension(dimensionIdentifier, EVENT_STATUS);
   }
 
   @Override

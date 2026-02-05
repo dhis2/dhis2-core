@@ -44,10 +44,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hibernate.Session;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.config.QueryCountDataSourceProxy;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
@@ -325,5 +328,59 @@ class UserStoreTest extends PostgresIntegrationTestBase {
     // then only 1 select query is triggered
     assertSelectCount(1);
     assertEquals(2, users.size());
+  }
+
+  @Test
+  @DisplayName("Updating CategoryDimensions by Categories returns the expected count")
+  void updateCatDimensionCategoryRefsByCategoriesTest() {
+    // given 4 Users exist, each with different CategoryDimensionConstraints
+    TestCategoryMetadata categoryMetadata1 = setupCategoryMetadata("1");
+    TestCategoryMetadata categoryMetadata2 = setupCategoryMetadata("2");
+    Category targetCategory = categoryMetadata2.c1();
+    setupCategoryMetadata("3");
+    User user1 = makeUser("1");
+    User user2 = makeUser("2");
+    User user3 = makeUser("3");
+    User user4 = makeUser("4");
+    userStore.save(user1);
+    userStore.save(user2);
+    userStore.save(user3);
+    userStore.save(user4);
+    user1.getCatDimensionConstraints().add(categoryMetadata1.c1());
+    user2.getCatDimensionConstraints().add(categoryMetadata1.c2());
+    user3.getCatDimensionConstraints().add(targetCategory);
+    user4.getCatDimensionConstraints().add(categoryMetadata2.c2());
+    userStore.update(user1);
+    userStore.update(user2);
+    userStore.update(user3);
+    userStore.update(user4);
+
+    // when updating category dimension constraints category refs
+    int updatedCatDimensionConstraints =
+        userStore.updateCatDimensionConstraintsCategoryRefs(
+            Set.of(categoryMetadata1.c1().getId(), categoryMetadata1.c2().getId()),
+            targetCategory.getId());
+
+    dbmsManager.clearSession();
+    assertEquals(
+        2, updatedCatDimensionConstraints, "2 CategoryDimensionConstraints have been updated");
+
+    // then users should have the correct refs to category dimension constraints
+    checkConstraints(user1, targetCategory.getId());
+    checkConstraints(user2, targetCategory.getId());
+    checkConstraints(user3, targetCategory.getId());
+    checkConstraints(user4, categoryMetadata2.c2().getId());
+  }
+
+  private void checkConstraints(User user, long categoryId) {
+    Session session = entityManager.unwrap(Session.class);
+    User freshUser1 = session.get(User.class, user.getId());
+    assertEquals(
+        1,
+        user.getCatDimensionConstraints().size(),
+        "There should be 1 CategoryDimensionConstraint");
+
+    assertEquals(
+        categoryId, freshUser1.getCatDimensionConstraints().stream().findFirst().get().getId());
   }
 }

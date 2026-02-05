@@ -9581,8 +9581,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-    dumpHeaders(actualHeaders);
-
     // Assert headers.
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
@@ -14175,13 +14173,5 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "P038",
                 "B1X4JyH4Mdw"),
             (expectPostgis ? new HashSet<>() : Set.of(8, 9, 10, 11))));
-  }
-
-  private void dumpHeaders(List<Map<String, Object>> actualHeaders) {
-    // Utility method to help debug test failures
-    for (int i = 0; i < actualHeaders.size(); i++) {
-      Map<String, Object> header = actualHeaders.get(i);
-      System.out.println(i + ": " + header.get("name") + " (" + header.get("type") + ")");
-    }
   }
 }

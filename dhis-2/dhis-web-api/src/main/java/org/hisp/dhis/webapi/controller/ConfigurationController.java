@@ -45,7 +45,7 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -492,7 +492,6 @@ public class ConfigurationController {
         .collect(toCollection(LinkedHashSet::new));
   }
 
-  @SuppressWarnings("unchecked")
   @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @PostMapping(
       value = {"/dataOutputPeriodTypes"},
@@ -501,7 +500,7 @@ public class ConfigurationController {
   public void setDataOutputPeriodTypes(
       @RequestBody Set<org.hisp.dhis.webapi.webdomain.PeriodType> periodTypes) {
 
-    // Disallow deprecated type.
+    // Disallow deprecated types
     for (org.hisp.dhis.webapi.webdomain.PeriodType p : periodTypes) {
       if (trimToEmpty(p.getName()).equalsIgnoreCase(TWO_YEARLY.getName())) {
         throw new IllegalQueryException(new ErrorMessage(E1101, p.getName()));
@@ -513,7 +512,7 @@ public class ConfigurationController {
     periodTypes.forEach(
         p -> addIgnoreNull(periodTypesParsed, periodService.getPeriodTypeByName(p.getName())));
 
-    // Always add yearly, as it's mandatory for partition checks.
+    // Always add yearly, as it is mandatory for partition checks
     periodTypesParsed.add(periodService.getPeriodTypeByName(YEARLY.getName()));
 
     Configuration configuration = configurationService.getConfiguration();
@@ -548,6 +547,6 @@ public class ConfigurationController {
    * @return a trimmed string.
    */
   private String trim(String string) {
-    return StringUtils.remove(string, "\"");
+    return Strings.CS.remove(string, "\"");
   }
 }

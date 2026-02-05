@@ -262,7 +262,7 @@ class DataValidationRunnerTest {
 
   private OrganisationUnit createOu(char uniqueCharacter) {
     OrganisationUnit organisationUnit = createOrganisationUnit(uniqueCharacter);
-    organisationUnit.setId(RandomUtils.nextLong());
+    organisationUnit.setId(RandomUtils.secure().randomLong());
     return organisationUnit;
   }
 }
