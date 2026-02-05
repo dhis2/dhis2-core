@@ -37,10 +37,10 @@ import org.junit.jupiter.api.Test;
 class UidObjectTest {
 
   @Test
-  void getUidTypeTest() {
+  void getUIDTest() {
     Category category = new Category();
     category.setAutoFields();
-    UID uidType = category.getUidType();
+    UID uidType = category.getUID();
     assertEquals(category.getUid(), uidType.getValue());
   }
 }
