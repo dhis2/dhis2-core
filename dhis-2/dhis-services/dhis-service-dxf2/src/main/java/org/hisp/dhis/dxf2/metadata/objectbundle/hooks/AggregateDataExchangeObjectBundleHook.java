@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +64,7 @@ public class AggregateDataExchangeObjectBundleHook
   private static final int SOURCE_REQUEST_NAME_MAX_LENGTH = 50;
 
   private static final Set<DimensionItemType> ALLOWED_DX_ITEM_TYPES =
-      Set.of(
+      EnumSet.of(
           DimensionItemType.INDICATOR,
           DimensionItemType.DATA_ELEMENT,
           DimensionItemType.DATA_ELEMENT_OPERAND,
