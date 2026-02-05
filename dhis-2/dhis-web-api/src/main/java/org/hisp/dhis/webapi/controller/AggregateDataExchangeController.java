@@ -83,6 +83,14 @@ public class AggregateDataExchangeController
         service.exchangeData(userDetails, uid, JobProgress.noop()));
   }
 
+  @PostMapping("/{uid}/reset")
+  @ResponseStatus(value = HttpStatus.OK)
+  public WebMessage resetDataExchangeByUid(
+      @PathVariable String uid, @CurrentUser UserDetails userDetails) {
+    AggregateDataExchange exchange = service.loadByUid(uid);
+    return WebMessageUtils.importSummary(service.resetData(userDetails, exchange));
+  }
+
   @GetMapping("/{uid}/sourceData")
   @ResponseStatus(value = HttpStatus.OK)
   public List<Grid> getSourceData(
