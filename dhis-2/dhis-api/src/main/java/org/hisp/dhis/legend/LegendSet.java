@@ -84,7 +84,7 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   @Column(name = "code", length = 50)
   private String code;
 
-  @Column(name = "name", length = 255)
+  @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
