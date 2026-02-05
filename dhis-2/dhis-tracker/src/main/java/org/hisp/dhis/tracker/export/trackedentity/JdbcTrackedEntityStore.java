@@ -417,7 +417,7 @@ class JdbcTrackedEntityStore {
         addDistinctOnOrderBy(sql, params);
         // LIMIT must be in outer query for DISTINCT ON (after final ORDER BY)
       } else {
-        addInnerOrderBy(sql, params);
+        addOrderBy(sql, params);
         sql.append(" ");
         addLimitAndOffset(sql, pageParams);
       }
@@ -440,11 +440,6 @@ class JdbcTrackedEntityStore {
     if (!isCountQuery) {
       sql.append(" ");
       addOrderBy(sql, params);
-      // LIMIT in outer query for DISTINCT ON (after final ORDER BY)
-      if (isOrderingByEnrolledAt(params)) {
-        sql.append(" ");
-        addLimitAndOffset(sql, pageParams);
-      }
     }
 
     sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
@@ -565,44 +560,6 @@ class JdbcTrackedEntityStore {
     }
 
     sql.append(String.join(", ", columns));
-  }
-
-  /**
-   * Adds ORDER BY for the inner subquery. Uses the same ordering as the outer query to ensure
-   * correct results before LIMIT is applied.
-   */
-  private void addInnerOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    List<String> orderFields = new ArrayList<>();
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof String field) {
-        if (!ORDERABLE_FIELDS.containsKey(field)) {
-          throw new IllegalArgumentException(
-              String.format(
-                  INVALID_ORDER_FIELD_MESSAGE,
-                  field,
-                  String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
-        }
-
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
-      } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(quote(tea.getUid()) + " " + order.getDirection());
-      } else {
-        throw new IllegalArgumentException(
-            String.format(
-                INVALID_ORDER_FIELD_MESSAGE,
-                order.getField(),
-                String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
-      }
-    }
-
-    sql.append("order by ");
-
-    if (orderFields.isEmpty()) {
-      sql.append(DEFAULT_ORDER);
-      return;
-    }
-
-    sql.append(StringUtils.join(orderFields, ',')).append(", ").append(DEFAULT_ORDER);
   }
 
   private void addJoinOnProgram(

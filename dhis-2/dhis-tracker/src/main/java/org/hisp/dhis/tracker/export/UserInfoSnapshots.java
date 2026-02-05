@@ -74,7 +74,7 @@ public class UserInfoSnapshots {
       return null;
     }
     return UserInfoSnapshot.of(
-        json.getNumber("id").number(0L).longValue(),
+        json.getNumber("id").number().longValue(),
         json.getString("code").string(null),
         json.getString("uid").string(null),
         json.getString("username").string(null),
