@@ -37,6 +37,7 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +59,6 @@ import org.geojson.Polygon;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -153,12 +153,20 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
       validateGeoJsonObject(
           objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
     } catch (InvalidTypeIdException e) {
+      // Expected validation error for unsupported GeoJSON types
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6005, attributeValue)
               .setMainId(attributeValue)
               .setErrorProperty("value"));
+    } catch (MismatchedInputException e) {
+      // Expected validation error for invalid structure/types
+      addError.accept(
+          new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
+              .setMainId(attributeValue)
+              .setErrorProperty("value"));
     } catch (JsonProcessingException e) {
-      log.debug(DebugUtils.getStackTrace(e));
+      // Unexpected parsing error
+      log.error("Invalid GeoJSON value: {}", attributeValue, e);
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
               .setMainId(attributeValue)
