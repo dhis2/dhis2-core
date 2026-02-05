@@ -67,7 +67,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RuleEngineRuleEngineMapperTest extends TrackerTestBase {
+class RuleEngineMapperTest extends TrackerTestBase {
   private static final String SAMPLE_VALUE_A = "textValueA";
 
   private static final Date NOW = new Date();
