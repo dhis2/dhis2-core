@@ -154,19 +154,21 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
           objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
     } catch (InvalidTypeIdException e) {
       // Expected validation error for unsupported GeoJSON types
+      log.debug("Unsupported GeoJSON type in attribute {}: {}", attributeId, e.getMessage());
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6005, attributeValue)
               .setMainId(attributeValue)
               .setErrorProperty("value"));
     } catch (MismatchedInputException e) {
       // Expected validation error for invalid structure/types
+      log.debug("Invalid GeoJSON structure in attribute {}: {}", attributeId, e.getMessage());
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
               .setMainId(attributeValue)
               .setErrorProperty("value"));
     } catch (JsonProcessingException e) {
       // Unexpected parsing error
-      log.error("Invalid GeoJSON value: {}", attributeValue, e);
+      log.debug("Failed to parse GeoJSON in attribute {}: {}", attributeId, e.getMessage());
       addError.accept(
           new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
               .setMainId(attributeValue)
