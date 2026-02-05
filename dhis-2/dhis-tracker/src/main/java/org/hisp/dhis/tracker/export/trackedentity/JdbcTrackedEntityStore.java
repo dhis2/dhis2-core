@@ -275,27 +275,33 @@ class JdbcTrackedEntityStore {
    * <pre>
    * SELECT (columns)
    * FROM (
-   *   SELECT DISTINCT te.*, (order_columns)
-   *   FROM trackedentity te
-   *   JOIN program p ON ...
-   *   JOIN trackedentityprogramowner po ON ...
-   *   JOIN organisationunit ou ON ...
-   *   [JOIN enrollment en ON ...]  -- only when ordering by enrollment date
-   *   [LEFT JOIN trackedentityattributevalue ON ...]  -- for attribute filters/ordering
-   *   WHERE (filters)
-   *   [AND EXISTS (enrollment_subquery)]  -- when program is specified
-   *   ORDER BY (order) LIMIT/OFFSET
+   *   SELECT (te_data + tet + te_ou + po columns)
+   *   FROM (
+   *     SELECT DISTINCT te.trackedentityid, (order_columns)
+   *     FROM trackedentity te
+   *     JOIN program p ON ...
+   *     JOIN trackedentityprogramowner po ON ...
+   *     JOIN organisationunit ou ON ...
+   *     [JOIN enrollment en ON ...]  -- only when ordering by enrollment date
+   *     [LEFT JOIN trackedentityattributevalue ON ...]  -- for attribute filters/ordering
+   *     WHERE (filters)
+   *     [AND EXISTS (enrollment_subquery)]  -- when program is specified
+   *     ORDER BY (order) LIMIT/OFFSET
+   *   ) te
+   *   JOIN trackedentity te_data ON ...  -- fetch full row after LIMIT
+   *   JOIN trackedentitytype tet ON ...
+   *   JOIN organisationunit te_ou ON ...
+   *   [JOIN program owner tables ON ...]  -- when program is specified
+   *   ORDER BY (order)
    * ) te
-   * JOIN trackedentitytype tet ON ...
-   * JOIN organisationunit te_ou ON ...
-   * [JOIN program owner tables ON ...]  -- when program is specified
    * ORDER BY (order)
    * </pre>
    *
    * <p>Key design decisions:
    *
    * <ul>
-   *   <li>Inner query uses DISTINCT on te.* plus order columns to deduplicate while preserving sort
+   *   <li>Inner query uses DISTINCT only on trackedentityid (PK) to avoid expensive comparisons on
+   *       geometry/jsonb columns, then joins back to trackedentity (te_data) for the full row
    *   <li>LIMIT/OFFSET applied in inner query before expensive joins to tet/te_ou tables
    *   <li>Program enrollment check uses EXISTS to avoid row multiplication
    *   <li>Attribute ordering uses LEFT JOIN so TEs without the attribute are still included
@@ -425,10 +431,12 @@ class JdbcTrackedEntityStore {
 
     sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
 
-    // Data joins (fetch tet/te_ou/po data after LIMIT reduces row count)
-    // No need to join trackedentity again - te.* already has all TE columns from inner query
-    sql.append("join organisationunit te_ou on te.organisationunitid = te_ou.organisationunitid ");
-    sql.append("join trackedentitytype tet on te.trackedentitytypeid = tet.trackedentitytypeid ");
+    // Join back to trackedentity to fetch full row after LIMIT/DISTINCT reduced rows
+    sql.append("join trackedentity te_data on te_data.trackedentityid = te.trackedentityid ");
+    sql.append(
+        "join organisationunit te_ou on te_data.organisationunitid = te_ou.organisationunitid ");
+    sql.append(
+        "join trackedentitytype tet on te_data.trackedentitytypeid = tet.trackedentitytypeid ");
     if (params.hasEnrolledInTrackerProgram()) {
       sql.append(
           "join trackedentityprogramowner po_outer on po_outer.trackedentityid = te.trackedentityid and po_outer.programid = :enrolledInTrackerProgram ");
@@ -457,9 +465,9 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds the SELECT columns for the inner subquery. Uses DISTINCT on te.* (all tracked entity
-   * columns) without joining tet/te_ou tables. This keeps planning time low (~2ms) while still
-   * providing all TE data needed by the mapper.
+   * Adds the SELECT columns for the inner subquery. Uses DISTINCT only on trackedentityid (the PK),
+   * avoiding expensive comparisons on geometry (PostGIS), createdbyuserinfo (jsonb), etc. The outer
+   * layer joins back to trackedentity via te_data to fetch the full row after LIMIT reduces rows.
    *
    * <p>When ordering by enrolledAt, uses DISTINCT ON (trackedentityid) to pick one enrollment per
    * TE, fixing pagination when a TE has multiple enrollments (DHIS2-20811).
@@ -468,12 +476,12 @@ class JdbcTrackedEntityStore {
     // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
     // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
     if (isOrderingByEnrolledAt(params)) {
-      sql.append("select distinct on (te.trackedentityid) te.*");
+      sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
     } else {
-      sql.append("select distinct te.*");
+      sql.append("select distinct te.trackedentityid");
     }
 
-    // Add order-by columns from joined tables (enrollment date, attribute values)
+    // Add order-by columns so they are available for ORDER BY (required for DISTINCT)
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
@@ -489,6 +497,9 @@ class JdbcTrackedEntityStore {
               .append(ENROLLMENT_ALIAS)
               .append(".enrollmentdate as ")
               .append(ENROLLMENT_DATE_ALIAS);
+        } else {
+          // TE column needed in SELECT for DISTINCT ORDER BY
+          sql.append(", te.").append(ORDERABLE_FIELDS.get(field));
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
         sql.append(", ")
@@ -506,26 +517,27 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds the SELECT columns for the outer query. The inner query provides all te.* columns via
-   * DISTINCT te.*, and the outer query adds tet/te_ou/po data from joins.
+   * Adds the SELECT columns for the outer query. The inner query only provides trackedentityid, so
+   * TE columns come from te_data (joined back to trackedentity). The outer query also adds
+   * tet/te_ou/po data from joins.
    */
   private void addOuterSelectColumns(StringBuilder sql, TrackedEntityQueryParams params) {
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
-                // TE core fields from inner query (te.* columns)
-                "te.trackedentityid",
-                "te.uid",
-                "te.created",
-                "te.lastupdated",
-                "te.createdatclient",
-                "te.lastupdatedatclient",
-                "te.inactive",
-                "te.potentialduplicate",
-                "te.deleted",
-                "te.createdbyuserinfo",
-                "te.lastupdatedbyuserinfo",
-                "ST_AsBinary(te.geometry) as geometry",
+                // TE core fields from te_data join (inner query only has trackedentityid)
+                "te_data.trackedentityid",
+                "te_data.uid",
+                "te_data.created",
+                "te_data.lastupdated",
+                "te_data.createdatclient",
+                "te_data.lastupdatedatclient",
+                "te_data.inactive",
+                "te_data.potentialduplicate",
+                "te_data.deleted",
+                "te_data.createdbyuserinfo",
+                "te_data.lastupdatedbyuserinfo",
+                "ST_AsBinary(te_data.geometry) as geometry",
                 // Tracked entity type fields
                 "tet.trackedentitytypeid as tet_id",
                 "tet.uid as tet_uid",
