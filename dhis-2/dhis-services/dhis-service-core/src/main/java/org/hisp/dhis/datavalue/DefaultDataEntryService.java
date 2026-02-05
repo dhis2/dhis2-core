@@ -451,7 +451,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
     List<DataEntryValue> values = group.values();
-    if (values.isEmpty()) return new DataEntrySummary(0, 0, 0, 0, List.of());
+    if (values.isEmpty() && group.deletion() == null) {
+      return new DataEntrySummary(0, 0, 0, 0, List.of());
+    }
 
     List<DataEntryError> errors = new ArrayList<>();
     DataEntryGroup.Scope deletion = group.deletion();
@@ -461,6 +463,16 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       progress.runStageAndRethrow(
           ConflictException.class,
           () -> validate(options.force(), group.dataSet(), source, errors));
+    }
+
+    int deleted = 0;
+    if (deletion != null) {
+      progress.startingStage("Deleting scope " + deletion);
+      deleted = progress.runStage(0, () -> options.dryRun() ? 0 : store.deleteScope(deletion));
+    }
+
+    if (values.isEmpty()) {
+      return new DataEntrySummary(0, 0, 0, deleted, errors);
     }
 
     ValidationSource source = new ValuesValidationSource(values);
@@ -479,12 +491,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       }
       String error = errors.isEmpty() ? "" : errors.get(0).message();
       throw new ConflictException(ErrorCode.E8000, attempted, entered, error);
-    }
-
-    int deleted = 0;
-    if (deletion != null) {
-      progress.startingStage("Deleting scope " + deletion);
-      deleted = progress.runStage(0, () -> options.dryRun() ? 0 : store.deleteScope(deletion));
     }
 
     String verb = "Upserting";
