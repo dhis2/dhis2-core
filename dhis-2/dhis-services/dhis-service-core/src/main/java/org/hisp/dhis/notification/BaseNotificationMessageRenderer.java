@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -46,6 +47,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -307,6 +310,21 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   protected static String chop(String input, int limit) {
     return input.substring(0, Math.min(input.length(), limit));
+  }
+
+  protected static String getOptionName(OptionSet optionSet, String value) {
+    String finalValue = value;
+    if (optionSet != null && optionSet.getOptions() != null) {
+      value =
+          optionSet.getOptions().stream()
+              .filter(option -> Objects.equals(option.getCode(), finalValue))
+              .findFirst()
+              .map(Option::getName)
+              .orElse(MISSING_VALUE_REPLACEMENT);
+    } else {
+      value = MISSING_VALUE_REPLACEMENT;
+    }
+    return value;
   }
 
   protected static String daysUntil(Date date) {
