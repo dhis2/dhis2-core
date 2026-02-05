@@ -59,4 +59,8 @@ public interface JsonDataElement extends JsonIdentifiableObject {
   default JsonCategoryCombo getCategoryCombo() {
     return has("categoryCombo") ? get("categoryCombo", JsonCategoryCombo.class) : null;
   }
+
+  default Boolean getOptionSetValue() {
+    return getBoolean("optionSetValue").booleanValue();
+  }
 }

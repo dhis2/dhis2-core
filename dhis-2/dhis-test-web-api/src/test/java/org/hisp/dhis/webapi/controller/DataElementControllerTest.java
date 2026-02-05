@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -36,6 +36,7 @@ import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
@@ -148,6 +149,33 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
         summary.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4000);
     assertNotNull(errorReport);
     assertEquals("Missing required property `locale`", errorReport.getMessage());
+  }
+
+  @Test
+  @DisplayName("A GET data element response should have the `optionSetValue` property present")
+  void optionSetValuePropertyTest() {
+    // Given a data element exists
+    POST(
+            "/dataElements",
+            """
+            {
+                "id": "DeUid000001",
+                "aggregationType": "DEFAULT",
+                "domainType": "AGGREGATE",
+                "name": "test de 1",
+                "shortName": "test de 1",
+                "valueType": "TEXT"
+            }
+            """)
+        .content(HttpStatus.CREATED);
+
+    // When retrieving the data element
+    JsonDataElement jsonDataElement =
+        GET("/dataElements/DeUid000001").content(OK).as(JsonDataElement.class);
+
+    // Then the optionSetValue property is present
+    assertNotNull(jsonDataElement.getOptionSetValue());
+    assertFalse(jsonDataElement.getOptionSetValue());
   }
 
   @Test
