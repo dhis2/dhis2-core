@@ -1,0 +1,142 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.merge.category;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.CategoryDimensionStore;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryComboStore;
+import org.hisp.dhis.category.CategoryDimension;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryStore;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserStore;
+import org.springframework.stereotype.Component;
+
+/**
+ * Merge handler for metadata entities.
+ *
+ * @author david mackessy
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class CategoryMergeHandler {
+
+  private final CategoryComboStore categoryComboStore;
+  private final CategoryStore categoryStore;
+  private final UserStore userStore;
+  private final CategoryDimensionStore categoryDimensionStore;
+
+  /**
+   * Removes all {@link CategoryOption}s from all source {@link Category}s.
+   *
+   * @param sources to be updated
+   */
+  public void handleCategoryOptions(List<Category> sources, Category target) {
+    int removed =
+        categoryStore.removeCatOptionCategoryRefs(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()));
+
+    log.info("{} category options with source category refs removed", removed);
+  }
+
+  /**
+   * Remove sources from {@link CategoryCombo} and add target to {@link CategoryCombo}
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleCategoryCombos(List<Category> sources, Category target) {
+    int updated =
+        categoryComboStore.updateCatComboCategoryRefs(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    log.info("{} category combos with source category refs updated", updated);
+  }
+
+  /**
+   * Handle source ref updates for a {@link User}'s cat dimension constraints. There is a composite
+   * primary key on the table 'users_catdimensionconstraints' (userId + categoryId). This results in
+   * multiple scenarios needing to be handled. <br>
+   * <br>
+   * Scenario handling rules, when a User has:
+   *
+   * <pre>{@code
+   * one or more sources and target   -> delete all source constraints
+   * one or more sources, no target   -> update one source to target, delete other source constraints
+   * }</pre>
+   *
+   * These rules are handled in 3 separate queries. Purposely kept separate for clarity.<br>
+   *
+   * <ol>
+   *   <li>Delete sources constraints for users who already have the target constraint
+   *   <li>Update one source constraints to the target constraint for users without the target
+   *       constraint
+   *   <li>Delete remaining source constraints
+   * </ol>
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleUsers(List<Category> sources, Category target) {
+    Set<Long> sourceUids =
+        sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet());
+    int rowsDeleted1 =
+        userStore.deleteCatDimensionConstraintsWhenUserHasTarget(sourceUids, target.getId());
+    int rowsUpdated =
+        userStore.updateCatDimensionConstraintsCategoryRefs(sourceUids, target.getId());
+    int rowsDeleted2 = userStore.deleteRemainingCatDimensionConstraints(sourceUids);
+
+    log.info(
+        "{} user category dimension constraints with source category refs actioned",
+        (rowsDeleted1 + rowsUpdated + rowsDeleted2));
+  }
+
+  /**
+   * Replace source {@link Category} with target {@link Category} in {@link CategoryDimension}s
+   *
+   * @param sources to be removed
+   * @param target to add
+   */
+  public void handleCategoryDimensions(List<Category> sources, Category target) {
+    int updated =
+        categoryDimensionStore.updateCatDimensionCategoryRefs(
+            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            target.getId());
+    log.info("{} category dimensions with source category refs updated", updated);
+  }
+}

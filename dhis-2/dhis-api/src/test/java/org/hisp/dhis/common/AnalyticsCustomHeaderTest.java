@@ -47,11 +47,12 @@ class AnalyticsCustomHeaderTest {
   }
 
   @Test
-  void constructor_createsHeaderWithKeyAndValue() {
-    AnalyticsCustomHeader header = new AnalyticsCustomHeader("testKey", "testValue");
+  void constructor_createsHeaderWithKeyValueAndLabel() {
+    AnalyticsCustomHeader header = new AnalyticsCustomHeader("testKey", "testValue", "testLabel");
 
     assertEquals("testKey", header.key());
     assertEquals("testValue", header.value());
+    assertEquals("testLabel", header.label());
   }
 
   @Test
@@ -63,6 +64,7 @@ class AnalyticsCustomHeaderTest {
 
     assertEquals("StageUid123.EVENT_DATE", header.key());
     assertEquals("Visit Date, First Visit", header.value());
+    assertEquals("Visit Date", header.label());
   }
 
   @Test
@@ -71,6 +73,7 @@ class AnalyticsCustomHeaderTest {
 
     assertEquals("StageUid123.EVENT_DATE", header.key());
     assertEquals("Event date, Test Stage", header.value());
+    assertEquals("Event date", header.label());
   }
 
   @Test
@@ -238,8 +241,8 @@ class AnalyticsCustomHeaderTest {
   // Record equality and hashCode
   @Test
   void equals_sameValues_returnsTrue() {
-    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value");
-    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value");
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value", "label");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value", "label");
 
     assertEquals(header1, header2);
     assertEquals(header1.hashCode(), header2.hashCode());
@@ -247,16 +250,24 @@ class AnalyticsCustomHeaderTest {
 
   @Test
   void equals_differentKeys_returnsFalse() {
-    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key1", "value");
-    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key2", "value");
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key1", "value", "label");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key2", "value", "label");
 
     assertNotEquals(header1, header2);
   }
 
   @Test
   void equals_differentValues_returnsFalse() {
-    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value1");
-    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value2");
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value1", "label");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value2", "label");
+
+    assertNotEquals(header1, header2);
+  }
+
+  @Test
+  void equals_differentLabels_returnsFalse() {
+    AnalyticsCustomHeader header1 = new AnalyticsCustomHeader("key", "value", "label1");
+    AnalyticsCustomHeader header2 = new AnalyticsCustomHeader("key", "value", "label2");
 
     assertNotEquals(header1, header2);
   }
