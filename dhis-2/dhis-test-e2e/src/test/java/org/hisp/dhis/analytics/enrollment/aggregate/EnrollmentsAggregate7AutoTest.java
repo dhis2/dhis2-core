@@ -56,15 +56,16 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("displayProperty=NAME")
+            // .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("pageSize=100")
-            .add("outputType=ENROLLMENT")
+            // .add("outputType=ENROLLMENT")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,A03MvHHogjR.EVENT_DATE:202205");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+    System.out.println(response.prettyPrint());
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
@@ -737,5 +738,353 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         Map.of("value", "858", "pe", "202212", "A03MvHHogjR.eventstatus", "ACTIVE"));
+  }
+
+  @Test
+  public void stageAndMultipleStages() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add(
+                "dimension=ou:USER_ORGUNIT,PUZaKR0Jh2k.EVENT_DATE:202205,edqlbukwRfQ.EVENT_STATUS:COMPLETED;ACTIVE");
+
+    // When
+    ApiResponse response = actions.aggregate().get("WSGAb5XwJ3Y", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        30,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"PUZaKR0Jh2k.eventdate\":{\"name\":\"Date of birth\"},\"PFDfvmGpsR3\":{\"uid\":\"PFDfvmGpsR3\",\"name\":\"Care at birth\",\"description\":\"Intrapartum care \\/ Childbirth \\/ Labour and delivery\"},\"bbKtnxRZKEP\":{\"uid\":\"bbKtnxRZKEP\",\"name\":\"Postpartum care visit\",\"description\":\"Provision of care for the mother for some weeks after delivery\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"PUZaKR0Jh2k\":{\"uid\":\"PUZaKR0Jh2k\",\"name\":\"Previous deliveries\",\"description\":\"Table for recording earlier deliveries\"},\"edqlbukwRfQ\":{\"uid\":\"edqlbukwRfQ\",\"name\":\"Second antenatal care visit\",\"description\":\"Antenatal care visit\"},\"WZbXY0S00lP\":{\"uid\":\"WZbXY0S00lP\",\"name\":\"First antenatal care visit\",\"description\":\"First antenatal care visit\"},\"edqlbukwRfQ.eventstatus\":{\"name\":\"Event status\"},\"WSGAb5XwJ3Y\":{\"uid\":\"WSGAb5XwJ3Y\",\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"PUZaKR0Jh2k.eventdate\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"edqlbukwRfQ.eventstatus\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "edqlbukwRfQ.eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "PUZaKR0Jh2k.eventdate",
+        "Date of birth",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-01 12:05:00.0"));
+
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-06 12:05:00.0"));
+
+    // Validate row exists with values from original row index 10
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-11 12:05:00.0"));
+
+    // Validate row exists with values from original row index 15
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-16 12:05:00.0"));
+
+    // Validate row exists with values from original row index 20
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-21 12:05:00.0"));
+
+    // Validate row exists with values from original row index 25
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "6",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-26 12:05:00.0"));
+
+    // Validate row exists with values from original row index 29
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-30 12:05:00.0"));
+  }
+
+  @Test
+  public void stageAndMultipleStagesSameStage() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add(
+                "dimension=ou:USER_ORGUNIT,edqlbukwRfQ.EVENT_DATE:202205,edqlbukwRfQ.EVENT_STATUS:COMPLETED;ACTIVE");
+
+    // When
+    ApiResponse response = actions.aggregate().get("WSGAb5XwJ3Y", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        30,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"PFDfvmGpsR3\":{\"uid\":\"PFDfvmGpsR3\",\"name\":\"Care at birth\",\"description\":\"Intrapartum care \\/ Childbirth \\/ Labour and delivery\"},\"bbKtnxRZKEP\":{\"uid\":\"bbKtnxRZKEP\",\"name\":\"Postpartum care visit\",\"description\":\"Provision of care for the mother for some weeks after delivery\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"PUZaKR0Jh2k\":{\"uid\":\"PUZaKR0Jh2k\",\"name\":\"Previous deliveries\",\"description\":\"Table for recording earlier deliveries\"},\"edqlbukwRfQ\":{\"uid\":\"edqlbukwRfQ\",\"name\":\"Second antenatal care visit\",\"description\":\"Antenatal care visit\"},\"WZbXY0S00lP\":{\"uid\":\"WZbXY0S00lP\",\"name\":\"First antenatal care visit\",\"description\":\"First antenatal care visit\"},\"edqlbukwRfQ.eventdate\":{\"name\":\"Date of visit\"},\"edqlbukwRfQ.eventstatus\":{\"name\":\"Event status\"},\"WSGAb5XwJ3Y\":{\"uid\":\"WSGAb5XwJ3Y\",\"name\":\"WHO RMNCH Tracker\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"edqlbukwRfQ.eventdate\":[],\"edqlbukwRfQ.eventstatus\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "edqlbukwRfQ.eventdate",
+        "Date of visit",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "edqlbukwRfQ.eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "6",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-01 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "10",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-06 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 10
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "11",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-11 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 15
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "18",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-16 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 20
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "16",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-21 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 25
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "15",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-26 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 29
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "12",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-30 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
   }
 }
