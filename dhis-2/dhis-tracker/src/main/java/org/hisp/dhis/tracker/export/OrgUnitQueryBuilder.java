@@ -137,14 +137,78 @@ public class OrgUnitQueryBuilder {
             ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
     sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
 
-    sql.append(
-            " or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
+    sql.append(" or (")
+        .append(programTableAlias)
+        .append(
+            ".accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
         .append(programTableAlias)
         .append(".programid and trackedentityid = ")
         .append(trackedEntityTableAlias)
         .append(".trackedentityid and userid = ")
         .append(userDetails.getId())
         .append(" and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))");
+  }
+
+  /**
+   * Appends an SQL clause to enforce program ownership and access level restrictions when the
+   * program's access level and ID are known at query build time. This eliminates the need to join
+   * the program table. Only the branches relevant to the given access level are emitted.
+   */
+  public static void buildOwnershipClause(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      OrganisationUnitSelectionMode orgUnitMode,
+      org.hisp.dhis.common.AccessLevel accessLevel,
+      long programId,
+      String orgUnitTableAlias,
+      String trackedEntityTableAlias,
+      Supplier<String> clauseSupplier) {
+    UserDetails userDetails = getCurrentUserDetails();
+
+    if (orgUnitMode == ALL || userDetails.isSuper()) {
+      return;
+    }
+
+    boolean isOpenOrAudited =
+        accessLevel == org.hisp.dhis.common.AccessLevel.OPEN
+            || accessLevel == org.hisp.dhis.common.AccessLevel.AUDITED;
+    boolean isProtected = accessLevel == org.hisp.dhis.common.AccessLevel.PROTECTED;
+
+    sql.append(clauseSupplier.get()).append("(");
+
+    if (isOpenOrAudited) {
+      sql.append(orgUnitTableAlias);
+      if (orgUnitMode == CAPTURE) {
+        sql.append(
+            ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))");
+        sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+      } else {
+        sql.append(
+            ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:effectiveSearchScopeOrgUnits))");
+        sqlParameters.addValue(
+            "effectiveSearchScopeOrgUnits", userDetails.getUserEffectiveSearchOrgUnitIds());
+      }
+    } else if (isProtected) {
+      sql.append(orgUnitTableAlias)
+          .append(
+              ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))");
+      sql.append(" or exists (select 1 from programtempowner where programid = ")
+          .append(programId)
+          .append(" and trackedentityid = ")
+          .append(trackedEntityTableAlias)
+          .append(".trackedentityid and userid = ")
+          .append(userDetails.getId())
+          .append(" and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)");
+      sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+    } else {
+      // CLOSED: only capture scope
+      sql.append(orgUnitTableAlias)
+          .append(
+              ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))");
+      sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+    }
+
+    sql.append(")");
   }
 
   private static void addOrgUnitDescendantsCondition(
