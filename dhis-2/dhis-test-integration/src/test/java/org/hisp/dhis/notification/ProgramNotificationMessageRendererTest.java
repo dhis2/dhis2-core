@@ -49,6 +49,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -87,6 +91,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   private String dataElementUid = CodeGenerator.generateUid();
 
+  private String dataElementWithOptionSetUid = CodeGenerator.generateUid();
+
   private String trackedEntityAttributeUid = CodeGenerator.generateUid();
 
   private String programUid = CodeGenerator.generateUid();
@@ -103,9 +109,13 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   private ProgramStage programStageA;
 
-  private DataElement dataElementA;
+  private OptionSet optionSet;
+  private Option optionA;
+  private Option optionB;
 
+  private DataElement dataElementA;
   private DataElement dataElementB;
+  private DataElement dataElementWithOptionSet;
 
   private TrackedEntityAttribute trackedEntityAttributeA;
 
@@ -120,6 +130,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
   private ProgramStageDataElement programStageDataElementA;
 
   private ProgramStageDataElement programStageDataElementB;
+  private ProgramStageDataElement programStageDataElementC;
 
   private TrackedEntity trackedEntityA;
 
@@ -130,6 +141,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
   private EventDataValue eventDataValueA;
 
   private EventDataValue eventDataValueB;
+  private EventDataValue eventDataValueC;
 
   private OrganisationUnit organisationUnitA;
 
@@ -160,8 +172,10 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private OptionService optionService;
+
   @BeforeEach
-  void setUp() {
+  void setUp() throws ConflictException {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -169,14 +183,26 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     Date enrollmentDate = testDate2.toDate();
+    optionA = createOption('A');
+    optionB = createOption('B');
+
+    optionSet = createOptionSet('O', optionA, optionB);
+    optionSet.setValueType(ValueType.TEXT);
+    optionService.saveOptionSet(optionSet);
+
     dataElementA =
         createDataElement('A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementWithOptionSet =
+        createDataElement('D', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementWithOptionSet.setOptionSet(optionSet);
     dataElementA.setUid(dataElementUid);
+    dataElementWithOptionSet.setUid(dataElementWithOptionSetUid);
     dataElementB =
         createDataElement('B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementB.setUid("DEB-UID");
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
+    dataElementService.addDataElement(dataElementWithOptionSet);
     trackedEntityAttributeA = createTrackedEntityAttribute('A');
     trackedEntityAttributeA.setUid(trackedEntityAttributeUid);
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
@@ -202,10 +228,14 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programStageService.saveProgramStage(programStageA);
     programStageDataElementA = createProgramStageDataElement(programStageA, dataElementA, 1);
     programStageDataElementB = createProgramStageDataElement(programStageA, dataElementB, 2);
+    programStageDataElementC =
+        createProgramStageDataElement(programStageA, dataElementWithOptionSet, 3);
     programStageDataElementService.addProgramStageDataElement(programStageDataElementA);
     programStageDataElementService.addProgramStageDataElement(programStageDataElementB);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElementC);
     programStageA.setProgramStageDataElements(
-        Sets.newHashSet(programStageDataElementA, programStageDataElementB));
+        Sets.newHashSet(
+            programStageDataElementA, programStageDataElementB, programStageDataElementC));
     programStageService.updateProgramStage(programStageA);
     programA.setProgramStages(Sets.newHashSet(programStageA));
     programService.updateProgram(programA);
@@ -242,7 +272,11 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     eventDataValueB.setDataElement(dataElementB.getUid());
     eventDataValueB.setAutoFields();
     eventDataValueB.setValue("dataElementB-Text");
-    eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB));
+    eventDataValueC = new EventDataValue();
+    eventDataValueC.setDataElement(dataElementWithOptionSet.getUid());
+    eventDataValueC.setAutoFields();
+    eventDataValueC.setValue("OptionCodeA");
+    eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB, eventDataValueC));
     manager.save(eventA);
     enrollmentA.getEvents().add(eventA);
     manager.save(enrollmentA);
@@ -287,6 +321,19 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
         programStageNotificationMessageRenderer.render(eventA, programNotificationTemplate);
     assertEquals("message is dataElementA-Text", notificationMessage.getMessage());
     assertEquals("subject is dataElementA-Text", notificationMessage.getSubject());
+  }
+
+  @Test
+  void testRendererForMessageWithADataElementAndOptionSet() {
+    programNotificationTemplate.setMessageTemplate(
+        "message is #{" + dataElementWithOptionSetUid + "}");
+    programNotificationTemplate.setSubjectTemplate(
+        "subject is #{" + dataElementWithOptionSetUid + "}");
+    programNotificationTemplateStore.update(programNotificationTemplate);
+    NotificationMessage notificationMessage =
+        programStageNotificationMessageRenderer.render(eventA, programNotificationTemplate);
+    assertEquals("message is OptionA", notificationMessage.getMessage());
+    assertEquals("subject is OptionA", notificationMessage.getSubject());
   }
 
   @Test

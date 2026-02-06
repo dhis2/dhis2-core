@@ -105,9 +105,7 @@ public class ProgramNotificationMessageRenderer
 
     return entity.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(
-            Collectors.toMap(
-                av -> av.getAttribute().getUid(), this::resolveAttributeWithOptionSet));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::resolveAttributeValue));
   }
 
   @Override
@@ -131,15 +129,15 @@ public class ProgramNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private String resolveAttributeWithOptionSet(TrackedEntityAttributeValue av) {
+  private String resolveAttributeValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
       return CONFIDENTIAL_VALUE_REPLACEMENT;
     }
 
-    // If the AV has an OptionSet -> substitute value with the name of the
-    // Option
-    return getOptionName(av.getAttribute().getOptionSet(), value);
+    return av.getAttribute().hasOptionSet()
+        ? getOptionName(av.getAttribute().getOptionSet(), value)
+        : value;
   }
 }

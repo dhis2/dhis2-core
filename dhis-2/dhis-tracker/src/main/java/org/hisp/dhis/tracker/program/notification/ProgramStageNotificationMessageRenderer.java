@@ -140,9 +140,7 @@ public class ProgramStageNotificationMessageRenderer
 
     return entity.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(
-            Collectors.toMap(
-                av -> av.getAttribute().getUid(), this::resolveAttributeWithOptionSet));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::resolveAttributeValue));
   }
 
   @Override
@@ -160,8 +158,7 @@ public class ProgramStageNotificationMessageRenderer
         .collect(
             Collectors.toMap(
                 EventDataValue::getDataElement,
-                dv ->
-                    resolveDataElementWithOptionSet(dv, dataElementsMap.get(dv.getDataElement()))));
+                dv -> resolveDataElementValue(dv, dataElementsMap.get(dv.getDataElement()))));
   }
 
   @Override
@@ -177,20 +174,19 @@ public class ProgramStageNotificationMessageRenderer
   // -------------------------------------------------------------------------
   // Internal methods
   // -------------------------------------------------------------------------
-
-  private String resolveAttributeWithOptionSet(TrackedEntityAttributeValue av) {
+  private String resolveAttributeValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
       return CONFIDENTIAL_VALUE_REPLACEMENT;
     }
 
-    // If the AV has an OptionSet -> substitute value with the name of the
-    // Option
-    return getOptionName(av.getAttribute().getOptionSet(), value);
+    return av.getAttribute().hasOptionSet()
+        ? getOptionName(av.getAttribute().getOptionSet(), value)
+        : value;
   }
 
-  private String resolveDataElementWithOptionSet(EventDataValue dv, DataElement dataElement) {
+  private String resolveDataElementValue(EventDataValue dv, DataElement dataElement) {
     String value = dv.getValue();
 
     if (value == null) {
@@ -200,6 +196,6 @@ public class ProgramStageNotificationMessageRenderer
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option
 
-    return getOptionName(dataElement.getOptionSet(), value);
+    return dataElement.hasOptionSet() ? getOptionName(dataElement.getOptionSet(), value) : value;
   }
 }
