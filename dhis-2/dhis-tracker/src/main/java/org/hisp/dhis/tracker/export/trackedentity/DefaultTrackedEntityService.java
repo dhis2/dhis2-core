@@ -262,7 +262,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntity.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.TRACKED_ENTITY,
-                UID.of(trackedEntity),
+                trackedEntity.getUID(),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
       }

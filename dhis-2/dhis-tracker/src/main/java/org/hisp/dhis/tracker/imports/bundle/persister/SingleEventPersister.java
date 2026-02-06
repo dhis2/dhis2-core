@@ -92,7 +92,7 @@ public class SingleEventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(SingleEvent.class)
-        .singleEventNotifications(bundle.getSingleEventNotifications().get(UID.of(event)))
+        .singleEventNotifications(bundle.getSingleEventNotifications().get(event.getUID()))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())

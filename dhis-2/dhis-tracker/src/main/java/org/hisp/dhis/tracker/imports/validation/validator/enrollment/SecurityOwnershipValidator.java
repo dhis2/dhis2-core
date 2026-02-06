@@ -130,7 +130,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private OrganisationUnit getOwnerOrganisationUnit(
       TrackerPreheat preheat, TrackedEntity trackedEntity, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(UID.of(trackedEntity));
+        preheat.getProgramOwner().get(trackedEntity.getUID());
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return trackedEntity.getOrganisationUnit();
     } else {

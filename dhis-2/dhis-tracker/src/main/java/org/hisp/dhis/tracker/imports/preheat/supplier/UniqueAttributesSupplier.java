@@ -250,7 +250,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             av ->
                 new UniqueAttributeValue(
-                    UID.of(av.getTrackedEntity()),
+                    av.getTrackedEntity().getUID(),
                     idSchemes.toMetadataIdentifier(av.getAttribute()),
                     av.getValue(),
                     idSchemes.toMetadataIdentifier(av.getTrackedEntity().getOrganisationUnit())))

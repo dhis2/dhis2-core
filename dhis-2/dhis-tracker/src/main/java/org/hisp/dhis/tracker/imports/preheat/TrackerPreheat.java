@@ -442,7 +442,7 @@ public class TrackerPreheat {
   }
 
   private void putTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntities.put(UID.of(trackedEntity), trackedEntity);
+    trackedEntities.put(trackedEntity.getUID(), trackedEntity);
   }
 
   public Enrollment getEnrollment(UID uid) {
@@ -454,7 +454,7 @@ public class TrackerPreheat {
   }
 
   public void putEnrollment(Enrollment enrollment) {
-    enrollments.put(UID.of(enrollment), enrollment);
+    enrollments.put(enrollment.getUID(), enrollment);
   }
 
   public TrackerEvent getTrackerEvent(UID uid) {
@@ -466,7 +466,7 @@ public class TrackerPreheat {
   }
 
   public void putTrackerEvent(TrackerEvent event) {
-    trackerEvents.put(UID.of(event), event);
+    trackerEvents.put(event.getUID(), event);
   }
 
   public SingleEvent getSingleEvent(UID uid) {
@@ -478,7 +478,7 @@ public class TrackerPreheat {
   }
 
   public void putSingleEvent(SingleEvent event) {
-    singleEvents.put(UID.of(event), event);
+    singleEvents.put(event.getUID(), event);
   }
 
   public void addNotes(Set<UID> notes) {
@@ -526,7 +526,7 @@ public class TrackerPreheat {
 
   public void putRelationship(Relationship relationship) {
     if (Objects.nonNull(relationship)) {
-      relationships.put(UID.of(relationship), relationship);
+      relationships.put(relationship.getUID(), relationship);
     }
   }
 

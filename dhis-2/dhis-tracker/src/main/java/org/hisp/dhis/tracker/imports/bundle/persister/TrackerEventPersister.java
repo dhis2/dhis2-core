@@ -93,7 +93,7 @@ public class TrackerEventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(TrackerEvent.class)
-        .trackerEventNotifications(bundle.getTrackerEventNotifications().get(UID.of(event)))
+        .trackerEventNotifications(bundle.getTrackerEventNotifications().get(event.getUID()))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -307,7 +307,7 @@ public class TrackerEventPersister
   protected Set<UID> getUpdatedTrackedEntities(TrackerEvent entity) {
     return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> UID.of(e.getTrackedEntity()))
+        .map(e -> e.getTrackedEntity().getUID())
         .collect(Collectors.toSet());
   }
 

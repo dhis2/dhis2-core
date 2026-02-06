@@ -139,11 +139,11 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .map(
             e -> {
               List<RuleAttributeValue> attributes =
-                  getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
+                  getAttributes(e.getUID(), e.getTrackedEntity().getUID(), bundle, preheat);
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(UID.of(e), e.getProgram().getUID(), bundle, preheat),
+                  getEventsFromEnrollment(e.getUID(), e.getProgram().getUID(), bundle, preheat),
                   e.getProgram(),
                   bundle.getUser());
             })
@@ -225,7 +225,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       .enrollments(Set.of(enrollmentUid))
                       .build())
               .stream()
-              .filter(e -> bundle.findTrackerEventByUid(UID.of(e)).isEmpty());
+              .filter(e -> bundle.findTrackerEventByUid(e.getUID()).isEmpty());
     } catch (BadRequestException | ForbiddenException e) {
       throw new RuntimeException(e);
     }
