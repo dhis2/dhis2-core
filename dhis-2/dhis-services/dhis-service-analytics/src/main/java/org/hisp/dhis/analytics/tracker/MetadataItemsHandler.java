@@ -426,23 +426,42 @@ public class MetadataItemsHandler {
   private void addPeriodDimensionValueMetadata(
       Map<String, MetadataItem> metadataItemMap, EventQueryParams params, boolean includeDetails) {
     for (QueryItem item : params.getItems()) {
-      if (item.getValueType() != null
-          && item.getValueType().isDate()
-          && !item.getDimensionValues().isEmpty()) {
-        for (String value : item.getDimensionValues()) {
-          if (!metadataItemMap.containsKey(value)) {
-            PeriodDimension pd = PeriodDimension.of(value);
-            if (pd != null) {
-              metadataItemMap.put(
-                  value,
-                  new MetadataItem(
-                      pd.getDisplayProperty(params.getDisplayProperty()),
-                      includeDetails ? pd : null));
-            }
-          }
-        }
+      if (!isDateItemWithDimensionValues(item)) {
+        continue;
+      }
+
+      for (String value : item.getDimensionValues()) {
+        addPeriodDimensionMetadataValue(
+            metadataItemMap, params.getDisplayProperty(), includeDetails, value);
       }
     }
+  }
+
+  private boolean isDateItemWithDimensionValues(QueryItem item) {
+    return item.getValueType() != null
+        && item.getValueType().isDate()
+        && !item.getDimensionValues().isEmpty();
+  }
+
+  private void addPeriodDimensionMetadataValue(
+      Map<String, MetadataItem> metadataItemMap,
+      DisplayProperty displayProperty,
+      boolean includeDetails,
+      String periodDimensionValue) {
+    if (metadataItemMap.containsKey(periodDimensionValue)) {
+      return;
+    }
+
+    PeriodDimension periodDimension = PeriodDimension.of(periodDimensionValue);
+    if (periodDimension == null) {
+      return;
+    }
+
+    metadataItemMap.put(
+        periodDimensionValue,
+        new MetadataItem(
+            periodDimension.getDisplayProperty(displayProperty),
+            includeDetails ? periodDimension : null));
   }
 
   /**

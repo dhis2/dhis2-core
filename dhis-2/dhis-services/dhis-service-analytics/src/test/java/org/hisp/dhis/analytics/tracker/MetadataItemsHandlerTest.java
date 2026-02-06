@@ -1124,6 +1124,120 @@ class MetadataItemsHandlerTest {
       MetadataItem periodItem = (MetadataItem) items.get("202205");
       assertNotNull(periodItem.getName(), "Period metadata item should have a name");
     }
+
+    @Test
+    @DisplayName(
+        "should not replace existing metadata when period dimension value key already exists")
+    void shouldNotReplaceExistingMetadataForDuplicatePeriodDimensionValueKey() {
+      // Given
+      Grid grid = new ListGrid();
+      grid.addRow();
+      grid.addValue("value1");
+
+      DimensionItemKeywords dimensionItemKeywords = new DimensionItemKeywords();
+      dimensionItemKeywords.addKeyword("202205", "Existing Keyword Name");
+      Keyword keyword = dimensionItemKeywords.getKeyword("202205");
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA, null, ValueType.DATE, dataElementA.getAggregationType(), null);
+      queryItem.addDimensionValue("202205");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of(keyword));
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      MetadataItem periodItem = (MetadataItem) items.get("202205");
+      assertNotNull(periodItem);
+      assertEquals(
+          "Existing Keyword Name",
+          periodItem.getName(),
+          "Existing metadata should not be replaced by period value metadata");
+    }
+
+    @Test
+    @DisplayName("should ignore invalid period identifiers in date dimension values")
+    void shouldIgnoreInvalidPeriodIdentifiersInDateDimensionValues() {
+      // Given
+      Grid grid = new ListGrid();
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA, null, ValueType.DATE, dataElementA.getAggregationType(), null);
+      queryItem.addDimensionValue("not-a-period");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertFalse(items.containsKey("not-a-period"));
+    }
+
+    @Test
+    @DisplayName("should ignore dimension values for non-date items")
+    void shouldIgnoreDimensionValuesForNonDateItems() {
+      // Given
+      Grid grid = new ListGrid();
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA, null, ValueType.TEXT, dataElementA.getAggregationType(), null);
+      queryItem.addDimensionValue("202205");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertFalse(items.containsKey("202205"));
+    }
   }
 
   @Nested
