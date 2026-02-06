@@ -1026,6 +1026,107 @@ class MetadataItemsHandlerTest {
   }
 
   @Nested
+  @DisplayName("Date Dimension Value Tests")
+  class DateDimensionValueTests {
+
+    @Test
+    @DisplayName("should include dimension values for date items with period identifiers")
+    void shouldIncludeDimensionValuesForDateItems() {
+      // Given
+      Grid grid = new ListGrid();
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.addDimensionValue("202205");
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      assertTrue(
+          dimensions.containsKey("A03MvHHogjR.eventdate"),
+          "Dimensions should contain key 'A03MvHHogjR.eventdate'");
+      assertEquals(
+          List.of("202205"),
+          dimensions.get("A03MvHHogjR.eventdate"),
+          "Dimension values should contain the period identifier '202205'");
+    }
+
+    @Test
+    @DisplayName("should add period metadata items for date dimension values")
+    void shouldAddPeriodMetadataItemsForDateDimensionValues() {
+      // Given
+      Grid grid = new ListGrid();
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.addDimensionValue("202205");
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      assertTrue(
+          items.containsKey("202205"), "Items should contain period metadata entry for '202205'");
+      MetadataItem periodItem = (MetadataItem) items.get("202205");
+      assertNotNull(periodItem.getName(), "Period metadata item should have a name");
+    }
+  }
+
+  @Nested
   @DisplayName("Custom Header Tests")
   class CustomHeaderTests {
 

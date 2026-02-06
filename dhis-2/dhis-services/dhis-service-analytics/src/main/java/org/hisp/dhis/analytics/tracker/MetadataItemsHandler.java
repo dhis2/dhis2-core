@@ -83,6 +83,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -237,6 +238,8 @@ public class MetadataItemsHandler {
       addOptionMetadataForNonQuery(metadataItemMap, params, includeDetails);
       addItemsAndFiltersMetadataForNonQuery(metadataItemMap, params, includeDetails);
     }
+
+    addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
 
     return metadataItemMap;
   }
@@ -412,6 +415,37 @@ public class MetadataItemsHandler {
   }
 
   /**
+   * Adds period metadata items for date-type query items that have dimension values (e.g.
+   * "202205"). This ensures the "items" section contains entries like "202205": {"name": "May
+   * 2022"}, matching the behavior of standard period dimensions.
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param params the {@link EventQueryParams}.
+   * @param includeDetails whether to include metadata details.
+   */
+  private void addPeriodDimensionValueMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params, boolean includeDetails) {
+    for (QueryItem item : params.getItems()) {
+      if (item.getValueType() != null
+          && item.getValueType().isDate()
+          && !item.getDimensionValues().isEmpty()) {
+        for (String value : item.getDimensionValues()) {
+          if (!metadataItemMap.containsKey(value)) {
+            PeriodDimension pd = PeriodDimension.of(value);
+            if (pd != null) {
+              metadataItemMap.put(
+                  value,
+                  new MetadataItem(
+                      pd.getDisplayProperty(params.getDisplayProperty()),
+                      includeDetails ? pd : null));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Adds the given item to the given metadata item map.
    *
    * @param metadataItemMap the metadata item map.
@@ -536,6 +570,10 @@ public class MetadataItemsHandler {
 
     if (item.hasLegendSet()) {
       return item.getLegendSetFilterItemsOrAll();
+    }
+
+    if (!item.getDimensionValues().isEmpty()) {
+      return item.getDimensionValues();
     }
 
     return List.of();
