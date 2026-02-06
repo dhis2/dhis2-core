@@ -50,6 +50,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -405,12 +406,11 @@ class JdbcTrackedEntityStore {
 
   private void addJoinOnProgram(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("inner join program p on p.trackedentitytypeid = te.trackedentitytypeid");
-
     if (params.hasEnrolledInTrackerProgram()) {
       return;
     }
 
+    sql.append("inner join program p on p.trackedentitytypeid = te.trackedentitytypeid");
     sql.append(" and p.programid in (:accessiblePrograms)");
     sqlParameters.addValue(
         "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
@@ -423,8 +423,7 @@ class JdbcTrackedEntityStore {
           """
           inner join trackedentityprogramowner po \
            on po.programid = :enrolledInTrackerProgram\
-           and po.trackedentityid = te.trackedentityid \
-           and p.programid = po.programid""");
+           and po.trackedentityid = te.trackedentityid""");
       sqlParameters.addValue(
           "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
       return;
@@ -461,7 +460,6 @@ class JdbcTrackedEntityStore {
   private void addJoinOnOrgUnit(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     String orgUnitTableAlias = "ou";
-    String programTableAlias = "p";
 
     sql.append("inner join organisationunit ");
     sql.append(orgUnitTableAlias);
@@ -482,14 +480,27 @@ class JdbcTrackedEntityStore {
           "and ");
     }
 
-    buildOwnershipClause(
-        sql,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        programTableAlias,
-        orgUnitTableAlias,
-        MAIN_QUERY_ALIAS,
-        () -> "and ");
+    if (params.hasEnrolledInTrackerProgram()) {
+      Program program = params.getEnrolledInTrackerProgram();
+      buildOwnershipClause(
+          sql,
+          sqlParameters,
+          params.getOrgUnitMode(),
+          program.getAccessLevel(),
+          program.getId(),
+          orgUnitTableAlias,
+          MAIN_QUERY_ALIAS,
+          () -> "and ");
+    } else {
+      buildOwnershipClause(
+          sql,
+          sqlParameters,
+          params.getOrgUnitMode(),
+          "p",
+          orgUnitTableAlias,
+          MAIN_QUERY_ALIAS,
+          () -> "and ");
+    }
   }
 
   /**
@@ -731,7 +742,12 @@ class JdbcTrackedEntityStore {
     if (params.hasTrackedEntityType()) {
       sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid = :trackedEntityTypeId ");
       sqlParameters.addValue("trackedEntityTypeId", params.getTrackedEntityType().getId());
-    } else if (!params.hasEnrolledInTrackerProgram()) {
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid = :trackedEntityTypeId ");
+      sqlParameters.addValue(
+          "trackedEntityTypeId",
+          params.getEnrolledInTrackerProgram().getTrackedEntityType().getId());
+    } else {
       sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid in (:trackedEntityTypeIds) ");
       sqlParameters.addValue(
           "trackedEntityTypeIds", getIdentifiers(params.getTrackedEntityTypes()));
