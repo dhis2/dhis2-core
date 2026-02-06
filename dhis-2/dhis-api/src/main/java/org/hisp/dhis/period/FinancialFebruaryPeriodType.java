@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.generator;
+package org.hisp.dhis.period;
 
-import org.hisp.dhis.analytics.generator.impl.EventQueryGenerator;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-/** This class simply hold the generator implementation to be used during the code generation. */
-public class TestGenerator {
-  static Generator get() {
-    return new EventQueryGenerator(
-        "fixedPeriod2017Feb", "fixedPeriod2018Sep", "fixedPeriod2017Aug");
+public class FinancialFebruaryPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 6913569374301327356L;
 
-    // To generate all e2e tests just return the default constructor.
-    // ie.: return new TeiQueryGenerator();
+  private static final String ISO_FORMAT = "yyyyFeb";
+
+  private static final String ISO8601_DURATION = "P1Y";
+
+  @Override
+  public int getBaseMonth() {
+    return Calendar.FEBRUARY;
+  }
+
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_FEB;
+  }
+
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dFeb", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
   }
 }
