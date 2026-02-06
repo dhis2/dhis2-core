@@ -312,7 +312,7 @@ class HibernatePotentialDuplicateStore
             rel ->
                 duplicate.getRelationshipItems().stream()
                     .map(RelationshipItem::getRelationship)
-                    .filter(r -> r.getUid().equals(rel.getValue()))
+                    .filter(r -> r.getUID().equals(rel))
                     .findAny()
                     .ifPresent(
                         relationship ->

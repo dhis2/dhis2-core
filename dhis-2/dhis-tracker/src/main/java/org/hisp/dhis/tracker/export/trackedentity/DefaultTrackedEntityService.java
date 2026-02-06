@@ -116,7 +116,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityAttribute attribute =
         trackedEntity.getTrackedEntityAttributeValues().stream()
             .map(TrackedEntityAttributeValue::getAttribute)
-            .filter(att -> att.getUid().equals(attributeUid.getValue()))
+            .filter(att -> att.getUID().equals(attributeUid))
             .findFirst()
             .orElseThrow(
                 () -> new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue()));
