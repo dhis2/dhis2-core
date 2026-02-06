@@ -89,6 +89,7 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
     } else if (PeriodTypeEnum.WEEKLY == type
         || PeriodTypeEnum.WEEKLY_WEDNESDAY == type
         || PeriodTypeEnum.WEEKLY_THURSDAY == type
+        || PeriodTypeEnum.WEEKLY_FRIDAY == type
         || PeriodTypeEnum.WEEKLY_SATURDAY == type
         || PeriodTypeEnum.WEEKLY_SUNDAY == type) {
       DateTimeUnit start;

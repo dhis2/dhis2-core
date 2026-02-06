@@ -18,6 +18,7 @@
     <subclass name="org.hisp.dhis.period.WeeklyPeriodType" discriminator-value="Weekly" />
     <subclass name="org.hisp.dhis.period.WeeklyWednesdayPeriodType" discriminator-value="WeeklyWednesday" />
     <subclass name="org.hisp.dhis.period.WeeklyThursdayPeriodType" discriminator-value="WeeklyThursday" />
+    <subclass name="org.hisp.dhis.period.WeeklyFridayPeriodType" discriminator-value="WeeklyFriday" />
     <subclass name="org.hisp.dhis.period.WeeklySaturdayPeriodType" discriminator-value="WeeklySaturday" />
     <subclass name="org.hisp.dhis.period.WeeklySundayPeriodType" discriminator-value="WeeklySunday" />
     <subclass name="org.hisp.dhis.period.BiWeeklyPeriodType" discriminator-value="BiWeekly" />
