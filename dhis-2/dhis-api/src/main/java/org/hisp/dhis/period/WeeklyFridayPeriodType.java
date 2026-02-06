@@ -27,38 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.period;
 
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.WeeklyFridayPeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
-import org.hisp.dhis.period.WeeklySaturdayPeriodType;
-import org.hisp.dhis.period.WeeklySundayPeriodType;
-import org.hisp.dhis.period.WeeklyThursdayPeriodType;
-import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_FRIDAY;
 
-public enum AnalyticsWeeklyStartKey {
-  WEEKLY("Weekly", new WeeklyPeriodType()),
-  WEEKLY_WEDNESDAY("WeeklyWednesday", new WeeklyWednesdayPeriodType()),
-  WEEKLY_THURSDAY("WeeklyThursday", new WeeklyThursdayPeriodType()),
-  WEEKLY_FRIDAY("WeeklyFriday", new WeeklyFridayPeriodType()),
-  WEEKLY_SATURDAY("WeeklySaturday", new WeeklySaturdayPeriodType()),
-  WEEKLY_SUNDAY("WeeklySunday", new WeeklySundayPeriodType());
-
-  private final String name;
-
-  private final PeriodType periodType;
-
-  AnalyticsWeeklyStartKey(String name, PeriodType periodType) {
-    this.name = name;
-    this.periodType = periodType;
+/**
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to Friday and endDate set
+ * to Saturday the same week, assuming Friday is the first day and Saturday is the last day of the
+ * week.
+ */
+public class WeeklyFridayPeriodType extends WeeklyAbstractPeriodType {
+  public WeeklyFridayPeriodType() {
+    super(WEEKLY_FRIDAY.getName(), 5, "yyyyFriWn", "P7D", 7, "1 week", "FriW");
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public PeriodType getPeriodType() {
-    return periodType;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return WEEKLY_FRIDAY;
   }
 }

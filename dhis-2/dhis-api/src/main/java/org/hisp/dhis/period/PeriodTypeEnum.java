@@ -54,6 +54,7 @@ public enum PeriodTypeEnum {
   WEEKLY_SATURDAY("WeeklySaturday"),
   WEEKLY_SUNDAY("WeeklySunday"),
   WEEKLY_THURSDAY("WeeklyThursday"),
+  WEEKLY_FRIDAY("WeeklyFriday"),
   WEEKLY_WEDNESDAY("WeeklyWednesday"),
   YEARLY("Yearly");
 

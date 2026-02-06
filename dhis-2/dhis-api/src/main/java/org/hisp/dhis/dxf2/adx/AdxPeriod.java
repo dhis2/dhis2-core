@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.adx;
 
 import static java.util.Calendar.APRIL;
+import static java.util.Calendar.FRIDAY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.JULY;
 import static java.util.Calendar.MAY;
@@ -57,6 +58,7 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyNovemberPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
+import org.hisp.dhis.period.WeeklyFridayPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.WeeklySaturdayPeriodType;
 import org.hisp.dhis.period.WeeklySundayPeriodType;
@@ -105,6 +107,7 @@ public class AdxPeriod {
                   case MONDAY -> new WeeklyPeriodType();
                   case WEDNESDAY -> new WeeklyWednesdayPeriodType();
                   case THURSDAY -> new WeeklyThursdayPeriodType();
+                  case FRIDAY -> new WeeklyFridayPeriodType();
                   case SATURDAY -> new WeeklySaturdayPeriodType();
                   case SUNDAY -> new WeeklySundayPeriodType();
                   default ->
