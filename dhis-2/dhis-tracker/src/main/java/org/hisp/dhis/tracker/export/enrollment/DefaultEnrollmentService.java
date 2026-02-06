@@ -304,7 +304,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
 
     Set<UID> enrollmentUids =
-        enrollments.stream().map(e -> UID.of(e.getUid())).collect(Collectors.toSet());
+        enrollments.stream().map(Enrollment::getUID).collect(Collectors.toSet());
 
     TrackerEventOperationParams eventOperationParams =
         TrackerEventOperationParams.builderForEnrollments(enrollmentUids)

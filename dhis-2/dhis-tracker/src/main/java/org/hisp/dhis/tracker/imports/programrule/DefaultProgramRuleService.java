@@ -119,7 +119,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUid(), UID.of(program.getUid()), bundle, preheat),
+                  getEventsFromEnrollment(e.getUid(), program.getUID(), bundle, preheat),
                   program,
                   bundle.getUser());
             })
@@ -143,8 +143,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(
-                      UID.of(e), UID.of(e.getProgram().getUid()), bundle, preheat),
+                  getEventsFromEnrollment(UID.of(e), e.getProgram().getUID(), bundle, preheat),
                   e.getProgram(),
                   bundle.getUser());
             })

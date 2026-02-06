@@ -265,7 +265,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     return singleEventService
         .findEvents(
             SingleEventOperationParams.builderForDataSync(
-                    UID.of(context.program.getUid()),
+                    context.program.getUID(),
                     context.getSkipChangedBefore(),
                     context.getSkipSyncDataElementsByProgramStage())
                 .build(),
@@ -383,7 +383,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SingleEvent singleEvent) {
     org.hisp.dhis.webapi.controller.tracker.view.Event minimalEvent =
         new org.hisp.dhis.webapi.controller.tracker.view.Event();
-    minimalEvent.setEvent(UID.of(singleEvent.getUid()));
+    minimalEvent.setEvent(singleEvent.getUID());
     return minimalEvent;
   }
 }
