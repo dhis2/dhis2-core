@@ -106,7 +106,7 @@ public class TrackerEventPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent entity) {
-    TrackerEvent persistedEvent = preheat.getTrackerEvent(entity.getUid());
+    TrackerEvent persistedEvent = preheat.getTrackerEvent(entity.getUID());
     List<NotificationTrigger> triggers = new ArrayList<>();
     // If the event is new and has been completed
     if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
@@ -134,7 +134,7 @@ public class TrackerEventPersister
   @Override
   protected TrackerEvent cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
-    TrackerEvent originalEvent = preheat.getTrackerEvent(event.getUid());
+    TrackerEvent originalEvent = preheat.getTrackerEvent(event.getUID());
 
     if (originalEvent == null) {
       return new TrackerEvent();

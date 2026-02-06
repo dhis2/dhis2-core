@@ -137,7 +137,7 @@ class SecurityTrackerEventValidator
     if (bundle.getStrategy(event).isUpdateOrDelete()) {
       return bundle
           .getPreheat()
-          .getTrackerEvent(event.getUid())
+          .getTrackerEvent(event.getUID())
           .getEnrollment()
           .getTrackedEntity()
           .getUID();

@@ -565,7 +565,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
       TrackerEvent actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEqualUids(event.getUid(), actual);
+    assertEqualUids(event.getUID(), actual);
     assertEqualUids(event.getEnrollment(), actual.getEnrollment());
     assertEquals(event.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(event.getProgramStage().getIdentifier(), actual.getProgramStage().getUid());

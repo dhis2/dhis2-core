@@ -119,7 +119,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUid(), program.getUID(), bundle, preheat),
+                  getEventsFromEnrollment(e.getUID(), program.getUID(), bundle, preheat),
                   program,
                   bundle.getUser());
             })

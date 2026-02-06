@@ -499,7 +499,7 @@ public class TrackerPreheat {
 
   public Relationship getRelationship(
       org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
-    return relationships.get(relationship.getUid());
+    return relationships.get(relationship.getUID());
   }
 
   public boolean isDuplicate(org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
@@ -623,7 +623,7 @@ public class TrackerPreheat {
 
   /** Checks if an entity exists in the DB. */
   public <T extends TrackerDto> boolean exists(T entity) {
-    return exists(entity.getTrackerType(), entity.getUid());
+    return exists(entity.getTrackerType(), entity.getUID());
   }
 
   /**

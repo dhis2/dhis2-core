@@ -146,7 +146,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     // Get te from Preheat
     Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
         trackerObjects.getTrackedEntities().stream()
-            .filter(te -> Objects.equals(te.getUid(), teUid))
+            .filter(te -> Objects.equals(te.getUID(), teUid))
             .findAny();
     if (optionalTe.isPresent()) {
       return optionalTe.get();
@@ -224,7 +224,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         .map(
             te ->
                 new UniqueAttributeValue(
-                    te.getUid(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
+                    te.getUID(), attribute.getAttribute(), attribute.getValue(), te.getOrgUnit()))
         .toList();
   }
 
