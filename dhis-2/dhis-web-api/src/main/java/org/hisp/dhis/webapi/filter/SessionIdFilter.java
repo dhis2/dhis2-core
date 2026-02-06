@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID_HEADER_ENABLED;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -50,10 +51,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Filter that adds a hashed version of the Session ID to the Mapped Diagnostic Context (MDC) for
  * authenticated users. This allows correlating multiple requests from the same user session. Access
- * via {@code %X{sessionId}} in log4j2 pattern layouts.
+ * via {@code %X{sessionId}} in log4j2 pattern layouts. Optionally emits the same value as the
+ * {@code X-Session-ID} response header.
  *
- * <p>The session ID is hashed using SHA-256 and base64-encoded for security. Only enabled when
- * {@code logging.request_id.enabled} is true.
+ * <p>The session ID is hashed using SHA-256 and base64-encoded for security. MDC logging is
+ * controlled by {@code logging.request_id.enabled}. Header emission is controlled by {@code
+ * logging.session_id_header.enabled}.
  *
  * @author Luciano Fiandesio
  * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
@@ -71,24 +74,31 @@ public class SessionIdFilter extends OncePerRequestFilter {
 
   private static final String IDENTIFIER_PREFIX = "ID";
 
-  private final boolean enabled;
+  private final boolean mdcEnabled;
+  private final boolean headerEnabled;
 
   public SessionIdFilter(DhisConfigurationProvider dhisConfig) {
-    this.enabled = dhisConfig.isEnabled(LOGGING_REQUEST_ID_ENABLED);
+    this.mdcEnabled = dhisConfig.isEnabled(LOGGING_REQUEST_ID_ENABLED);
+    this.headerEnabled = dhisConfig.isEnabled(LOGGING_SESSION_ID_HEADER_ENABLED);
   }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws ServletException, IOException {
-    if (enabled) {
+    if (mdcEnabled || headerEnabled) {
       try {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null
             && authentication.isAuthenticated()
             && !authentication.getPrincipal().equals("anonymousUser")) {
-
-          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+          String value = IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId());
+          if (mdcEnabled) {
+            MDC.put(SESSION_ID_KEY, value);
+          }
+          if (headerEnabled) {
+            res.addHeader("X-Session-ID", value);
+          }
         }
       } catch (NoSuchAlgorithmException e) {
         log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
