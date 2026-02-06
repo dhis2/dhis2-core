@@ -649,6 +649,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "FLsH8ClLGNB"
+      },
       "notificationTemplates": [],
       "displayIncidentDate": true,
       "accessLevel": "OPEN",
@@ -1006,6 +1009,9 @@
       },
       "selectEnrollmentDatesInFuture": false,
       "categoryCombo": {
+        "id": "FLsH8ClLGNB"
+      },
+      "enrollmentCategoryCombo": {
         "id": "FLsH8ClLGNB"
       },
       "notificationTemplates": [],

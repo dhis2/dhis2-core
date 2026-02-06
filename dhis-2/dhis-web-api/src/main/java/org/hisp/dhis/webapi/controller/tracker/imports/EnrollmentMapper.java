@@ -50,6 +50,10 @@ interface EnrollmentMapper
     extends DomainMapper<Enrollment, org.hisp.dhis.tracker.imports.domain.Enrollment> {
   @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
   @Mapping(target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier")
+  @Mapping(
+      target = "attributeOptionCombo",
+      source = "attributeOptionCombo",
+      qualifiedByName = "attributeOptionComboToMetadataIdentifier")
   org.hisp.dhis.tracker.imports.domain.Enrollment from(
       Enrollment enrollment, @Context TrackerIdSchemeParams idSchemeParams);
 }

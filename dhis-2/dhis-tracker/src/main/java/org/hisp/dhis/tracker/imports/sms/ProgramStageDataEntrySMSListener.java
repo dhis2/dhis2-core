@@ -104,7 +104,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
 
   private final TrackerImportService trackerImportService;
 
-  private final CategoryService dataElementCategoryService;
+  private final CategoryService categoryService;
 
   public ProgramStageDataEntrySMSListener(
       UserService userService,
@@ -115,14 +115,14 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       SMSCommandService smsCommandService,
       EnrollmentService enrollmentService,
       TrackerImportService trackerImportService,
-      CategoryService dataElementCategoryService) {
+      CategoryService categoryService) {
     super(userService, incomingSmsService, smsSender);
     this.trackedEntityService = trackedEntityService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.smsCommandService = smsCommandService;
     this.enrollmentService = enrollmentService;
     this.trackerImportService = trackerImportService;
-    this.dataElementCategoryService = dataElementCategoryService;
+    this.categoryService = categoryService;
   }
 
   @Override
@@ -182,7 +182,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
             dataValues,
             smsCreatedBy.getUserOrgUnitIds().iterator().next(),
             smsCreatedBy.getUsername(),
-            dataElementCategoryService,
+            categoryService,
             trackedEntity.getUid(),
             enrollment);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
