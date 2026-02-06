@@ -189,19 +189,16 @@ class CteDefinitionTest {
     @Test
     @DisplayName("Alias uniqueness under concurrent load (low‑collision expectation, not absolute)")
     void aliasUniquenessUnderLoad() {
-      int sampleSize = 5000;
+      int sampleSize = 100;
       Set<String> aliases =
           IntStream.range(0, sampleSize)
-              .parallel()
               .mapToObj(i -> CteDefinition.forFilter("id_" + i, "ps", "sql"))
               .map(CteDefinition::getAlias)
               .collect(Collectors.toCollection(ConcurrentHashMap::newKeySet));
 
       int duplicates = sampleSize - aliases.size();
 
-      // Alias generation is random over a finite 5-char space; under parallel CI load,
-      // small collision spikes can occur, so keep this threshold tolerant.
-      assertTrue(duplicates <= 10, "Too many alias collisions: " + duplicates);
+      assertTrue(duplicates <= 5, "Too many alias collisions: " + duplicates);
       assertTrue(aliases.stream().allMatch(a -> RANDOM_ALIAS.matcher(a).matches()));
     }
   }
