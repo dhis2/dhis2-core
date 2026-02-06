@@ -112,6 +112,7 @@ public class DateFilterHandler implements QueryItemFilterHandler {
         Date endDate = periods.get(periods.size() - 1).getEndDate();
         queryItem.addFilter(new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(startDate)));
         queryItem.addFilter(new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(endDate)));
+        periods.forEach(p -> queryItem.addDimensionValue(p.getIsoDate()));
       }
       return;
     }
@@ -135,6 +136,7 @@ public class DateFilterHandler implements QueryItemFilterHandler {
             new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(period.getStartDate())));
         queryItem.addFilter(
             new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(period.getEndDate())));
+        queryItem.addDimensionValue(filterString);
         return;
       }
     } catch (IllegalArgumentException e) {

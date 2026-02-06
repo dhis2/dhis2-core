@@ -293,9 +293,9 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   @Test
   void verifyAggregateEnrollmentWithStageDateDimensionGeneratesValidSql() {
     // Test that aggregate enrollment queries with stage-specific EVENT_DATE:
-    // 1. Use the latest_events filter CTE for the date value
+    // 1. Use a per-stage filter CTE (latest_events_<stageUid>)
     // 2. Do NOT create a redundant program stage CTE
-    // 3. Map the header column correctly (eventdate -> occurreddate)
+    // 3. Map the header column correctly (eventdate -> ev_occurreddate)
     EventQueryParams params = createAggregateEnrollmentWithStageDateParams();
 
     ListGrid grid = new ListGrid();
@@ -310,18 +310,16 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     String generatedSql = sql.getValue();
 
-    // The SQL should contain only one CTE for the filter (latest_events)
-    // and NOT a redundant program stage CTE
-    assertThat(generatedSql, containsString("latest_events"));
+    // The SQL should contain a per-stage filter CTE
+    assertThat(generatedSql, containsString("latest_events_" + programStage.getUid()));
 
     // The SQL should NOT contain a separate CTE like 'Zj7UnCAulEk_occurreddate_0'
     // (avoiding redundant CTE generation)
     assertThat(
         generatedSql, not(containsString(programStage.getUid() + "_" + OCCURRED_DATE_COLUMN_NAME)));
 
-    // The SQL should reference the latest_events CTE value column for the date
-    // The filter CTE should be used for the stage date value
-    assertThat(generatedSql, containsString(".value"));
+    // The filter CTE should use the ev_occurreddate alias for the date column
+    assertThat(generatedSql, containsString("ev_occurreddate"));
   }
 
   private EventQueryParams createAggregateEnrollmentWithStageDateParams() {

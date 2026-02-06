@@ -41,10 +41,10 @@ import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
 
 /**
  * Resolves aggregated enrollment header columns into SQL select and group-by expressions, handling
- * stage-specific dimensions and CTE-backed values (including the latest-events filter CTE).
+ * stage-specific dimensions via per-stage filter CTEs.
  */
 public final class AggregatedEnrollmentHeaderColumnResolver {
-  private static final String LATEST_EVENTS_CTE = "latest_events";
+  private static final String LATEST_EVENTS_CTE_PREFIX = "latest_events_";
 
   private final StageHeaderClassifier stageHeaderClassifier;
 
@@ -73,41 +73,84 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
       SelectBuilder sb,
       Map<String, CteDefinition> cteDefinitionMap,
       UnaryOperator<String> quote) {
-    CteDefinition filterCte = cteContext.getDefinitionByItemUid(LATEST_EVENTS_CTE);
 
     for (String headerColumn : headerColumns) {
       String colName = SqlColumnParser.removeTableAlias(headerColumn);
       String quotedCol = quote.apply(colName);
       StageHeaderType stageHeaderType = stageHeaderClassifier.classify(headerColumn);
 
-      if (filterCte != null && usesFilterCteValue(stageHeaderType)) {
-        String cteValueCol = filterCte.getAlias() + ".value";
-        sb.addColumn(cteValueCol, "", quotedCol);
-        sb.groupBy(cteValueCol);
-        continue;
+      if (stageHeaderType != StageHeaderType.NOT_STAGE_SPECIFIC) {
+        CteDefinition filterCte = findFilterCte(headerColumn, cteContext);
+        if (filterCte != null) {
+          String cteCol = resolveCteColumn(filterCte, stageHeaderType, colName);
+          sb.addColumn(cteCol, "", quotedCol);
+          sb.groupBy(cteCol);
+          continue;
+        }
       }
 
       Map.Entry<String, CteDefinition> matchingEntry = findMatchingCte(cteDefinitionMap, colName);
       if (matchingEntry != null) {
         sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", matchingEntry.getKey());
         sb.groupBy(matchingEntry.getKey());
-      } else if (filterCte != null && stageHeaderType == StageHeaderType.OU_NAME) {
-        String cteCol = filterCte.getAlias() + ".ev_ouname";
-        sb.addColumn(cteCol, "", quotedCol);
-        sb.groupBy(cteCol);
-      } else if (filterCte != null && stageHeaderType == StageHeaderType.OU_CODE) {
-        String cteCol = filterCte.getAlias() + ".ev_oucode";
-        sb.addColumn(cteCol, "", quotedCol);
-        sb.groupBy(cteCol);
-      } else if (filterCte != null && stageHeaderType == StageHeaderType.GENERIC_STAGE_ITEM) {
-        String cteValueCol = filterCte.getAlias() + ".value";
-        sb.addColumn(cteValueCol, "", quotedCol);
-        sb.groupBy(cteValueCol);
       } else {
         sb.addColumn(quotedCol);
         sb.groupBy(quotedCol);
       }
     }
+  }
+
+  /**
+   * Finds the filter CTE for a stage-specific header by extracting the stage UID and looking up the
+   * corresponding CTE definition.
+   */
+  private CteDefinition findFilterCte(String header, CteContext cteContext) {
+    String stageUid = extractStageUid(header);
+    if (stageUid == null) {
+      return null;
+    }
+    return cteContext.getDefinitionByItemUid(LATEST_EVENTS_CTE_PREFIX + stageUid);
+  }
+
+  /**
+   * Resolves the CTE column expression for a given stage header type. Uses the {@code ev_<column>}
+   * alias convention established by the aggregate filter CTE.
+   */
+  private String resolveCteColumn(
+      CteDefinition filterCte, StageHeaderType stageHeaderType, String colName) {
+    String alias = filterCte.getAlias();
+    String bareCol = extractColumnName(colName);
+    return switch (stageHeaderType) {
+      case EVENT_DATE -> alias + ".ev_occurreddate";
+      case SCHEDULED_DATE -> alias + ".ev_scheduleddate";
+      case EVENT_STATUS -> alias + ".ev_eventstatus";
+      case OU_NAME -> alias + ".ev_ouname";
+      case OU_CODE -> alias + ".ev_oucode";
+      case OU, GENERIC_STAGE_ITEM -> alias + ".ev_" + bareCol;
+      case NOT_STAGE_SPECIFIC -> alias + "." + bareCol;
+    };
+  }
+
+  /**
+   * Extracts the column name from a potentially stage-prefixed column (e.g. "stageUid.col" →
+   * "col").
+   */
+  private String extractColumnName(String colName) {
+    int dotIndex = colName.indexOf('.');
+    return dotIndex >= 0 ? colName.substring(dotIndex + 1) : colName;
+  }
+
+  /**
+   * Extracts the stage UID from a header in {@code "stageUid.column"} format. Strips surrounding
+   * quotes if present.
+   */
+  private String extractStageUid(String header) {
+    String cleaned = header.replace("\"", "");
+    int dotIndex = cleaned.indexOf('.');
+    if (dotIndex <= 0) {
+      return null;
+    }
+    return cleaned.substring(0, dotIndex);
   }
 
   private Map.Entry<String, CteDefinition> findMatchingCte(
@@ -118,12 +161,5 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
       }
     }
     return null;
-  }
-
-  private boolean usesFilterCteValue(StageHeaderType stageHeaderType) {
-    return stageHeaderType == StageHeaderType.EVENT_DATE
-        || stageHeaderType == StageHeaderType.SCHEDULED_DATE
-        || stageHeaderType == StageHeaderType.OU
-        || stageHeaderType == StageHeaderType.EVENT_STATUS;
   }
 }

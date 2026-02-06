@@ -83,6 +83,21 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndMultipleStages",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?includeMetadataDetails=true&totalPages=false&pageSize=100&page=1&dimension=ou:USER_ORGUNIT&dimension=PUZaKR0Jh2k.EVENT_DATE:202205&dimension=edqlbukwRfQ.EVENT_STATUS:COMPLETED;ACTIVE",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndMultipleStagesSameStage",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?includeMetadataDetails=true&totalPages=false&pageSize=100&page=1&dimension=ou:USER_ORGUNIT&dimension=edqlbukwRfQ.EVENT_DATE:202205&dimension=edqlbukwRfQ.EVENT_STATUS:COMPLETED;ACTIVE",
+      "version": {
+        "min": 43
+      }
     }
+
   ]
 }
