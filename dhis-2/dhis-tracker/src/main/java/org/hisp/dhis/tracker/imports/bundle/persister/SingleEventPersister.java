@@ -92,7 +92,7 @@ public class SingleEventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(SingleEvent.class)
-        .singleEventNotifications(bundle.getSingleEventNotifications().get(UID.of(event)))
+        .singleEventNotifications(bundle.getSingleEventNotifications().get(event.getUID()))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -105,7 +105,7 @@ public class SingleEventPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent entity) {
-    SingleEvent persistedEvent = preheat.getSingleEvent(entity.getUid());
+    SingleEvent persistedEvent = preheat.getSingleEvent(entity.getUID());
     List<NotificationTrigger> triggers = new ArrayList<>();
     // If the event is new and has been completed
     if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
@@ -133,7 +133,7 @@ public class SingleEventPersister
   @Override
   protected SingleEvent cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent event) {
-    SingleEvent originalEvent = preheat.getSingleEvent(event.getUid());
+    SingleEvent originalEvent = preheat.getSingleEvent(event.getUID());
 
     if (originalEvent == null) {
       return new SingleEvent();

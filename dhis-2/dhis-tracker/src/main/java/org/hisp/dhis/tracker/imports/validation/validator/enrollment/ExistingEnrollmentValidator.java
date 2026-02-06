@@ -84,7 +84,7 @@ class ExistingEnrollmentValidator
             .filter(e -> e.getProgram().isEqualTo(program))
             .filter(
                 e ->
-                    e.getTrackedEntity().equals(UID.of(te))
+                    e.getTrackedEntity().equals(te.getUID())
                         && !e.getEnrollment().equals(enrollment.getEnrollment()))
             .filter(
                 e ->
@@ -144,7 +144,7 @@ class ExistingEnrollmentValidator
       Enrollment dbEnrollment) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(UID.of(dbEnrollment));
+    enrollment.setEnrollment(dbEnrollment.getUID());
     enrollment.setStatus(dbEnrollment.getStatus());
 
     return enrollment;

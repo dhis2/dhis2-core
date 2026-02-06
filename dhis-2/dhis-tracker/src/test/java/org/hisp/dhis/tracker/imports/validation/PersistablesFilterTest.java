@@ -477,7 +477,7 @@ class PersistablesFilterTest {
       private static Entity<Enrollment> enrollment(UID uid, Entity<TrackedEntity> parent) {
         // set child/parent links
         Enrollment enrollment =
-            Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUid()).build();
+            Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUID()).build();
         return new Entity<>(enrollment);
       }
 
@@ -503,7 +503,7 @@ class PersistablesFilterTest {
         // set child/parent links only if the event has a parent. Events in an event program have no
         // enrollment.
         // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
-        Event event = TrackerEvent.builder().event(uid).enrollment(parent.entity.getUid()).build();
+        Event event = TrackerEvent.builder().event(uid).enrollment(parent.entity.getUID()).build();
         return new Entity<>(event);
       }
 
@@ -561,7 +561,7 @@ class PersistablesFilterTest {
       private <T extends TrackerDto> Set<UID> invalid(List<Entity<T>> entities) {
         return entities.stream()
             .filter(e -> !e.valid)
-            .map(e -> e.entity.getUid())
+            .map(e -> e.entity.getUID())
             .collect(Collectors.toSet());
       }
 
@@ -576,7 +576,7 @@ class PersistablesFilterTest {
                                 t ->
                                     t != null
                                         && e.getTrackerType() == t.getTrackerType()
-                                        && e.getUid().equals(t.getUid()))))
+                                        && e.getUID().equals(t.getUID()))))
                         .thenReturn(true));
       }
 
@@ -645,7 +645,7 @@ class PersistablesFilterTest {
 
   private static <T extends TrackerDto> List<UID> persistableUids(
       PersistablesFilter.Result persistable, Class<T> type) {
-    return persistable.get(type).stream().map(TrackerDto::getUid).toList();
+    return persistable.get(type).stream().map(TrackerDto::getUID).toList();
   }
 
   private static void assertHasError(
@@ -665,7 +665,7 @@ class PersistablesFilterTest {
       }
 
       @Override
-      public UID getUid() {
+      public UID getUID() {
         return UID.of(uid);
       }
     };

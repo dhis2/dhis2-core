@@ -82,12 +82,12 @@ public class DeduplicationHelper {
      */
     Set<UID> validTrackedEntityAttributes =
         duplicate.getTrackedEntityAttributeValues().stream()
-            .map(teav -> UID.of(teav.getAttribute()))
+            .map(teav -> teav.getAttribute().getUID())
             .collect(Collectors.toSet());
 
     Set<UID> validRelationships =
         duplicate.getRelationshipItems().stream()
-            .map(rel -> UID.of(rel.getRelationship()))
+            .map(rel -> rel.getRelationship().getUID())
             .collect(Collectors.toSet());
 
     Set<UID> validEnrollments =
@@ -121,7 +121,7 @@ public class DeduplicationHelper {
     Set<Relationship> relationshipsToMerge =
         params.getDuplicate().getRelationshipItems().stream()
             .map(RelationshipItem::getRelationship)
-            .filter(r -> mergeObject.getRelationships().contains(UID.of(r)))
+            .filter(r -> mergeObject.getRelationships().contains(r.getUID()))
             .collect(Collectors.toSet());
     String duplicateRelationshipError =
         getDuplicateRelationshipError(params.getOriginal(), relationshipsToMerge);
@@ -140,7 +140,7 @@ public class DeduplicationHelper {
 
     String duplicateEnrollment =
         duplicate.getEnrollments().stream()
-            .filter(enrollment -> mergeObject.getEnrollments().contains(UID.of(enrollment)))
+            .filter(enrollment -> mergeObject.getEnrollments().contains(enrollment.getUID()))
             .map(Enrollment::getProgram)
             .map(IdentifiableObject::getUid)
             .filter(programUidOfExistingEnrollments::contains)
@@ -292,12 +292,12 @@ public class DeduplicationHelper {
         original.getTrackedEntityAttributeValues().stream()
             .collect(
                 Collectors.toMap(
-                    teav -> UID.of(teav.getAttribute()), TrackedEntityAttributeValue::getValue));
+                    teav -> teav.getAttribute().getUID(), TrackedEntityAttributeValue::getValue));
 
     Set<UID> attributes = new HashSet<>();
 
     for (TrackedEntityAttributeValue teav : duplicate.getTrackedEntityAttributeValues()) {
-      String existingVal = existingTeavs.get(UID.of(teav.getAttribute()));
+      String existingVal = existingTeavs.get(teav.getAttribute().getUID());
 
       if (existingVal != null) {
         if (!existingVal.equals(teav.getValue())) {
@@ -305,7 +305,7 @@ public class DeduplicationHelper {
               "Potential Duplicate contains conflicting value and cannot be merged.");
         }
       } else {
-        attributes.add(UID.of(teav.getAttribute()));
+        attributes.add(teav.getAttribute().getUID());
       }
     }
 
@@ -345,7 +345,7 @@ public class DeduplicationHelper {
         continue;
       }
 
-      relationships.add(UID.of(ri.getRelationship()));
+      relationships.add(ri.getRelationship().getUID());
     }
 
     return relationships;
@@ -367,7 +367,7 @@ public class DeduplicationHelper {
             "Potential Duplicate contains enrollments with the same program"
                 + " and cannot be merged.");
       }
-      enrollments.add(UID.of(enrollment));
+      enrollments.add(enrollment.getUID());
     }
 
     return enrollments;

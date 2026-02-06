@@ -57,7 +57,7 @@ class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.import
       reporter.addErrorIf(
           () ->
               trackerEvent.getEnrollment() != null
-                  && !trackerEvent.getEnrollment().getValue().equals(enrollment.getUid()),
+                  && !trackerEvent.getEnrollment().equals(enrollment.getUID()),
           trackerEvent,
           E1128,
           "enrollment");

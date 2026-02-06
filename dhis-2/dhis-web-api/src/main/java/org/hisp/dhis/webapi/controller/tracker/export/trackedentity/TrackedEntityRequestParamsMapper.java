@@ -145,7 +145,7 @@ class TrackedEntityRequestParamsMapper {
                 new AssignedUserQueryParam(
                     trackedEntityRequestParams.getAssignedUserMode(),
                     trackedEntityRequestParams.getAssignedUsers(),
-                    UID.of(user)))
+                    user.getUID()))
             .trackedEntities(trackedEntityRequestParams.getTrackedEntities())
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())

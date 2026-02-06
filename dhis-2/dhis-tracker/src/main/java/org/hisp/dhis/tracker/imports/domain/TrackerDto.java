@@ -37,7 +37,7 @@ import org.hisp.dhis.tracker.TrackerType;
  */
 public interface TrackerDto {
 
-  UID getUid();
+  UID getUID();
 
   TrackerType getTrackerType();
 }

@@ -140,7 +140,7 @@ class AttributeValidatorTest {
         .thenReturn(EncryptionStatus.MISSING_ENCRYPTION_PASSWORD);
 
     UID uid = UID.generate();
-    when(enrollment.getUid()).thenReturn(uid);
+    when(enrollment.getUID()).thenReturn(uid);
     when(enrollment.getEnrollment()).thenReturn(uid);
     when(enrollment.getTrackerType()).thenCallRealMethod();
     enrollment.setTrackedEntity(UID.generate());

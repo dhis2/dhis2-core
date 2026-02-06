@@ -92,11 +92,12 @@ class ExistingEnrollmentValidatorTest {
     when(enrollment.getTrackedEntity()).thenReturn(TRACKED_ENTITY_UID);
     when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
     when(enrollment.getEnrollment()).thenReturn(ENROLLMENT_UID);
-    when(enrollment.getUid()).thenReturn(ENROLLMENT_UID);
+    when(enrollment.getUID()).thenReturn(ENROLLMENT_UID);
     when(enrollment.getTrackerType()).thenCallRealMethod();
 
     when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
     when(trackedEntity.getUid()).thenReturn(TRACKED_ENTITY_UID.getValue());
+    when(trackedEntity.getUID()).thenReturn(TRACKED_ENTITY_UID);
 
     Program program = new Program();
     program.setOnlyEnrollOnce(false);

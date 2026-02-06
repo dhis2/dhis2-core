@@ -108,7 +108,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getUid());
+      Entity objectReport = new Entity(getType(), trackerDto.getUID());
       List<NotificationTrigger> triggers =
           determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
@@ -180,7 +180,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             "A Tracker Entity of type '"
                 + getType().getName()
                 + "' ("
-                + trackerDto.getUid()
+                + trackerDto.getUID()
                 + ") failed to persist.";
 
         if (AtomicMode.ALL.equals(bundle.getAtomicMode())) {
