@@ -35,6 +35,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
@@ -44,6 +45,7 @@ import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
@@ -80,14 +82,10 @@ public class HeaderParamsHandler {
 
       // Adds only the headers present in params, in the same order.
       paramHeaders.forEach(
-          header -> {
-            GridHeader gridHeader = new GridHeader(header);
-
-            if (gridHeaders.contains(gridHeader)) {
-              int element = gridHeaders.indexOf(gridHeader);
-              grid.addHeader(gridHeaders.get(element));
-            }
-          });
+          header ->
+              findMatchingHeader(gridHeaders, header)
+                  .map(matched -> withRequestedNameIfNeeded(matched, header))
+                  .ifPresent(grid::addHeader));
     }
 
     checkHeaders(headers, paramHeaders);
@@ -102,13 +100,64 @@ public class HeaderParamsHandler {
    *     "gridHeaders".
    */
   private void checkHeaders(Set<GridHeader> gridHeaders, Set<String> paramHeaders) {
+    List<GridHeader> requestedGridHeaders = new ArrayList<>(gridHeaders);
     paramHeaders.forEach(
         header -> {
-          GridHeader gridHeader = new GridHeader(header);
-
-          if (!gridHeaders.contains(gridHeader)) {
+          if (findMatchingHeader(requestedGridHeaders, header).isEmpty()) {
             throw new IllegalQueryException(new ErrorMessage(E7230, header));
           }
         });
+  }
+
+  /**
+   * Finds a matching header by exact name or supported short/full stage-scoped alias:
+   * programUid.stageUid.dimension <-> stageUid.dimension.
+   */
+  private Optional<GridHeader> findMatchingHeader(List<GridHeader> gridHeaders, String header) {
+    GridHeader requested = new GridHeader(header);
+
+    if (gridHeaders.contains(requested)) {
+      return Optional.of(gridHeaders.get(gridHeaders.indexOf(requested)));
+    }
+
+    return gridHeaders.stream().filter(h -> isStageScopedAlias(h.getName(), header)).findFirst();
+  }
+
+  private boolean isStageScopedAlias(String existingHeaderName, String requestedHeaderName) {
+    long existingDots = existingHeaderName.chars().filter(c -> c == '.').count();
+    long requestedDots = requestedHeaderName.chars().filter(c -> c == '.').count();
+
+    if (existingDots == 2 && requestedDots == 1) {
+      return existingHeaderName.endsWith("." + requestedHeaderName);
+    }
+
+    if (existingDots == 1 && requestedDots == 2) {
+      return requestedHeaderName.endsWith("." + existingHeaderName);
+    }
+
+    return false;
+  }
+
+  private GridHeader withRequestedNameIfNeeded(GridHeader gridHeader, String requestedHeaderName) {
+    if (requestedHeaderName.equals(gridHeader.getName())) {
+      return gridHeader;
+    }
+
+    GridHeader renamed =
+        new GridHeader(
+            requestedHeaderName,
+            gridHeader.getColumn(),
+            gridHeader.getValueType(),
+            gridHeader.isHidden(),
+            gridHeader.isMeta(),
+            gridHeader.getOptionSetObject(),
+            gridHeader.getLegendSetObject());
+
+    if (gridHeader.getStageOffset() != null) {
+      renamed =
+          renamed.withRepeatableStageParams(RepeatableStageParams.of(gridHeader.getStageOffset()));
+    }
+
+    return renamed;
   }
 }
