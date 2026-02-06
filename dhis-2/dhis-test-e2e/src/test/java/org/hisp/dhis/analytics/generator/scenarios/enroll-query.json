@@ -153,6 +153,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "fixedPeriod2017Feb",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&headers=ouname,lastupdated&totalPages=false&rowContext=true&lastUpdated=2017Feb&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

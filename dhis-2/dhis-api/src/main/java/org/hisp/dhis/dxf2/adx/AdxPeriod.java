@@ -30,6 +30,8 @@
 package org.hisp.dhis.dxf2.adx;
 
 import static java.util.Calendar.APRIL;
+import static java.util.Calendar.AUGUST;
+import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.JULY;
 import static java.util.Calendar.MAY;
@@ -37,6 +39,7 @@ import static java.util.Calendar.MONDAY;
 import static java.util.Calendar.NOVEMBER;
 import static java.util.Calendar.OCTOBER;
 import static java.util.Calendar.SATURDAY;
+import static java.util.Calendar.SEPTEMBER;
 import static java.util.Calendar.SUNDAY;
 import static java.util.Calendar.THURSDAY;
 import static java.util.Calendar.WEDNESDAY;
@@ -47,9 +50,12 @@ import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.BiWeeklyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
+import org.hisp.dhis.period.FinancialAugustPeriodType;
+import org.hisp.dhis.period.FinancialFebruaryPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialNovemberPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
+import org.hisp.dhis.period.FinancialSeptemberPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -126,8 +132,11 @@ public class AdxPeriod {
             case P1Y ->
                 switch (cal.get(Calendar.MONTH)) {
                   case JANUARY -> new YearlyPeriodType();
+                  case FEBRUARY -> new FinancialFebruaryPeriodType();
                   case APRIL -> new FinancialAprilPeriodType();
                   case JULY -> new FinancialJulyPeriodType();
+                  case AUGUST -> new FinancialAugustPeriodType();
+                  case SEPTEMBER -> new FinancialSeptemberPeriodType();
                   case OCTOBER -> new FinancialOctoberPeriodType();
                   case NOVEMBER -> new FinancialNovemberPeriodType();
                   default ->
