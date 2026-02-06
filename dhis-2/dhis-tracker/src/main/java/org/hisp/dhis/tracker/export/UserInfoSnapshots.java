@@ -29,27 +29,53 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-@Slf4j
-public class EventUtils {
-  private EventUtils() {
-    throw new UnsupportedOperationException("Utility class");
+public class UserInfoSnapshots {
+  private UserInfoSnapshots() {
+    throw new IllegalStateException("Utility class");
   }
 
-  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
-    try {
-      if (StringUtils.isNotEmpty(userInfoAsString)) {
-        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
-      }
+  /**
+   * Parses JSON into a UserInfoSnapshot.
+   *
+   * @param json JSON string representing a UserInfoSnapshot
+   * @return parsed UserInfoSnapshot, or null if input is empty
+   */
+  @CheckForNull
+  public static UserInfoSnapshot fromJson(String json) {
+    if (StringUtils.isEmpty(json)) {
       return null;
-    } catch (IOException e) {
-      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
-      throw new IllegalArgumentException(e);
     }
+    try {
+      return JsonBinaryType.MAPPER.readValue(json, UserInfoSnapshot.class);
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * Creates a UserInfoSnapshot from a JsonObject (lazy JSON tree).
+   *
+   * @param json JsonObject representing a UserInfoSnapshot
+   * @return UserInfoSnapshot, or null if input is null or undefined
+   */
+  @CheckForNull
+  public static UserInfoSnapshot from(@CheckForNull JsonObject json) {
+    if (json == null || json.isUndefined()) {
+      return null;
+    }
+    return UserInfoSnapshot.of(
+        json.getNumber("id").number().longValue(),
+        json.getString("code").string(null),
+        json.getString("uid").string(null),
+        json.getString("username").string(null),
+        json.getString("firstName").string(null),
+        json.getString("surname").string(null));
   }
 }

@@ -37,7 +37,6 @@ import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -62,21 +61,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -126,7 +123,10 @@ class JdbcEnrollmentStore {
   private void addSelect(StringBuilder sql, EnrollmentQueryParams params) {
     sql.append(
         """
-            select e.*,
+            select e.enrollmentid, e.uid, e.created, e.createdatclient, e.createdbyuserinfo,
+            e.lastupdated, e.lastupdatedatclient, e.lastupdatedbyuserinfo, e.occurreddate,
+            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.storedby, e.deleted, e.status,
+            ST_AsBinary(e.geometry) as geometry,
             p.programid as program_id, p.uid as program_uid, p.name as program_name, p.code as program_code, p.sharing as program_sharing,
             p.description as program_description, p.created as program_created, p.lastupdated as program_lastupdated,
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
@@ -379,9 +379,11 @@ class JdbcEnrollmentStore {
       enrollment.setUid(rs.getString("uid"));
       enrollment.setCreated(formatDate(rs.getTimestamp("created")));
       enrollment.setCreatedAtClient(formatDate(rs.getTimestamp("createdatclient")));
-      enrollment.setCreatedByUserInfo(mapUserInfo(rs.getString("createdbyuserinfo")));
+      enrollment.setCreatedByUserInfo(
+          UserInfoSnapshots.fromJson(rs.getString("createdbyuserinfo")));
       enrollment.setLastUpdated(formatDate(rs.getTimestamp("lastupdated")));
-      enrollment.setLastUpdatedByUserInfo(mapUserInfo(rs.getString("lastupdatedbyuserinfo")));
+      enrollment.setLastUpdatedByUserInfo(
+          UserInfoSnapshots.fromJson(rs.getString("lastupdatedbyuserinfo")));
       enrollment.setLastUpdatedAtClient(formatDate(rs.getTimestamp("lastupdatedatclient")));
       enrollment.setOccurredDate(formatDate(rs.getTimestamp("occurreddate")));
       enrollment.setEnrollmentDate(formatDate(rs.getTimestamp("enrollmentdate")));
@@ -391,7 +393,7 @@ class JdbcEnrollmentStore {
       enrollment.setStoredBy(rs.getString("storedby"));
       enrollment.setDeleted(rs.getBoolean("deleted"));
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
-      enrollment.setGeometry(mapGeometry(rs.getString("geometry")));
+      enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
 
       TrackedEntityType trackedEntityType = new TrackedEntityType();
       trackedEntityType.setUid(rs.getString("tet_uid"));
@@ -442,21 +444,6 @@ class JdbcEnrollmentStore {
       return enrollment;
     }
 
-    private Geometry mapGeometry(String geometry) {
-      if (Strings.isNullOrEmpty(geometry)) {
-        return null;
-      }
-
-      try {
-        WKBReader reader = new WKBReader();
-        byte[] bytes = WKBReader.hexToBytes(geometry);
-        return reader.read(bytes);
-      } catch (ParseException e) {
-        log.error("Error mapping enrollment geometry: {}", geometry);
-        return null;
-      }
-    }
-
     private Sharing mapSharingJsonIntoSharingObject(String jsonSharing) {
       if (StringUtils.isEmpty(jsonSharing)) {
         return null;
@@ -468,20 +455,6 @@ class JdbcEnrollmentStore {
             .readValue(jsonSharing);
       } catch (IOException e) {
         log.error("Error mapping enrollment sharing: {}", jsonSharing);
-        return null;
-      }
-    }
-
-    private UserInfoSnapshot mapUserInfo(String jsonUser) {
-      if (StringUtils.isEmpty(jsonUser)) {
-        return null;
-      }
-
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        return mapper.readValue(jsonUser, UserInfoSnapshot.class);
-      } catch (JsonProcessingException e) {
-        log.error("Error mapping enrollment user info: {}", jsonUser);
         return null;
       }
     }
