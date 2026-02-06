@@ -362,7 +362,13 @@ class JdbcTrackedEntityStore {
     // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
     if (isOrderingByEnrolledAt(params)) {
       sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      // With a single program, trackedentityprogramowner's unique index on
+      // (trackedentityid, programid) guarantees one row per TE. No DISTINCT needed.
+      sql.append("select te.trackedentityid");
     } else {
+      // Without a program, the left join on trackedentityprogramowner can produce
+      // multiple rows per TE (one per program enrollment). DISTINCT is needed.
       sql.append("select distinct te.trackedentityid");
     }
 
