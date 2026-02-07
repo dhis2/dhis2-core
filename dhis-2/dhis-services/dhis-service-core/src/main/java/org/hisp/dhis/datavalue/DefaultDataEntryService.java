@@ -32,10 +32,8 @@ package org.hisp.dhis.datavalue;
 import static java.lang.System.Logger.Level.DEBUG;
 import static java.util.Comparator.comparingInt;
 import static java.util.Comparator.comparingLong;
-import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -51,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -131,6 +130,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     UnaryOperator<String> aocOf = UnaryOperator.identity();
 
     DataEntryGroup.Ids ids = group.ids();
+    DataEntryGroup.Input.Scope deletion = group.deletion();
     String peGroup = decodeIso(group.period());
     if (peGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : peGroup;
     List<DataEntryValue.Input> values = group.values();
@@ -144,20 +144,39 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       if (ids.dataElements().isNotUID()) {
         Stream<String> deIds = values.stream().map(DataEntryValue.Input::dataElement);
         if (deGroup != null) deIds = Stream.concat(deIds, Stream.of(deGroup));
+        if (deletion != null)
+          deIds =
+              Stream.concat(
+                  deIds,
+                  deletion.elements().stream()
+                      .map(DataEntryGroup.Input.Scope.Element::dataElement));
         deOf = idCoder.mapDecodedIds(DE, ids.dataElements(), deIds)::get;
       }
       if (ids.orgUnits().isNotUID()) {
         Stream<String> ouIds = values.stream().map(DataEntryValue.Input::orgUnit);
         if (ouGroup != null) ouIds = Stream.concat(ouIds, Stream.of(ouGroup));
+        if (deletion != null) ouIds = Stream.concat(ouIds, deletion.orgUnits().stream());
         ouOf = idCoder.mapDecodedIds(OU, ids.orgUnits(), ouIds)::get;
       }
       if (ids.categoryOptionCombos().isNotUID()) {
         Stream<String> cocIds = values.stream().map(DataEntryValue.Input::categoryOptionCombo);
+        if (deletion != null)
+          cocIds =
+              Stream.concat(
+                  cocIds,
+                  deletion.elements().stream()
+                      .map(DataEntryGroup.Input.Scope.Element::categoryOptionCombo));
         cocOf = idCoder.mapDecodedIds(COC, ids.categoryOptionCombos(), cocIds)::get;
       }
       if (ids.attributeOptionCombos().isNotUID()) {
         Stream<String> aocIds = values.stream().map(DataEntryValue.Input::attributeOptionCombo);
         if (aocGroup != null) aocIds = Stream.concat(aocIds, Stream.of(aocGroup));
+        if (deletion != null)
+          aocIds =
+              Stream.concat(
+                  aocIds,
+                  deletion.elements().stream()
+                      .map(DataEntryGroup.Input.Scope.Element::attributeOptionCombo));
         aocOf = idCoder.mapDecodedIds(COC, ids.attributeOptionCombos(), aocIds)::get;
       }
     }
@@ -289,7 +308,32 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
               attributeOptionCombo,
               completionDate);
     }
-    return new DataEntryGroup(ds, completion, decoded);
+    // decode deletion scope
+    DataEntryGroup.Scope del = null;
+    if (deletion != null) {
+      List<UID> ouScope = new ArrayList<>();
+      for (String id : deletion.orgUnits()) ouScope.add(decodeID(id, ouOf));
+      List<Period> peScope = deletion.periods().stream().map(Period::of).toList();
+      List<DataEntryGroup.Scope.Element> elements = new ArrayList<>();
+      for (DataEntryGroup.Input.Scope.Element e : deletion.elements())
+        elements.add(
+            new DataEntryGroup.Scope.Element(
+                decodeID(e.dataElement(), deOf),
+                decodeID(e.categoryOptionCombo(), cocOf),
+                decodeID(e.attributeOptionCombo(), aocOf)));
+      del = new DataEntryGroup.Scope(ouScope, peScope, elements);
+    }
+    return new DataEntryGroup(ds, completion, del, decoded);
+  }
+
+  private static UID decodeID(@CheckForNull String id, UnaryOperator<String> decoder)
+      throws BadRequestException {
+    if (id == null) return null;
+    String uid = decoder.apply(id);
+    if (uid == null) throw new BadRequestException(ErrorCode.E8034, id);
+    UID res = decodeUID(uid);
+    if (res == null) throw new BadRequestException(ErrorCode.E8035, id);
+    return res;
   }
 
   @CheckForNull
@@ -335,13 +379,29 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!deNoDs.isEmpty()) throw new ConflictException(ErrorCode.E8003, deNoDs);
 
     Map<UID, List<DataEntryValue>> valuesByDs = new HashMap<>();
+    Map<UID, List<DataEntryGroup.Scope.Element>> delScopeElemsByDs = new HashMap<>();
     values.forEach(
         v -> {
-          UID ds = UID.of(datasetsByDe.get(v.dataElement().getValue()).iterator().next());
+          Set<String> dataSets = datasetsByDe.get(v.dataElement().getValue());
+          UID ds = UID.of(dataSets.iterator().next());
           valuesByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(v);
+          DataEntryGroup.Scope.Element e = mixed.deletionScopeElement(v.dataElement());
+          if (e != null) delScopeElemsByDs.computeIfAbsent(ds, key -> new ArrayList<>()).add(e);
         });
-    return valuesByDs.entrySet().stream()
-        .map(e -> new DataEntryGroup(e.getKey(), List.copyOf(e.getValue())))
+    return valuesByDs.keySet().stream()
+        .map(
+            ds -> {
+              DataEntryGroup.Scope del = mixed.deletion();
+              if (del != null) {
+                List<DataEntryGroup.Scope.Element> elements = delScopeElemsByDs.get(ds);
+                del =
+                    elements == null
+                        ? null
+                        : new DataEntryGroup.Scope(del.orgUnits(), del.periods(), elements);
+              }
+              return new DataEntryGroup(
+                  ds, mixed.completion(), del, List.copyOf(valuesByDs.get(ds)));
+            })
         .toList();
   }
 
@@ -378,7 +438,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public void upsertValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryValue value)
       throws ConflictException, BadRequestException {
     List<DataEntryError> errors = new ArrayList<>(1);
-    DataEntryGroup valid = validate(force, dataSet, List.of(value), errors);
+    ValidationSource source = new ValuesValidationSource(List.of(value));
+    DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     store.upsertValues(List.of(value));
   }
@@ -389,35 +450,61 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary upsertGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
-    List<DataEntryValue> values = group.values();
-    if (values.isEmpty()) return new DataEntrySummary(0, 0, 0, List.of());
 
     List<DataEntryError> errors = new ArrayList<>();
-    progress.startingStage("Validating group " + group.describe());
-    DataEntryGroup valid =
-        progress.runStageAndRethrow(
-            ConflictException.class,
-            () -> validate(options.force(), group.dataSet(), values, errors));
-    int entered = values.size();
-    int attempted = valid.values().size();
-    if (options.atomic() && entered > attempted) {
-      // keep original single error if possible
-      if (entered == 1 && errors.size() == 1) {
-        DataEntryError error = errors.get(0);
-        throw new ConflictException(error.code(), error.args());
-      }
-      String error = errors.isEmpty() ? "" : errors.get(0).message();
-      throw new ConflictException(ErrorCode.E8000, attempted, entered, error);
+    DataEntryGroup.Scope deletion = group.deletion();
+    if (deletion != null) {
+      ValidationSource source = new ScopeValidationSource(deletion);
+      progress.startingStage("Validating deletion scope " + deletion);
+      progress.runStageAndRethrow(
+          ConflictException.class,
+          () -> validate(options.force(), group.dataSet(), source, errors));
     }
 
-    String verb = "Upserting";
-    if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
-    progress.startingStage("%s group %s".formatted(verb, valid.describe()));
-    int succeeded =
-        progress.runStage(
-            0, () -> options.dryRun() ? attempted : store.upsertValues(valid.values()));
+    DataEntryGroup valid = null;
+    List<DataEntryValue> values = group.values();
+    int entered = values.size();
+    int attempted = entered;
+    if (!values.isEmpty()) {
+      ValidationSource source = new ValuesValidationSource(values);
+      progress.startingStage("Validating group " + group.describe());
+      valid =
+          progress.runStageAndRethrow(
+              ConflictException.class,
+              () -> validate(options.force(), group.dataSet(), source, errors));
+      attempted = valid.values().size();
+      if (options.atomic() && entered > attempted) {
+        // keep original single error if possible
+        if (entered == 1 && errors.size() == 1) {
+          DataEntryError error = errors.get(0);
+          throw new ConflictException(error.code(), error.args());
+        }
+        String error = errors.isEmpty() ? "" : errors.get(0).message();
+        throw new ConflictException(ErrorCode.E8000, attempted, entered, error);
+      }
+    }
 
-    return new DataEntrySummary(entered, attempted, succeeded, errors);
+    int deleted = 0;
+    if (deletion != null) {
+      progress.startingStage("Deleting scope " + deletion);
+      deleted =
+          progress.runStage(
+              0, () -> options.dryRun() ? store.countScope(deletion) : store.deleteScope(deletion));
+    }
+
+    int succeeded = 0;
+    if (valid != null) {
+      String verb = "Upserting";
+      if (group.values().stream().allMatch(dv -> dv.deleted() == Boolean.TRUE)) verb = "Deleting";
+      int drySucceeded = attempted;
+      List<DataEntryValue> validValues = valid.values();
+      progress.startingStage("%s group %s".formatted(verb, valid.describe()));
+      succeeded =
+          progress.runStage(
+              0, () -> options.dryRun() ? drySucceeded : store.upsertValues(validValues));
+    }
+
+    return new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
   }
 
   @Override
@@ -426,9 +513,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public DataEntrySummary deleteGroup(
       @Nonnull Options options, @Nonnull DataEntryGroup group, @Nonnull JobProgress progress)
       throws ConflictException {
+    List<DataEntryValue> values = group.values().stream().map(DataEntryValue::toDeleted).toList();
     DataEntryGroup deleted =
-        new DataEntryGroup(
-            group.dataSet(), group.values().stream().map(DataEntryValue::toDeleted).toList());
+        new DataEntryGroup(group.dataSet(), group.completion(), group.deletion(), values);
     return upsertGroup(options, deleted, progress);
   }
 
@@ -438,7 +525,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
-    DataEntryGroup valid = validate(force, dataSet, List.of(value), errors);
+    ValidationSource source = new ValuesValidationSource(List.of(value));
+    DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     return store.deleteByKeys(List.of(key)) > 0;
   }
@@ -448,9 +536,10 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   public LockStatus getEntryStatus(UID dataSet, @Nonnull DataEntryKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
-    UID ds = dataSet != null ? dataSet : autoTargetDataSet(List.of(e));
+    ValidationSource source = new ValuesValidationSource(List.of(e));
+    UID ds = dataSet != null ? dataSet : autoTargetDataSet(source);
     try {
-      validateEntryTimeliness(ds, List.of(e));
+      validateEntryTimeliness(ds, source);
       return LockStatus.OPEN;
     } catch (ConflictException ex) {
       if (ex.getCode() == ErrorCode.E8033) return LockStatus.APPROVED;
@@ -470,30 +559,29 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
    * without risk of misinterpretation of the request.
    */
   @Nonnull
-  private UID autoTargetDataSet(List<DataEntryValue> values) throws ConflictException {
-    List<String> dsForDe = store.getDataSets(values.stream().map(DataEntryValue::dataElement));
-    if (dsForDe.isEmpty())
-      throw new ConflictException(
-          ErrorCode.E8003, values.stream().map(DataEntryValue::dataElement).distinct().toList());
+  private UID autoTargetDataSet(ValidationSource source) throws ConflictException {
+    List<UID> deUnique = source.dataElements().distinct().toList();
+    List<String> dsForDe = store.getDataSets(deUnique.stream());
+    if (dsForDe.isEmpty()) throw new ConflictException(ErrorCode.E8003, deUnique);
     if (dsForDe.size() != 1) throw new ConflictException(ErrorCode.E8002, dsForDe);
     return UID.of(dsForDe.get(0));
   }
 
   private DataEntryGroup validate(
-      boolean force, UID ds, List<DataEntryValue> values, List<DataEntryError> errors)
+      boolean force, UID ds, ValidationSource source, List<DataEntryError> errors)
       throws ConflictException {
-    if (ds == null) ds = autoTargetDataSet(values);
+    if (ds == null) ds = autoTargetDataSet(source);
 
-    validateUserAccess(ds, values);
-    validateKeyConsistency(ds, values);
+    validateUserAccess(ds, source);
+    validateKeyConsistency(ds, source);
     boolean skipTimeliness = force && getCurrentUserDetails().isSuper();
-    if (!skipTimeliness) validateEntryTimeliness(ds, values);
+    if (!skipTimeliness) validateEntryTimeliness(ds, source);
 
-    return new DataEntryGroup(ds, validateValues(ds, values, errors));
+    return new DataEntryGroup(ds, null, null, validateValues(ds, source.values(), errors));
   }
 
   /** Is the user allowed to write (capture) the data values? */
-  private void validateUserAccess(UID ds, List<DataEntryValue> values) throws ConflictException {
+  private void validateUserAccess(UID ds, ValidationSource source) throws ConflictException {
     UserDetails user = getCurrentUserDetails();
     if (user.isSuper()) return; // super can always write
 
@@ -502,18 +590,12 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (!dsNoAccess) throw new ConflictException(ErrorCode.E8010, ds);
 
     // - require: OUs are in user hierarchy
-    String userId = user.getUid();
-    List<String> noAccessOrgUnits =
-        store.getOrgUnitsNotInUserHierarchy(
-            UID.of(userId), values.stream().map(DataEntryValue::orgUnit));
+    UID userId = UID.of(user.getUid());
+    List<String> noAccessOrgUnits = store.getOrgUnitsNotInUserHierarchy(userId, source.orgUnits());
     if (!noAccessOrgUnits.isEmpty()) throw new ConflictException(ErrorCode.E8011, noAccessOrgUnits);
 
     // - require: AOCs + COCs => COs : ACL canDataWrite
-    List<String> coNoAccess =
-        store.getCategoryOptionsCanNotDataWrite(
-            Stream.concat(
-                values.stream().map(DataEntryValue::attributeOptionCombo),
-                values.stream().map(DataEntryValue::categoryOptionCombo)));
+    List<String> coNoAccess = store.getCategoryOptionsCanNotDataWrite(source.optionCombos());
     if (!coNoAccess.isEmpty()) throw new ConflictException(ErrorCode.E8012, coNoAccess);
   }
 
@@ -521,60 +603,88 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
    * Are the data value components that make a unique data value key consistent with the metadata?
    * These also implicitly make sure the used key dimensions do actually exist
    */
-  private void validateKeyConsistency(UID ds, List<DataEntryValue> values)
-      throws ConflictException {
+  private void validateKeyConsistency(UID ds, ValidationSource source) throws ConflictException {
     // - require: DEs must belong to the specified DS
-    List<String> deNotInDs =
-        store.getDataElementsNotInDataSet(ds, values.stream().map(DataEntryValue::dataElement));
+    List<String> deNotInDs = store.getDataElementsNotInDataSet(ds, source.dataElements());
     if (!deNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8020, ds, deNotInDs);
 
     // - require: OU must be a source of the DS for the DE
-    List<String> ouNotInDs =
-        store.getOrgUnitsNotInDataSet(ds, values.stream().map(DataEntryValue::orgUnit));
+    List<String> ouNotInDs = store.getOrgUnitsNotInDataSet(ds, source.orgUnits());
     if (!ouNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8022, ds, ouNotInDs);
 
     // - require: PE ISO must be of PT used by the DS
     List<String> isoNotUsableInDs =
-        store.getIsoPeriodsNotUsableInDataSet(ds, values.stream().map(DataEntryValue::period));
+        store.getIsoPeriodsNotUsableInDataSet(ds, source.periods().map(Period::getIsoDate));
     if (!isoNotUsableInDs.isEmpty())
       throw new ConflictException(ErrorCode.E8021, ds, isoNotUsableInDs);
 
     // - require: AOC must link (belong) to the CC of the DS
-    List<String> aocNotInDs =
-        store.getAocNotInDataSet(ds, values.stream().map(DataEntryValue::attributeOptionCombo));
+    List<String> aocNotInDs = store.getAocNotInDataSet(ds, source.attributeOptionCombos());
     if (!aocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8023, ds, aocNotInDs);
 
     // - require: COC must link (belong) to the CC of the DE
-    Map<UID, List<DataEntryValue>> valuesByDe =
-        values.stream().collect(groupingBy(DataEntryValue::dataElement));
-    for (Map.Entry<UID, List<DataEntryValue>> e : valuesByDe.entrySet()) {
-      UID de = e.getKey();
+    Iterator<UID> deIter = source.dataElements().iterator();
+    while (deIter.hasNext()) {
+      UID de = deIter.next();
       List<String> cocNotInDs =
-          store.getCocNotInDataSet(
-              ds, de, e.getValue().stream().map(DataEntryValue::categoryOptionCombo));
+          store.getCocNotInDataSet(ds, de, source.categoryOptionCombosForDataElement(de));
       if (!cocNotInDs.isEmpty()) throw new ConflictException(ErrorCode.E8024, ds, de, cocNotInDs);
     }
 
     // - require: OU must be within the hierarchy of each CO for AOC => COs => OUs
     Set<String> aocOuRestricted =
-        Set.copyOf(
-            store.getAocWithOrgUnitHierarchy(
-                values.stream().map(DataEntryValue::attributeOptionCombo)));
+        Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      Map<UID, List<DataEntryValue>> ouByAoc =
-          values.stream()
-              .filter(dv -> dv.attributeOptionCombo() != null)
-              .filter(dv -> aocOuRestricted.contains(dv.attributeOptionCombo().getValue()))
-              .collect(groupingBy(DataEntryValue::attributeOptionCombo));
-      for (Map.Entry<UID, List<DataEntryValue>> e : ouByAoc.entrySet()) {
-        UID aoc = e.getKey();
+      Iterator<UID> aocIter = source.attributeOptionCombos().iterator();
+      while (aocIter.hasNext()) {
+        UID aoc = aocIter.next();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
         List<String> ouNotInAoc =
-            store.getOrgUnitsNotInAocHierarchy(
-                aoc, e.getValue().stream().map(DataEntryValue::orgUnit));
+            store.getOrgUnitsNotInAocHierarchy(aoc, source.orgUnitsForAttributeOptionCombo(aoc));
         if (!ouNotInAoc.isEmpty()) throw new ConflictException(ErrorCode.E8025, aoc, ouNotInAoc);
       }
     }
+
+    // - require: PEs must be within the OU's operational span
+    List<Period> isoPeriods = source.periods().toList();
+    Map<String, DateRange> ouOpSpan =
+        store.getEntrySpanByOrgUnit(source.orgUnits(), timeframeOf(isoPeriods));
+    if (!ouOpSpan.isEmpty()) {
+      List<Map.Entry<UID, Period>> peNotInOuSpan =
+          source
+              .orgUnitPeriodPairs()
+              .filter(
+                  e -> {
+                    DateRange operational = ouOpSpan.get(e.getKey().getValue());
+                    if (operational == null) return false; // null => no issue with the timeframe
+                    Period pe = e.getValue();
+                    return !operational.includes(pe.getStartDate());
+                  })
+              .distinct()
+              .toList();
+      if (!peNotInOuSpan.isEmpty()) {
+        // this error only indicates issues for the first OU in conflict
+        // as there is no good way to describe more than one combination
+        UID ou = peNotInOuSpan.get(0).getKey();
+        List<Period> ouPeriods =
+            peNotInOuSpan.stream()
+                .filter(e -> ou.equals(e.getKey()))
+                .map(Map.Entry::getValue)
+                .distinct()
+                .toList();
+        throw new ConflictException(ErrorCode.E8031, ou, ouPeriods);
+      }
+    }
+  }
+
+  /**
+   * Are the values valid only considering the DE value type and value and comment options as
+   * context. Non-conforming values will be removed from the result, and an error is added to the
+   * errors list.
+   */
+  private List<DataEntryValue> validateValues(
+      UID ds, List<DataEntryValue> values, List<DataEntryError> errors) throws ConflictException {
+    if (values.isEmpty()) return values;
 
     // - require: no two values may affect the same data value (=key =row)
     Map<DataEntryKey, List<DataEntryValue>> valuesByKey =
@@ -594,48 +704,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
             duplicates.get(0).toKey());
     }
 
-    // - require: PEs must be within the OU's operational span
-    List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
-    PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
-    Map<String, Period> peByIso =
-        isoPeriods.stream().collect(toMap(identity(), type::createPeriod));
-    Map<String, DateRange> ouOpSpan =
-        store.getEntrySpanByOrgUnit(
-            values.stream().map(DataEntryValue::orgUnit), timeframeOf(peByIso.values()));
-    if (!ouOpSpan.isEmpty()) {
-      List<DataEntryValue> peNotInOuSpan =
-          values.stream()
-              .filter(
-                  dv -> {
-                    DateRange operational = ouOpSpan.get(dv.orgUnit().getValue());
-                    if (operational == null) return false; // null => no issue with the timeframe
-                    Period pe = peByIso.get(dv.period());
-                    return !operational.includes(pe.getStartDate());
-                  })
-              .distinct()
-              .toList();
-      if (!peNotInOuSpan.isEmpty()) {
-        // this error only indicates issues for the first OU in conflict
-        // as there is no good way to describe more than one combination
-        UID ou = peNotInOuSpan.get(0).orgUnit();
-        List<String> ouPeriods =
-            peNotInOuSpan.stream()
-                .filter(dv -> ou.equals(dv.orgUnit()))
-                .map(DataEntryValue::period)
-                .distinct()
-                .toList();
-        throw new ConflictException(ErrorCode.E8031, ou, ouPeriods);
-      }
-    }
-  }
-
-  /**
-   * Are the values valid only considering the DE value type and value and comment options as
-   * context. Non-conforming values will be removed from the result, and an error is added to the
-   * errors list.
-   */
-  private List<DataEntryValue> validateValues(
-      UID ds, List<DataEntryValue> values, List<DataEntryError> errors) {
     if (values.stream().allMatch(v -> v.deleted() == Boolean.TRUE)) return values;
     boolean commentAllowsEmptyValue = store.getDataSetCommentAllowsEmptyValue(ds);
     List<UID> dataElements = values.stream().map(DataEntryValue::dataElement).distinct().toList();
@@ -719,8 +787,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   So the current moment is the key parameter to these checks.
   */
 
-  private void validateEntryTimeliness(UID ds, List<DataEntryValue> values)
-      throws ConflictException {
+  private void validateEntryTimeliness(UID ds, ValidationSource source) throws ConflictException {
     Date now = new Date();
     Map<String, List<DateRange>> entrySpansByIso = store.getEntrySpansByIsoPeriod(ds);
     // only if no explicit ranges are defined use expiry and future periods
@@ -733,18 +800,19 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
           Map<String, Set<String>> exemptedIsoByOu =
               store.getExpiryDaysExemptedIsoPeriodsByOrgUnit(ds);
-          List<String> isoNoLongerOpen =
-              values.stream()
+          List<Period> peNoLongerOpen =
+              source
+                  .orgUnitPeriodPairs()
                   // only check values not exempt
                   .filter(
-                      dv -> {
-                        Set<String> ouIsoPeriods = exemptedIsoByOu.get(dv.orgUnit().getValue());
-                        return ouIsoPeriods == null || !ouIsoPeriods.contains(dv.period());
+                      e -> {
+                        Set<String> ouPeriods = exemptedIsoByOu.get(e.getKey().getValue());
+                        return ouPeriods == null || !ouPeriods.contains(e.getValue().getIsoDate());
                       })
                   // find the values entered outside their input period
                   .filter(
-                      dv -> {
-                        Period p = Period.of(dv.period());
+                      e -> {
+                        Period p = e.getValue();
                         // +1 because the period end date is start of day but should include that
                         // day
                         Date endOfEntryPeriod =
@@ -752,22 +820,22 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
                                 p.getEndDate().getTime() + TimeUnit.DAYS.toMillis(expiryDays + 1L));
                         return now.after(endOfEntryPeriod);
                       })
-                  .map(DataEntryValue::period)
+                  .map(Map.Entry::getValue)
                   .distinct()
                   .toList();
-          if (!isoNoLongerOpen.isEmpty())
-            throw new ConflictException(ErrorCode.E8030, ds, isoNoLongerOpen);
+          if (!peNoLongerOpen.isEmpty())
+            throw new ConflictException(ErrorCode.E8030, ds, peNoLongerOpen);
         }
 
         if (expiryDays >= 0) {
           // - require: DS entry for period already allowed?
           // (how much earlier can data be entered relative to the current period)
           int openPeriodsOffset = store.getDataSetOpenPeriodsOffset(ds);
-          List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
-          PeriodType type = PeriodType.getPeriodTypeFromIsoString(isoPeriods.get(0));
+          List<Period> isoPeriods = source.periods().toList();
+          PeriodType type = isoPeriods.get(0).getPeriodType();
           Period latestOpen = type.getFuturePeriod(openPeriodsOffset);
-          List<String> isoNotYetOpen =
-              isoPeriods.stream().filter(iso -> Period.of(iso).isAfter(latestOpen)).toList();
+          List<Period> isoNotYetOpen =
+              isoPeriods.stream().filter(p -> p.isAfter(latestOpen)).toList();
           if (!isoNotYetOpen.isEmpty())
             throw new ConflictException(ErrorCode.E8030, ds, isoNotYetOpen);
         }
@@ -775,91 +843,84 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     } else {
       // - require: DS input period is open explicitly
       // entry time-frame(s) are explicitly defined...
-      List<String> isoNotOpen =
-          values.stream()
+      List<Period> peNotOpen =
+          source
+              .periods()
               .filter(
-                  dv -> {
-                    List<DateRange> openSpan = entrySpansByIso.get(dv.period());
+                  pe -> {
+                    List<DateRange> openSpan = entrySpansByIso.get(pe.getIsoDate());
                     if (openSpan == null) return true;
                     return openSpan.stream().anyMatch(range -> range.includes(now));
                   })
-              .map(DataEntryValue::period)
-              .distinct()
               .toList();
-      if (!isoNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, isoNotOpen);
+      if (!peNotOpen.isEmpty()) throw new ConflictException(ErrorCode.E8030, ds, peNotOpen);
     }
 
     // - require: DS not already approved (data approval)
     Set<String> aocInApproval = Set.copyOf(store.getDataSetAocInApproval(ds));
     if (!aocInApproval.isEmpty()) {
-      Map<UID, List<DataEntryValue>> byAoc =
-          values.stream()
-              .filter(dv -> dv.attributeOptionCombo() != null)
-              .filter(dv -> aocInApproval.contains(dv.attributeOptionCombo().getValue()))
-              .collect(groupingBy(DataEntryValue::attributeOptionCombo));
-      for (Map.Entry<UID, List<DataEntryValue>> e : byAoc.entrySet()) {
-        UID aoc = e.getKey();
+      Iterator<UID> iterAoc = source.attributeOptionCombos().iterator();
+      while (iterAoc.hasNext()) {
+        UID aoc = iterAoc.next();
         if (!aocInApproval.contains(aoc.getValue())) continue;
-        Map<String, Set<String>> isoByOu =
+        Map<String, Set<String>> peByOu =
             store.getApprovedIsoPeriodsByOrgUnit(
-                ds, aoc, e.getValue().stream().map(DataEntryValue::orgUnit));
-        if (!isoByOu.isEmpty()) {
-          Predicate<DataEntryValue> dvApproved =
-              dv -> {
-                Set<String> ouIsoPeriods = isoByOu.get(dv.orgUnit().getValue());
-                return ouIsoPeriods != null && ouIsoPeriods.contains(dv.period());
+                ds, aoc, source.orgUnitsForAttributeOptionCombo(aoc));
+        if (!peByOu.isEmpty()) {
+          Predicate<Map.Entry<UID, Period>> dvApproved =
+              ouPe -> {
+                Set<String> ouIsoPeriods = peByOu.get(ouPe.getKey().getValue());
+                return ouIsoPeriods != null && ouIsoPeriods.contains(ouPe.getValue().getIsoDate());
               };
-          List<DataEntryValue> ouPeInApproval =
-              e.getValue().stream().filter(dvApproved).distinct().toList();
+          List<Map.Entry<UID, Period>> ouPeInApproval =
+              source.orgUnitPeriodPairs().filter(dvApproved).distinct().toList();
           if (!ouPeInApproval.isEmpty()) {
             // this error only indicates issues for the first AOC+OU in conflict
             // as there is no good way to describe more than one combination
-            UID ou = ouPeInApproval.get(0).orgUnit();
-            List<String> ouPeriods =
+            UID ou = ouPeInApproval.get(0).getKey();
+            List<Period> peApprovedForOu =
                 ouPeInApproval.stream()
-                    .filter(dv -> ou.equals(dv.orgUnit()))
-                    .map(DataEntryValue::period)
+                    .filter(ouPe -> ou.equals(ouPe.getKey()))
+                    .map(Map.Entry::getValue)
                     .toList();
-            throw new ConflictException(ErrorCode.E8033, aoc, ou, ouPeriods);
+            throw new ConflictException(ErrorCode.E8033, aoc, ou, peApprovedForOu);
           }
         }
       }
     }
 
     // - require: PE must be within AOC "date range" (timeframe from AOC => COs)
-    Map<String, DateRange> entrySpanByAoc =
-        store.getEntrySpanByAoc(values.stream().map(DataEntryValue::attributeOptionCombo));
+    Map<String, DateRange> entrySpanByAoc = store.getEntrySpanByAoc(source.attributeOptionCombos());
     if (!entrySpanByAoc.isEmpty()) {
       int openPeriodsAfterCoEndDate = store.getDataSetOpenPeriodsAfterCoEndDate(ds);
-      List<DataEntryValue> isoNotInAocRange =
-          values.stream()
-              .filter(dv -> dv.attributeOptionCombo() != null)
-              .map(
-                  dv -> {
-                    DateRange span = entrySpanByAoc.get(dv.attributeOptionCombo().getValue());
-                    if (span == null) return null;
-                    Period p = Period.of(dv.period());
-                    Date start = p.getStartDate();
-                    Date end = p.getEndDate();
-                    if (span.includes(start) && span.includes(end)) return null;
-                    if (openPeriodsAfterCoEndDate == 0) return dv;
+      List<Map.Entry<UID, Period>> peNotInAocRange =
+          source
+              .attributeOptionComboPeriodPairs()
+              .filter(
+                  e -> {
+                    DateRange span = entrySpanByAoc.get(e.getKey().getValue());
+                    if (span == null) return false;
+                    Period pe = e.getValue();
+                    Date start = pe.getStartDate();
+                    Date end = pe.getEndDate();
+                    if (span.includes(start) && span.includes(end)) return false;
+                    if (openPeriodsAfterCoEndDate == 0) return true;
                     // instead of moving range forward we move period backwards
                     // and check against the unchanged span
-                    PeriodType type = p.getPeriodType();
+                    PeriodType type = pe.getPeriodType();
                     end = type.getRewindedDate(end, openPeriodsAfterCoEndDate);
                     start = type.getRewindedDate(start, openPeriodsAfterCoEndDate);
-                    return span.includes(start) && span.includes(end) ? null : dv;
+                    return !span.includes(start) || !span.includes(end);
                   })
-              .filter(Objects::nonNull)
               .toList();
-      if (!isoNotInAocRange.isEmpty()) {
+      if (!peNotInAocRange.isEmpty()) {
         // this error only indicates issues for the first AOC in conflict
         // as there is no good way to describe more than one combination
-        UID aoc = isoNotInAocRange.get(0).attributeOptionCombo();
-        List<String> aocPeriods =
-            isoNotInAocRange.stream()
-                .filter(dv -> Objects.equals(aoc, dv.attributeOptionCombo()))
-                .map(DataEntryValue::period)
+        UID aoc = peNotInAocRange.get(0).getKey();
+        List<Period> aocPeriods =
+            peNotInAocRange.stream()
+                .filter(e -> Objects.equals(aoc, e.getKey()))
+                .map(Map.Entry::getValue)
                 .distinct()
                 .toList();
         throw new ConflictException(ErrorCode.E8032, aoc, aocPeriods);
@@ -876,5 +937,186 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Date end =
         isoPeriods.stream().map(Period::getEndDate).max(comparingLong(Date::getTime)).orElse(null);
     return new DateRange(start, end);
+  }
+
+  private sealed interface ValidationSource {
+
+    /**
+     * @return all data elements in the source (no nulls; not necessarily distinct yet)
+     */
+    Stream<UID> dataElements();
+
+    /**
+     * @return all org units in the source (no nulls; not necessarily distinct yet)
+     */
+    Stream<UID> orgUnits();
+
+    /**
+     * @return all attribute- and category option combos in the source (nulls allowed; not
+     *     necessarily distinct yet)
+     */
+    Stream<UID> optionCombos();
+
+    /**
+     * @return all attribute option combos in the source (nulls allowed; not necessarily distinct
+     *     yet)
+     */
+    Stream<UID> attributeOptionCombos();
+
+    /**
+     * @return all distinct periods in the source (no nulls; no duplicates)
+     */
+    Stream<Period> periods();
+
+    /**
+     * @return all distinct combinations of org units and periods included in the source (no
+     *     duplicates)
+     */
+    Stream<Map.Entry<UID, Period>> orgUnitPeriodPairs();
+
+    /**
+     * @return all distinct combinations of AOC and period included in the source (no null AOCs, no
+     *     duplicates)
+     */
+    Stream<Map.Entry<UID, Period>> attributeOptionComboPeriodPairs();
+
+    /**
+     * @param de filter
+     * @return all COCs used in combination with the given DE (no nulls, no duplicates)
+     */
+    Stream<UID> categoryOptionCombosForDataElement(UID de);
+
+    /**
+     * @param aoc filter
+     * @return all org units used in combination with the given AOC (no nulls, no duplicates)
+     */
+    Stream<UID> orgUnitsForAttributeOptionCombo(UID aoc);
+
+    /**
+     * @return all values for value level validation (value, comment)
+     */
+    List<DataEntryValue> values();
+  }
+
+  private record ValuesValidationSource(List<DataEntryValue> values) implements ValidationSource {
+
+    @Override
+    public Stream<UID> dataElements() {
+      return values.stream().map(DataEntryValue::dataElement);
+    }
+
+    @Override
+    public Stream<UID> orgUnits() {
+      return values.stream().map(DataEntryValue::orgUnit);
+    }
+
+    @Override
+    public Stream<UID> optionCombos() {
+      return Stream.concat(
+          attributeOptionCombos(), values.stream().map(DataEntryValue::categoryOptionCombo));
+    }
+
+    @Override
+    public Stream<UID> attributeOptionCombos() {
+      return values.stream().map(DataEntryValue::attributeOptionCombo);
+    }
+
+    @Override
+    public Stream<Period> periods() {
+      return values.stream().map(DataEntryValue::period).map(Period::of).distinct();
+    }
+
+    @Override
+    public Stream<Map.Entry<UID, Period>> orgUnitPeriodPairs() {
+      return values.stream().map(dv -> Map.entry(dv.orgUnit(), Period.of(dv.period()))).distinct();
+    }
+
+    @Override
+    public Stream<Map.Entry<UID, Period>> attributeOptionComboPeriodPairs() {
+      return values.stream()
+          .filter(dv -> dv.attributeOptionCombo() != null)
+          .map(dv -> Map.entry(dv.attributeOptionCombo(), Period.of(dv.period())))
+          .distinct();
+    }
+
+    @Override
+    public Stream<UID> categoryOptionCombosForDataElement(UID de) {
+      return values.stream()
+          .filter(dv -> dv.dataElement().equals(de))
+          .map(DataEntryValue::categoryOptionCombo)
+          .filter(Objects::nonNull)
+          .distinct();
+    }
+
+    @Override
+    public Stream<UID> orgUnitsForAttributeOptionCombo(UID aoc) {
+      return values.stream()
+          .filter(dv -> Objects.equals(dv.attributeOptionCombo(), aoc))
+          .map(DataEntryValue::orgUnit)
+          .distinct();
+    }
+  }
+
+  private record ScopeValidationSource(DataEntryGroup.Scope scope) implements ValidationSource {
+    @Override
+    public Stream<UID> dataElements() {
+      return scope.elements().stream().map(DataEntryGroup.Scope.Element::dataElement);
+    }
+
+    @Override
+    public Stream<UID> orgUnits() {
+      return scope.orgUnits().stream();
+    }
+
+    @Override
+    public Stream<UID> optionCombos() {
+      return Stream.concat(
+          attributeOptionCombos(),
+          scope.elements().stream().map(DataEntryGroup.Scope.Element::categoryOptionCombo));
+    }
+
+    @Override
+    public Stream<UID> attributeOptionCombos() {
+      return scope.elements().stream().map(DataEntryGroup.Scope.Element::attributeOptionCombo);
+    }
+
+    @Override
+    public Stream<Period> periods() {
+      return scope.periods().stream();
+    }
+
+    @Override
+    public Stream<Map.Entry<UID, Period>> orgUnitPeriodPairs() {
+      return scope.orgUnits().stream()
+          .flatMap(ou -> scope.periods().stream().map(pe -> Map.entry(ou, pe)));
+    }
+
+    @Override
+    public Stream<Map.Entry<UID, Period>> attributeOptionComboPeriodPairs() {
+      return scope.elements().stream()
+          .map(DataEntryGroup.Scope.Element::attributeOptionCombo)
+          .filter(Objects::nonNull)
+          .flatMap(aoc -> scope.periods().stream().map(pe -> Map.entry(aoc, pe)))
+          .distinct();
+    }
+
+    @Override
+    public Stream<UID> categoryOptionCombosForDataElement(UID de) {
+      return scope.elements().stream()
+          .filter(e -> e.dataElement().equals(de))
+          .map(DataEntryGroup.Scope.Element::categoryOptionCombo)
+          .filter(Objects::nonNull)
+          .distinct();
+    }
+
+    @Override
+    public Stream<UID> orgUnitsForAttributeOptionCombo(UID aoc) {
+      return scope.orgUnits().stream();
+    }
+
+    @Override
+    public List<DataEntryValue> values() {
+      return List.of(); // no value level validation
+    }
   }
 }

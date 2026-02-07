@@ -158,7 +158,7 @@ public final class DataEntryInput {
     }
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
     return List.of(
-        new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aoc, null, values));
+        new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aoc, null, null, values));
   }
 
   @Nonnull
@@ -209,14 +209,14 @@ public final class DataEntryInput {
                 de, ou, coc, co, null, null, null, pe, value, comment, followup, deleted));
       }
       DataEntryGroup.Input adxGroup =
-          new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aoc, aco, values);
+          new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aoc, aco, null, values);
       // if this ADX group has same DS group properties...
-      if (last != null && last.isSameDsAoc(adxGroup)) {
+      if (last != null && last.canMergeWith(adxGroup)) {
         // auto-merge ADX group into a DS group purely for faster decode
         // (less DB queries due to fewer groups)
         // but only merge in-order to maintain value order
         res.remove(res.size() - 1); // old last
-        last = last.mergedSameDsAoc(adxGroup);
+        last = last.mergedWith(adxGroup);
         res.add(last);
       } else {
         res.add(adxGroup);
@@ -248,7 +248,7 @@ public final class DataEntryInput {
     if (!dvs.get("dataSetIdScheme").isUndefined())
       schemes.setDataSetIdScheme(dvs.getString("dataSetIdScheme").string());
     if (!dvs.get("dataElementIdScheme").isUndefined())
-      schemes.setDataSetIdScheme(dvs.getString("dataElementIdScheme").string());
+      schemes.setDataElementIdScheme(dvs.getString("dataElementIdScheme").string());
     if (!dvs.get("orgUnitIdScheme").isUndefined())
       schemes.setOrgUnitIdScheme(dvs.getString("orgUnitIdScheme").string());
     if (!dvs.get("categoryOptionComboIdScheme").isUndefined())
@@ -260,6 +260,23 @@ public final class DataEntryInput {
       schemes.setCategoryIdScheme(dvs.getString("categoryIdScheme").string());
     if (!dvs.get("categoryOptionIdScheme").isUndefined())
       schemes.setCategoryOptionIdScheme(dvs.getString("categoryOptionIdScheme").string());
+
+    // deletion scope
+    DataEntryGroup.Input.Scope deletion = null;
+    if (!dvs.get("deletion").isUndefined()) {
+      JsonObject del = dvs.getObject("deletion");
+      deletion =
+          new DataEntryGroup.Input.Scope(
+              del.getArray("orgUnits").stringValues(),
+              del.getArray("periods").stringValues(),
+              del.getList("elements", JsonObject.class)
+                  .toList(
+                      e ->
+                          new DataEntryGroup.Input.Scope.Element(
+                              e.getString("dataElement").string(),
+                              e.getString("categoryOptionCombo").string(),
+                              e.getString("attributeOptionCombo").string())));
+    }
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
@@ -293,7 +310,8 @@ public final class DataEntryInput {
               });
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
     return List.of(
-        new DataEntryGroup.Input(ids, ds, completionDate, null, ou, pe, aocId, aocMap, values));
+        new DataEntryGroup.Input(
+            ids, ds, completionDate, null, ou, pe, aocId, aocMap, deletion, values));
   }
 
   @Nonnull
@@ -325,7 +343,8 @@ public final class DataEntryInput {
         }
       }
       DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(options.getIdSchemes());
-      return List.of(new DataEntryGroup.Input(ids, null, null, null, ou, pe, null, null, values));
+      return List.of(
+          new DataEntryGroup.Input(ids, null, null, null, ou, pe, null, null, null, values));
     } catch (InvalidPdfException ex) {
       throw new BadRequestException(ErrorCode.E8006, ex.getMessage());
     }
