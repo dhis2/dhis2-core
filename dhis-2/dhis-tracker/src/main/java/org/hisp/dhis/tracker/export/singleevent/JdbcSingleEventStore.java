@@ -34,11 +34,8 @@ import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -61,8 +58,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -70,6 +65,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -194,11 +190,6 @@ class JdbcSingleEventStore {
           entry("deleted", COLUMN_EVENT_DELETED),
           entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
           entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
-
-  // Cannot use DefaultRenderService mapper. Does not work properly -
-  // DHIS2-6102
-  private static final ObjectReader eventDataValueJsonReader =
-      JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -1077,13 +1068,49 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private Set<EventDataValue> convertEventDataValueJsonIntoSet(String jsonString) {
-    try {
-      Map<String, EventDataValue> data = eventDataValueJsonReader.readValue(jsonString);
-      return JsonEventDataValueSetBinaryType.convertEventDataValuesMapIntoSet(data);
-    } catch (IOException e) {
-      log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
-      throw new IllegalArgumentException(e);
+    JsonObject jsonObject = JsonMixed.of(jsonString).asObject();
+    Set<EventDataValue> eventDataValues = new HashSet<>(jsonObject.names().size());
+
+    for (String dataElementUid : jsonObject.names()) {
+      JsonObject dataValueJson = jsonObject.getObject(dataElementUid);
+
+      EventDataValue eventDataValue = new EventDataValue();
+      eventDataValue.setDataElement(dataElementUid);
+      eventDataValue.setValue(dataValueJson.getString("value").string(""));
+      eventDataValue.setProvidedElsewhere(
+          dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
+      eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
+      eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
+      eventDataValue.setLastUpdated(
+          DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
+
+      if (dataValueJson.has("createdByUserInfo")) {
+        eventDataValue.setCreatedByUserInfo(
+            parseUserInfoSnapshot(dataValueJson.getObject("createdByUserInfo")));
+      }
+      if (dataValueJson.has("lastUpdatedByUserInfo")) {
+        eventDataValue.setLastUpdatedByUserInfo(
+            parseUserInfoSnapshot(dataValueJson.getObject("lastUpdatedByUserInfo")));
+      }
+
+      eventDataValues.add(eventDataValue);
     }
+
+    return eventDataValues;
+  }
+
+  private static UserInfoSnapshot parseUserInfoSnapshot(JsonObject json) {
+    UserInfoSnapshot snapshot = new UserInfoSnapshot();
+    snapshot.setUsername(json.getString("username").string(null));
+    snapshot.setFirstName(json.getString("firstName").string(null));
+    snapshot.setSurname(json.getString("surname").string(null));
+    if (json.has("uid")) {
+      snapshot.setUid(json.getString("uid").string(null));
+    }
+    if (json.has("code")) {
+      snapshot.setCode(json.getString("code").string(null));
+    }
+    return snapshot;
   }
 
   /**

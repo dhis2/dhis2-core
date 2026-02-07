@@ -30,7 +30,6 @@
 package org.hisp.dhis.test.tracker;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
-import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
@@ -38,6 +37,7 @@ import static io.gatling.javaapi.core.CoreDsl.forAll;
 import static io.gatling.javaapi.core.CoreDsl.group;
 import static io.gatling.javaapi.core.CoreDsl.incrementUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
+import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
@@ -211,19 +211,14 @@ public class TrackerTest extends Simulation {
 
     PopulationBuilder populationBuilder;
     if (this.profile == Profile.SMOKE) {
-      ClosedInjectionStep closedInjection = constantConcurrentUsers(1).during(1);
-      populationBuilder =
-          eventScenario
-              .scenario()
-              .injectClosed(closedInjection)
-              .andThen(trackerScenario.scenario().injectClosed(closedInjection));
+      ClosedInjectionStep closedInjection =
+          rampConcurrentUsers(0)
+              .to(this.usersPerSec)
+              .during(Duration.ofSeconds(this.rampDurationSec));
+      populationBuilder = eventScenario.scenario().injectClosed(closedInjection);
     } else {
       List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
-      populationBuilder =
-          eventScenario
-              .scenario()
-              .injectOpen(injectionProfile)
-              .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+      populationBuilder = eventScenario.scenario().injectOpen(injectionProfile);
     }
 
     HttpProtocolBuilder httpProtocolBuilder =
@@ -343,12 +338,12 @@ public class TrackerTest extends Simulation {
   }
 
   private ScenarioWithRequests eventProgramScenario() {
-    String singleEventUrl = "/api/tracker/events/#{eventUid}";
+    String singleEventUrl = "/api/tracker/singleEvents/#{eventUid}";
     String relationshipUrl =
         "/api/tracker/relationships?event=#{eventUid}&fields=from,to,relationshipType,relationship,createdAt";
 
     String getEventsUrl =
-        "/api/tracker/events?program="
+        "/api/tracker/singleEvents?program="
             + this.eventProgram
             + "&fields=dataValues,occurredAt,event,status,orgUnit,program,programType,updatedAt,createdAt,assignedUser,"
             + "&orgUnit=DiszpKrYNg8"
