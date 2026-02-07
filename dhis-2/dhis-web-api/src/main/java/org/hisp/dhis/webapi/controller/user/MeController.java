@@ -101,6 +101,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -287,6 +288,30 @@ public class MeController {
         NodeUtils.createRootNode(collectionNode.getChildren().get(0)),
         APPLICATION_JSON_VALUE,
         response.getOutputStream());
+  }
+
+  /**
+   * Removes the avatar (profile picture) for the current user. This endpoint allows users to remove
+   * their profile picture without requiring special authorities to access the /users endpoint.
+   *
+   * @param currentUser the currently authenticated user
+   */
+  @DeleteMapping(value = "/avatar")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeAvatar(@CurrentUser(required = true) User currentUser) {
+    FileResource avatar = currentUser.getAvatar();
+
+    if (avatar != null) {
+      // Mark the file resource as unassigned so it can be cleaned up
+      FileResource fileResource = fileResourceService.getFileResource(avatar.getUid());
+      if (fileResource != null) {
+        fileResource.setAssigned(false);
+        fileResourceService.updateFileResource(fileResource);
+      }
+
+      currentUser.setAvatar(null);
+      manager.update(currentUser);
+    }
   }
 
   @GetMapping(
