@@ -27,42 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.tracker.export;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Optional;
-import java.util.function.Consumer;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import javax.annotation.CheckForNull;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.geotools.geometry.jts.WKBReader;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-class JsonbToObjectHelper {
-
-  private static final ObjectMapper MAPPER;
-
-  static {
-    MAPPER = new ObjectMapper();
-    MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    MAPPER.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+@Slf4j
+public class Geometries {
+  private Geometries() {
+    throw new IllegalStateException("Utility class");
   }
 
-  static void setUserInfoSnapshot(
-      ResultSet rs, String columnName, Consumer<UserInfoSnapshot> applier) throws SQLException {
-    Optional.ofNullable(rs.getObject(columnName))
-        .map(Object::toString)
-        .map(JsonbToObjectHelper::safelyConvert)
-        .ifPresent(applier);
-  }
-
-  @SneakyThrows
-  static UserInfoSnapshot safelyConvert(String userInfoSnapshotAsString) {
-    return MAPPER.readValue(userInfoSnapshotAsString, UserInfoSnapshot.class);
+  /**
+   * Parses WKB (Well-Known Binary) bytes into a JTS Geometry. Use with {@code ST_AsBinary(column)}
+   * in SQL queries.
+   *
+   * @param wkb WKB-formatted bytes from PostGIS ST_AsBinary
+   * @return parsed Geometry, or null if input is empty or parsing fails
+   */
+  @CheckForNull
+  public static Geometry fromWkb(byte[] wkb) {
+    if (ObjectUtils.isEmpty(wkb)) {
+      return null;
+    }
+    try {
+      return new WKBReader().read(wkb);
+    } catch (ParseException e) {
+      log.error("An error occurred parsing a geometry field", e);
+      return null;
+    }
   }
 }
