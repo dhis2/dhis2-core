@@ -697,26 +697,37 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds a single LEFT JOIN for each attribute used for filtering and sorting. The result of this
-   * LEFT JOIN is used in the subquery projection and for ordering in both the subquery and the main
-   * query.
+   * Adds joins on tracked entity attribute values for filtering and sorting. Attributes with
+   * non-null filters use INNER JOIN (the WHERE clause eliminates NULLs anyway), which lets the
+   * planner use the join as a filter. Order-only attributes and attributes with a {@code null}
+   * operator filter use LEFT JOIN to preserve rows without a value.
    *
    * <p>Attribute filtering is handled in {@link #addAttributeFilterConditions(StringBuilder,
    * MapSqlParameterSource, TrackedEntityQueryParams, SqlHelper)}.
    */
   private void addJoinOnAttributes(StringBuilder sql, TrackedEntityQueryParams params) {
-    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
-      String col = quote(attribute.getUid());
-      sql.append(" left join trackedentityattributevalue as ")
-          .append(col)
-          .append(" on ")
-          .append(col)
-          .append(".trackedentityid = te.trackedentityid and ")
-          .append(col)
-          .append(".trackedentityattributeid = ")
-          .append(attribute.getId())
-          .append(" ");
+    for (TrackedEntityAttribute attribute : params.getInnerJoinAttributes()) {
+      addAttributeJoin(sql, "inner", attribute);
     }
+    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
+      addAttributeJoin(sql, "left", attribute);
+    }
+  }
+
+  private void addAttributeJoin(
+      StringBuilder sql, String joinType, TrackedEntityAttribute attribute) {
+    String col = quote(attribute.getUid());
+    sql.append(" ")
+        .append(joinType)
+        .append(" join trackedentityattributevalue as ")
+        .append(col)
+        .append(" on ")
+        .append(col)
+        .append(".trackedentityid = te.trackedentityid and ")
+        .append(col)
+        .append(".trackedentityattributeid = ")
+        .append(attribute.getId())
+        .append(" ");
   }
 
   /** Adds the WHERE-clause conditions related to the user provided filters. */
