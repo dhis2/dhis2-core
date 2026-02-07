@@ -32,6 +32,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -41,7 +42,11 @@ import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,10 +56,18 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
@@ -62,14 +75,20 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,6 +105,8 @@ import org.springframework.web.client.HttpClientErrorException;
 @Service
 @RequiredArgsConstructor
 public class AggregateDataExchangeService {
+  private static final long RESET_MAX_VALUES = 500_000L;
+
   private final AnalyticsService analyticsService;
 
   private final AggregateDataExchangeStore aggregateDataExchangeStore;
@@ -95,6 +116,10 @@ public class AggregateDataExchangeService {
   private final DataEntryPipeline dataEntryPipeline;
 
   private final AclService aclService;
+
+  private final IdentifiableObjectManager idObjectManager;
+
+  private final PeriodService periodService;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
@@ -166,6 +191,50 @@ public class AggregateDataExchangeService {
   }
 
   /**
+   * Performs a reset of target data as defined by the given exchange without importing data
+   * afterward.
+   *
+   * @param userDetails CurrentUser executing the reset.
+   * @param exchange the {@link AggregateDataExchange}.
+   * @return an {@link ImportSummary} describing the outcome of the reset.
+   */
+  @Transactional
+  public ImportSummaries resetData(UserDetails userDetails, AggregateDataExchange exchange) {
+    if (!aclService.canDataWrite(userDetails, exchange)) {
+      ImportSummaries summaries = new ImportSummaries();
+      summaries.addImportSummary(
+          new ImportSummary(
+              ImportStatus.ERROR,
+              String.format(
+                  "User has no data write access for AggregateDataExchange: %s",
+                  exchange.getDisplayName())));
+      return summaries;
+    }
+
+    ImportSummaries summaries = new ImportSummaries();
+    ImportSummary summary =
+        new ImportSummary(ImportStatus.SUCCESS, "Target data reset.", new ImportCount());
+
+    for (SourceRequest sourceRequest : exchange.getSource().getRequests()) {
+      ImportSummary result = resetTargetData(exchange, sourceRequest);
+      if (result.getStatus() == ImportStatus.ERROR) {
+        summaries.addImportSummary(result);
+        return summaries;
+      }
+
+      ImportCount total = summary.getImportCount();
+      ImportCount current = result.getImportCount();
+      total.incrementImported(current.getImported());
+      total.incrementUpdated(current.getUpdated());
+      total.incrementIgnored(current.getIgnored());
+      total.incrementDeleted(current.getDeleted());
+    }
+
+    summaries.addImportSummary(summary);
+    return summaries;
+  }
+
+  /**
    * Returns the source data for the analytics data exchange with the given identifier.
    *
    * @param uid the {@link AggregateDataExchange} identifier.
@@ -216,6 +285,15 @@ public class AggregateDataExchangeService {
    */
   private ImportSummary exchangeData(AggregateDataExchange exchange, SourceRequest request) {
     try {
+      TargetRequest targetRequest =
+          exchange.getTarget() != null ? exchange.getTarget().getRequest() : null;
+      if (targetRequest != null && targetRequest.isResetBeforeExchangeOrDefault()) {
+        ImportSummary resetSummary = resetTargetData(exchange, request);
+        if (resetSummary.getStatus() == ImportStatus.ERROR) {
+          return resetSummary;
+        }
+      }
+
       DataValueSet dataValueSet =
           analyticsService.getAggregatedDataValueSet(
               toDataQueryParams(request, new SourceDataQueryParams()));
@@ -243,7 +321,6 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-
     return dataEntryPipeline.importInputGroups(
         List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
   }
@@ -287,7 +364,359 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToExternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-    return getDhis2Client(exchange).saveDataValueSet(dataValueSet, toImportOptions(exchange));
+    return pushToExternal(exchange, dataValueSet, toImportOptions(exchange));
+  }
+
+  private ImportSummary pushToExternal(
+      AggregateDataExchange exchange, DataValueSet dataValueSet, ImportOptions options) {
+    return getDhis2Client(exchange).saveDataValueSet(dataValueSet, options);
+  }
+
+  /**
+   * Performs a reset of target data as defined by the given exchange and request.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param request the {@link SourceRequest}.
+   * @return an {@link ImportSummary} describing the outcome of the exchange.
+   */
+  ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
+    DataValueSet resetSet = buildResetDataValueSet(exchange, request);
+
+    if (resetSet.getDataValues().isEmpty()) {
+      return new ImportSummary(
+          ImportStatus.ERROR,
+          "Reset payload is empty; no data values were generated for the given dx/pe/ou.");
+    }
+
+    ImportOptions resetOptions = toImportOptions(exchange);
+    // Use NEW_AND_UPDATES so delete is driven by per-value deleted=true during upsert.
+    resetOptions.setImportStrategy(ImportStrategy.NEW_AND_UPDATES);
+
+    ImportSummary summary =
+        exchange.getTarget().getType() == TargetType.INTERNAL
+            ? dataEntryPipeline.importInputGroups(
+                List.of(toDataEntryGroup(resetSet)), resetOptions, transitory())
+            : pushToExternal(exchange, resetSet, resetOptions);
+
+    if (summary.getStatus() == ImportStatus.SUCCESS) {
+      summary.setDescription(
+          format("Target data reset (payload values: %d).", resetSet.getDataValues().size()));
+    }
+
+    return summary;
+  }
+
+  /**
+   * Builds a {@link DataValueSet} payload for resetting data based on the given exchange and
+   * request.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param request the {@link SourceRequest}.
+   * @return a {@link DataValueSet} payload for resetting data.
+   */
+  DataValueSet buildResetDataValueSet(AggregateDataExchange exchange, SourceRequest request) {
+    IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+
+    // Note: request filters are intentionally ignored for reset. Filters only restrict analytics
+    // output, not the exchange scope; reset should cover the full dx/pe/ou definition.
+    DimensionalObject dxDimension =
+        toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme);
+    DimensionalObject peDimension =
+        toDimensionalObject(PERIOD_DIM_ID, request.getPe(), inputIdScheme);
+    DimensionalObject ouDimension =
+        toDimensionalObject(ORGUNIT_DIM_ID, request.getOu(), inputIdScheme);
+
+    List<String> dxItems =
+        dxDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
+    List<String> peItems =
+        peDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
+    List<String> ouItems =
+        ouDimension.getItems().stream().map(item -> item.getDimensionItem()).toList();
+
+    long rowCount = (long) dxItems.size() * peItems.size() * ouItems.size();
+    if (rowCount > RESET_MAX_VALUES) {
+      throw new IllegalQueryException(
+          format(
+              "Reset payload too large (%d rows), exceeds limit of %d",
+              rowCount, RESET_MAX_VALUES));
+    }
+
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID, DATA_X_DIM_ID, ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID, PERIOD_DIM_ID, ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, ORGUNIT_DIM_ID, ValueType.TEXT, false, true));
+    grid.addHeader(
+        new GridHeader(
+            DataQueryParams.VALUE_ID, DataQueryParams.VALUE_ID, ValueType.TEXT, false, false));
+
+    for (String dx : dxItems) {
+      for (String pe : peItems) {
+        for (String ou : ouItems) {
+          grid.addRow().addValuesVar(dx, pe, ou, null);
+        }
+      }
+    }
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(dxDimension)
+            .addDimension(peDimension)
+            .addDimension(ouDimension)
+            .build();
+
+    AnalyticsUtils.handleGridForDataValueSet(params, grid);
+
+    String queryOutputIdScheme = request.getOutputIdScheme();
+    IdScheme outputDataElementIdScheme =
+        toIdScheme(request.getOutputDataElementIdScheme(), queryOutputIdScheme);
+    IdScheme outputOrgUnitIdScheme =
+        toIdScheme(request.getOutputOrgUnitIdScheme(), queryOutputIdScheme);
+    IdScheme outputDataItemIdScheme =
+        toIdScheme(request.getOutputDataItemIdScheme(), queryOutputIdScheme);
+    IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
+
+    applyDimensionItemIdScheme(
+        grid,
+        DATA_X_DIM_ID,
+        dxDimension,
+        outputDataElementIdScheme,
+        outputDataItemIdScheme,
+        outputIdScheme);
+    applyDimensionItemIdScheme(
+        grid, ORGUNIT_DIM_ID, ouDimension, outputOrgUnitIdScheme, null, outputIdScheme);
+    applyIdSchemeToGrid(grid, DATA_X_DIM_ID, DataElement.class, outputDataElementIdScheme);
+
+    TargetRequest targetRequest =
+        exchange.getTarget() != null ? exchange.getTarget().getRequest() : null;
+    if (targetRequest != null) {
+      IdScheme cocScheme =
+          toIdScheme(targetRequest.getCategoryOptionComboIdScheme(), targetRequest.getIdScheme());
+      if (cocScheme != null && !cocScheme.isNull()) {
+        applyCocSchemeForNonIndicatorRows(
+            grid, dxDimension, outputDataItemIdScheme, outputIdScheme, cocScheme);
+      }
+    }
+
+    DataValueSet dataValueSet = AnalyticsUtils.getDataValueSet(params, grid);
+    dataValueSet
+        .getDataValues()
+        .forEach(
+            value -> {
+              value.setValue(null);
+              value.setStoredBy(null);
+              value.setComment("Deleted by ADEX");
+              value.setDeleted(true);
+            });
+    return dataValueSet;
+  }
+
+  /**
+   * Applies the given ID scheme to the specified column of the given grid.
+   *
+   * @param grid the {@link Grid}.
+   * @param column the column name.
+   * @param type the type of {@link IdentifiableObject}.
+   * @param idScheme the {@link IdScheme}.
+   */
+  private <T extends IdentifiableObject> void applyIdSchemeToGrid(
+      Grid grid, String column, Class<T> type, IdScheme idScheme) {
+    if (idScheme == null || idScheme.isNull()) {
+      return;
+    }
+
+    int index = grid.getIndexOfHeader(column);
+    if (index == -1) {
+      return;
+    }
+
+    Map<String, String> cache = new HashMap<>();
+
+    List<List<Object>> rows = grid.getRows();
+    for (List<Object> row : rows) {
+      Object value = row.get(index);
+      if (value == null) {
+        continue;
+      }
+
+      String uid = String.valueOf(value);
+      String mapped = cache.get(uid);
+      if (mapped == null) {
+        T object = idObjectManager.get(type, uid);
+        if (object != null) {
+          mapped = object.getPropertyValue(idScheme);
+        }
+        if (mapped == null) {
+          mapped = uid;
+        }
+        cache.put(uid, mapped);
+      }
+
+      row.set(index, mapped);
+    }
+  }
+
+  /**
+   * Applies the given dimension item ID schemes to the specified column of the given grid.
+   *
+   * @param grid the {@link Grid}.
+   * @param column the column name.
+   * @param dimension the {@link DimensionalObject}.
+   * @param dataElementScheme the {@link IdScheme} for data elements.
+   * @param dataItemScheme the {@link IdScheme} for data items.
+   * @param generalScheme the general {@link IdScheme}.
+   */
+  private void applyDimensionItemIdScheme(
+      Grid grid,
+      String column,
+      DimensionalObject dimension,
+      IdScheme dataElementScheme,
+      IdScheme dataItemScheme,
+      IdScheme generalScheme) {
+
+    if (allSchemesEmpty(dataElementScheme, dataItemScheme, generalScheme)) {
+      return;
+    }
+
+    int index = grid.getIndexOfHeader(column);
+    if (index == -1) {
+      return;
+    }
+
+    Map<String, String> map = new HashMap<>();
+    dimension
+        .getItems()
+        .forEach(
+            item -> {
+              IdScheme schemeToUse = generalScheme;
+              if (item instanceof DataElement
+                  && dataElementScheme != null
+                  && !dataElementScheme.isNull()) {
+                schemeToUse = dataElementScheme;
+              } else if (dataItemScheme != null && !dataItemScheme.isNull()) {
+                schemeToUse = dataItemScheme;
+              }
+
+              String mapped =
+                  schemeToUse != null && !schemeToUse.isNull()
+                      ? item.getDimensionItem(schemeToUse)
+                      : item.getDimensionItem();
+              map.put(item.getDimensionItem(), mapped);
+            });
+
+    List<List<Object>> rows = grid.getRows();
+    for (List<Object> row : rows) {
+      Object value = row.get(index);
+      if (value == null) {
+        continue;
+      }
+      String mapped = map.get(String.valueOf(value));
+      if (mapped != null) {
+        row.set(index, mapped);
+      }
+    }
+  }
+
+  private boolean allSchemesEmpty(IdScheme... schemes) {
+    for (IdScheme scheme : schemes) {
+      if (scheme != null && !scheme.isNull()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Applies the given category option combo ID scheme to non-indicator rows of the given grid. This
+   * is for situations where indicators use specific category option combos for aggregation, and
+   * these should not be altered as they are defined on the indicator itself. However, for data
+   * elements with category option combos, the given scheme should be applied.
+   *
+   * @param grid the {@link Grid}.
+   * @param dxDimension the data X {@link DimensionalObject}.
+   * @param dataItemScheme the {@link IdScheme} for data items.
+   * @param generalScheme the general {@link IdScheme}.
+   * @param cocScheme the {@link IdScheme} for category option combos.
+   */
+  private void applyCocSchemeForNonIndicatorRows(
+      Grid grid,
+      DimensionalObject dxDimension,
+      IdScheme dataItemScheme,
+      IdScheme generalScheme,
+      IdScheme cocScheme) {
+    int dxIndex = grid.getIndexOfHeader(DATA_X_DIM_ID);
+    int cocIndex = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
+    if (dxIndex == -1 || cocIndex == -1) {
+      return;
+    }
+
+    Set<String> indicatorIds =
+        getIndicatorDimensionItems(dxDimension, dataItemScheme, generalScheme);
+    if (indicatorIds.isEmpty()) {
+      applyIdSchemeToGrid(grid, CATEGORYOPTIONCOMBO_DIM_ID, CategoryOptionCombo.class, cocScheme);
+      return;
+    }
+
+    Map<String, String> cache = new HashMap<>();
+    for (List<Object> row : grid.getRows()) {
+      mapCocForNonIndicatorRow(row, dxIndex, cocIndex, indicatorIds, cocScheme, cache);
+    }
+  }
+
+  /**
+   * Retrieves the set of dimension item IDs from the given dimension that are indicators or program
+   * indicators, using the specified ID schemes. This is used to identify which dimension items
+   * should not have their category option combos remapped during reset operations.
+   *
+   * @param dimension the {@link DimensionalObject}.
+   * @param dataItemScheme the {@link IdScheme} for data items.
+   * @param generalScheme the general {@link IdScheme}.
+   * @return a set of dimension item IDs that are indicators or program indicators.
+   */
+  private Set<String> getIndicatorDimensionItems(
+      DimensionalObject dimension, IdScheme dataItemScheme, IdScheme generalScheme) {
+    Set<String> ids = new HashSet<>();
+    for (DimensionalItemObject item : dimension.getItems()) {
+      if (!(item instanceof Indicator || item instanceof ProgramIndicator)) {
+        continue;
+      }
+      IdScheme schemeToUse =
+          dataItemScheme != null && !dataItemScheme.isNull() ? dataItemScheme : generalScheme;
+      if (schemeToUse != null && !schemeToUse.isNull()) {
+        ids.add(item.getDimensionItem(schemeToUse));
+      }
+      ids.add(item.getDimensionItem());
+    }
+    return ids;
+  }
+
+  private void mapCocForNonIndicatorRow(
+      List<Object> row,
+      int dxIndex,
+      int cocIndex,
+      Set<String> indicatorIds,
+      IdScheme cocScheme,
+      Map<String, String> cache) {
+    Object dxValue = row.get(dxIndex);
+    Object cocValue = row.get(cocIndex);
+    boolean indicatorRow = dxValue != null && indicatorIds.contains(String.valueOf(dxValue));
+    if (indicatorRow || cocValue == null) {
+      return;
+    }
+
+    String uid = String.valueOf(cocValue);
+    String mapped = cache.get(uid);
+    if (mapped == null) {
+      CategoryOptionCombo coc = idObjectManager.get(CategoryOptionCombo.class, uid);
+      if (coc != null) {
+        mapped = coc.getPropertyValue(cocScheme);
+      }
+      if (mapped == null) {
+        mapped = uid;
+      }
+      cache.put(uid, mapped);
+    }
+
+    row.set(cocIndex, mapped);
   }
 
   /**
