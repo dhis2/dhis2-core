@@ -167,6 +167,10 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
+        .addFilter("StaticAssetsCacheFilter", new DelegatingFilterProxy("staticAssetsCacheFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
