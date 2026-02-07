@@ -587,48 +587,15 @@ class JdbcTrackedEntityStore {
    */
   private void addEventExistsForEnrollmentJoin(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select 1 from trackerevent ").append(EVENT_ALIAS).append(" ");
-
-    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sql.append("inner join (")
-          .append("select userinfoid as userid from userinfo where uid in (:assignedUserUids)")
-          .append(") au on au.userid = ")
-          .append(EVENT_ALIAS)
-          .append(".assigneduserid ");
-      sqlParameters.addValue(
-          "assignedUserUids",
-          UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-    }
-
-    sql.append("where ")
+    sql.append("select 1 from trackerevent ")
+        .append(EVENT_ALIAS)
+        .append(" where ")
         .append(EVENT_ALIAS)
         .append(".enrollmentid = ")
         .append(ENROLLMENT_ALIAS)
         .append(".enrollmentid");
 
-    if (params.hasEventStatus()) {
-      sql.append(" and ");
-      addEventDateRangeCondition(sql, sqlParameters, params);
-      sql.append(" and ");
-      addEventStatusCondition(sql, sqlParameters, params);
-    }
-
-    if (params.hasProgramStage()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".programstageid = :programStageId");
-      sqlParameters.addValue("programStageId", params.getProgramStage().getId());
-    }
-
-    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is null");
-    }
-
-    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is not null");
-    }
-
-    if (!params.isIncludeDeleted()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".deleted is false");
-    }
+    addEventFilterConditions(sql, sqlParameters, params);
   }
 
   /** Appends event date range condition to SQL. Reusable across EXISTS subquery and JOIN paths. */
@@ -788,13 +755,11 @@ class JdbcTrackedEntityStore {
 
     sql.append(whereAnd.whereAnd())
         .append("exists (")
-        .append("select en.trackedentityid ")
+        .append("select 1 ")
         .append("from enrollment en ");
 
     if (params.hasFilterForEvents()) {
-      sql.append("inner join (");
-      addEventFilter(sql, sqlParameters, params);
-      sql.append(") ev on ev.enrollmentid = en.enrollmentid ");
+      sql.append("inner join trackerevent ev on ev.enrollmentid = en.enrollmentid ");
     }
 
     sql.append(
@@ -804,48 +769,46 @@ class JdbcTrackedEntityStore {
 
     addEnrollmentFilterConditions(sql, sqlParameters, params);
 
+    if (params.hasFilterForEvents()) {
+      addEventFilterConditions(sql, sqlParameters, params);
+    }
+
     sql.append(")");
   }
 
-  /** Adds event query with event related query params to given {@code sql}. */
-  private void addEventFilter(
+  /** Appends event filter conditions to the WHERE clause of the enrollment EXISTS subquery. */
+  private void addEventFilterConditions(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select ev.enrollmentid ").append("from trackerevent ev ");
+    if (params.hasEventStatus()) {
+      sql.append(" and ");
+      addEventDateRangeCondition(sql, sqlParameters, params);
+      sql.append(" and ");
+      addEventStatusCondition(sql, sqlParameters, params);
+    }
+
+    if (params.hasProgramStage()) {
+      sql.append(" and ev.programstageid = :programStageId");
+      sqlParameters.addValue("programStageId", params.getProgramStage().getId());
+    }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sql.append("inner join (")
-          .append("select userinfoid as userid ")
-          .append("from userinfo ")
-          .append("where uid in (:assignedUserUids) ")
-          .append(") au on au.userid = ev.assigneduserid");
+      sql.append(
+          " and ev.assigneduserid in (select userinfoid from userinfo where uid in (:assignedUserUids))");
       sqlParameters.addValue(
           "assignedUserUids",
           UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
     }
 
-    SqlHelper whereHlp = new SqlHelper(true);
-    if (params.hasEventStatus()) {
-      sql.append(whereHlp.whereAnd());
-      addEventDateRangeCondition(sql, sqlParameters, params);
-      sql.append(whereHlp.whereAnd());
-      addEventStatusCondition(sql, sqlParameters, params);
-    }
-
-    if (params.hasProgramStage()) {
-      sql.append(whereHlp.whereAnd()).append("ev.programstageid = :programStageId ");
-      sqlParameters.addValue("programStageId", params.getProgramStage().getId());
-    }
-
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(whereHlp.whereAnd()).append("ev.assigneduserid is null ");
+      sql.append(" and ev.assigneduserid is null");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(whereHlp.whereAnd()).append("ev.assigneduserid is not null ");
+      sql.append(" and ev.assigneduserid is not null");
     }
 
     if (!params.isIncludeDeleted()) {
-      sql.append(whereHlp.whereAnd()).append("ev.deleted is false");
+      sql.append(" and ev.deleted is false");
     }
   }
 
