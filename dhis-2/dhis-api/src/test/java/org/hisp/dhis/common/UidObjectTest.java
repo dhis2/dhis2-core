@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,18 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Common interface for objects that have a unique ID used in RESTful APIs but that might not have
- * use for a name and other fundamentals that come with {@link IdentifiableObject}s.
- *
- * @author Jan Bernitt
- */
-public interface UidObject {
-  /**
-   * @deprecated This method is being phased out in favour of {@link #getUID()} which provides type
-   *     safety, validation and security bonuses. Please use {@link #getUID()} instead.
-   * @return external unique ID of the object as used in the RESTful API web api backward
-   *     compatibility
-   */
-  @Deprecated(since = "2.43")
-  @JsonProperty(value = "id")
-  String getUid();
+import org.hisp.dhis.category.Category;
+import org.junit.jupiter.api.Test;
 
-  default UID getUID() {
-    return UID.of(getUid());
+class UidObjectTest {
+
+  @Test
+  void getUIDTest() {
+    Category category = new Category();
+    category.setAutoFields();
+    UID uidType = category.getUID();
+    assertEquals(category.getUid(), uidType.getValue());
   }
 }
