@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
@@ -40,6 +41,9 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.feedback.MergeReport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -215,6 +219,36 @@ class CategoryComboMergeServiceTest {
     // then 2 errors expected (one for each source)
     assertTrue(mergeReport.hasErrorMessages());
     assertEquals(2, mergeReport.getMergeErrors().size());
+  }
+
+  @Test
+  @DisplayName("Multiple sources with different categories generate multiple errors")
+  void duplicateCocForCcTest() {
+    // given a data integrity details check exists with issues
+    String srcCc1 = "cc1";
+    String srcCc2 = "cc2";
+    String targetCc3 = "cc3";
+
+    DataIntegrityCheck check = DataIntegrityCheck.builder().build();
+    DataIntegrityIssue issue1 =
+        new DataIntegrityIssue("id1", "co1, co2", "comment", List.of("cc1"));
+    DataIntegrityIssue issue2 =
+        new DataIntegrityIssue("id2", "co1, co2", "comment", List.of("cc1"));
+    DataIntegrityDetails details =
+        new DataIntegrityDetails(check, new Date(), new Date(), "Error", List.of(issue1, issue2));
+
+    MergeReport mergeReport = new MergeReport();
+
+    // when checking for duplicates
+    CategoryComboMergeService.checkForDuplicates(
+        Set.of(srcCc1, srcCc2), targetCc3, details, mergeReport);
+
+    // then 2 errors expected (one for each source)
+    assertTrue(mergeReport.hasErrorMessages());
+    assertEquals(2, mergeReport.getMergeErrors().size());
+    assertEquals(
+        "Duplicate CategoryOptionCombo `co1, co2` found for CategoryCombo `cc1`. Fix this before continuing with the merge.",
+        mergeReport.getMergeErrors().get(0).getMessage());
   }
 
   // Helper methods

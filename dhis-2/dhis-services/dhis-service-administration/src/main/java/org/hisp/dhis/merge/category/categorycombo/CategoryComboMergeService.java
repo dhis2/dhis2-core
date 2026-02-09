@@ -32,8 +32,10 @@ package org.hisp.dhis.merge.category.categorycombo;
 import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +48,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
@@ -54,6 +58,7 @@ import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.merge.MergeValidator;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,11 +72,13 @@ import org.springframework.stereotype.Service;
 public class CategoryComboMergeService implements MergeService {
 
   private final CategoryService categoryService;
+  private final DataIntegrityService dataIntegrityService;
   private final CategoryComboStore categoryComboStore;
   private final CategoryComboMergeHandler categoryComboMergeHandler;
   private final MergeValidator validator;
   private final EntityManager entityManager;
   private List<MetadataMergeHandler> metadataMergeHandlers;
+  private static final String DUPLICATE_COCS_CHECK = "category_option_combos_have_duplicates";
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -85,8 +92,14 @@ public class CategoryComboMergeService implements MergeService {
     // fetch the actual CategoryCombos for validation
     List<CategoryCombo> sourceCategoryCombos =
         categoryComboStore.getCategoryCombosByUid(request.getSources());
-    CategoryCombo targetCategoryCombo =
-        categoryService.getCategoryCombo(request.getTarget().getValue());
+    CategoryCombo targetCategoryCombo = categoryService.getCategoryCombo(request.getTarget());
+
+    Set<String> sourceCcNames =
+        sourceCategoryCombos.stream().map(CategoryCombo::getName).collect(Collectors.toSet());
+    String targetCcName = targetCategoryCombo.getName();
+
+    // duplicate COCs check
+    checkForDuplicateCocsForCc(sourceCcNames, targetCcName, mergeReport);
 
     // validate that sources and target have identical categories
     validateIdenticalCategories(sourceCategoryCombos, targetCategoryCombo, mergeReport);
@@ -98,6 +111,37 @@ public class CategoryComboMergeService implements MergeService {
     validateCategoryOptionCombos(sourceCategoryCombos, targetCategoryCombo, mergeReport);
 
     return request;
+  }
+
+  private void checkForDuplicateCocsForCc(
+      Set<String> sourceCcNames, @Nonnull String targetCcName, @Nonnull MergeReport mergeReport) {
+    dataIntegrityService.runDetailsChecks(Set.of(DUPLICATE_COCS_CHECK), JobProgress.noop());
+    Map<String, DataIntegrityDetails> checkDetails =
+        dataIntegrityService.getDetails(Set.of(DUPLICATE_COCS_CHECK), 10L);
+
+    checkForDuplicates(
+        sourceCcNames, targetCcName, checkDetails.get(DUPLICATE_COCS_CHECK), mergeReport);
+  }
+
+  protected static void checkForDuplicates(
+      Set<String> sourceCcNames,
+      String targetCcName,
+      @CheckForNull DataIntegrityDetails checkDetails,
+      @Nonnull MergeReport mergeReport) {
+    if (checkDetails == null) return;
+    checkDetails
+        .getIssues()
+        .forEach(
+            issue -> {
+              // check if CC is present
+              Set<String> catCombos = new HashSet<>(issue.getRefs());
+              for (String catComboName : catCombos) {
+                if (sourceCcNames.contains(catComboName) || targetCcName.equals(catComboName)) {
+                  mergeReport.addErrorMessage(
+                      new ErrorMessage(ErrorCode.E1548, issue.getName(), catComboName));
+                }
+              }
+            });
   }
 
   /**
@@ -137,10 +181,13 @@ public class CategoryComboMergeService implements MergeService {
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
-   * @param mergeReport report to update with errors
+   * @param mergeReport for reporting errors
    */
   protected static void validateCategoryOptionCombos(
       List<CategoryCombo> sources, CategoryCombo target, MergeReport mergeReport) {
+    // 1. check for duplicate COCs - use existing integrity check
+    // category_option_combos_have_duplicates
+
     int expectedOptionCount = target.getCategories().size();
 
     Set<UID> validCategoryOptionUids = new HashSet<>();
@@ -148,6 +195,7 @@ public class CategoryComboMergeService implements MergeService {
       category.getCategoryOptions().forEach(co -> validCategoryOptionUids.add(co.getUID()));
     }
 
+    // 2. check for COC cardinality - number matches number of Categories
     for (CategoryCombo source : sources) {
       for (CategoryOptionCombo coc : source.getOptionCombos()) {
         // check cardinality
@@ -161,13 +209,13 @@ public class CategoryComboMergeService implements MergeService {
                   coc.getUid()));
         }
 
+        // 3. check for COC CO validity - must be part of C from CC
         // check that all CategoryOptions are valid for the target's Categories
-        Set<UID> cocOptionUids =
+
+        Set<UID> invalidOptions =
             coc.getCategoryOptions().stream()
                 .map(IdentifiableObject::getUID)
                 .collect(Collectors.toSet());
-
-        Set<UID> invalidOptions = new HashSet<>(cocOptionUids);
         invalidOptions.removeAll(validCategoryOptionUids);
 
         if (!invalidOptions.isEmpty()) {
